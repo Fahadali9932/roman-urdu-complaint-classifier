@@ -1,13 +1,11 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Container } from '../../components/layout/Container';
-import { Card } from '../../components/common/Card';
 import { Input } from '../../components/common/Input';
 import { Button } from '../../components/common/Button';
-import { AlertBanner } from '../../components/common/AlertBanner';
 import { CivicEmblem } from '../../components/common/CivicEmblem';
 import { useLanguage } from '../../context/LanguageContext';
-import { Mail, Lock, LogIn, ArrowRight, Eye, EyeOff, Sparkles } from 'lucide-react';
+import { Mail, Lock, LogIn, ArrowRight, Eye, EyeOff, Shield } from 'lucide-react';
 
 export const LoginPage: React.FC = () => {
   const { t, isRTL } = useLanguage();
@@ -24,26 +22,26 @@ export const LoginPage: React.FC = () => {
     // UI foundation only: navigate to dashboard as demonstration
     setTimeout(() => {
       navigate('/dashboard');
-    }, 600);
+    }, 500);
   };
 
   return (
     <div className="py-12 sm:py-16">
       <Container size="sm">
-        <div className="text-center space-y-3 mb-8">
-          <div className="inline-flex justify-center">
-            <CivicEmblem size="lg" />
+        <div className="text-center space-y-2 mb-6">
+          <div className="inline-flex justify-center mb-1">
+            <CivicEmblem size="md" />
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-semibold text-[#1C3033] tracking-tight">
             {t('authSignInTitle')}
           </h1>
-          <p className="text-xs sm:text-sm text-slate-600 max-w-sm mx-auto">
+          <p className="text-xs text-[#667578] max-w-xs mx-auto">
             {t('authSignInSubtitle')}
           </p>
         </div>
 
-        <Card className="p-6 sm:p-8 text-start">
-          <form onSubmit={handleSubmit} className="space-y-5">
+        <div className="paper-sheet rounded-xl p-6 sm:p-8 text-start space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <Input
               label={t('authEmail')}
               type="email"
@@ -52,18 +50,19 @@ export const LoginPage: React.FC = () => {
               placeholder={t('authEmailPlaceholder')}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              leftIcon={<Mail className="w-4 h-4" />}
+              leftIcon={<Mail className="w-4 h-4 text-[#667578]" />}
+              className="bg-white border-[#E5E9E7] focus:border-[#087F76]"
             />
 
             <div className="space-y-1">
               <div className="flex items-center justify-between">
                 <label
                   htmlFor="password"
-                  className="block text-xs font-semibold text-slate-700 uppercase tracking-wider"
+                  className="block text-xs font-semibold text-[#1C3033] uppercase tracking-wider"
                 >
                   {t('authPassword')} <span className="text-rose-500">*</span>
                 </label>
-                <span className="text-xs text-teal-700 hover:text-teal-900 cursor-pointer">
+                <span className="text-xs text-[#087F76] hover:underline cursor-pointer">
                   {t('authForgotPassword')}
                 </span>
               </div>
@@ -74,13 +73,14 @@ export const LoginPage: React.FC = () => {
                 placeholder={t('authPasswordPlaceholder')}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                leftIcon={<Lock className="w-4 h-4" />}
+                leftIcon={<Lock className="w-4 h-4 text-[#667578]" />}
+                className="bg-white border-[#E5E9E7] focus:border-[#087F76]"
                 rightAction={
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     aria-label={showPassword ? t('passwordHide') : t('passwordShow')}
-                    className="p-1.5 text-slate-400 hover:text-slate-600 focus:outline-none min-w-[36px] min-h-[36px] flex items-center justify-center rounded transition-colors"
+                    className="p-1.5 text-[#667578] hover:text-[#1C3033] focus:outline-none min-w-[36px] min-h-[36px] flex items-center justify-center rounded transition-colors"
                   >
                     {showPassword ? (
                       <EyeOff className="w-4 h-4" aria-hidden="true" />
@@ -92,11 +92,11 @@ export const LoginPage: React.FC = () => {
               />
             </div>
 
-            <div className="flex items-center justify-between text-xs text-slate-600">
+            <div className="flex items-center justify-between text-xs text-[#667578]">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
-                  className="rounded border-slate-300 text-teal-600 focus:ring-teal-500"
+                  className="rounded border-[#E5E9E7] text-[#087F76] focus:ring-[#087F76]"
                 />
                 <span>{t('authRememberMe')}</span>
               </label>
@@ -105,8 +105,8 @@ export const LoginPage: React.FC = () => {
             <Button
               type="submit"
               variant="primary"
-              size="lg"
-              className="w-full"
+              size="md"
+              className="w-full bg-[#193D3D] hover:bg-[#1C3033] text-white"
               isLoading={submitted}
               leftIcon={<LogIn className="w-4 h-4" />}
             >
@@ -114,43 +114,48 @@ export const LoginPage: React.FC = () => {
             </Button>
 
             {/* Direct Demo Exploration Mode */}
-            <div className="relative my-4">
+            <div className="relative my-3">
               <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-slate-200" />
+                <span className="w-full border-t border-[#E5E9E7]" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white px-3 text-slate-400 font-semibold">{t('authOr')}</span>
+                <span className="bg-white px-2.5 text-[#667578] font-medium text-[11px]">{t('authOr')}</span>
               </div>
             </div>
 
             <Button
               type="button"
               variant="outline"
-              size="lg"
-              className="w-full border-teal-300 text-teal-800 hover:bg-teal-50 font-semibold"
+              size="md"
+              className="w-full border-[#E5E9E7] text-[#1C3033] hover:bg-[#E5E9E7]/40 font-medium text-xs"
               onClick={() => navigate('/dashboard')}
-              leftIcon={<Sparkles className="w-4 h-4 text-teal-600" />}
             >
               {t('authExploreDemo')}
             </Button>
 
-            <div className="text-center pt-2 border-t border-slate-100">
+            <div className="text-center pt-2 border-t border-[#E5E9E7]">
               <Link
                 to="/register"
-                className="text-xs sm:text-sm font-semibold text-teal-700 hover:text-teal-900 inline-flex items-center gap-1"
+                className="text-xs font-semibold text-[#087F76] hover:text-[#193D3D] inline-flex items-center gap-1"
               >
                 <span>{t('authNoAccount')}</span>
                 <ArrowRight className={`w-3.5 h-3.5 ${isRTL ? 'rotate-180' : ''}`} />
               </Link>
             </div>
           </form>
-        </Card>
+        </div>
 
-        {/* Security Notice: Supabase planned for Phase 2 */}
-        <div className="mt-6">
-          <AlertBanner type="info" title={t('authNoticeTitle')}>
-            {t('authNoticeText')}
-          </AlertBanner>
+        {/* Prototype Transparency Notice */}
+        <div className="mt-5 p-3.5 rounded-lg bg-[#F7F8F7] border border-[#E5E9E7] text-start flex items-start gap-2.5 text-xs text-[#667578]">
+          <Shield className="w-4 h-4 text-[#087F76] shrink-0 mt-0.5" />
+          <div className="space-y-0.5">
+            <span className="font-semibold text-[#1C3033] block">
+              {t('authNoticeTitle')}
+            </span>
+            <p className="text-[11px] leading-relaxed">
+              {t('authNoticeText')}
+            </p>
+          </div>
         </div>
       </Container>
     </div>

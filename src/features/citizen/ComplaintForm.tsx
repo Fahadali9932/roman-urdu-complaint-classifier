@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Container } from '../../components/layout/Container';
-import { Card } from '../../components/common/Card';
 import { Input } from '../../components/common/Input';
 import { Select } from '../../components/common/Select';
 import { Textarea } from '../../components/common/Textarea';
@@ -12,18 +11,16 @@ import { AlertBanner } from '../../components/common/AlertBanner';
 import { useLanguage } from '../../context/LanguageContext';
 import { complaintService } from '../../services';
 import { countWords, MAX_COMPLAINT_WORDS } from '../../utils/wordCounter';
+import { formatDateOnly } from '../../utils/dateFormatter';
 import { type KarachiDistrict, type SubmissionResult } from '../../types';
 import {
   Send,
-  Sparkles,
-  Info,
   ShieldCheck,
   CheckCircle2,
   Copy,
   ArrowRight,
-  User,
-  MapPin,
-  FileText,
+  Lock,
+  Building,
 } from 'lucide-react';
 
 const KARACHI_DISTRICTS: { value: KarachiDistrict; label: string }[] = [
@@ -37,7 +34,7 @@ const KARACHI_DISTRICTS: { value: KarachiDistrict; label: string }[] = [
 ];
 
 export const ComplaintForm: React.FC = () => {
-  const { t, isRTL } = useLanguage();
+  const { t, language, isRTL } = useLanguage();
   const navigate = useNavigate();
 
   // Form fields state
@@ -60,6 +57,10 @@ export const ComplaintForm: React.FC = () => {
 
   // Derived word count for complaint description
   const descriptionWords = countWords(formData.description);
+
+  // Automatically formatted current date for formal paper application header
+  const [currentDateIso] = useState(() => new Date().toISOString());
+  const todayFormatted = formatDateOnly(currentDateIso, language);
 
   const handleChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -150,43 +151,92 @@ export const ComplaintForm: React.FC = () => {
   };
 
   return (
-    <div className="py-6 sm:py-10">
+    <div className="py-8 sm:py-12">
       <Container size="md">
-        {/* Header */}
-        <div className="text-start space-y-2 mb-6">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-50 border border-teal-200 text-teal-800 text-xs font-semibold">
-            <Sparkles className="w-3.5 h-3.5 text-teal-700" aria-hidden="true" />
-            <span>Phase 1 Citizen Intake Prototype</span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-            {t('formTitle')}
+        {/* Minimal Page Heading */}
+        <div className="text-center space-y-1.5 mb-8">
+          <h1 className="text-2xl sm:text-3xl font-semibold text-[#1C3033] tracking-tight">
+            {t('paperFormTitle') || t('formTitle')}
           </h1>
-          <p className="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-xl">
-            {t('formSubtitle')}
+          <p className="text-xs sm:text-sm text-[#667578] max-w-lg mx-auto">
+            {t('paperFormSubtitle') || t('formSubtitle')}
           </p>
         </div>
 
-        {/* Informative Automated Routing Notice Banner */}
-        <AlertBanner
-          type="info"
-          title={t('formDeptNoteTitle')}
-          className="mb-6"
-        >
-          {t('formDeptNoteText')}
-        </AlertBanner>
+        {/* Paper-Style Application Sheet */}
+        <div className="paper-sheet rounded-xl p-6 sm:p-10 max-w-2xl mx-auto text-start">
+          <form onSubmit={handleSubmit} noValidate className="space-y-6">
+            {/* 1. Formal Paper Header */}
+            <div className="pb-4 border-b border-[#E5E9E7] flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+              <div className="flex items-center gap-2">
+                <span className="font-semibold text-[#193D3D] uppercase tracking-wider text-[11px]">
+                  {t('paperDocHeader') || 'CITIZEN CIVIC GRIEVANCE APPLICATION'}
+                </span>
+              </div>
+              <div className="text-[#667578] flex items-center gap-1 font-mono text-[11px]">
+                <span>{t('paperDateLabel') || 'Date'}:</span>
+                <span className="font-semibold text-[#1C3033]">{todayFormatted}</span>
+              </div>
+            </div>
 
-        {/* Complaint Form Card */}
-        <Card className="p-6 sm:p-8">
-          <form onSubmit={handleSubmit} noValidate className="space-y-8">
-            {/* Group 1: Citizen Contact Information */}
-            <div className="space-y-4 text-start">
-              <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-                <h2 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-                  <User className="w-3.5 h-3.5 text-teal-600" aria-hidden="true" />
-                  <span>Citizen Contact Information</span>
+            {/* 2. Official Recipient Line */}
+            <div className="p-3 rounded-lg bg-[#F7F8F7] border border-[#E5E9E7] flex items-start gap-2.5 text-xs">
+              <Building className="w-4 h-4 text-[#087F76] shrink-0 mt-0.5" />
+              <div>
+                <span className="font-semibold text-[#1C3033] block">
+                  {t('paperDocTo') || 'To: Concerned Service Department, Karachi'}
+                </span>
+                <span className="text-[#667578] text-[11px] block mt-0.5">
+                  {t('paperRoutingNotice') || t('formDeptNoteText')}
+                </span>
+              </div>
+            </div>
+
+            {/* 3. Subject Line Field */}
+            <div>
+              <Input
+                label={t('formComplaintTitle')}
+                required
+                id="title"
+                placeholder={t('formComplaintTitlePlaceholder')}
+                value={formData.title}
+                onChange={(e) => handleChange('title', e.target.value)}
+                error={errors.title}
+                className="bg-white border-[#E5E9E7] focus:border-[#087F76]"
+              />
+            </div>
+
+            {/* 4. Natural Application Writing Area */}
+            <div className="space-y-2">
+              <Textarea
+                label={t('formDescription')}
+                required
+                id="description"
+                rows={6}
+                placeholder={t('formDescriptionPlaceholder')}
+                value={formData.description}
+                onChange={(e) => handleChange('description', e.target.value)}
+                error={errors.description}
+                className="paper-textarea font-sans text-sm sm:text-base leading-relaxed p-4"
+              />
+
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1 text-xs text-[#667578]">
+                <p className="italic text-[11px]">
+                  Example: "{t('formRomanUrduExample')}"
+                </p>
+                <WordCounter currentCount={descriptionWords} maxWords={MAX_COMPLAINT_WORDS} />
+              </div>
+            </div>
+
+            {/* 5. Applicant & Location Information Section */}
+            <div className="pt-4 border-t border-[#E5E9E7] space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xs font-semibold uppercase tracking-wider text-[#1C3033]">
+                  {t('paperApplicantSection') || 'Applicant & Incident Location'}
                 </h2>
-                <span className="text-[11px] font-medium text-slate-400">
-                  Phone & private address protected
+                <span className="text-[11px] text-[#667578] flex items-center gap-1">
+                  <Lock className="w-3 h-3 text-[#087F76]" />
+                  <span>{t('paperPrivacyNotice') || 'Contact details kept private'}</span>
                 </span>
               </div>
 
@@ -209,21 +259,8 @@ export const ComplaintForm: React.FC = () => {
                   value={formData.citizenPhone}
                   onChange={(e) => handleChange('citizenPhone', e.target.value)}
                   error={errors.citizenPhone}
-                  helperText="Format: 03XXXXXXXXX (Used for SMS updates only)"
+                  helperText="Format: 03XXXXXXXXX"
                 />
-              </div>
-            </div>
-
-            {/* Group 2: Location & Jurisdiction */}
-            <div className="space-y-4 text-start">
-              <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-                <h2 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-                  <MapPin className="w-3.5 h-3.5 text-blue-600" aria-hidden="true" />
-                  <span>Karachi Location & Jurisdiction</span>
-                </h2>
-                <span className="text-[11px] font-medium text-slate-400">
-                  All 7 Karachi districts supported
-                </span>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -259,79 +296,27 @@ export const ComplaintForm: React.FC = () => {
               />
             </div>
 
-            {/* Group 3: Grievance Details & Roman Urdu Description */}
-            <div className="space-y-4 text-start">
-              <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-                <h2 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-                  <FileText className="w-3.5 h-3.5 text-purple-600" aria-hidden="true" />
-                  <span>Grievance Description</span>
-                </h2>
-                <span className="text-[11px] font-bold text-teal-800 bg-teal-50 px-2 py-0.5 rounded border border-teal-200/60">
-                  Roman Urdu • English • اردو
-                </span>
-              </div>
-
-              <Input
-                label={t('formComplaintTitle')}
-                required
-                id="title"
-                placeholder={t('formComplaintTitlePlaceholder')}
-                value={formData.title}
-                onChange={(e) => handleChange('title', e.target.value)}
-                error={errors.title}
-              />
-
-              <div className="space-y-2">
-                <Textarea
-                  label={t('formDescription')}
-                  required
-                  id="description"
-                  rows={5}
-                  placeholder={t('formDescriptionPlaceholder')}
-                  value={formData.description}
-                  onChange={(e) => handleChange('description', e.target.value)}
-                  error={errors.description}
-                />
-
-                {/* Live 200-Word Counter Gauge */}
-                <WordCounter currentCount={descriptionWords} maxWords={MAX_COMPLAINT_WORDS} />
-
-                {/* Instructional Roman Urdu Example Prompt */}
-                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600 flex items-start gap-2.5">
-                  <Info className="w-4 h-4 text-teal-700 shrink-0 mt-0.5" aria-hidden="true" />
-                  <div className="space-y-1">
-                    <span className="font-bold text-slate-800">
-                      Instructional Example:
-                    </span>
-                    <p className="italic text-slate-700 roman-urdu-text font-medium">
-                      {t('formRomanUrduExample')}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Submit Action */}
-            <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="flex items-center gap-2 text-xs text-slate-500">
-                <ShieldCheck className="w-4 h-4 text-teal-600 shrink-0" aria-hidden="true" />
-                <span>Frontend validation active • Session prototype mode</span>
+            {/* 6. Submission Action & Fictional Disclaimer */}
+            <div className="pt-4 border-t border-[#E5E9E7] flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-1.5 text-[11px] text-[#667578]">
+                <ShieldCheck className="w-3.5 h-3.5 text-[#087F76] shrink-0" />
+                <span>Client prototype mode • Supabase database connected in Phase 2</span>
               </div>
 
               <Button
                 type="submit"
                 variant="primary"
-                size="lg"
+                size="md"
                 isLoading={isSubmitting}
                 disabled={descriptionWords > MAX_COMPLAINT_WORDS}
-                leftIcon={<Send className="w-4 h-4" />}
-                className="w-full sm:w-auto shadow-sm"
+                leftIcon={<Send className="w-3.5 h-3.5" />}
+                className="w-full sm:w-auto bg-[#193D3D] hover:bg-[#1C3033] text-white"
               >
                 {isSubmitting ? t('formSubmitting') : t('formSubmitButton')}
               </Button>
             </div>
           </form>
-        </Card>
+        </div>
       </Container>
 
       {/* Confirmation Modal */}
@@ -340,34 +325,34 @@ export const ComplaintForm: React.FC = () => {
         onClose={() => setShowModal(false)}
         title={t('modalTitle')}
       >
-        <div className="space-y-5 text-start">
-          <div className="flex items-center gap-3.5 p-4 rounded-xl bg-teal-50 border border-teal-200">
-            <CheckCircle2 className="w-8 h-8 text-teal-600 shrink-0" aria-hidden="true" />
+        <div className="space-y-4 text-start">
+          <div className="p-4 rounded-lg bg-[#F7F8F7] border border-[#E5E9E7] flex items-center gap-3">
+            <CheckCircle2 className="w-6 h-6 text-[#087F76] shrink-0" />
             <div>
-              <span className="block text-xs text-teal-800 font-bold uppercase tracking-wider">
+              <span className="block text-xs text-[#667578] font-medium">
                 {t('modalRefLabel')}
               </span>
-              <div className="flex items-center gap-2 mt-1">
-                <span className="ref-code text-xl sm:text-2xl font-extrabold text-teal-950">
+              <div className="flex items-center gap-2 mt-0.5">
+                <span className="ref-code text-lg sm:text-xl font-bold text-[#1C3033]">
                   {submissionResult?.referenceNumber}
                 </span>
                 <button
                   type="button"
                   onClick={handleCopyRef}
-                  className="p-1.5 rounded-lg text-teal-700 hover:bg-teal-100 transition-colors cursor-pointer"
+                  className="p-1 rounded text-[#667578] hover:text-[#1C3033] hover:bg-[#E5E9E7]/50 transition-colors cursor-pointer"
                   title="Copy reference number"
                   aria-label="Copy reference number"
                 >
-                  <Copy className="w-4 h-4" />
+                  <Copy className="w-3.5 h-3.5" />
                 </button>
                 {copied && (
-                  <span className="text-xs text-teal-800 font-bold">Copied!</span>
+                  <span className="text-xs text-[#087F76] font-medium">Copied!</span>
                 )}
               </div>
             </div>
           </div>
 
-          <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+          <p className="text-xs text-[#667578] leading-relaxed">
             {t('modalBody1')}
           </p>
 
@@ -378,24 +363,24 @@ export const ComplaintForm: React.FC = () => {
             {t('modalNoticeText')}
           </AlertBanner>
 
-          <div className="pt-2 flex flex-col sm:flex-row items-center justify-end gap-3">
+          <div className="pt-2 flex flex-col sm:flex-row items-center justify-end gap-2.5">
             <Button
               variant="outline"
-              size="md"
+              size="sm"
               onClick={() => {
                 setShowModal(false);
                 navigate('/dashboard');
               }}
-              className="w-full sm:w-auto"
+              className="w-full sm:w-auto text-[#667578]"
             >
               {t('modalClose')}
             </Button>
             <Button
               variant="primary"
-              size="md"
+              size="sm"
               onClick={handleTrackNow}
-              rightIcon={<ArrowRight className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />}
-              className="w-full sm:w-auto"
+              rightIcon={<ArrowRight className={`w-3.5 h-3.5 ${isRTL ? 'rotate-180' : ''}`} />}
+              className="w-full sm:w-auto bg-[#193D3D] hover:bg-[#1C3033]"
             >
               {t('modalTrackNow')}
             </Button>
