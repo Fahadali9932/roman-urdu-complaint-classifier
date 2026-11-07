@@ -71,7 +71,7 @@ describe('ComplaintForm Component', () => {
     expect(screen.getByText(/exceeds the 200-word limit/i)).toBeInTheDocument();
   });
 
-  it('submits valid form and reveals demonstration confirmation modal with reference number', async () => {
+  it('submits valid form and reveals client prototype verification modal', async () => {
     renderForm();
 
     // Fill valid data
@@ -99,12 +99,12 @@ describe('ComplaintForm Component', () => {
     const submitButton = screen.getByRole('button', { name: /submit complaint/i });
     fireEvent.click(submitButton);
 
-    // Wait for mock service submission
+    // Wait for client-side validation completion
     await waitFor(
       () => {
-        expect(screen.getByText(/complaint submitted successfully/i)).toBeInTheDocument();
-        expect(screen.getByText(/KHI-2026-/i)).toBeInTheDocument();
-        expect(screen.getByText(/phase 1 demonstration note/i)).toBeInTheDocument();
+        expect(screen.getByText(/complaint validated/i)).toBeInTheDocument();
+        expect(screen.getByText(/application verified successfully/i)).toBeInTheDocument();
+        expect(screen.getByText(/client-side prototype notice/i)).toBeInTheDocument();
       },
       { timeout: 3000 }
     );

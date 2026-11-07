@@ -4,7 +4,7 @@ import { useLanguage } from '../../context/LanguageContext';
 import { Container } from './Container';
 import { CivicEmblem } from '../common/CivicEmblem';
 import { LanguageToggle } from '../common/LanguageToggle';
-import { Menu, X, PenTool, LayoutList, Search, User } from 'lucide-react';
+import { Menu, X, PenTool, LayoutList, User } from 'lucide-react';
 
 export const PublicHeader: React.FC = () => {
   const { t } = useLanguage();
@@ -16,19 +16,19 @@ export const PublicHeader: React.FC = () => {
     return location.pathname.startsWith(path);
   };
 
+  // Radically simplified citizen navigation: Home, Write Complaint, My Complaints
   const navLinks = [
     { path: '/', label: t('navHome') },
-    { path: '/dashboard', label: t('navMyComplaints') || 'My Complaints', icon: <LayoutList className="w-3.5 h-3.5" /> },
     { path: '/submit', label: t('navWriteComplaint') || 'Write Complaint', icon: <PenTool className="w-3.5 h-3.5" /> },
-    { path: '/track', label: t('navTrack') || 'Track', icon: <Search className="w-3.5 h-3.5" /> },
+    { path: '/dashboard', label: t('navMyComplaints') || 'My Complaints', icon: <LayoutList className="w-3.5 h-3.5" /> },
   ];
 
   return (
-    <header className="sticky top-0 z-40 w-full glass-topbar">
+    <header className="sticky top-0 z-40 w-full glass-navbar">
       <Container size="xl">
         <div className="flex items-center justify-between h-16 sm:h-18">
           {/* Left: Brand Identity */}
-          <Link to="/" className="flex items-center gap-2 sm:gap-2.5 group shrink-0">
+          <Link to="/" className="flex items-center gap-2.5 group shrink-0">
             <CivicEmblem size="sm" className="opacity-95 group-hover:opacity-100 transition-opacity" />
             <div className="text-start">
               <span className="block text-sm sm:text-base font-semibold text-[#172D31] tracking-tight leading-tight">
@@ -40,16 +40,16 @@ export const PublicHeader: React.FC = () => {
             </div>
           </Link>
 
-          {/* Center: Clean Navigation Links */}
+          {/* Center: Simplified Citizen Navigation Links */}
           <nav className="hidden md:flex items-center gap-1 lg:gap-1.5">
             {navLinks.map((link) => (
               <Link
                 key={link.path}
                 to={link.path}
-                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-all ${
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
                   isActive(link.path)
                     ? 'text-[#126B63] bg-[#E7F2EF] font-semibold shadow-xs'
-                    : 'text-[#667679] hover:text-[#172D31] hover:bg-[#DFE7E4]/40'
+                    : 'text-[#667679] hover:text-[#172D31] hover:bg-white/60'
                 }`}
               >
                 <span>{link.label}</span>
@@ -63,7 +63,7 @@ export const PublicHeader: React.FC = () => {
             <div className="h-4 w-px bg-[#DFE7E4]" />
             <Link
               to="/login"
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                 isActive('/login')
                   ? 'text-[#126B63] font-semibold'
                   : 'text-[#667679] hover:text-[#172D31]'
@@ -74,8 +74,8 @@ export const PublicHeader: React.FC = () => {
             </Link>
           </div>
 
-          {/* Mobile menu button */}
-          <div className="flex sm:hidden items-center gap-1.5 shrink-0">
+          {/* Mobile Navigation Header */}
+          <div className="flex sm:hidden items-center gap-2 shrink-0">
             <LanguageToggle />
             <button
               type="button"
@@ -88,9 +88,9 @@ export const PublicHeader: React.FC = () => {
           </div>
         </div>
 
-        {/* Mobile dropdown menu */}
+        {/* Mobile Dropdown Menu */}
         {mobileMenuOpen && (
-          <div className="sm:hidden border-t border-[#DFE7E4] py-3 px-1 space-y-1 bg-[#F3F6F5]/95 backdrop-blur-md animate-in slide-in-from-top-2">
+          <div className="sm:hidden border-t border-[#DFE7E4]/80 py-3 px-1 space-y-1 bg-white/95 backdrop-blur-xl animate-in slide-in-from-top-2">
             {navLinks.map((link) => (
               <Link
                 key={link.path}

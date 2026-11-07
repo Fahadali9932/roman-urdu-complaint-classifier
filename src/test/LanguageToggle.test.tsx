@@ -33,7 +33,7 @@ describe('LanguageToggle and LanguageContext', () => {
     expect(screen.getByTestId('is-rtl').textContent).toBe('ltr');
     expect(document.documentElement.getAttribute('dir')).toBe('ltr');
     expect(document.documentElement.getAttribute('lang')).toBe('en');
-    expect(screen.getByTestId('hero-heading').textContent).toContain('Your voice deserves to be heard');
+    expect(screen.getByTestId('hero-heading').textContent).toContain('Your voice matters');
   });
 
   it('switches to Urdu and updates document direction to RTL on toggle click', () => {
