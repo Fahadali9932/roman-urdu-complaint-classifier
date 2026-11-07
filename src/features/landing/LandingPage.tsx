@@ -16,6 +16,8 @@ import {
   Building2,
   ShieldAlert,
   FileText,
+  Activity,
+  Sparkles,
 } from 'lucide-react';
 
 export const LandingPage: React.FC = () => {
@@ -24,36 +26,36 @@ export const LandingPage: React.FC = () => {
   const getDeptIcon = (iconName: string) => {
     switch (iconName) {
       case 'Droplets':
-        return <Droplets className="w-4 h-4 text-[#087F76]" aria-hidden="true" />;
+        return <Droplets className="w-5 h-5 text-[#126B63]" aria-hidden="true" />;
       case 'Trash2':
-        return <Trash2 className="w-4 h-4 text-[#087F76]" aria-hidden="true" />;
+        return <Trash2 className="w-5 h-5 text-[#126B63]" aria-hidden="true" />;
       case 'Zap':
-        return <Zap className="w-4 h-4 text-[#087F76]" aria-hidden="true" />;
+        return <Zap className="w-5 h-5 text-[#126B63]" aria-hidden="true" />;
       case 'Building2':
-        return <Building2 className="w-4 h-4 text-[#087F76]" aria-hidden="true" />;
+        return <Building2 className="w-5 h-5 text-[#126B63]" aria-hidden="true" />;
       default:
-        return <ShieldAlert className="w-4 h-4 text-[#087F76]" aria-hidden="true" />;
+        return <ShieldAlert className="w-5 h-5 text-[#126B63]" aria-hidden="true" />;
     }
   };
 
   const steps = [
     {
-      num: '1',
+      num: '01',
       title: t('step1Title') || '1. Write your complaint',
       desc: t('step1Desc') || 'Describe your civic issue naturally in Roman Urdu or English.',
     },
     {
-      num: '2',
+      num: '02',
       title: t('step2Title') || '2. The system identifies the issue',
       desc: t('step2Desc') || 'Automated semantic NLP routes your grievance to the correct municipal entity.',
     },
     {
-      num: '3',
+      num: '03',
       title: t('step3Title') || '3. Reaches department queue',
       desc: t('step3Desc') || 'Directed straight to KW&SC, SSWMB, K-Electric, or KMC action queues.',
     },
     {
-      num: '4',
+      num: '04',
       title: t('step4Title') || '4. Track its progress',
       desc: t('step4Desc') || 'Follow your unique reference number from intake to verified on-ground resolution.',
     },
@@ -63,152 +65,223 @@ export const LandingPage: React.FC = () => {
     {
       title: t('feat1Title') || 'Roman Urdu Native Support',
       desc: t('feat1Desc') || 'No need to translate or find formal bureaucratic words. Write exactly as you speak.',
-      icon: <FileText className="w-4 h-4 text-[#087F76]" />,
+      icon: <FileText className="w-5 h-5 text-[#126B63]" />,
     },
     {
       title: t('feat2Title') || 'Intelligent Routing',
       desc: t('feat2Desc') || 'Granular automated routing across KW&SC, SSWMB, K-Electric, KMC, and SBCA.',
-      icon: <CheckCircle2 className="w-4 h-4 text-[#087F76]" />,
+      icon: <Sparkles className="w-5 h-5 text-[#126B63]" />,
     },
     {
       title: t('feat3Title') || 'Private Citizen Information',
       desc: t('feat3Desc') || 'Your personal phone and home address remain strictly segregated from public lookup views.',
-      icon: <Lock className="w-4 h-4 text-[#087F76]" />,
+      icon: <Lock className="w-5 h-5 text-[#126B63]" />,
     },
     {
       title: t('feat4Title') || 'Direct Tracking',
       desc: t('feat4Desc') || 'Every complaint generates a clean timeline tracking on-ground departmental progress.',
-      icon: <Search className="w-4 h-4 text-[#087F76]" />,
+      icon: <Search className="w-5 h-5 text-[#126B63]" />,
     },
   ];
 
   return (
-    <div className="space-y-16 sm:space-y-20 py-8 sm:py-14">
-      {/* 1. Minimal Hero Section */}
-      <section>
+    <div className="space-y-16 sm:space-y-24 py-6 sm:py-16 overflow-x-hidden">
+      {/* 1. Signature Hero Section with Two-Column Glass & Paper Composition */}
+      <section className="relative">
         <Container size="xl">
-          <div className="max-w-3xl mx-auto text-center space-y-6">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-[#E5E9E7]/60 text-[#193D3D] border border-[#E5E9E7]">
-              <span>Karachi Civic Grievance Triage</span>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8 items-center text-start">
+            
+            {/* Left Column: Editorial Headline, Subtitle & Action CTAs */}
+            <div className="lg:col-span-7 space-y-6 lg:pe-6 min-w-0 w-full">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium bg-[#E7F2EF] text-[#17423F] border border-[#DFE7E4]">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#126B63] animate-pulse"></span>
+                <span>{t('heroBadge') || 'Karachi Civic Grievance Triage'}</span>
+              </div>
+
+              <h1 className="text-3xl sm:text-4xl lg:text-[3.25rem] font-semibold text-[#172D31] tracking-tight leading-[1.16]">
+                {t('heroTitle')}
+              </h1>
+
+              <p className="text-sm sm:text-lg text-[#667679] leading-relaxed max-w-xl">
+                {t('heroSubtitle') || t('heroDescription')}
+              </p>
+
+              {/* CTAs: Full-width on mobile, auto on desktop */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2">
+                <Link to="/submit" className="w-full sm:w-auto">
+                  <Button
+                    variant="primary"
+                    size="lg"
+                    leftIcon={<PenTool className="w-4 h-4" />}
+                    className="w-full sm:w-auto bg-[#126B63] hover:bg-[#17423F] text-white px-6 py-3 rounded-xl shadow-xs text-sm sm:text-base font-medium transition-all"
+                  >
+                    {t('heroActionWrite') || t('heroCtaSubmit') || 'Write a Complaint'}
+                  </Button>
+                </Link>
+                <Link to="/track" className="w-full sm:w-auto">
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    leftIcon={<Search className="w-4 h-4" />}
+                    className="w-full sm:w-auto border-[#DFE7E4] bg-white/80 hover:bg-white text-[#172D31] px-6 py-3 rounded-xl shadow-2xs text-sm sm:text-base font-medium transition-all"
+                  >
+                    {t('heroActionTrack') || t('heroCtaTrack') || 'Track Complaint'}
+                  </Button>
+                </Link>
+              </div>
+
+              {/* Trust Indicators */}
+              <div className="pt-1 flex flex-wrap items-center gap-y-1.5 gap-x-3 text-xs text-[#667679]">
+                <span className="flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[#126B63]" />
+                  <span>Free Municipal Service</span>
+                </span>
+                <span className="text-[#DFE7E4] hidden sm:inline">•</span>
+                <span className="flex items-center gap-1.5">
+                  <Lock className="w-3.5 h-3.5 text-[#126B63]" />
+                  <span>Privacy Protected</span>
+                </span>
+                <span className="text-[#DFE7E4] hidden sm:inline">•</span>
+                <span>Fictional Demonstration Mode</span>
+              </div>
             </div>
 
-            <h1 className="text-3xl sm:text-5xl font-semibold text-[#1C3033] tracking-tight leading-[1.2]">
-              {t('heroTitle') || 'Your voice deserves to be heard.'}
-            </h1>
-
-            <p className="text-sm sm:text-base text-[#667578] leading-relaxed max-w-xl mx-auto">
-              {t('heroSubtitle') || t('heroDescription')}
-            </p>
-
-            {/* Clear Primary & Secondary CTAs */}
-            <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
-              <Link to="/submit">
-                <Button
-                  variant="primary"
-                  size="md"
-                  leftIcon={<PenTool className="w-4 h-4" />}
-                  className="bg-[#193D3D] hover:bg-[#1C3033] text-white px-5 shadow-none"
-                >
-                  {t('heroActionWrite') || t('heroCtaSubmit') || 'Write a Complaint'}
-                </Button>
-              </Link>
-              <Link to="/track">
-                <Button
-                  variant="outline"
-                  size="md"
-                  leftIcon={<Search className="w-4 h-4" />}
-                  className="border-[#E5E9E7] text-[#1C3033] hover:bg-[#E5E9E7]/40 px-5"
-                >
-                  {t('heroActionTrack') || t('heroCtaTrack') || 'Track Complaint'}
-                </Button>
-              </Link>
-            </div>
-
-            {/* Restrained Document-Inspired Preview Snippet */}
-            <div className="pt-8 max-w-xl mx-auto text-start">
-              <div className="paper-sheet rounded-xl p-5 space-y-3">
-                <div className="flex items-center justify-between pb-2 border-b border-[#E5E9E7] text-xs">
-                  <span className="font-semibold text-[#193D3D] uppercase tracking-wider text-[11px]">
-                    Live Grievance Preview
-                  </span>
-                  <span className="ref-code text-[11px] px-2 py-0.5 rounded bg-[#F7F8F7] border border-[#E5E9E7] text-[#1C3033]">
-                    KHI-2026-5120
+            {/* Right Column: Signature Frosted-Glass Triage Preview */}
+            <div className="lg:col-span-5 relative w-full">
+              {/* Outer Frosted Glass Container */}
+              <div className="civic-glass rounded-2xl p-4 sm:p-7 relative border border-white/80 space-y-4">
+                
+                {/* Header within Glass Container */}
+                <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-[#DFE7E4]/70">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-[#126B63] animate-pulse"></span>
+                    <span className="text-xs font-semibold uppercase tracking-wider text-[#172D31]">
+                      Karachi Triage Desk
+                    </span>
+                  </div>
+                  <span className="ref-code text-xs px-2.5 py-0.5 rounded-md bg-white/90 border border-[#DFE7E4] text-[#172D31] font-medium shadow-2xs">
+                    KHI-2026-8942
                   </span>
                 </div>
 
-                <p className="italic text-xs sm:text-sm text-[#1C3033] roman-urdu-text leading-relaxed bg-[#F7F8F7] p-3 rounded-lg border border-[#E5E9E7]">
-                  "{t('heroPreviewSnippet')}"
-                </p>
+                {/* Simulated Citizen Paper Note Sheet */}
+                <div className="civic-paper rounded-xl p-4 sm:p-5 space-y-2.5 relative">
+                  <div className="flex items-center justify-between text-[11px] text-[#667679]">
+                    <span className="font-medium text-[#172D31]">Citizen Grievance Submission</span>
+                    <span>14m ago</span>
+                  </div>
+                  <p className="italic text-xs sm:text-sm text-[#172D31] roman-urdu-text leading-relaxed bg-[#F3F6F5]/90 p-3 rounded-lg border border-[#DFE7E4]">
+                    "Bijli ka jhuka hua pole gali ke konay par girnay wala hai, bachay khel rahay hain khatra hai."
+                  </p>
+                  <p className="text-[11px] text-[#667679]">
+                    Locality: <strong className="text-[#172D31] font-normal">Gulshan-e-Iqbal, Block 13-D</strong>
+                  </p>
+                </div>
 
-                <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-[#667578] pt-1">
-                  <span>Detected: <strong>Roman Urdu</strong></span>
-                  <span className="text-[#087F76] font-medium">Routed to: K-Electric & KW&SC</span>
+                {/* NLP Semantic Classifier Triage Card */}
+                <div className="bg-white/90 rounded-xl p-4 border border-[#DFE7E4] space-y-2.5 shadow-2xs">
+                  <div className="flex flex-wrap items-center justify-between gap-1">
+                    <span className="text-xs font-semibold text-[#172D31] flex items-center gap-1.5">
+                      <Activity className="w-3.5 h-3.5 text-[#126B63]" />
+                      <span>Automated Routing Breakdown</span>
+                    </span>
+                    <span className="text-[11px] px-2 py-0.5 rounded-full bg-[#E7F2EF] text-[#17423F] font-medium">
+                      Roman Urdu (98%)
+                    </span>
+                  </div>
+
+                  <div className="space-y-1.5 text-xs">
+                    <div className="flex items-center justify-between py-1 border-b border-[#DFE7E4]/50">
+                      <span className="text-[#667679]">Primary Entity:</span>
+                      <span className="font-semibold text-[#126B63]">K-Electric (Infrastructure)</span>
+                    </div>
+                    <div className="flex items-center justify-between py-1">
+                      <span className="text-[#667679]">Action Status:</span>
+                      <span className="text-[#172D31] font-medium">Dispatched to Local Feeder</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Bottom Trust Note */}
+                <div className="text-center pt-1">
+                  <span className="text-[11px] text-[#667679]">
+                    No department selection needed • NLP routes automatically
+                  </span>
                 </div>
               </div>
             </div>
+
           </div>
         </Container>
       </section>
 
-      {/* 2. How It Works Section */}
-      <section>
+      {/* 2. How It Works: Refined Horizontal Process Flow */}
+      <section className="relative">
         <Container size="xl">
-          <div className="text-center max-w-xl mx-auto space-y-2 mb-10">
-            <h2 className="text-xl sm:text-2xl font-semibold text-[#1C3033] tracking-tight">
+          <div className="text-center max-w-2xl mx-auto space-y-2.5 mb-10 sm:mb-12">
+            <h2 className="text-2xl sm:text-3xl font-semibold text-[#172D31] tracking-tight">
               {t('howTitle')}
             </h2>
-            <p className="text-xs sm:text-sm text-[#667578]">
+            <p className="text-xs sm:text-base text-[#667679]">
               {t('howSubtitle')}
             </p>
           </div>
 
+          {/* Process Flow Cards with Numbered Markers */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-start">
-            {steps.map((step) => (
+            {steps.map((step, idx) => (
               <div
                 key={step.num}
-                className="paper-sheet rounded-lg p-5 space-y-2.5"
+                className="civic-paper civic-paper-hover rounded-xl p-5 sm:p-6 relative flex flex-col justify-between space-y-3"
               >
-                <div className="w-6 h-6 rounded flex items-center justify-center font-mono text-xs font-bold bg-[#E5E9E7]/70 text-[#193D3D]">
-                  {step.num}
+                <div className="space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono text-sm font-bold text-[#126B63] bg-[#E7F2EF] px-2.5 py-1 rounded-md">
+                      {step.num}
+                    </span>
+                    {idx < steps.length - 1 && (
+                      <span className="hidden lg:block text-[#DFE7E4] font-mono text-sm">→</span>
+                    )}
+                  </div>
+                  <h3 className="text-sm sm:text-base font-semibold text-[#172D31] leading-snug">
+                    {step.title}
+                  </h3>
+                  <p className="text-xs sm:text-sm text-[#667679] leading-relaxed">
+                    {step.desc}
+                  </p>
                 </div>
-                <h3 className="text-sm font-semibold text-[#1C3033]">
-                  {step.title}
-                </h3>
-                <p className="text-xs text-[#667578] leading-relaxed">
-                  {step.desc}
-                </p>
               </div>
             ))}
           </div>
         </Container>
       </section>
 
-      {/* 3. Concise Key Points (Features) */}
-      <section>
+      {/* 3. Concise Key Features: Modern Civic Capabilities */}
+      <section className="relative">
         <Container size="xl">
-          <div className="text-center max-w-xl mx-auto space-y-2 mb-10">
-            <h2 className="text-xl sm:text-2xl font-semibold text-[#1C3033] tracking-tight">
+          <div className="text-center max-w-2xl mx-auto space-y-2.5 mb-10 sm:mb-12">
+            <h2 className="text-2xl sm:text-3xl font-semibold text-[#172D31] tracking-tight">
               {t('featuresTitle')}
             </h2>
-            <p className="text-xs sm:text-sm text-[#667578]">
+            <p className="text-xs sm:text-base text-[#667679]">
               {t('featuresSubtitle')}
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-start">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 text-start">
             {features.map((feat, idx) => (
               <div
                 key={idx}
-                className="paper-sheet rounded-lg p-5 flex items-start gap-3.5"
+                className="civic-paper civic-paper-hover rounded-xl p-5 sm:p-6 flex items-start gap-4"
               >
-                <div className="p-2 rounded bg-[#F7F8F7] border border-[#E5E9E7] shrink-0 mt-0.5">
+                <div className="p-2.5 rounded-xl bg-[#E7F2EF] border border-[#DFE7E4] shrink-0 mt-0.5">
                   {feat.icon}
                 </div>
                 <div className="space-y-1">
-                  <h3 className="text-sm font-semibold text-[#1C3033]">
+                  <h3 className="text-sm sm:text-base font-semibold text-[#172D31]">
                     {feat.title}
                   </h3>
-                  <p className="text-xs text-[#667578] leading-relaxed">
+                  <p className="text-xs sm:text-sm text-[#667679] leading-relaxed">
                     {feat.desc}
                   </p>
                 </div>
@@ -218,47 +291,47 @@ export const LandingPage: React.FC = () => {
         </Container>
       </section>
 
-      {/* 4. Supported Karachi Civic Utilities */}
-      <section>
+      {/* 4. Participating Municipal Authorities */}
+      <section className="relative">
         <Container size="xl">
-          <div className="pb-4 border-b border-[#E5E9E7] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-start mb-6">
+          <div className="pb-4 sm:pb-5 border-b border-[#DFE7E4] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-start mb-6 sm:mb-8">
             <div>
-              <h2 className="text-lg font-semibold text-[#1C3033]">
+              <h2 className="text-lg sm:text-2xl font-semibold text-[#172D31]">
                 Participating Municipal Entities
               </h2>
-              <p className="text-xs text-[#667578]">
-                Complaints are classified and directed automatically to specialized authorities
+              <p className="text-xs sm:text-sm text-[#667679] mt-0.5">
+                Complaints are analyzed and automatically routed to specialized Karachi utility desks
               </p>
             </div>
             <Link
               to="/submit"
-              className="text-xs font-semibold text-[#087F76] hover:text-[#193D3D] inline-flex items-center gap-1"
+              className="text-xs sm:text-sm font-semibold text-[#126B63] hover:text-[#17423F] inline-flex items-center gap-1 transition-colors"
             >
               <span>{t('heroActionWrite') || 'Write a Complaint'}</span>
-              <ArrowRight className={`w-3.5 h-3.5 ${isRTL ? 'rotate-180' : ''}`} />
+              <ArrowRight className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-start">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-start">
             {Object.values(KARACHI_DEPARTMENTS).map((dept) => (
               <div
                 key={dept.id}
-                className="paper-sheet rounded-lg p-4 space-y-2"
+                className="civic-paper civic-paper-hover rounded-xl p-4 sm:p-5 space-y-2.5"
               >
-                <div className="flex items-center gap-2">
-                  <div className="p-1.5 rounded bg-[#F7F8F7] border border-[#E5E9E7]">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-[#E7F2EF] border border-[#DFE7E4]">
                     {getDeptIcon(dept.iconName)}
                   </div>
                   <div>
-                    <span className="ref-code text-[10px] font-bold text-[#087F76]">
+                    <span className="ref-code text-[11px] font-bold text-[#126B63]">
                       {dept.code}
                     </span>
-                    <h4 className="text-xs font-semibold text-[#1C3033] line-clamp-1">
+                    <h4 className="text-xs sm:text-sm font-semibold text-[#172D31] line-clamp-1">
                       {language === 'ur' ? dept.nameUrdu : dept.name}
                     </h4>
                   </div>
                 </div>
-                <p className="text-[11px] text-[#667578] line-clamp-2 leading-relaxed">
+                <p className="text-xs text-[#667679] line-clamp-2 leading-relaxed">
                   {language === 'ur' ? dept.descriptionUrdu : dept.description}
                 </p>
               </div>

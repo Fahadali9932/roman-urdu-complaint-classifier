@@ -5,9 +5,9 @@ import { PublicFooter } from './PublicFooter';
 
 export const AppLayout: React.FC = () => {
   return (
-    <div className="min-h-screen flex flex-col bg-[#F7F8F7] text-[#1C3033]">
+    <div className="min-h-screen flex flex-col text-[#172D31] w-full overflow-x-hidden">
       <PublicHeader />
-      <main className="flex-1">
+      <main className="flex-1 w-full overflow-x-hidden">
         <Outlet />
       </main>
       <PublicFooter />

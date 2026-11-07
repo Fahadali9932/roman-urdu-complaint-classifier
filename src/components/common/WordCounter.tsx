@@ -18,8 +18,8 @@ export const WordCounter: React.FC<WordCounterProps> = ({
   const isNearLimit = currentCount >= maxWords - 20 && !isOverLimit;
   const percentage = Math.min(Math.round((currentCount / maxWords) * 100), 100);
 
-  let textColor = 'text-slate-500';
-  let barColor = 'bg-teal-600';
+  let textColor = 'text-[#667679]';
+  let barColor = 'bg-[#126B63]';
 
   if (isOverLimit) {
     textColor = 'text-rose-600 font-bold';
@@ -30,16 +30,16 @@ export const WordCounter: React.FC<WordCounterProps> = ({
   }
 
   return (
-    <div className={`flex flex-col gap-1.5 text-xs select-none ${className}`} aria-live="polite">
-      <div className="flex items-center justify-between">
-        <span className="text-slate-600 font-medium">
+    <div className={`flex flex-col gap-1.5 text-xs select-none shrink-0 ${className}`} aria-live="polite">
+      <div className="flex items-center justify-between gap-3 text-xs">
+        <span className="text-[#172D31] font-medium whitespace-nowrap">
           {t('formWordCounter')}:{' '}
           <span className={`ref-code font-bold ${textColor}`} data-testid="word-count-display">
             {currentCount}
           </span>{' '}
-          <span className="ref-code text-slate-400">/ {maxWords}</span>
+          <span className="ref-code text-[#667679]">/ {maxWords}</span>
         </span>
-        <span className={`text-[11px] font-medium ${textColor}`}>
+        <span className={`text-[11px] font-medium whitespace-nowrap ${textColor}`}>
           {isOverLimit ? (
             t('valDescExceeded')
           ) : (
@@ -50,7 +50,7 @@ export const WordCounter: React.FC<WordCounterProps> = ({
         </span>
       </div>
       {/* Visual gauge */}
-      <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden" role="progressbar" aria-valuenow={currentCount} aria-valuemin={0} aria-valuemax={maxWords}>
+      <div className="w-full h-1.5 bg-[#DFE7E4]/60 rounded-full overflow-hidden" role="progressbar" aria-valuenow={currentCount} aria-valuemin={0} aria-valuemax={maxWords}>
         <div
           className={`h-full transition-all duration-200 ${barColor}`}
           style={{ width: `${percentage}%` }}

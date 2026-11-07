@@ -22,27 +22,27 @@ export const Button: React.FC<ButtonProps> = ({
   ...props
 }) => {
   const baseStyles =
-    'inline-flex items-center justify-center font-semibold rounded-lg transition-all duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed select-none active:scale-[0.99]';
+    'inline-flex items-center justify-center font-medium rounded-xl transition-all duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed select-none active:scale-[0.99]';
 
   const sizeStyles = {
     sm: 'text-xs px-3 py-2 min-h-[36px] gap-1.5',
     md: 'text-sm px-4 py-2.5 min-h-[44px] gap-2',
-    lg: 'text-base px-5 py-3 min-h-[48px] gap-2.5',
+    lg: 'text-base px-6 py-3 min-h-[48px] gap-2.5',
   };
 
   const variantStyles = {
     primary:
-      'bg-teal-700 hover:bg-teal-800 text-white shadow-xs focus-visible:outline-teal-700 active:bg-teal-900',
+      'bg-[#126B63] hover:bg-[#17423F] text-white shadow-xs focus-visible:outline-[#126B63] active:bg-[#0f4b46]',
     secondary:
-      'bg-slate-800 hover:bg-slate-900 text-white shadow-xs focus-visible:outline-slate-800 active:bg-slate-950',
+      'bg-[#172D31] hover:bg-[#112225] text-white shadow-xs focus-visible:outline-[#172D31]',
     civic:
-      'bg-gradient-to-r from-slate-900 via-slate-800 to-teal-950 hover:from-slate-800 hover:to-teal-900 text-white shadow-sm ring-1 ring-white/10',
+      'bg-[#126B63] hover:bg-[#17423F] text-white shadow-sm ring-1 ring-white/20',
     outline:
-      'border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 focus-visible:outline-teal-600 shadow-2xs',
+      'border border-[#DFE7E4] bg-white/80 hover:bg-white text-[#172D31] hover:text-[#172D31] focus-visible:outline-[#126B63] shadow-2xs',
     ghost:
-      'bg-transparent hover:bg-slate-100/80 text-slate-700 hover:text-slate-900 focus-visible:outline-slate-600',
+      'bg-transparent hover:bg-[#DFE7E4]/50 text-[#172D31] focus-visible:outline-[#126B63]',
     danger:
-      'bg-rose-600 hover:bg-rose-700 text-white shadow-xs focus-visible:outline-rose-600 active:bg-rose-800',
+      'bg-rose-600 hover:bg-rose-700 text-white shadow-xs focus-visible:outline-rose-600',
   };
 
   return (

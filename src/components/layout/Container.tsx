@@ -15,7 +15,7 @@ export const Container: React.FC<ContainerProps> = ({
     sm: 'max-w-3xl',
     md: 'max-w-5xl',
     lg: 'max-w-7xl',
-    xl: 'max-w-(--breakpoint-2xl)',
+    xl: 'max-w-7xl',
     full: 'max-w-full',
   };
 
