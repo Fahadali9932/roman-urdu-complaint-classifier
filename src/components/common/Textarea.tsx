@@ -17,7 +17,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
         {label && (
           <label
             htmlFor={inputId}
-            className="block text-xs sm:text-sm font-medium text-[#172D31] mb-1.5 select-none"
+            className="block text-xs sm:text-sm font-medium text-[#183438] mb-1.5 select-none"
           >
             {label}
             {props.required && <span className="text-rose-500 ms-1" aria-hidden="true">*</span>}
@@ -28,10 +28,10 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
           ref={ref}
           aria-invalid={Boolean(error)}
           aria-describedby={errorId || helperId}
-          className={`w-full rounded-lg border bg-white px-3.5 py-3 text-sm sm:text-base text-[#172D31] placeholder:text-[#667679]/60 transition-colors focus:bg-white focus:outline-hidden ${
+          className={`w-full rounded-xl border bg-white px-3.5 py-3 text-sm sm:text-base text-[#183438] placeholder:text-[#617679]/50 transition-colors focus:bg-white focus:outline-hidden ${
             error
               ? 'border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 bg-rose-50/20'
-              : 'border-[#DFE7E4] focus:border-[#126B63] focus:ring-1 focus:ring-[#126B63]'
+              : 'border-[#D9E5E2] focus:border-[#155D58] focus:ring-1 focus:ring-[#155D58]'
           } ${className}`}
           {...props}
         />
@@ -41,7 +41,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
           </p>
         )}
         {helperText && !error && (
-          <p id={helperId} className="mt-1.5 text-xs text-[#667679]">
+          <p id={helperId} className="mt-1.5 text-xs text-[#617679]">
             {helperText}
           </p>
         )}

@@ -21,9 +21,9 @@ export const translations = {
     heroBadge: 'Karachi Civic Workspace',
     heroTitle: 'Your voice matters. Make it heard.',
     heroDescription:
-      'A simpler way to write public-service complaints in Roman Urdu and follow their progress.',
+      'A simpler way to submit public-service complaints in Roman Urdu and follow their progress.',
     heroSubtitle:
-      'A simpler way to write public-service complaints in Roman Urdu and follow their progress.',
+      'A simpler way to submit public-service complaints in Roman Urdu and follow their progress.',
     heroCtaSubmit: 'Write a Complaint',
     heroCtaTrack: 'My Complaints',
     heroActionWrite: 'Write a Complaint',

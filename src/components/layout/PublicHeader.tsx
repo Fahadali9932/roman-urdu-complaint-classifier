@@ -31,25 +31,25 @@ export const PublicHeader: React.FC = () => {
           <Link to="/" className="flex items-center gap-2.5 group shrink-0">
             <CivicEmblem size="sm" className="opacity-95 group-hover:opacity-100 transition-opacity" />
             <div className="text-start">
-              <span className="block text-sm sm:text-base font-semibold text-[#172D31] tracking-tight leading-tight">
+              <span className="block text-sm sm:text-base font-semibold text-[#183438] tracking-tight leading-tight">
                 Awaaz-e-Awam
               </span>
-              <span className="block text-[11px] font-normal text-[#667679] hidden sm:block">
+              <span className="block text-[11px] font-normal text-[#617679] hidden sm:block">
                 Karachi Civic Portal
               </span>
             </div>
           </Link>
 
           {/* Center: Simplified Citizen Navigation Links */}
-          <nav className="hidden md:flex items-center gap-1 lg:gap-1.5">
+          <nav className="hidden md:flex items-center gap-1.5 lg:gap-2">
             {navLinks.map((link) => (
               <Link
                 key={link.path}
                 to={link.path}
-                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-sm font-medium transition-all ${
                   isActive(link.path)
-                    ? 'text-[#126B63] bg-[#E7F2EF] font-semibold shadow-xs'
-                    : 'text-[#667679] hover:text-[#172D31] hover:bg-white/60'
+                    ? 'text-[#155D58] bg-white/90 shadow-2xs font-semibold'
+                    : 'text-[#617679] hover:text-[#183438] hover:bg-white/50'
                 }`}
               >
                 <span>{link.label}</span>
@@ -60,16 +60,16 @@ export const PublicHeader: React.FC = () => {
           {/* Right: Language Switcher & Account Access */}
           <div className="hidden sm:flex items-center gap-3">
             <LanguageToggle />
-            <div className="h-4 w-px bg-[#DFE7E4]" />
+            <div className="h-4 w-px bg-[#D9E5E2]" />
             <Link
               to="/login"
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium transition-colors ${
                 isActive('/login')
-                  ? 'text-[#126B63] font-semibold'
-                  : 'text-[#667679] hover:text-[#172D31]'
+                  ? 'text-[#155D58] font-semibold'
+                  : 'text-[#617679] hover:text-[#183438]'
               }`}
             >
-              <User className="w-3.5 h-3.5 text-[#667679]" />
+              <User className="w-3.5 h-3.5 text-[#617679]" />
               <span>{t('navAccount') || t('navSignIn')}</span>
             </Link>
           </div>
@@ -80,7 +80,7 @@ export const PublicHeader: React.FC = () => {
             <button
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-1.5 min-w-[38px] min-h-[38px] inline-flex items-center justify-center rounded-lg text-[#667679] hover:text-[#172D31] hover:bg-[#DFE7E4]/50 transition-colors cursor-pointer"
+              className="p-1.5 min-w-[38px] min-h-[38px] inline-flex items-center justify-center rounded-xl text-[#617679] hover:text-[#183438] hover:bg-[#D9E5E2]/50 transition-colors cursor-pointer"
               aria-label="Toggle navigation menu"
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -90,28 +90,28 @@ export const PublicHeader: React.FC = () => {
 
         {/* Mobile Dropdown Menu */}
         {mobileMenuOpen && (
-          <div className="sm:hidden border-t border-[#DFE7E4]/80 py-3 px-1 space-y-1 bg-white/95 backdrop-blur-xl animate-in slide-in-from-top-2">
+          <div className="sm:hidden border-t border-[#D9E5E2]/80 py-3 px-1 space-y-1 bg-white/95 backdrop-blur-xl animate-in slide-in-from-top-2">
             {navLinks.map((link) => (
               <Link
                 key={link.path}
                 to={link.path}
                 onClick={() => setMobileMenuOpen(false)}
-                className={`flex items-center gap-2.5 px-3 py-2.5 min-h-[44px] rounded-lg text-sm font-medium ${
+                className={`flex items-center gap-2.5 px-3 py-2.5 min-h-[44px] rounded-xl text-sm font-medium ${
                   isActive(link.path)
-                    ? 'text-[#126B63] bg-[#E7F2EF] font-semibold'
-                    : 'text-[#667679] hover:text-[#172D31] hover:bg-[#DFE7E4]/40'
+                    ? 'text-[#155D58] bg-[#DCEBE8]/60 font-semibold'
+                    : 'text-[#617679] hover:text-[#183438] hover:bg-[#D9E5E2]/40'
                 }`}
               >
                 <span>{link.label}</span>
               </Link>
             ))}
-            <div className="pt-2 border-t border-[#DFE7E4]">
+            <div className="pt-2 border-t border-[#D9E5E2]">
               <Link
                 to="/login"
                 onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-2.5 px-3 py-2.5 min-h-[44px] rounded-lg text-sm font-medium text-[#667679] hover:text-[#172D31]"
+                className="flex items-center gap-2.5 px-3 py-2.5 min-h-[44px] rounded-xl text-sm font-medium text-[#617679] hover:text-[#183438]"
               >
-                <User className="w-4 h-4 text-[#667679]" />
+                <User className="w-4 h-4 text-[#617679]" />
                 <span>{t('navAccount') || t('navSignIn')}</span>
               </Link>
             </div>

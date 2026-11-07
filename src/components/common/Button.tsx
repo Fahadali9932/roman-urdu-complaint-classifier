@@ -32,15 +32,15 @@ export const Button: React.FC<ButtonProps> = ({
 
   const variantStyles = {
     primary:
-      'bg-[#126B63] hover:bg-[#17423F] text-white shadow-xs focus-visible:outline-[#126B63] active:bg-[#0f4b46]',
+      'bg-[#155D58] hover:bg-[#0f4642] text-white shadow-xs focus-visible:outline-[#155D58] active:bg-[#0c3936]',
     secondary:
-      'bg-[#172D31] hover:bg-[#112225] text-white shadow-xs focus-visible:outline-[#172D31]',
+      'bg-[#183438] hover:bg-[#102326] text-white shadow-xs focus-visible:outline-[#183438]',
     civic:
-      'bg-[#126B63] hover:bg-[#17423F] text-white shadow-sm ring-1 ring-white/20',
+      'bg-[#155D58] hover:bg-[#0f4642] text-white shadow-sm ring-1 ring-white/20',
     outline:
-      'border border-[#DFE7E4] bg-white/80 hover:bg-white text-[#172D31] hover:text-[#172D31] focus-visible:outline-[#126B63] shadow-2xs',
+      'border border-[#D9E5E2] bg-white/80 hover:bg-white text-[#183438] hover:text-[#183438] focus-visible:outline-[#155D58] shadow-2xs',
     ghost:
-      'bg-transparent hover:bg-[#DFE7E4]/50 text-[#172D31] focus-visible:outline-[#126B63]',
+      'bg-transparent hover:bg-white/50 text-[#183438] focus-visible:outline-[#155D58]',
     danger:
       'bg-rose-600 hover:bg-rose-700 text-white shadow-xs focus-visible:outline-rose-600',
   };

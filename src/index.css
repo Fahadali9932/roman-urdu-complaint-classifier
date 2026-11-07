@@ -2,29 +2,29 @@
 
 @layer base {
   :root {
-    --civic-bg: #F4F6F5;
-    --civic-text: #172D31;
-    --civic-text-secondary: #667679;
-    --civic-primary: #126B63;
-    --civic-dark: #17423F;
-    --civic-border: #DFE7E4;
-    --civic-soft-teal: #E7F2EF;
+    --civic-bg: #EDF3F2;
+    --civic-text: #183438;
+    --civic-text-secondary: #617679;
+    --civic-deep-teal: #155D58;
+    --civic-accent-teal: #087F76;
     --civic-paper: #FFFFFF;
+    --civic-mist: #DCEBE8;
+    --civic-border: #D9E5E2;
   }
 
   body {
-    background-color: #F4F6F5;
-    color: #172D31;
+    background-color: #EDF3F2;
+    color: #183438;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
-    /* Layer 1: Atmospheric Background — gentle pearlescent and mist teal ambient diffusion */
+    /* Layer 1: Atmospheric Background — gentle pearlescent, ambient mist, and soft teal diffusion */
     background-image: 
-      radial-gradient(at 10% 12%, rgba(18, 107, 99, 0.085) 0px, transparent 48%),
-      radial-gradient(at 88% 18%, rgba(56, 96, 110, 0.065) 0px, transparent 45%),
-      radial-gradient(at 48% 62%, rgba(225, 237, 234, 0.75) 0px, transparent 55%),
-      radial-gradient(at 82% 88%, rgba(23, 66, 63, 0.045) 0px, transparent 40%);
+      radial-gradient(at 8% 12%, rgba(21, 93, 88, 0.10) 0px, transparent 52%),
+      radial-gradient(at 90% 15%, rgba(97, 118, 121, 0.09) 0px, transparent 48%),
+      radial-gradient(at 50% 55%, rgba(220, 235, 232, 0.85) 0px, transparent 65%),
+      radial-gradient(at 85% 90%, rgba(8, 127, 118, 0.07) 0px, transparent 45%);
     background-attachment: fixed;
     background-size: 100% 100%;
   }
@@ -56,7 +56,7 @@
   select:focus-visible,
   button:focus-visible,
   a:focus-visible {
-    outline: 2px solid #126B63 !important;
+    outline: 2px solid #155D58 !important;
     outline-offset: 2px !important;
   }
 
@@ -84,98 +84,98 @@
 }
 
 /* ==========================================================================
-   V3 LAYERED GLASS MATERIAL SYSTEM
+   V4 GLASS DESK MATERIAL SYSTEM
    ========================================================================== */
 
 /* Layer 2: Main Dominant Frosted-Glass Workspace */
 .glass-workspace {
-  background: rgba(255, 255, 255, 0.52);
-  backdrop-filter: blur(24px) saturate(145%);
-  -webkit-backdrop-filter: blur(24px) saturate(145%);
-  border: 1px solid rgba(255, 255, 255, 0.78);
+  background: rgba(255, 255, 255, 0.45);
+  backdrop-filter: blur(28px) saturate(145%);
+  -webkit-backdrop-filter: blur(28px) saturate(145%);
+  border: 1px solid rgba(255, 255, 255, 0.85);
   box-shadow:
-    0 24px 60px -12px rgba(24, 55, 53, 0.09),
-    0 8px 24px -4px rgba(24, 55, 53, 0.04),
-    inset 0 1px 1px 0 rgba(255, 255, 255, 0.9),
-    inset 0 -1px 1px 0 rgba(24, 55, 53, 0.02);
+    0 30px 80px -15px rgba(21, 93, 88, 0.12),
+    0 12px 32px -8px rgba(24, 52, 56, 0.05),
+    inset 0 1.5px 0 0 rgba(255, 255, 255, 0.95),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.35);
 }
 
 /* Layer 3: Floating Secondary Glass Surfaces */
 .glass-floating {
-  background: rgba(255, 255, 255, 0.70);
-  backdrop-filter: blur(18px) saturate(140%);
-  -webkit-backdrop-filter: blur(18px) saturate(140%);
-  border: 1px solid rgba(255, 255, 255, 0.90);
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.95);
   box-shadow:
-    0 16px 36px -6px rgba(24, 55, 53, 0.12),
-    0 4px 12px rgba(24, 55, 53, 0.04),
-    inset 0 1px 0 rgba(255, 255, 255, 0.95);
+    0 20px 45px -8px rgba(21, 93, 88, 0.15),
+    0 6px 16px -2px rgba(24, 52, 56, 0.06),
+    inset 0 1.5px 0 rgba(255, 255, 255, 1);
 }
 
 /* Subtle Glass Surface */
 .glass-subtle {
   background: rgba(255, 255, 255, 0.38);
-  backdrop-filter: blur(14px) saturate(130%);
-  -webkit-backdrop-filter: blur(14px) saturate(130%);
+  backdrop-filter: blur(16px) saturate(130%);
+  -webkit-backdrop-filter: blur(16px) saturate(130%);
   border: 1px solid rgba(255, 255, 255, 0.65);
 }
 
 /* Floating Glass Navigation Bar */
 .glass-navbar {
-  background: rgba(255, 255, 255, 0.68);
-  backdrop-filter: blur(20px) saturate(140%);
-  -webkit-backdrop-filter: blur(20px) saturate(140%);
-  border-bottom: 1px solid rgba(223, 231, 228, 0.85);
-  box-shadow: 0 4px 20px -2px rgba(24, 55, 53, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(22px) saturate(140%);
+  -webkit-backdrop-filter: blur(22px) saturate(140%);
+  border-bottom: 1px solid rgba(217, 229, 226, 0.85);
+  box-shadow: 0 4px 25px -4px rgba(21, 93, 88, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.95);
 }
 
 /* High-Legibility Digital Paper Writing Sheet */
 .paper-surface {
   background-color: #FFFFFF;
-  border: 1px solid #DFE7E4;
+  border: 1px solid #D9E5E2;
   box-shadow:
-    0 14px 38px -6px rgba(24, 55, 53, 0.07),
-    0 2px 8px -2px rgba(24, 55, 53, 0.02);
+    0 16px 45px -8px rgba(24, 52, 56, 0.08),
+    0 4px 12px -2px rgba(24, 52, 56, 0.03);
 }
 
 /* Writing Area Textarea */
 .paper-textarea {
   background-color: #FAFCFB;
-  border: 1px solid #DFE7E4;
-  color: #172D31;
+  border: 1px solid #D9E5E2;
+  color: #183438;
   line-height: 1.75;
 }
 
 .paper-textarea:focus {
   background-color: #FFFFFF;
-  border-color: #126B63;
+  border-color: #155D58;
 }
 
-/* Backward compatibility aliases */
+/* Compatibility aliases */
 .civic-glass {
-  background: rgba(255, 255, 255, 0.52);
-  backdrop-filter: blur(24px) saturate(145%);
-  -webkit-backdrop-filter: blur(24px) saturate(145%);
-  border: 1px solid rgba(255, 255, 255, 0.78);
+  background: rgba(255, 255, 255, 0.45);
+  backdrop-filter: blur(28px) saturate(145%);
+  -webkit-backdrop-filter: blur(28px) saturate(145%);
+  border: 1px solid rgba(255, 255, 255, 0.85);
   box-shadow:
-    0 24px 60px -12px rgba(24, 55, 53, 0.09),
-    0 8px 24px -4px rgba(24, 55, 53, 0.04),
-    inset 0 1px 1px 0 rgba(255, 255, 255, 0.9);
+    0 30px 80px -15px rgba(21, 93, 88, 0.12),
+    0 12px 32px -8px rgba(24, 52, 56, 0.05),
+    inset 0 1.5px 0 0 rgba(255, 255, 255, 0.95);
 }
 
 .glass-topbar {
-  background: rgba(255, 255, 255, 0.68);
-  backdrop-filter: blur(20px) saturate(140%);
-  -webkit-backdrop-filter: blur(20px) saturate(140%);
-  border-bottom: 1px solid rgba(223, 231, 228, 0.85);
-  box-shadow: 0 4px 20px -2px rgba(24, 55, 53, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(22px) saturate(140%);
+  -webkit-backdrop-filter: blur(22px) saturate(140%);
+  border-bottom: 1px solid rgba(217, 229, 226, 0.85);
+  box-shadow: 0 4px 25px -4px rgba(21, 93, 88, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.95);
 }
 
 .civic-paper,
 .paper-sheet {
   background-color: #FFFFFF;
-  border: 1px solid #DFE7E4;
+  border: 1px solid #D9E5E2;
   box-shadow:
-    0 14px 38px -6px rgba(24, 55, 53, 0.07),
-    0 2px 8px -2px rgba(24, 55, 53, 0.02);
+    0 16px 45px -8px rgba(24, 52, 56, 0.08),
+    0 4px 12px -2px rgba(24, 52, 56, 0.03);
 }
