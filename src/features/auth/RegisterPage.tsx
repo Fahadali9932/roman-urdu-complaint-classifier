@@ -1,0 +1,121 @@
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Container } from '../../components/layout/Container';
+import { Card } from '../../components/common/Card';
+import { Input } from '../../components/common/Input';
+import { Button } from '../../components/common/Button';
+import { AlertBanner } from '../../components/common/AlertBanner';
+import { CivicEmblem } from '../../components/common/CivicEmblem';
+import { useLanguage } from '../../context/LanguageContext';
+import { Mail, Lock, User, Phone, UserPlus, ArrowRight } from 'lucide-react';
+
+export const RegisterPage: React.FC = () => {
+  const { t, isRTL } = useLanguage();
+  const navigate = useNavigate();
+
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [password, setPassword] = useState('');
+  const [submitted, setSubmitted] = useState(false);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitted(true);
+    setTimeout(() => {
+      navigate('/dashboard');
+    }, 600);
+  };
+
+  return (
+    <div className="py-12 sm:py-16">
+      <Container size="sm">
+        <div className="text-center space-y-3 mb-8">
+          <div className="inline-flex justify-center">
+            <CivicEmblem size="lg" />
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+            {t('authRegisterTitle')}
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-600 max-w-sm mx-auto">
+            {t('authRegisterSubtitle')}
+          </p>
+        </div>
+
+        <Card className="p-6 sm:p-8 text-start">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <Input
+              label={t('formCitizenName')}
+              required
+              id="fullName"
+              placeholder={t('formCitizenNamePlaceholder')}
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              leftIcon={<User className="w-4 h-4" />}
+            />
+
+            <Input
+              label={t('authEmail')}
+              type="email"
+              required
+              id="email"
+              placeholder={t('authEmailPlaceholder')}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              leftIcon={<Mail className="w-4 h-4" />}
+            />
+
+            <Input
+              label={t('formPhone')}
+              required
+              id="phone"
+              placeholder={t('formPhonePlaceholder')}
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              leftIcon={<Phone className="w-4 h-4" />}
+            />
+
+            <Input
+              label={t('authPassword')}
+              type="password"
+              required
+              id="password"
+              placeholder={t('authPasswordPlaceholder')}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              leftIcon={<Lock className="w-4 h-4" />}
+            />
+
+            <Button
+              type="submit"
+              variant="primary"
+              size="lg"
+              className="w-full mt-2"
+              isLoading={submitted}
+              leftIcon={<UserPlus className="w-4 h-4" />}
+            >
+              {t('authRegisterButton')}
+            </Button>
+
+            <div className="text-center pt-2 border-t border-slate-100">
+              <Link
+                to="/login"
+                className="text-xs sm:text-sm font-semibold text-teal-700 hover:text-teal-900 inline-flex items-center gap-1"
+              >
+                <span>{t('authHaveAccount')}</span>
+                <ArrowRight className={`w-3.5 h-3.5 ${isRTL ? 'rotate-180' : ''}`} />
+              </Link>
+            </div>
+          </form>
+        </Card>
+
+        {/* Security Notice */}
+        <div className="mt-6">
+          <AlertBanner type="info" title={t('authNoticeTitle')}>
+            {t('authNoticeText')} Registration will be validated via Supabase Auth in Phase 2.
+          </AlertBanner>
+        </div>
+      </Container>
+    </div>
+  );
+};
