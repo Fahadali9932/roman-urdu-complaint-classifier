@@ -5,7 +5,7 @@ import { PublicFooter } from './PublicFooter';
 
 export const AppLayout: React.FC = () => {
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900">
+    <div className="min-h-screen flex flex-col bg-[#F7F8F7] text-[#1C3033]">
       <PublicHeader />
       <main className="flex-1">
         <Outlet />

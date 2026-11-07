@@ -1,24 +1,15 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Outlet } from 'react-router-dom';
-import { CitizenHeader } from './CitizenHeader';
-import { CitizenSidebar } from './CitizenSidebar';
+import { PublicHeader } from './PublicHeader';
 import { PublicFooter } from './PublicFooter';
 
 export const CitizenLayout: React.FC = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900">
-      <CitizenHeader onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
-      <div className="flex-1 flex w-full">
-        <CitizenSidebar
-          isOpen={sidebarOpen}
-          onClose={() => setSidebarOpen(false)}
-        />
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
-          <Outlet />
-        </main>
-      </div>
+    <div className="min-h-screen flex flex-col bg-[#F7F8F7] text-[#1C3033]">
+      <PublicHeader />
+      <main className="flex-1 w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+        <Outlet />
+      </main>
       <PublicFooter />
     </div>
   );
