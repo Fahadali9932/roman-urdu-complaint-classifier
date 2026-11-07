@@ -12,6 +12,11 @@ export interface IComplaintService {
   getComplaints(): Promise<Complaint[]>;
 
   /**
+   * Retrieves complaints explicitly belonging to a specific citizen ID (ownership model)
+   */
+  getCitizenComplaints(citizenId?: string): Promise<Complaint[]>;
+
+  /**
    * Looks up a complaint by its municipal reference number (e.g. KHI-2026-7842)
    */
   getComplaintByReference(referenceNumber: string): Promise<Complaint | null>;

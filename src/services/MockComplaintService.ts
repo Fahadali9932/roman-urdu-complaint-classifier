@@ -3,6 +3,7 @@ import {
   type ComplaintSubmissionInput,
   type CitizenOverviewStats,
   type SubmissionResult,
+  DEMO_CITIZEN,
 } from '../types';
 import { IComplaintService } from './IComplaintService';
 import { MOCK_COMPLAINTS } from '../mocks/complaints';
@@ -15,6 +16,11 @@ export class MockComplaintService implements IComplaintService {
     // Simulate brief network latency for realistic loading states
     await this.delay(150);
     return [...this.complaints];
+  }
+
+  async getCitizenComplaints(citizenId: string = DEMO_CITIZEN.id): Promise<Complaint[]> {
+    await this.delay(150);
+    return this.complaints.filter((c) => c.citizenId === citizenId);
   }
 
   async getComplaintByReference(referenceNumber: string): Promise<Complaint | null> {
@@ -32,9 +38,10 @@ export class MockComplaintService implements IComplaintService {
     const refNumber = generateMockReference(2026);
     const now = new Date().toISOString();
 
-    // Create a local demonstration complaint so citizen can immediately test tracking it in this session
+    // Create a local demonstration complaint belonging to the active demo citizen
     const newComplaint: Complaint = {
       id: `sim-${Date.now()}`,
+      citizenId: DEMO_CITIZEN.id,
       referenceNumber: refNumber,
       citizenName: input.citizenName,
       citizenPhone: input.citizenPhone,

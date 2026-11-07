@@ -56,6 +56,7 @@ export interface ComplaintTimelineEvent {
 
 export interface Complaint {
   id: string;
+  citizenId?: string;
   referenceNumber: string;
   citizenName: string;
   citizenPhone: string;
@@ -75,6 +76,24 @@ export interface Complaint {
   timeline: ComplaintTimelineEvent[];
   isDemonstration: boolean;
 }
+
+export interface CitizenProfile {
+  id: string;
+  fullName: string;
+  phone: string;
+  email: string;
+  district: KarachiDistrict;
+  isFictionalDemoUser: true;
+}
+
+export const DEMO_CITIZEN: CitizenProfile = {
+  id: 'cit-demo-bilal-2026',
+  fullName: 'Muhammad Bilal',
+  phone: '+92 300 2345678',
+  email: 'bilal.citizen@awaaz-e-awam.pk',
+  district: 'District East',
+  isFictionalDemoUser: true,
+};
 
 export interface ComplaintSubmissionInput {
   citizenName: string;

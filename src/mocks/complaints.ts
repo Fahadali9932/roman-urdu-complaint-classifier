@@ -51,8 +51,9 @@ export const KARACHI_DEPARTMENTS: Record<string, Department> = {
 export const MOCK_COMPLAINTS: Complaint[] = [
   {
     id: 'c101-7842',
+    citizenId: 'cit-demo-bilal-2026',
     referenceNumber: 'KHI-2026-7842',
-    citizenName: 'Muhammad Hamza Khan',
+    citizenName: 'Muhammad Bilal',
     citizenPhone: '+92 300 2345678',
     district: 'District East',
     locality: 'Block 7, Gulshan-e-Iqbal',
@@ -116,6 +117,7 @@ export const MOCK_COMPLAINTS: Complaint[] = [
   },
   {
     id: 'c102-3914',
+    citizenId: 'cit-other-fatima',
     referenceNumber: 'KHI-2026-3914',
     citizenName: 'Syeda Fatima Rizvi',
     citizenPhone: '+92 333 8976543',
@@ -160,9 +162,10 @@ export const MOCK_COMPLAINTS: Complaint[] = [
   },
   {
     id: 'c103-5120',
+    citizenId: 'cit-demo-bilal-2026',
     referenceNumber: 'KHI-2026-5120',
-    citizenName: 'Tariq Mehmood',
-    citizenPhone: '+92 321 4455667',
+    citizenName: 'Muhammad Bilal',
+    citizenPhone: '+92 300 2345678',
     district: 'District Central',
     locality: 'Block H, North Nazimabad',
     privateAddress: 'Street 9, Near Ziauddin Hospital (Hidden)',
@@ -204,6 +207,7 @@ export const MOCK_COMPLAINTS: Complaint[] = [
   },
   {
     id: 'c104-8801',
+    citizenId: 'cit-other-kamran',
     referenceNumber: 'KHI-2026-8801',
     citizenName: 'Kamran Ali Shah',
     citizenPhone: '+92 345 9988776',
