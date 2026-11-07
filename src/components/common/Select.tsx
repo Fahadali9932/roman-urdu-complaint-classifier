@@ -25,7 +25,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
         {label && (
           <label
             htmlFor={selectId}
-            className="block text-xs sm:text-sm font-medium text-[#183438] mb-1.5 select-none"
+            className="block text-xs sm:text-sm font-semibold text-[#182224] mb-1.5 select-none"
           >
             {label}
             {props.required && <span className="text-rose-500 ms-1" aria-hidden="true">*</span>}
@@ -37,10 +37,10 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
             ref={ref}
             aria-invalid={Boolean(error)}
             aria-describedby={errorId || helperId}
-            className={`w-full min-h-[44px] appearance-none rounded-xl border bg-white px-3.5 pe-10 py-2.5 text-sm sm:text-base text-[#183438] transition-colors focus:bg-white focus:outline-hidden ${
+            className={`w-full min-h-[44px] appearance-none rounded-xl border bg-white px-3.5 pe-10 py-2.5 text-sm sm:text-base text-[#182224] transition-colors focus:bg-white focus:outline-hidden ${
               error
                 ? 'border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 bg-rose-50/20'
-                : 'border-[#D9E5E2] focus:border-[#155D58] focus:ring-1 focus:ring-[#155D58]'
+                : 'border-[#CBD5E1] focus:border-[#18191B] focus:ring-1 focus:ring-[#18191B]'
             } ${className}`}
             {...props}
           >
@@ -51,7 +51,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
               </option>
             ))}
           </select>
-          <div className="absolute inset-y-0 end-0 pe-3.5 flex items-center pointer-events-none text-[#617679]">
+          <div className="absolute inset-y-0 end-0 pe-3.5 flex items-center pointer-events-none text-[#5A6A7E]">
             <ChevronDown className="w-4 h-4" aria-hidden="true" />
           </div>
         </div>
@@ -61,7 +61,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
           </p>
         )}
         {helperText && !error && (
-          <p id={helperId} className="mt-1.5 text-xs text-[#617679]">
+          <p id={helperId} className="mt-1.5 text-xs text-[#5A6A7E]">
             {helperText}
           </p>
         )}

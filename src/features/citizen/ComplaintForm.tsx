@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Container } from '../../components/layout/Container';
+import { NotebookPage } from '../../components/common/NotebookPage';
 import { Input } from '../../components/common/Input';
 import { Select } from '../../components/common/Select';
 import { Textarea } from '../../components/common/Textarea';
@@ -19,7 +20,6 @@ import {
   ArrowRight,
   Lock,
   Building,
-  Sparkles,
 } from 'lucide-react';
 
 const KARACHI_DISTRICTS: { value: KarachiDistrict; label: string }[] = [
@@ -55,7 +55,7 @@ export const ComplaintForm: React.FC = () => {
   // Derived word count for complaint description
   const descriptionWords = countWords(formData.description);
 
-  // Automatically formatted current date for formal paper application header
+  // Current date for formal paper application header
   const [currentDateIso] = useState(() => new Date().toISOString());
   const todayFormatted = formatDateOnly(currentDateIso, language);
 
@@ -68,6 +68,19 @@ export const ComplaintForm: React.FC = () => {
         return next;
       });
     }
+  };
+
+  const handleReset = () => {
+    setFormData({
+      citizenName: '',
+      citizenPhone: '',
+      district: '' as KarachiDistrict,
+      locality: '',
+      privateAddress: '',
+      title: '',
+      description: '',
+    });
+    setErrors({});
   };
 
   const validateForm = (): boolean => {
@@ -124,177 +137,172 @@ export const ComplaintForm: React.FC = () => {
   };
 
   return (
-    <div className="py-6 sm:py-14">
-      <Container size="xl" className="max-w-[1040px]">
-        {/* Page Heading */}
-        <div className="text-center space-y-1.5 mb-8 sm:mb-10">
-          <h1 className="text-3xl sm:text-4xl font-semibold text-[#183438] tracking-tight">
+    <div className="py-8 sm:py-16">
+      <Container size="xl" className="max-w-[1000px]">
+        {/* Page Heading against dark charcoal background */}
+        <div className="text-center space-y-2 mb-8 sm:mb-10">
+          <h1 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">
             {t('paperFormTitle') || t('formTitle')}
           </h1>
-          <p className="text-sm sm:text-base text-[#617679] max-w-xl mx-auto leading-relaxed">
+          <p className="text-sm sm:text-base text-slate-400 max-w-xl mx-auto leading-relaxed">
             {t('paperFormSubtitle') || t('formSubtitle')}
           </p>
         </div>
 
-        {/* Layer 2: Main Glass Workspace Desk Mat */}
-        <div className="glass-workspace rounded-3xl p-4 sm:p-8 lg:p-12 relative">
-          
-          {/* Layer 3: Floating Secondary Glass Help Element (Desktop only) */}
-          <div className="glass-floating rounded-2xl p-4 absolute -top-4 end-8 max-w-xs shadow-md hidden lg:flex items-start gap-3 z-10 text-start">
-            <div className="p-1.5 rounded-lg bg-[#DCEBE8] text-[#155D58] shrink-0 mt-0.5">
-              <Sparkles className="w-4 h-4" />
+        {/* The Signature Notebook Page Container */}
+        <NotebookPage maxWidth="max-w-[880px]">
+          <form onSubmit={handleSubmit} noValidate className="space-y-6 sm:space-y-7 text-start">
+            
+            {/* 1. Formal Application Header on Notebook Sheet */}
+            <div className="pb-4 border-b border-[#D5E4F0] flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs sm:text-sm">
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-[#18191B] uppercase tracking-wider text-xs">
+                  {t('paperDocHeader') || 'CITIZEN COMPLAINT APPLICATION'}
+                </span>
+              </div>
+              <div className="text-[#5A6A7E] flex items-center gap-1.5 font-mono text-xs">
+                <span>{t('paperDateLabel') || 'Date'}:</span>
+                <span className="font-semibold text-[#182224]">{todayFormatted}</span>
+              </div>
             </div>
-            <div className="space-y-0.5">
-              <span className="text-xs font-semibold text-[#183438] block">
-                {t('heroFloatingHelpTitle') || 'Roman Urdu Native Input'}
-              </span>
-              <p className="text-[11px] text-[#617679] leading-snug">
-                Write naturally as you speak. No need for complex bureaucratic terminology.
-              </p>
-            </div>
-          </div>
 
-          {/* Digital Paper Writing Sheet (760-820px wide on desktop) */}
-          <div className="paper-surface rounded-2xl p-6 sm:p-10 lg:p-12 text-start relative shadow-md max-w-[820px] mx-auto">
-            <form onSubmit={handleSubmit} noValidate className="space-y-6 sm:space-y-7">
-              
-              {/* 1. Formal Paper Header */}
-              <div className="pb-4 border-b border-[#D9E5E2] flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs sm:text-sm">
-                <div className="flex items-center gap-2">
-                  <span className="font-semibold text-[#155D58] uppercase tracking-wider text-xs">
-                    {t('paperDocHeader') || 'CITIZEN COMPLAINT APPLICATION'}
-                  </span>
-                </div>
-                <div className="text-[#617679] flex items-center gap-1.5 font-mono text-xs">
-                  <span>{t('paperDateLabel') || 'Date'}:</span>
-                  <span className="font-semibold text-[#183438]">{todayFormatted}</span>
-                </div>
+            {/* 2. Official Recipient Notification Banner */}
+            <div className="p-3.5 sm:p-4 rounded-xl bg-slate-50 border border-[#D5E4F0] flex items-start gap-3">
+              <Building className="w-4 h-4 sm:w-5 sm:h-5 text-[#18191B] shrink-0 mt-0.5" />
+              <div className="space-y-0.5">
+                <span className="font-semibold text-[#182224] block text-xs sm:text-sm">
+                  {t('paperDocTo') || 'To: Concerned Service Department, Karachi'}
+                </span>
+                <span className="text-[#5A6A7E] text-xs block leading-relaxed">
+                  {t('paperRoutingNotice') || t('formDeptNoteText')}
+                </span>
+              </div>
+            </div>
+
+            {/* 3. Subject Line Field */}
+            <div>
+              <Input
+                label={t('formComplaintTitle')}
+                required
+                id="title"
+                placeholder={t('formComplaintTitlePlaceholder')}
+                value={formData.title}
+                onChange={(e) => handleChange('title', e.target.value)}
+                error={errors.title}
+              />
+            </div>
+
+            {/* 4. Natural Application Writing Canvas (Dominant Visual Focus) */}
+            <div className="space-y-2.5">
+              <Textarea
+                label={t('formDescription')}
+                required
+                id="description"
+                rows={8}
+                placeholder={t('formDescriptionPlaceholder')}
+                value={formData.description}
+                onChange={(e) => handleChange('description', e.target.value)}
+                error={errors.description}
+                className="font-sans text-sm sm:text-base leading-[32px] p-4 rounded-xl notebook-textarea"
+              />
+
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1 text-xs text-[#5A6A7E]">
+                <p className="italic text-xs text-[#5A6A7E]">
+                  {t('formRomanUrduExample')}
+                </p>
+                <WordCounter
+                  currentCount={descriptionWords}
+                  maxWords={MAX_COMPLAINT_WORDS}
+                  className="w-full sm:w-64"
+                />
+              </div>
+            </div>
+
+            {/* 5. Applicant & Location Information Section */}
+            <div className="pt-6 border-t border-[#D5E4F0] space-y-4 sm:space-y-5">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xs sm:text-sm font-bold uppercase tracking-wider text-[#182224]">
+                  {t('paperApplicantSection') || 'Applicant & Location Details'}
+                </h2>
+                <span className="text-xs text-[#5A6A7E] flex items-center gap-1.5">
+                  <Lock className="w-3.5 h-3.5 text-[#182224]" />
+                  <span>{t('paperPrivacyNotice') || 'Contact details kept private'}</span>
+                </span>
               </div>
 
-              {/* 2. Official Recipient Notification Banner */}
-              <div className="p-3.5 sm:p-4 rounded-xl bg-[#EDF3F2]/80 border border-[#D9E5E2] flex items-start gap-3">
-                <Building className="w-4 h-4 sm:w-5 sm:h-5 text-[#155D58] shrink-0 mt-0.5" />
-                <div className="space-y-0.5">
-                  <span className="font-semibold text-[#183438] block text-xs sm:text-sm">
-                    {t('paperDocTo') || 'To: Concerned Service Department, Karachi'}
-                  </span>
-                  <span className="text-[#617679] text-xs block leading-relaxed">
-                    {t('paperRoutingNotice') || t('formDeptNoteText')}
-                  </span>
-                </div>
-              </div>
-
-              {/* 3. Subject Line Field */}
-              <div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
                 <Input
-                  label={t('formComplaintTitle')}
+                  label={t('formCitizenName')}
                   required
-                  id="title"
-                  placeholder={t('formComplaintTitlePlaceholder')}
-                  value={formData.title}
-                  onChange={(e) => handleChange('title', e.target.value)}
-                  error={errors.title}
-                  className="bg-white border-[#D9E5E2] focus:border-[#155D58]"
+                  id="citizenName"
+                  placeholder={t('formCitizenNamePlaceholder')}
+                  value={formData.citizenName}
+                  onChange={(e) => handleChange('citizenName', e.target.value)}
+                  error={errors.citizenName}
                 />
-              </div>
-
-              {/* 4. Natural Application Writing Canvas (Dominant Focus) */}
-              <div className="space-y-2.5">
-                <Textarea
-                  label={t('formDescription')}
-                  required
-                  id="description"
-                  rows={8}
-                  placeholder={t('formDescriptionPlaceholder')}
-                  value={formData.description}
-                  onChange={(e) => handleChange('description', e.target.value)}
-                  error={errors.description}
-                  className="paper-textarea font-sans text-sm sm:text-base leading-relaxed p-4 rounded-xl"
-                />
-
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1 text-xs text-[#617679]">
-                  <p className="italic text-xs text-[#617679]">
-                    {t('formRomanUrduExample')}
-                  </p>
-                  <WordCounter currentCount={descriptionWords} maxWords={MAX_COMPLAINT_WORDS} className="w-full sm:w-64" />
-                </div>
-              </div>
-
-              {/* 5. Applicant & Location Information Section (Subordinate) */}
-              <div className="pt-6 border-t border-[#D9E5E2] space-y-4 sm:space-y-5">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-xs sm:text-sm font-semibold uppercase tracking-wider text-[#183438]">
-                    {t('paperApplicantSection') || 'Applicant & Location Details'}
-                  </h2>
-                  <span className="text-xs text-[#617679] flex items-center gap-1.5">
-                    <Lock className="w-3.5 h-3.5 text-[#155D58]" />
-                    <span>{t('paperPrivacyNotice') || 'Contact details kept private'}</span>
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
-                  <Input
-                    label={t('formCitizenName')}
-                    required
-                    id="citizenName"
-                    placeholder={t('formCitizenNamePlaceholder')}
-                    value={formData.citizenName}
-                    onChange={(e) => handleChange('citizenName', e.target.value)}
-                    error={errors.citizenName}
-                  />
-
-                  <Input
-                    label={t('formPhone')}
-                    required
-                    id="citizenPhone"
-                    placeholder={t('formPhonePlaceholder')}
-                    value={formData.citizenPhone}
-                    onChange={(e) => handleChange('citizenPhone', e.target.value)}
-                    error={errors.citizenPhone}
-                    helperText="Format: 03XXXXXXXXX"
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
-                  <Select
-                    label={t('formDistrict')}
-                    required
-                    id="district"
-                    placeholder={t('formDistrictPlaceholder')}
-                    options={KARACHI_DISTRICTS}
-                    value={formData.district}
-                    onChange={(e) => handleChange('district', e.target.value)}
-                    error={errors.district}
-                  />
-
-                  <Input
-                    label={t('formLocality')}
-                    required
-                    id="locality"
-                    placeholder={t('formLocalityPlaceholder')}
-                    value={formData.locality}
-                    onChange={(e) => handleChange('locality', e.target.value)}
-                    error={errors.locality}
-                  />
-                </div>
 
                 <Input
-                  label={t('formAddress')}
-                  id="privateAddress"
-                  placeholder={t('formAddressPlaceholder')}
-                  value={formData.privateAddress}
-                  onChange={(e) => handleChange('privateAddress', e.target.value)}
-                  helperText={t('formPrivacyNote')}
+                  label={t('formPhone')}
+                  required
+                  id="citizenPhone"
+                  placeholder={t('formPhonePlaceholder')}
+                  value={formData.citizenPhone}
+                  onChange={(e) => handleChange('citizenPhone', e.target.value)}
+                  error={errors.citizenPhone}
+                  helperText="Format: 03XXXXXXXXX"
                 />
               </div>
 
-              {/* 6. Submission Action & Honest Phase 1 Prototype Status */}
-              <div className="pt-6 border-t border-[#D9E5E2] flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div className="flex items-center gap-2 text-xs text-[#617679]">
-                  <ShieldCheck className="w-4 h-4 text-[#155D58] shrink-0" />
-                  <span>Client prototype validation • Live database connected in Phase 2</span>
-                </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+                <Select
+                  label={t('formDistrict')}
+                  required
+                  id="district"
+                  placeholder={t('formDistrictPlaceholder')}
+                  options={KARACHI_DISTRICTS}
+                  value={formData.district}
+                  onChange={(e) => handleChange('district', e.target.value)}
+                  error={errors.district}
+                />
 
+                <Input
+                  label={t('formLocality')}
+                  required
+                  id="locality"
+                  placeholder={t('formLocalityPlaceholder')}
+                  value={formData.locality}
+                  onChange={(e) => handleChange('locality', e.target.value)}
+                  error={errors.locality}
+                />
+              </div>
+
+              <Input
+                label={t('formAddress')}
+                id="privateAddress"
+                placeholder={t('formAddressPlaceholder')}
+                value={formData.privateAddress}
+                onChange={(e) => handleChange('privateAddress', e.target.value)}
+                helperText={t('formPrivacyNote')}
+              />
+            </div>
+
+            {/* 6. Submission Action & Honest Phase 1 Prototype Status */}
+            <div className="pt-6 border-t border-[#D5E4F0] flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-2 text-xs text-[#5A6A7E]">
+                <ShieldCheck className="w-4 h-4 text-[#182224] shrink-0" />
+                <span>Client prototype validation • Live database connected in Phase 2</span>
+              </div>
+
+              <div className="flex items-center gap-3 w-full sm:w-auto">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="lg"
+                  onClick={handleReset}
+                  className="w-full sm:w-auto px-5"
+                >
+                  Clear
+                </Button>
                 <Button
                   type="submit"
                   variant="primary"
@@ -302,14 +310,14 @@ export const ComplaintForm: React.FC = () => {
                   isLoading={isSubmitting}
                   disabled={descriptionWords > MAX_COMPLAINT_WORDS}
                   leftIcon={<Send className="w-4 h-4" />}
-                  className="w-full sm:w-auto bg-[#155D58] hover:bg-[#0f4642] text-white px-7 rounded-xl font-medium shadow-sm transition-all"
+                  className="w-full sm:w-auto px-7"
                 >
                   {isSubmitting ? t('formSubmitting') : t('formSubmitButton') || 'Submit Complaint'}
                 </Button>
               </div>
-            </form>
-          </div>
-        </div>
+            </div>
+          </form>
+        </NotebookPage>
       </Container>
 
       {/* Honest Validation Confirmation Modal (No Fake Data / No Fake Reference Codes) */}
@@ -319,19 +327,19 @@ export const ComplaintForm: React.FC = () => {
         title={t('modalTitle')}
       >
         <div className="space-y-5 text-start">
-          <div className="p-4 sm:p-5 rounded-xl bg-[#EDF3F2] border border-[#D9E5E2] flex items-center gap-4">
-            <CheckCircle2 className="w-8 h-8 text-[#155D58] shrink-0" />
+          <div className="p-4 sm:p-5 rounded-xl bg-slate-50 border border-slate-200 flex items-center gap-4">
+            <CheckCircle2 className="w-8 h-8 text-[#18191B] shrink-0" />
             <div className="space-y-1">
-              <span className="block text-sm font-semibold text-[#183438]">
+              <span className="block text-sm font-bold text-[#182224]">
                 Application Verified Successfully
               </span>
-              <p className="text-xs text-[#617679]">
+              <p className="text-xs text-[#5A6A7E]">
                 All intake fields, Pakistani phone verification, and word limits are confirmed valid.
               </p>
             </div>
           </div>
 
-          <p className="text-sm text-[#617679] leading-relaxed">
+          <p className="text-sm text-[#5A6A7E] leading-relaxed">
             {t('modalBody1')}
           </p>
 
@@ -347,7 +355,7 @@ export const ComplaintForm: React.FC = () => {
               variant="outline"
               size="md"
               onClick={() => setShowModal(false)}
-              className="w-full sm:w-auto text-[#617679] border-[#D9E5E2]"
+              className="w-full sm:w-auto"
             >
               {t('modalClose')}
             </Button>
@@ -359,7 +367,7 @@ export const ComplaintForm: React.FC = () => {
                 navigate('/dashboard');
               }}
               rightIcon={<ArrowRight className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />}
-              className="w-full sm:w-auto bg-[#155D58] hover:bg-[#0f4642]"
+              className="w-full sm:w-auto"
             >
               {t('modalTrackNow')}
             </Button>

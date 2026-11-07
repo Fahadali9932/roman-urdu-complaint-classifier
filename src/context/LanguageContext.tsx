@@ -13,7 +13,24 @@ export interface LanguageContextType {
 export const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [language, setLanguageState] = useState<Language>('en');
+  const [language, setLanguageState] = useState<Language>(() => {
+    try {
+      if (typeof window !== 'undefined') {
+        const params = new URLSearchParams(window.location.search);
+        const langParam = params.get('lang');
+        if (langParam === 'ur' || langParam === 'en') {
+          return langParam;
+        }
+        const stored = localStorage.getItem('preferred_language');
+        if (stored === 'ur' || stored === 'en') {
+          return stored;
+        }
+      }
+    } catch {
+      // Fallback to default
+    }
+    return 'en';
+  });
 
   useEffect(() => {
     const root = document.documentElement;
@@ -23,6 +40,11 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
     } else {
       root.setAttribute('dir', 'ltr');
       root.setAttribute('lang', 'en');
+    }
+    try {
+      localStorage.setItem('preferred_language', language);
+    } catch {
+      // Ignore in private/restricted storage
     }
   }, [language]);
 

@@ -2,31 +2,25 @@
 
 @layer base {
   :root {
-    --civic-bg: #EDF3F2;
-    --civic-text: #183438;
-    --civic-text-secondary: #617679;
-    --civic-deep-teal: #155D58;
-    --civic-accent-teal: #087F76;
-    --civic-paper: #FFFFFF;
-    --civic-mist: #DCEBE8;
-    --civic-border: #D9E5E2;
+    --notebook-bg: #222326;
+    --notebook-paper: #FFFFFF;
+    --notebook-text: #182224;
+    --notebook-text-secondary: #5A6A7E;
+    --notebook-line: #D5E4F0;
+    --notebook-margin: #E26D6D;
+    --notebook-dark-btn: #18191B;
+    --notebook-dark-hover: #2A2B2E;
+    --notebook-border: #DDE3EA;
   }
 
   body {
-    background-color: #EDF3F2;
-    color: #183438;
+    background-color: #222326;
+    color: #F1F5F9;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
-    /* Layer 1: Atmospheric Background — gentle pearlescent, ambient mist, and soft teal diffusion */
-    background-image: 
-      radial-gradient(at 8% 12%, rgba(21, 93, 88, 0.10) 0px, transparent 52%),
-      radial-gradient(at 90% 15%, rgba(97, 118, 121, 0.09) 0px, transparent 48%),
-      radial-gradient(at 50% 55%, rgba(220, 235, 232, 0.85) 0px, transparent 65%),
-      radial-gradient(at 85% 90%, rgba(8, 127, 118, 0.07) 0px, transparent 45%);
-    background-attachment: fixed;
-    background-size: 100% 100%;
+    min-height: 100vh;
   }
 
   /* Optimized Urdu Typography with authentic Nastaliq & Naskh fallbacks */
@@ -56,7 +50,7 @@
   select:focus-visible,
   button:focus-visible,
   a:focus-visible {
-    outline: 2px solid #155D58 !important;
+    outline: 2px solid #38BDF8 !important;
     outline-offset: 2px !important;
   }
 
@@ -71,111 +65,84 @@
       scroll-behavior: auto !important;
     }
   }
-
-  /* Fallback for browsers with backdrop-filter disabled or unsupported */
-  @supports not (backdrop-filter: blur(10px)) {
-    .glass-workspace,
-    .glass-floating,
-    .glass-navbar,
-    .civic-glass {
-      background: rgba(255, 255, 255, 0.95) !important;
-    }
-  }
 }
 
 /* ==========================================================================
-   V4 GLASS DESK MATERIAL SYSTEM
+   CINEMATIC NOTEBOOK PAPER MATERIAL SYSTEM
    ========================================================================== */
 
-/* Layer 2: Main Dominant Frosted-Glass Workspace */
-.glass-workspace {
-  background: rgba(255, 255, 255, 0.45);
-  backdrop-filter: blur(28px) saturate(145%);
-  -webkit-backdrop-filter: blur(28px) saturate(145%);
-  border: 1px solid rgba(255, 255, 255, 0.85);
-  box-shadow:
-    0 30px 80px -15px rgba(21, 93, 88, 0.12),
-    0 12px 32px -8px rgba(24, 52, 56, 0.05),
-    inset 0 1.5px 0 0 rgba(255, 255, 255, 0.95),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+/* Thin, evenly spaced, pale-blue horizontal writing lines (32px rhythm) */
+.notebook-ruled-lines {
+  background-image: repeating-linear-gradient(
+    transparent,
+    transparent 31px,
+    #D5E4F0 31px,
+    #D5E4F0 32px
+  );
+  background-attachment: local;
 }
 
-/* Layer 3: Floating Secondary Glass Surfaces */
-.glass-floating {
-  background: rgba(255, 255, 255, 0.72);
-  backdrop-filter: blur(20px) saturate(140%);
-  -webkit-backdrop-filter: blur(20px) saturate(140%);
-  border: 1px solid rgba(255, 255, 255, 0.95);
-  box-shadow:
-    0 20px 45px -8px rgba(21, 93, 88, 0.15),
-    0 6px 16px -2px rgba(24, 52, 56, 0.06),
-    inset 0 1.5px 0 rgba(255, 255, 255, 1);
+/* One thin, muted-red vertical margin line (responsive logical start placement) */
+.notebook-margin-line {
+  inset-inline-start: 48px;
 }
 
-/* Subtle Glass Surface */
-.glass-subtle {
-  background: rgba(255, 255, 255, 0.38);
-  backdrop-filter: blur(16px) saturate(130%);
-  -webkit-backdrop-filter: blur(16px) saturate(130%);
-  border: 1px solid rgba(255, 255, 255, 0.65);
+@media (min-width: 640px) {
+  .notebook-margin-line {
+    inset-inline-start: 84px;
+  }
 }
 
-/* Floating Glass Navigation Bar */
-.glass-navbar {
-  background: rgba(255, 255, 255, 0.65);
-  backdrop-filter: blur(22px) saturate(140%);
-  -webkit-backdrop-filter: blur(22px) saturate(140%);
-  border-bottom: 1px solid rgba(217, 229, 226, 0.85);
-  box-shadow: 0 4px 25px -4px rgba(21, 93, 88, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.95);
+/* Navigation bar above the notebook against dark charcoal */
+.notebook-navbar {
+  background-color: rgba(34, 35, 38, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-/* High-Legibility Digital Paper Writing Sheet */
-.paper-surface {
+/* Footer below the notebook against dark charcoal */
+.notebook-footer {
+  background-color: #1C1D20;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Writing Area Textarea specifically designed for notebook writing */
+.notebook-textarea {
+  background-color: transparent;
+  line-height: 32px;
+  color: #182224;
+}
+
+.notebook-textarea:focus {
   background-color: #FFFFFF;
-  border: 1px solid #D9E5E2;
-  box-shadow:
-    0 16px 45px -8px rgba(24, 52, 56, 0.08),
-    0 4px 12px -2px rgba(24, 52, 56, 0.03);
 }
 
-/* Writing Area Textarea */
-.paper-textarea {
-  background-color: #FAFCFB;
-  border: 1px solid #D9E5E2;
-  color: #183438;
-  line-height: 1.75;
-}
-
-.paper-textarea:focus {
+/* Form Input within notebook surface */
+.notebook-input {
   background-color: #FFFFFF;
-  border-color: #155D58;
+  border-color: #CBD5E1;
+  color: #182224;
 }
 
-/* Compatibility aliases */
-.civic-glass {
-  background: rgba(255, 255, 255, 0.45);
-  backdrop-filter: blur(28px) saturate(145%);
-  -webkit-backdrop-filter: blur(28px) saturate(145%);
-  border: 1px solid rgba(255, 255, 255, 0.85);
-  box-shadow:
-    0 30px 80px -15px rgba(21, 93, 88, 0.12),
-    0 12px 32px -8px rgba(24, 52, 56, 0.05),
-    inset 0 1.5px 0 0 rgba(255, 255, 255, 0.95);
+.notebook-input:focus {
+  border-color: #18191B;
+  --tw-ring-color: #18191B;
 }
 
-.glass-topbar {
-  background: rgba(255, 255, 255, 0.65);
-  backdrop-filter: blur(22px) saturate(140%);
-  -webkit-backdrop-filter: blur(22px) saturate(140%);
-  border-bottom: 1px solid rgba(217, 229, 226, 0.85);
-  box-shadow: 0 4px 25px -4px rgba(21, 93, 88, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.95);
-}
-
-.civic-paper,
+/* Compatibility aliases for existing components */
+.glass-workspace,
+.civic-glass,
+.paper-surface,
 .paper-sheet {
   background-color: #FFFFFF;
-  border: 1px solid #D9E5E2;
-  box-shadow:
-    0 16px 45px -8px rgba(24, 52, 56, 0.08),
-    0 4px 12px -2px rgba(24, 52, 56, 0.03);
+  color: #182224;
+}
+
+.glass-navbar,
+.glass-topbar {
+  background-color: rgba(34, 35, 38, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
