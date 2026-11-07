@@ -42,7 +42,7 @@ export const CitizenSidebar: React.FC<CitizenSidebarProps> = ({ isOpen, onClose 
       {/* Sidebar container */}
       <aside
         className={`fixed inset-y-0 start-0 z-50 w-64 bg-white border-e border-slate-200/80 transform transition-transform duration-200 ease-in-out lg:translate-x-0 lg:static lg:z-auto flex flex-col justify-between ${
-          isOpen ? 'translate-x-0' : '-translate-x-full'
+          isOpen ? 'translate-x-0' : 'ltr:-translate-x-full rtl:translate-x-full'
         }`}
       >
         <div className="p-4 space-y-6">
@@ -53,7 +53,8 @@ export const CitizenSidebar: React.FC<CitizenSidebarProps> = ({ isOpen, onClose 
             </span>
             <button
               onClick={onClose}
-              className="p-1 rounded-md text-slate-400 hover:text-slate-600 cursor-pointer"
+              className="p-1 min-w-[44px] min-h-[44px] inline-flex items-center justify-center rounded-md text-slate-400 hover:text-slate-600 cursor-pointer"
+              aria-label="Close navigation menu"
             >
               <X className="w-5 h-5" />
             </button>
@@ -70,7 +71,7 @@ export const CitizenSidebar: React.FC<CitizenSidebarProps> = ({ isOpen, onClose 
                 to={item.to}
                 onClick={onClose}
                 className={({ isActive }) =>
-                  `flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs sm:text-sm font-semibold transition-colors ${
+                  `flex items-center gap-3 px-3.5 py-2.5 min-h-[44px] rounded-lg text-xs sm:text-sm font-semibold transition-colors ${
                     isActive
                       ? 'bg-teal-50 text-teal-900 border border-teal-200/60 shadow-2xs'
                       : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
@@ -99,7 +100,7 @@ export const CitizenSidebar: React.FC<CitizenSidebarProps> = ({ isOpen, onClose 
         <div className="p-4 border-t border-slate-100">
           <button
             onClick={handleSignOut}
-            className="w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg text-xs sm:text-sm font-semibold text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+            className="w-full flex items-center gap-2.5 px-3.5 py-2.5 min-h-[44px] rounded-lg text-xs sm:text-sm font-semibold text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
           >
             <LogOut className="w-4 h-4" />
             <span>{t('navSignOut')}</span>
