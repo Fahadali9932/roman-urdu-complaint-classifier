@@ -30,21 +30,27 @@ export const WordCounter: React.FC<WordCounterProps> = ({
   }
 
   return (
-    <div className={`flex flex-col gap-1 text-xs select-none ${className}`}>
+    <div className={`flex flex-col gap-1.5 text-xs select-none ${className}`} aria-live="polite">
       <div className="flex items-center justify-between">
-        <span className="text-slate-500">
+        <span className="text-slate-600 font-medium">
           {t('formWordCounter')}:{' '}
-          <span className={textColor} data-testid="word-count-display">
+          <span className={`ref-code font-bold ${textColor}`} data-testid="word-count-display">
             {currentCount}
           </span>{' '}
-          / {maxWords}
+          <span className="ref-code text-slate-400">/ {maxWords}</span>
         </span>
         <span className={`text-[11px] font-medium ${textColor}`}>
-          {isOverLimit ? t('valDescExceeded') : `${maxWords - currentCount} remaining`}
+          {isOverLimit ? (
+            t('valDescExceeded')
+          ) : (
+            <>
+              <span className="ref-code font-semibold">{maxWords - currentCount}</span> {t('wordsRemaining')}
+            </>
+          )}
         </span>
       </div>
       {/* Visual gauge */}
-      <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+      <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden" role="progressbar" aria-valuenow={currentCount} aria-valuemin={0} aria-valuemax={maxWords}>
         <div
           className={`h-full transition-all duration-200 ${barColor}`}
           style={{ width: `${percentage}%` }}

@@ -22,6 +22,11 @@ export const translations = {
     heroCtaSubmit: 'Submit a Complaint',
     heroCtaTrack: 'Track Existing Complaint',
     heroDisclaimer: '100% Free Public Service • Privacy Protected • Fictional Demo Mode',
+    heroPreviewTitle: 'Live Grievance Preview',
+    heroPreviewSnippet: '"Do din se bijli nahi aa rahi aur pani ki motor bhi band hai."',
+    heroPreviewDetected: 'NLP Detected: Roman Urdu (97% Conf.)',
+    heroPreviewTarget: 'Target Authority: K-Electric & KW&SC',
+    heroPreviewStatus: 'Triage Stage: Municipal Dispatch',
 
     // How It Works
     howTitle: 'How It Works',
@@ -68,13 +73,15 @@ export const translations = {
     formComplaintTitlePlaceholder: 'Brief summary (e.g., Sewerage line overflow on Main Road)',
     formDescription: 'Complaint Description',
     formDescriptionPlaceholder: 'Write your complaint in Roman Urdu, English, or Urdu script... (Max 200 words)',
-    formRomanUrduExample: 'Example: "Hamare mohallay mein pichlay 4 din se kachray ka dher laga hua hai aur badboo se bimariyan phailne ka khadsha hai."',
-    formWordCounter: 'words',
+    formRomanUrduExample: 'Example: "Do din se bijli nahi aa rahi aur pani ki motor bhi band hai."',
+    formWordCounter: 'Words',
+    wordsRemaining: 'remaining',
     formWordLimitWarning: 'Maximum 200 words allowed. Please summarize your grievance.',
     formSubmitButton: 'Submit Complaint',
     formSubmitting: 'Validating & Generating Reference...',
     formDeptNoteTitle: 'Automated Routing Notice',
     formDeptNoteText: 'You do not need to choose a department. Our Roman Urdu classification engine will analyze your text and route it to KW&SC, SSWMB, K-Electric, or KMC automatically.',
+    formPrivacyNote: 'Privacy Notice: Your phone number and residential address are strictly masked from public lookup searches.',
 
     // Form Validation Messages
     valNameRequired: 'Full name is required.',
@@ -110,6 +117,7 @@ export const translations = {
     trackTimelineTitle: 'Event History & Timeline',
     trackOriginalComplaint: 'Citizen Grievance Description',
     trackDemoDisclaimer: 'Demonstration Data: Displaying simulated timeline stages and department assignments.',
+    trackPrivacyProtected: 'Citizen contact details and private address are masked for privacy.',
 
     // Dashboard Screen
     dashTitle: 'Citizen Overview Dashboard',
@@ -120,6 +128,8 @@ export const translations = {
     statResolved: 'Resolved',
     dashRecentTitle: 'Recent Grievances',
     dashFilterAll: 'All Records',
+    dashSearchPlaceholder: 'Search by reference, title, or locality...',
+    dashClearFilters: 'Clear Filters',
     dashTableRef: 'Reference',
     dashTableTitle: 'Title & Locality',
     dashTableDept: 'Target Department',
@@ -128,7 +138,7 @@ export const translations = {
     dashTableAction: 'Actions',
     dashViewAction: 'Track',
     dashEmptyTitle: 'No Complaints Found',
-    dashEmptyDesc: 'You haven\'t submitted any complaints matching this filter yet.',
+    dashEmptyDesc: 'You haven\'t submitted any complaints matching this filter or search query.',
     dashDemoBanner: 'PROTOTYPE DEMONSTRATION — Displaying simulated records for Karachi municipal services.',
 
     // Auth Screens
@@ -144,11 +154,15 @@ export const translations = {
     authRememberMe: 'Remember this device',
     authForgotPassword: 'Forgot password?',
     authSignInButton: 'Sign In to Portal',
+    authExploreDemo: 'Explore Demo Workspace',
+    authOr: 'OR',
     authRegisterButton: 'Create Citizen Account',
     authHaveAccount: 'Already have an account? Sign In',
     authNoAccount: "Don't have an account? Register",
-    authNoticeTitle: 'Phase 1 Security Notice',
-    authNoticeText: 'Live user authentication will be securely integrated using Supabase in Phase 2. No passwords or credentials are stored locally.',
+    authNoticeTitle: 'Phase 1/1B Prototype Notice',
+    authNoticeText: 'Real authentication will be securely integrated using Supabase in Phase 2. No passwords or credentials are stored locally. Use the Explore Demo button to preview the citizen dashboard.',
+    passwordShow: 'Show password',
+    passwordHide: 'Hide password',
 
     // Status Badges
     statusSubmitted: 'Submitted',
@@ -189,6 +203,11 @@ export const translations = {
     heroCtaSubmit: 'نئی شکایت درج کریں',
     heroCtaTrack: 'شکایت کی صورتحال دیکھیں',
     heroDisclaimer: '۱۰۰٪ مفت عوامی خدمت • رازداری کا تحفظ • تشہیری و تعلیمی ڈیمو',
+    heroPreviewTitle: 'شکایت کا لائیو نمونہ',
+    heroPreviewSnippet: '"Do din se bijli nahi aa rahi aur pani ki motor bhi band hai."',
+    heroPreviewDetected: 'اے آئی شناخت: رومن اردو (۹۷٪ درستگی)',
+    heroPreviewTarget: 'متعلقہ محکمے: کے الیکٹرک و واٹر کارپوریشن',
+    heroPreviewStatus: 'مرحلہ: بلدیاتی ترسیل',
 
     // How It Works
     howTitle: 'نظام کیسے کام کرتا ہے؟',
@@ -235,13 +254,15 @@ export const translations = {
     formComplaintTitlePlaceholder: 'مختصر خلاصہ (مثال: مین روڈ پر گندے پانی کی لیکیج)',
     formDescription: 'شکایت کی تفصیل',
     formDescriptionPlaceholder: 'اپنی شکایت رومن اردو، انگریزی یا اردو میں لکھیں... (زیادہ سے زیادہ ۲۰۰ الفاظ)',
-    formRomanUrduExample: 'مثال: "Hamare mohallay mein pichlay 4 din se kachray ka dher laga hua hai aur badboo se bimariyan phailne ka khadsha hai."',
+    formRomanUrduExample: 'مثال: "Do din se bijli nahi aa rahi aur pani ki motor bhi band hai."',
     formWordCounter: 'الفاظ',
+    wordsRemaining: 'باقی',
     formWordLimitWarning: 'زیادہ سے زیادہ ۲۰۰ الفاظ کی اجازت ہے۔ برائے مہربانی اختصار رکھیں۔',
     formSubmitButton: 'شکایت جمع کرائیں',
     formSubmitting: 'جانچ اور ریفرنس نمبر جاری ہو رہا ہے...',
     formDeptNoteTitle: 'محکمہ منتخب کرنے کی ضرورت نہیں',
     formDeptNoteText: 'آپ کو محکمہ منتخب کرنے کی ضرورت نہیں ہے۔ ہمارا نظام آپ کی تحریر پڑھ کر خودکار طریقے سے فیصلہ کرے گا۔',
+    formPrivacyNote: 'رازداری کا نوٹ: آپ کا موبائل نمبر اور گھر کا پتہ عوامی ٹریکنگ میں ظاہر نہیں کیا جاتا۔',
 
     // Form Validation Messages
     valNameRequired: 'مکمل نام درج کرنا لازمی ہے۔',
@@ -277,6 +298,7 @@ export const translations = {
     trackTimelineTitle: 'پیش رفت کی تاریخ',
     trackOriginalComplaint: 'شہری کی اصل تحریر',
     trackDemoDisclaimer: 'تشہیری ڈیٹا: یہ معلومات آزمائشی پروٹو ٹائپ کے تحت دکھائی جا رہی ہیں۔',
+    trackPrivacyProtected: 'شہری کی رازداری کے تحت موبائل نمبر اور ذاتی پتہ ظاہر نہیں کیا جاتا۔',
 
     // Dashboard Screen
     dashTitle: 'شہری ڈیش بورڈ',
@@ -287,6 +309,8 @@ export const translations = {
     statResolved: 'حل شدہ',
     dashRecentTitle: 'حالیہ درج شکایات',
     dashFilterAll: 'تمام شکایات',
+    dashSearchPlaceholder: 'ریفرنس، عنوان یا علاقے سے تلاش کریں...',
+    dashClearFilters: 'فلٹرز ختم کریں',
     dashTableRef: 'ریفرنس نمبر',
     dashTableTitle: 'عنوان و علاقہ',
     dashTableDept: 'متعلقہ محکمہ',
@@ -295,7 +319,7 @@ export const translations = {
     dashTableAction: 'عمل',
     dashViewAction: 'ٹریک کریں',
     dashEmptyTitle: 'کوئی شکایت موجود نہیں',
-    dashEmptyDesc: 'اس فلٹر کے مطابق فی الحال کوئی ریکارڈ موجود نہیں ہے۔',
+    dashEmptyDesc: 'اس فلٹر یا تلاش کے مطابق فی الحال کوئی ریکارڈ موجود نہیں ہے۔',
     dashDemoBanner: 'ڈیمو پروٹو ٹائپ — کراچی کے بلدیاتی اداروں کے فرضی ریکارڈز دکھائے جا رہے ہیں۔',
 
     // Auth Screens
@@ -311,11 +335,15 @@ export const translations = {
     authRememberMe: 'مجھے یاد رکھیں',
     authForgotPassword: 'پاس ورڈ بھول گئے؟',
     authSignInButton: 'لاگ ان کریں',
+    authExploreDemo: 'ڈیمو ورک اسپیس دیکھیں',
+    authOr: 'یا',
     authRegisterButton: 'اکاؤنٹ بنائیں',
     authHaveAccount: 'پہلے سے اکاؤنٹ ہے؟ لاگ ان کریں',
     authNoAccount: 'نیا اکاؤنٹ بنانا چاہتے ہیں؟ رجسٹریشن کریں',
-    authNoticeTitle: 'فیز ۱ سیکیورٹی نوٹ',
-    authNoticeText: 'لائیو یوزر لاگ ان فیز ۲ میں سپابیس (Supabase) کے ذریعے شامل کیا جائے گا۔ پاس ورڈ لوکل طور پر محفوظ نہیں کیا جاتا۔',
+    authNoticeTitle: 'فیز ۱/۱بی پروٹو ٹائپ نوٹ',
+    authNoticeText: 'لائیو یوزر لاگ ان فیز ۲ میں سپابیس (Supabase) کے ذریعے شامل کیا جائے گا۔ کوئی پاس ورڈ لوکل طور پر محفوظ نہیں کیا جاتا۔ ڈیمو ورک اسپیس بٹن سے بغیر لاگ ان پورٹل دیکھیں۔',
+    passwordShow: 'پاس ورڈ دکھائیں',
+    passwordHide: 'پاس ورڈ چھپائیں',
 
     // Status Badges
     statusSubmitted: 'درج شدہ',
