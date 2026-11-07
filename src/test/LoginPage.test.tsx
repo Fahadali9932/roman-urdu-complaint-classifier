@@ -42,3 +42,4 @@ describe('LoginPage Component', () => {
     expect(passwordInput).toHaveAttribute('type', 'password');
   });
 });
+

@@ -33,7 +33,7 @@ describe('LanguageToggle and LanguageContext', () => {
     expect(screen.getByTestId('is-rtl').textContent).toBe('ltr');
     expect(document.documentElement.getAttribute('dir')).toBe('ltr');
     expect(document.documentElement.getAttribute('lang')).toBe('en');
-    expect(screen.getByTestId('hero-heading').textContent).toContain('Speak in Your Voice');
+    expect(screen.getByTestId('hero-heading').textContent).toContain('Your voice deserves to be heard');
   });
 
   it('switches to Urdu and updates document direction to RTL on toggle click', () => {
@@ -50,6 +50,6 @@ describe('LanguageToggle and LanguageContext', () => {
     expect(screen.getByTestId('is-rtl').textContent).toBe('rtl');
     expect(document.documentElement.getAttribute('dir')).toBe('rtl');
     expect(document.documentElement.getAttribute('lang')).toBe('ur');
-    expect(screen.getByTestId('hero-heading').textContent).toContain('آپ کی اپنی زبان');
+    expect(screen.getByTestId('hero-heading').textContent).toContain('آپ کی آواز');
   });
 });
