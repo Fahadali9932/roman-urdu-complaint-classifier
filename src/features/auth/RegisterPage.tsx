@@ -7,7 +7,7 @@ import { Button } from '../../components/common/Button';
 import { AlertBanner } from '../../components/common/AlertBanner';
 import { CivicEmblem } from '../../components/common/CivicEmblem';
 import { useLanguage } from '../../context/LanguageContext';
-import { Mail, Lock, User, Phone, UserPlus, ArrowRight } from 'lucide-react';
+import { Mail, Lock, User, Phone, UserPlus, ArrowRight, Eye, EyeOff, Sparkles } from 'lucide-react';
 
 export const RegisterPage: React.FC = () => {
   const { t, isRTL } = useLanguage();
@@ -17,6 +17,7 @@ export const RegisterPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -77,13 +78,27 @@ export const RegisterPage: React.FC = () => {
 
             <Input
               label={t('authPassword')}
-              type="password"
+              type={showPassword ? 'text' : 'password'}
               required
               id="password"
               placeholder={t('authPasswordPlaceholder')}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               leftIcon={<Lock className="w-4 h-4" />}
+              rightAction={
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? t('passwordHide') : t('passwordShow')}
+                  className="p-1.5 text-slate-400 hover:text-slate-600 focus:outline-none min-w-[36px] min-h-[36px] flex items-center justify-center rounded transition-colors"
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-4 h-4" aria-hidden="true" />
+                  ) : (
+                    <Eye className="w-4 h-4" aria-hidden="true" />
+                  )}
+                </button>
+              }
             />
 
             <Button
@@ -95,6 +110,27 @@ export const RegisterPage: React.FC = () => {
               leftIcon={<UserPlus className="w-4 h-4" />}
             >
               {t('authRegisterButton')}
+            </Button>
+
+            {/* Direct Demo Exploration Option */}
+            <div className="relative my-4">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-slate-200" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-white px-3 text-slate-400 font-semibold">{t('authOr')}</span>
+              </div>
+            </div>
+
+            <Button
+              type="button"
+              variant="outline"
+              size="lg"
+              className="w-full border-teal-300 text-teal-800 hover:bg-teal-50 font-semibold"
+              onClick={() => navigate('/dashboard')}
+              leftIcon={<Sparkles className="w-4 h-4 text-teal-600" />}
+            >
+              {t('authExploreDemo')}
             </Button>
 
             <div className="text-center pt-2 border-t border-slate-100">

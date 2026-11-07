@@ -21,6 +21,9 @@ import {
   CheckCircle2,
   Copy,
   ArrowRight,
+  User,
+  MapPin,
+  FileText,
 } from 'lucide-react';
 
 const KARACHI_DISTRICTS: { value: KarachiDistrict; label: string }[] = [
@@ -58,12 +61,8 @@ export const ComplaintForm: React.FC = () => {
   // Derived word count for complaint description
   const descriptionWords = countWords(formData.description);
 
-  const handleChange = (
-    field: string,
-    value: string
-  ) => {
+  const handleChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-    // Clear error for this field if any
     if (errors[field]) {
       setErrors((prev) => {
         const next = { ...prev };
@@ -80,7 +79,7 @@ export const ComplaintForm: React.FC = () => {
       newErrors.citizenName = t('valNameRequired');
     }
 
-    // Phone validation (Pakistani phone formats: 03001234567 or +923001234567 or 03XX-XXXXXXX)
+    // Phone validation (Pakistani formats: 03XXXXXXXXX or +923XXXXXXXXX)
     const phoneClean = formData.citizenPhone.replace(/[\s-]/g, '');
     const phoneRegex = /^((\+92)|(0092)|(03))\d{9}$/;
     if (!phoneClean || !phoneRegex.test(phoneClean)) {
@@ -151,18 +150,18 @@ export const ComplaintForm: React.FC = () => {
   };
 
   return (
-    <div className="py-8 sm:py-12">
+    <div className="py-6 sm:py-10">
       <Container size="md">
         {/* Header */}
-        <div className="text-start space-y-2 mb-8">
+        <div className="text-start space-y-2 mb-6">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-50 border border-teal-200 text-teal-800 text-xs font-semibold">
-            <Sparkles className="w-3.5 h-3.5" />
+            <Sparkles className="w-3.5 h-3.5 text-teal-700" aria-hidden="true" />
             <span>Phase 1 Citizen Intake Prototype</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
             {t('formTitle')}
           </h1>
-          <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+          <p className="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-xl">
             {t('formSubtitle')}
           </p>
         </div>
@@ -178,15 +177,18 @@ export const ComplaintForm: React.FC = () => {
 
         {/* Complaint Form Card */}
         <Card className="p-6 sm:p-8">
-          <form onSubmit={handleSubmit} noValidate className="space-y-6">
-            {/* Section 1: Citizen Contact Details */}
+          <form onSubmit={handleSubmit} noValidate className="space-y-8">
+            {/* Group 1: Citizen Contact Information */}
             <div className="space-y-4 text-start">
-              <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500 pb-2 border-b border-slate-100 flex items-center justify-between">
-                <span>Citizen Contact Information</span>
-                <span className="text-[11px] font-normal lowercase text-slate-400">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                <h2 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                  <User className="w-3.5 h-3.5 text-teal-600" aria-hidden="true" />
+                  <span>Citizen Contact Information</span>
+                </h2>
+                <span className="text-[11px] font-medium text-slate-400">
                   Phone & private address protected
                 </span>
-              </h2>
+              </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Input
@@ -207,16 +209,22 @@ export const ComplaintForm: React.FC = () => {
                   value={formData.citizenPhone}
                   onChange={(e) => handleChange('citizenPhone', e.target.value)}
                   error={errors.citizenPhone}
-                  helperText="03XXXXXXXXX (Used for SMS updates only)"
+                  helperText="Format: 03XXXXXXXXX (Used for SMS updates only)"
                 />
               </div>
             </div>
 
-            {/* Section 2: Location Information */}
+            {/* Group 2: Location & Jurisdiction */}
             <div className="space-y-4 text-start">
-              <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500 pb-2 border-b border-slate-100">
-                Karachi Location & Jurisdiction
-              </h2>
+              <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                <h2 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                  <MapPin className="w-3.5 h-3.5 text-blue-600" aria-hidden="true" />
+                  <span>Karachi Location & Jurisdiction</span>
+                </h2>
+                <span className="text-[11px] font-medium text-slate-400">
+                  All 7 Karachi districts supported
+                </span>
+              </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Select
@@ -247,18 +255,21 @@ export const ComplaintForm: React.FC = () => {
                 placeholder={t('formAddressPlaceholder')}
                 value={formData.privateAddress}
                 onChange={(e) => handleChange('privateAddress', e.target.value)}
-                helperText="This field is confidential and will never appear on public tracking searches."
+                helperText={t('formPrivacyNote')}
               />
             </div>
 
-            {/* Section 3: Grievance Details & Roman Urdu Input */}
+            {/* Group 3: Grievance Details & Roman Urdu Description */}
             <div className="space-y-4 text-start">
-              <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500 pb-2 border-b border-slate-100 flex items-center justify-between">
-                <span>Grievance Description</span>
-                <span className="text-[11px] font-semibold text-teal-800">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                <h2 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                  <FileText className="w-3.5 h-3.5 text-purple-600" aria-hidden="true" />
+                  <span>Grievance Description</span>
+                </h2>
+                <span className="text-[11px] font-bold text-teal-800 bg-teal-50 px-2 py-0.5 rounded border border-teal-200/60">
                   Roman Urdu • English • اردو
                 </span>
-              </h2>
+              </div>
 
               <Input
                 label={t('formComplaintTitle')}
@@ -282,17 +293,17 @@ export const ComplaintForm: React.FC = () => {
                   error={errors.description}
                 />
 
-                {/* Live Word Counter Gauge */}
+                {/* Live 200-Word Counter Gauge */}
                 <WordCounter currentCount={descriptionWords} maxWords={MAX_COMPLAINT_WORDS} />
 
-                {/* Roman Urdu Guidance & Sample Prompt */}
-                <div className="p-3 rounded-lg bg-slate-50 border border-slate-200/80 text-xs text-slate-600 flex items-start gap-2.5">
-                  <Info className="w-4 h-4 text-teal-700 shrink-0 mt-0.5" />
+                {/* Instructional Roman Urdu Example Prompt */}
+                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600 flex items-start gap-2.5">
+                  <Info className="w-4 h-4 text-teal-700 shrink-0 mt-0.5" aria-hidden="true" />
                   <div className="space-y-1">
-                    <span className="font-semibold text-slate-800">
-                      How to write in Roman Urdu:
+                    <span className="font-bold text-slate-800">
+                      Instructional Example:
                     </span>
-                    <p className="italic text-slate-600 font-serif">
+                    <p className="italic text-slate-700 roman-urdu-text font-medium">
                       {t('formRomanUrduExample')}
                     </p>
                   </div>
@@ -303,8 +314,8 @@ export const ComplaintForm: React.FC = () => {
             {/* Submit Action */}
             <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="flex items-center gap-2 text-xs text-slate-500">
-                <ShieldCheck className="w-4 h-4 text-teal-600" />
-                <span>Frontend validation enabled • Zero fake data persistence</span>
+                <ShieldCheck className="w-4 h-4 text-teal-600 shrink-0" aria-hidden="true" />
+                <span>Frontend validation active • Session prototype mode</span>
               </div>
 
               <Button
@@ -314,7 +325,7 @@ export const ComplaintForm: React.FC = () => {
                 isLoading={isSubmitting}
                 disabled={descriptionWords > MAX_COMPLAINT_WORDS}
                 leftIcon={<Send className="w-4 h-4" />}
-                className="w-full sm:w-auto"
+                className="w-full sm:w-auto shadow-sm"
               >
                 {isSubmitting ? t('formSubmitting') : t('formSubmitButton')}
               </Button>
@@ -330,17 +341,18 @@ export const ComplaintForm: React.FC = () => {
         title={t('modalTitle')}
       >
         <div className="space-y-5 text-start">
-          <div className="flex items-center gap-3 p-4 rounded-xl bg-teal-50 border border-teal-200">
-            <CheckCircle2 className="w-8 h-8 text-teal-600 shrink-0" />
+          <div className="flex items-center gap-3.5 p-4 rounded-xl bg-teal-50 border border-teal-200">
+            <CheckCircle2 className="w-8 h-8 text-teal-600 shrink-0" aria-hidden="true" />
             <div>
-              <span className="block text-xs text-teal-800 font-semibold uppercase tracking-wider">
+              <span className="block text-xs text-teal-800 font-bold uppercase tracking-wider">
                 {t('modalRefLabel')}
               </span>
-              <div className="flex items-center gap-2 mt-0.5">
-                <span className="text-xl sm:text-2xl font-mono font-extrabold text-teal-950">
+              <div className="flex items-center gap-2 mt-1">
+                <span className="ref-code text-xl sm:text-2xl font-extrabold text-teal-950">
                   {submissionResult?.referenceNumber}
                 </span>
                 <button
+                  type="button"
                   onClick={handleCopyRef}
                   className="p-1.5 rounded-lg text-teal-700 hover:bg-teal-100 transition-colors cursor-pointer"
                   title="Copy reference number"
@@ -349,7 +361,7 @@ export const ComplaintForm: React.FC = () => {
                   <Copy className="w-4 h-4" />
                 </button>
                 {copied && (
-                  <span className="text-xs text-teal-700 font-medium">Copied!</span>
+                  <span className="text-xs text-teal-800 font-bold">Copied!</span>
                 )}
               </div>
             </div>
@@ -366,7 +378,7 @@ export const ComplaintForm: React.FC = () => {
             {t('modalNoticeText')}
           </AlertBanner>
 
-          <div className="pt-3 flex flex-col sm:flex-row items-center justify-end gap-3">
+          <div className="pt-2 flex flex-col sm:flex-row items-center justify-end gap-3">
             <Button
               variant="outline"
               size="md"
