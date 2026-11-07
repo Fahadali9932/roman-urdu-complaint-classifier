@@ -1,22 +1,22 @@
+@import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter+Tight:ital,wght@0,700;0,800;0,900;1,800;1,900&family=Inter:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
 @layer base {
   :root {
-    --notebook-bg: #222326;
-    --notebook-paper: #FFFFFF;
-    --notebook-text: #182224;
-    --notebook-text-secondary: #5A6A7E;
-    --notebook-line: #D5E4F0;
-    --notebook-margin: #E26D6D;
-    --notebook-dark-btn: #18191B;
-    --notebook-dark-hover: #2A2B2E;
-    --notebook-border: #DDE3EA;
+    --swiss-bg: #F1F1F0;
+    --swiss-text: #111111;
+    --swiss-text-secondary: #5B5B5B;
+    --swiss-grid: #D5D5D3;
+    --swiss-folder: #FAFAF9;
+    --swiss-btn: #111111;
+    --swiss-btn-text: #FFFFFF;
+    --swiss-card: #FAFAF9;
   }
 
   body {
-    background-color: #222326;
-    color: #F1F5F9;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background-color: #F1F1F0;
+    color: #111111;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
@@ -32,7 +32,7 @@
 
   /* Keep Roman Urdu text passages strictly in Latin sans-serif for optimal readability */
   .roman-urdu-text {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
     direction: ltr !important;
     unicode-bidi: isolate;
   }
@@ -50,7 +50,7 @@
   select:focus-visible,
   button:focus-visible,
   a:focus-visible {
-    outline: 2px solid #38BDF8 !important;
+    outline: 2px solid #111111 !important;
     outline-offset: 2px !important;
   }
 
@@ -68,81 +68,95 @@
 }
 
 /* ==========================================================================
-   CINEMATIC NOTEBOOK PAPER MATERIAL SYSTEM
+   BOLD SWISS GRID EDITORIAL TYPOGRAPHY & UTILITIES
    ========================================================================== */
 
-/* Thin, evenly spaced, pale-blue horizontal writing lines (32px rhythm) */
-.notebook-ruled-lines {
-  background-image: repeating-linear-gradient(
-    transparent,
-    transparent 31px,
-    #D5E4F0 31px,
-    #D5E4F0 32px
-  );
-  background-attachment: local;
+.font-display {
+  font-family: 'Inter Tight', 'Archivo Black', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-weight: 900;
+  letter-spacing: -0.04em;
 }
 
-/* One thin, muted-red vertical margin line (responsive logical start placement) */
-.notebook-margin-line {
-  inset-inline-start: 48px;
+/* Architectural Grid Divider System */
+.swiss-border {
+  border-color: #D5D5D3;
 }
 
-@media (min-width: 640px) {
-  .notebook-margin-line {
-    inset-inline-start: 84px;
-  }
+.swiss-grid-container {
+  max-width: 1280px;
+  margin-left: auto;
+  margin-right: auto;
+  border-left: 1px solid #D5D5D3;
+  border-right: 1px solid #D5D5D3;
 }
 
-/* Navigation bar above the notebook against dark charcoal */
-.notebook-navbar {
-  background-color: rgba(34, 35, 38, 0.92);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+/* Large Circular Action Button */
+.swiss-circle-btn {
+  border-radius: 50%;
+  background-color: #111111;
+  color: #FFFFFF;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.16);
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.15s ease;
+  cursor: pointer;
+  text-align: center;
 }
 
-/* Footer below the notebook against dark charcoal */
-.notebook-footer {
-  background-color: #1C1D20;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+.swiss-circle-btn:hover {
+  transform: scale(1.04);
+  background-color: #000000;
 }
 
-/* Writing Area Textarea specifically designed for notebook writing */
-.notebook-textarea {
-  background-color: transparent;
-  line-height: 32px;
-  color: #182224;
+.swiss-circle-btn:active {
+  transform: scale(0.97);
 }
 
-.notebook-textarea:focus {
-  background-color: #FFFFFF;
+/* Folder Geometry System */
+.swiss-folder-tab {
+  background-color: #FAFAF9;
+  border-top: 1px solid #D5D5D3;
+  border-left: 1px solid #D5D5D3;
+  border-right: 1px solid #D5D5D3;
+  border-radius: 6px 6px 0 0;
 }
 
-/* Form Input within notebook surface */
-.notebook-input {
-  background-color: #FFFFFF;
-  border-color: #CBD5E1;
-  color: #182224;
+[dir="rtl"] .swiss-folder-tab {
+  border-left: 1px solid #D5D5D3;
+  border-right: 1px solid #D5D5D3;
 }
 
-.notebook-input:focus {
-  border-color: #18191B;
-  --tw-ring-color: #18191B;
+.swiss-folder-body {
+  background-color: #FAFAF9;
+  border: 1px solid #D5D5D3;
+  border-radius: 0 8px 8px 8px;
 }
 
-/* Compatibility aliases for existing components */
+[dir="rtl"] .swiss-folder-body {
+  border-radius: 8px 0 8px 8px;
+}
+
+/* Compatibility aliases */
 .glass-workspace,
 .civic-glass,
 .paper-surface,
 .paper-sheet {
-  background-color: #FFFFFF;
-  color: #182224;
+  background-color: #FAFAF9;
+  border: 1px solid #D5D5D3;
+  color: #111111;
 }
 
 .glass-navbar,
-.glass-topbar {
-  background-color: rgba(34, 35, 38, 0.92);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+.glass-topbar,
+.notebook-navbar {
+  background-color: #F1F1F0;
+  border-bottom: 1px solid #D5D5D3;
+}
+
+.notebook-footer {
+  background-color: #F1F1F0;
+  border-top: 1px solid #D5D5D3;
 }

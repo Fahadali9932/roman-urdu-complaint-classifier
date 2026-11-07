@@ -1,61 +1,79 @@
 import React from 'react';
-import { Container } from './Container';
-import { CivicEmblem } from '../common/CivicEmblem';
 import { useLanguage } from '../../context/LanguageContext';
 import { Link } from 'react-router-dom';
 import { GraduationCap } from 'lucide-react';
 
 export const PublicFooter: React.FC = () => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   return (
-    <footer className="w-full notebook-footer text-slate-400 mt-auto overflow-hidden">
-      <Container size="xl" className="py-8 sm:py-10 max-w-[1100px]">
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 text-start">
-          {/* Brand & Capstone Identification */}
-          <div className="space-y-2 max-w-md">
-            <div className="flex items-center gap-2.5">
-              <CivicEmblem size="sm" />
-              <div>
-                <span className="text-sm font-semibold text-white tracking-tight block">
-                  Awaaz-e-Awam
-                </span>
-                <span className="text-[11px] text-slate-300 font-medium block">
-                  {t('academicAffiliation')}
-                </span>
-              </div>
-            </div>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              AI-assisted civic grievance platform for submitting and routing complaints in Roman Urdu. Capstone software engineering project (Dec 2026).
+    <footer className="w-full bg-[#F1F1F0] border-t border-[#D5D5D3] text-[#5B5B5B] mt-auto">
+      <div className="max-w-[1280px] mx-auto px-4 sm:px-8 py-10 sm:py-14">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 text-start pb-8 border-b border-[#D5D5D3]">
+          
+          {/* Brand & Mission Statement */}
+          <div className="md:col-span-6 space-y-2">
+            <span className="font-display font-black text-lg text-[#111111] uppercase tracking-tighter block">
+              Awaaz-e-Awam
+            </span>
+            <p className="text-xs sm:text-sm text-[#5B5B5B] max-w-md leading-relaxed">
+              {language === 'ur'
+                ? 'رومن اردو میں بلدیاتی شکایات درج کرنے اور ان کی پیش رفت دیکھنے کا خودکار اور شفاف پلیٹ فارم۔'
+                : 'Roman Urdu complaint management platform for Sindh, Pakistan. Routing civic grievances to responsible municipal entities.'}
             </p>
           </div>
 
-          {/* Minimal Essential Navigation Links */}
-          <nav className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs sm:text-sm font-medium">
-            <Link to="/" className="text-slate-400 hover:text-white transition-colors">
-              {t('navHome')}
-            </Link>
-            <Link to="/submit" className="text-slate-400 hover:text-white transition-colors">
-              {t('navWriteComplaint') || 'Write Complaint'}
-            </Link>
-            <Link to="/dashboard" className="text-slate-400 hover:text-white transition-colors">
-              {t('navMyComplaints') || 'My Complaints'}
-            </Link>
-            <Link to="/login" className="text-slate-400 hover:text-white transition-colors">
-              {t('navAccount') || 'Sign In'}
-            </Link>
-          </nav>
+          {/* Quick Editorial Navigation */}
+          <div className="md:col-span-3 space-y-2">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#111111] block">
+              Navigation
+            </span>
+            <ul className="space-y-1.5 text-xs font-semibold uppercase tracking-wider">
+              <li>
+                <Link to="/" className="hover:text-[#111111] transition-colors">
+                  {t('navHome')}
+                </Link>
+              </li>
+              <li>
+                <Link to="/submit" className="hover:text-[#111111] transition-colors">
+                  {t('navWriteComplaint') || 'Write Complaint'}
+                </Link>
+              </li>
+              <li>
+                <Link to="/dashboard" className="hover:text-[#111111] transition-colors">
+                  {t('navMyComplaints') || 'My Complaints'}
+                </Link>
+              </li>
+              <li>
+                <Link to="/login" className="hover:text-[#111111] transition-colors">
+                  {t('navAccount') || 'Sign In'}
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Academic Capstone Details */}
+          <div className="md:col-span-3 space-y-2">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#111111] block">
+              Academic Context
+            </span>
+            <div className="text-xs text-[#5B5B5B] space-y-1 leading-relaxed">
+              <p className="font-semibold text-[#111111]">Greenwich University, Karachi</p>
+              <p>Department of Computer Science</p>
+              <p className="text-[11px] text-[#5B5B5B]">BSCS Software Engineering Capstone Project (Dec 2026)</p>
+            </div>
+          </div>
         </div>
 
-        {/* Academic Prototype Notice */}
-        <div className="mt-8 pt-5 border-t border-white/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-[11px] text-slate-500 text-start">
+        {/* Bottom Attribution Bar */}
+        <div className="pt-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-[11px] font-mono text-[#5B5B5B]">
           <div className="flex items-center gap-2">
-            <GraduationCap className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-            <span>Greenwich University Department of Computer Science • Karachi, Pakistan</span>
+            <GraduationCap className="w-4 h-4 text-[#111111]" />
+            <span>Greenwich University • Karachi Civic Tech Prototype</span>
           </div>
-          <span>Academic Prototype Demo • 100% Free Public Service</span>
+          <span>100% Free Public Service • Zero Data Harvesting</span>
         </div>
-      </Container>
+      </div>
     </footer>
   );
 };

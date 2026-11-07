@@ -33,15 +33,15 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         {label && (
           <label
             htmlFor={inputId}
-            className="block text-xs sm:text-sm font-semibold text-[#182224] mb-1.5 select-none"
+            className="block text-xs sm:text-sm font-semibold text-[#111111] mb-1.5 select-none"
           >
             {label}
             {props.required && <span className="text-rose-500 ms-1" aria-hidden="true">*</span>}
           </label>
         )}
-        <div className="relative rounded-xl shadow-2xs">
+        <div className="relative rounded-lg shadow-2xs">
           {leftIcon && (
-            <div className="absolute inset-y-0 start-0 ps-3.5 flex items-center pointer-events-none text-[#5A6A7E]">
+            <div className="absolute inset-y-0 start-0 ps-3.5 flex items-center pointer-events-none text-[#5B5B5B]">
               {leftIcon}
             </div>
           )}
@@ -50,12 +50,12 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             ref={ref}
             aria-invalid={Boolean(error)}
             aria-describedby={errorId || helperId}
-            className={`w-full min-h-[44px] rounded-xl border bg-white px-3.5 py-2.5 text-sm sm:text-base text-[#182224] placeholder:text-[#5A6A7E]/50 transition-colors focus:bg-white focus:outline-hidden ${
+            className={`w-full min-h-[44px] rounded-lg border bg-white px-3.5 py-2.5 text-sm sm:text-base text-[#111111] placeholder:text-[#5B5B5B]/50 transition-colors focus:bg-white focus:outline-hidden ${
               leftIcon ? 'ps-10' : ''
             } ${rightAction || rightIcon ? 'pe-11' : ''} ${
               error
                 ? 'border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 bg-rose-50/20'
-                : 'border-[#CBD5E1] focus:border-[#18191B] focus:ring-1 focus:ring-[#18191B]'
+                : 'border-[#D5D5D3] focus:border-[#111111] focus:ring-1 focus:ring-[#111111]'
             } ${className}`}
             {...props}
           />
@@ -63,7 +63,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             <div className="absolute inset-y-0 end-0 pe-2.5 flex items-center">{rightAction}</div>
           ) : (
             rightIcon && (
-              <div className="absolute inset-y-0 end-0 pe-3.5 flex items-center pointer-events-none text-[#5A6A7E]">
+              <div className="absolute inset-y-0 end-0 pe-3.5 flex items-center pointer-events-none text-[#5B5B5B]">
                 {rightIcon}
               </div>
             )
@@ -75,7 +75,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           </p>
         )}
         {helperText && !error && (
-          <p id={helperId} className="mt-1.5 text-xs text-[#5A6A7E]">
+          <p id={helperId} className="mt-1.5 text-xs text-[#5B5B5B]">
             {helperText}
           </p>
         )}
