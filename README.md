@@ -153,6 +153,7 @@ npm run build
 ## 📅 Multi-Phase Roadmap (Through December 2026)
 
 - [x] **Phase 1 (Completed):** Repository Setup, Architecture & Citizen Portal Foundation
+- [x] **Phase 1B (Completed):** UI/UX Design Audit, WCAG 2.2 AA Accessibility, Urdu Nastaliq Typography, Bidirectional Text Isolation, Real-Time Dashboard Search, and Test Suite Expansion (21 Passing Tests)
 - [ ] **Phase 2:** Supabase PostgreSQL Database, Row-Level Security & Secure Authentication
 - [ ] **Phase 3:** Roman Urdu NLP Classification Model & Automated Routing Dispatcher
 - [ ] **Phase 4:** Departmental Portal (`/department`) & Administrative Control Room (`/admin`)

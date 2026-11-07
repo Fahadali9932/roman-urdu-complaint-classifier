@@ -90,3 +90,27 @@ The Phase 1 foundation provides a solid modular React + TypeScript architecture 
 5. **Phase 1B.5:** Tracking UI refinement (clear timeline stages: Completed, Active, Upcoming; PII masking; invalid reference help).
 6. **Phase 1B.6:** Login & Registration refinement (password reveal toggle, "Explore Demo" fast-track, transparent security notice).
 7. **Phase 1B.7:** Bilingual translation review & automated test expansion.
+
+---
+
+## 5. Phase 1B Refinement Verification & Outcomes
+
+All identified audit items have been systematically resolved, verified across desktop and mobile viewports, and backed by automated unit and integration tests:
+
+| Issue ID | Severity | Status | Verification & Resolution Method |
+| :--- | :--- | :--- | :--- |
+| **HIGH-01** | High | **Resolved** | Added `.roman-urdu-text` and `.ref-code` CSS utility rules with `unicode-bidi: isolate; direction: ltr;`. Verified across Urdu RTL mode. |
+| **HIGH-02** | High | **Resolved** | Enforced minimum 44px touch targets on mobile for `Button`, `Input`, `Select`, `Textarea`, `PublicHeader` mobile links, and `CitizenSidebar`. |
+| **MED-01** | Medium | **Resolved** | Integrated live real-time search box into `CitizenDashboard.tsx` with instant multi-field substring matching and "Clear Filters" fallback. |
+| **MED-02** | Medium | **Resolved** | Added accessible password visibility toggles (`Eye` / `EyeOff` with `aria-label`) to `LoginPage.tsx` and `RegisterPage.tsx`. |
+| **MED-03** | Medium | **Resolved** | Added prominent "Explore Demo Workspace" button and explicit prototype security disclaimers indicating Supabase auth is reserved for Phase 2. |
+| **MED-04** | Medium | **Resolved** | Built tangible "Live Grievance Preview" card mockup in `LandingPage.tsx` showing Roman Urdu ingestion, AI triage, and municipal routing. |
+| **MED-05** | Medium | **Resolved** | Updated instructional Roman Urdu placeholder to *"Do din se bijli nahi aa rahi aur pani ki motor bhi band hai."* in `ComplaintForm.tsx`. |
+| **LOW-01** | Low | **Resolved** | Configured authentic Nastaliq font stack (`Noto Nastaliq Urdu`, `Urdu Typesetting`, `Segoe UI Historic`) in `src/index.css`. |
+| **LOW-02** | Low | **Resolved** | Enhanced high-contrast WCAG 2.2 AA focus rings (`--civic-teal`, `focus-visible:outline-2`) and added `prefers-reduced-motion` compliance. |
+
+### Test Suite Evolution
+- **Phase 1 Baseline:** 4 test files, 16 passing tests.
+- **Phase 1B Final:** 6 test files, **21 passing tests** (added `CitizenDashboard.test.tsx` and `LoginPage.test.tsx`).
+- **Build Status:** Clean production build with Vite (`0 errors`), strict TypeScript compilation (`0 errors`), and Oxlint (`0 errors`).
+
