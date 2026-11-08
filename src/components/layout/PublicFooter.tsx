@@ -1,7 +1,6 @@
 import React from 'react';
 import { useLanguage } from '../../context/LanguageContext';
 import { Link } from 'react-router-dom';
-import { GraduationCap } from 'lucide-react';
 
 export const PublicFooter: React.FC = () => {
   const { t, language } = useLanguage();
@@ -13,22 +12,22 @@ export const PublicFooter: React.FC = () => {
           
           {/* Brand & Mission Statement */}
           <div className="md:col-span-6 space-y-2">
-            <span className="font-display font-black text-lg text-[#111111] uppercase tracking-tighter block">
+            <span className="font-display font-black text-lg text-[#111111] tracking-tighter block">
               Awaaz-e-Awam
             </span>
             <p className="text-xs sm:text-sm text-[#5B5B5B] max-w-md leading-relaxed">
               {language === 'ur'
-                ? 'رومن اردو میں بلدیاتی شکایات درج کرنے اور ان کی پیش رفت دیکھنے کا خودکار اور شفاف پلیٹ فارم۔'
-                : 'Roman Urdu complaint management platform for Sindh, Pakistan. Routing civic grievances to responsible municipal entities.'}
+                ? 'سندھ کے شہریوں کے لیے عوامی مسائل واضح الفاظ میں لکھنے کی جگہ۔'
+                : 'A place for Sindh citizens to describe public issues in clear, everyday language.'}
             </p>
           </div>
 
           {/* Quick Editorial Navigation */}
           <div className="md:col-span-3 space-y-2">
-            <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#111111] block">
+            <span className="text-[10px] font-mono font-bold tracking-wide text-[#111111] block">
               Navigation
             </span>
-            <ul className="space-y-1.5 text-xs font-semibold uppercase tracking-wider">
+            <ul className="space-y-1.5 text-xs font-semibold tracking-wide">
               <li>
                 <Link to="/" className="hover:text-[#111111] transition-colors">
                   {t('navHome')}
@@ -52,26 +51,23 @@ export const PublicFooter: React.FC = () => {
             </ul>
           </div>
 
-          {/* Academic Capstone Details */}
+          {/* Plain-language note */}
           <div className="md:col-span-3 space-y-2">
-            <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#111111] block">
-              Academic Context
+            <span className="text-[10px] font-mono font-bold tracking-wide text-[#111111] block">
+              {language === 'ur' ? 'اہم بات' : 'A quick note'}
             </span>
-            <div className="text-xs text-[#5B5B5B] space-y-1 leading-relaxed">
-              <p className="font-semibold text-[#111111]">Greenwich University, Karachi</p>
-              <p>Department of Computer Science</p>
-              <p className="text-[11px] text-[#5B5B5B]">BSCS Software Engineering Capstone Project (Dec 2026)</p>
+            <div className="text-xs text-[#5B5B5B] leading-relaxed">
+              <p>{language === 'ur'
+                ? 'یہ ایک آزاد تعلیمی پیش منظر ہے، سرکاری ویب سائٹ نہیں۔'
+                : 'This is an independent academic preview, not an official government website.'}</p>
             </div>
           </div>
         </div>
 
         {/* Bottom Attribution Bar */}
         <div className="pt-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-[11px] font-mono text-[#5B5B5B]">
-          <div className="flex items-center gap-2">
-            <GraduationCap className="w-4 h-4 text-[#111111]" />
-            <span>Greenwich University • Karachi Civic Tech Prototype</span>
-          </div>
-          <span>100% Free Public Service • Zero Data Harvesting</span>
+          <span>{language === 'ur' ? 'آوازِ عوام' : 'Awaaz-e-Awam'}</span>
+          <span>{language === 'ur' ? 'ابھی شکایات بھیجی یا محفوظ نہیں ہوتیں۔' : 'Complaints are not sent or saved in this preview.'}</span>
         </div>
       </div>
     </footer>

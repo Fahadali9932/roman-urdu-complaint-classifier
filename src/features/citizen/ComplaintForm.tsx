@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Input } from '../../components/common/Input';
 import { Select } from '../../components/common/Select';
 import { Textarea } from '../../components/common/Textarea';
@@ -15,9 +14,6 @@ import {
   Send,
   ShieldCheck,
   CheckCircle2,
-  ArrowRight,
-  ArrowLeft,
-  Lock,
   Building,
 } from 'lucide-react';
 
@@ -32,15 +28,14 @@ const KARACHI_DISTRICTS: { value: KarachiDistrict; label: string }[] = [
 ];
 
 export const ComplaintForm: React.FC = () => {
-  const { t, language, isRTL } = useLanguage();
-  const navigate = useNavigate();
-
+  const { t, language } = useLanguage();
   // Form fields state
   const [formData, setFormData] = useState({
     citizenName: '',
     citizenPhone: '',
     district: '' as KarachiDistrict,
     locality: '',
+    publicLocation: '',
     privateAddress: '',
     title: '',
     description: '',
@@ -75,6 +70,7 @@ export const ComplaintForm: React.FC = () => {
       citizenPhone: '',
       district: '' as KarachiDistrict,
       locality: '',
+      publicLocation: '',
       privateAddress: '',
       title: '',
       description: '',
@@ -102,6 +98,10 @@ export const ComplaintForm: React.FC = () => {
 
     if (!formData.locality.trim()) {
       newErrors.locality = t('valLocalityRequired');
+    }
+
+    if (!formData.publicLocation.trim()) {
+      newErrors.publicLocation = t('valPublicLocationRequired');
     }
 
     if (!formData.title.trim() || formData.title.trim().length < 5) {
@@ -142,12 +142,8 @@ export const ComplaintForm: React.FC = () => {
         {/* Page Header within Swiss Grid */}
         <div className="p-6 sm:p-10 lg:p-14 border-b border-[#D5D5D3] text-start space-y-2">
           <div className="inline-flex items-center gap-2 mb-2">
-            <span className="text-[10px] font-mono font-bold tracking-widest text-[#5B5B5B] uppercase">
-              {language === 'ur' ? 'شہری درخواست فارم' : 'CITIZEN INTAKE MODULE'}
-            </span>
-            <span className="h-1.5 w-1.5 rounded-full bg-[#111111]" />
-            <span className="text-[10px] font-mono text-[#5B5B5B] uppercase">
-              Phase 1 Prototype
+            <span className="text-[10px] font-mono font-semibold tracking-wide text-[#5B5B5B]">
+              {language === 'ur' ? 'اپنی شکایت لکھیں' : 'Write your complaint'}
             </span>
           </div>
           <h1 className="font-display font-black text-3xl sm:text-5xl lg:text-6xl text-[#111111] uppercase tracking-tight">
@@ -165,7 +161,7 @@ export const ComplaintForm: React.FC = () => {
               
               {/* Formal Case Header */}
               <div className="pb-4 border-b border-[#D5D5D3] flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs font-mono">
-                <span className="font-bold text-[#111111] uppercase tracking-wider">
+                <span className="font-bold text-[#111111] tracking-wide">
                   {t('paperDocHeader') || 'CITIZEN COMPLAINT APPLICATION'}
                 </span>
                 <div className="text-[#5B5B5B] flex items-center gap-1.5">
@@ -174,15 +170,17 @@ export const ComplaintForm: React.FC = () => {
                 </div>
               </div>
 
-              {/* Department Routing Notice */}
+              {/* Writing guidance */}
               <div className="p-4 rounded-lg bg-[#F1F1F0] border border-[#D5D5D3] flex items-start gap-3">
                 <Building className="w-5 h-5 text-[#111111] shrink-0 mt-0.5" />
                 <div className="space-y-0.5">
-                  <span className="font-bold text-[#111111] block text-xs sm:text-sm uppercase tracking-wide">
-                    {t('paperDocTo') || 'To: Concerned Service Department, Karachi'}
+                  <span className="font-bold text-[#111111] block text-xs sm:text-sm tracking-wide">
+                    {language === 'ur' ? 'اپنے مسئلے کی جگہ واضح کریں' : 'Make the location clear'}
                   </span>
                   <span className="text-[#5B5B5B] text-xs block leading-relaxed">
-                    {t('paperRoutingNotice') || t('formDeptNoteText')}
+                    {language === 'ur'
+                      ? 'علاقہ، قریبی نشان اور مسئلے کی تفصیل شامل کریں تاکہ شکایت سمجھنے میں آسانی ہو۔'
+                      : 'Include the area, a nearby landmark, and a short description so the issue is easy to understand.'}
                   </span>
                 </div>
               </div>
@@ -229,12 +227,11 @@ export const ComplaintForm: React.FC = () => {
               {/* Applicant & Location Details Section */}
               <div className="pt-6 border-t border-[#D5D5D3] space-y-5">
                 <div className="flex items-center justify-between">
-                  <h2 className="font-display font-black text-sm uppercase tracking-wider text-[#111111]">
+                  <h2 className="font-display font-black text-sm tracking-wide text-[#111111]">
                     {t('paperApplicantSection') || 'Applicant & Location Details'}
                   </h2>
-                  <span className="text-xs font-mono text-[#5B5B5B] flex items-center gap-1.5">
-                    <Lock className="w-3.5 h-3.5 text-[#111111]" />
-                    <span>{t('paperPrivacyNotice') || 'Contact details kept private'}</span>
+                  <span className="text-xs font-mono text-[#5B5B5B]">
+                    {language === 'ur' ? 'ضروری معلومات شامل کریں' : 'Include the details that help explain it'}
                   </span>
                 </div>
 
@@ -285,6 +282,17 @@ export const ComplaintForm: React.FC = () => {
                 </div>
 
                 <Input
+                  label={t('formPublicLocation')}
+                  required
+                  id="publicLocation"
+                  placeholder={t('formPublicLocationPlaceholder')}
+                  value={formData.publicLocation}
+                  onChange={(e) => handleChange('publicLocation', e.target.value)}
+                  error={errors.publicLocation}
+                  helperText={t('formPublicLocationHelp')}
+                />
+
+                <Input
                   label={t('formAddress')}
                   id="privateAddress"
                   placeholder={t('formAddressPlaceholder')}
@@ -298,7 +306,7 @@ export const ComplaintForm: React.FC = () => {
               <div className="pt-6 border-t border-[#D5D5D3] flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div className="flex items-center gap-2 text-xs font-mono text-[#5B5B5B]">
                   <ShieldCheck className="w-4 h-4 text-[#111111] shrink-0" />
-                  <span>Client prototype validation • Live database connected in Phase 2</span>
+                  <span>{language === 'ur' ? 'یہ فارم صرف جائزے کے لیے ہے؛ ابھی کوئی شکایت بھیجی یا محفوظ نہیں ہوتی۔' : 'This form is for review only. It does not send or save a complaint yet.'}</span>
                 </div>
 
                 <div className="flex items-center gap-3 w-full sm:w-auto">
@@ -307,9 +315,9 @@ export const ComplaintForm: React.FC = () => {
                     variant="outline"
                     size="lg"
                     onClick={handleReset}
-                    className="w-full sm:w-auto px-5 uppercase tracking-wider text-xs font-bold"
+                    className="w-full sm:w-auto px-5 tracking-wide text-xs font-bold"
                   >
-                    Clear
+                    {language === 'ur' ? 'صاف کریں' : 'Clear'}
                   </Button>
                   <Button
                     type="submit"
@@ -318,9 +326,9 @@ export const ComplaintForm: React.FC = () => {
                     isLoading={isSubmitting}
                     disabled={descriptionWords > MAX_COMPLAINT_WORDS}
                     leftIcon={<Send className="w-4 h-4" />}
-                    className="w-full sm:w-auto px-7 uppercase tracking-wider text-xs font-bold"
+                    className="w-full sm:w-auto px-7 tracking-wide text-xs font-bold"
                   >
-                    {isSubmitting ? t('formSubmitting') : t('formSubmitButton') || 'Submit Complaint'}
+                    {isSubmitting ? t('formSubmitting') : t('formSubmitButton') || 'Review complaint'}
                   </Button>
                 </div>
               </div>
@@ -340,11 +348,13 @@ export const ComplaintForm: React.FC = () => {
           <div className="p-4 sm:p-5 rounded-lg bg-[#FAFAF9] border border-[#D5D5D3] flex items-center gap-4">
             <CheckCircle2 className="w-8 h-8 text-[#111111] shrink-0" />
             <div className="space-y-1">
-              <span className="block text-sm font-bold text-[#111111] uppercase tracking-wide">
-                Application Verified Successfully
+              <span className="block text-sm font-bold text-[#111111] tracking-wide">
+                {language === 'ur' ? 'فارم جائزے کے لیے تیار ہے' : 'Your form is ready to review'}
               </span>
               <p className="text-xs text-[#5B5B5B]">
-                All intake fields, Pakistani phone verification, and word limits are confirmed valid.
+                {language === 'ur'
+                  ? 'ضروری معلومات اور الفاظ کی حد چیک کر لی گئی ہے۔'
+                  : 'The required information and word limit have been checked.'}
               </p>
             </div>
           </div>
@@ -360,26 +370,14 @@ export const ComplaintForm: React.FC = () => {
             {t('modalNoticeText')}
           </AlertBanner>
 
-          <div className="pt-3 flex flex-col sm:flex-row items-center justify-end gap-3">
+          <div className="pt-3 flex items-center justify-end">
             <Button
               variant="outline"
               size="md"
               onClick={() => setShowModal(false)}
-              className="w-full sm:w-auto uppercase tracking-wider text-xs font-bold"
+              className="w-full sm:w-auto tracking-wider text-xs font-bold"
             >
-              {t('modalClose')}
-            </Button>
-            <Button
-              variant="primary"
-              size="md"
-              onClick={() => {
-                setShowModal(false);
-                navigate('/dashboard');
-              }}
-              rightIcon={isRTL ? <ArrowLeft className="w-4 h-4" /> : <ArrowRight className="w-4 h-4" />}
-              className="w-full sm:w-auto uppercase tracking-wider text-xs font-bold"
-            >
-              {t('modalTrackNow')}
+              {language === 'ur' ? 'فارم پر واپس جائیں' : 'Return to form'}
             </Button>
           </div>
         </div>

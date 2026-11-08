@@ -30,7 +30,7 @@ export const PublicHeader: React.FC = () => {
             <span className="font-display font-black text-xl sm:text-2xl text-[#111111] tracking-tighter uppercase leading-none">
               Awaaz-e-Awam
             </span>
-            <span className="text-[10px] sm:text-[11px] font-mono tracking-widest text-[#5B5B5B] uppercase mt-1">
+            <span className="text-[10px] sm:text-[11px] font-mono tracking-wide text-[#5B5B5B] mt-1">
               {language === 'ur' ? 'شہری شکایات پورٹل' : 'Citizen Complaint Portal'}
             </span>
           </Link>
@@ -41,7 +41,7 @@ export const PublicHeader: React.FC = () => {
               <Link
                 key={link.path}
                 to={link.path}
-                className={`text-xs font-bold uppercase tracking-wider px-3.5 py-1.5 rounded-md transition-all ${
+                className={`text-xs font-bold tracking-wide px-3.5 py-1.5 rounded-md transition-all ${
                   isActive(link.path)
                     ? 'text-[#111111] bg-[#FAFAF9] border border-[#D5D5D3] shadow-2xs'
                     : 'text-[#5B5B5B] hover:text-[#111111]'
@@ -58,7 +58,7 @@ export const PublicHeader: React.FC = () => {
             <div className="h-4 w-px bg-[#D5D5D3]" />
             <Link
               to="/login"
-              className={`inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[#111111] hover:text-[#2A2B2E] transition-colors ${
+              className={`inline-flex items-center gap-1.5 text-xs font-bold tracking-wide text-[#111111] hover:text-[#2A2B2E] transition-colors ${
                 isActive('/login') ? 'underline underline-offset-4' : ''
               }`}
             >
@@ -89,7 +89,7 @@ export const PublicHeader: React.FC = () => {
                 key={link.path}
                 to={link.path}
                 onClick={() => setMobileMenuOpen(false)}
-                className={`block px-4 py-2.5 rounded-md text-xs font-bold uppercase tracking-wider transition-colors ${
+                className={`block px-4 py-2.5 rounded-md text-xs font-bold tracking-wide transition-colors ${
                   isActive(link.path)
                     ? 'bg-[#111111] text-white'
                     : 'text-[#5B5B5B] hover:bg-[#FAFAF9] hover:text-[#111111]'
@@ -102,7 +102,7 @@ export const PublicHeader: React.FC = () => {
               <Link
                 to="/login"
                 onClick={() => setMobileMenuOpen(false)}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-md text-xs font-bold uppercase tracking-wider transition-colors ${
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-md text-xs font-bold tracking-wide transition-colors ${
                   isActive('/login')
                     ? 'bg-[#111111] text-white'
                     : 'text-[#5B5B5B] hover:bg-[#FAFAF9] hover:text-[#111111]'

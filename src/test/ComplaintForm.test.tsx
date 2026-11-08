@@ -22,6 +22,7 @@ describe('ComplaintForm Component', () => {
     expect(screen.getByLabelText(/phone number/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/karachi district/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/area \/ locality/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/public issue location/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/complaint subject \/ title/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/complaint description/i)).toBeInTheDocument();
     expect(screen.getByTestId('word-count-display')).toHaveTextContent('0');
@@ -30,7 +31,7 @@ describe('ComplaintForm Component', () => {
   it('displays client-side validation errors when submitting with empty fields', async () => {
     renderForm();
 
-    const submitButton = screen.getByRole('button', { name: /submit complaint/i });
+    const submitButton = screen.getByRole('button', { name: /review complaint/i });
     fireEvent.click(submitButton);
 
     await waitFor(() => {
@@ -66,7 +67,7 @@ describe('ComplaintForm Component', () => {
     const counter = screen.getByTestId('word-count-display');
     expect(counter).toHaveTextContent('205');
 
-    const submitButton = screen.getByRole('button', { name: /submit complaint/i });
+    const submitButton = screen.getByRole('button', { name: /review complaint/i });
     expect(submitButton).toBeDisabled();
     expect(screen.getByText(/exceeds the 200-word limit/i)).toBeInTheDocument();
   });
@@ -87,6 +88,9 @@ describe('ComplaintForm Component', () => {
     fireEvent.change(screen.getByLabelText(/area \/ locality/i), {
       target: { value: 'Gulshan Block 7' },
     });
+    fireEvent.change(screen.getByLabelText(/public issue location/i), {
+      target: { value: 'Outside Gulshan Park gate' },
+    });
     fireEvent.change(screen.getByLabelText(/complaint subject \/ title/i), {
       target: { value: 'Water supply line leak' },
     });
@@ -96,15 +100,15 @@ describe('ComplaintForm Component', () => {
       },
     });
 
-    const submitButton = screen.getByRole('button', { name: /submit complaint/i });
+    const submitButton = screen.getByRole('button', { name: /review complaint/i });
     fireEvent.click(submitButton);
 
     // Wait for client-side validation completion
     await waitFor(
       () => {
-        expect(screen.getByText(/complaint validated/i)).toBeInTheDocument();
-        expect(screen.getByText(/application verified successfully/i)).toBeInTheDocument();
-        expect(screen.getByText(/client-side prototype notice/i)).toBeInTheDocument();
+        expect(screen.getByText(/review your complaint/i)).toBeInTheDocument();
+        expect(screen.getByText(/your form is ready to review/i)).toBeInTheDocument();
+        expect(screen.getByText(/nothing has been submitted/i)).toBeInTheDocument();
       },
       { timeout: 3000 }
     );

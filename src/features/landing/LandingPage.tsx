@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../../context/LanguageContext';
-import { ArrowUpRight, ArrowUpLeft, ShieldCheck, Lock, CheckCircle2 } from 'lucide-react';
+import { ArrowUpRight, ArrowUpLeft } from 'lucide-react';
 
 export const LandingPage: React.FC = () => {
   const { t, language, isRTL } = useLanguage();
@@ -9,24 +9,24 @@ export const LandingPage: React.FC = () => {
   const workflowStages = [
     {
       num: '[01]',
-      title: language === 'ur' ? 'تحریر' : 'WRITE',
+      title: language === 'ur' ? 'لکھیں' : 'Write',
       desc: language === 'ur'
-        ? 'اپنا بلدیاتی مسئلہ قدرتی انداز میں روزمرہ کی رومن اردو میں بیان کریں۔'
-        : 'Describe public grievances naturally in everyday Roman Urdu without bureaucratic vocabulary.',
+        ? 'اپنا مسئلہ سادہ الفاظ میں بیان کریں۔'
+        : 'Describe the issue in your own words.',
     },
     {
       num: '[02]',
-      title: language === 'ur' ? 'ترسیل' : 'ROUTE',
+      title: language === 'ur' ? 'جائزہ لیں' : 'Review',
       desc: language === 'ur'
-        ? 'سیمنٹک اے آئی تجزیہ خودکار طور پر متعلقہ بلدیاتی محکمے کا تعین کرتا ہے۔'
-        : 'Semantic natural language processing identifies and routes to KW&SC, SSWMB, K-Electric, or KMC.',
+        ? 'عنوان، مقام اور تفصیل دوبارہ دیکھیں۔'
+        : 'Check the title, location, and description.',
     },
     {
       num: '[03]',
-      title: language === 'ur' ? 'پیش رفت' : 'TRACK',
+      title: language === 'ur' ? 'کیس فائلز' : 'Case files',
       desc: language === 'ur'
-        ? 'ہر شکایت کا الگ ریکارڈ جس کے ذریعے کام کی رفتار دیکھی جا سکتی ہے۔'
-        : 'Follow verified on-ground milestones presented as an individual case file in your account.',
+        ? 'حقیقی طور پر محفوظ شکایات یہاں الگ کیس فائلز بنیں گی۔'
+        : 'Saved complaints will appear here as individual case files.',
     },
   ];
 
@@ -41,12 +41,12 @@ export const LandingPage: React.FC = () => {
           <div className="lg:col-span-8 p-6 sm:p-10 lg:p-16 border-b lg:border-b-0 lg:border-e border-[#D5D5D3] flex flex-col justify-between space-y-8">
             <div>
               <div className="inline-flex items-center gap-2 mb-6">
-                <span className="text-[11px] font-mono font-bold tracking-widest text-[#5B5B5B] uppercase">
-                  {language === 'ur' ? '۰۱ / سندھ شہری پلیٹ فارم' : '01 / SINDH CIVIC PLATFORM'}
+                <span className="text-[11px] font-mono font-semibold tracking-wide text-[#5B5B5B]">
+                  {language === 'ur' ? 'سندھ کے شہریوں کے لیے' : 'For Sindh citizens'}
                 </span>
                 <span className="h-1.5 w-1.5 rounded-full bg-[#111111]" />
-                <span className="text-[11px] font-mono text-[#5B5B5B] uppercase">
-                  Karachi Division
+                <span className="text-[11px] font-mono text-[#5B5B5B]">
+                  {language === 'ur' ? 'رومن اردو، اردو یا انگریزی' : 'Roman Urdu, Urdu, or English'}
                 </span>
               </div>
 
@@ -70,27 +70,9 @@ export const LandingPage: React.FC = () => {
             <div className="space-y-6 max-w-xl">
               <p className="text-base sm:text-xl text-[#5B5B5B] leading-relaxed font-normal">
                 {language === 'ur'
-                  ? 'رومن اردو میں بلدیاتی شکایات درج کرنے اور ان کی پیش رفت دیکھنے کا آسان اور شفاف طریقہ۔'
-                  : 'Write public-service complaints in Roman Urdu and keep track of their progress across municipal authorities.'}
+                  ? 'اپنے علاقے کے عوامی مسئلے کے بارے میں صاف اور سادہ شکایت لکھیں۔'
+                  : 'Write clearly about a public issue in your area, in the language you use every day.'}
               </p>
-
-              {/* Architectural Trust Signifiers */}
-              <div className="pt-2 flex flex-wrap items-center gap-y-2 gap-x-5 text-xs font-mono text-[#5B5B5B] border-t border-[#D5D5D3]">
-                <span className="flex items-center gap-1.5 text-[#111111] font-semibold">
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                  <span>{language === 'ur' ? 'مفت بلدیاتی سروس' : 'Free Civic Service'}</span>
-                </span>
-                <span className="text-[#D5D5D3] hidden sm:inline">•</span>
-                <span className="flex items-center gap-1.5">
-                  <Lock className="w-3.5 h-3.5" />
-                  <span>{language === 'ur' ? 'رازداری کا تحفظ' : 'Privacy Protected'}</span>
-                </span>
-                <span className="text-[#D5D5D3] hidden sm:inline">•</span>
-                <span className="flex items-center gap-1.5">
-                  <ShieldCheck className="w-3.5 h-3.5" />
-                  <span>{language === 'ur' ? 'تعلیمی ڈیمو موڈ' : 'Academic Prototype'}</span>
-                </span>
-              </div>
             </div>
           </div>
 
@@ -111,8 +93,8 @@ export const LandingPage: React.FC = () => {
               </span>
             </Link>
 
-            <span className="mt-4 text-[11px] font-mono text-[#5B5B5B] uppercase tracking-wider block">
-              {language === 'ur' ? 'رومن اردو معاونت' : 'Roman Urdu Native Support'}
+            <span className="mt-4 text-[11px] font-mono text-[#5B5B5B] tracking-wide block">
+              {language === 'ur' ? 'اپنا مسئلہ اپنے الفاظ میں لکھیں' : 'Write it in your own words'}
             </span>
           </div>
         </section>
@@ -126,10 +108,10 @@ export const LandingPage: React.FC = () => {
                 idx < workflowStages.length - 1 ? 'border-b md:border-b-0 md:border-e border-[#D5D5D3]' : ''
               }`}
             >
-              <div className="font-mono text-xs font-bold text-[#888888] mb-3">
+              <div className="font-mono text-xs font-semibold text-[#888888] mb-3">
                 {stage.num}
               </div>
-              <h2 className="font-display font-black text-xl text-[#111111] uppercase tracking-tight mb-2">
+              <h2 className="font-display font-black text-xl text-[#111111] tracking-tight mb-2">
                 {stage.title}
               </h2>
               <p className="text-xs sm:text-sm text-[#5B5B5B] leading-relaxed">
@@ -139,50 +121,32 @@ export const LandingPage: React.FC = () => {
           ))}
         </section>
 
-        {/* 3. CASE FILE ARCHITECTURE PREVIEW (Honest Architecture Concept - Zero Dummy Records) */}
+        {/* 3. CASE FILE PREVIEW */}
         <section className="p-6 sm:p-10 lg:p-14 text-start">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-[#D5D5D3]">
             <div>
-              <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#5B5B5B] block">
-                {language === 'ur' ? 'کیس فائل سسٹم' : 'CASE FILE ARCHITECTURE'}
+              <span className="text-[10px] font-mono font-semibold tracking-wide text-[#5B5B5B] block">
+                {language === 'ur' ? 'آپ کی شکایات' : 'Your complaints'}
               </span>
-              <h2 className="font-display font-black text-xl sm:text-2xl text-[#111111] uppercase tracking-tight mt-1">
-                {language === 'ur' ? 'شکایات کا باقاعدہ ریکارڈ' : 'Modular Case File Registry'}
+              <h2 className="font-display font-black text-xl sm:text-2xl text-[#111111] tracking-tight mt-1">
+                {language === 'ur' ? 'ہر شکایت، ایک کیس فائل' : 'One complaint, one case file'}
               </h2>
             </div>
             <Link
               to="/dashboard"
-              className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[#111111] hover:underline"
+              className="inline-flex items-center gap-1.5 text-xs font-bold tracking-wide text-[#111111] hover:underline"
             >
               <span>{t('navMyComplaints') || 'My Complaints'}</span>
               {isRTL ? <ArrowUpLeft className="w-3.5 h-3.5" /> : <ArrowUpRight className="w-3.5 h-3.5" />}
             </Link>
           </div>
 
-          {/* Architectural Explanation Grid */}
           <div className="p-6 sm:p-8 rounded-lg bg-[#FAFAF9] border border-[#D5D5D3] space-y-4">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded bg-[#EAEAE8] text-[11px] font-mono font-bold uppercase text-[#111111]">
-              <span>System Design Specification</span>
-            </div>
             <p className="text-sm text-[#5B5B5B] max-w-3xl leading-relaxed">
               {language === 'ur'
-                ? 'جب شہری شکایت درج کرے گا، ہر شکایت تصدیق کے بعد ایک انفرادی کیس فائل فولڈر کے طور پر محفوظ ہوگی۔ کوئی مصنوعی ڈیٹا یا نمونہ ریکارڈ شامل نہیں کیا گیا ہے۔'
-                : 'When an authenticated citizen submits a complaint to the backend, each complaint appears as a distinct folder-shaped case file under My Complaints. The system maintains strict ownership separation and Row-Level Security.'}
+                ? 'جب شکایت محفوظ کرنے کی سہولت دستیاب ہوگی تو آپ کی ہر حقیقی شکایت یہاں اپنے فولڈر میں نظر آئے گی۔'
+                : 'When complaint saving is available, each real complaint will appear here in its own folder.'}
             </p>
-            <div className="pt-2 flex flex-wrap gap-4 text-xs font-mono text-[#5B5B5B]">
-              <span className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-[#111111]" />
-                <span>1 Saved Complaint = 1 Case File</span>
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-[#111111]" />
-                <span>Zero Fabricated Tracking Codes</span>
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-[#111111]" />
-                <span>Direct Case File Expansion</span>
-              </span>
-            </div>
           </div>
         </section>
 

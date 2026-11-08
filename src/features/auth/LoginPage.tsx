@@ -19,9 +19,8 @@ export const LoginPage: React.FC = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitted(true);
-    // UI foundation only: navigate to dashboard as demonstration
     setTimeout(() => {
-      navigate('/dashboard');
+      setSubmitted(false);
     }, 500);
   };
 

@@ -9,31 +9,20 @@ import { CitizenDashboard } from '../features/citizen/CitizenDashboard';
 import { LoginPage } from '../features/auth/LoginPage';
 import { RegisterPage } from '../features/auth/RegisterPage';
 import { Card } from '../components/common/Card';
-import { AlertBanner } from '../components/common/AlertBanner';
 import { Container } from '../components/layout/Container';
-import { ShieldAlert, Building2 } from 'lucide-react';
+import { Building2 } from 'lucide-react';
 
-/**
- * Placeholder view for future Department and Admin portals (Phase 4).
- * Architecturally mounted here so navigation paths exist without breaking.
- */
 const FuturePortalPlaceholder: React.FC<{ role: 'department' | 'admin' }> = ({ role }) => (
   <div className="py-16">
     <Container size="md">
       <Card className="p-8 text-center space-y-4">
         <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-700 flex items-center justify-center mx-auto">
-          {role === 'department' ? (
-            <Building2 className="w-6 h-6 text-teal-700" />
-          ) : (
-            <ShieldAlert className="w-6 h-6 text-purple-700" />
-          )}
+          <Building2 className="w-6 h-6 text-[#111111]" />
         </div>
         <h2 className="text-xl font-bold text-slate-900">
-          {role === 'department' ? 'Department Portal' : 'Administrator Control Center'}
+          {role === 'department' ? 'Department area' : 'Administrator area'}
         </h2>
-        <AlertBanner type="info" title="Scheduled for Phase 4">
-          This portal section is architecturally routed and reserved for Phase 4. It will share the exact same UI component library while connecting to department-isolated Supabase RLS roles.
-        </AlertBanner>
+        <p className="text-sm text-[#5B5B5B]">This area is not available in this preview.</p>
       </Card>
     </Container>
   </div>

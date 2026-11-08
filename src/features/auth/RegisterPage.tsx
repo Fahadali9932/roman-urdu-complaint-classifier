@@ -22,7 +22,7 @@ export const RegisterPage: React.FC = () => {
     e.preventDefault();
     setSubmitted(true);
     setTimeout(() => {
-      navigate('/dashboard');
+      setSubmitted(false);
     }, 500);
   };
 
@@ -154,7 +154,7 @@ export const RegisterPage: React.FC = () => {
               {t('authNoticeTitle')}
             </span>
             <p className="text-[11px] leading-relaxed">
-              Registration will be connected to Supabase PostgreSQL and Row-Level Security in Phase 2.
+              {t('authNoticeText')}
             </p>
           </div>
         </div>
