@@ -63,10 +63,8 @@ describe('PublicHeader Component', () => {
     expect(screen.getByRole('dialog', { name: /mobile navigation/i })).toBeInTheDocument();
 
     // Click backdrop
-    const backdrop = document.querySelector('[aria-hidden="true"]');
-    if (backdrop) {
-      fireEvent.click(backdrop);
-    }
+    const backdrop = screen.getByTestId('menu-backdrop');
+    fireEvent.click(backdrop);
     expect(screen.queryByRole('dialog', { name: /mobile navigation/i })).not.toBeInTheDocument();
   });
 });

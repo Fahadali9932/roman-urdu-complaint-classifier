@@ -13,7 +13,7 @@ export const LanguageToggle: React.FC<LanguageToggleProps> = ({ className = '' }
     <button
       type="button"
       onClick={toggleLanguage}
-      className={`inline-flex items-center justify-center gap-1.5 px-2.5 sm:px-3 py-1.5 min-h-[40px] rounded-full border border-[#34394A]/20 bg-[#DEE1E5]/75 hover:bg-[#DEE1E5] text-[#0B1421] text-[12px] font-ui tracking-[0.015em] transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-[#0B1421] shrink-0 ${className}`}
+      className={`inline-flex items-center justify-center gap-1.5 px-2.5 sm:px-3 py-1.5 min-h-[40px] rounded-full bg-transparent hover:bg-[#CBD0D6]/50 text-[#0B1421] text-[12px] font-ui tracking-[0.015em] transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-[#0B1421] shrink-0 ${className}`}
       title={language === 'en' ? 'Switch to Urdu (اردو)' : 'Switch to English'}
       aria-label="Toggle interface language"
     >

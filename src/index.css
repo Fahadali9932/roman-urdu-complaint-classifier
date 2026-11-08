@@ -123,14 +123,14 @@
   letter-spacing: 0.015em;
 }
 
-/* Scrolled Floating Rounded Navbar (Matches exact hero-center surface with substantial vertical thickness) */
+/* Scrolled Floating Rounded Navbar (Matches exact hero-center surface with substantial 92px vertical thickness) */
 .scrolled-floating-navbar {
   background-color: var(--hero-center-surface);
   min-height: 92px;
   border-radius: 46px;
   border: 1px solid rgba(52, 57, 74, 0.15);
   box-shadow: 0 14px 36px rgba(11, 20, 33, 0.10), 0 3px 10px rgba(11, 20, 33, 0.04);
-  transition: all 380ms cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 700ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .scrolled-floating-navbar-mobile {
@@ -139,7 +139,7 @@
   border-radius: 34px;
   border: 1px solid rgba(52, 57, 74, 0.15);
   box-shadow: 0 10px 28px rgba(11, 20, 33, 0.09), 0 2px 6px rgba(11, 20, 33, 0.04);
-  transition: all 380ms cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 700ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 /* Multi-layered Light Atmospheric Hero Background */
