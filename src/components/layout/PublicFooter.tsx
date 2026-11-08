@@ -7,7 +7,7 @@ export const PublicFooter: React.FC = () => {
 
   return (
     <footer className="w-full bg-[#DEE1E5]/80 border-t border-[#34394A]/15 text-[#535965] mt-auto">
-      <div className="max-w-7xl mx-auto px-6 sm:px-12 py-12 sm:py-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-12 py-12 sm:py-16">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-10 text-start pb-10 border-b border-[#34394A]/15">
           
           {/* Brand & Mission Statement */}

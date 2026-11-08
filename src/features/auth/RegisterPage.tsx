@@ -33,15 +33,15 @@ export const RegisterPage: React.FC = () => {
           <div className="inline-flex justify-center mb-1">
             <CivicEmblem size="md" />
           </div>
-          <h1 className="text-xl sm:text-2xl font-semibold text-[#F1F2F3] tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-semibold text-[#0B1421] tracking-tight">
             {t('authRegisterTitle')}
           </h1>
-          <p className="text-xs text-[#B5B9BC] max-w-xs mx-auto">
+          <p className="text-xs text-[#283041] max-w-xs mx-auto">
             {t('authRegisterSubtitle')}
           </p>
         </div>
 
-        <div className="bg-[#172131]/90 backdrop-blur-md border border-[#34394A] rounded-2xl p-6 sm:p-8 text-start space-y-4 shadow-2xl">
+        <div className="bg-[#172131]/95 border border-[#34394A] rounded-2xl p-4 sm:p-8 text-start space-y-4 shadow-2xl">
           <form onSubmit={handleSubmit} className="space-y-4">
             <Input
               label={t('formCitizenName')}

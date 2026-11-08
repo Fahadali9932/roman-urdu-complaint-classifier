@@ -14,7 +14,7 @@ export const LandingPage: React.FC = () => {
           ======================================================== */}
       <section
         id="hero"
-        className="relative min-h-screen flex flex-col items-center justify-center px-4 sm:px-12 lg:px-20 pt-28 sm:pt-32 pb-20 sm:pb-24 overflow-hidden light-cinematic-atmosphere text-center select-none"
+        className="relative min-h-screen flex flex-col items-center justify-center px-4 sm:px-12 lg:px-20 pt-28 sm:pt-32 pb-20 sm:pb-24 overflow-hidden light-cinematic-atmosphere text-center select-none scroll-mt-28 sm:scroll-mt-32"
       >
         {/* Soft, diffuse central light field matching --hero-center-surface */}
         <div
@@ -87,7 +87,7 @@ export const LandingPage: React.FC = () => {
           ======================================================== */}
       <section
         id="steps"
-        className="py-24 sm:py-32 px-6 sm:px-12 lg:px-20 border-t border-[#34394A]/15 relative bg-[#E9EBED]"
+        className="py-24 sm:py-32 px-4 sm:px-12 lg:px-20 border-t border-[#34394A]/15 relative bg-[#E9EBED] scroll-mt-28 sm:scroll-mt-32"
       >
         <div className="max-w-5xl mx-auto text-start">
           

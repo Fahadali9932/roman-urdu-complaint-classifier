@@ -143,22 +143,22 @@ export const ComplaintForm: React.FC<ComplaintFormProps> = ({ embedded = false }
     <div className="w-full">
       <div className={`max-w-6xl mx-auto px-4 sm:px-8 text-start ${embedded ? 'py-2' : 'py-8 sm:py-12'}`}>
         
-        {/* Page Header within Dark Cinematic Workspace */}
+        {/* Page Header within Civic Workspace */}
         {!embedded && (
           <div className="mb-8 space-y-2">
             <div className="inline-flex items-center gap-2 mb-2">
-              <span className="text-[11px] font-mono font-semibold tracking-wider text-[#B5B9BC] uppercase">
+              <span className="text-[11px] font-mono font-semibold tracking-wider text-[#283041] uppercase">
                 {language === 'ur' ? 'اپنی شکایت لکھیں' : 'Write your complaint'}
               </span>
-              <span className="h-1.5 w-1.5 rounded-full bg-[#B5B9BC]" />
-              <span className="text-[11px] font-mono text-[#B5B9BC]/70">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#34394A]" />
+              <span className="text-[11px] font-mono text-[#535965]">
                 Awaaz-e-Awam
               </span>
             </div>
-            <h1 className="font-display font-black text-3xl sm:text-5xl lg:text-6xl text-[#F1F2F3] uppercase tracking-tight">
+            <h1 className="font-display font-black text-3xl sm:text-5xl lg:text-6xl text-[#0B1421] uppercase tracking-tight">
               {t('paperFormTitle') || t('formTitle')}
             </h1>
-            <p className="text-sm sm:text-base text-[#B5B9BC] max-w-2xl font-normal leading-relaxed">
+            <p className="text-sm sm:text-base text-[#283041] max-w-2xl font-normal leading-relaxed font-ui">
               {t('paperFormSubtitle') || t('formSubtitle')}
             </p>
           </div>
@@ -166,7 +166,7 @@ export const ComplaintForm: React.FC<ComplaintFormProps> = ({ embedded = false }
 
         {/* Structured Writing Workspace Container */}
         <div>
-          <div className="max-w-4xl mx-auto bg-[#172131]/90 backdrop-blur-md border border-[#34394A] rounded-2xl p-6 sm:p-10 shadow-2xl text-start">
+          <div className="max-w-4xl mx-auto bg-[#172131]/95 border border-[#34394A] rounded-2xl p-4 sm:p-10 shadow-2xl text-start">
             <form onSubmit={handleSubmit} noValidate className="space-y-8">
               
               {/* Formal Case Header */}

@@ -70,3 +70,4 @@ describe('PublicHeader Component', () => {
     expect(screen.queryByRole('dialog', { name: /mobile navigation/i })).not.toBeInTheDocument();
   });
 });
+
