@@ -57,6 +57,10 @@ describe('ComplaintJourney Component (Minimal Process Cards & Animated Arrows)',
     // No fake tracking numbers or simulated badges
     expect(screen.queryByText(/DOC-REF/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/PROGRESS: \d+%/i)).not.toBeInTheDocument();
+
+    // No civic-process caption or decorative bottom labels
+    expect(screen.queryByText(/CIVIC PROCESS/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/مرحلہ وار طریقہ کار/i)).not.toBeInTheDocument();
   });
 
   it('renders thick vector arrow SVG connectors between the cards', () => {

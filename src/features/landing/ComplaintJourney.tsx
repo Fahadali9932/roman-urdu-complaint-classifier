@@ -25,10 +25,16 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
   // Desktop normalized scroll progress: 0.0 to 1.0
   const [progress, setProgress] = useState(0);
 
-  // Mobile sequential reveal state
-  const [mobileStep, setMobileStep] = useState(0);
+  // Mobile scroll progress: 0.0 to 1.0
+  const [mobileProgress, setMobileProgress] = useState(0);
 
-  // Subscribe to prefers-reduced-motion and viewport resize
+  // Window height for dynamic vertical centering
+  const [windowHeight, setWindowHeight] = useState(() => {
+    if (typeof window === 'undefined') return 900;
+    return window.innerHeight;
+  });
+
+  // Subscribe to prefers-reduced-motion, viewport resize, and window dimensions
   useEffect(() => {
     if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return;
 
@@ -40,15 +46,21 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
     const handleMobile = (e: MediaQueryListEvent) => setIsMobile(e.matches);
     mqMobile.addEventListener('change', handleMobile);
 
+    const handleResize = () => {
+      setWindowHeight(window.innerHeight);
+    };
+    window.addEventListener('resize', handleResize, { passive: true });
+
     return () => {
       mqMotion.removeEventListener('change', handleMotion);
       mqMobile.removeEventListener('change', handleMobile);
+      window.removeEventListener('resize', handleResize);
     };
   }, []);
 
-  // Desktop Continuous Scroll-Driven Progress Controller
+  // Continuous Scroll-Driven Progress Controller (Desktop & Mobile)
   const handleScroll = useCallback(() => {
-    if (prefersReducedMotion || isMobile) return;
+    if (prefersReducedMotion) return;
     if (!containerRef.current) return;
 
     if (rafId.current !== null) {
@@ -60,21 +72,32 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
       if (!container) return;
 
       const rect = container.getBoundingClientRect();
-      const viewportHeight = window.innerHeight;
-      const totalScrollable = container.offsetHeight - viewportHeight;
+      const vh = window.innerHeight;
+      const totalScrollable = container.offsetHeight - vh;
 
-      if (totalScrollable <= 0) return;
+      if (totalScrollable <= 0) {
+        setProgress(1);
+        setMobileProgress(1);
+        return;
+      }
 
       const currentScroll = -rect.top;
       const rawProgress = currentScroll / totalScrollable;
       const clamped = Math.max(0, Math.min(1, rawProgress));
 
-      setProgress(clamped);
+      if (isMobile) {
+        // Mobile progress over its scroll distance
+        const mobScrollable = container.offsetHeight - vh * 0.7;
+        const mobRaw = mobScrollable > 0 ? currentScroll / mobScrollable : 1;
+        setMobileProgress(Math.max(0, Math.min(1, mobRaw)));
+      } else {
+        setProgress(clamped);
+      }
     });
   }, [prefersReducedMotion, isMobile]);
 
   useEffect(() => {
-    if (prefersReducedMotion || isMobile) return;
+    if (prefersReducedMotion) return;
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     window.addEventListener('resize', handleScroll, { passive: true });
@@ -87,46 +110,7 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
         cancelAnimationFrame(rafId.current);
       }
     };
-  }, [handleScroll, prefersReducedMotion, isMobile]);
-
-  // Mobile Sequential Observer (< 1024px)
-  useEffect(() => {
-    if (!isMobile || prefersReducedMotion) return;
-    const el = containerRef.current;
-    if (!el) return;
-
-    let timers: ReturnType<typeof setTimeout>[] = [];
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) {
-          const schedule = [
-            { step: 1, delay: 50 },
-            { step: 2, delay: 350 },
-            { step: 3, delay: 700 },
-            { step: 4, delay: 1050 },
-            { step: 5, delay: 1400 },
-            { step: 6, delay: 1750 },
-            { step: 7, delay: 2100 },
-          ];
-
-          timers = schedule.map(({ step, delay }) =>
-            setTimeout(() => setMobileStep((prev) => Math.max(prev, step)), delay)
-          );
-
-          observer.disconnect();
-        }
-      },
-      { threshold: 0.15 }
-    );
-
-    observer.observe(el);
-
-    return () => {
-      observer.disconnect();
-      timers.forEach((tId) => clearTimeout(tId));
-    };
-  }, [isMobile, prefersReducedMotion]);
+  }, [handleScroll, prefersReducedMotion]);
 
   // Essential Card Content (strictly no numbering, no badges, no extra copy)
   const stepsData = [
@@ -152,108 +136,117 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
     },
   ];
 
-  // =========================================================================
-  // MATHEMATICAL INTERPOLATION OF DESKTOP CHOREOGRAPHY
-  // State 0: Heading only (p < 0.05)
-  // State 1: WRITE enters center (p: 0.05 -> 0.22)
-  // State 2: WRITE moves left -> Arrow 1 draws -> REVIEW appears (p: 0.22 -> 0.45)
-  // State 3: WRITE & REVIEW shift left -> Arrow 2 draws -> ROUTE appears (p: 0.45 -> 0.70)
-  // State 4: All shift -> Arrow 3 draws -> TRACK appears (p: 0.70 -> 0.92)
-  // State 5: Final 4-card layout held, then releases (p: 0.92 -> 1.00)
-  // =========================================================================
-
   // Helper smoothstep ease
   const smooth = (x: number) => x * x * (3 - 2 * x);
   const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
 
-  // Step 1: WRITE Entrance (0.05 -> 0.20)
-  const tEnterWrite = clamp01((progress - 0.05) / 0.15);
+  // =========================================================================
+  // HEADING CENTERING & UPWARD MOTION MATHEMATICS
+  // Initial (p < 0.06): Heading centered horizontally and vertically
+  // Transition (p: 0.06 -> 0.20): Heading translates smoothly upward to top
+  // Settled (p >= 0.20): Heading rests cleanly at top, safely below navbar
+  // =========================================================================
+
+  // Dynamic vertical offset to place heading at visual center of usable viewport
+  // Viewport height minus navbar height (~112px), half is ~340px - top margin (~40px)
+  const desktopHeadingCenterY = Math.max(180, Math.min(270, (windowHeight - 240) / 2));
+  const tHeadingUp = smooth(clamp01((progress - 0.06) / 0.14));
+  const desktopHeadingY = prefersReducedMotion ? 0 : desktopHeadingCenterY * (1 - tHeadingUp);
+
+  // =========================================================================
+  // CARD & ARROW CHOREOGRAPHY (Begins only after heading has moved upward)
+  // Stage C: WRITE enters center (p: 0.20 -> 0.36)
+  // Stage D: WRITE moves left -> Arrow 1 draws -> REVIEW enters (p: 0.36 -> 0.56)
+  // Stage E: Cards shift left -> Arrow 2 draws -> ROUTE enters (p: 0.56 -> 0.76)
+  // Stage F: Cards shift left -> Arrow 3 draws -> TRACK enters (p: 0.76 -> 0.94)
+  // Stage G: Final 4-card arrangement holds, then naturally releases (p >= 0.94)
+  // =========================================================================
+
+  // Step 1: WRITE Entrance at center (0.20 -> 0.35)
+  const tEnterWrite = clamp01((progress - 0.20) / 0.15);
   const card1Opacity = prefersReducedMotion ? 1 : smooth(tEnterWrite);
-  const card1EnterY = prefersReducedMotion ? 0 : (1 - smooth(tEnterWrite)) * 32;
+  const card1EnterY = prefersReducedMotion ? 0 : (1 - smooth(tEnterWrite)) * 28;
   const card1EnterScale = prefersReducedMotion ? 1 : 0.94 + smooth(tEnterWrite) * 0.06;
 
-  // Step 2: WRITE moves to left, REVIEW enters (0.22 -> 0.44)
-  const tShift2 = smooth(clamp01((progress - 0.22) / 0.16));
-  const tDrawArrow1 = smooth(clamp01((progress - 0.25) / 0.14));
-  const tEnterReview = smooth(clamp01((progress - 0.29) / 0.14));
+  // Step 2: WRITE moves to left, REVIEW enters (0.36 -> 0.55)
+  const tShift2 = smooth(clamp01((progress - 0.36) / 0.15));
+  const tDrawArrow1 = smooth(clamp01((progress - 0.39) / 0.13));
+  const tEnterReview = smooth(clamp01((progress - 0.42) / 0.13));
 
-  // Step 3: Shift to 3-card layout, ROUTE enters (0.45 -> 0.69)
-  const tShift3 = smooth(clamp01((progress - 0.45) / 0.16));
-  const tDrawArrow2 = smooth(clamp01((progress - 0.48) / 0.14));
-  const tEnterRoute = smooth(clamp01((progress - 0.52) / 0.15));
+  // Step 3: Shift to 3-card layout, ROUTE enters (0.56 -> 0.75)
+  const tShift3 = smooth(clamp01((progress - 0.56) / 0.15));
+  const tDrawArrow2 = smooth(clamp01((progress - 0.59) / 0.13));
+  const tEnterRoute = smooth(clamp01((progress - 0.62) / 0.13));
 
-  // Step 4: Shift to final 4-card layout, TRACK enters (0.70 -> 0.92)
-  const tShift4 = smooth(clamp01((progress - 0.70) / 0.15));
-  const tDrawArrow3 = smooth(clamp01((progress - 0.73) / 0.14));
-  const tEnterTrack = smooth(clamp01((progress - 0.77) / 0.14));
+  // Step 4: Shift to final 4-card layout, TRACK enters (0.76 -> 0.93)
+  const tShift4 = smooth(clamp01((progress - 0.76) / 0.14));
+  const tDrawArrow3 = smooth(clamp01((progress - 0.79) / 0.12));
+  const tEnterTrack = smooth(clamp01((progress - 0.82) / 0.12));
 
   // Horizontal Coordinates (in pixels from center)
-  // 1 card:  [0]
-  // 2 cards: [-145, +145]
-  // 3 cards: [-290, 0, +290]
-  // 4 cards: [-435, -145, +145, +435]
-
-  // Card 1 X position
-  // 0 -> -145 -> -290 -> -435
+  // Card 1 (WRITE) X position: 0 -> -145 -> -290 -> -435
   const c1X_raw =
     -145 * tShift2 * (1 - tShift3) +
     -290 * tShift3 * (1 - tShift4) +
     -435 * tShift4;
   const card1X = prefersReducedMotion ? (isRTL ? 435 : -435) : (isRTL ? -c1X_raw : c1X_raw);
 
-  // Card 2 (REVIEW)
-  // Appears at +145, then moves +145 -> 0 -> -145
+  // Card 2 (REVIEW) X position: enters at +145, then moves +145 -> 0 -> -145
   const c2X_raw =
     145 * (1 - tShift3) -
     145 * tShift4;
   const card2X = prefersReducedMotion ? (isRTL ? 145 : -145) : (isRTL ? -c2X_raw : c2X_raw);
   const card2Opacity = prefersReducedMotion ? 1 : tEnterReview;
-  const card2Y = prefersReducedMotion ? 0 : (1 - tEnterReview) * 24;
+  const card2Y = prefersReducedMotion ? 0 : (1 - tEnterReview) * 22;
   const card2Scale = prefersReducedMotion ? 1 : 0.94 + tEnterReview * 0.06;
 
-  // Card 3 (ROUTE)
-  // Appears at +290, then moves +290 -> +145
+  // Card 3 (ROUTE) X position: enters at +290, then moves +290 -> +145
   const c3X_raw = 290 * (1 - tShift4) + 145 * tShift4;
   const card3X = prefersReducedMotion ? (isRTL ? -145 : 145) : (isRTL ? -c3X_raw : c3X_raw);
   const card3Opacity = prefersReducedMotion ? 1 : tEnterRoute;
-  const card3Y = prefersReducedMotion ? 0 : (1 - tEnterRoute) * 24;
+  const card3Y = prefersReducedMotion ? 0 : (1 - tEnterRoute) * 22;
   const card3Scale = prefersReducedMotion ? 1 : 0.94 + tEnterRoute * 0.06;
 
-  // Card 4 (TRACK)
-  // Appears at +435
+  // Card 4 (TRACK) X position: enters at +435
   const c4X_raw = 435;
   const card4X = prefersReducedMotion ? (isRTL ? -435 : 435) : (isRTL ? -c4X_raw : c4X_raw);
   const card4Opacity = prefersReducedMotion ? 1 : tEnterTrack;
-  const card4Y = prefersReducedMotion ? 0 : (1 - tEnterTrack) * 24;
+  const card4Y = prefersReducedMotion ? 0 : (1 - tEnterTrack) * 22;
   const card4Scale = prefersReducedMotion ? 1 : 0.94 + tEnterTrack * 0.06;
 
-  // Arrow 1 (between Card 1 and Card 2)
+  // Arrow Connectors (Dynamically bound to card midpoints)
   const arrow1X = (card1X + card2X) / 2;
   const arrow1Draw = prefersReducedMotion ? 1 : tDrawArrow1;
 
-  // Arrow 2 (between Card 2 and Card 3)
   const arrow2X = (card2X + card3X) / 2;
   const arrow2Draw = prefersReducedMotion ? 1 : tDrawArrow2;
 
-  // Arrow 3 (between Card 3 and Card 4)
   const arrow3X = (card3X + card4X) / 2;
   const arrow3Draw = prefersReducedMotion ? 1 : tDrawArrow3;
+
+  // =========================================================================
+  // MOBILE HEADING CENTERING & UPWARD MOTION
+  // =========================================================================
+  const mobileHeadingCenterY = Math.max(120, Math.min(220, (windowHeight - 200) / 2));
+  const tMobileHeadUp = smooth(clamp01(mobileProgress / 0.18));
+  const mobileHeadingY = prefersReducedMotion ? 0 : mobileHeadingCenterY * (1 - tMobileHeadUp);
 
   return (
     <section
       id={id}
       ref={containerRef}
-      className="relative w-full border-t border-[#34394A]/15 bg-[#E9EBED] scroll-mt-28 sm:scroll-mt-32 text-start select-none"
+      className="relative w-full border-t border-[#34394A]/15 bg-[#E9EBED] scroll-mt-28 sm:scroll-mt-32 select-none"
       style={{
         // Desktop: ~260vh bounded scroll scene for controlled pacing
-        // Mobile / Reduced Motion: natural auto height without pinning
-        minHeight: isMobile || prefersReducedMotion ? 'auto' : '260vh',
+        // Mobile: natural proportional height allowing smooth progression
+        minHeight: prefersReducedMotion ? 'auto' : isMobile ? '160vh' : '260vh',
       }}
       aria-label={t('processHeading') || 'How It Works'}
     >
       {/* ========================================================
           DESKTOP FULL-SCREEN PINNED STAGE (>= 1024px)
-          Occupies full viewport, perfectly centered, releasing cleanly
+          Occupies full viewport, centered heading moves upward,
+          cards animate in sequence, completely releasing into footer
           ======================================================== */}
       <div
         className={`hidden lg:flex w-full flex-col justify-between px-4 sm:px-10 lg:px-16 xl:px-20 py-8 xl:py-10 overflow-hidden ${
@@ -262,8 +255,15 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
             : 'sticky top-24 sm:top-28 h-[calc(100vh-6.5rem)] sm:h-[calc(100vh-7.5rem)]'
         }`}
       >
-        {/* Prominent, authoritative section heading (No subtitles, no badges) */}
-        <div className="max-w-6xl mx-auto w-full pt-2">
+        {/* Prominent, authoritative section heading */}
+        {/* Centered initially, smoothly moves upward as user scrolls */}
+        <div
+          className="max-w-6xl mx-auto w-full text-center pt-2 will-change-transform"
+          style={{
+            transform: `translate3d(0, ${desktopHeadingY}px, 0)`,
+            transition: prefersReducedMotion ? 'none' : 'transform 100ms linear',
+          }}
+        >
           <h2 className="font-display text-4xl sm:text-5xl xl:text-6xl text-[#0B1421] uppercase tracking-tight">
             {t('processHeading') || (language === 'ur' ? 'طریقہ کار' : 'How It Works')}
           </h2>
@@ -276,7 +276,7 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
         >
           {/* ---------------- CARD 1: WRITE ---------------- */}
           <div
-            className="absolute w-[220px] xl:w-[240px] p-6 xl:p-7 rounded-2xl bg-white border border-[#34394A]/15 shadow-md shadow-[#0B1421]/05 flex flex-col justify-between transition-shadow will-change-transform"
+            className="absolute w-[220px] xl:w-[240px] p-6 xl:p-7 rounded-2xl bg-white border border-[#34394A]/15 shadow-md shadow-[#0B1421]/05 flex flex-col justify-between transition-shadow will-change-transform text-start"
             style={{
               transform: `translate3d(${card1X}px, ${card1EnterY}px, 0) scale(${card1EnterScale})`,
               opacity: card1Opacity,
@@ -326,7 +326,7 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
 
           {/* ---------------- CARD 2: REVIEW ---------------- */}
           <div
-            className="absolute w-[220px] xl:w-[240px] p-6 xl:p-7 rounded-2xl bg-white border border-[#34394A]/15 shadow-md shadow-[#0B1421]/05 flex flex-col justify-between transition-shadow will-change-transform"
+            className="absolute w-[220px] xl:w-[240px] p-6 xl:p-7 rounded-2xl bg-white border border-[#34394A]/15 shadow-md shadow-[#0B1421]/05 flex flex-col justify-between transition-shadow will-change-transform text-start"
             style={{
               transform: `translate3d(${card2X}px, ${card2Y}px, 0) scale(${card2Scale})`,
               opacity: card2Opacity,
@@ -376,7 +376,7 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
 
           {/* ---------------- CARD 3: ROUTE ---------------- */}
           <div
-            className="absolute w-[220px] xl:w-[240px] p-6 xl:p-7 rounded-2xl bg-white border border-[#34394A]/15 shadow-md shadow-[#0B1421]/05 flex flex-col justify-between transition-shadow will-change-transform"
+            className="absolute w-[220px] xl:w-[240px] p-6 xl:p-7 rounded-2xl bg-white border border-[#34394A]/15 shadow-md shadow-[#0B1421]/05 flex flex-col justify-between transition-shadow will-change-transform text-start"
             style={{
               transform: `translate3d(${card3X}px, ${card3Y}px, 0) scale(${card3Scale})`,
               opacity: card3Opacity,
@@ -426,7 +426,7 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
 
           {/* ---------------- CARD 4: TRACK ---------------- */}
           <div
-            className="absolute w-[220px] xl:w-[240px] p-6 xl:p-7 rounded-2xl bg-white border border-[#34394A]/15 shadow-md shadow-[#0B1421]/05 flex flex-col justify-between transition-shadow will-change-transform"
+            className="absolute w-[220px] xl:w-[240px] p-6 xl:p-7 rounded-2xl bg-white border border-[#34394A]/15 shadow-md shadow-[#0B1421]/05 flex flex-col justify-between transition-shadow will-change-transform text-start"
             style={{
               transform: `translate3d(${card4X}px, ${card4Y}px, 0) scale(${card4Scale})`,
               opacity: card4Opacity,
@@ -446,20 +446,23 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
           </div>
         </div>
 
-        {/* Subtle Bottom Ground Line */}
-        <div className="max-w-6xl mx-auto w-full pb-2 flex items-center justify-between text-[11px] font-mono text-[#535965]/60">
-          <span>{isRTL ? 'سندھ پورٹل • مرحلہ وار طریقہ کار' : 'AWAAZ-E-AWAM • CIVIC PROCESS'}</span>
-          <span>{progress >= 0.9 ? 'SCROLL TO CONTINUE ↓' : ''}</span>
-        </div>
+        {/* Clean, zero-clutter bottom spacing - No decorative captions */}
+        <div className="w-full h-2" />
       </div>
 
       {/* ========================================================
           MOBILE / TABLET PURPOSE-BUILT VERTICAL PROGRESSION (< 1024px)
-          Clean natural scroll, downward arrows, zero scroll traps
+          Centered heading moves upward, cards appear in sequence
           ======================================================== */}
       <div className="lg:hidden py-16 sm:py-24 px-4 sm:px-8 w-full max-w-md mx-auto">
-        {/* Clean Heading */}
-        <div className="mb-10 sm:mb-14">
+        {/* Mobile Heading: Centered initially, smoothly moves upward as user scrolls */}
+        <div
+          className="mb-10 sm:mb-14 text-center will-change-transform"
+          style={{
+            transform: `translate3d(0, ${mobileHeadingY}px, 0)`,
+            transition: prefersReducedMotion ? 'none' : 'transform 100ms linear',
+          }}
+        >
           <h2 className="font-display text-3xl sm:text-4xl text-[#0B1421] uppercase tracking-tight">
             {t('processHeading') || (language === 'ur' ? 'طریقہ کار' : 'How It Works')}
           </h2>
@@ -468,10 +471,11 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
         {/* Vertical Stack with Downward Vector Arrows */}
         <div className="flex flex-col items-center w-full">
           {stepsData.map((stg, index) => {
-            const cardStep = index * 2 + 1;
-            const arrowStep = index * 2 + 2;
-            const isCardVisible = prefersReducedMotion || mobileStep >= cardStep;
-            const isArrowDrawn = prefersReducedMotion || mobileStep >= arrowStep;
+            // Progressive reveal on mobile scroll
+            const threshold = 0.18 + index * 0.20;
+            const arrowThreshold = threshold + 0.10;
+            const isCardVisible = prefersReducedMotion || mobileProgress >= threshold;
+            const isArrowDrawn = prefersReducedMotion || mobileProgress >= arrowThreshold;
 
             return (
               <React.Fragment key={stg.key}>
