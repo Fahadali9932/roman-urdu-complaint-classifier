@@ -1,13 +1,32 @@
-@import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:ital,wght@0,800;0,900;1,800;1,900&family=Barlow+Condensed:ital,wght@0,800;0,900;1,800;1,900&family=Playfair+Display:ital,wght@1,600;1,700;1,800&family=Inter:wght@300;400;500;600;700&family=Manrope:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:ital,wght@0,800;0,900;1,800;1,900&family=Outfit:wght@300;400;500;600&family=Playfair+Display:ital,wght@1,600;1,700;1,800&family=Inter:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
 @layer base {
   :root {
+    /* Exact original palette identity tokens - DO NOT ALTER */
+    --inkwell: #0B1421;
+    --ophelia: #283041;
+    --brocade: #34394A;
+    --vapor: #B5B9BC;
+
+    /* Light palette derivatives */
+    --bg-light-base: #E9EBED;
+    --hero-center-surface: #DEE1E5;
+    --bg-light-upper: #F1F2F3;
+    --bg-light-transition: #CBD0D6;
+
+    /* Semantic typography & surface tokens */
+    --text-primary: #0B1421;
+    --text-secondary: #283041;
+    --text-muted: #535965;
+    --border-subtle: rgba(52, 57, 74, 0.15);
+
+    /* Backwards compatibility aliases */
     --color-inkwell: #0B1421;
     --color-ophelia: #283041;
     --color-brocade: #34394A;
     --color-vapor: #B5B9BC;
-    --color-text-primary: #F1F2F3;
+    --color-text-primary: #0B1421;
   }
 
   html {
@@ -15,8 +34,8 @@
   }
 
   body {
-    background-color: #0B1421;
-    color: #F1F2F3;
+    background-color: var(--bg-light-base);
+    color: var(--text-primary);
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -52,7 +71,7 @@
   select:focus-visible,
   button:focus-visible,
   a:focus-visible {
-    outline: 2px solid #F1F2F3 !important;
+    outline: 2px solid var(--inkwell) !important;
     outline-offset: 2px !important;
   }
 
@@ -70,10 +89,10 @@
 }
 
 /* ==========================================================================
-   DARK CINEMATIC EDITORIAL TYPOGRAPHY & MOTIONS
+   LIGHT CINEMATIC EDITORIAL TYPOGRAPHY & DESIGN SYSTEM
    ========================================================================== */
 
-/* Hero Ultra-Heavy Editorial Display Font: Archivo Black for confident, uncompressed weight */
+/* Hero Ultra-Heavy Editorial Display Font: Archivo Black for commanding presence */
 .font-display {
   font-family: 'Archivo Black', 'Archivo', sans-serif;
   font-weight: 900;
@@ -81,15 +100,14 @@
   text-transform: uppercase;
 }
 
-/* Alternative architectural display font option */
-.font-display-condensed {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-weight: 900;
-  letter-spacing: -0.02em;
-  text-transform: uppercase;
+/* Refined, Thin Modern Interface & Navigation Typography: Outfit (weight 400) */
+.font-ui {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 400;
+  letter-spacing: 0.015em;
 }
 
-/* Brand Wordmark: Distinctive, slightly calligraphic italicized treatment */
+/* Brand Wordmark: Elegant, Distinctive Italic Treatment */
 .font-wordmark {
   font-family: 'Playfair Display', Georgia, serif;
   font-style: italic;
@@ -97,56 +115,32 @@
   letter-spacing: -0.02em;
 }
 
-/* Refined Floating Navbar on Scroll */
-.cinematic-floating-nav {
-  background-color: rgba(40, 48, 65, 0.94);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(52, 57, 74, 0.95);
-  box-shadow: 0 16px 36px -10px rgba(11, 20, 33, 0.8), 0 0 1px rgba(241, 242, 243, 0.14);
+/* Hero Button Typography Token */
+.hero-button {
+  font-family: 'Outfit', sans-serif;
+  font-size: 15px;
+  font-weight: 400;
+  letter-spacing: 0.015em;
 }
 
-/* Multi-layered Atmospheric Hero Background featuring all 4 exact colors */
-.cinematic-hero-atmosphere {
+/* Scrolled Floating Rounded Navbar (Matches exact hero-center surface) */
+.scrolled-floating-navbar {
+  background-color: var(--hero-center-surface);
+  min-height: 70px;
+  border-radius: 36px;
+  border: 1px solid rgba(52, 57, 74, 0.16);
+  box-shadow: 0 16px 36px -12px rgba(11, 20, 33, 0.12), 0 2px 6px -1px rgba(11, 20, 33, 0.04);
+  transition: all 400ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Multi-layered Light Atmospheric Hero Background */
+.light-cinematic-atmosphere {
   background:
-    radial-gradient(ellipse 85% 55% at 50% -5%, rgba(52, 57, 74, 0.6) 0%, transparent 65%),
-    radial-gradient(ellipse 75% 60% at 50% 50%, rgba(40, 48, 65, 0.7) 0%, transparent 70%),
-    radial-gradient(ellipse 65% 50% at 85% 75%, rgba(40, 48, 65, 0.4) 0%, transparent 65%),
-    radial-gradient(ellipse 65% 50% at 15% 75%, rgba(52, 57, 74, 0.35) 0%, transparent 65%),
-    linear-gradient(180deg, #0B1421 0%, #121D2C 50%, #0B1421 100%);
-}
-
-/* Modern Digital Letter Surface */
-.cinematic-letter {
-  background-color: #283041;
-  border: 1px solid rgba(181, 185, 188, 0.14);
-  box-shadow: 0 14px 32px -8px rgba(11, 20, 33, 0.55), 0 1px 0 rgba(241, 242, 243, 0.06);
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease, box-shadow 0.25s ease;
-}
-
-.cinematic-letter:hover {
-  transform: translateY(-2px);
-  border-color: rgba(181, 185, 188, 0.35);
-  box-shadow: 0 20px 40px -10px rgba(11, 20, 33, 0.7);
-}
-
-/* Functional Writing Workspace Document Surface */
-.cinematic-document-surface {
-  background-color: #283041;
-  border: 1px solid rgba(181, 185, 188, 0.18);
-  box-shadow: 0 20px 48px -12px rgba(11, 20, 33, 0.7);
-}
-
-/* Form input styling */
-.cinematic-input {
-  background-color: #172131;
-  border: 1px solid #34394A;
-  color: #F1F2F3;
-}
-
-.cinematic-input:focus {
-  border-color: #F1F2F3;
-  outline: none;
+    radial-gradient(ellipse 90% 65% at 50% 45%, var(--hero-center-surface) 0%, rgba(222, 225, 229, 0.75) 45%, transparent 80%),
+    radial-gradient(ellipse 70% 50% at 85% 20%, #E2E5E9 0%, transparent 60%),
+    radial-gradient(ellipse 65% 55% at 15% 70%, #D5DAE0 0%, transparent 60%),
+    radial-gradient(ellipse 80% 60% at 50% 100%, #CBD0D6 0%, transparent 70%),
+    #E9EBED;
 }
 
 /* Compatibility aliases for previous components */
@@ -154,19 +148,19 @@
 .civic-glass,
 .paper-surface,
 .paper-sheet {
-  background-color: #283041;
-  border: 1px solid #34394A;
-  color: #F1F2F3;
+  background-color: #FFFFFF;
+  border: 1px solid rgba(52, 57, 74, 0.15);
+  color: #0B1421;
 }
 
 .glass-navbar,
 .glass-topbar,
 .notebook-navbar {
-  background-color: rgba(11, 20, 33, 0.9);
-  border-bottom: 1px solid #34394A;
+  background-color: rgba(222, 225, 229, 0.95);
+  border-bottom: 1px solid rgba(52, 57, 74, 0.15);
 }
 
 .notebook-footer {
-  background-color: #0B1421;
-  border-top: 1px solid #34394A;
+  background-color: #E9EBED;
+  border-top: 1px solid rgba(52, 57, 74, 0.15);
 }

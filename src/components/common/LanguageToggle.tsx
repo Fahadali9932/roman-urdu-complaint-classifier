@@ -13,19 +13,19 @@ export const LanguageToggle: React.FC<LanguageToggleProps> = ({ className = '' }
     <button
       type="button"
       onClick={toggleLanguage}
-      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#34394A] bg-[#283041]/60 hover:bg-[#283041] text-[#F1F2F3] text-xs font-semibold tracking-wide transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-[#F1F2F3] ${className}`}
+      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#34394A]/20 bg-[#DEE1E5]/70 hover:bg-[#DEE1E5] text-[#0B1421] text-xs font-ui tracking-wide transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-[#0B1421] ${className}`}
       title={language === 'en' ? 'Switch to Urdu (اردو)' : 'Switch to English'}
       aria-label="Toggle interface language"
     >
-      <Globe className="w-3.5 h-3.5 text-[#B5B9BC] shrink-0" />
+      <Globe className="w-3.5 h-3.5 text-[#34394A] shrink-0" />
       <span className="font-mono text-xs">
         {language === 'en' ? (
           <>
-            <span className="text-[#F1F2F3] font-bold">EN</span> / <span className="text-[#B5B9BC]">اردو</span>
+            <span className="text-[#0B1421] font-bold">EN</span> / <span className="text-[#535965]">اردو</span>
           </>
         ) : (
           <>
-            <span className="text-[#B5B9BC]">EN</span> / <span className="text-[#F1F2F3] font-bold">اردو</span>
+            <span className="text-[#535965]">EN</span> / <span className="text-[#0B1421] font-bold">اردو</span>
           </>
         )}
       </span>
