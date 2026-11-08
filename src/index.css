@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Anton&family=Barlow+Condensed:ital,wght@0,700;0,800;0,900;1,800;1,900&family=Playfair+Display:ital,wght@1,600;1,700&family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:ital,wght@0,800;0,900;1,800;1,900&family=Barlow+Condensed:ital,wght@0,800;0,900;1,800;1,900&family=Playfair+Display:ital,wght@1,600;1,700;1,800&family=Inter:wght@300;400;500;600;700&family=Manrope:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
 @layer base {
@@ -7,7 +7,7 @@
     --color-ophelia: #283041;
     --color-brocade: #34394A;
     --color-vapor: #B5B9BC;
-    --color-highlight: #F1F2F3;
+    --color-text-primary: #F1F2F3;
   }
 
   html {
@@ -16,8 +16,6 @@
 
   body {
     background-color: #0B1421;
-    background-image: linear-gradient(135deg, #0B1421 0%, #172131 55%, #283041 100%);
-    background-attachment: fixed;
     color: #F1F2F3;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     -webkit-font-smoothing: antialiased;
@@ -75,11 +73,19 @@
    DARK CINEMATIC EDITORIAL TYPOGRAPHY & MOTIONS
    ========================================================================== */
 
-/* Hero Ultra-Heavy Condensed Display Font */
+/* Hero Ultra-Heavy Editorial Display Font: Archivo Black for confident, uncompressed weight */
 .font-display {
-  font-family: 'Anton', 'Barlow Condensed', sans-serif;
+  font-family: 'Archivo Black', 'Archivo', sans-serif;
   font-weight: 900;
-  letter-spacing: -0.025em;
+  letter-spacing: -0.035em;
+  text-transform: uppercase;
+}
+
+/* Alternative architectural display font option */
+.font-display-condensed {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 900;
+  letter-spacing: -0.02em;
   text-transform: uppercase;
 }
 
@@ -91,23 +97,23 @@
   letter-spacing: -0.02em;
 }
 
-/* Subtle 2.5D Motion System */
-.cinematic-perspective {
-  perspective: 1200px;
-}
-
-.cinematic-depth-layer {
-  transform: translate3d(0, 0, 0);
-  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease;
-}
-
 /* Refined Floating Navbar on Scroll */
 .cinematic-floating-nav {
-  background-color: rgba(40, 48, 65, 0.88);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(181, 185, 188, 0.16);
-  box-shadow: 0 16px 36px -10px rgba(11, 20, 33, 0.65), 0 0 1px rgba(241, 242, 243, 0.1);
+  background-color: rgba(40, 48, 65, 0.94);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(52, 57, 74, 0.95);
+  box-shadow: 0 16px 36px -10px rgba(11, 20, 33, 0.8), 0 0 1px rgba(241, 242, 243, 0.14);
+}
+
+/* Multi-layered Atmospheric Hero Background featuring all 4 exact colors */
+.cinematic-hero-atmosphere {
+  background:
+    radial-gradient(ellipse 85% 55% at 50% -5%, rgba(52, 57, 74, 0.6) 0%, transparent 65%),
+    radial-gradient(ellipse 75% 60% at 50% 50%, rgba(40, 48, 65, 0.7) 0%, transparent 70%),
+    radial-gradient(ellipse 65% 50% at 85% 75%, rgba(40, 48, 65, 0.4) 0%, transparent 65%),
+    radial-gradient(ellipse 65% 50% at 15% 75%, rgba(52, 57, 74, 0.35) 0%, transparent 65%),
+    linear-gradient(180deg, #0B1421 0%, #121D2C 50%, #0B1421 100%);
 }
 
 /* Modern Digital Letter Surface */
