@@ -11,13 +11,13 @@ export const ComplaintTracker: React.FC = () => {
   return (
     <div className="py-12 sm:py-16">
       <Container size="sm">
-        <div className="rounded-xl bg-[#FAFAF9] border border-[#D5D5D3] p-8 sm:p-12 text-center space-y-5">
-          <FolderOpen className="w-10 h-10 text-[#111111] mx-auto stroke-[1.5]" />
+        <div className="rounded-2xl bg-[#172131]/90 backdrop-blur-md border border-[#34394A] p-8 sm:p-12 text-center space-y-5 shadow-2xl">
+          <FolderOpen className="w-12 h-12 text-[#F1F2F3] mx-auto stroke-[1.5]" />
           <div className="space-y-2">
-            <h1 className="font-display font-black text-2xl sm:text-3xl text-[#111111] tracking-tight">
+            <h1 className="font-display font-black text-2xl sm:text-3xl text-[#F1F2F3] tracking-tight">
               {language === 'ur' ? 'شکایت کی پیش رفت' : 'Complaint progress'}
             </h1>
-            <p className="text-sm text-[#5B5B5B] leading-relaxed">
+            <p className="text-sm text-[#B5B9BC] leading-relaxed">
               {language === 'ur'
                 ? 'جب شکایات بھیجنے اور محفوظ کرنے کی سہولت دستیاب ہوگی تو ان کی پیش رفت یہاں دکھائی جائے گی۔'
                 : 'Progress will be shown here when complaints can be sent and saved.'}

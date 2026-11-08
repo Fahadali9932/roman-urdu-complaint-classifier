@@ -16,24 +16,24 @@ export const AlertBanner: React.FC<AlertBannerProps> = ({
 }) => {
   const styles = {
     info: {
-      container: 'bg-teal-50/80 border-teal-200 text-teal-900',
-      icon: <Info className="w-5 h-5 text-teal-700 shrink-0 mt-0.5" />,
-      titleColor: 'text-teal-950 font-semibold',
+      container: 'bg-[#182637] border-[#2c415c] text-[#b8d5fa]',
+      icon: <Info className="w-5 h-5 text-[#60a5fa] shrink-0 mt-0.5" />,
+      titleColor: 'text-[#F1F2F3] font-semibold',
     },
     warning: {
-      container: 'bg-amber-50/80 border-amber-200 text-amber-900',
-      icon: <AlertTriangle className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />,
-      titleColor: 'text-amber-950 font-semibold',
+      container: 'bg-[#292215] border-[#4f3e23] text-[#fde047]',
+      icon: <AlertTriangle className="w-5 h-5 text-[#facc15] shrink-0 mt-0.5" />,
+      titleColor: 'text-[#F1F2F3] font-semibold',
     },
     success: {
-      container: 'bg-emerald-50/80 border-emerald-200 text-emerald-900',
-      icon: <CheckCircle2 className="w-5 h-5 text-emerald-700 shrink-0 mt-0.5" />,
-      titleColor: 'text-emerald-950 font-semibold',
+      container: 'bg-[#162920] border-[#254d3a] text-[#86efac]',
+      icon: <CheckCircle2 className="w-5 h-5 text-[#4ade80] shrink-0 mt-0.5" />,
+      titleColor: 'text-[#F1F2F3] font-semibold',
     },
     danger: {
-      container: 'bg-rose-50/80 border-rose-200 text-rose-900',
-      icon: <AlertCircle className="w-5 h-5 text-rose-700 shrink-0 mt-0.5" />,
-      titleColor: 'text-rose-950 font-semibold',
+      container: 'bg-[#31181f] border-[#592635] text-[#fca5a5]',
+      icon: <AlertCircle className="w-5 h-5 text-[#f87171] shrink-0 mt-0.5" />,
+      titleColor: 'text-[#F1F2F3] font-semibold',
     },
   };
 

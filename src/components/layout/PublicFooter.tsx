@@ -6,68 +6,79 @@ export const PublicFooter: React.FC = () => {
   const { t, language } = useLanguage();
 
   return (
-    <footer className="w-full bg-[#F1F1F0] border-t border-[#D5D5D3] text-[#5B5B5B] mt-auto">
-      <div className="max-w-[1280px] mx-auto px-4 sm:px-8 py-10 sm:py-14">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 text-start pb-8 border-b border-[#D5D5D3]">
+    <footer className="w-full bg-[#0B1421] border-t border-[#34394A] text-[#B5B9BC] mt-auto">
+      <div className="max-w-7xl mx-auto px-6 sm:px-12 py-12 sm:py-16">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-10 text-start pb-10 border-b border-[#34394A]/60">
           
           {/* Brand & Mission Statement */}
-          <div className="md:col-span-6 space-y-2">
-            <span className="font-display font-black text-lg text-[#111111] tracking-tighter block">
+          <div className="md:col-span-5 space-y-3">
+            <span className="font-wordmark italic font-bold text-2xl text-[#F1F2F3] tracking-tight block">
               Awaaz-e-Awam
             </span>
-            <p className="text-xs sm:text-sm text-[#5B5B5B] max-w-md leading-relaxed">
+            <p className="text-xs sm:text-sm text-[#B5B9BC] max-w-sm leading-relaxed">
               {language === 'ur'
-                ? 'سندھ کے شہریوں کے لیے عوامی مسائل واضح الفاظ میں لکھنے کی جگہ۔'
-                : 'A place for Sindh citizens to describe public issues in clear, everyday language.'}
+                ? 'سندھ کے شہریوں کے لیے رومن اردو میں عوامی مسائل بیان کرنے اور ان کی پیش رفت جاننے کا ڈیجیٹل پلیٹ فارم۔'
+                : 'A dark cinematic civic platform for Sindh citizens to articulate public-service grievances in Roman Urdu.'}
             </p>
+            <div className="pt-2 text-[11px] font-mono text-[#B5B9BC]/70">
+              Greenwich University Karachi • Department of Computer Science
+            </div>
           </div>
 
           {/* Quick Editorial Navigation */}
-          <div className="md:col-span-3 space-y-2">
-            <span className="text-[10px] font-mono font-bold tracking-wide text-[#111111] block">
+          <div className="md:col-span-3 space-y-3">
+            <span className="text-[11px] font-mono font-bold tracking-wider text-[#F1F2F3] uppercase block">
               Navigation
             </span>
-            <ul className="space-y-1.5 text-xs font-semibold tracking-wide">
+            <ul className="space-y-2 text-xs font-medium">
               <li>
-                <Link to="/" className="hover:text-[#111111] transition-colors">
-                  {t('navHome')}
-                </Link>
+                <a href="#hero" className="hover:text-[#F1F2F3] transition-colors">
+                  {t('navHome') || 'Home'}
+                </a>
               </li>
               <li>
-                <Link to="/submit" className="hover:text-[#111111] transition-colors">
-                  {t('navWriteComplaint') || 'Write Complaint'}
-                </Link>
+                <a href="#steps" className="hover:text-[#F1F2F3] transition-colors">
+                  {language === 'ur' ? 'طریقہ کار' : 'How It Works'}
+                </a>
               </li>
               <li>
-                <Link to="/dashboard" className="hover:text-[#111111] transition-colors">
+                <a href="#my-complaints" className="hover:text-[#F1F2F3] transition-colors">
                   {t('navMyComplaints') || 'My Complaints'}
-                </Link>
+                </a>
               </li>
               <li>
-                <Link to="/login" className="hover:text-[#111111] transition-colors">
-                  {t('navAccount') || 'Sign In'}
+                <a href="#write-complaint" className="hover:text-[#F1F2F3] transition-colors">
+                  {t('navWriteComplaint') || 'Write Complaint'}
+                </a>
+              </li>
+              <li>
+                <Link to="/track" className="hover:text-[#F1F2F3] transition-colors">
+                  {t('trackTitle') || 'Track Status'}
                 </Link>
               </li>
             </ul>
           </div>
 
-          {/* Plain-language note */}
-          <div className="md:col-span-3 space-y-2">
-            <span className="text-[10px] font-mono font-bold tracking-wide text-[#111111] block">
-              {language === 'ur' ? 'اہم بات' : 'A quick note'}
+          {/* Academic & Prototype Note */}
+          <div className="md:col-span-4 space-y-3">
+            <span className="text-[11px] font-mono font-bold tracking-wider text-[#F1F2F3] uppercase block">
+              {language === 'ur' ? 'منصوبہ بندی و تعلیمی نوٹس' : 'System Architecture'}
             </span>
-            <div className="text-xs text-[#5B5B5B] leading-relaxed">
-              <p>{language === 'ur'
-                ? 'یہ ایک آزاد تعلیمی پیش منظر ہے، سرکاری ویب سائٹ نہیں۔'
-                : 'This is an independent academic preview, not an official government website.'}</p>
+            <p className="text-xs text-[#B5B9BC] leading-relaxed">
+              {language === 'ur'
+                ? 'یہ سسٹم رومن اردو ٹیکسٹ کی خودکار درجہ بندی کے لیے ڈیزائن کیا گیا ہے۔ تصدیق شدہ ڈیٹا ماڈل فیز ۲ میں کلاؤڈ ڈیٹا بیس سے منسلک کیا جائے گا۔'
+                : 'Roman Urdu Complaint Classifier is engineered to automate civic routing. Zero dummy records are fabricated; full persistence connects in Phase 2.'}
+            </p>
+            <div className="inline-block px-3 py-1 rounded-md bg-[#283041]/70 border border-[#34394A] text-[10px] font-mono text-[#B5B9BC]">
+              Phase 1B • Dark Cinematic Editorial
             </div>
           </div>
         </div>
 
         {/* Bottom Attribution Bar */}
-        <div className="pt-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-[11px] font-mono text-[#5B5B5B]">
-          <span>{language === 'ur' ? 'آوازِ عوام' : 'Awaaz-e-Awam'}</span>
-          <span>{language === 'ur' ? 'ابھی شکایات بھیجی یا محفوظ نہیں ہوتیں۔' : 'Complaints are not sent or saved in this preview.'}</span>
+        <div className="pt-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-xs font-mono text-[#B5B9BC]/70">
+          <span>&copy; 2026 Awaaz-e-Awam • Final Citizen Experience</span>
+          <span>{language === 'ur' ? 'تمام حقوق بحق محفوظ ہیں' : 'Designed & engineered for citizen empowerment'}</span>
         </div>
       </div>
     </footer>

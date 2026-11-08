@@ -33,15 +33,15 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         {label && (
           <label
             htmlFor={inputId}
-            className="block text-xs sm:text-sm font-semibold text-[#111111] mb-1.5 select-none"
+            className="block text-xs sm:text-sm font-semibold text-[#B5B9BC] mb-1.5 select-none"
           >
             {label}
-            {props.required && <span className="text-rose-500 ms-1" aria-hidden="true">*</span>}
+            {props.required && <span className="text-rose-400 ms-1" aria-hidden="true">*</span>}
           </label>
         )}
-        <div className="relative rounded-lg shadow-2xs">
+        <div className="relative rounded-lg">
           {leftIcon && (
-            <div className="absolute inset-y-0 start-0 ps-3.5 flex items-center pointer-events-none text-[#5B5B5B]">
+            <div className="absolute inset-y-0 start-0 ps-3.5 flex items-center pointer-events-none text-[#B5B9BC]">
               {leftIcon}
             </div>
           )}
@@ -50,12 +50,12 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             ref={ref}
             aria-invalid={Boolean(error)}
             aria-describedby={errorId || helperId}
-            className={`w-full min-h-[44px] rounded-lg border bg-white px-3.5 py-2.5 text-sm sm:text-base text-[#111111] placeholder:text-[#5B5B5B]/50 transition-colors focus:bg-white focus:outline-hidden ${
+            className={`w-full min-h-[44px] rounded-lg border bg-[#131C2A] px-3.5 py-2.5 text-sm sm:text-base text-[#F1F2F3] placeholder:text-[#B5B9BC]/40 transition-colors focus:bg-[#172131] focus:outline-hidden ${
               leftIcon ? 'ps-10' : ''
             } ${rightAction || rightIcon ? 'pe-11' : ''} ${
               error
-                ? 'border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 bg-rose-50/20'
-                : 'border-[#D5D5D3] focus:border-[#111111] focus:ring-1 focus:ring-[#111111]'
+                ? 'border-rose-400/80 focus:border-rose-400 focus:ring-1 focus:ring-rose-400 bg-rose-950/20'
+                : 'border-[#34394A] focus:border-[#F1F2F3] focus:ring-1 focus:ring-[#F1F2F3]'
             } ${className}`}
             {...props}
           />
@@ -63,19 +63,19 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             <div className="absolute inset-y-0 end-0 pe-2.5 flex items-center">{rightAction}</div>
           ) : (
             rightIcon && (
-              <div className="absolute inset-y-0 end-0 pe-3.5 flex items-center pointer-events-none text-[#5B5B5B]">
+              <div className="absolute inset-y-0 end-0 pe-3.5 flex items-center pointer-events-none text-[#B5B9BC]">
                 {rightIcon}
               </div>
             )
           )}
         </div>
         {error && (
-          <p id={errorId} className="mt-1.5 text-xs text-rose-600 font-medium" role="alert">
+          <p id={errorId} className="mt-1.5 text-xs text-rose-400 font-medium" role="alert">
             {error}
           </p>
         )}
         {helperText && !error && (
-          <p id={helperId} className="mt-1.5 text-xs text-[#5B5B5B]">
+          <p id={helperId} className="mt-1.5 text-xs text-[#B5B9BC]">
             {helperText}
           </p>
         )}

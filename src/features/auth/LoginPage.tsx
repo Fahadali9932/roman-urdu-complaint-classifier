@@ -31,15 +31,15 @@ export const LoginPage: React.FC = () => {
           <div className="inline-flex justify-center mb-1">
             <CivicEmblem size="md" />
           </div>
-          <h1 className="text-xl sm:text-2xl font-semibold text-[#1C3033] tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-semibold text-[#F1F2F3] tracking-tight">
             {t('authSignInTitle')}
           </h1>
-          <p className="text-xs text-[#667578] max-w-xs mx-auto">
+          <p className="text-xs text-[#B5B9BC] max-w-xs mx-auto">
             {t('authSignInSubtitle')}
           </p>
         </div>
 
-        <div className="paper-sheet rounded-xl p-6 sm:p-8 text-start space-y-5">
+        <div className="bg-[#172131]/90 backdrop-blur-md border border-[#34394A] rounded-2xl p-6 sm:p-8 text-start space-y-5 shadow-2xl">
           <form onSubmit={handleSubmit} className="space-y-4">
             <Input
               label={t('authEmail')}
@@ -49,19 +49,18 @@ export const LoginPage: React.FC = () => {
               placeholder={t('authEmailPlaceholder')}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              leftIcon={<Mail className="w-4 h-4 text-[#667578]" />}
-              className="bg-white border-[#E5E9E7] focus:border-[#087F76]"
+              leftIcon={<Mail className="w-4 h-4 text-[#B5B9BC]" />}
             />
 
             <div className="space-y-1">
               <div className="flex items-center justify-between">
                 <label
                   htmlFor="password"
-                  className="block text-xs font-semibold text-[#1C3033] uppercase tracking-wider"
+                  className="block text-xs font-semibold text-[#B5B9BC] uppercase tracking-wider"
                 >
-                  {t('authPassword')} <span className="text-rose-500">*</span>
+                  {t('authPassword')} <span className="text-rose-400">*</span>
                 </label>
-                <span className="text-xs text-[#087F76] hover:underline cursor-pointer">
+                <span className="text-xs text-[#B5B9BC] hover:text-[#F1F2F3] hover:underline cursor-pointer">
                   {t('authForgotPassword')}
                 </span>
               </div>
@@ -72,14 +71,13 @@ export const LoginPage: React.FC = () => {
                 placeholder={t('authPasswordPlaceholder')}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                leftIcon={<Lock className="w-4 h-4 text-[#667578]" />}
-                className="bg-white border-[#E5E9E7] focus:border-[#087F76]"
+                leftIcon={<Lock className="w-4 h-4 text-[#B5B9BC]" />}
                 rightAction={
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     aria-label={showPassword ? t('passwordHide') : t('passwordShow')}
-                    className="p-1.5 text-[#667578] hover:text-[#1C3033] focus:outline-none min-w-[36px] min-h-[36px] flex items-center justify-center rounded transition-colors"
+                    className="p-1.5 text-[#B5B9BC] hover:text-[#F1F2F3] focus:outline-none min-w-[36px] min-h-[36px] flex items-center justify-center rounded transition-colors"
                   >
                     {showPassword ? (
                       <EyeOff className="w-4 h-4" aria-hidden="true" />
@@ -91,11 +89,11 @@ export const LoginPage: React.FC = () => {
               />
             </div>
 
-            <div className="flex items-center justify-between text-xs text-[#667578]">
+            <div className="flex items-center justify-between text-xs text-[#B5B9BC]">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
-                  className="rounded border-[#E5E9E7] text-[#087F76] focus:ring-[#087F76]"
+                  className="rounded border-[#34394A] bg-[#131C2A] text-[#F1F2F3] focus:ring-[#F1F2F3]"
                 />
                 <span>{t('authRememberMe')}</span>
               </label>
@@ -105,7 +103,7 @@ export const LoginPage: React.FC = () => {
               type="submit"
               variant="primary"
               size="md"
-              className="w-full bg-[#193D3D] hover:bg-[#1C3033] text-white"
+              className="w-full"
               isLoading={submitted}
               leftIcon={<LogIn className="w-4 h-4" />}
             >
@@ -115,10 +113,10 @@ export const LoginPage: React.FC = () => {
             {/* Direct Demo Exploration Mode */}
             <div className="relative my-3">
               <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-[#E5E9E7]" />
+                <span className="w-full border-t border-[#34394A]" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white px-2.5 text-[#667578] font-medium text-[11px]">{t('authOr')}</span>
+                <span className="bg-[#172131] px-2.5 text-[#B5B9BC] font-medium text-[11px]">{t('authOr')}</span>
               </div>
             </div>
 
@@ -126,16 +124,16 @@ export const LoginPage: React.FC = () => {
               type="button"
               variant="outline"
               size="md"
-              className="w-full border-[#E5E9E7] text-[#1C3033] hover:bg-[#E5E9E7]/40 font-medium text-xs"
+              className="w-full font-medium text-xs"
               onClick={() => navigate('/dashboard')}
             >
               {t('authExploreDemo')}
             </Button>
 
-            <div className="text-center pt-2 border-t border-[#E5E9E7]">
+            <div className="text-center pt-2 border-t border-[#34394A]">
               <Link
                 to="/register"
-                className="text-xs font-semibold text-[#087F76] hover:text-[#193D3D] inline-flex items-center gap-1"
+                className="text-xs font-semibold text-[#B5B9BC] hover:text-[#F1F2F3] inline-flex items-center gap-1"
               >
                 <span>{t('authNoAccount')}</span>
                 <ArrowRight className={`w-3.5 h-3.5 ${isRTL ? 'rotate-180' : ''}`} />
@@ -145,10 +143,10 @@ export const LoginPage: React.FC = () => {
         </div>
 
         {/* Prototype Transparency Notice */}
-        <div className="mt-5 p-3.5 rounded-lg bg-[#F7F8F7] border border-[#E5E9E7] text-start flex items-start gap-2.5 text-xs text-[#667578]">
-          <Shield className="w-4 h-4 text-[#087F76] shrink-0 mt-0.5" />
+        <div className="mt-5 p-3.5 rounded-xl bg-[#283041]/70 border border-[#34394A] text-start flex items-start gap-2.5 text-xs text-[#B5B9BC]">
+          <Shield className="w-4 h-4 text-[#F1F2F3] shrink-0 mt-0.5" />
           <div className="space-y-0.5">
-            <span className="font-semibold text-[#1C3033] block">
+            <span className="font-semibold text-[#F1F2F3] block">
               {t('authNoticeTitle')}
             </span>
             <p className="text-[11px] leading-relaxed">

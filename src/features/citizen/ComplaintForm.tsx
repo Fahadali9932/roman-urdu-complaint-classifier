@@ -27,7 +27,11 @@ const KARACHI_DISTRICTS: { value: KarachiDistrict; label: string }[] = [
   { value: 'District Keamari', label: 'District Keamari (Harbour, Baldia, Mauripur)' },
 ];
 
-export const ComplaintForm: React.FC = () => {
+export interface ComplaintFormProps {
+  embedded?: boolean;
+}
+
+export const ComplaintForm: React.FC<ComplaintFormProps> = ({ embedded = false }) => {
   const { t, language } = useLanguage();
   // Form fields state
   const [formData, setFormData] = useState({
@@ -137,47 +141,53 @@ export const ComplaintForm: React.FC = () => {
 
   return (
     <div className="w-full">
-      <div className="max-w-[1280px] mx-auto border-x border-[#D5D5D3] bg-[#F1F1F0]">
+      <div className={`max-w-6xl mx-auto px-4 sm:px-8 text-start ${embedded ? 'py-2' : 'py-8 sm:py-12'}`}>
         
-        {/* Page Header within Swiss Grid */}
-        <div className="p-6 sm:p-10 lg:p-14 border-b border-[#D5D5D3] text-start space-y-2">
-          <div className="inline-flex items-center gap-2 mb-2">
-            <span className="text-[10px] font-mono font-semibold tracking-wide text-[#5B5B5B]">
-              {language === 'ur' ? 'اپنی شکایت لکھیں' : 'Write your complaint'}
-            </span>
+        {/* Page Header within Dark Cinematic Workspace */}
+        {!embedded && (
+          <div className="mb-8 space-y-2">
+            <div className="inline-flex items-center gap-2 mb-2">
+              <span className="text-[11px] font-mono font-semibold tracking-wider text-[#B5B9BC] uppercase">
+                {language === 'ur' ? 'اپنی شکایت لکھیں' : 'Write your complaint'}
+              </span>
+              <span className="h-1.5 w-1.5 rounded-full bg-[#B5B9BC]" />
+              <span className="text-[11px] font-mono text-[#B5B9BC]/70">
+                Awaaz-e-Awam
+              </span>
+            </div>
+            <h1 className="font-display font-black text-3xl sm:text-5xl lg:text-6xl text-[#F1F2F3] uppercase tracking-tight">
+              {t('paperFormTitle') || t('formTitle')}
+            </h1>
+            <p className="text-sm sm:text-base text-[#B5B9BC] max-w-2xl font-normal leading-relaxed">
+              {t('paperFormSubtitle') || t('formSubtitle')}
+            </p>
           </div>
-          <h1 className="font-display font-black text-3xl sm:text-5xl lg:text-6xl text-[#111111] uppercase tracking-tight">
-            {t('paperFormTitle') || t('formTitle')}
-          </h1>
-          <p className="text-sm sm:text-base text-[#5B5B5B] max-w-2xl font-normal leading-relaxed">
-            {t('paperFormSubtitle') || t('formSubtitle')}
-          </p>
-        </div>
+        )}
 
         {/* Structured Writing Workspace Container */}
-        <div className="p-6 sm:p-10 lg:p-14">
-          <div className="max-w-4xl mx-auto bg-[#FAFAF9] border border-[#D5D5D3] rounded-xl p-6 sm:p-10 shadow-xs text-start">
+        <div>
+          <div className="max-w-4xl mx-auto bg-[#172131]/90 backdrop-blur-md border border-[#34394A] rounded-2xl p-6 sm:p-10 shadow-2xl text-start">
             <form onSubmit={handleSubmit} noValidate className="space-y-8">
               
               {/* Formal Case Header */}
-              <div className="pb-4 border-b border-[#D5D5D3] flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs font-mono">
-                <span className="font-bold text-[#111111] tracking-wide">
+              <div className="pb-4 border-b border-[#34394A] flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs font-mono">
+                <span className="font-bold text-[#F1F2F3] tracking-wider uppercase">
                   {t('paperDocHeader') || 'CITIZEN COMPLAINT APPLICATION'}
                 </span>
-                <div className="text-[#5B5B5B] flex items-center gap-1.5">
+                <div className="text-[#B5B9BC] flex items-center gap-1.5">
                   <span>{t('paperDateLabel') || 'Date'}:</span>
-                  <span className="font-bold text-[#111111]">{todayFormatted}</span>
+                  <span className="font-bold text-[#F1F2F3]">{todayFormatted}</span>
                 </div>
               </div>
 
               {/* Writing guidance */}
-              <div className="p-4 rounded-lg bg-[#F1F1F0] border border-[#D5D5D3] flex items-start gap-3">
-                <Building className="w-5 h-5 text-[#111111] shrink-0 mt-0.5" />
+              <div className="p-4 rounded-xl bg-[#283041]/70 border border-[#34394A] flex items-start gap-3">
+                <Building className="w-5 h-5 text-[#F1F2F3] shrink-0 mt-0.5" />
                 <div className="space-y-0.5">
-                  <span className="font-bold text-[#111111] block text-xs sm:text-sm tracking-wide">
+                  <span className="font-bold text-[#F1F2F3] block text-xs sm:text-sm tracking-wide">
                     {language === 'ur' ? 'اپنے مسئلے کی جگہ واضح کریں' : 'Make the location clear'}
                   </span>
-                  <span className="text-[#5B5B5B] text-xs block leading-relaxed">
+                  <span className="text-[#B5B9BC] text-xs block leading-relaxed">
                     {language === 'ur'
                       ? 'علاقہ، قریبی نشان اور مسئلے کی تفصیل شامل کریں تاکہ شکایت سمجھنے میں آسانی ہو۔'
                       : 'Include the area, a nearby landmark, and a short description so the issue is easy to understand.'}
@@ -212,8 +222,8 @@ export const ComplaintForm: React.FC = () => {
                   className="font-sans text-sm sm:text-base leading-relaxed p-4 rounded-lg"
                 />
 
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1 text-xs text-[#5B5B5B]">
-                  <p className="italic text-xs text-[#5B5B5B]">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1 text-xs text-[#B5B9BC]">
+                  <p className="italic text-xs text-[#B5B9BC]">
                     {t('formRomanUrduExample')}
                   </p>
                   <WordCounter
@@ -225,12 +235,12 @@ export const ComplaintForm: React.FC = () => {
               </div>
 
               {/* Applicant & Location Details Section */}
-              <div className="pt-6 border-t border-[#D5D5D3] space-y-5">
+              <div className="pt-6 border-t border-[#34394A] space-y-5">
                 <div className="flex items-center justify-between">
-                  <h2 className="font-display font-black text-sm tracking-wide text-[#111111]">
+                  <h2 className="font-display font-black text-sm tracking-wider text-[#F1F2F3] uppercase">
                     {t('paperApplicantSection') || 'Applicant & Location Details'}
                   </h2>
-                  <span className="text-xs font-mono text-[#5B5B5B]">
+                  <span className="text-xs font-mono text-[#B5B9BC]">
                     {language === 'ur' ? 'ضروری معلومات شامل کریں' : 'Include the details that help explain it'}
                   </span>
                 </div>
@@ -303,9 +313,9 @@ export const ComplaintForm: React.FC = () => {
               </div>
 
               {/* Form Action Controls */}
-              <div className="pt-6 border-t border-[#D5D5D3] flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div className="flex items-center gap-2 text-xs font-mono text-[#5B5B5B]">
-                  <ShieldCheck className="w-4 h-4 text-[#111111] shrink-0" />
+              <div className="pt-6 border-t border-[#34394A] flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-2 text-xs font-mono text-[#B5B9BC]">
+                  <ShieldCheck className="w-4 h-4 text-[#F1F2F3] shrink-0" />
                   <span>{language === 'ur' ? 'یہ فارم صرف جائزے کے لیے ہے؛ ابھی کوئی شکایت بھیجی یا محفوظ نہیں ہوتی۔' : 'This form is for review only. It does not send or save a complaint yet.'}</span>
                 </div>
 
@@ -345,13 +355,13 @@ export const ComplaintForm: React.FC = () => {
         title={t('modalTitle')}
       >
         <div className="space-y-5 text-start">
-          <div className="p-4 sm:p-5 rounded-lg bg-[#FAFAF9] border border-[#D5D5D3] flex items-center gap-4">
-            <CheckCircle2 className="w-8 h-8 text-[#111111] shrink-0" />
+          <div className="p-4 sm:p-5 rounded-xl bg-[#283041]/70 border border-[#34394A] flex items-center gap-4">
+            <CheckCircle2 className="w-8 h-8 text-[#4ade80] shrink-0" />
             <div className="space-y-1">
-              <span className="block text-sm font-bold text-[#111111] tracking-wide">
+              <span className="block text-sm font-bold text-[#F1F2F3] tracking-wide">
                 {language === 'ur' ? 'فارم جائزے کے لیے تیار ہے' : 'Your form is ready to review'}
               </span>
-              <p className="text-xs text-[#5B5B5B]">
+              <p className="text-xs text-[#B5B9BC]">
                 {language === 'ur'
                   ? 'ضروری معلومات اور الفاظ کی حد چیک کر لی گئی ہے۔'
                   : 'The required information and word limit have been checked.'}
@@ -359,7 +369,7 @@ export const ComplaintForm: React.FC = () => {
             </div>
           </div>
 
-          <p className="text-sm text-[#5B5B5B] leading-relaxed">
+          <p className="text-sm text-[#B5B9BC] leading-relaxed">
             {t('modalBody1')}
           </p>
 
