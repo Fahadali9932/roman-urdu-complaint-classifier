@@ -86,9 +86,11 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
       const clamped = Math.max(0, Math.min(1, rawProgress));
 
       if (isMobile) {
-        // Mobile progress over its scroll distance
-        const mobScrollable = container.offsetHeight - vh * 0.7;
-        const mobRaw = mobScrollable > 0 ? currentScroll / mobScrollable : 1;
+        // Natural scroll progress on mobile (< 1024px)
+        // Starts as section enters viewport and completes smoothly as user scrolls through
+        const mobDistance = vh + container.offsetHeight * 0.5;
+        const currentMob = vh - rect.top;
+        const mobRaw = mobDistance > 0 ? currentMob / mobDistance : 1;
         setMobileProgress(Math.max(0, Math.min(1, mobRaw)));
       } else {
         setProgress(clamped);
@@ -141,94 +143,83 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
   const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
 
   // =========================================================================
-  // HEADING CENTERING & UPWARD MOTION MATHEMATICS
-  // Initial (p < 0.06): Heading centered horizontally and vertically
-  // Transition (p: 0.06 -> 0.20): Heading translates smoothly upward to top
-  // Settled (p >= 0.20): Heading rests cleanly at top, safely below navbar
+  // OBJECTIVE 1 & 2: MASSIVE CENTERED HEADING & SMOOTH SHRINK / MOVE UPWARD
+  // Initial (p < 0.05): Massive heading centered horizontally & vertically (scale: 1.0)
+  // Transition (p: 0.05 -> 0.22): Heading smoothly shrinks (scale: 1.0 -> 0.36) and
+  // translates upward (Y: desktopHeadingCenterY -> 0px) to settle below navbar
+  // Settled (p >= 0.22): Sits neatly at top-center (effective ~50px), leaving full
+  // stage below for circular card choreography
   // =========================================================================
 
-  // Dynamic vertical offset to place heading at visual center of usable viewport
-  // Viewport height minus navbar height (~112px), half is ~340px - top margin (~40px)
   const desktopHeadingCenterY = Math.max(180, Math.min(270, (windowHeight - 240) / 2));
-  const tHeadingUp = smooth(clamp01((progress - 0.06) / 0.14));
-  const desktopHeadingY = prefersReducedMotion ? 0 : desktopHeadingCenterY * (1 - tHeadingUp);
+  const tHeading = smooth(clamp01((progress - 0.05) / 0.17));
+  const desktopHeadingScale = prefersReducedMotion ? 0.36 : 1.0 - tHeading * (1.0 - 0.36);
+  const desktopHeadingY = prefersReducedMotion ? 0 : desktopHeadingCenterY * (1 - tHeading);
 
   // =========================================================================
-  // CARD & ARROW CHOREOGRAPHY (Begins only after heading has moved upward)
-  // Stage C: WRITE enters center (p: 0.20 -> 0.36)
-  // Stage D: WRITE moves left -> Arrow 1 draws -> REVIEW enters (p: 0.36 -> 0.56)
-  // Stage E: Cards shift left -> Arrow 2 draws -> ROUTE enters (p: 0.56 -> 0.76)
-  // Stage F: Cards shift left -> Arrow 3 draws -> TRACK enters (p: 0.76 -> 0.94)
-  // Stage G: Final 4-card arrangement holds, then naturally releases (p >= 0.94)
+  // OBJECTIVE 3, 4, 5, 6: CIRCULAR SCROLL JOURNEY & CURVED ANIMATED ARROWS
+  // Stage A & B (p: 0.00 -> 0.20): Heading dominant, cards hidden
+  // Stage C (p: 0.20 -> 0.35): WRITE enters center (0, 0)
+  // Stage D (p: 0.35 -> 0.54): WRITE moves to upper-left, Arrow 1 draws, REVIEW enters upper-right
+  // Stage E (p: 0.55 -> 0.73): Arrow 2 draws down right arc, ROUTE enters lower-right
+  // Stage F (p: 0.74 -> 0.92): Arrow 3 draws across bottom arc, TRACK enters lower-left
+  // Stage G (p >= 0.92): Full circular composition holds, then naturally releases into next section
   // =========================================================================
 
-  // Step 1: WRITE Entrance at center (0.20 -> 0.35)
-  const tEnterWrite = clamp01((progress - 0.20) / 0.15);
-  const card1Opacity = prefersReducedMotion ? 1 : smooth(tEnterWrite);
-  const card1EnterY = prefersReducedMotion ? 0 : (1 - smooth(tEnterWrite)) * 28;
-  const card1EnterScale = prefersReducedMotion ? 1 : 0.94 + smooth(tEnterWrite) * 0.06;
+  // Card 1: WRITE
+  // Enters at center (0, 0) between 0.20 and 0.34
+  const tEnterWrite = smooth(clamp01((progress - 0.20) / 0.14));
+  const card1Opacity = prefersReducedMotion ? 1 : tEnterWrite;
+  const card1EnterScale = prefersReducedMotion ? 1 : 0.90 + tEnterWrite * 0.10;
 
-  // Step 2: WRITE moves to left, REVIEW enters (0.36 -> 0.55)
-  const tShift2 = smooth(clamp01((progress - 0.36) / 0.15));
-  const tDrawArrow1 = smooth(clamp01((progress - 0.39) / 0.13));
-  const tEnterReview = smooth(clamp01((progress - 0.42) / 0.13));
+  // WRITE shifts from center (0, 0) to upper-left (-350, -135) between 0.35 and 0.49
+  const tMoveWrite = smooth(clamp01((progress - 0.35) / 0.14));
+  const targetWriteX = isRTL ? 350 : -350;
+  const card1X = prefersReducedMotion ? targetWriteX : targetWriteX * tMoveWrite;
+  const card1Y = prefersReducedMotion ? -135 : -135 * tMoveWrite;
 
-  // Step 3: Shift to 3-card layout, ROUTE enters (0.56 -> 0.75)
-  const tShift3 = smooth(clamp01((progress - 0.56) / 0.15));
-  const tDrawArrow2 = smooth(clamp01((progress - 0.59) / 0.13));
-  const tEnterRoute = smooth(clamp01((progress - 0.62) / 0.13));
-
-  // Step 4: Shift to final 4-card layout, TRACK enters (0.76 -> 0.93)
-  const tShift4 = smooth(clamp01((progress - 0.76) / 0.14));
-  const tDrawArrow3 = smooth(clamp01((progress - 0.79) / 0.12));
-  const tEnterTrack = smooth(clamp01((progress - 0.82) / 0.12));
-
-  // Horizontal Coordinates (in pixels from center)
-  // Card 1 (WRITE) X position: 0 -> -145 -> -290 -> -435
-  const c1X_raw =
-    -145 * tShift2 * (1 - tShift3) +
-    -290 * tShift3 * (1 - tShift4) +
-    -435 * tShift4;
-  const card1X = prefersReducedMotion ? (isRTL ? 435 : -435) : (isRTL ? -c1X_raw : c1X_raw);
-
-  // Card 2 (REVIEW) X position: enters at +145, then moves +145 -> 0 -> -145
-  const c2X_raw =
-    145 * (1 - tShift3) -
-    145 * tShift4;
-  const card2X = prefersReducedMotion ? (isRTL ? 145 : -145) : (isRTL ? -c2X_raw : c2X_raw);
-  const card2Opacity = prefersReducedMotion ? 1 : tEnterReview;
-  const card2Y = prefersReducedMotion ? 0 : (1 - tEnterReview) * 22;
-  const card2Scale = prefersReducedMotion ? 1 : 0.94 + tEnterReview * 0.06;
-
-  // Card 3 (ROUTE) X position: enters at +290, then moves +290 -> +145
-  const c3X_raw = 290 * (1 - tShift4) + 145 * tShift4;
-  const card3X = prefersReducedMotion ? (isRTL ? -145 : 145) : (isRTL ? -c3X_raw : c3X_raw);
-  const card3Opacity = prefersReducedMotion ? 1 : tEnterRoute;
-  const card3Y = prefersReducedMotion ? 0 : (1 - tEnterRoute) * 22;
-  const card3Scale = prefersReducedMotion ? 1 : 0.94 + tEnterRoute * 0.06;
-
-  // Card 4 (TRACK) X position: enters at +435
-  const c4X_raw = 435;
-  const card4X = prefersReducedMotion ? (isRTL ? -435 : 435) : (isRTL ? -c4X_raw : c4X_raw);
-  const card4Opacity = prefersReducedMotion ? 1 : tEnterTrack;
-  const card4Y = prefersReducedMotion ? 0 : (1 - tEnterTrack) * 22;
-  const card4Scale = prefersReducedMotion ? 1 : 0.94 + tEnterTrack * 0.06;
-
-  // Arrow Connectors (Dynamically bound to card midpoints)
-  const arrow1X = (card1X + card2X) / 2;
+  // Arrow 1: WRITE -> REVIEW (Top Arc) draws between 0.40 and 0.53
+  const tDrawArrow1 = smooth(clamp01((progress - 0.40) / 0.13));
   const arrow1Draw = prefersReducedMotion ? 1 : tDrawArrow1;
 
-  const arrow2X = (card2X + card3X) / 2;
+  // Card 2: REVIEW
+  // Enters at upper-right (+350, -135) between 0.44 and 0.55
+  const tEnterReview = smooth(clamp01((progress - 0.44) / 0.11));
+  const card2Opacity = prefersReducedMotion ? 1 : tEnterReview;
+  const card2Scale = prefersReducedMotion ? 1 : 0.90 + tEnterReview * 0.10;
+  const card2X = isRTL ? -350 : 350;
+  const card2Y = -135;
+
+  // Arrow 2: REVIEW -> ROUTE (Right Arc) draws between 0.57 and 0.70
+  const tDrawArrow2 = smooth(clamp01((progress - 0.57) / 0.13));
   const arrow2Draw = prefersReducedMotion ? 1 : tDrawArrow2;
 
-  const arrow3X = (card3X + card4X) / 2;
+  // Card 3: ROUTE
+  // Enters at lower-right (+350, +135) between 0.60 and 0.72
+  const tEnterRoute = smooth(clamp01((progress - 0.60) / 0.12));
+  const card3Opacity = prefersReducedMotion ? 1 : tEnterRoute;
+  const card3Scale = prefersReducedMotion ? 1 : 0.90 + tEnterRoute * 0.10;
+  const card3X = isRTL ? -350 : 350;
+  const card3Y = 135;
+
+  // Arrow 3: ROUTE -> TRACK (Bottom Arc) draws between 0.75 and 0.88
+  const tDrawArrow3 = smooth(clamp01((progress - 0.75) / 0.13));
   const arrow3Draw = prefersReducedMotion ? 1 : tDrawArrow3;
 
+  // Card 4: TRACK
+  // Enters at lower-left (-350, +135) between 0.78 and 0.90
+  const tEnterTrack = smooth(clamp01((progress - 0.78) / 0.12));
+  const card4Opacity = prefersReducedMotion ? 1 : tEnterTrack;
+  const card4Scale = prefersReducedMotion ? 1 : 0.90 + tEnterTrack * 0.10;
+  const card4X = isRTL ? 350 : -350;
+  const card4Y = 135;
+
   // =========================================================================
-  // MOBILE HEADING CENTERING & UPWARD MOTION
+  // MOBILE HEADING CENTERING & UPWARD MOTION (< 1024px)
   // =========================================================================
-  const mobileHeadingCenterY = Math.max(120, Math.min(220, (windowHeight - 200) / 2));
+  const mobileHeadingCenterY = Math.max(100, Math.min(220, (windowHeight - 200) / 2));
   const tMobileHeadUp = smooth(clamp01(mobileProgress / 0.18));
+  const mobileHeadingScale = prefersReducedMotion ? 0.75 : 1.0 - tMobileHeadUp * (1.0 - 0.68);
   const mobileHeadingY = prefersReducedMotion ? 0 : mobileHeadingCenterY * (1 - tMobileHeadUp);
 
   return (
@@ -237,50 +228,148 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
       ref={containerRef}
       className="relative w-full border-t border-[#34394A]/15 bg-[#E9EBED] scroll-mt-28 sm:scroll-mt-32 select-none"
       style={{
-        // Desktop: ~260vh bounded scroll scene for controlled pacing
-        // Mobile: natural proportional height allowing smooth progression
-        minHeight: prefersReducedMotion ? 'auto' : isMobile ? '160vh' : '260vh',
+        // Desktop: ~260vh bounded scroll scene for controlled cinematic pacing
+        // Mobile: natural height with smooth scroll progression and zero empty space
+        minHeight: prefersReducedMotion || isMobile ? 'auto' : '260vh',
       }}
       aria-label={t('processHeading') || 'How It Works'}
     >
       {/* ========================================================
           DESKTOP FULL-SCREEN PINNED STAGE (>= 1024px)
-          Occupies full viewport, centered heading moves upward,
-          cards animate in sequence, completely releasing into footer
+          Occupies full viewport, massive heading shrinks & moves up,
+          large cards animate into circular elliptical composition,
+          releasing cleanly into footer/next section
           ======================================================== */}
       <div
-        className={`hidden lg:flex w-full flex-col justify-between px-4 sm:px-10 lg:px-16 xl:px-20 py-8 xl:py-10 overflow-hidden ${
+        className={`hidden lg:flex w-full flex-col justify-between px-4 sm:px-10 lg:px-16 xl:px-20 py-6 xl:py-8 overflow-hidden ${
           prefersReducedMotion
             ? 'relative py-24 sm:py-32'
-            : 'sticky top-24 sm:top-28 h-[calc(100vh-6.5rem)] sm:h-[calc(100vh-7.5rem)]'
+            : 'sticky top-20 sm:top-24 h-[calc(100vh-5rem)] sm:h-[calc(100vh-6rem)]'
         }`}
       >
         {/* Prominent, authoritative section heading */}
-        {/* Centered initially, smoothly moves upward as user scrolls */}
+        {/* Massive & centered initially; smoothly shrinks & glides upward on scroll */}
         <div
-          className="max-w-6xl mx-auto w-full text-center pt-2 will-change-transform"
+          className="max-w-7xl mx-auto w-full text-center pt-2 will-change-transform z-20"
           style={{
-            transform: `translate3d(0, ${desktopHeadingY}px, 0)`,
+            transform: `translate3d(0, ${desktopHeadingY}px, 0) scale(${desktopHeadingScale})`,
+            transformOrigin: 'center center',
             transition: prefersReducedMotion ? 'none' : 'transform 100ms linear',
           }}
         >
-          <h2 className="font-display text-4xl sm:text-5xl xl:text-6xl text-[#0B1421] uppercase tracking-tight">
+          <h2 className="font-display text-[76px] sm:text-[104px] lg:text-[124px] xl:text-[138px] text-[#0B1421] uppercase tracking-tight leading-none whitespace-normal lg:whitespace-nowrap">
             {t('processHeading') || (language === 'ur' ? 'طریقہ کار' : 'How It Works')}
           </h2>
         </div>
 
-        {/* Central 3D Choreography Stage */}
+        {/* Central Circular / Elliptical Stage (Shared 1200x560 coordinate space) */}
         <div
           className="relative w-full max-w-6xl mx-auto flex-1 flex items-center justify-center my-auto"
-          style={{ perspective: '1200px', minHeight: '320px' }}
+          style={{ minHeight: '480px' }}
         >
+          {/* ---------------- ARROW 1: WRITE -> REVIEW (Top Arc) ---------------- */}
+          <svg
+            className="absolute inset-0 w-full h-full pointer-events-none z-5 overflow-visible"
+            viewBox="0 0 1200 560"
+            fill="none"
+            aria-hidden="true"
+            style={{ opacity: arrow1Draw > 0.02 ? 1 : 0 }}
+          >
+            <defs>
+              <marker
+                id="circular-arrowhead"
+                markerWidth="12"
+                markerHeight="12"
+                refX="7"
+                refY="6"
+                orient="auto"
+              >
+                <path
+                  d="M 1 2 L 8 6 L 1 10"
+                  stroke="#0B1421"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  fill="none"
+                />
+              </marker>
+            </defs>
+            <path
+              d={
+                isRTL
+                  ? 'M 795 145 Q 600 80 405 145' // RTL: Top-Right to Top-Left
+                  : 'M 405 145 Q 600 80 795 145' // LTR: Top-Left to Top-Right
+              }
+              stroke="#0B1421"
+              strokeWidth="5.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              markerEnd="url(#circular-arrowhead)"
+              style={{
+                strokeDasharray: 440,
+                strokeDashoffset: (1 - arrow1Draw) * 440,
+              }}
+            />
+          </svg>
+
+          {/* ---------------- ARROW 2: REVIEW -> ROUTE (Side Arc) ---------------- */}
+          <svg
+            className="absolute inset-0 w-full h-full pointer-events-none z-5 overflow-visible"
+            viewBox="0 0 1200 560"
+            fill="none"
+            aria-hidden="true"
+            style={{ opacity: arrow2Draw > 0.02 ? 1 : 0 }}
+          >
+            <path
+              d={
+                isRTL
+                  ? 'M 225 236 C 130 245, 130 315, 225 324' // RTL: Left side swoop down
+                  : 'M 975 236 C 1070 245, 1070 315, 975 324' // LTR: Right side swoop down
+              }
+              stroke="#0B1421"
+              strokeWidth="5.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              markerEnd="url(#circular-arrowhead)"
+              style={{
+                strokeDasharray: 240,
+                strokeDashoffset: (1 - arrow2Draw) * 240,
+              }}
+            />
+          </svg>
+
+          {/* ---------------- ARROW 3: ROUTE -> TRACK (Bottom Arc) ---------------- */}
+          <svg
+            className="absolute inset-0 w-full h-full pointer-events-none z-5 overflow-visible"
+            viewBox="0 0 1200 560"
+            fill="none"
+            aria-hidden="true"
+            style={{ opacity: arrow3Draw > 0.02 ? 1 : 0 }}
+          >
+            <path
+              d={
+                isRTL
+                  ? 'M 405 415 Q 600 480 795 415' // RTL: Bottom-Left to Bottom-Right
+                  : 'M 795 415 Q 600 480 405 415' // LTR: Bottom-Right to Bottom-Left
+              }
+              stroke="#0B1421"
+              strokeWidth="5.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              markerEnd="url(#circular-arrowhead)"
+              style={{
+                strokeDasharray: 440,
+                strokeDashoffset: (1 - arrow3Draw) * 440,
+              }}
+            />
+          </svg>
+
           {/* ---------------- CARD 1: WRITE ---------------- */}
           <div
-            className="absolute w-[220px] xl:w-[240px] p-6 xl:p-7 rounded-2xl bg-white border border-[#34394A]/15 shadow-md shadow-[#0B1421]/05 flex flex-col justify-between transition-shadow will-change-transform text-start"
+            className="absolute w-[280px] xl:w-[300px] min-h-[170px] xl:min-h-[185px] p-6 xl:p-7 rounded-2xl bg-white border border-[#34394A]/15 shadow-md shadow-[#0B1421]/05 flex flex-col justify-between transition-shadow will-change-transform text-start"
             style={{
-              transform: `translate3d(${card1X}px, ${card1EnterY}px, 0) scale(${card1EnterScale})`,
+              transform: `translate3d(${card1X}px, ${card1Y}px, 0) scale(${card1EnterScale})`,
               opacity: card1Opacity,
-              minHeight: '160px',
               zIndex: 10,
               pointerEvents: card1Opacity > 0.5 ? 'auto' : 'none',
             }}
@@ -289,48 +378,18 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
               <h3 className="font-display text-2xl xl:text-3xl text-[#0B1421] tracking-tight uppercase">
                 {stepsData[0].title}
               </h3>
-              <p className="font-ui text-sm text-[#535965] mt-2 leading-relaxed">
+              <p className="font-ui text-sm xl:text-base text-[#535965] mt-2 leading-relaxed">
                 {stepsData[0].desc}
               </p>
             </div>
           </div>
 
-          {/* ---------------- ARROW 1: WRITE -> REVIEW ---------------- */}
-          <div
-            className="absolute flex items-center justify-center pointer-events-none will-change-transform"
-            style={{
-              transform: `translate3d(${arrow1X}px, 0, 0)`,
-              opacity: card2Opacity > 0.05 ? 1 : arrow1Draw,
-              zIndex: 5,
-            }}
-            aria-hidden="true"
-          >
-            <svg viewBox="0 0 64 24" className="w-11 xl:w-14 h-6 overflow-visible" fill="none">
-              <path
-                d={
-                  isRTL
-                    ? 'M 62 12 L 10 12 M 22 4 L 10 12 L 22 20'
-                    : 'M 2 12 L 54 12 M 42 4 L 54 12 L 42 20'
-                }
-                stroke="#0B1421"
-                strokeWidth="5.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                style={{
-                  strokeDasharray: 95,
-                  strokeDashoffset: (1 - arrow1Draw) * 95,
-                }}
-              />
-            </svg>
-          </div>
-
           {/* ---------------- CARD 2: REVIEW ---------------- */}
           <div
-            className="absolute w-[220px] xl:w-[240px] p-6 xl:p-7 rounded-2xl bg-white border border-[#34394A]/15 shadow-md shadow-[#0B1421]/05 flex flex-col justify-between transition-shadow will-change-transform text-start"
+            className="absolute w-[280px] xl:w-[300px] min-h-[170px] xl:min-h-[185px] p-6 xl:p-7 rounded-2xl bg-white border border-[#34394A]/15 shadow-md shadow-[#0B1421]/05 flex flex-col justify-between transition-shadow will-change-transform text-start"
             style={{
               transform: `translate3d(${card2X}px, ${card2Y}px, 0) scale(${card2Scale})`,
               opacity: card2Opacity,
-              minHeight: '160px',
               zIndex: 10,
               pointerEvents: card2Opacity > 0.5 ? 'auto' : 'none',
             }}
@@ -339,48 +398,18 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
               <h3 className="font-display text-2xl xl:text-3xl text-[#0B1421] tracking-tight uppercase">
                 {stepsData[1].title}
               </h3>
-              <p className="font-ui text-sm text-[#535965] mt-2 leading-relaxed">
+              <p className="font-ui text-sm xl:text-base text-[#535965] mt-2 leading-relaxed">
                 {stepsData[1].desc}
               </p>
             </div>
           </div>
 
-          {/* ---------------- ARROW 2: REVIEW -> ROUTE ---------------- */}
-          <div
-            className="absolute flex items-center justify-center pointer-events-none will-change-transform"
-            style={{
-              transform: `translate3d(${arrow2X}px, 0, 0)`,
-              opacity: card3Opacity > 0.05 ? 1 : arrow2Draw,
-              zIndex: 5,
-            }}
-            aria-hidden="true"
-          >
-            <svg viewBox="0 0 64 24" className="w-11 xl:w-14 h-6 overflow-visible" fill="none">
-              <path
-                d={
-                  isRTL
-                    ? 'M 62 12 L 10 12 M 22 4 L 10 12 L 22 20'
-                    : 'M 2 12 L 54 12 M 42 4 L 54 12 L 42 20'
-                }
-                stroke="#0B1421"
-                strokeWidth="5.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                style={{
-                  strokeDasharray: 95,
-                  strokeDashoffset: (1 - arrow2Draw) * 95,
-                }}
-              />
-            </svg>
-          </div>
-
           {/* ---------------- CARD 3: ROUTE ---------------- */}
           <div
-            className="absolute w-[220px] xl:w-[240px] p-6 xl:p-7 rounded-2xl bg-white border border-[#34394A]/15 shadow-md shadow-[#0B1421]/05 flex flex-col justify-between transition-shadow will-change-transform text-start"
+            className="absolute w-[280px] xl:w-[300px] min-h-[170px] xl:min-h-[185px] p-6 xl:p-7 rounded-2xl bg-white border border-[#34394A]/15 shadow-md shadow-[#0B1421]/05 flex flex-col justify-between transition-shadow will-change-transform text-start"
             style={{
               transform: `translate3d(${card3X}px, ${card3Y}px, 0) scale(${card3Scale})`,
               opacity: card3Opacity,
-              minHeight: '160px',
               zIndex: 10,
               pointerEvents: card3Opacity > 0.5 ? 'auto' : 'none',
             }}
@@ -389,48 +418,18 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
               <h3 className="font-display text-2xl xl:text-3xl text-[#0B1421] tracking-tight uppercase">
                 {stepsData[2].title}
               </h3>
-              <p className="font-ui text-sm text-[#535965] mt-2 leading-relaxed">
+              <p className="font-ui text-sm xl:text-base text-[#535965] mt-2 leading-relaxed">
                 {stepsData[2].desc}
               </p>
             </div>
           </div>
 
-          {/* ---------------- ARROW 3: ROUTE -> TRACK ---------------- */}
-          <div
-            className="absolute flex items-center justify-center pointer-events-none will-change-transform"
-            style={{
-              transform: `translate3d(${arrow3X}px, 0, 0)`,
-              opacity: card4Opacity > 0.05 ? 1 : arrow3Draw,
-              zIndex: 5,
-            }}
-            aria-hidden="true"
-          >
-            <svg viewBox="0 0 64 24" className="w-11 xl:w-14 h-6 overflow-visible" fill="none">
-              <path
-                d={
-                  isRTL
-                    ? 'M 62 12 L 10 12 M 22 4 L 10 12 L 22 20'
-                    : 'M 2 12 L 54 12 M 42 4 L 54 12 L 42 20'
-                }
-                stroke="#0B1421"
-                strokeWidth="5.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                style={{
-                  strokeDasharray: 95,
-                  strokeDashoffset: (1 - arrow3Draw) * 95,
-                }}
-              />
-            </svg>
-          </div>
-
           {/* ---------------- CARD 4: TRACK ---------------- */}
           <div
-            className="absolute w-[220px] xl:w-[240px] p-6 xl:p-7 rounded-2xl bg-white border border-[#34394A]/15 shadow-md shadow-[#0B1421]/05 flex flex-col justify-between transition-shadow will-change-transform text-start"
+            className="absolute w-[280px] xl:w-[300px] min-h-[170px] xl:min-h-[185px] p-6 xl:p-7 rounded-2xl bg-white border border-[#34394A]/15 shadow-md shadow-[#0B1421]/05 flex flex-col justify-between transition-shadow will-change-transform text-start"
             style={{
               transform: `translate3d(${card4X}px, ${card4Y}px, 0) scale(${card4Scale})`,
               opacity: card4Opacity,
-              minHeight: '160px',
               zIndex: 10,
               pointerEvents: card4Opacity > 0.5 ? 'auto' : 'none',
             }}
@@ -439,7 +438,7 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
               <h3 className="font-display text-2xl xl:text-3xl text-[#0B1421] tracking-tight uppercase">
                 {stepsData[3].title}
               </h3>
-              <p className="font-ui text-sm text-[#535965] mt-2 leading-relaxed">
+              <p className="font-ui text-sm xl:text-base text-[#535965] mt-2 leading-relaxed">
                 {stepsData[3].desc}
               </p>
             </div>
@@ -459,11 +458,12 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
         <div
           className="mb-10 sm:mb-14 text-center will-change-transform"
           style={{
-            transform: `translate3d(0, ${mobileHeadingY}px, 0)`,
+            transform: `translate3d(0, ${mobileHeadingY}px, 0) scale(${mobileHeadingScale})`,
+            transformOrigin: 'center center',
             transition: prefersReducedMotion ? 'none' : 'transform 100ms linear',
           }}
         >
-          <h2 className="font-display text-3xl sm:text-4xl text-[#0B1421] uppercase tracking-tight">
+          <h2 className="font-display text-4xl sm:text-5xl text-[#0B1421] uppercase tracking-tight">
             {t('processHeading') || (language === 'ur' ? 'طریقہ کار' : 'How It Works')}
           </h2>
         </div>
@@ -471,9 +471,9 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
         {/* Vertical Stack with Downward Vector Arrows */}
         <div className="flex flex-col items-center w-full">
           {stepsData.map((stg, index) => {
-            // Progressive reveal on mobile scroll
-            const threshold = 0.18 + index * 0.20;
-            const arrowThreshold = threshold + 0.10;
+            // Progressive reveal on natural mobile scroll
+            const threshold = 0.15 + index * 0.15;
+            const arrowThreshold = threshold + 0.08;
             const isCardVisible = prefersReducedMotion || mobileProgress >= threshold;
             const isArrowDrawn = prefersReducedMotion || mobileProgress >= arrowThreshold;
 
