@@ -25,7 +25,7 @@ describe('ComplaintJourney Component (Minimal Process Cards & Animated Arrows)',
 
     const section = document.getElementById('steps');
     expect(section).toBeInTheDocument();
-    expect(screen.getByRole('heading', { level: 2, name: /how it works/i })).toBeInTheDocument();
+    expect(screen.getAllByRole('heading', { level: 2, name: /how it works/i })[0]).toBeInTheDocument();
   });
 
   it('renders all four process cards with clean titles and short descriptions', () => {
