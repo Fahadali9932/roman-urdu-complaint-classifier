@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { LanguageProvider } from '../context/LanguageContext';
 import { ComplaintJourney } from '../features/landing/ComplaintJourney';
@@ -14,72 +14,62 @@ const renderComponent = () => {
   );
 };
 
-describe('ComplaintJourney Component', () => {
+describe('ComplaintJourney Component (Minimal Process Cards & Animated Arrows)', () => {
   beforeEach(() => {
     document.documentElement.setAttribute('dir', 'ltr');
     document.documentElement.setAttribute('lang', 'en');
   });
 
-  it('renders section container with id="steps" and workflow eyebrow', () => {
+  it('renders section container with id="steps" and single section heading', () => {
     renderComponent();
 
     const section = document.getElementById('steps');
     expect(section).toBeInTheDocument();
-    expect(screen.getByText(/01 TO 04 • WORKFLOW/i)).toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 2, name: /how it works/i })).toBeInTheDocument();
   });
 
-  it('renders all four stages: Write, Review, Route, and Track', () => {
+  it('renders all four process cards with clean titles and short descriptions', () => {
     renderComponent();
 
-    // Check desktop narrative buttons
-    expect(screen.getByRole('button', { name: /01 — write/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /02 — review/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /03 — route/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /04 — track/i })).toBeInTheDocument();
+    // Check headings
+    expect(screen.getAllByRole('heading', { level: 3, name: /^write$/i })[0]).toBeInTheDocument();
+    expect(screen.getAllByRole('heading', { level: 3, name: /^review$/i })[0]).toBeInTheDocument();
+    expect(screen.getAllByRole('heading', { level: 3, name: /^route$/i })[0]).toBeInTheDocument();
+    expect(screen.getAllByRole('heading', { level: 3, name: /^track$/i })[0]).toBeInTheDocument();
+
+    // Check descriptions
+    expect(screen.getAllByText(/describe the issue\./i)[0]).toBeInTheDocument();
+    expect(screen.getAllByText(/check the details\./i)[0]).toBeInTheDocument();
+    expect(screen.getAllByText(/identify the right department\./i)[0]).toBeInTheDocument();
+    expect(screen.getAllByText(/follow the progress\./i)[0]).toBeInTheDocument();
   });
 
-  it('renders the single digital complaint document with official header and illustrative Roman Urdu text', () => {
+  it('strictly adheres to minimal content rules (no numbering, no badges, no fake data)', () => {
     renderComponent();
 
-    expect(screen.getByText(/DOC-REF \/\/ AWAAZ-DRAFT-01/i)).toBeInTheDocument();
-    expect(screen.getByText(/CITIZEN GRIEVANCE APPLICATION/i)).toBeInTheDocument();
-    expect(screen.getByText(/Hamari gali mein pani nahi aa raha./i)).toBeInTheDocument();
-    expect(screen.getByText(/ILLUSTRATIVE DRAFT/i)).toBeInTheDocument();
+    // No numbered badges or step counters
+    expect(screen.queryByText(/\[01\]/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/\[02\]/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/\[03\]/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/\[04\]/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/STAGE 1 OF 4/i)).not.toBeInTheDocument();
+
+    // No fake tracking numbers or simulated badges
+    expect(screen.queryByText(/DOC-REF/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/PROGRESS: \d+%/i)).not.toBeInTheDocument();
   });
 
-  it('switches active stage to Review when Review button is clicked', () => {
+  it('renders thick vector arrow SVG connectors between the cards', () => {
     renderComponent();
 
-    const reviewBtn = screen.getByRole('button', { name: /02 — review/i });
-    fireEvent.click(reviewBtn);
-
-    // Document morphs to Stage 2: Review
-    expect(screen.getByText(/Pani ka Masla \(Water Supply Shortage\)/i)).toBeInTheDocument();
-    expect(screen.getByText(/Municipal Water & Sewerage/i)).toBeInTheDocument();
-    expect(screen.getByText(/Citizen Detail Check/i)).toBeInTheDocument();
-  });
-
-  it('switches active stage to Route when Route button is clicked', () => {
-    renderComponent();
-
-    const routeBtn = screen.getByRole('button', { name: /03 — route/i });
-    fireEvent.click(routeBtn);
-
-    // Document morphs to Stage 3: Route
-    expect(screen.getByText(/Karachi Water & Sewerage Corporation/i)).toBeInTheDocument();
-    expect(screen.getByText(/DIRECTIONAL ROUTE/i)).toBeInTheDocument();
-  });
-
-  it('switches active stage to Track when Track button is clicked', () => {
-    renderComponent();
-
-    const trackBtn = screen.getByRole('button', { name: /04 — track/i });
-    fireEvent.click(trackBtn);
-
-    // Document morphs to Stage 4: Track
-    expect(screen.getByText(/Resolution Lifecycle Timeline/i)).toBeInTheDocument();
-    expect(screen.getByText(/Registered in municipal queue/i)).toBeInTheDocument();
-    expect(screen.getByText(/Milestone Tracking/i)).toBeInTheDocument();
+    const svgs = document.querySelectorAll('#steps svg');
+    // Desktop has 3 horizontal arrows, mobile has 3 vertical arrows = total 6 SVG elements
+    expect(svgs.length).toBe(6);
+    svgs.forEach((svg) => {
+      const path = svg.querySelector('path');
+      expect(path).toBeInTheDocument();
+      expect(path).toHaveAttribute('stroke', '#0B1421');
+      expect(path).toHaveAttribute('stroke-linecap', 'round');
+    });
   });
 });

@@ -50,6 +50,17 @@ export const translations = {
     step4Title: 'Track',
     step4Desc: 'Follow progress through authenticated status milestones.',
 
+    // Minimal Process Flow (How It Works)
+    processHeading: 'How It Works',
+    processStepWriteTitle: 'Write',
+    processStepWriteDesc: 'Describe the issue.',
+    processStepReviewTitle: 'Review',
+    processStepReviewDesc: 'Check the details.',
+    processStepRouteTitle: 'Route',
+    processStepRouteDesc: 'Identify the right department.',
+    processStepTrackTitle: 'Track',
+    processStepTrackDesc: 'Follow the progress.',
+
     // Scroll-Driven Complaint Journey
     journeyEyebrow: '01 TO 04 • WORKFLOW',
     journeyTitle: 'How It Works',
@@ -330,6 +341,17 @@ export const translations = {
     step3Desc: 'شکایت متعلقہ ادارے (واٹر بورڈ، کے الیکٹرک، کے ایم سی) کو جاتی ہے۔',
     step4Title: 'پیش رفت',
     step4Desc: 'مرحلہ وار حل کی تصدیق اپنے اکاؤنٹ سے دیکھیں۔',
+
+    // Minimal Process Flow (How It Works - Urdu)
+    processHeading: 'طریقہ کار',
+    processStepWriteTitle: 'لکھیں',
+    processStepWriteDesc: 'اپنا مسئلہ بیان کریں۔',
+    processStepReviewTitle: 'جائزہ لیں',
+    processStepReviewDesc: 'تفصیلات کی تصدیق کریں۔',
+    processStepRouteTitle: 'تفویض',
+    processStepRouteDesc: 'متعلقہ محکمے کی نشاندہی۔',
+    processStepTrackTitle: 'ٹریک کریں',
+    processStepTrackDesc: 'پیش رفت پر نظر رکھیں۔',
 
     // Scroll-Driven Complaint Journey (Urdu)
     journeyEyebrow: 'طریقہ کار • مرحلہ 01 تا 04',
