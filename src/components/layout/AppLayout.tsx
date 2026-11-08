@@ -8,9 +8,9 @@ export const AppLayout: React.FC = () => {
   const isHome = location.pathname === '/';
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#E9EBED] text-[#0B1421] w-full overflow-x-hidden selection:bg-[#DEE1E5] selection:text-[#0B1421]">
+    <div className="min-h-screen flex flex-col bg-[#E9EBED] text-[#0B1421] w-full overflow-x-clip selection:bg-[#DEE1E5] selection:text-[#0B1421]">
       <PublicHeader />
-      <main className={`flex-1 w-full overflow-x-hidden ${isHome ? '' : 'pt-28 sm:pt-32'}`}>
+      <main className={`flex-1 w-full overflow-x-clip ${isHome ? '' : 'pt-28 sm:pt-32'}`}>
         <Outlet />
       </main>
       <PublicFooter />

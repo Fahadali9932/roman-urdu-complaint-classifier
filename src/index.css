@@ -41,7 +41,7 @@
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
     min-height: 100vh;
-    overflow-x: hidden;
+    overflow-x: clip;
   }
 
   /* Optimized Urdu Typography with authentic Nastaliq & Naskh fallbacks */

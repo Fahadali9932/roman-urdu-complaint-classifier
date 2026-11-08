@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../../context/LanguageContext';
 import { PenTool, FolderOpen, ArrowRight, ArrowLeft } from 'lucide-react';
+import { ComplaintJourney } from './ComplaintJourney';
 
 export const LandingPage: React.FC = () => {
   const { language, isRTL } = useLanguage();
@@ -82,83 +83,11 @@ export const LandingPage: React.FC = () => {
       </section>
 
       {/* ========================================================
-          MINIMAL SCROLL CONTINUATION (#steps)
-          Demonstrates the scroll transition and scrolled navbar state
+          SCROLL-DRIVEN COMPLAINT JOURNEY (#steps)
+          Replaces the 4 static cards with a continuous,
+          evolving digital complaint document journey
           ======================================================== */}
-      <section
-        id="steps"
-        className="py-24 sm:py-32 px-4 sm:px-12 lg:px-20 border-t border-[#34394A]/15 relative bg-[#E9EBED] scroll-mt-28 sm:scroll-mt-32"
-      >
-        <div className="max-w-5xl mx-auto text-start">
-          
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-16 pb-6 border-b border-[#34394A]/15">
-            <div className="space-y-2">
-              <span className="text-xs font-mono tracking-widest uppercase text-[#535965]">
-                01 TO 04 • WORKFLOW
-              </span>
-              <h2 className="font-display text-3xl sm:text-5xl text-[#0B1421] uppercase tracking-tight">
-                {language === 'ur' ? 'طریقہ کار' : 'How It Works'}
-              </h2>
-            </div>
-            <p className="text-sm font-ui text-[#535965] max-w-md leading-relaxed">
-              {language === 'ur'
-                ? 'اپنے روزمرہ کے الفاظ سے لے کر محکماتی حل تک ایک شفاف نظام۔'
-                : 'A transparent path from your everyday words to verified municipal attention.'}
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              {
-                num: '01',
-                title: language === 'ur' ? 'لکھیں' : 'Write',
-                desc: language === 'ur'
-                  ? 'رومن اردو، اردو یا انگریزی میں اپنا مسئلہ بیان کریں۔'
-                  : 'Describe the civic problem in Roman Urdu, Urdu, or English.',
-              },
-              {
-                num: '02',
-                title: language === 'ur' ? 'جائزہ لیں' : 'Review',
-                desc: language === 'ur'
-                  ? 'عنوان، جگہ اور تفصیل دوبارہ چیک کریں۔'
-                  : 'Verify your description, landmark, and details before submitting.',
-              },
-              {
-                num: '03',
-                title: language === 'ur' ? 'درجہ بندی' : 'Route',
-                desc: language === 'ur'
-                  ? 'این ایل پی ماڈل خودکار طور پر متعلقہ محکمے کو تفویض کرتا ہے۔'
-                  : 'Automated natural language routing to the concerned civic agency.',
-              },
-              {
-                num: '04',
-                title: language === 'ur' ? 'ٹریک کریں' : 'Track',
-                desc: language === 'ur'
-                  ? 'اپنے ریفرنس کوڈ سے براہ راست پیش رفت دیکھیں۔'
-                  : 'Follow resolution progress with your personal tracking reference.',
-              },
-            ].map((item) => (
-              <div
-                key={item.num}
-                className="p-6 rounded-2xl bg-white border border-[#34394A]/15 flex flex-col justify-between space-y-4 shadow-sm hover:border-[#0B1421]/30 transition-colors"
-              >
-                <div>
-                  <span className="font-mono text-xs font-bold text-[#535965]">
-                    [{item.num}]
-                  </span>
-                  <h3 className="font-display text-2xl text-[#0B1421] tracking-tight mt-2 mb-1">
-                    {item.title}
-                  </h3>
-                  <p className="text-xs sm:text-sm font-ui text-[#535965] leading-relaxed">
-                    {item.desc}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-
-        </div>
-      </section>
+      <ComplaintJourney id="steps" />
 
     </div>
   );
