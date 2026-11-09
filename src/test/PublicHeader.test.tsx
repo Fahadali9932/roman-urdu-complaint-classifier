@@ -67,5 +67,37 @@ describe('PublicHeader Component', () => {
     fireEvent.click(backdrop);
     expect(screen.queryByRole('dialog', { name: /mobile navigation/i })).not.toBeInTheDocument();
   });
+
+  it('ensures exactly one navigation item is active on initial load and Write Complaint is not permanently black', () => {
+    renderWithProviders();
+
+    const desktopNav = screen.getByLabelText(/desktop primary navigation/i);
+    expect(desktopNav).toBeInTheDocument();
+
+    // Find all links in desktop nav
+    const homeLink = desktopNav.querySelector('a[href="#hero"]');
+    const writeLink = desktopNav.querySelector('a[href="/submit"]');
+    const myComplaintsLink = desktopNav.querySelector('a[href="/dashboard"]');
+    const stepsLink = desktopNav.querySelector('a[href="#steps"]');
+
+    expect(homeLink).toBeInTheDocument();
+    expect(writeLink).toBeInTheDocument();
+    expect(myComplaintsLink).toBeInTheDocument();
+    expect(stepsLink).toBeInTheDocument();
+
+    // Home should be active with Blood Maroon #681822
+    expect(homeLink?.className).toContain('bg-[#681822]');
+    expect(homeLink?.className).toContain('text-[#FFFFFF]');
+
+    // Other links must NOT be active and Write Complaint must NOT have permanent black background
+    expect(writeLink?.className).not.toContain('bg-[#141414]');
+    expect(writeLink?.className).not.toContain('bg-[#681822]');
+    expect(myComplaintsLink?.className).not.toContain('bg-[#681822]');
+    expect(stepsLink?.className).not.toContain('bg-[#681822]');
+
+    // Exactly one link inside desktopNav contains bg-[#681822]
+    const activeElements = desktopNav.querySelectorAll('.bg-\\[\\#681822\\]');
+    expect(activeElements.length).toBe(1);
+  });
 });
 

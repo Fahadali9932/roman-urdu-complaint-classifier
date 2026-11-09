@@ -18,6 +18,7 @@ export const translations = {
     navSignOut: 'Sign Out',
 
     // Hero Section
+    heroCivicMicrotags: 'SERVICE / RESPONSIBILITY / ACCOUNTABILITY',
     heroBadge: 'Karachi Civic Workspace',
     heroTitle: 'Your voice matters. Make it heard.',
     heroDescription:
@@ -310,6 +311,7 @@ export const translations = {
     navSignOut: 'لاگ آؤٹ',
 
     // Hero Section
+    heroCivicMicrotags: 'خدمت / ذمہ داری / احتساب',
     heroBadge: 'کراچی شہری ورک اسپیس',
     heroTitle: 'آپ کی آواز اہمیت رکھتی ہے۔ اسے سنیے جانے دیں۔',
     heroDescription:

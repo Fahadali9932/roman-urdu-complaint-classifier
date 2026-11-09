@@ -6,7 +6,7 @@ import { ComplaintJourney } from './ComplaintJourney';
 import { FountainPenNib } from '../../components/common/FountainPenNib';
 
 export const LandingPage: React.FC = () => {
-  const { language, isRTL } = useLanguage();
+  const { t, language, isRTL } = useLanguage();
   const ur = language === 'ur';
 
   return (
@@ -29,13 +29,9 @@ export const LandingPage: React.FC = () => {
 
         <div className="max-w-6xl mx-auto w-full relative z-10 flex flex-col items-center">
 
-          {/* Introductory Super-title / Eyebrow */}
-          <div className="flex items-center justify-center gap-2 mb-3 sm:mb-4">
-            <span className="h-1.5 w-1.5 rounded-full bg-[#681822]" />
-            <span className="text-[11px] sm:text-[12px] font-mono tracking-[0.25em] uppercase text-[#323232]">
-              {ur ? 'آپ کی شکایت • سندھ کا شہری پورٹل' : 'YOUR COMPLAINT • CITIZEN PORTAL SINDH'}
-            </span>
-            <span className="h-1.5 w-1.5 rounded-full bg-[#681822]" />
+          {/* Civic Microtags (Objective 3: SERVICE / RESPONSIBILITY / ACCOUNTABILITY) */}
+          <div className="flex items-center justify-center gap-2 sm:gap-2.5 mb-3 sm:mb-4 text-[11px] sm:text-[12px] font-mono tracking-[0.2em] sm:tracking-[0.25em] uppercase text-[#323232] select-none">
+            <span>{t('heroCivicMicrotags') || (ur ? 'خدمت / ذمہ داری / احتساب' : 'SERVICE / RESPONSIBILITY / ACCOUNTABILITY')}</span>
           </div>
 
           {/* Monumental Headline Intersected by Fountain Pen Nib (Reference 2) */}

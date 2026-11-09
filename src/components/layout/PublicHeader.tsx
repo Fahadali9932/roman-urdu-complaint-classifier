@@ -9,31 +9,47 @@ export const PublicHeader: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [activeSection, setActiveSection] = useState<'hero' | 'steps' | 'write-intro'>('hero');
+  const [scrollSection, setScrollSection] = useState<'home' | 'steps' | 'submit'>('home');
   const [dropdownPosition, setDropdownPosition] = useState<{ top: number; left?: number; right?: number }>({ top: 0 });
   const drawerRef = useRef<HTMLDivElement>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
 
-  // Track active section on landing page via scroll
+  // Synchronized active-section detection for landing page scroll
   useEffect(() => {
     if (location.pathname !== '/') return;
 
-    const handleScroll = () => {
+    const checkActiveSection = () => {
       const stepsEl = document.getElementById('steps');
       const writeIntroEl = document.getElementById('write-intro');
+      const vh = window.innerHeight;
 
-      if (writeIntroEl && window.scrollY >= writeIntroEl.offsetTop - 300) {
-        setActiveSection('write-intro');
-      } else if (stepsEl && window.scrollY >= stepsEl.offsetTop - 300) {
-        setActiveSection('steps');
-      } else {
-        setActiveSection('hero');
+      if (writeIntroEl) {
+        const rect = writeIntroEl.getBoundingClientRect();
+        if (rect.top <= vh * 0.45) {
+          setScrollSection('submit');
+          return;
+        }
       }
+
+      if (stepsEl) {
+        const rect = stepsEl.getBoundingClientRect();
+        if (rect.top <= vh * 0.45) {
+          setScrollSection('steps');
+          return;
+        }
+      }
+
+      setScrollSection('home');
     };
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll();
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', checkActiveSection, { passive: true });
+    window.addEventListener('resize', checkActiveSection, { passive: true });
+    checkActiveSection();
+
+    return () => {
+      window.removeEventListener('scroll', checkActiveSection);
+      window.removeEventListener('resize', checkActiveSection);
+    };
   }, [location.pathname]);
 
   // Compute dynamic dropdown anchor position directly beneath the Menu trigger button
@@ -116,21 +132,22 @@ export const PublicHeader: React.FC = () => {
     }
   };
 
-  // Determine active tab for floating pill dock
-  const isHomeActive = location.pathname === '/' && activeSection === 'hero';
-  const isStepsActive = location.pathname === '/' && activeSection === 'steps';
+  // Exactly one active item state helper
+  const isHomeActive = location.pathname === '/' && scrollSection === 'home';
+  const isStepsActive = location.pathname === '/' && scrollSection === 'steps';
   const isDashboardActive = location.pathname === '/dashboard';
-  const isSubmitActive = location.pathname === '/submit';
+  const isSubmitActive = location.pathname === '/submit' || (location.pathname === '/' && scrollSection === 'submit');
 
   return (
     <>
       {/* ========================================================
-          1. TOP MINIMAL BAR: Brand Wordmark, Language & Account
+          TOP HEADER: Brand (Left), Centered Pill Dock (Center),
+          Language & Account Controls (Right)
           ======================================================== */}
-      <header className="fixed top-0 left-0 right-0 z-40 py-4 px-4 sm:px-8 lg:px-12 pointer-events-none">
-        <div className="max-w-[1360px] mx-auto flex items-center justify-between w-full pointer-events-auto">
+      <header className="fixed top-0 left-0 right-0 z-50 py-3 sm:py-4 px-4 sm:px-8 lg:px-12 pointer-events-none transition-all duration-300">
+        <div className="max-w-[1440px] mx-auto w-full relative flex items-center justify-between pointer-events-auto">
 
-          {/* Brand Wordmark (Monochrome Civic Editorial) */}
+          {/* LEFT: Brand Wordmark */}
           <Link
             to="/"
             onClick={(e) => {
@@ -139,7 +156,7 @@ export const PublicHeader: React.FC = () => {
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }
             }}
-            className="group flex items-center gap-2 cursor-pointer select-none rounded-lg focus-visible:outline-2 focus-visible:outline-[#141414]"
+            className="group flex items-center gap-2 cursor-pointer select-none rounded-lg focus-visible:outline-2 focus-visible:outline-[#141414] z-20 shrink-0"
             aria-label="Awaaz-e-Awam Home"
           >
             <span className="font-wordmark italic font-bold tracking-tight text-[#141414] text-xl sm:text-2xl group-hover:text-[#681822] transition-colors select-none">
@@ -147,8 +164,69 @@ export const PublicHeader: React.FC = () => {
             </span>
           </Link>
 
-          {/* Controls: Language Toggle, Account Link & Mobile Menu Trigger */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          {/* CENTER: Floating Pill Navigation Dock (Viewport-Centered)
+              Only ONE item selected at a time with #681822 Blood Maroon highlight */}
+          <nav
+            aria-label="Desktop primary navigation"
+            className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 hidden md:flex items-center p-1 sm:p-1.5 rounded-full bg-[#FAF9F7]/95 backdrop-blur-md border border-[#E5E3E0] shadow-[0_8px_24px_rgba(20,20,20,0.08)] select-none z-10"
+          >
+            {/* Home Link */}
+            <a
+              href="#hero"
+              onClick={(e) => handleNavClick(e, 'hero', '/')}
+              className={`flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 rounded-full text-[13px] font-ui transition-all duration-300 whitespace-nowrap cursor-pointer select-none ${
+                isHomeActive
+                  ? 'bg-[#681822] text-[#FFFFFF] font-medium shadow-sm'
+                  : 'text-[#171717] hover:text-[#141414] hover:bg-[#E5E3E0]/40 font-normal'
+              }`}
+            >
+              <Home className="w-3.5 h-3.5 shrink-0" />
+              <span>{t('navHome') || 'Home'}</span>
+            </a>
+
+            {/* How It Works Link */}
+            <a
+              href="#steps"
+              onClick={(e) => handleNavClick(e, 'steps', '/#steps')}
+              className={`flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 rounded-full text-[13px] font-ui transition-all duration-300 whitespace-nowrap cursor-pointer select-none ${
+                isStepsActive
+                  ? 'bg-[#681822] text-[#FFFFFF] font-medium shadow-sm'
+                  : 'text-[#171717] hover:text-[#141414] hover:bg-[#E5E3E0]/40 font-normal'
+              }`}
+            >
+              <HelpCircle className="w-3.5 h-3.5 shrink-0" />
+              <span>{language === 'ur' ? 'طریقہ کار' : 'How It Works'}</span>
+            </a>
+
+            {/* My Complaints Link */}
+            <Link
+              to="/dashboard"
+              className={`flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 rounded-full text-[13px] font-ui transition-all duration-300 whitespace-nowrap cursor-pointer select-none ${
+                isDashboardActive
+                  ? 'bg-[#681822] text-[#FFFFFF] font-medium shadow-sm'
+                  : 'text-[#171717] hover:text-[#141414] hover:bg-[#E5E3E0]/40 font-normal'
+              }`}
+            >
+              <FolderOpen className="w-3.5 h-3.5 shrink-0" />
+              <span>{t('navMyComplaints') || 'My Complaints'}</span>
+            </Link>
+
+            {/* Write Complaint Link (Identical pill geometry, exactly ONE maroon highlight when active) */}
+            <Link
+              to="/submit"
+              className={`flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 rounded-full text-[13px] font-ui transition-all duration-300 whitespace-nowrap cursor-pointer select-none ${
+                isSubmitActive
+                  ? 'bg-[#681822] text-[#FFFFFF] font-medium shadow-sm'
+                  : 'text-[#171717] hover:text-[#141414] hover:bg-[#E5E3E0]/40 font-normal'
+              }`}
+            >
+              <PenTool className="w-3.5 h-3.5 shrink-0" />
+              <span>{t('navWriteComplaint') || 'Write Complaint'}</span>
+            </Link>
+          </nav>
+
+          {/* RIGHT: Controls (Language Toggle, Account Link, Mobile Menu Trigger) */}
+          <div className="flex items-center gap-2 sm:gap-3 z-20 shrink-0">
             <LanguageToggle />
 
             <div className="hidden sm:block h-3.5 w-px bg-[#E5E3E0] shrink-0 mx-0.5" />
@@ -166,7 +244,7 @@ export const PublicHeader: React.FC = () => {
               ref={menuButtonRef}
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="sm:hidden inline-flex items-center justify-center p-2 rounded-full bg-[#FAF9F7] border border-[#E5E3E0] text-[#141414] hover:bg-[#E5E3E0]/50 transition-colors cursor-pointer select-none shadow-sm focus-visible:outline-2 focus-visible:outline-[#141414]"
+              className="md:hidden inline-flex items-center justify-center p-2 rounded-full bg-[#FAF9F7] border border-[#E5E3E0] text-[#141414] hover:bg-[#E5E3E0]/50 transition-colors cursor-pointer select-none shadow-sm focus-visible:outline-2 focus-visible:outline-[#141414]"
               aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
               aria-expanded={mobileMenuOpen}
               aria-controls="mobile-navigation-drawer"
@@ -182,76 +260,7 @@ export const PublicHeader: React.FC = () => {
       </header>
 
       {/* ========================================================
-          2. REFERENCE 1: FLOATING PILL NAVIGATION DOCK (Bottom-Centered)
-             Clean rounded container #FAF9F7, border #E5E3E0,
-             distinctive deep Blood Maroon selected state #681822
-          ======================================================== */}
-      <aside
-        className="fixed bottom-5 sm:bottom-7 left-1/2 -translate-x-1/2 z-40 pointer-events-auto select-none transition-all duration-300"
-        aria-label="Floating Civic Navigation Dock"
-      >
-        <nav
-          aria-label="Desktop primary navigation"
-          className="flex items-center gap-1 sm:gap-1.5 p-1.5 sm:p-2 rounded-full bg-[#FAF9F7]/95 backdrop-blur-md border border-[#E5E3E0] shadow-[0_12px_36px_rgba(20,20,20,0.12),0_2px_8px_rgba(20,20,20,0.04)] max-w-[calc(100vw-24px)] overflow-x-auto scrollbar-none"
-        >
-          {/* Home Link */}
-          <a
-            href="#hero"
-            onClick={(e) => handleNavClick(e, 'hero', '/')}
-            className={`flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full text-[12.5px] sm:text-[13.5px] font-ui transition-all duration-300 whitespace-nowrap cursor-pointer select-none ${
-              isHomeActive
-                ? 'bg-[#681822] text-[#FFFFFF] font-medium shadow-sm'
-                : 'text-[#171717] hover:text-[#141414] hover:bg-[#E5E3E0]/60 font-normal'
-            }`}
-          >
-            <Home className="w-3.5 h-3.5 shrink-0" />
-            <span>{t('navHome') || 'Home'}</span>
-          </a>
-
-          {/* How It Works Link */}
-          <a
-            href="#steps"
-            onClick={(e) => handleNavClick(e, 'steps', '/#steps')}
-            className={`flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full text-[12.5px] sm:text-[13.5px] font-ui transition-all duration-300 whitespace-nowrap cursor-pointer select-none ${
-              isStepsActive
-                ? 'bg-[#681822] text-[#FFFFFF] font-medium shadow-sm'
-                : 'text-[#171717] hover:text-[#141414] hover:bg-[#E5E3E0]/60 font-normal'
-            }`}
-          >
-            <HelpCircle className="w-3.5 h-3.5 shrink-0" />
-            <span>{language === 'ur' ? 'طریقہ کار' : 'How It Works'}</span>
-          </a>
-
-          {/* My Complaints Link */}
-          <Link
-            to="/dashboard"
-            className={`flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full text-[12.5px] sm:text-[13.5px] font-ui transition-all duration-300 whitespace-nowrap cursor-pointer select-none ${
-              isDashboardActive
-                ? 'bg-[#681822] text-[#FFFFFF] font-medium shadow-sm'
-                : 'text-[#171717] hover:text-[#141414] hover:bg-[#E5E3E0]/60 font-normal'
-            }`}
-          >
-            <FolderOpen className="w-3.5 h-3.5 shrink-0" />
-            <span>{t('navMyComplaints') || 'My Complaints'}</span>
-          </Link>
-
-          {/* Write Complaint Link (Primary Signature CTA) */}
-          <Link
-            to="/submit"
-            className={`flex items-center gap-1.5 px-4 sm:px-5 py-1.5 sm:py-2 rounded-full text-[12.5px] sm:text-[13.5px] font-ui transition-all duration-300 whitespace-nowrap cursor-pointer select-none ${
-              isSubmitActive
-                ? 'bg-[#681822] text-[#FFFFFF] font-medium shadow-sm ring-2 ring-[#681822]/20'
-                : 'bg-[#141414] text-[#FFFFFF] hover:bg-[#681822] font-medium'
-            }`}
-          >
-            <PenTool className="w-3.5 h-3.5 text-[#FFFFFF] shrink-0" />
-            <span>{t('navWriteComplaint') || 'Write Complaint'}</span>
-          </Link>
-        </nav>
-      </aside>
-
-      {/* ========================================================
-          3. ACCESSIBLE MOBILE DRAWER (For small screens)
+          ACCESSIBLE MOBILE NAVIGATION DRAWER
           ======================================================== */}
       {mobileMenuOpen && (
         <>
@@ -291,28 +300,44 @@ export const PublicHeader: React.FC = () => {
             <a
               href="#hero"
               onClick={(e) => handleNavClick(e, 'hero', '/')}
-              className="block px-3 py-2 rounded-xl text-[13px] font-ui font-medium text-[#141414] hover:bg-[#E5E3E0]/60 transition-colors cursor-pointer"
+              className={`block px-3 py-2 rounded-xl text-[13px] font-ui cursor-pointer transition-colors ${
+                isHomeActive
+                  ? 'bg-[#681822] text-[#FFFFFF] font-medium'
+                  : 'text-[#141414] hover:bg-[#E5E3E0]/60'
+              }`}
             >
               {t('navHome') || 'Home'}
             </a>
             <a
               href="#steps"
               onClick={(e) => handleNavClick(e, 'steps', '/#steps')}
-              className="block px-3 py-2 rounded-xl text-[13px] font-ui text-[#323232] hover:text-[#141414] hover:bg-[#E5E3E0]/60 transition-colors cursor-pointer"
+              className={`block px-3 py-2 rounded-xl text-[13px] font-ui cursor-pointer transition-colors ${
+                isStepsActive
+                  ? 'bg-[#681822] text-[#FFFFFF] font-medium'
+                  : 'text-[#323232] hover:text-[#141414] hover:bg-[#E5E3E0]/60'
+              }`}
             >
               {language === 'ur' ? 'طریقہ کار' : 'How It Works'}
             </a>
             <Link
               to="/dashboard"
               onClick={() => setMobileMenuOpen(false)}
-              className="block px-3 py-2 rounded-xl text-[13px] font-ui text-[#323232] hover:text-[#141414] hover:bg-[#E5E3E0]/60 transition-colors cursor-pointer"
+              className={`block px-3 py-2 rounded-xl text-[13px] font-ui cursor-pointer transition-colors ${
+                isDashboardActive
+                  ? 'bg-[#681822] text-[#FFFFFF] font-medium'
+                  : 'text-[#323232] hover:text-[#141414] hover:bg-[#E5E3E0]/60'
+              }`}
             >
               {t('navMyComplaints') || 'My Complaints'}
             </Link>
             <Link
               to="/submit"
               onClick={() => setMobileMenuOpen(false)}
-              className="block px-3 py-2 rounded-xl text-[13px] font-ui text-[#323232] hover:text-[#141414] hover:bg-[#E5E3E0]/60 transition-colors cursor-pointer"
+              className={`block px-3 py-2 rounded-xl text-[13px] font-ui cursor-pointer transition-colors ${
+                isSubmitActive
+                  ? 'bg-[#681822] text-[#FFFFFF] font-medium'
+                  : 'text-[#323232] hover:text-[#141414] hover:bg-[#E5E3E0]/60'
+              }`}
             >
               {t('navWriteComplaint') || 'Write Complaint'}
             </Link>
