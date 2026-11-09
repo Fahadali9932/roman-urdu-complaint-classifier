@@ -283,7 +283,7 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
     <section
       id={id}
       ref={containerRef}
-      className="relative w-full border-t border-[#D5B995]/30 bg-[#F0EDE7] scroll-mt-28 sm:scroll-mt-32 select-none"
+      className="relative w-full border-t border-[#E5E3E0] bg-[#F7F6F3] text-[#141414] scroll-mt-28 sm:scroll-mt-32 select-none"
       style={{
         // Desktop: ~380vh bounded scroll scene for fluid, deliberately paced cinematic motion
         // Mobile: natural height with smooth scroll progression and zero empty space
@@ -320,7 +320,7 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
               transformOrigin: 'center center',
             }}
           >
-            <h2 className="font-display text-[76px] sm:text-[104px] lg:text-[124px] xl:text-[138px] text-[#101A28] uppercase tracking-tight leading-none whitespace-normal lg:whitespace-nowrap">
+            <h2 className="font-display text-[76px] sm:text-[104px] lg:text-[124px] xl:text-[138px] text-[#141414] uppercase tracking-tight leading-none whitespace-normal lg:whitespace-nowrap">
               {t('processHeading') || (language === 'ur' ? 'طریقہ کار' : 'How It Works')}
             </h2>
           </div>
@@ -332,7 +332,7 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
           >
           {/* ---------------- CARD 1: WRITE ---------------- */}
           <div
-            className="absolute w-[230px] xl:w-[250px] min-h-[165px] xl:min-h-[175px] p-6 xl:p-7 rounded-2xl bg-white border border-[#D5B995]/45 shadow-md shadow-[#101A28]/06 flex flex-col justify-between transition-shadow will-change-transform text-start"
+            className="absolute w-[230px] xl:w-[250px] min-h-[165px] xl:min-h-[175px] p-6 xl:p-7 rounded-2xl bg-[#FAF9F7] border border-[#E5E3E0] shadow-[0_10px_30px_rgba(20,20,20,0.06)] flex flex-col justify-between transition-shadow will-change-transform text-start"
             style={{
               left: '50%',
               top: '50%',
@@ -343,10 +343,10 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
             }}
           >
             <div>
-              <h3 className="font-display text-2xl xl:text-3xl text-[#101A28] tracking-tight uppercase">
+              <h3 className="font-display text-2xl xl:text-3xl text-[#141414] tracking-tight uppercase">
                 {stepsData[0].title}
               </h3>
-              <p className="font-ui text-sm xl:text-base text-[#5A626E] mt-2 leading-relaxed">
+              <p className="font-ui text-sm xl:text-base text-[#323232] mt-2 leading-relaxed">
                 {stepsData[0].desc}
               </p>
             </div>
@@ -384,7 +384,7 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
 
           {/* ---------------- CARD 2: REVIEW ---------------- */}
           <div
-            className="absolute w-[230px] xl:w-[250px] min-h-[165px] xl:min-h-[175px] p-6 xl:p-7 rounded-2xl bg-white border border-[#D5B995]/45 shadow-md shadow-[#101A28]/06 flex flex-col justify-between transition-shadow will-change-transform text-start"
+            className="absolute w-[230px] xl:w-[250px] min-h-[165px] xl:min-h-[175px] p-6 xl:p-7 rounded-2xl bg-[#FAF9F7] border border-[#E5E3E0] shadow-[0_10px_30px_rgba(20,20,20,0.06)] flex flex-col justify-between transition-shadow will-change-transform text-start"
             style={{
               left: '50%',
               top: '50%',
@@ -395,10 +395,10 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
             }}
           >
             <div>
-              <h3 className="font-display text-2xl xl:text-3xl text-[#101A28] tracking-tight uppercase">
+              <h3 className="font-display text-2xl xl:text-3xl text-[#141414] tracking-tight uppercase">
                 {stepsData[1].title}
               </h3>
-              <p className="font-ui text-sm xl:text-base text-[#5A626E] mt-2 leading-relaxed">
+              <p className="font-ui text-sm xl:text-base text-[#323232] mt-2 leading-relaxed">
                 {stepsData[1].desc}
               </p>
             </div>
@@ -436,7 +436,7 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
 
           {/* ---------------- CARD 3: ROUTE ---------------- */}
           <div
-            className="absolute w-[230px] xl:w-[250px] min-h-[165px] xl:min-h-[175px] p-6 xl:p-7 rounded-2xl bg-white border border-[#D5B995]/45 shadow-md shadow-[#101A28]/06 flex flex-col justify-between transition-shadow will-change-transform text-start"
+            className="absolute w-[230px] xl:w-[250px] min-h-[165px] xl:min-h-[175px] p-6 xl:p-7 rounded-2xl bg-[#FAF9F7] border border-[#E5E3E0] shadow-[0_10px_30px_rgba(20,20,20,0.06)] flex flex-col justify-between transition-shadow will-change-transform text-start"
             style={{
               left: '50%',
               top: '50%',
@@ -447,10 +447,10 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
             }}
           >
             <div>
-              <h3 className="font-display text-2xl xl:text-3xl text-[#101A28] tracking-tight uppercase">
+              <h3 className="font-display text-2xl xl:text-3xl text-[#141414] tracking-tight uppercase">
                 {stepsData[2].title}
               </h3>
-              <p className="font-ui text-sm xl:text-base text-[#5A626E] mt-2 leading-relaxed">
+              <p className="font-ui text-sm xl:text-base text-[#323232] mt-2 leading-relaxed">
                 {stepsData[2].desc}
               </p>
             </div>
@@ -488,7 +488,7 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
 
           {/* ---------------- CARD 4: TRACK ---------------- */}
           <div
-            className="absolute w-[230px] xl:w-[250px] min-h-[165px] xl:min-h-[175px] p-6 xl:p-7 rounded-2xl bg-white border border-[#D5B995]/45 shadow-md shadow-[#101A28]/06 flex flex-col justify-between transition-shadow will-change-transform text-start"
+            className="absolute w-[230px] xl:w-[250px] min-h-[165px] xl:min-h-[175px] p-6 xl:p-7 rounded-2xl bg-[#FAF9F7] border border-[#E5E3E0] shadow-[0_10px_30px_rgba(20,20,20,0.06)] flex flex-col justify-between transition-shadow will-change-transform text-start"
             style={{
               left: '50%',
               top: '50%',
@@ -499,10 +499,10 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
             }}
           >
             <div>
-              <h3 className="font-display text-2xl xl:text-3xl text-[#101A28] tracking-tight uppercase">
+              <h3 className="font-display text-2xl xl:text-3xl text-[#141414] tracking-tight uppercase">
                 {stepsData[3].title}
               </h3>
-              <p className="font-ui text-sm xl:text-base text-[#5A626E] mt-2 leading-relaxed">
+              <p className="font-ui text-sm xl:text-base text-[#323232] mt-2 leading-relaxed">
                 {stepsData[3].desc}
               </p>
             </div>
@@ -524,7 +524,7 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
             transformOrigin: 'center center',
           }}
         >
-          <h2 className="font-display text-4xl sm:text-5xl text-[#101A28] uppercase tracking-tight">
+          <h2 className="font-display text-4xl sm:text-5xl text-[#141414] uppercase tracking-tight">
             {t('processHeading') || (language === 'ur' ? 'طریقہ کار' : 'How It Works')}
           </h2>
         </div>
@@ -542,14 +542,14 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
               <React.Fragment key={stg.key}>
                 {/* Minimal Card */}
                 <div
-                  className={`w-full p-6 sm:p-7 rounded-2xl bg-white border border-[#D5B995]/45 shadow-sm transition-all duration-500 ease-out text-start ${
+                  className={`w-full p-6 sm:p-7 rounded-2xl bg-[#FAF9F7] border border-[#E5E3E0] shadow-sm transition-all duration-500 ease-out text-start ${
                     isCardVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'
                   }`}
                 >
-                  <h3 className="font-display text-2xl sm:text-3xl text-[#101A28] tracking-tight uppercase">
+                  <h3 className="font-display text-2xl sm:text-3xl text-[#141414] tracking-tight uppercase">
                     {stg.title}
                   </h3>
-                  <p className="font-ui text-sm sm:text-base text-[#5A626E] mt-2 leading-relaxed">
+                  <p className="font-ui text-sm sm:text-base text-[#323232] mt-2 leading-relaxed">
                     {stg.desc}
                   </p>
                 </div>

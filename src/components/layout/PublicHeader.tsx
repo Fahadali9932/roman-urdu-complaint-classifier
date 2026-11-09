@@ -2,60 +2,59 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../context/LanguageContext';
 import { LanguageToggle } from '../common/LanguageToggle';
-import { Menu, X, User } from 'lucide-react';
+import { Menu, X, User, Home, HelpCircle, FolderOpen, PenTool } from 'lucide-react';
 
 export const PublicHeader: React.FC = () => {
   const { t, language } = useLanguage();
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
+  const [activeSection, setActiveSection] = useState<'hero' | 'steps' | 'write-intro'>('hero');
   const [dropdownPosition, setDropdownPosition] = useState<{ top: number; left?: number; right?: number }>({ top: 0 });
   const drawerRef = useRef<HTMLDivElement>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
 
-  // Scroll detection with requestAnimationFrame & smooth threshold
+  // Track active section on landing page via scroll
   useEffect(() => {
-    let ticking = false;
+    if (location.pathname !== '/') return;
+
     const handleScroll = () => {
-      if (!ticking) {
-        window.requestAnimationFrame(() => {
-          setIsScrolled(window.scrollY > 40);
-          ticking = false;
-        });
-        ticking = true;
+      const stepsEl = document.getElementById('steps');
+      const writeIntroEl = document.getElementById('write-intro');
+
+      if (writeIntroEl && window.scrollY >= writeIntroEl.offsetTop - 300) {
+        setActiveSection('write-intro');
+      } else if (stepsEl && window.scrollY >= stepsEl.offsetTop - 300) {
+        setActiveSection('steps');
+      } else {
+        setActiveSection('hero');
       }
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     handleScroll();
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [location.pathname]);
 
   // Compute dynamic dropdown anchor position directly beneath the Menu trigger button
   const updateDropdownPosition = useCallback(() => {
     if (!menuButtonRef.current) return;
     const btnRect = menuButtonRef.current.getBoundingClientRect();
     const isMobile = window.innerWidth < 640;
-    const menuWidth = isMobile ? Math.min(320, window.innerWidth - 24) : 300;
-
-    // Position directly beneath the button with a refined 10px vertical gap
-    const top = Math.round(btnRect.bottom + 10);
+    const menuWidth = isMobile ? Math.min(320, window.innerWidth - 24) : 280;
+    const top = Math.round(btnRect.bottom + 8);
 
     if (language === 'ur') {
-      // In RTL mode, anchor to right edge of button
       const rawRight = window.innerWidth - btnRect.right;
       const right = Math.max(12, Math.min(rawRight, window.innerWidth - menuWidth - 12));
       setDropdownPosition({ top, right });
     } else {
-      // In LTR mode, anchor to left edge of button
       const rawLeft = btnRect.left;
       const left = Math.max(12, Math.min(rawLeft, window.innerWidth - menuWidth - 12));
       setDropdownPosition({ top, left });
     }
   }, [language]);
 
-  // Update dropdown position on open, scroll, or resize
   useEffect(() => {
     if (mobileMenuOpen) {
       updateDropdownPosition();
@@ -100,17 +99,6 @@ export const PublicHeader: React.FC = () => {
     };
   }, [mobileMenuOpen]);
 
-  // Prevent background scrolling when mobile menu is open on phone screens
-  useEffect(() => {
-    if (mobileMenuOpen && window.innerWidth < 640) {
-      const originalStyle = window.getComputedStyle(document.body).overflow;
-      document.body.style.overflow = 'hidden';
-      return () => {
-        document.body.style.overflow = originalStyle;
-      };
-    }
-  }, [mobileMenuOpen]);
-
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, targetId: string, fallbackPath: string) => {
     if (location.pathname === '/') {
       e.preventDefault();
@@ -128,171 +116,148 @@ export const PublicHeader: React.FC = () => {
     }
   };
 
+  // Determine active tab for floating pill dock
+  const isHomeActive = location.pathname === '/' && activeSection === 'hero';
+  const isStepsActive = location.pathname === '/' && activeSection === 'steps';
+  const isDashboardActive = location.pathname === '/dashboard';
+  const isSubmitActive = location.pathname === '/submit';
+
   return (
-    <header
-      className={`fixed top-0 left-0 right-0 z-50 pointer-events-none transition-all duration-[700ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
-        isScrolled
-          ? 'py-3 sm:py-4 px-3 sm:px-6'
-          : 'py-6 sm:py-7 lg:py-8 px-4 sm:px-8 lg:px-14 xl:px-20 bg-transparent'
-      }`}
-    >
-      {/* Outer Floating Container Wrapper */}
-      <div
-        className={`relative mx-auto pointer-events-auto transition-all duration-[700ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
-          isScrolled
-            ? 'w-[calc(100%-16px)] sm:w-[calc(100%-32px)] max-w-4xl xl:max-w-5xl px-4 sm:px-7 lg:px-9 py-3 sm:py-4 lg:py-5 min-h-[68px] sm:min-h-[72px] lg:min-h-[92px] flex items-center'
-            : 'w-full max-w-[1360px] px-0 py-0 min-h-0'
-        }`}
-      >
-        {/* Unified Floating Background Surface Layer
-            Encapsulates background color, border, and elevation shadow.
-            Transitions as one coherent visual layer, completely curing the border flash! */}
-        <div
-          aria-hidden="true"
-          className={`absolute inset-0 rounded-[34px] sm:rounded-[46px] bg-[var(--hero-center-surface)] border border-[#D5B995]/40 shadow-[0_14px_36px_rgba(16,26,40,0.08),0_3px_10px_rgba(16,26,40,0.03)] pointer-events-none transition-all duration-[700ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
-            isScrolled
-              ? 'opacity-100 scale-100'
-              : 'opacity-0 scale-[0.98]'
-          }`}
-        />
+    <>
+      {/* ========================================================
+          1. TOP MINIMAL BAR: Brand Wordmark, Language & Account
+          ======================================================== */}
+      <header className="fixed top-0 left-0 right-0 z-40 py-4 px-4 sm:px-8 lg:px-12 pointer-events-none">
+        <div className="max-w-[1360px] mx-auto flex items-center justify-between w-full pointer-events-auto">
 
-        {/* Navigation Content (Z-10, always crisp, stable & mathematically centered) */}
-        <div className="relative z-10 grid grid-cols-[1fr_auto_1fr] items-center w-full">
+          {/* Brand Wordmark (Monochrome Civic Editorial) */}
+          <Link
+            to="/"
+            onClick={(e) => {
+              if (location.pathname === '/') {
+                e.preventDefault();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }
+            }}
+            className="group flex items-center gap-2 cursor-pointer select-none rounded-lg focus-visible:outline-2 focus-visible:outline-[#141414]"
+            aria-label="Awaaz-e-Awam Home"
+          >
+            <span className="font-wordmark italic font-bold tracking-tight text-[#141414] text-xl sm:text-2xl group-hover:text-[#681822] transition-colors select-none">
+              Awaaz-e-Awam
+            </span>
+          </Link>
 
-          {/* Zone 1 (Left): Navigation Links or Borderless Menu Button */}
-          <div className="flex items-center justify-start min-w-0">
-            {/* When at top (unscrolled) AND on xl: screens (>=1280px), show full 4 links without collision */}
-            {!isScrolled ? (
-              <>
-                <nav
-                  aria-label="Desktop primary navigation"
-                  className="hidden xl:flex items-center gap-4 xl:gap-5 text-[12.5px] font-ui font-normal tracking-[0.015em]"
-                >
-                  <a
-                    href="#hero"
-                    onClick={(e) => handleNavClick(e, 'hero', '/')}
-                    className="text-[#263E59] hover:text-[#101A28] transition-colors py-2 px-2.5 rounded-full hover:bg-[#D5B995]/20 shrink-0 select-none cursor-pointer"
-                  >
-                    {t('navHome') || 'Home'}
-                  </a>
-                  <a
-                    href="#steps"
-                    onClick={(e) => handleNavClick(e, 'steps', '/#steps')}
-                    className="text-[#263E59] hover:text-[#101A28] transition-colors py-2 px-2.5 rounded-full hover:bg-[#D5B995]/20 shrink-0 select-none cursor-pointer"
-                  >
-                    {language === 'ur' ? 'طریقہ کار' : 'How It Works'}
-                  </a>
-                  <Link
-                    to="/dashboard"
-                    className="text-[#263E59] hover:text-[#101A28] transition-colors py-2 px-2.5 rounded-full hover:bg-[#D5B995]/20 shrink-0 select-none cursor-pointer"
-                  >
-                    {t('navMyComplaints') || 'My Complaints'}
-                  </Link>
-                  <Link
-                    to="/submit"
-                    className="text-[#263E59] hover:text-[#101A28] transition-colors py-2 px-2.5 rounded-full hover:bg-[#D5B995]/20 shrink-0 select-none cursor-pointer"
-                  >
-                    {t('navWriteComplaint') || 'Write Complaint'}
-                  </Link>
-                </nav>
-
-                {/* Below xl: (tablet & mobile), show borderless menu button */}
-                <div className="flex xl:hidden items-center">
-                  <button
-                    ref={menuButtonRef}
-                    type="button"
-                    onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                    className="inline-flex items-center gap-2 px-2.5 sm:px-3 py-2 min-h-[44px] rounded-full bg-transparent hover:bg-[#D5B995]/25 text-[#101A28] transition-colors cursor-pointer select-none focus-visible:outline-2 focus-visible:outline-[#101A28]"
-                    aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
-                    aria-expanded={mobileMenuOpen}
-                    aria-controls="mobile-navigation-drawer"
-                  >
-                    {mobileMenuOpen ? (
-                      <X className="w-4 h-4 text-[#101A28] shrink-0" />
-                    ) : (
-                      <Menu className="w-4 h-4 text-[#101A28] shrink-0" />
-                    )}
-                    <span className="text-[12.5px] font-ui font-medium tracking-[0.015em] hidden sm:inline">
-                      {language === 'ur' ? 'مینیو' : 'Menu'}
-                    </span>
-                  </button>
-                </div>
-              </>
-            ) : (
-              /* When scrolled, ALWAYS use compact borderless Menu button to prevent ANY collision in floating capsule */
-              <div className="flex items-center">
-                <button
-                  ref={menuButtonRef}
-                  type="button"
-                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                  className="inline-flex items-center gap-2 px-2.5 sm:px-3 py-2 min-h-[44px] rounded-full bg-transparent hover:bg-[#D5B995]/25 text-[#101A28] transition-colors cursor-pointer select-none focus-visible:outline-2 focus-visible:outline-[#101A28]"
-                  aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
-                  aria-expanded={mobileMenuOpen}
-                  aria-controls="mobile-navigation-drawer"
-                >
-                  {mobileMenuOpen ? (
-                    <X className="w-4 h-4 text-[#101A28] shrink-0" />
-                  ) : (
-                    <Menu className="w-4 h-4 text-[#101A28] shrink-0" />
-                  )}
-                  <span className="text-[12.5px] font-ui font-medium tracking-[0.015em] hidden sm:inline">
-                    {language === 'ur' ? 'مینیو' : 'Menu'}
-                  </span>
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* Zone 2 (Center): Brand Wordmark (Mathematically Dead Center) */}
-          <div className="flex items-center justify-center shrink-0 px-2 sm:px-6 lg:px-8 text-center">
-            <Link
-              to="/"
-              onClick={(e) => {
-                if (location.pathname === '/') {
-                  e.preventDefault();
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                }
-              }}
-              className="group flex items-center justify-center cursor-pointer select-none whitespace-nowrap focus-visible:outline-2 focus-visible:outline-[#101A28] rounded-lg"
-              aria-label="Awaaz-e-Awam Home"
-            >
-              <span
-                className={`font-wordmark italic font-bold tracking-tight text-[#101A28] group-hover:text-[#263E59] transition-all whitespace-nowrap select-none ${
-                  isScrolled
-                    ? 'text-[15px] sm:text-xl lg:text-[1.45rem]'
-                    : 'text-base sm:text-2xl lg:text-[1.65rem]'
-                }`}
-              >
-                Awaaz-e-Awam
-              </span>
-            </Link>
-          </div>
-
-          {/* Zone 3 (Right): Borderless Language Toggle & Account Control */}
-          <div className="flex items-center justify-end min-w-0 gap-1 sm:gap-2">
+          {/* Controls: Language Toggle, Account Link & Mobile Menu Trigger */}
+          <div className="flex items-center gap-2 sm:gap-3">
             <LanguageToggle />
 
-            <div className="hidden sm:block h-3.5 w-px bg-[#D5B995]/40 shrink-0 mx-1" />
+            <div className="hidden sm:block h-3.5 w-px bg-[#E5E3E0] shrink-0 mx-0.5" />
 
             <Link
               to="/login"
-              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 min-h-[40px] rounded-full text-[12.5px] font-ui font-normal tracking-[0.015em] text-[#101A28] hover:text-[#263E59] bg-transparent hover:bg-[#D5B995]/20 transition-colors shrink-0 select-none cursor-pointer focus-visible:outline-2 focus-visible:outline-[#101A28]"
+              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] font-ui font-normal text-[#141414] hover:text-[#681822] hover:bg-[#E5E3E0]/40 transition-colors select-none cursor-pointer focus-visible:outline-2 focus-visible:outline-[#141414]"
             >
-              <User className="w-3.5 h-3.5 text-[#263E59] shrink-0" />
+              <User className="w-3.5 h-3.5 text-[#323232]" />
               <span>{t('navAccount') || t('navSignIn')}</span>
             </Link>
+
+            {/* Mobile / Tablet Menu Button */}
+            <button
+              ref={menuButtonRef}
+              type="button"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="sm:hidden inline-flex items-center justify-center p-2 rounded-full bg-[#FAF9F7] border border-[#E5E3E0] text-[#141414] hover:bg-[#E5E3E0]/50 transition-colors cursor-pointer select-none shadow-sm focus-visible:outline-2 focus-visible:outline-[#141414]"
+              aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+              aria-expanded={mobileMenuOpen}
+              aria-controls="mobile-navigation-drawer"
+            >
+              {mobileMenuOpen ? (
+                <X className="w-4 h-4 text-[#141414]" />
+              ) : (
+                <Menu className="w-4 h-4 text-[#141414]" />
+              )}
+            </button>
           </div>
-
         </div>
-      </div>
+      </header>
 
-      {/* Accessible Navigation Dropdown
-          Anchored directly beneath the Menu trigger button with ~10px separation */}
+      {/* ========================================================
+          2. REFERENCE 1: FLOATING PILL NAVIGATION DOCK (Bottom-Centered)
+             Clean rounded container #FAF9F7, border #E5E3E0,
+             distinctive deep Blood Maroon selected state #681822
+          ======================================================== */}
+      <aside
+        className="fixed bottom-5 sm:bottom-7 left-1/2 -translate-x-1/2 z-40 pointer-events-auto select-none transition-all duration-300"
+        aria-label="Floating Civic Navigation Dock"
+      >
+        <nav
+          aria-label="Desktop primary navigation"
+          className="flex items-center gap-1 sm:gap-1.5 p-1.5 sm:p-2 rounded-full bg-[#FAF9F7]/95 backdrop-blur-md border border-[#E5E3E0] shadow-[0_12px_36px_rgba(20,20,20,0.12),0_2px_8px_rgba(20,20,20,0.04)] max-w-[calc(100vw-24px)] overflow-x-auto scrollbar-none"
+        >
+          {/* Home Link */}
+          <a
+            href="#hero"
+            onClick={(e) => handleNavClick(e, 'hero', '/')}
+            className={`flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full text-[12.5px] sm:text-[13.5px] font-ui transition-all duration-300 whitespace-nowrap cursor-pointer select-none ${
+              isHomeActive
+                ? 'bg-[#681822] text-[#FFFFFF] font-medium shadow-sm'
+                : 'text-[#171717] hover:text-[#141414] hover:bg-[#E5E3E0]/60 font-normal'
+            }`}
+          >
+            <Home className="w-3.5 h-3.5 shrink-0" />
+            <span>{t('navHome') || 'Home'}</span>
+          </a>
+
+          {/* How It Works Link */}
+          <a
+            href="#steps"
+            onClick={(e) => handleNavClick(e, 'steps', '/#steps')}
+            className={`flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full text-[12.5px] sm:text-[13.5px] font-ui transition-all duration-300 whitespace-nowrap cursor-pointer select-none ${
+              isStepsActive
+                ? 'bg-[#681822] text-[#FFFFFF] font-medium shadow-sm'
+                : 'text-[#171717] hover:text-[#141414] hover:bg-[#E5E3E0]/60 font-normal'
+            }`}
+          >
+            <HelpCircle className="w-3.5 h-3.5 shrink-0" />
+            <span>{language === 'ur' ? 'طریقہ کار' : 'How It Works'}</span>
+          </a>
+
+          {/* My Complaints Link */}
+          <Link
+            to="/dashboard"
+            className={`flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full text-[12.5px] sm:text-[13.5px] font-ui transition-all duration-300 whitespace-nowrap cursor-pointer select-none ${
+              isDashboardActive
+                ? 'bg-[#681822] text-[#FFFFFF] font-medium shadow-sm'
+                : 'text-[#171717] hover:text-[#141414] hover:bg-[#E5E3E0]/60 font-normal'
+            }`}
+          >
+            <FolderOpen className="w-3.5 h-3.5 shrink-0" />
+            <span>{t('navMyComplaints') || 'My Complaints'}</span>
+          </Link>
+
+          {/* Write Complaint Link (Primary Signature CTA) */}
+          <Link
+            to="/submit"
+            className={`flex items-center gap-1.5 px-4 sm:px-5 py-1.5 sm:py-2 rounded-full text-[12.5px] sm:text-[13.5px] font-ui transition-all duration-300 whitespace-nowrap cursor-pointer select-none ${
+              isSubmitActive
+                ? 'bg-[#681822] text-[#FFFFFF] font-medium shadow-sm ring-2 ring-[#681822]/20'
+                : 'bg-[#141414] text-[#FFFFFF] hover:bg-[#681822] font-medium'
+            }`}
+          >
+            <PenTool className="w-3.5 h-3.5 text-[#FFFFFF] shrink-0" />
+            <span>{t('navWriteComplaint') || 'Write Complaint'}</span>
+          </Link>
+        </nav>
+      </aside>
+
+      {/* ========================================================
+          3. ACCESSIBLE MOBILE DRAWER (For small screens)
+          ======================================================== */}
       {mobileMenuOpen && (
         <>
           <div
             data-testid="menu-backdrop"
-            className="fixed inset-0 bg-[#101A28]/25 backdrop-blur-[2px] z-40 pointer-events-auto transition-opacity"
+            className="fixed inset-0 bg-[#141414]/30 backdrop-blur-[2px] z-50 pointer-events-auto transition-opacity"
             onClick={() => setMobileMenuOpen(false)}
             aria-hidden="true"
           />
@@ -301,22 +266,22 @@ export const PublicHeader: React.FC = () => {
             id="mobile-navigation-drawer"
             role="dialog"
             aria-modal="true"
-            aria-label="Mobile Navigation Menu"
+            aria-label="Mobile navigation"
             style={{
               top: `${dropdownPosition.top}px`,
               ...(dropdownPosition.left !== undefined ? { left: `${dropdownPosition.left}px` } : {}),
-              ...(dropdownPosition.right !== undefined ? { right: `${dropdownPosition.right}px` } : {})
+              ...(dropdownPosition.right !== undefined ? { right: `${dropdownPosition.right}px` } : {}),
             }}
-            className="fixed w-[calc(100vw-24px)] sm:w-76 max-w-xs p-4 sm:p-5 rounded-3xl bg-[var(--hero-center-surface)] border border-[#D5B995]/40 shadow-2xl z-50 text-start space-y-1 animate-in fade-in zoom-in-95 duration-200 pointer-events-auto"
+            className="fixed w-[calc(100vw-24px)] max-w-xs p-4 rounded-3xl bg-[#FAF9F7] border border-[#E5E3E0] shadow-2xl z-50 text-start space-y-1 animate-in fade-in zoom-in-95 duration-200 pointer-events-auto"
           >
-            <div className="flex items-center justify-between pb-2.5 mb-1.5 border-b border-[#D5B995]/30">
-              <span className="text-[11px] font-mono tracking-wider uppercase text-[#5A626E]">
+            <div className="flex items-center justify-between pb-2 mb-1 border-b border-[#E5E3E0]">
+              <span className="text-[11px] font-mono tracking-wider uppercase text-[#323232]">
                 {language === 'ur' ? 'نیویگیشن مینیو' : 'Navigation Menu'}
               </span>
               <button
                 type="button"
                 onClick={() => setMobileMenuOpen(false)}
-                className="p-1 rounded-full text-[#5A626E] hover:text-[#101A28] hover:bg-[#D5B995]/30 cursor-pointer"
+                className="p-1 rounded-full text-[#323232] hover:text-[#141414] hover:bg-[#E5E3E0] cursor-pointer"
                 aria-label="Close menu"
               >
                 <X className="w-4 h-4" />
@@ -326,45 +291,45 @@ export const PublicHeader: React.FC = () => {
             <a
               href="#hero"
               onClick={(e) => handleNavClick(e, 'hero', '/')}
-              className="block px-3 py-2 rounded-xl text-[13px] font-ui font-medium text-[#101A28] hover:bg-[#D5B995]/30 transition-colors cursor-pointer"
+              className="block px-3 py-2 rounded-xl text-[13px] font-ui font-medium text-[#141414] hover:bg-[#E5E3E0]/60 transition-colors cursor-pointer"
             >
               {t('navHome') || 'Home'}
             </a>
             <a
               href="#steps"
               onClick={(e) => handleNavClick(e, 'steps', '/#steps')}
-              className="block px-3 py-2 rounded-xl text-[13px] font-ui text-[#263E59] hover:text-[#101A28] hover:bg-[#D5B995]/30 transition-colors cursor-pointer"
+              className="block px-3 py-2 rounded-xl text-[13px] font-ui text-[#323232] hover:text-[#141414] hover:bg-[#E5E3E0]/60 transition-colors cursor-pointer"
             >
               {language === 'ur' ? 'طریقہ کار' : 'How It Works'}
             </a>
             <Link
               to="/dashboard"
               onClick={() => setMobileMenuOpen(false)}
-              className="block px-3 py-2 rounded-xl text-[13px] font-ui text-[#263E59] hover:text-[#101A28] hover:bg-[#D5B995]/30 transition-colors cursor-pointer"
+              className="block px-3 py-2 rounded-xl text-[13px] font-ui text-[#323232] hover:text-[#141414] hover:bg-[#E5E3E0]/60 transition-colors cursor-pointer"
             >
               {t('navMyComplaints') || 'My Complaints'}
             </Link>
             <Link
               to="/submit"
               onClick={() => setMobileMenuOpen(false)}
-              className="block px-3 py-2 rounded-xl text-[13px] font-ui text-[#263E59] hover:text-[#101A28] hover:bg-[#D5B995]/30 transition-colors cursor-pointer"
+              className="block px-3 py-2 rounded-xl text-[13px] font-ui text-[#323232] hover:text-[#141414] hover:bg-[#E5E3E0]/60 transition-colors cursor-pointer"
             >
               {t('navWriteComplaint') || 'Write Complaint'}
             </Link>
 
-            <div className="pt-2.5 mt-1.5 border-t border-[#D5B995]/30 space-y-1.5">
+            <div className="pt-2 mt-1 border-t border-[#E5E3E0] space-y-1">
               <Link
                 to="/login"
                 onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-2 px-3 py-2 rounded-xl text-[13px] font-ui text-[#101A28] bg-[#D5B995]/30 hover:bg-[#D5B995]/50 transition-colors cursor-pointer"
+                className="flex items-center gap-2 px-3 py-2 rounded-xl text-[13px] font-ui text-[#141414] bg-[#E5E3E0]/50 hover:bg-[#E5E3E0] transition-colors cursor-pointer"
               >
-                <User className="w-4 h-4 text-[#263E59]" />
+                <User className="w-4 h-4 text-[#323232]" />
                 <span>{t('navAccount') || t('navSignIn')}</span>
               </Link>
             </div>
           </div>
         </>
       )}
-    </header>
+    </>
   );
 };
