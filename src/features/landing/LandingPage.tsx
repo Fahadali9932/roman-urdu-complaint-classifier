@@ -4,22 +4,23 @@ import { useLanguage } from '../../context/LanguageContext';
 import { PenTool, FolderOpen, ArrowRight, ArrowLeft } from 'lucide-react';
 import { ComplaintJourney } from './ComplaintJourney';
 import { FountainPenNib } from '../../components/common/FountainPenNib';
+import { PublicFooter } from '../../components/layout/PublicFooter';
 
 export const LandingPage: React.FC = () => {
   const { t, language, isRTL } = useLanguage();
   const ur = language === 'ur';
 
   return (
-    <div className="w-full bg-[#F7F6F3] text-[#141414] overflow-x-clip selection:bg-[#681822] selection:text-[#FFFFFF]">
+    <div className="w-full bg-[#F7F6F3] text-[#141414] overflow-visible selection:bg-[#681822] selection:text-[#FFFFFF]">
 
       {/* ========================================================
           PANEL 1: MONOCHROME CIVIC EDITORIAL HERO (#hero)
-          Sticky Layer 1 (z-10): Monumental Typography intersected
-          by high-contrast vector fountain pen nib (Reference 2)
+          Sticky Layer 1 (z-10): Stays pinned at top while Panel 2
+          physically rises up and covers it with depth shadow
           ======================================================== */}
       <section
         id="hero"
-        className="sticky top-0 z-10 min-h-screen flex flex-col items-center justify-center px-4 sm:px-8 lg:px-16 pt-20 sm:pt-24 pb-24 sm:pb-28 bg-[#F7F6F3] text-center select-none overflow-hidden"
+        className="sticky top-0 z-10 h-screen w-full flex flex-col items-center justify-center px-4 sm:px-8 lg:px-16 pt-20 sm:pt-24 pb-20 sm:pb-24 bg-[#F7F6F3] text-center select-none overflow-hidden motion-reduce:static"
       >
         {/* Soft atmospheric paper texture overlay */}
         <div
@@ -107,51 +108,64 @@ export const LandingPage: React.FC = () => {
 
       {/* ========================================================
           PANEL 2: HOW IT WORKS (#steps)
-          Sticky Layer 2 (z-20): Rises over Hero with depth shadow
+          Sticky Layer 2 (z-20): Physically rises over Hero with
+          deep shadow and contains the full-screen journey
           ======================================================== */}
-      <div className="relative z-20 min-h-screen bg-[#F7F6F3] shadow-[0_-25px_50px_rgba(20,20,20,0.08)]">
+      <div className="relative z-20 w-full min-h-screen bg-[#F7F6F3] shadow-[0_-35px_70px_rgba(20,20,20,0.22)] motion-reduce:shadow-none">
         <ComplaintJourney id="steps" />
       </div>
 
       {/* ========================================================
           PANEL 3: EDITORIAL GRAPHIC TRANSITION (#write-intro)
-          Sticky Layer 3 (z-30): Monumental cropped letterform "WRITE"
-          with confident negative space and restrained typography
+          Layer 3 (z-30): Monumental cropped letterform "WRITE"
+          with confident negative space and restrained typography,
+          rises over Panel 2 with deep shadow
           ======================================================== */}
-      <section
-        id="write-intro"
-        className="relative z-30 min-h-screen bg-[#FAF9F7] shadow-[0_-35px_70px_rgba(20,20,20,0.18)] border-t border-[#E5E3E0] flex flex-col justify-center px-6 sm:px-12 lg:px-20 py-24 sm:py-32 overflow-hidden select-none"
-        aria-label="Editorial Write Introduction"
-      >
-        <div className="max-w-7xl mx-auto w-full relative">
+      <div className="relative z-30 w-full min-h-screen bg-[#FAF9F7] shadow-[0_-35px_70px_rgba(20,20,20,0.25)] border-t border-[#E5E3E0] motion-reduce:shadow-none">
+        <section
+          id="write-intro"
+          className="sticky top-0 z-30 h-screen w-full flex flex-col justify-center px-6 sm:px-12 lg:px-20 overflow-hidden select-none motion-reduce:static motion-reduce:h-auto motion-reduce:py-24"
+          aria-label="Editorial Write Introduction"
+        >
+          <div className="max-w-7xl mx-auto w-full relative">
 
-          {/* Monumental Cropped Typography (Reference 3)
-              Huge cropped word creating editorial graphic architecture */}
-          <div
-            className="font-display text-[7.5rem] sm:text-[14rem] md:text-[18rem] lg:text-[23rem] text-[#141414] leading-none select-none tracking-tighter opacity-[0.06] sm:opacity-[0.08] absolute -top-16 sm:-top-32 -left-6 sm:-left-12 pointer-events-none uppercase overflow-hidden"
-            aria-hidden="true"
-          >
-            {ur ? 'تحریر' : 'WRITE'}
+            {/* Monumental Cropped Typography (Reference 3)
+                Huge cropped word creating editorial graphic architecture */}
+            <div
+              className="font-display text-[7.5rem] sm:text-[14rem] md:text-[18rem] lg:text-[23rem] text-[#141414] leading-none select-none tracking-tighter opacity-[0.06] sm:opacity-[0.08] absolute -top-16 sm:-top-32 -left-6 sm:-left-12 pointer-events-none uppercase overflow-hidden"
+              aria-hidden="true"
+            >
+              {ur ? 'تحریر' : 'WRITE'}
+            </div>
+
+            {/* Active Editorial Content nested in the negative space */}
+            <div className="relative z-10 max-w-2xl sm:ml-auto">
+
+              {/* Fine Blood Maroon Accent Rule */}
+              <div className="w-16 h-1 bg-[#681822] mb-6" />
+
+              <h2 className="font-display text-4xl sm:text-6xl lg:text-7xl text-[#141414] uppercase leading-[0.98] tracking-tight mb-4">
+                {t('writeSectionTitle')}
+              </h2>
+
+              <p className="font-ui text-base sm:text-xl text-[#323232] leading-relaxed max-w-xl font-normal">
+                {t('writeSectionSubtitle')}
+              </p>
+
+            </div>
+
           </div>
+        </section>
+      </div>
 
-          {/* Active Editorial Content nested in the negative space */}
-          <div className="relative z-10 max-w-2xl sm:ml-auto">
-
-            {/* Fine Blood Maroon Accent Rule */}
-            <div className="w-16 h-1 bg-[#681822] mb-6" />
-
-            <h2 className="font-display text-4xl sm:text-6xl lg:text-7xl text-[#141414] uppercase leading-[0.98] tracking-tight mb-4">
-              {t('writeSectionTitle')}
-            </h2>
-
-            <p className="font-ui text-base sm:text-xl text-[#323232] leading-relaxed max-w-xl font-normal">
-              {t('writeSectionSubtitle')}
-            </p>
-
-          </div>
-
-        </div>
-      </section>
+      {/* ========================================================
+          PANEL 4: FULL-SCREEN FOOTER
+          Layer 4 (z-40): Monumental closing statement that rises
+          over WRITE intro with deep physical shadow
+          ======================================================== */}
+      <div className="relative z-40 w-full min-h-screen bg-[#141414] shadow-[0_-35px_70px_rgba(0,0,0,0.4)] motion-reduce:shadow-none">
+        <PublicFooter />
+      </div>
 
     </div>
   );

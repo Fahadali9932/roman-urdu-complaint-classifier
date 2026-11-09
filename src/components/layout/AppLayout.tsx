@@ -8,12 +8,12 @@ export const AppLayout: React.FC = () => {
   const isHome = location.pathname === '/';
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F7F6F3] text-[#141414] w-full overflow-x-clip selection:bg-[#681822] selection:text-[#FFFFFF]">
+    <div className={`min-h-screen flex flex-col bg-[#F7F6F3] text-[#141414] w-full selection:bg-[#681822] selection:text-[#FFFFFF] ${isHome ? 'overflow-visible' : 'overflow-x-clip'}`}>
       <PublicHeader />
-      <main className={`flex-1 w-full overflow-x-clip ${isHome ? '' : 'pt-24 sm:pt-28 pb-32 sm:pb-36'}`}>
+      <main className={`flex-1 w-full ${isHome ? 'overflow-visible' : 'overflow-x-clip pt-24 sm:pt-28 pb-32 sm:pb-36'}`}>
         <Outlet />
       </main>
-      <PublicFooter />
+      {!isHome && <PublicFooter />}
     </div>
   );
 };
