@@ -16,24 +16,24 @@ export const AlertBanner: React.FC<AlertBannerProps> = ({
 }) => {
   const styles = {
     info: {
-      container: 'bg-[#EBF1F7] border-[#263E59]/25 text-[#101A28]',
-      icon: <Info className="w-5 h-5 text-[#263E59] shrink-0 mt-0.5" />,
-      titleColor: 'text-[#101A28] font-semibold',
+      container: 'bg-[#FAF9F7] border-[#E5E3E0] text-[#141414]',
+      icon: <Info className="w-5 h-5 text-[#323232] shrink-0 mt-0.5" />,
+      titleColor: 'text-[#141414] font-semibold',
     },
     warning: {
-      container: 'bg-[#FDF7EE] border-[#D5B995]/60 text-[#101A28]',
-      icon: <AlertTriangle className="w-5 h-5 text-[#88413F] shrink-0 mt-0.5" />,
-      titleColor: 'text-[#101A28] font-semibold',
+      container: 'bg-[#FAF9F7] border-[#E5E3E0] text-[#141414]',
+      icon: <AlertTriangle className="w-5 h-5 text-[#681822] shrink-0 mt-0.5" />,
+      titleColor: 'text-[#141414] font-semibold',
     },
     success: {
-      container: 'bg-[#EFF8F3] border-emerald-300/60 text-[#101A28]',
+      container: 'bg-[#FAF9F7] border-emerald-300 text-[#141414]',
       icon: <CheckCircle2 className="w-5 h-5 text-emerald-700 shrink-0 mt-0.5" />,
-      titleColor: 'text-[#101A28] font-semibold',
+      titleColor: 'text-[#141414] font-semibold',
     },
     danger: {
-      container: 'bg-[#FAF0F0] border-[#88413F]/30 text-[#101A28]',
-      icon: <AlertCircle className="w-5 h-5 text-[#88413F] shrink-0 mt-0.5" />,
-      titleColor: 'text-[#88413F] font-semibold',
+      container: 'bg-[#FAF0F0] border-[#681822]/30 text-[#141414]',
+      icon: <AlertCircle className="w-5 h-5 text-[#681822] shrink-0 mt-0.5" />,
+      titleColor: 'text-[#681822] font-semibold',
     },
   };
 
@@ -45,7 +45,7 @@ export const AlertBanner: React.FC<AlertBannerProps> = ({
       role="alert"
     >
       {current.icon}
-      <div className="space-y-0.5 text-xs sm:text-sm">
+      <div className="space-y-0.5 text-xs sm:text-sm font-ui">
         {title && <h4 className={`text-sm ${current.titleColor}`}>{title}</h4>}
         <div className="leading-relaxed opacity-90">{children}</div>
       </div>

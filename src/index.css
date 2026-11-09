@@ -1,60 +1,63 @@
-@import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:ital,wght@0,800;0,900;1,800;1,900&family=Outfit:wght@300;400;500;600&family=Playfair+Display:ital,wght@1,600;1,700;1,800&family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:ital,wght@0,800;0,900;1,800;1,900&family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@1,600;1,700;1,800&family=Inter:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
 @layer base {
   :root {
     /* ========================================================================
-       SINDH CIVIC EDITORIAL DESIGN SYSTEM PALETTE TOKENS
+       MONOCHROME CIVIC EDITORIAL DESIGN SYSTEM TOKENS
        ======================================================================== */
-    --limestone: #F0EDE7;          /* Primary light architectural background */
-    --civic-ink: #101A28;          /* Dominant deep text, headings & controls */
-    --ajrak-indigo: #263E59;       /* Secondary emphasis, selected states, badges */
-    --heritage-maroon: #88413F;    /* Cultural accent for focus & fine details */
-    --sandstone: #D5B995;         /* Warm architectural rules, highlights & borders */
+    --editorial-black: #141414;      /* Dominant text, large headings & dark scenes */
+    --paper-white: #F7F6F3;          /* Main website canvas & writing ground */
+    --pure-white: #FFFFFF;           /* Elevated cards, sheets & pill navigation */
+    --graphite: #323232;             /* Secondary dark tone & supporting contrast */
+    --soft-gray: #E5E3E0;            /* Dividers, borders & subtle architectural rules */
+    --blood-maroon: #681822;         /* Primary signature accent (selected pill, CTA) */
+    --blood-maroon-hover: #53131B;   /* Deep hover state for primary accent */
 
-    /* Warm light surfaces */
-    --bg-light-base: #F0EDE7;
-    --hero-center-surface: #E8E3DA;
-    --bg-light-upper: #FAF8F5;
-    --bg-light-transition: #DFD8CC;
-    --card-surface: #FAF8F5;
-    --card-surface-pure: #FFFFFF;
-    --card-border: #DFD9CF;
-    --card-border-sandstone: rgba(213, 185, 149, 0.45);
+    /* Pill Navigation Tokens (Reference 1) */
+    --pill-nav-bg: #FAF9F7;
+    --pill-nav-border: #E5E3E0;
+    --pill-nav-selected-bg: #681822;
+    --pill-nav-selected-text: #FFFFFF;
+    --pill-nav-unselected-text: #171717;
+    --pill-nav-hover-bg: #EFECE6;
 
-    /* Semantic typography & surface tokens */
-    --text-primary: #101A28;
-    --text-secondary: #263E59;
-    --text-muted: #5A626E;
-    --border-subtle: rgba(16, 26, 40, 0.12);
+    /* Semantic surface tokens */
+    --bg-light-base: #F7F6F3;
+    --hero-center-surface: #F0EFEA;
+    --card-surface: #FFFFFF;
+    --card-surface-subtle: #FAF9F7;
+    --card-border: #E5E3E0;
+    --text-primary: #141414;
+    --text-secondary: #323232;
+    --text-muted: #6B6864;
+    --border-subtle: #E5E3E0;
 
-    /* Dark editorial closing foundation tokens (Footer) */
-    --footer-dark-bg: #101A28;
-    --footer-maroon-bg: #1A0B0E;
-    --footer-panel-bg: #140A0D;
-    --footer-text-light: #F0EDE7;
-    --footer-text-muted: #C8BEB3;
-    --footer-rule: rgba(213, 185, 149, 0.25);
-
-    /* Backwards compatibility aliases to preserve unmodified components */
-    --inkwell: #101A28;
-    --ophelia: #263E59;
-    --brocade: #34394A;
-    --vapor: #B5B9BC;
-    --color-inkwell: #101A28;
-    --color-ophelia: #263E59;
-    --color-brocade: #34394A;
-    --color-vapor: #B5B9BC;
-    --color-text-primary: #101A28;
+    /* Backward compatibility aliases */
+    --limestone: #F7F6F3;
+    --civic-ink: #141414;
+    --ajrak-indigo: #323232;
+    --heritage-maroon: #681822;
+    --sandstone: #E5E3E0;
+    --inkwell: #141414;
+    --ophelia: #323232;
+    --brocade: #4A4A4A;
+    --vapor: #9E9B97;
+    --color-inkwell: #141414;
+    --color-ophelia: #323232;
+    --color-brocade: #4A4A4A;
+    --color-vapor: #9E9B97;
+    --color-text-primary: #141414;
   }
 
   html {
     scroll-behavior: smooth;
+    background-color: var(--paper-white);
   }
 
   body {
-    background-color: var(--bg-light-base);
-    color: var(--text-primary);
+    background-color: var(--paper-white);
+    color: var(--editorial-black);
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -67,7 +70,7 @@
   [dir="rtl"] {
     font-family: 'Noto Nastaliq Urdu', 'Urdu Typesetting', 'Jameel Noori Nastaleeq', 'Segoe UI Historic', 'Noto Sans Arabic', Tahoma, Arial, sans-serif;
     letter-spacing: normal;
-    line-height: 1.8;
+    line-height: 1.85;
   }
 
   /* Keep Roman Urdu text passages strictly in Latin sans-serif for optimal readability */
@@ -90,7 +93,7 @@
   select:focus-visible,
   button:focus-visible,
   a:focus-visible {
-    outline: 2px solid var(--civic-ink) !important;
+    outline: 2px solid var(--editorial-black) !important;
     outline-offset: 2px !important;
   }
 
@@ -108,7 +111,7 @@
 }
 
 /* ==========================================================================
-   SINDH CIVIC EDITORIAL TYPOGRAPHY & DESIGN SYSTEM
+   MONOCHROME CIVIC EDITORIAL TYPOGRAPHY & DESIGN SYSTEM
    ========================================================================== */
 
 /* Hero Ultra-Heavy Editorial Display Font: Archivo Black for commanding presence */
@@ -119,10 +122,9 @@
   text-transform: uppercase;
 }
 
-/* Refined, Thin Modern Interface & Navigation Typography: Outfit (weight 400) */
+/* Refined Modern Interface & Navigation Typography: Outfit */
 .font-ui {
   font-family: 'Outfit', sans-serif;
-  font-weight: 400;
   letter-spacing: 0.015em;
 }
 
@@ -134,66 +136,34 @@
   letter-spacing: -0.02em;
 }
 
-/* Hero Button Typography Token */
-.hero-button {
-  font-family: 'Outfit', sans-serif;
-  font-size: 15px;
-  font-weight: 400;
-  letter-spacing: 0.015em;
+/* Editorial Floating Pill Navigation Dock (Reference 1) */
+.pill-navigation-dock {
+  background-color: var(--pill-nav-bg);
+  border: 1px solid var(--pill-nav-border);
+  box-shadow: 0 12px 32px rgba(20, 20, 20, 0.08), 0 2px 6px rgba(20, 20, 20, 0.03);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
-/* Scrolled Floating Rounded Navbar in Warm Limestone/Sandstone */
-.scrolled-floating-navbar {
-  background-color: var(--hero-center-surface);
-  min-height: 92px;
-  border-radius: 46px;
-  border: 1px solid rgba(213, 185, 149, 0.4);
-  box-shadow: 0 14px 36px rgba(16, 26, 40, 0.09), 0 3px 10px rgba(16, 26, 40, 0.03);
-  transition: all 700ms cubic-bezier(0.22, 1, 0.36, 1);
+/* Stacked panel transition helpers (Task 7) */
+.stacked-panel-section {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  box-shadow: 0 -20px 40px rgba(20, 20, 20, 0.06);
 }
 
-.scrolled-floating-navbar-mobile {
-  background-color: var(--hero-center-surface);
-  min-height: 68px;
-  border-radius: 34px;
-  border: 1px solid rgba(213, 185, 149, 0.4);
-  box-shadow: 0 10px 28px rgba(16, 26, 40, 0.08), 0 2px 6px rgba(16, 26, 40, 0.03);
-  transition: all 700ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-/* Multi-layered Warm Architectural Atmospheric Hero Background */
-.light-cinematic-atmosphere {
-  background:
-    radial-gradient(ellipse 90% 65% at 50% 45%, var(--hero-center-surface) 0%, rgba(232, 227, 218, 0.75) 45%, transparent 80%),
-    radial-gradient(ellipse 70% 50% at 85% 20%, #EAE5DC 0%, transparent 60%),
-    radial-gradient(ellipse 65% 55% at 15% 70%, #E2DDD3 0%, transparent 60%),
-    radial-gradient(ellipse 80% 60% at 50% 100%, #DFD8CC 0%, transparent 70%),
-    #F0EDE7;
-}
-
-/* Cohesive civic paper surface */
+/* Paper surface classes */
 .paper-surface,
 .paper-sheet {
-  background-color: #FAF8F5;
+  background-color: var(--pure-white);
   border: 1px solid var(--card-border);
-  color: var(--text-primary);
+  color: var(--editorial-black);
 }
 
 .glass-workspace,
 .civic-glass {
-  background-color: #FAF8F5;
+  background-color: var(--pure-white);
   border: 1px solid var(--card-border);
-  color: var(--text-primary);
-}
-
-.glass-navbar,
-.glass-topbar,
-.notebook-navbar {
-  background-color: rgba(232, 227, 218, 0.95);
-  border-bottom: 1px solid rgba(213, 185, 149, 0.4);
-}
-
-.notebook-footer {
-  background-color: #F0EDE7;
-  border-top: 1px solid rgba(16, 26, 40, 0.12);
+  color: var(--editorial-black);
 }
