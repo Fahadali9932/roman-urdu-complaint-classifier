@@ -33,15 +33,15 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         {label && (
           <label
             htmlFor={inputId}
-            className="block text-xs sm:text-sm font-semibold text-[#B5B9BC] mb-1.5 select-none"
+            className="block text-xs sm:text-sm font-semibold text-[#263E59] mb-1.5 select-none"
           >
             {label}
-            {props.required && <span className="text-rose-400 ms-1" aria-hidden="true">*</span>}
+            {props.required && <span className="text-[#88413F] ms-1" aria-hidden="true">*</span>}
           </label>
         )}
         <div className="relative rounded-lg">
           {leftIcon && (
-            <div className="absolute inset-y-0 start-0 ps-3.5 flex items-center pointer-events-none text-[#B5B9BC]">
+            <div className="absolute inset-y-0 start-0 ps-3.5 flex items-center pointer-events-none text-[#5A626E]">
               {leftIcon}
             </div>
           )}
@@ -50,32 +50,34 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             ref={ref}
             aria-invalid={Boolean(error)}
             aria-describedby={errorId || helperId}
-            className={`w-full min-h-[44px] rounded-lg border bg-[#131C2A] px-3.5 py-2.5 text-sm sm:text-base text-[#F1F2F3] placeholder:text-[#B5B9BC]/40 transition-colors focus:bg-[#172131] focus:outline-hidden ${
+            className={`w-full min-h-[44px] rounded-lg border bg-white px-3.5 py-2.5 text-sm sm:text-base text-[#101A28] placeholder:text-[#5A626E]/50 transition-colors focus:bg-white focus:outline-hidden ${
               leftIcon ? 'ps-10' : ''
             } ${rightAction || rightIcon ? 'pe-11' : ''} ${
               error
-                ? 'border-rose-400/80 focus:border-rose-400 focus:ring-1 focus:ring-rose-400 bg-rose-950/20'
-                : 'border-[#34394A] focus:border-[#F1F2F3] focus:ring-1 focus:ring-[#F1F2F3]'
+                ? 'border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 bg-rose-50/30'
+                : 'border-[#DFD9CF] hover:border-[#D5B995] focus:border-[#101A28] focus:ring-1 focus:ring-[#101A28]'
             } ${className}`}
             {...props}
           />
           {rightAction ? (
-            <div className="absolute inset-y-0 end-0 pe-2.5 flex items-center">{rightAction}</div>
+            <div className="absolute inset-y-0 end-0 pe-2.5 flex items-center">
+              {rightAction}
+            </div>
           ) : (
             rightIcon && (
-              <div className="absolute inset-y-0 end-0 pe-3.5 flex items-center pointer-events-none text-[#B5B9BC]">
+              <div className="absolute inset-y-0 end-0 pe-3.5 flex items-center pointer-events-none text-[#5A626E]">
                 {rightIcon}
               </div>
             )
           )}
         </div>
         {error && (
-          <p id={errorId} className="mt-1.5 text-xs text-rose-400 font-medium" role="alert">
+          <p id={errorId} className="mt-1.5 text-xs text-[#88413F] font-medium" role="alert">
             {error}
           </p>
         )}
         {helperText && !error && (
-          <p id={helperId} className="mt-1.5 text-xs text-[#B5B9BC]">
+          <p id={helperId} className="mt-1.5 text-xs text-[#5A626E]">
             {helperText}
           </p>
         )}

@@ -11,22 +11,22 @@ export const ComplaintTracker: React.FC = () => {
   return (
     <div className="py-12 sm:py-16">
       <Container size="sm">
-        <div className="rounded-3xl bg-[var(--hero-center-surface)] border border-[#34394A]/15 p-8 sm:p-12 text-center space-y-5 shadow-xl shadow-[#0B1421]/5">
-          <div className="w-16 h-16 rounded-2xl bg-[#CBD0D6]/60 border border-[#34394A]/20 flex items-center justify-center mx-auto text-[#0B1421]">
+        <div className="rounded-3xl bg-white border border-[#DFD9CF] p-8 sm:p-12 text-center space-y-5 shadow-xl shadow-[#101A28]/06">
+          <div className="w-16 h-16 rounded-2xl bg-[#FAF8F5] border border-[#D5B995]/60 flex items-center justify-center mx-auto text-[#88413F]">
             <FolderOpen className="w-8 h-8 stroke-[1.5]" />
           </div>
           <div className="space-y-2">
-            <h1 className="font-display font-black text-2xl sm:text-3xl text-[#0B1421] tracking-tight uppercase">
+            <h1 className="font-display font-black text-2xl sm:text-3xl text-[#101A28] tracking-tight uppercase">
               {language === 'ur' ? 'شکایت کی پیش رفت' : 'Complaint progress'}
             </h1>
-            <p className="text-sm text-[#283041] leading-relaxed font-ui">
+            <p className="text-sm text-[#5A626E] leading-relaxed font-ui">
               {language === 'ur'
                 ? 'جب شکایات بھیجنے اور محفوظ کرنے کی سہولت دستیاب ہوگی تو ان کی پیش رفت یہاں دکھائی جائے گی۔'
                 : 'Progress will be shown here when complaints can be sent and saved.'}
             </p>
           </div>
           <Link to="/submit" className="inline-block">
-            <Button variant="primary" size="md" leftIcon={<PenTool className="w-4 h-4" />}>
+            <Button variant="primary" size="md" leftIcon={<PenTool className="w-4 h-4 text-[#D5B995]" />}>
               {t('navWriteComplaint')}
             </Button>
           </Link>

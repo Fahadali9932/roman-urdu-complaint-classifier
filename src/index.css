@@ -3,30 +3,49 @@
 
 @layer base {
   :root {
-    /* Exact original palette identity tokens - DO NOT ALTER */
-    --inkwell: #0B1421;
-    --ophelia: #283041;
-    --brocade: #34394A;
-    --vapor: #B5B9BC;
+    /* ========================================================================
+       SINDH CIVIC EDITORIAL DESIGN SYSTEM PALETTE TOKENS
+       ======================================================================== */
+    --limestone: #F0EDE7;          /* Primary light architectural background */
+    --civic-ink: #101A28;          /* Dominant deep text, headings & controls */
+    --ajrak-indigo: #263E59;       /* Secondary emphasis, selected states, badges */
+    --heritage-maroon: #88413F;    /* Cultural accent for focus & fine details */
+    --sandstone: #D5B995;         /* Warm architectural rules, highlights & borders */
 
-    /* Light palette derivatives */
-    --bg-light-base: #E9EBED;
-    --hero-center-surface: #DEE1E5;
-    --bg-light-upper: #F1F2F3;
-    --bg-light-transition: #CBD0D6;
+    /* Warm light surfaces */
+    --bg-light-base: #F0EDE7;
+    --hero-center-surface: #E8E3DA;
+    --bg-light-upper: #FAF8F5;
+    --bg-light-transition: #DFD8CC;
+    --card-surface: #FAF8F5;
+    --card-surface-pure: #FFFFFF;
+    --card-border: #DFD9CF;
+    --card-border-sandstone: rgba(213, 185, 149, 0.45);
 
     /* Semantic typography & surface tokens */
-    --text-primary: #0B1421;
-    --text-secondary: #283041;
-    --text-muted: #535965;
-    --border-subtle: rgba(52, 57, 74, 0.15);
+    --text-primary: #101A28;
+    --text-secondary: #263E59;
+    --text-muted: #5A626E;
+    --border-subtle: rgba(16, 26, 40, 0.12);
 
-    /* Backwards compatibility aliases */
-    --color-inkwell: #0B1421;
-    --color-ophelia: #283041;
+    /* Dark editorial closing foundation tokens (Footer) */
+    --footer-dark-bg: #101A28;
+    --footer-maroon-bg: #1A0B0E;
+    --footer-panel-bg: #140A0D;
+    --footer-text-light: #F0EDE7;
+    --footer-text-muted: #C8BEB3;
+    --footer-rule: rgba(213, 185, 149, 0.25);
+
+    /* Backwards compatibility aliases to preserve unmodified components */
+    --inkwell: #101A28;
+    --ophelia: #263E59;
+    --brocade: #34394A;
+    --vapor: #B5B9BC;
+    --color-inkwell: #101A28;
+    --color-ophelia: #263E59;
     --color-brocade: #34394A;
     --color-vapor: #B5B9BC;
-    --color-text-primary: #0B1421;
+    --color-text-primary: #101A28;
   }
 
   html {
@@ -71,7 +90,7 @@
   select:focus-visible,
   button:focus-visible,
   a:focus-visible {
-    outline: 2px solid var(--inkwell) !important;
+    outline: 2px solid var(--civic-ink) !important;
     outline-offset: 2px !important;
   }
 
@@ -89,7 +108,7 @@
 }
 
 /* ==========================================================================
-   LIGHT CINEMATIC EDITORIAL TYPOGRAPHY & DESIGN SYSTEM
+   SINDH CIVIC EDITORIAL TYPOGRAPHY & DESIGN SYSTEM
    ========================================================================== */
 
 /* Hero Ultra-Heavy Editorial Display Font: Archivo Black for commanding presence */
@@ -123,13 +142,13 @@
   letter-spacing: 0.015em;
 }
 
-/* Scrolled Floating Rounded Navbar (Matches exact hero-center surface with substantial 92px vertical thickness) */
+/* Scrolled Floating Rounded Navbar in Warm Limestone/Sandstone */
 .scrolled-floating-navbar {
   background-color: var(--hero-center-surface);
   min-height: 92px;
   border-radius: 46px;
-  border: 1px solid rgba(52, 57, 74, 0.15);
-  box-shadow: 0 14px 36px rgba(11, 20, 33, 0.10), 0 3px 10px rgba(11, 20, 33, 0.04);
+  border: 1px solid rgba(213, 185, 149, 0.4);
+  box-shadow: 0 14px 36px rgba(16, 26, 40, 0.09), 0 3px 10px rgba(16, 26, 40, 0.03);
   transition: all 700ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -137,39 +156,44 @@
   background-color: var(--hero-center-surface);
   min-height: 68px;
   border-radius: 34px;
-  border: 1px solid rgba(52, 57, 74, 0.15);
-  box-shadow: 0 10px 28px rgba(11, 20, 33, 0.09), 0 2px 6px rgba(11, 20, 33, 0.04);
+  border: 1px solid rgba(213, 185, 149, 0.4);
+  box-shadow: 0 10px 28px rgba(16, 26, 40, 0.08), 0 2px 6px rgba(16, 26, 40, 0.03);
   transition: all 700ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* Multi-layered Light Atmospheric Hero Background */
+/* Multi-layered Warm Architectural Atmospheric Hero Background */
 .light-cinematic-atmosphere {
   background:
-    radial-gradient(ellipse 90% 65% at 50% 45%, var(--hero-center-surface) 0%, rgba(222, 225, 229, 0.75) 45%, transparent 80%),
-    radial-gradient(ellipse 70% 50% at 85% 20%, #E2E5E9 0%, transparent 60%),
-    radial-gradient(ellipse 65% 55% at 15% 70%, #D5DAE0 0%, transparent 60%),
-    radial-gradient(ellipse 80% 60% at 50% 100%, #CBD0D6 0%, transparent 70%),
-    #E9EBED;
+    radial-gradient(ellipse 90% 65% at 50% 45%, var(--hero-center-surface) 0%, rgba(232, 227, 218, 0.75) 45%, transparent 80%),
+    radial-gradient(ellipse 70% 50% at 85% 20%, #EAE5DC 0%, transparent 60%),
+    radial-gradient(ellipse 65% 55% at 15% 70%, #E2DDD3 0%, transparent 60%),
+    radial-gradient(ellipse 80% 60% at 50% 100%, #DFD8CC 0%, transparent 70%),
+    #F0EDE7;
 }
 
-/* Compatibility aliases for previous components */
-.glass-workspace,
-.civic-glass,
+/* Cohesive civic paper surface */
 .paper-surface,
 .paper-sheet {
-  background-color: #FFFFFF;
-  border: 1px solid rgba(52, 57, 74, 0.15);
-  color: #0B1421;
+  background-color: #FAF8F5;
+  border: 1px solid var(--card-border);
+  color: var(--text-primary);
+}
+
+.glass-workspace,
+.civic-glass {
+  background-color: #FAF8F5;
+  border: 1px solid var(--card-border);
+  color: var(--text-primary);
 }
 
 .glass-navbar,
 .glass-topbar,
 .notebook-navbar {
-  background-color: rgba(222, 225, 229, 0.95);
-  border-bottom: 1px solid rgba(52, 57, 74, 0.15);
+  background-color: rgba(232, 227, 218, 0.95);
+  border-bottom: 1px solid rgba(213, 185, 149, 0.4);
 }
 
 .notebook-footer {
-  background-color: #E9EBED;
-  border-top: 1px solid rgba(52, 57, 74, 0.15);
+  background-color: #F0EDE7;
+  border-top: 1px solid rgba(16, 26, 40, 0.12);
 }

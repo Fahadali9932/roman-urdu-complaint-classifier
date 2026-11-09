@@ -149,7 +149,7 @@ export const PublicHeader: React.FC = () => {
             Transitions as one coherent visual layer, completely curing the border flash! */}
         <div
           aria-hidden="true"
-          className={`absolute inset-0 rounded-[34px] sm:rounded-[46px] bg-[var(--hero-center-surface)] border border-[#34394A]/15 shadow-[0_14px_36px_rgba(11,20,33,0.10),0_3px_10px_rgba(11,20,33,0.04)] pointer-events-none transition-all duration-[700ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
+          className={`absolute inset-0 rounded-[34px] sm:rounded-[46px] bg-[var(--hero-center-surface)] border border-[#D5B995]/40 shadow-[0_14px_36px_rgba(16,26,40,0.08),0_3px_10px_rgba(16,26,40,0.03)] pointer-events-none transition-all duration-[700ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
             isScrolled
               ? 'opacity-100 scale-100'
               : 'opacity-0 scale-[0.98]'
@@ -171,26 +171,26 @@ export const PublicHeader: React.FC = () => {
                   <a
                     href="#hero"
                     onClick={(e) => handleNavClick(e, 'hero', '/')}
-                    className="text-[#283041] hover:text-[#0B1421] transition-colors py-2 px-2.5 rounded-full hover:bg-[#CBD0D6]/40 shrink-0 select-none cursor-pointer"
+                    className="text-[#263E59] hover:text-[#101A28] transition-colors py-2 px-2.5 rounded-full hover:bg-[#D5B995]/20 shrink-0 select-none cursor-pointer"
                   >
                     {t('navHome') || 'Home'}
                   </a>
                   <a
                     href="#steps"
                     onClick={(e) => handleNavClick(e, 'steps', '/#steps')}
-                    className="text-[#283041] hover:text-[#0B1421] transition-colors py-2 px-2.5 rounded-full hover:bg-[#CBD0D6]/40 shrink-0 select-none cursor-pointer"
+                    className="text-[#263E59] hover:text-[#101A28] transition-colors py-2 px-2.5 rounded-full hover:bg-[#D5B995]/20 shrink-0 select-none cursor-pointer"
                   >
                     {language === 'ur' ? 'طریقہ کار' : 'How It Works'}
                   </a>
                   <Link
                     to="/dashboard"
-                    className="text-[#283041] hover:text-[#0B1421] transition-colors py-2 px-2.5 rounded-full hover:bg-[#CBD0D6]/40 shrink-0 select-none cursor-pointer"
+                    className="text-[#263E59] hover:text-[#101A28] transition-colors py-2 px-2.5 rounded-full hover:bg-[#D5B995]/20 shrink-0 select-none cursor-pointer"
                   >
                     {t('navMyComplaints') || 'My Complaints'}
                   </Link>
                   <Link
                     to="/submit"
-                    className="text-[#283041] hover:text-[#0B1421] transition-colors py-2 px-2.5 rounded-full hover:bg-[#CBD0D6]/40 shrink-0 select-none cursor-pointer"
+                    className="text-[#263E59] hover:text-[#101A28] transition-colors py-2 px-2.5 rounded-full hover:bg-[#D5B995]/20 shrink-0 select-none cursor-pointer"
                   >
                     {t('navWriteComplaint') || 'Write Complaint'}
                   </Link>
@@ -202,15 +202,15 @@ export const PublicHeader: React.FC = () => {
                     ref={menuButtonRef}
                     type="button"
                     onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                    className="inline-flex items-center gap-2 px-2.5 sm:px-3 py-2 min-h-[44px] rounded-full bg-transparent hover:bg-[#CBD0D6]/50 text-[#0B1421] transition-colors cursor-pointer select-none focus-visible:outline-2 focus-visible:outline-[#0B1421]"
+                    className="inline-flex items-center gap-2 px-2.5 sm:px-3 py-2 min-h-[44px] rounded-full bg-transparent hover:bg-[#D5B995]/25 text-[#101A28] transition-colors cursor-pointer select-none focus-visible:outline-2 focus-visible:outline-[#101A28]"
                     aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
                     aria-expanded={mobileMenuOpen}
                     aria-controls="mobile-navigation-drawer"
                   >
                     {mobileMenuOpen ? (
-                      <X className="w-4 h-4 text-[#0B1421] shrink-0" />
+                      <X className="w-4 h-4 text-[#101A28] shrink-0" />
                     ) : (
-                      <Menu className="w-4 h-4 text-[#0B1421] shrink-0" />
+                      <Menu className="w-4 h-4 text-[#101A28] shrink-0" />
                     )}
                     <span className="text-[12.5px] font-ui font-medium tracking-[0.015em] hidden sm:inline">
                       {language === 'ur' ? 'مینیو' : 'Menu'}
@@ -225,15 +225,15 @@ export const PublicHeader: React.FC = () => {
                   ref={menuButtonRef}
                   type="button"
                   onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                  className="inline-flex items-center gap-2 px-2.5 sm:px-3 py-2 min-h-[44px] rounded-full bg-transparent hover:bg-[#CBD0D6]/50 text-[#0B1421] transition-colors cursor-pointer select-none focus-visible:outline-2 focus-visible:outline-[#0B1421]"
+                  className="inline-flex items-center gap-2 px-2.5 sm:px-3 py-2 min-h-[44px] rounded-full bg-transparent hover:bg-[#D5B995]/25 text-[#101A28] transition-colors cursor-pointer select-none focus-visible:outline-2 focus-visible:outline-[#101A28]"
                   aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
                   aria-expanded={mobileMenuOpen}
                   aria-controls="mobile-navigation-drawer"
                 >
                   {mobileMenuOpen ? (
-                    <X className="w-4 h-4 text-[#0B1421] shrink-0" />
+                    <X className="w-4 h-4 text-[#101A28] shrink-0" />
                   ) : (
-                    <Menu className="w-4 h-4 text-[#0B1421] shrink-0" />
+                    <Menu className="w-4 h-4 text-[#101A28] shrink-0" />
                   )}
                   <span className="text-[12.5px] font-ui font-medium tracking-[0.015em] hidden sm:inline">
                     {language === 'ur' ? 'مینیو' : 'Menu'}
@@ -253,11 +253,11 @@ export const PublicHeader: React.FC = () => {
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }
               }}
-              className="group flex items-center justify-center cursor-pointer select-none whitespace-nowrap focus-visible:outline-2 focus-visible:outline-[#0B1421] rounded-lg"
+              className="group flex items-center justify-center cursor-pointer select-none whitespace-nowrap focus-visible:outline-2 focus-visible:outline-[#101A28] rounded-lg"
               aria-label="Awaaz-e-Awam Home"
             >
               <span
-                className={`font-wordmark italic font-bold tracking-tight text-[#0B1421] group-hover:text-[#283041] transition-all whitespace-nowrap select-none ${
+                className={`font-wordmark italic font-bold tracking-tight text-[#101A28] group-hover:text-[#263E59] transition-all whitespace-nowrap select-none ${
                   isScrolled
                     ? 'text-[15px] sm:text-xl lg:text-[1.45rem]'
                     : 'text-base sm:text-2xl lg:text-[1.65rem]'
@@ -272,13 +272,13 @@ export const PublicHeader: React.FC = () => {
           <div className="flex items-center justify-end min-w-0 gap-1 sm:gap-2">
             <LanguageToggle />
 
-            <div className="hidden sm:block h-3.5 w-px bg-[#34394A]/15 shrink-0 mx-1" />
+            <div className="hidden sm:block h-3.5 w-px bg-[#D5B995]/40 shrink-0 mx-1" />
 
             <Link
               to="/login"
-              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 min-h-[40px] rounded-full text-[12.5px] font-ui font-normal tracking-[0.015em] text-[#0B1421] hover:text-[#283041] bg-transparent hover:bg-[#CBD0D6]/50 transition-colors shrink-0 select-none cursor-pointer focus-visible:outline-2 focus-visible:outline-[#0B1421]"
+              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 min-h-[40px] rounded-full text-[12.5px] font-ui font-normal tracking-[0.015em] text-[#101A28] hover:text-[#263E59] bg-transparent hover:bg-[#D5B995]/20 transition-colors shrink-0 select-none cursor-pointer focus-visible:outline-2 focus-visible:outline-[#101A28]"
             >
-              <User className="w-3.5 h-3.5 text-[#34394A] shrink-0" />
+              <User className="w-3.5 h-3.5 text-[#263E59] shrink-0" />
               <span>{t('navAccount') || t('navSignIn')}</span>
             </Link>
           </div>
@@ -292,7 +292,7 @@ export const PublicHeader: React.FC = () => {
         <>
           <div
             data-testid="menu-backdrop"
-            className="fixed inset-0 bg-[#0B1421]/15 backdrop-blur-[1px] z-40 pointer-events-auto transition-opacity"
+            className="fixed inset-0 bg-[#101A28]/25 backdrop-blur-[2px] z-40 pointer-events-auto transition-opacity"
             onClick={() => setMobileMenuOpen(false)}
             aria-hidden="true"
           />
@@ -307,16 +307,16 @@ export const PublicHeader: React.FC = () => {
               ...(dropdownPosition.left !== undefined ? { left: `${dropdownPosition.left}px` } : {}),
               ...(dropdownPosition.right !== undefined ? { right: `${dropdownPosition.right}px` } : {})
             }}
-            className="fixed w-[calc(100vw-24px)] sm:w-76 max-w-xs p-4 sm:p-5 rounded-3xl bg-[var(--hero-center-surface)] border border-[#34394A]/15 shadow-2xl z-50 text-start space-y-1 animate-in fade-in zoom-in-95 duration-200 pointer-events-auto"
+            className="fixed w-[calc(100vw-24px)] sm:w-76 max-w-xs p-4 sm:p-5 rounded-3xl bg-[var(--hero-center-surface)] border border-[#D5B995]/40 shadow-2xl z-50 text-start space-y-1 animate-in fade-in zoom-in-95 duration-200 pointer-events-auto"
           >
-            <div className="flex items-center justify-between pb-2.5 mb-1.5 border-b border-[#34394A]/15">
-              <span className="text-[11px] font-mono tracking-wider uppercase text-[#535965]">
+            <div className="flex items-center justify-between pb-2.5 mb-1.5 border-b border-[#D5B995]/30">
+              <span className="text-[11px] font-mono tracking-wider uppercase text-[#5A626E]">
                 {language === 'ur' ? 'نیویگیشن مینیو' : 'Navigation Menu'}
               </span>
               <button
                 type="button"
                 onClick={() => setMobileMenuOpen(false)}
-                className="p-1 rounded-full text-[#535965] hover:text-[#0B1421] hover:bg-[#CBD0D6]/60 cursor-pointer"
+                className="p-1 rounded-full text-[#5A626E] hover:text-[#101A28] hover:bg-[#D5B995]/30 cursor-pointer"
                 aria-label="Close menu"
               >
                 <X className="w-4 h-4" />
@@ -326,39 +326,39 @@ export const PublicHeader: React.FC = () => {
             <a
               href="#hero"
               onClick={(e) => handleNavClick(e, 'hero', '/')}
-              className="block px-3 py-2 rounded-xl text-[13px] font-ui font-medium text-[#0B1421] hover:bg-[#CBD0D6]/60 transition-colors cursor-pointer"
+              className="block px-3 py-2 rounded-xl text-[13px] font-ui font-medium text-[#101A28] hover:bg-[#D5B995]/30 transition-colors cursor-pointer"
             >
               {t('navHome') || 'Home'}
             </a>
             <a
               href="#steps"
               onClick={(e) => handleNavClick(e, 'steps', '/#steps')}
-              className="block px-3 py-2 rounded-xl text-[13px] font-ui text-[#283041] hover:text-[#0B1421] hover:bg-[#CBD0D6]/60 transition-colors cursor-pointer"
+              className="block px-3 py-2 rounded-xl text-[13px] font-ui text-[#263E59] hover:text-[#101A28] hover:bg-[#D5B995]/30 transition-colors cursor-pointer"
             >
               {language === 'ur' ? 'طریقہ کار' : 'How It Works'}
             </a>
             <Link
               to="/dashboard"
               onClick={() => setMobileMenuOpen(false)}
-              className="block px-3 py-2 rounded-xl text-[13px] font-ui text-[#283041] hover:text-[#0B1421] hover:bg-[#CBD0D6]/60 transition-colors cursor-pointer"
+              className="block px-3 py-2 rounded-xl text-[13px] font-ui text-[#263E59] hover:text-[#101A28] hover:bg-[#D5B995]/30 transition-colors cursor-pointer"
             >
               {t('navMyComplaints') || 'My Complaints'}
             </Link>
             <Link
               to="/submit"
               onClick={() => setMobileMenuOpen(false)}
-              className="block px-3 py-2 rounded-xl text-[13px] font-ui text-[#283041] hover:text-[#0B1421] hover:bg-[#CBD0D6]/60 transition-colors cursor-pointer"
+              className="block px-3 py-2 rounded-xl text-[13px] font-ui text-[#263E59] hover:text-[#101A28] hover:bg-[#D5B995]/30 transition-colors cursor-pointer"
             >
               {t('navWriteComplaint') || 'Write Complaint'}
             </Link>
 
-            <div className="pt-2.5 mt-1.5 border-t border-[#34394A]/15 space-y-1.5">
+            <div className="pt-2.5 mt-1.5 border-t border-[#D5B995]/30 space-y-1.5">
               <Link
                 to="/login"
                 onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-2 px-3 py-2 rounded-xl text-[13px] font-ui text-[#0B1421] bg-[#CBD0D6]/50 hover:bg-[#CBD0D6] transition-colors cursor-pointer"
+                className="flex items-center gap-2 px-3 py-2 rounded-xl text-[13px] font-ui text-[#101A28] bg-[#D5B995]/30 hover:bg-[#D5B995]/50 transition-colors cursor-pointer"
               >
-                <User className="w-4 h-4 text-[#34394A]" />
+                <User className="w-4 h-4 text-[#263E59]" />
                 <span>{t('navAccount') || t('navSignIn')}</span>
               </Link>
             </div>

@@ -31,15 +31,15 @@ export const LoginPage: React.FC = () => {
           <div className="inline-flex justify-center mb-1">
             <CivicEmblem size="md" />
           </div>
-          <h1 className="text-xl sm:text-2xl font-semibold text-[#0B1421] tracking-tight">
+          <h1 className="font-display font-black text-2xl sm:text-3xl text-[#101A28] uppercase tracking-tight">
             {t('authSignInTitle')}
           </h1>
-          <p className="text-xs text-[#283041] max-w-xs mx-auto">
+          <p className="text-xs sm:text-sm text-[#263E59] max-w-xs mx-auto font-ui">
             {t('authSignInSubtitle')}
           </p>
         </div>
 
-        <div className="bg-[#172131]/95 border border-[#34394A] rounded-2xl p-4 sm:p-8 text-start space-y-5 shadow-2xl">
+        <div className="bg-white border border-[#DFD9CF] rounded-2xl p-6 sm:p-10 text-start space-y-5 shadow-xl shadow-[#101A28]/06">
           <form onSubmit={handleSubmit} className="space-y-4">
             <Input
               label={t('authEmail')}
@@ -49,18 +49,18 @@ export const LoginPage: React.FC = () => {
               placeholder={t('authEmailPlaceholder')}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              leftIcon={<Mail className="w-4 h-4 text-[#B5B9BC]" />}
+              leftIcon={<Mail className="w-4 h-4 text-[#5A626E]" />}
             />
 
             <div className="space-y-1">
               <div className="flex items-center justify-between">
                 <label
                   htmlFor="password"
-                  className="block text-xs font-semibold text-[#B5B9BC] uppercase tracking-wider"
+                  className="block text-xs font-semibold text-[#263E59] uppercase tracking-wider"
                 >
-                  {t('authPassword')} <span className="text-rose-400">*</span>
+                  {t('authPassword')} <span className="text-[#88413F]">*</span>
                 </label>
-                <span className="text-xs text-[#B5B9BC] hover:text-[#F1F2F3] hover:underline cursor-pointer">
+                <span className="text-xs text-[#263E59] hover:text-[#88413F] hover:underline cursor-pointer">
                   {t('authForgotPassword')}
                 </span>
               </div>
@@ -71,13 +71,13 @@ export const LoginPage: React.FC = () => {
                 placeholder={t('authPasswordPlaceholder')}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                leftIcon={<Lock className="w-4 h-4 text-[#B5B9BC]" />}
+                leftIcon={<Lock className="w-4 h-4 text-[#5A626E]" />}
                 rightAction={
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     aria-label={showPassword ? t('passwordHide') : t('passwordShow')}
-                    className="p-1.5 text-[#B5B9BC] hover:text-[#F1F2F3] focus:outline-none min-w-[36px] min-h-[36px] flex items-center justify-center rounded transition-colors"
+                    className="p-1.5 text-[#5A626E] hover:text-[#101A28] focus:outline-none min-w-[36px] min-h-[36px] flex items-center justify-center rounded transition-colors cursor-pointer"
                   >
                     {showPassword ? (
                       <EyeOff className="w-4 h-4" aria-hidden="true" />
@@ -89,11 +89,11 @@ export const LoginPage: React.FC = () => {
               />
             </div>
 
-            <div className="flex items-center justify-between text-xs text-[#B5B9BC]">
+            <div className="flex items-center justify-between text-xs text-[#5A626E]">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
-                  className="rounded border-[#34394A] bg-[#131C2A] text-[#F1F2F3] focus:ring-[#F1F2F3]"
+                  className="rounded border-[#DFD9CF] bg-white text-[#101A28] focus:ring-[#101A28]"
                 />
                 <span>{t('authRememberMe')}</span>
               </label>
@@ -105,7 +105,7 @@ export const LoginPage: React.FC = () => {
               size="md"
               className="w-full"
               isLoading={submitted}
-              leftIcon={<LogIn className="w-4 h-4" />}
+              leftIcon={<LogIn className="w-4 h-4 text-[#D5B995]" />}
             >
               {t('authSignInButton')}
             </Button>
@@ -113,10 +113,10 @@ export const LoginPage: React.FC = () => {
             {/* Direct Demo Exploration Mode */}
             <div className="relative my-3">
               <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-[#34394A]" />
+                <span className="w-full border-t border-[#DFD9CF]" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-[#172131] px-2.5 text-[#B5B9BC] font-medium text-[11px]">{t('authOr')}</span>
+                <span className="bg-white px-2.5 text-[#5A626E] font-medium text-[11px]">{t('authOr')}</span>
               </div>
             </div>
 
@@ -130,10 +130,10 @@ export const LoginPage: React.FC = () => {
               {t('authExploreDemo')}
             </Button>
 
-            <div className="text-center pt-2 border-t border-[#34394A]">
+            <div className="text-center pt-2 border-t border-[#DFD9CF]">
               <Link
                 to="/register"
-                className="text-xs font-semibold text-[#B5B9BC] hover:text-[#F1F2F3] inline-flex items-center gap-1"
+                className="text-xs font-semibold text-[#263E59] hover:text-[#88413F] inline-flex items-center gap-1"
               >
                 <span>{t('authNoAccount')}</span>
                 <ArrowRight className={`w-3.5 h-3.5 ${isRTL ? 'rotate-180' : ''}`} />
@@ -143,10 +143,10 @@ export const LoginPage: React.FC = () => {
         </div>
 
         {/* Prototype Transparency Notice */}
-        <div className="mt-5 p-3.5 rounded-xl bg-[#283041]/70 border border-[#34394A] text-start flex items-start gap-2.5 text-xs text-[#B5B9BC]">
-          <Shield className="w-4 h-4 text-[#F1F2F3] shrink-0 mt-0.5" />
+        <div className="mt-5 p-3.5 rounded-xl bg-[#FAF8F5] border border-[#D5B995]/45 text-start flex items-start gap-2.5 text-xs text-[#5A626E]">
+          <Shield className="w-4 h-4 text-[#88413F] shrink-0 mt-0.5" />
           <div className="space-y-0.5">
-            <span className="font-semibold text-[#F1F2F3] block">
+            <span className="font-semibold text-[#101A28] block">
               {t('authNoticeTitle')}
             </span>
             <p className="text-[11px] leading-relaxed">

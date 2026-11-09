@@ -1,6 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../../context/LanguageContext';
+import { SindhGeometricRule } from '../../components/common/SindhGeometricRule';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
 
 const information = {
   about: {
@@ -24,16 +26,57 @@ const information = {
 export const ProjectInformation = ({ page }: { page: keyof typeof information }) => {
   const { language, isRTL } = useLanguage();
   const heading = useRef<HTMLHeadingElement>(null);
+
   useEffect(() => {
     heading.current?.focus({ preventScroll: true });
     window.scrollTo({ top: 0, behavior: 'instant' });
   }, [page]);
+
   const [title, ...paragraphs] = information[page][language];
+
   return (
-    <article dir={isRTL ? 'rtl' : 'ltr'} className="mx-auto max-w-3xl px-6 py-16 sm:py-24">
-      <h1 ref={heading} tabIndex={-1} className="text-3xl sm:text-5xl font-semibold mb-8">{title}</h1>
-      <div className="space-y-5 text-base leading-loose">{paragraphs.map(text => <p key={text}>{text}</p>)}</div>
-      <Link to="/" className="inline-block mt-10 underline underline-offset-4">{language === 'ur' ? 'مرکزی صفحہ' : 'Return home'}</Link>
+    <article dir={isRTL ? 'rtl' : 'ltr'} className="mx-auto max-w-3xl px-6 py-16 sm:py-24 text-start">
+      <div className="bg-white border border-[#DFD9CF] rounded-2xl p-6 sm:p-12 shadow-xl shadow-[#101A28]/06">
+        <div className="flex items-center gap-2 mb-2">
+          <span className="text-[11px] font-mono font-semibold tracking-wider text-[#88413F] uppercase">
+            {language === 'ur' ? 'منصوبے کی تفصیل' : 'PROJECT NOTICE'}
+          </span>
+          <span className="h-1.5 w-1.5 rounded-full bg-[#D5B995]" />
+          <span className="text-[11px] font-mono text-[#5A626E]">
+            Awaaz-e-Awam
+          </span>
+        </div>
+
+        <h1
+          ref={heading}
+          tabIndex={-1}
+          className="font-display font-black text-3xl sm:text-5xl uppercase tracking-tight text-[#101A28] mb-4 focus:outline-none"
+        >
+          {title}
+        </h1>
+
+        <div className="w-36 my-4 opacity-75">
+          <SindhGeometricRule variant="light" />
+        </div>
+
+        <div className="space-y-4 text-base sm:text-lg text-[#263E59] leading-relaxed font-ui mt-6">
+          {paragraphs.map((text, idx) => (
+            <p key={idx} className="leading-relaxed">
+              {text}
+            </p>
+          ))}
+        </div>
+
+        <div className="pt-8 mt-6 border-t border-[#DFD9CF]">
+          <Link
+            to="/"
+            className="inline-flex items-center gap-2 text-xs font-mono font-bold tracking-wider uppercase text-[#101A28] hover:text-[#88413F] transition-colors"
+          >
+            {isRTL ? <ArrowRight className="w-4 h-4" /> : <ArrowLeft className="w-4 h-4" />}
+            <span>{language === 'ur' ? 'مرکزی صفحہ پر واپس جائیں' : 'Return to Home'}</span>
+          </Link>
+        </div>
+      </div>
     </article>
   );
 };

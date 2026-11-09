@@ -32,17 +32,17 @@ export const Button: React.FC<ButtonProps> = ({
 
   const variantStyles = {
     primary:
-      'bg-[#F1F2F3] hover:bg-[#FFFFFF] text-[#0B1421] font-semibold shadow-md shadow-[#0B1421]/40 focus-visible:outline-[#F1F2F3]',
+      'bg-[#101A28] hover:bg-[#263E59] text-[#F0EDE7] font-semibold shadow-md shadow-[#101A28]/20 focus-visible:outline-[#101A28]',
     secondary:
-      'bg-[#283041] hover:bg-[#34394A] text-[#F1F2F3] border border-[#34394A] shadow-xs focus-visible:outline-[#F1F2F3]',
+      'bg-[#E8E3DA] hover:bg-[#DFD8CC] text-[#101A28] border border-[#D5B995]/60 shadow-xs focus-visible:outline-[#101A28]',
     civic:
-      'bg-[#F1F2F3] hover:bg-[#FFFFFF] text-[#0B1421] font-semibold shadow-md focus-visible:outline-[#F1F2F3]',
+      'bg-[#101A28] hover:bg-[#263E59] text-[#F0EDE7] font-semibold shadow-md focus-visible:outline-[#101A28]',
     outline:
-      'border border-[#34394A] bg-transparent hover:border-[#B5B9BC] hover:bg-[#283041]/40 text-[#B5B9BC] hover:text-[#F1F2F3] focus-visible:outline-[#F1F2F3]',
+      'border border-[#D5B995]/80 bg-transparent hover:border-[#101A28] hover:bg-[#D5B995]/20 text-[#101A28] focus-visible:outline-[#101A28]',
     ghost:
-      'bg-transparent hover:bg-[#283041] text-[#B5B9BC] hover:text-[#F1F2F3] focus-visible:outline-[#F1F2F3]',
+      'bg-transparent hover:bg-[#D5B995]/20 text-[#263E59] hover:text-[#101A28] focus-visible:outline-[#101A28]',
     danger:
-      'bg-rose-600 hover:bg-rose-700 text-white shadow-xs focus-visible:outline-rose-500',
+      'bg-[#88413F] hover:bg-[#6E3331] text-white shadow-xs focus-visible:outline-[#88413F]',
   };
 
   return (
@@ -59,7 +59,7 @@ export const Button: React.FC<ButtonProps> = ({
         leftIcon && <span className="shrink-0">{leftIcon}</span>
       )}
       <span>{children}</span>
-      {!isLoading && rightIcon && <span className="shrink-0">{rightIcon}</span>}
+      {rightIcon && <span className="shrink-0">{rightIcon}</span>}
     </button>
   );
 };
