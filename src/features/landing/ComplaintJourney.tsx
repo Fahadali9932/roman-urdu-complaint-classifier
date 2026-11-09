@@ -180,23 +180,27 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
   const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
 
   // =========================================================================
-  // TASK 1 & 2: NAVBAR-AWARE OPTICAL CENTERING & BALANCED COMPOSITION
-  // Usable viewport height = windowHeight - navbarClearance (~80px).
-  // Midpoint = navbarClearance + usableHeight / 2.
-  // Dynamic offset translates the heading down so its optical center aligns
-  // exactly with the midpoint of the visible canvas beneath the floating navbar.
-  // Final scale increased to 0.61 (~84px rendered font size at 1440px desktop),
-  // delivering commanding editorial stature in the 78-88px target range.
-  // Heading transition timeline allocated over 22% of total journey (p: 0.03 -> 0.25).
+  // TASK 1, 2, 4: UNIFIED CENTRAL COMPOSITION & DYNAMIC CENTERING
+  // Treat settled heading and 4-card sequence as ONE cohesive visual block.
+  // The combined composition is centered vertically in the usable viewport
+  // below the floating navbar, with a subtle optical lift (~20px).
+  // Initial massive heading (138px) starts at optical center of usable canvas
+  // and smoothly glides to its position within the composition as scrolling begins.
   // =========================================================================
-  const navBottom = 96;
+  const navBottom = 80;
   const usableHeight = windowHeight - navBottom;
-  const headingHeight = 138;
-  const stickyTop = 96;
-  const containerPadTop = 20;
-  const unshiftedCenter = stickyTop + containerPadTop + headingHeight / 2;
   const usableMidpoint = navBottom + usableHeight / 2;
-  const desktopHeadingCenterY = Math.max(160, usableMidpoint - unshiftedCenter);
+
+  // The composition wrapper is vertically centered in the sticky container
+  const stickyTop = 96;
+  const stickyHeight = windowHeight - stickyTop;
+  const compHeight = 138 + 44 + 190; // heading box (138) + margin (44) + card stage (190)
+  const opticalLift = Math.round(windowHeight * 0.022); // subtle ~20px optical lift
+  const compTopInSticky = Math.max(20, (stickyHeight - compHeight) / 2 - opticalLift);
+  const settledHeadingCenterY = stickyTop + compTopInSticky + 69;
+
+  // Exact downward translation needed for initial massive heading to align with usable canvas midpoint
+  const desktopHeadingCenterY = Math.max(80, usableMidpoint - settledHeadingCenterY + 24);
 
   // Smooth, deliberate shrink & upward glide allocated over 22% of total journey (p: 0.03 -> 0.25)
   // Final scale 0.61 gives ~84px rendered font size on 1440px desktop (within 78-88px target)
@@ -294,34 +298,38 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
           releasing cleanly into footer/next section
           ======================================================== */}
       <div
-        className={`hidden lg:flex w-full flex-col items-center px-4 sm:px-10 lg:px-16 xl:px-20 py-4 xl:py-6 overflow-hidden ${
+        className={`hidden lg:flex w-full flex-col justify-center items-center px-4 sm:px-10 lg:px-16 xl:px-20 overflow-hidden ${
           prefersReducedMotion
             ? 'relative py-20 sm:py-28'
             : 'sticky top-20 sm:top-24 h-[calc(100vh-5rem)] sm:h-[calc(100vh-6rem)]'
         }`}
       >
-        {/* Prominent, authoritative section heading */}
-        {/* Massive & centered in usable viewport; smoothly shrinks & glides upward on scroll */}
+        {/* Unified Composition Group — Centered in the usable viewport with subtle optical lift */}
         <div
-          className="max-w-7xl mx-auto w-full text-center pt-1 xl:pt-2 will-change-transform z-20 pointer-events-none"
+          className="w-full max-w-6xl mx-auto flex flex-col items-center"
           style={{
-            transform: `translate3d(0, ${desktopHeadingY}px, 0) scale(${desktopHeadingScale})`,
-            transformOrigin: 'center center',
+            transform: prefersReducedMotion ? 'none' : `translate3d(0, -${opticalLift}px, 0)`,
           }}
         >
-          <h2 className="font-display text-[76px] sm:text-[104px] lg:text-[124px] xl:text-[138px] text-[#0B1421] uppercase tracking-tight leading-none whitespace-normal lg:whitespace-nowrap">
-            {t('processHeading') || (language === 'ur' ? 'طریقہ کار' : 'How It Works')}
-          </h2>
-        </div>
+          {/* Prominent, authoritative section heading */}
+          {/* Massive & centered in usable viewport; smoothly shrinks & glides upward on scroll */}
+          <div
+            className="max-w-7xl mx-auto w-full text-center will-change-transform z-20 pointer-events-none"
+            style={{
+              transform: `translate3d(0, ${desktopHeadingY}px, 0) scale(${desktopHeadingScale})`,
+              transformOrigin: 'center center',
+            }}
+          >
+            <h2 className="font-display text-[76px] sm:text-[104px] lg:text-[124px] xl:text-[138px] text-[#0B1421] uppercase tracking-tight leading-none whitespace-normal lg:whitespace-nowrap">
+              {t('processHeading') || (language === 'ur' ? 'طریقہ کار' : 'How It Works')}
+            </h2>
+          </div>
 
-        {/* Central Linear Horizontal Stage — Unified composition directly beneath settled heading */}
-        <div
-          className="relative w-full max-w-6xl mx-auto flex items-center justify-center min-h-[190px] xl:min-h-[200px] will-change-transform"
-          style={{
-            perspective: '1200px',
-            marginTop: 'clamp(60px, 9.5vh, 92px)',
-          }}
-        >
+          {/* Central Linear Horizontal Stage — Unified composition ~78px visual gap below settled heading */}
+          <div
+            className="relative w-full max-w-6xl mx-auto flex items-center justify-center min-h-[185px] xl:min-h-[195px] will-change-transform mt-10 xl:mt-11"
+            style={{ perspective: '1200px' }}
+          >
           {/* ---------------- CARD 1: WRITE ---------------- */}
           <div
             className="absolute w-[230px] xl:w-[250px] min-h-[165px] xl:min-h-[175px] p-6 xl:p-7 rounded-2xl bg-white border border-[#34394A]/15 shadow-md shadow-[#0B1421]/05 flex flex-col justify-between transition-shadow will-change-transform text-start"
@@ -500,10 +508,8 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
             </div>
           </div>
         </div>
-
-        {/* Clean, zero-clutter bottom spacing - No decorative captions */}
-        <div className="w-full h-2" />
       </div>
+    </div>
 
       {/* ========================================================
           MOBILE / TABLET PURPOSE-BUILT VERTICAL PROGRESSION (< 1024px)
