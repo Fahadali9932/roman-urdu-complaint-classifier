@@ -99,5 +99,15 @@ describe('PublicHeader Component', () => {
     const activeElements = desktopNav.querySelectorAll('.bg-\\[\\#681822\\]');
     expect(activeElements.length).toBe(1);
   });
-});
 
+  it('maintains accessible navigation and account controls', () => {
+    renderWithProviders();
+
+    const accountLink = screen.getByRole('link', { name: /account/i });
+    expect(accountLink).toBeInTheDocument();
+    expect(accountLink).toHaveAttribute('href', '/login');
+
+    const brand = screen.getByText('Awaaz-e-Awam');
+    expect(brand).toBeInTheDocument();
+  });
+});

@@ -7,11 +7,7 @@
 .civic-editorial-footer {
   position: relative;
   isolation: isolate;
-  min-height: 100vh;
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
+  width: 100%;
   background-color: #141414;
   color: #F7F6F3;
   overflow: hidden;
@@ -19,7 +15,20 @@
   border-top: 1px solid #323232;
 }
 
-/* Statement Section */
+.footer-animated-track {
+  min-height: 220vh;
+}
+
+.footer-canvas {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background-color: #141414;
+}
+
+/* Statement Section (Upper Portion) */
 .footer-statement-section {
   position: relative;
   z-index: 10;
@@ -27,7 +36,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: clamp(60px, 12vh, 140px) clamp(24px, 6vw, 80px);
+  padding: clamp(70px, 14vh, 140px) clamp(24px, 6vw, 80px) 20px;
   text-align: center;
 }
 
@@ -62,13 +71,13 @@
   opacity: 0.85;
 }
 
-/* Navigation & Academic Attribution Panel */
+/* Navigation & Academic Attribution Panel (Lower ~40-50% Portion) */
 .footer-navigation-panel {
   position: relative;
   z-index: 10;
   border-top: 1px solid rgba(229, 227, 224, 0.12);
   background-color: #111111;
-  padding: 28px clamp(20px, 5vw, 64px) 24px;
+  padding: 32px clamp(20px, 5vw, 64px) 28px;
 }
 
 .footer-navigation-inner {
@@ -82,7 +91,7 @@
   align-items: center;
   justify-content: center;
   gap: 8px 16px;
-  margin-bottom: 24px;
+  margin-bottom: 28px;
 }
 
 .footer-nav-link {
@@ -116,7 +125,7 @@
   color: #E5E3E0;
   opacity: 0.7;
   border-top: 1px solid rgba(229, 227, 224, 0.08);
-  padding-top: 18px;
+  padding-top: 20px;
 }
 
 .footer-identity-group {

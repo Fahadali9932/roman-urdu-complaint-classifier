@@ -10,18 +10,33 @@ export const PublicHeader: React.FC = () => {
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrollSection, setScrollSection] = useState<'home' | 'steps' | 'submit'>('home');
+  const [darkHeaderActive, setDarkHeaderActive] = useState(false);
+  const isDarkHeader = location.pathname === '/' && darkHeaderActive;
   const [dropdownPosition, setDropdownPosition] = useState<{ top: number; left?: number; right?: number }>({ top: 0 });
   const drawerRef = useRef<HTMLDivElement>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
 
-  // Synchronized active-section detection for landing page scroll
+  // Synchronized active-section detection and dark-footer contrast switching
   useEffect(() => {
     if (location.pathname !== '/') return;
 
     const checkActiveSection = () => {
-      const stepsEl = document.getElementById('steps');
+      const footerEl = document.getElementById('footer') || document.querySelector('footer');
       const writeIntroEl = document.getElementById('write-intro');
+      const stepsEl = document.getElementById('steps');
       const vh = window.innerHeight;
+
+      // Dark header detection: dark footer surface is dominant behind header (< 72px)
+      if (footerEl) {
+        const fRect = footerEl.getBoundingClientRect();
+        if (fRect.top <= 72 && fRect.bottom > 72) {
+          setDarkHeaderActive(true);
+        } else {
+          setDarkHeaderActive(false);
+        }
+      } else {
+        setDarkHeaderActive(false);
+      }
 
       if (writeIntroEl) {
         const rect = writeIntroEl.getBoundingClientRect();
@@ -143,11 +158,12 @@ export const PublicHeader: React.FC = () => {
       {/* ========================================================
           TOP HEADER: Brand (Left), Centered Pill Dock (Center),
           Language & Account Controls (Right)
+          Features dynamic contrast inversion on dark background
           ======================================================== */}
       <header className="fixed top-0 left-0 right-0 z-50 py-3 sm:py-4 px-4 sm:px-8 lg:px-12 pointer-events-none transition-all duration-300">
         <div className="max-w-[1440px] mx-auto w-full relative flex items-center justify-between pointer-events-auto">
 
-          {/* LEFT: Brand Wordmark */}
+          {/* LEFT: Brand Wordmark (turns white on dark footer) */}
           <Link
             to="/"
             onClick={(e) => {
@@ -159,7 +175,13 @@ export const PublicHeader: React.FC = () => {
             className="group flex items-center gap-2 cursor-pointer select-none rounded-lg focus-visible:outline-2 focus-visible:outline-[#141414] z-20 shrink-0"
             aria-label="Awaaz-e-Awam Home"
           >
-            <span className="font-wordmark italic font-bold tracking-tight text-[#141414] text-xl sm:text-2xl group-hover:text-[#681822] transition-colors select-none">
+            <span
+              className={`font-wordmark italic font-bold tracking-tight text-xl sm:text-2xl transition-colors select-none ${
+                isDarkHeader
+                  ? 'text-[#FFFFFF] group-hover:text-[#F7F6F3]'
+                  : 'text-[#141414] group-hover:text-[#681822]'
+              }`}
+            >
               Awaaz-e-Awam
             </span>
           </Link>
@@ -225,17 +247,24 @@ export const PublicHeader: React.FC = () => {
             </Link>
           </nav>
 
-          {/* RIGHT: Controls (Language Toggle, Account Link, Mobile Menu Trigger) */}
+          {/* RIGHT: Controls (Language Toggle, Account Link, Mobile Menu Trigger)
+              Dynamically turns white on dark footer scene */}
           <div className="flex items-center gap-2 sm:gap-3 z-20 shrink-0">
-            <LanguageToggle />
+            <LanguageToggle isDark={isDarkHeader} />
 
-            <div className="hidden sm:block h-3.5 w-px bg-[#E5E3E0] shrink-0 mx-0.5" />
+            <div className={`hidden sm:block h-3.5 w-px shrink-0 mx-0.5 transition-colors ${
+              isDarkHeader ? 'bg-white/20' : 'bg-[#E5E3E0]'
+            }`} />
 
             <Link
               to="/login"
-              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] font-ui font-normal text-[#141414] hover:text-[#681822] hover:bg-[#E5E3E0]/40 transition-colors select-none cursor-pointer focus-visible:outline-2 focus-visible:outline-[#141414]"
+              className={`hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] font-ui font-normal transition-colors select-none cursor-pointer ${
+                isDarkHeader
+                  ? 'text-[#FFFFFF] hover:text-[#FAF9F7] hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-white'
+                  : 'text-[#141414] hover:text-[#681822] hover:bg-[#E5E3E0]/40 focus-visible:outline-2 focus-visible:outline-[#141414]'
+              }`}
             >
-              <User className="w-3.5 h-3.5 text-[#323232]" />
+              <User className={`w-3.5 h-3.5 ${isDarkHeader ? 'text-white/80' : 'text-[#323232]'}`} />
               <span>{t('navAccount') || t('navSignIn')}</span>
             </Link>
 
@@ -244,15 +273,19 @@ export const PublicHeader: React.FC = () => {
               ref={menuButtonRef}
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden inline-flex items-center justify-center p-2 rounded-full bg-[#FAF9F7] border border-[#E5E3E0] text-[#141414] hover:bg-[#E5E3E0]/50 transition-colors cursor-pointer select-none shadow-sm focus-visible:outline-2 focus-visible:outline-[#141414]"
+              className={`md:hidden inline-flex items-center justify-center p-2 rounded-full transition-colors cursor-pointer select-none shadow-sm ${
+                isDarkHeader
+                  ? 'bg-white/10 border border-white/20 text-[#FFFFFF] hover:bg-white/20 focus-visible:outline-2 focus-visible:outline-white'
+                  : 'bg-[#FAF9F7] border border-[#E5E3E0] text-[#141414] hover:bg-[#E5E3E0]/50 focus-visible:outline-2 focus-visible:outline-[#141414]'
+              }`}
               aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
               aria-expanded={mobileMenuOpen}
               aria-controls="mobile-navigation-drawer"
             >
               {mobileMenuOpen ? (
-                <X className="w-4 h-4 text-[#141414]" />
+                <X className={`w-4 h-4 ${isDarkHeader ? 'text-[#FFFFFF]' : 'text-[#141414]'}`} />
               ) : (
-                <Menu className="w-4 h-4 text-[#141414]" />
+                <Menu className={`w-4 h-4 ${isDarkHeader ? 'text-[#FFFFFF]' : 'text-[#141414]'}`} />
               )}
             </button>
           </div>
@@ -281,80 +314,87 @@ export const PublicHeader: React.FC = () => {
               ...(dropdownPosition.left !== undefined ? { left: `${dropdownPosition.left}px` } : {}),
               ...(dropdownPosition.right !== undefined ? { right: `${dropdownPosition.right}px` } : {}),
             }}
-            className="fixed w-[calc(100vw-24px)] max-w-xs p-4 rounded-3xl bg-[#FAF9F7] border border-[#E5E3E0] shadow-2xl z-50 text-start space-y-1 animate-in fade-in zoom-in-95 duration-200 pointer-events-auto"
+            className="fixed z-50 w-72 sm:w-80 rounded-2xl bg-[#FAF9F7] border border-[#E5E3E0] p-4 shadow-2xl pointer-events-auto animate-in fade-in zoom-in-95 duration-200"
           >
-            <div className="flex items-center justify-between pb-2 mb-1 border-b border-[#E5E3E0]">
-              <span className="text-[11px] font-mono tracking-wider uppercase text-[#323232]">
-                {language === 'ur' ? 'نیویگیشن مینیو' : 'Navigation Menu'}
+            <div className="flex items-center justify-between pb-3 border-b border-[#E5E3E0]/70 mb-3">
+              <span className="text-[11px] font-mono uppercase tracking-widest text-[#323232]">
+                Navigation Menu
               </span>
               <button
                 type="button"
                 onClick={() => setMobileMenuOpen(false)}
-                className="p-1 rounded-full text-[#323232] hover:text-[#141414] hover:bg-[#E5E3E0] cursor-pointer"
-                aria-label="Close menu"
+                className="p-1 rounded-lg text-[#323232] hover:text-[#141414] hover:bg-[#E5E3E0]/50 transition-colors"
+                aria-label="Close navigation menu"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <a
-              href="#hero"
-              onClick={(e) => handleNavClick(e, 'hero', '/')}
-              className={`block px-3 py-2 rounded-xl text-[13px] font-ui cursor-pointer transition-colors ${
-                isHomeActive
-                  ? 'bg-[#681822] text-[#FFFFFF] font-medium'
-                  : 'text-[#141414] hover:bg-[#E5E3E0]/60'
-              }`}
-            >
-              {t('navHome') || 'Home'}
-            </a>
-            <a
-              href="#steps"
-              onClick={(e) => handleNavClick(e, 'steps', '/#steps')}
-              className={`block px-3 py-2 rounded-xl text-[13px] font-ui cursor-pointer transition-colors ${
-                isStepsActive
-                  ? 'bg-[#681822] text-[#FFFFFF] font-medium'
-                  : 'text-[#323232] hover:text-[#141414] hover:bg-[#E5E3E0]/60'
-              }`}
-            >
-              {language === 'ur' ? 'طریقہ کار' : 'How It Works'}
-            </a>
-            <Link
-              to="/dashboard"
-              onClick={() => setMobileMenuOpen(false)}
-              className={`block px-3 py-2 rounded-xl text-[13px] font-ui cursor-pointer transition-colors ${
-                isDashboardActive
-                  ? 'bg-[#681822] text-[#FFFFFF] font-medium'
-                  : 'text-[#323232] hover:text-[#141414] hover:bg-[#E5E3E0]/60'
-              }`}
-            >
-              {t('navMyComplaints') || 'My Complaints'}
-            </Link>
-            <Link
-              to="/submit"
-              onClick={() => setMobileMenuOpen(false)}
-              className={`block px-3 py-2 rounded-xl text-[13px] font-ui cursor-pointer transition-colors ${
-                isSubmitActive
-                  ? 'bg-[#681822] text-[#FFFFFF] font-medium'
-                  : 'text-[#323232] hover:text-[#141414] hover:bg-[#E5E3E0]/60'
-              }`}
-            >
-              {t('navWriteComplaint') || 'Write Complaint'}
-            </Link>
-
-            <div className="pt-2 mt-1 border-t border-[#E5E3E0] space-y-1">
-              <Link
-                to="/login"
-                onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-2 px-3 py-2 rounded-xl text-[13px] font-ui text-[#141414] bg-[#E5E3E0]/50 hover:bg-[#E5E3E0] transition-colors cursor-pointer"
+            <nav className="flex flex-col gap-1.5" aria-label="Mobile links">
+              <a
+                href="#hero"
+                onClick={(e) => handleNavClick(e, 'hero', '/')}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-ui transition-colors ${
+                  isHomeActive
+                    ? 'bg-[#681822] text-[#FFFFFF] font-medium'
+                    : 'text-[#141414] hover:bg-[#E5E3E0]/50 font-normal'
+                }`}
               >
-                <User className="w-4 h-4 text-[#323232]" />
-                <span>{t('navAccount') || t('navSignIn')}</span>
+                <span className="font-medium">{t('navHome') || 'Home'}</span>
+              </a>
+
+              <a
+                href="#steps"
+                onClick={(e) => handleNavClick(e, 'steps', '/#steps')}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-ui transition-colors ${
+                  isStepsActive
+                    ? 'bg-[#681822] text-[#FFFFFF] font-medium'
+                    : 'text-[#141414] hover:bg-[#E5E3E0]/50 font-normal'
+                }`}
+              >
+                <span className="font-medium">{language === 'ur' ? 'طریقہ کار' : 'How It Works'}</span>
+              </a>
+
+              <Link
+                to="/dashboard"
+                onClick={() => setMobileMenuOpen(false)}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-ui transition-colors ${
+                  isDashboardActive
+                    ? 'bg-[#681822] text-[#FFFFFF] font-medium'
+                    : 'text-[#141414] hover:bg-[#E5E3E0]/50 font-normal'
+                }`}
+              >
+                <span className="font-medium">{t('navMyComplaints') || 'My Complaints'}</span>
               </Link>
-            </div>
+
+              <Link
+                to="/submit"
+                onClick={() => setMobileMenuOpen(false)}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-ui transition-colors ${
+                  isSubmitActive
+                    ? 'bg-[#681822] text-[#FFFFFF] font-medium'
+                    : 'text-[#141414] hover:bg-[#E5E3E0]/50 font-normal'
+                }`}
+              >
+                <span className="font-medium">{t('navWriteComplaint') || 'Write Complaint'}</span>
+              </Link>
+
+              <div className="pt-2 mt-1 border-t border-[#E5E3E0]/70">
+                <Link
+                  to="/login"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-ui text-[#141414] bg-[#E5E3E0]/40 hover:bg-[#E5E3E0]/70 transition-colors"
+                >
+                  <User className="w-4 h-4 text-[#323232]" />
+                  <span className="font-medium">{t('navAccount') || t('navSignIn')}</span>
+                </Link>
+              </div>
+            </nav>
           </div>
         </>
       )}
     </>
   );
 };
+
+export default PublicHeader;
