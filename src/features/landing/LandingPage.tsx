@@ -114,13 +114,13 @@ export const LandingPage: React.FC = () => {
       </div>
 
       {/* ========================================================
-          PANEL 3: EDITORIAL GRAPHIC TRANSITION (Reference 3) (#write-intro)
+          PANEL 3: EDITORIAL GRAPHIC TRANSITION (#write-intro)
           Sticky Layer 3 (z-30): Monumental cropped letterform "WRITE"
-          with confident negative space leading to complaint form
+          with confident negative space and restrained typography
           ======================================================== */}
       <section
         id="write-intro"
-        className="relative z-30 min-h-screen bg-[#FAF9F7] shadow-[0_-25px_50px_rgba(20,20,20,0.1)] border-t border-[#E5E3E0] flex flex-col justify-center px-4 sm:px-8 lg:px-16 py-24 sm:py-32 overflow-hidden select-none"
+        className="relative z-30 min-h-screen bg-[#FAF9F7] shadow-[0_-35px_70px_rgba(20,20,20,0.18)] border-t border-[#E5E3E0] flex flex-col justify-center px-6 sm:px-12 lg:px-20 py-24 sm:py-32 overflow-hidden select-none"
         aria-label="Editorial Write Introduction"
       >
         <div className="max-w-7xl mx-auto w-full relative">
@@ -140,47 +140,13 @@ export const LandingPage: React.FC = () => {
             {/* Fine Blood Maroon Accent Rule */}
             <div className="w-16 h-1 bg-[#681822] mb-6" />
 
-            <span className="text-[11px] font-mono tracking-[0.25em] uppercase text-[#681822] font-semibold block mb-2">
-              {ur ? 'شہری طاقت • آغاز کیجیے' : 'CIVIC ACTION • BEGIN WRITING'}
-            </span>
-
-            <h2 className="font-display text-3xl sm:text-5xl lg:text-6xl text-[#141414] uppercase leading-[1.02] tracking-tight mb-5">
-              {ur ? (
-                <>
-                  ہر شکایت تبدیلی کا<br />
-                  پہلا قدم ہے۔
-                </>
-              ) : (
-                <>
-                  EVERY COMPLAINT<br />
-                  DRIVES CHANGE.
-                </>
-              )}
+            <h2 className="font-display text-4xl sm:text-6xl lg:text-7xl text-[#141414] uppercase leading-[0.98] tracking-tight mb-4">
+              {t('writeSectionTitle')}
             </h2>
 
-            <p className="font-ui text-base sm:text-lg text-[#323232] leading-relaxed mb-8">
-              {ur
-                ? 'اپنے علاقے کے پانی، بجلی، صفائی، سڑکوں یا دیگر شہری مسائل کو رومن اردو، اردو یا انگریزی میں بلا جھجھک بیان کریں۔ آپ کی درخواست خودکار طریقے سے متعلقہ ادارے تک پہنچائی جائے گی۔'
-                : 'Describe civic concerns in Roman Urdu, English, or Urdu. Your submission is intelligently classified and routed directly to the relevant municipal department in Sindh.'}
+            <p className="font-ui text-base sm:text-xl text-[#323232] leading-relaxed max-w-xl font-normal">
+              {t('writeSectionSubtitle')}
             </p>
-
-            <div className="flex flex-wrap items-center gap-4">
-              <Link
-                to="/submit"
-                className="inline-flex items-center gap-2.5 px-8 py-3.5 sm:py-4 rounded-full bg-[#681822] hover:bg-[#52121b] text-[#FFFFFF] font-ui font-medium text-[15px] tracking-[0.015em] transition-all shadow-lg shadow-[#681822]/20 hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
-              >
-                <PenTool className="w-4 h-4 text-[#FFFFFF]" />
-                <span>{ur ? 'ابھی شکایت درج کریں' : 'Write Your Complaint'}</span>
-                {isRTL ? <ArrowLeft className="w-4 h-4" /> : <ArrowRight className="w-4 h-4" />}
-              </Link>
-
-              <Link
-                to="/dashboard"
-                className="inline-flex items-center gap-2 px-6 py-3.5 sm:py-4 rounded-full bg-[#FAF9F7] hover:bg-[#E5E3E0]/60 border border-[#E5E3E0] text-[#141414] font-ui font-normal text-[15px] transition-all active:scale-[0.98] cursor-pointer"
-              >
-                <span>{ur ? 'شکایات کی فہرست' : 'View Archive'}</span>
-              </Link>
-            </div>
 
           </div>
 

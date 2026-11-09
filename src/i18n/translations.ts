@@ -122,6 +122,10 @@ export const translations = {
     journeyTrackStage4Desc: 'On-ground civic action',
     journeyTrackNote: 'Milestone Tracking: Follow live progress via your citizen workspace',
 
+    // Write Section
+    writeSectionTitle: 'PUT IT IN WORDS.',
+    writeSectionSubtitle: 'Describe the public-service issue in your own words.',
+
     // Features Section
     featuresTitle: 'Engineered for Karachi Civic Realities',
     featuresSubtitle: 'Eliminating the confusion of which government authority to contact',
@@ -285,6 +289,10 @@ export const translations = {
     statusRejected: 'Rejected',
 
     // Footer
+    footerHeadline: 'YOUR VOICE MATTERS.',
+    footerSubtitle:
+      'Report municipal, infrastructure, and utility challenges in your own words so responsible authorities can act.',
+    footerAcademicConcise: 'Greenwich University, Karachi • Department of Computer Science',
     footerDesc: 'A place for Sindh citizens to describe public issues in everyday language.',
     footerAcademic: 'Academic Project • Greenwich University, Karachi, Pakistan • Target: Dec 2026',
     footerLinks: 'Quick Links',
@@ -414,6 +422,10 @@ export const translations = {
     journeyTrackStage4: 'حل',
     journeyTrackStage4Desc: 'زمینی سطح پر مسئلے کا حل',
     journeyTrackNote: 'مرحلہ وار ٹریکنگ: اپنے شہری اکاؤنٹ کے ذریعے پیش رفت دیکھیں',
+
+    // Write Section
+    writeSectionTitle: 'الفاظ میں بیان کیجیے۔',
+    writeSectionSubtitle: 'عوامی مسئلے کو اپنے روزمرہ کے الفاظ میں بیان کریں۔',
 
     // Features Section
     featuresTitle: 'کراچی بلدیاتی حقائق کے لیے تیار کردہ',
@@ -578,6 +590,10 @@ export const translations = {
     statusRejected: 'مسترد',
 
     // Footer
+    footerHeadline: 'آپ کی آواز اہم ہے۔',
+    footerSubtitle:
+      'اپنے محلے اور شہر کے عوامی مسائل کو اپنے روزمرہ الفاظ میں درج کریں تاکہ متعلقہ ادارے کارروائی کر سکیں۔',
+    footerAcademicConcise: 'گرین وچ یونیورسٹی، کراچی • شعبہ کمپیوٹر سائنس',
     footerDesc: 'سندھ کے شہریوں کے لیے عوامی مسئلے روزمرہ کی زبان میں لکھنے کی جگہ۔',
     footerAcademic: 'تعلیمی پروجیکٹ • گرین وچ یونیورسٹی، کراچی، پاکستان • ہدف: دسمبر ۲۰۲۶',
     footerLinks: 'اہم روابط',
