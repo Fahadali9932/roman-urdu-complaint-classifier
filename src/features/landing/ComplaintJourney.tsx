@@ -22,8 +22,10 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
     return window.matchMedia('(max-width: 1023px)').matches;
   });
 
-  // Desktop normalized scroll progress: 0.0 to 1.0
+  // Desktop normalized scroll progress: 0.0 to 1.0 (smoothed via RAF lerp)
   const [progress, setProgress] = useState(0);
+  const targetProgressRef = useRef(0);
+  const currentProgressRef = useRef(0);
 
   // Mobile scroll progress: 0.0 to 1.0
   const [mobileProgress, setMobileProgress] = useState(0);
@@ -58,43 +60,62 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
     };
   }, []);
 
-  // Continuous Scroll-Driven Progress Controller (Desktop & Mobile)
+  // Continuous Scroll-Driven Progress Controller with RAF Scrub Damping
   const handleScroll = useCallback(() => {
     if (prefersReducedMotion) return;
     if (!containerRef.current) return;
 
-    if (rafId.current !== null) {
-      cancelAnimationFrame(rafId.current);
+    const container = containerRef.current;
+    const rect = container.getBoundingClientRect();
+    const vh = window.innerHeight;
+    const totalScrollable = container.offsetHeight - vh;
+
+    if (totalScrollable <= 0) {
+      targetProgressRef.current = 1;
+      currentProgressRef.current = 1;
+      setProgress(1);
+      setMobileProgress(1);
+      return;
     }
 
-    rafId.current = requestAnimationFrame(() => {
-      const container = containerRef.current;
-      if (!container) return;
+    const currentScroll = -rect.top;
+    const rawProgress = currentScroll / totalScrollable;
+    const clamped = Math.max(0, Math.min(1, rawProgress));
 
-      const rect = container.getBoundingClientRect();
-      const vh = window.innerHeight;
-      const totalScrollable = container.offsetHeight - vh;
+    if (isMobile) {
+      // Natural scroll progress on mobile (< 1024px)
+      const mobDistance = vh + container.offsetHeight * 0.5;
+      const currentMob = vh - rect.top;
+      const mobRaw = mobDistance > 0 ? currentMob / mobDistance : 1;
+      setMobileProgress(Math.max(0, Math.min(1, mobRaw)));
+    } else {
+      targetProgressRef.current = clamped;
 
-      if (totalScrollable <= 0) {
-        setProgress(1);
-        setMobileProgress(1);
-        return;
+      // Start RAF interpolation loop if not already running
+      if (rafId.current === null) {
+        const updateMotion = () => {
+          const target = targetProgressRef.current;
+          const current = currentProgressRef.current;
+          const diff = target - current;
+
+          // If difference is imperceptible, snap to target and stop loop
+          if (Math.abs(diff) <= 0.0002) {
+            currentProgressRef.current = target;
+            setProgress(target);
+            rafId.current = null;
+            return;
+          }
+
+          // Damping factor: 0.18 provides ~0.4s buttery smooth inertia without lag
+          const next = current + diff * 0.18;
+          currentProgressRef.current = next;
+          setProgress(next);
+          rafId.current = requestAnimationFrame(updateMotion);
+        };
+
+        rafId.current = requestAnimationFrame(updateMotion);
       }
-
-      const currentScroll = -rect.top;
-      const rawProgress = currentScroll / totalScrollable;
-      const clamped = Math.max(0, Math.min(1, rawProgress));
-
-      if (isMobile) {
-        // Natural scroll progress on mobile (< 1024px)
-        const mobDistance = vh + container.offsetHeight * 0.5;
-        const currentMob = vh - rect.top;
-        const mobRaw = mobDistance > 0 ? currentMob / mobDistance : 1;
-        setMobileProgress(Math.max(0, Math.min(1, mobRaw)));
-      } else {
-        setProgress(clamped);
-      }
-    });
+    }
   }, [prefersReducedMotion, isMobile]);
 
   useEffect(() => {
@@ -102,6 +123,19 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     window.addEventListener('resize', handleScroll, { passive: true });
+
+    // Initial sync
+    if (containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      const vh = window.innerHeight;
+      const totalScrollable = containerRef.current.offsetHeight - vh;
+      if (totalScrollable > 0) {
+        const initialClamped = Math.max(0, Math.min(1, -rect.top / totalScrollable));
+        targetProgressRef.current = initialClamped;
+        currentProgressRef.current = initialClamped;
+        setProgress(initialClamped);
+      }
+    }
     handleScroll();
 
     return () => {
@@ -109,6 +143,7 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
       window.removeEventListener('resize', handleScroll);
       if (rafId.current !== null) {
         cancelAnimationFrame(rafId.current);
+        rafId.current = null;
       }
     };
   }, [handleScroll, prefersReducedMotion]);
@@ -137,16 +172,22 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
     },
   ];
 
-  // Helper smoothstep ease
-  const smooth = (x: number) => x * x * (3 - 2 * x);
+  // Ken Perlin quintic smootherstep ease (C^2 continuous: zero velocity & zero acceleration at boundaries)
+  const smoother = (x: number) => {
+    const c = Math.max(0, Math.min(1, x));
+    return c * c * c * (c * (c * 6 - 15) + 10);
+  };
   const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
 
   // =========================================================================
-  // TASK 1 & 2: NAVBAR-AWARE OPTICAL CENTERING & SMOOTH UPWARD SHRINK
+  // TASK 1 & 2: NAVBAR-AWARE OPTICAL CENTERING & SMOOTHER UPWARD SHRINK
   // Usable viewport height = windowHeight - navbarClearance (~80px).
   // Midpoint = navbarClearance + usableHeight / 2.
   // Dynamic offset translates the heading down so its optical center aligns
   // exactly with the midpoint of the visible canvas beneath the floating navbar.
+  // Final scale increased from 0.36 (~50px) to 0.48 (~66px at 1440px desktop),
+  // delivering commanding editorial presence while leaving ample clearance to cards.
+  // Heading transition timeline expanded from 0.14 to 0.22 (22% of total journey).
   // =========================================================================
   const navBottom = 80;
   const usableHeight = windowHeight - navBottom;
@@ -154,54 +195,56 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
   const topMargin = 20;
   const desktopHeadingCenterY = Math.max(160, usableHeight / 2 - topMargin - headingHeight / 2);
 
-  const tHeading = smooth(clamp01((progress - 0.04) / 0.14));
-  const desktopHeadingScale = prefersReducedMotion ? 0.36 : 1.0 - tHeading * (1.0 - 0.36);
+  // Smooth, deliberate shrink & upward glide allocated over 22% of total journey (p: 0.03 -> 0.25)
+  const tHeading = smoother(clamp01((progress - 0.03) / 0.22));
+  const desktopHeadingScale = prefersReducedMotion ? 0.48 : 1.0 - tHeading * (1.0 - 0.48);
   const desktopHeadingY = prefersReducedMotion ? 0 : desktopHeadingCenterY * (1 - tHeading);
 
   // =========================================================================
-  // TASK 3, 4, 5, 6, 7: LINEAR HORIZONTAL TRAIN-LIKE PROCESS CHOREOGRAPHY
-  // Stage A & B (p: 0.00 -> 0.18): Massive heading centered, then shrinks and glides up
-  // Stage C (p: 0.18 -> 0.32): WRITE enters at center (0, 0)
-  // Stage D (p: 0.32 -> 0.52): WRITE slides to -150px, Arrow 1 draws, REVIEW enters at +150px
-  // Stage E (p: 0.52 -> 0.72): Cards shift left by 150px, Arrow 2 draws, ROUTE enters at +300px
-  // Stage F (p: 0.72 -> 0.92): Cards shift left by 150px, Arrow 3 draws, TRACK enters at +450px
-  // Stage G (p >= 0.92): Final 4-card horizontal train held before natural scroll release
+  // TASK 3, 4, 5, 6, 7: SMOOTH & DELIBERATELY PACED LINEAR HORIZONTAL TRAIN
+  // Stage A (p: 0.00 -> 0.03): Massive heading centered; user takes in the visual
+  // Stage B (p: 0.03 -> 0.25): Heading smoothly shrinks (1.0 -> 0.48) & glides upward
+  // Stage C (p: 0.24 -> 0.36): WRITE enters at stage center (0, 0)
+  // Stage D (p: 0.38 -> 0.54): WRITE shifts to -150px, Arrow 1 draws, REVIEW enters at +150px
+  // Stage E (p: 0.56 -> 0.72): Cards shift left by 150px, Arrow 2 draws, ROUTE enters at +300px
+  // Stage F (p: 0.74 -> 0.90): Cards shift left by 150px, Arrow 3 draws, TRACK enters at +450px
+  // Stage G (p: 0.90 -> 1.00): Completed 4-card sequence held before natural scroll release
   // =========================================================================
 
-  // Stage C: WRITE Entrance at Center (0.18 -> 0.30)
-  const tEnterWrite = smooth(clamp01((progress - 0.18) / 0.12));
+  // Stage C: WRITE Entrance at Center (0.24 -> 0.36)
+  const tEnterWrite = smoother(clamp01((progress - 0.24) / 0.12));
   const card1Opacity = prefersReducedMotion ? 1 : tEnterWrite;
-  const card1Scale = prefersReducedMotion ? 1 : 0.92 + 0.08 * tEnterWrite;
+  const card1Scale = prefersReducedMotion ? 1 : 0.94 + 0.06 * tEnterWrite;
 
-  // Stage D: WRITE shifts 0 -> -150px (0.32 -> 0.44)
-  const tShiftD = smooth(clamp01((progress - 0.32) / 0.12));
-  // Arrow 1 draws from WRITE right edge to REVIEW left edge (0.36 -> 0.46)
-  const tDrawArrow1 = smooth(clamp01((progress - 0.36) / 0.10));
+  // Stage D: WRITE shifts 0 -> -150px (0.38 -> 0.50)
+  const tShiftD = smoother(clamp01((progress - 0.38) / 0.12));
+  // Arrow 1 draws from WRITE right edge to REVIEW left edge (0.41 -> 0.51)
+  const tDrawArrow1 = smoother(clamp01((progress - 0.41) / 0.10));
   const arrow1Draw = prefersReducedMotion ? 1 : tDrawArrow1;
-  // REVIEW enters at +150px (0.39 -> 0.48)
-  const tEnterReview = smooth(clamp01((progress - 0.39) / 0.09));
+  // REVIEW enters at +150px (0.44 -> 0.54)
+  const tEnterReview = smoother(clamp01((progress - 0.44) / 0.10));
   const card2Opacity = prefersReducedMotion ? 1 : tEnterReview;
-  const card2Scale = prefersReducedMotion ? 1 : 0.92 + 0.08 * tEnterReview;
+  const card2Scale = prefersReducedMotion ? 1 : 0.94 + 0.06 * tEnterReview;
 
-  // Stage E: Cards shift left by 150px (0.52 -> 0.64)
-  const tShiftE = smooth(clamp01((progress - 0.52) / 0.12));
-  // Arrow 2 draws from REVIEW right edge to ROUTE left edge (0.56 -> 0.66)
-  const tDrawArrow2 = smooth(clamp01((progress - 0.56) / 0.10));
+  // Stage E: Cards shift left by 150px (0.56 -> 0.68)
+  const tShiftE = smoother(clamp01((progress - 0.56) / 0.12));
+  // Arrow 2 draws from REVIEW right edge to ROUTE left edge (0.59 -> 0.69)
+  const tDrawArrow2 = smoother(clamp01((progress - 0.59) / 0.10));
   const arrow2Draw = prefersReducedMotion ? 1 : tDrawArrow2;
-  // ROUTE enters at +300px (0.59 -> 0.68)
-  const tEnterRoute = smooth(clamp01((progress - 0.59) / 0.09));
+  // ROUTE enters at +300px (0.62 -> 0.72)
+  const tEnterRoute = smoother(clamp01((progress - 0.62) / 0.10));
   const card3Opacity = prefersReducedMotion ? 1 : tEnterRoute;
-  const card3Scale = prefersReducedMotion ? 1 : 0.92 + 0.08 * tEnterRoute;
+  const card3Scale = prefersReducedMotion ? 1 : 0.94 + 0.06 * tEnterRoute;
 
-  // Stage F: Cards shift left by 150px (0.72 -> 0.84)
-  const tShiftF = smooth(clamp01((progress - 0.72) / 0.12));
-  // Arrow 3 draws from ROUTE right edge to TRACK left edge (0.76 -> 0.86)
-  const tDrawArrow3 = smooth(clamp01((progress - 0.76) / 0.10));
+  // Stage F: Cards shift left by 150px (0.74 -> 0.86)
+  const tShiftF = smoother(clamp01((progress - 0.74) / 0.12));
+  // Arrow 3 draws from ROUTE right edge to TRACK left edge (0.77 -> 0.87)
+  const tDrawArrow3 = smoother(clamp01((progress - 0.77) / 0.10));
   const arrow3Draw = prefersReducedMotion ? 1 : tDrawArrow3;
-  // TRACK enters at +450px (0.79 -> 0.88)
-  const tEnterTrack = smooth(clamp01((progress - 0.79) / 0.09));
+  // TRACK enters at +450px (0.80 -> 0.90)
+  const tEnterTrack = smoother(clamp01((progress - 0.80) / 0.10));
   const card4Opacity = prefersReducedMotion ? 1 : tEnterTrack;
-  const card4Scale = prefersReducedMotion ? 1 : 0.92 + 0.08 * tEnterTrack;
+  const card4Scale = prefersReducedMotion ? 1 : 0.94 + 0.06 * tEnterTrack;
 
   // Card Center X Coordinates (Analytical, continuous, locked to card pitch)
   const dir = isRTL ? -1 : 1;
@@ -224,8 +267,8 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
   // MOBILE HEADING CENTERING & UPWARD MOTION (< 1024px)
   // =========================================================================
   const mobileHeadingCenterY = Math.max(100, Math.min(220, (windowHeight - 200) / 2));
-  const tMobileHeadUp = smooth(clamp01(mobileProgress / 0.18));
-  const mobileHeadingScale = prefersReducedMotion ? 0.75 : 1.0 - tMobileHeadUp * (1.0 - 0.68);
+  const tMobileHeadUp = smoother(clamp01(mobileProgress / 0.20));
+  const mobileHeadingScale = prefersReducedMotion ? 0.78 : 1.0 - tMobileHeadUp * (1.0 - 0.78);
   const mobileHeadingY = prefersReducedMotion ? 0 : mobileHeadingCenterY * (1 - tMobileHeadUp);
 
   return (
@@ -234,9 +277,9 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
       ref={containerRef}
       className="relative w-full border-t border-[#34394A]/15 bg-[#E9EBED] scroll-mt-28 sm:scroll-mt-32 select-none"
       style={{
-        // Desktop: ~260vh bounded scroll scene for controlled cinematic pacing
+        // Desktop: ~380vh bounded scroll scene for fluid, deliberately paced cinematic motion
         // Mobile: natural height with smooth scroll progression and zero empty space
-        minHeight: prefersReducedMotion || isMobile ? 'auto' : '260vh',
+        minHeight: prefersReducedMotion || isMobile ? 'auto' : '380vh',
       }}
       aria-label={t('processHeading') || 'How It Works'}
     >
@@ -260,7 +303,6 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
           style={{
             transform: `translate3d(0, ${desktopHeadingY}px, 0) scale(${desktopHeadingScale})`,
             transformOrigin: 'center center',
-            transition: prefersReducedMotion ? 'none' : 'transform 100ms linear',
           }}
         >
           <h2 className="font-display text-[76px] sm:text-[104px] lg:text-[124px] xl:text-[138px] text-[#0B1421] uppercase tracking-tight leading-none whitespace-normal lg:whitespace-nowrap">
@@ -302,7 +344,7 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
               left: '50%',
               top: '50%',
               transform: `translate3d(calc(-50% + ${arrow1X}px), -50%, 0)`,
-              opacity: card2Opacity > 0.05 ? 1 : arrow1Draw,
+              opacity: prefersReducedMotion ? 1 : (arrow1Draw > 0 ? 1 : 0),
             }}
             aria-hidden="true"
           >
@@ -354,7 +396,7 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
               left: '50%',
               top: '50%',
               transform: `translate3d(calc(-50% + ${arrow2X}px), -50%, 0)`,
-              opacity: card3Opacity > 0.05 ? 1 : arrow2Draw,
+              opacity: prefersReducedMotion ? 1 : (arrow2Draw > 0 ? 1 : 0),
             }}
             aria-hidden="true"
           >
@@ -406,7 +448,7 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
               left: '50%',
               top: '50%',
               transform: `translate3d(calc(-50% + ${arrow3X}px), -50%, 0)`,
-              opacity: card4Opacity > 0.05 ? 1 : arrow3Draw,
+              opacity: prefersReducedMotion ? 1 : (arrow3Draw > 0 ? 1 : 0),
             }}
             aria-hidden="true"
           >
@@ -467,7 +509,6 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
           style={{
             transform: `translate3d(0, ${mobileHeadingY}px, 0) scale(${mobileHeadingScale})`,
             transformOrigin: 'center center',
-            transition: prefersReducedMotion ? 'none' : 'transform 100ms linear',
           }}
         >
           <h2 className="font-display text-4xl sm:text-5xl text-[#0B1421] uppercase tracking-tight">
@@ -479,7 +520,7 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
         <div className="flex flex-col items-center w-full">
           {stepsData.map((stg, index) => {
             // Progressive reveal on natural mobile scroll
-            const threshold = 0.15 + index * 0.15;
+            const threshold = 0.12 + index * 0.16;
             const arrowThreshold = threshold + 0.08;
             const isCardVisible = prefersReducedMotion || mobileProgress >= threshold;
             const isArrowDrawn = prefersReducedMotion || mobileProgress >= arrowThreshold;
