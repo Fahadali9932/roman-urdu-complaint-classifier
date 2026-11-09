@@ -5,9 +5,41 @@ interface ComplaintJourneyProps {
   id?: string;
 }
 
+// Ken Perlin quintic smootherstep ease (C^2 continuous: 0 velocity & acceleration at boundaries)
+const smoother = (x: number): number => {
+  const c = Math.max(0, Math.min(1, x));
+  return c * c * c * (c * (c * 6 - 15) + 10);
+};
+
+const clamp01 = (v: number): number => Math.max(0, Math.min(1, v));
+
 export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps' }) => {
   const { t, language, isRTL } = useLanguage();
   const containerRef = useRef<HTMLElement>(null);
+
+  // Direct DOM element refs for 60fps transform scrub without React re-render storms
+  const headingRef = useRef<HTMLDivElement>(null);
+  const card1Ref = useRef<HTMLDivElement>(null);
+  const card2Ref = useRef<HTMLDivElement>(null);
+  const card3Ref = useRef<HTMLDivElement>(null);
+  const card4Ref = useRef<HTMLDivElement>(null);
+  const arrow1Ref = useRef<HTMLDivElement>(null);
+  const arrow2Ref = useRef<HTMLDivElement>(null);
+  const arrow3Ref = useRef<HTMLDivElement>(null);
+  const path1Ref = useRef<SVGPathElement>(null);
+  const path2Ref = useRef<SVGPathElement>(null);
+  const path3Ref = useRef<SVGPathElement>(null);
+
+  // Cached layout metrics to avoid reading layout during scroll
+  const layoutMetricsRef = useRef({
+    containerTop: 0,
+    containerHeight: 0,
+    vh: 900,
+    scrollableDistance: 1,
+  });
+
+  const targetProgressRef = useRef(0);
+  const currentProgressRef = useRef(0);
   const rafId = useRef<number | null>(null);
 
   // Detect prefers-reduced-motion
@@ -22,21 +54,28 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
     return window.matchMedia('(max-width: 1023px)').matches;
   });
 
-  // Desktop normalized scroll progress: 0.0 to 1.0 (smoothed via RAF lerp)
-  const [progress, setProgress] = useState(0);
-  const targetProgressRef = useRef(0);
-  const currentProgressRef = useRef(0);
-
-  // Mobile scroll progress: 0.0 to 1.0
+  // Mobile scroll progress
   const [mobileProgress, setMobileProgress] = useState(0);
 
-  // Window dimensions for dynamic navbar-aware optical centering
-  const [windowHeight, setWindowHeight] = useState(() => {
-    if (typeof window === 'undefined') return 900;
-    return window.innerHeight;
-  });
+  // Recalculate and cache layout geometry
+  const measureLayout = useCallback(() => {
+    if (!containerRef.current) return;
+    const vh = window.innerHeight;
+    const rect = containerRef.current.getBoundingClientRect();
+    const scrollY = window.scrollY;
+    const containerTop = rect.top + scrollY;
+    const containerHeight = containerRef.current.offsetHeight;
+    const scrollableDistance = Math.max(1, containerHeight - vh);
 
-  // Subscribe to prefers-reduced-motion, viewport resize, and window dimensions
+    layoutMetricsRef.current = {
+      containerTop,
+      containerHeight,
+      vh,
+      scrollableDistance,
+    };
+  }, []);
+
+  // Subscribe to media queries and viewport resize
   useEffect(() => {
     if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return;
 
@@ -49,45 +88,155 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
     mqMobile.addEventListener('change', handleMobile);
 
     const handleResize = () => {
-      setWindowHeight(window.innerHeight);
+      measureLayout();
     };
     window.addEventListener('resize', handleResize, { passive: true });
+    measureLayout();
 
     return () => {
       mqMotion.removeEventListener('change', handleMotion);
       mqMobile.removeEventListener('change', handleMobile);
       window.removeEventListener('resize', handleResize);
     };
-  }, []);
+  }, [measureLayout]);
 
-  // Continuous Scroll-Driven Progress Controller with RAF Scrub Damping
+  // Apply motion frame directly to DOM nodes with zero React re-render overhead
+  const applyMotionFrame = useCallback(
+    (p: number) => {
+      if (prefersReducedMotion) return;
+
+      const dir = isRTL ? -1 : 1;
+      const pitch = 155; // spacing unit (310px center-to-center)
+
+      // =========================================================================
+      // BACKGROUND LAYER: OVERSIZED "HOW IT WORKS" TYPOGRAPHIC SCENE
+      // Initial: Enormous (1.0), optically centered, 1.0 opacity
+      // State B+: Recedes subtly into background (scale -> 0.86, opacity -> 0.18)
+      // =========================================================================
+      const tHeadingRecede = smoother(clamp01((p - 0.08) / 0.22));
+      const hScale = 1.0 - 0.14 * tHeadingRecede; // 1.0 -> 0.86
+      const hOpacity = 1.0 - 0.82 * tHeadingRecede; // 1.0 -> 0.18
+      const hY = -24 * tHeadingRecede; // subtle optical elevation to frame cards
+
+      if (headingRef.current) {
+        headingRef.current.style.transform = `translate3d(0, ${hY}px, 0) scale(${hScale})`;
+        headingRef.current.style.opacity = `${hOpacity}`;
+      }
+
+      // =========================================================================
+      // FOREGROUND LAYER: CARDS & CONNECTORS CHOREOGRAPHY OVER THE HEADING
+      // =========================================================================
+
+      // Stage 1: WRITE Entrance at Center (p: 0.12 -> 0.26)
+      const tEnterWrite = smoother(clamp01((p - 0.12) / 0.14));
+      const c1Opacity = tEnterWrite;
+      const c1Scale = 0.92 + 0.08 * tEnterWrite;
+
+      // Stage 2: WRITE shifts left, Arrow 1 draws, REVIEW enters (p: 0.28 -> 0.48)
+      const tShift1 = smoother(clamp01((p - 0.28) / 0.18));
+      const tDraw1 = smoother(clamp01((p - 0.32) / 0.14));
+      const tEnterReview = smoother(clamp01((p - 0.36) / 0.12));
+      const c2Opacity = tEnterReview;
+      const c2Scale = 0.92 + 0.08 * tEnterReview;
+
+      // Stage 3: Stations shift left, Arrow 2 draws, ROUTE enters (p: 0.48 -> 0.68)
+      const tShift2 = smoother(clamp01((p - 0.48) / 0.18));
+      const tDraw2 = smoother(clamp01((p - 0.52) / 0.14));
+      const tEnterRoute = smoother(clamp01((p - 0.56) / 0.12));
+      const c3Opacity = tEnterRoute;
+      const c3Scale = 0.92 + 0.08 * tEnterRoute;
+
+      // Stage 4: Stations shift left, Arrow 3 draws, TRACK enters (p: 0.68 -> 0.88)
+      const tShift3 = smoother(clamp01((p - 0.68) / 0.18));
+      const tDraw3 = smoother(clamp01((p - 0.72) / 0.14));
+      const tEnterTrack = smoother(clamp01((p - 0.76) / 0.12));
+      const c4Opacity = tEnterTrack;
+      const c4Scale = 0.92 + 0.08 * tEnterTrack;
+
+      // Card X coordinates
+      const c1X_raw = 0 - pitch * tShift1 - pitch * tShift2 - pitch * tShift3;
+      const c2X_raw = pitch - pitch * tShift2 - pitch * tShift3;
+      const c3X_raw = pitch * 2 - pitch * tShift3;
+      const c4X_raw = pitch * 3;
+
+      const c1X = c1X_raw * dir;
+      const c2X = c2X_raw * dir;
+      const c3X = c3X_raw * dir;
+      const c4X = c4X_raw * dir;
+
+      // Arrow connectors centered between stations
+      const a1X = (c1X + c2X) / 2;
+      const a2X = (c2X + c3X) / 2;
+      const a3X = (c3X + c4X) / 2;
+
+      // Apply transforms and opacities directly
+      if (card1Ref.current) {
+        card1Ref.current.style.transform = `translate3d(calc(-50% + ${c1X}px), -50%, 0) scale(${c1Scale})`;
+        card1Ref.current.style.opacity = `${c1Opacity}`;
+        card1Ref.current.style.pointerEvents = c1Opacity > 0.5 ? 'auto' : 'none';
+      }
+
+      if (card2Ref.current) {
+        card2Ref.current.style.transform = `translate3d(calc(-50% + ${c2X}px), -50%, 0) scale(${c2Scale})`;
+        card2Ref.current.style.opacity = `${c2Opacity}`;
+        card2Ref.current.style.pointerEvents = c2Opacity > 0.5 ? 'auto' : 'none';
+      }
+
+      if (card3Ref.current) {
+        card3Ref.current.style.transform = `translate3d(calc(-50% + ${c3X}px), -50%, 0) scale(${c3Scale})`;
+        card3Ref.current.style.opacity = `${c3Opacity}`;
+        card3Ref.current.style.pointerEvents = c3Opacity > 0.5 ? 'auto' : 'none';
+      }
+
+      if (card4Ref.current) {
+        card4Ref.current.style.transform = `translate3d(calc(-50% + ${c4X}px), -50%, 0) scale(${c4Scale})`;
+        card4Ref.current.style.opacity = `${c4Opacity}`;
+        card4Ref.current.style.pointerEvents = c4Opacity > 0.5 ? 'auto' : 'none';
+      }
+
+      if (arrow1Ref.current) {
+        arrow1Ref.current.style.transform = `translate3d(calc(-50% + ${a1X}px), -50%, 0)`;
+        arrow1Ref.current.style.opacity = tDraw1 > 0 ? '1' : '0';
+      }
+      if (path1Ref.current) {
+        path1Ref.current.style.strokeDashoffset = `${(1 - tDraw1) * 95}`;
+      }
+
+      if (arrow2Ref.current) {
+        arrow2Ref.current.style.transform = `translate3d(calc(-50% + ${a2X}px), -50%, 0)`;
+        arrow2Ref.current.style.opacity = tDraw2 > 0 ? '1' : '0';
+      }
+      if (path2Ref.current) {
+        path2Ref.current.style.strokeDashoffset = `${(1 - tDraw2) * 95}`;
+      }
+
+      if (arrow3Ref.current) {
+        arrow3Ref.current.style.transform = `translate3d(calc(-50% + ${a3X}px), -50%, 0)`;
+        arrow3Ref.current.style.opacity = tDraw3 > 0 ? '1' : '0';
+      }
+      if (path3Ref.current) {
+        path3Ref.current.style.strokeDashoffset = `${(1 - tDraw3) * 95}`;
+      }
+    },
+    [isRTL, prefersReducedMotion]
+  );
+
+  // Authoritative RAF scroll listener with buttery smooth damping
   const handleScroll = useCallback(() => {
     if (prefersReducedMotion) return;
-    if (!containerRef.current) return;
 
-    const container = containerRef.current;
-    const rect = container.getBoundingClientRect();
-    const vh = window.innerHeight;
-    const totalScrollable = container.offsetHeight - vh;
-
-    if (totalScrollable <= 0) {
-      targetProgressRef.current = 1;
-      currentProgressRef.current = 1;
-      setProgress(1);
-      setMobileProgress(1);
-      return;
-    }
-
-    const currentScroll = -rect.top;
-    const rawProgress = currentScroll / totalScrollable;
-    const clamped = Math.max(0, Math.min(1, rawProgress));
+    const scrollY = window.scrollY;
+    const { containerTop, scrollableDistance, vh, containerHeight } = layoutMetricsRef.current;
 
     if (isMobile) {
-      const mobDistance = vh + container.offsetHeight * 0.5;
-      const currentMob = vh - rect.top;
+      const mobDistance = vh + containerHeight * 0.5;
+      const currentMob = scrollY + vh - containerTop;
       const mobRaw = mobDistance > 0 ? currentMob / mobDistance : 1;
       setMobileProgress(Math.max(0, Math.min(1, mobRaw)));
     } else {
+      const currentScroll = scrollY - containerTop;
+      const rawProgress = currentScroll / scrollableDistance;
+      const clamped = Math.max(0, Math.min(1, rawProgress));
       targetProgressRef.current = clamped;
 
       if (rafId.current === null) {
@@ -96,41 +245,34 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
           const current = currentProgressRef.current;
           const diff = target - current;
 
-          if (Math.abs(diff) <= 0.0002) {
+          if (Math.abs(diff) <= 0.0003) {
             currentProgressRef.current = target;
-            setProgress(target);
+            applyMotionFrame(target);
             rafId.current = null;
             return;
           }
 
+          // Damping factor: 0.18 provides responsive 60fps tracking without lag
           const next = current + diff * 0.18;
           currentProgressRef.current = next;
-          setProgress(next);
+          applyMotionFrame(next);
           rafId.current = requestAnimationFrame(updateMotion);
         };
 
         rafId.current = requestAnimationFrame(updateMotion);
       }
     }
-  }, [prefersReducedMotion, isMobile]);
+  }, [applyMotionFrame, isMobile, prefersReducedMotion]);
 
   useEffect(() => {
+    measureLayout();
+
     if (prefersReducedMotion) return;
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     window.addEventListener('resize', handleScroll, { passive: true });
 
-    if (containerRef.current) {
-      const rect = containerRef.current.getBoundingClientRect();
-      const vh = window.innerHeight;
-      const totalScrollable = containerRef.current.offsetHeight - vh;
-      if (totalScrollable > 0) {
-        const initialClamped = Math.max(0, Math.min(1, -rect.top / totalScrollable));
-        targetProgressRef.current = initialClamped;
-        currentProgressRef.current = initialClamped;
-        setProgress(initialClamped);
-      }
-    }
+    // Initial position evaluation
     handleScroll();
 
     return () => {
@@ -141,7 +283,7 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
         rafId.current = null;
       }
     };
-  }, [handleScroll, prefersReducedMotion]);
+  }, [handleScroll, measureLayout, prefersReducedMotion]);
 
   // Essential Stage Content (strictly minimal, no numbering, no badges, no fake data)
   const stepsData = [
@@ -167,106 +309,6 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
     },
   ];
 
-  // Ken Perlin quintic smootherstep ease (C^2 continuous)
-  const smoother = (x: number) => {
-    const c = Math.max(0, Math.min(1, x));
-    return c * c * c * (c * (c * 6 - 15) + 10);
-  };
-  const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
-
-  // =========================================================================
-  // OBJECTIVE 4: IMMERSIVE FULL-SCREEN HEADING & OPTICAL TRANSFORMATION
-  // Initial state: Heading appears enormous (occupying 75-90% usable width),
-  // optically centered in the usable viewport below top navigation.
-  // Cards & arrows are completely hidden.
-  // As user scrolls: Heading smoothly shrinks (1.0 -> 0.52) and glides upward.
-  // =========================================================================
-  const navBottom = 72;
-  const usableHeight = windowHeight - navBottom;
-  const usableMidpoint = navBottom + usableHeight / 2;
-
-  const stickyTop = 72;
-  const stickyHeight = windowHeight - stickyTop;
-  const compHeight = 110 + 36 + 180;
-  const opticalLift = Math.round(windowHeight * 0.02);
-  const compTopInSticky = Math.max(16, (stickyHeight - compHeight) / 2 - opticalLift);
-  const settledHeadingCenterY = stickyTop + compTopInSticky + 55;
-
-  const desktopHeadingCenterY = Math.max(70, usableMidpoint - settledHeadingCenterY + 16);
-
-  // Transformation phase: p: 0.04 -> 0.28
-  const tHeading = smoother(clamp01((progress - 0.04) / 0.24));
-  const desktopHeadingScale = prefersReducedMotion ? 0.52 : 1.0 - tHeading * (1.0 - 0.52);
-  const desktopHeadingY = prefersReducedMotion ? 0 : desktopHeadingCenterY * (1 - tHeading);
-
-  // =========================================================================
-  // OBJECTIVE 5: REFINED TYPOGRAPHIC PROCESS STATIONS & COORDINATED TIMELINE
-  // Stage 1 (p: 0.26 -> 0.38): WRITE enters at center
-  // Stage 2 (p: 0.40 -> 0.56): WRITE shifts left, Arrow 1 draws, REVIEW enters
-  // Stage 3 (p: 0.58 -> 0.74): Stations shift left, Arrow 2 draws, ROUTE enters
-  // Stage 4 (p: 0.76 -> 0.92): Stations shift left, Arrow 3 draws, TRACK enters
-  // Stage 5 (p: 0.92 -> 1.00): Settled horizontal composition held before exit
-  // =========================================================================
-
-  // Stage 1: WRITE Entrance at Center
-  const tEnterWrite = smoother(clamp01((progress - 0.26) / 0.12));
-  const card1Opacity = prefersReducedMotion ? 1 : tEnterWrite;
-  const card1Scale = prefersReducedMotion ? 1 : 0.95 + 0.05 * tEnterWrite;
-
-  // Stage 2: WRITE shifts 0 -> -145px
-  const tShiftD = smoother(clamp01((progress - 0.40) / 0.12));
-  // Arrow 1 draws
-  const tDrawArrow1 = smoother(clamp01((progress - 0.43) / 0.10));
-  const arrow1Draw = prefersReducedMotion ? 1 : tDrawArrow1;
-  // REVIEW enters at +145px
-  const tEnterReview = smoother(clamp01((progress - 0.46) / 0.10));
-  const card2Opacity = prefersReducedMotion ? 1 : tEnterReview;
-  const card2Scale = prefersReducedMotion ? 1 : 0.95 + 0.05 * tEnterReview;
-
-  // Stage 3: Stations shift left by 145px
-  const tShiftE = smoother(clamp01((progress - 0.58) / 0.12));
-  // Arrow 2 draws
-  const tDrawArrow2 = smoother(clamp01((progress - 0.61) / 0.10));
-  const arrow2Draw = prefersReducedMotion ? 1 : tDrawArrow2;
-  // ROUTE enters at +290px
-  const tEnterRoute = smoother(clamp01((progress - 0.64) / 0.10));
-  const card3Opacity = prefersReducedMotion ? 1 : tEnterRoute;
-  const card3Scale = prefersReducedMotion ? 1 : 0.95 + 0.05 * tEnterRoute;
-
-  // Stage 4: Stations shift left by 145px
-  const tShiftF = smoother(clamp01((progress - 0.76) / 0.12));
-  // Arrow 3 draws
-  const tDrawArrow3 = smoother(clamp01((progress - 0.79) / 0.10));
-  const arrow3Draw = prefersReducedMotion ? 1 : tDrawArrow3;
-  // TRACK enters at +435px
-  const tEnterTrack = smoother(clamp01((progress - 0.82) / 0.10));
-  const card4Opacity = prefersReducedMotion ? 1 : tEnterTrack;
-  const card4Scale = prefersReducedMotion ? 1 : 0.95 + 0.05 * tEnterTrack;
-
-  // Card Center X Coordinates (290px pitch between stations)
-  const dir = isRTL ? -1 : 1;
-  const pitch = 145;
-  const c1X_raw = 0 - pitch * tShiftD - pitch * tShiftE - pitch * tShiftF;
-  const c2X_raw = pitch - pitch * tShiftE - pitch * tShiftF;
-  const c3X_raw = pitch * 2 - pitch * tShiftF;
-  const c4X_raw = pitch * 3;
-
-  const card1X = prefersReducedMotion ? -pitch * 3 * dir : c1X_raw * dir;
-  const card2X = prefersReducedMotion ? -pitch * dir : c2X_raw * dir;
-  const card3X = prefersReducedMotion ? pitch * dir : c3X_raw * dir;
-  const card4X = prefersReducedMotion ? pitch * 3 * dir : c4X_raw * dir;
-
-  // Vector Arrow Connectors (Centrally positioned between stations)
-  const arrow1X = (card1X + card2X) / 2;
-  const arrow2X = (card2X + card3X) / 2;
-  const arrow3X = (card3X + card4X) / 2;
-
-  // Mobile Heading Motion
-  const mobileHeadingCenterY = Math.max(90, Math.min(200, (windowHeight - 180) / 2));
-  const tMobileHeadUp = smoother(clamp01(mobileProgress / 0.20));
-  const mobileHeadingScale = prefersReducedMotion ? 0.8 : 1.0 - tMobileHeadUp * (1.0 - 0.8);
-  const mobileHeadingY = prefersReducedMotion ? 0 : mobileHeadingCenterY * (1 - tMobileHeadUp);
-
   return (
     <section
       id={id}
@@ -278,59 +320,66 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
       aria-label={t('processHeading') || 'How It Works'}
     >
       {/* ========================================================
-          DESKTOP FULL-SCREEN PINNED STAGE (>= 1024px)
-          Dominant opening heading shrinks upward, space opens,
-          and refined typographic stations emerge with vector arrows
+          DESKTOP FULL-SCREEN STAGE (>= 1024px)
+          Monumental Background Heading with Foreground Stations
+          Layered directly OVER the massive typography
           ======================================================== */}
       <div
         className={`hidden lg:flex w-full flex-col justify-center items-center px-4 sm:px-10 lg:px-16 xl:px-20 overflow-hidden ${
           prefersReducedMotion
-            ? 'relative py-20 sm:py-28'
-            : 'sticky top-16 sm:top-20 h-[calc(100vh-4rem)] sm:h-[calc(100vh-5rem)]'
+            ? 'relative py-24 sm:py-32'
+            : 'sticky top-0 h-screen'
         }`}
       >
-        <div
-          className="w-full max-w-7xl mx-auto flex flex-col items-center"
-          style={{
-            transform: prefersReducedMotion ? 'none' : `translate3d(0, -${opticalLift}px, 0)`,
-          }}
-        >
-          {/* Dominant Section Heading: Occupies ~80% width initially, smoothly transforms */}
+        <div className="relative w-full max-w-7xl mx-auto h-full flex flex-col items-center justify-center">
+
+          {/* ----------------------------------------------------
+              LAYER 0 (BACKGROUND): OVERSIZED DISPLAY TYPOGRAPHY
+              Occupies 80-90% usable screen width, optically centered
+              ---------------------------------------------------- */}
           <div
-            className="w-full text-center will-change-transform z-20 pointer-events-none"
+            ref={headingRef}
+            className="absolute inset-0 flex items-center justify-center text-center will-change-transform z-10 pointer-events-none"
             style={{
-              transform: `translate3d(0, ${desktopHeadingY}px, 0) scale(${desktopHeadingScale})`,
               transformOrigin: 'center center',
+              transform: prefersReducedMotion ? 'translate3d(0, -140px, 0) scale(0.65)' : 'translate3d(0, 0, 0) scale(1)',
+              opacity: prefersReducedMotion ? 0.25 : 1,
             }}
           >
-            <h2 className="font-display text-[84px] sm:text-[112px] lg:text-[136px] xl:text-[160px] text-[#141414] uppercase tracking-tight leading-none whitespace-normal lg:whitespace-nowrap">
+            <h2 className="font-display text-[84px] sm:text-[112px] lg:text-[132px] xl:text-[156px] 2xl:text-[172px] text-[#141414] uppercase tracking-tight leading-none whitespace-nowrap">
               {t('processHeading') || (language === 'ur' ? 'طریقہ کار' : 'How It Works')}
             </h2>
           </div>
 
-          {/* Central Typographic Stations Stage */}
+          {/* ----------------------------------------------------
+              LAYER 1 (FOREGROUND): REFINED TYPOGRAPHIC PROCESS STATIONS
+              Process stations enter and animate directly OVER the
+              monumental background heading
+              ---------------------------------------------------- */}
           <div
-            className="relative w-full max-w-6xl mx-auto flex items-center justify-center min-h-[170px] xl:min-h-[180px] will-change-transform mt-8 xl:mt-10"
+            className="relative z-20 w-full max-w-6xl mx-auto flex items-center justify-center min-h-[200px]"
             style={{ perspective: '1200px' }}
           >
             {/* ---------------- STATION 1: WRITE ---------------- */}
             <div
-              className="absolute w-[220px] xl:w-[240px] min-h-[150px] p-5 xl:p-6 rounded-xl bg-[#FAF9F7] border border-[#E5E3E0]/80 shadow-none flex flex-col justify-between transition-all will-change-transform text-start"
+              ref={card1Ref}
+              className="absolute w-[230px] xl:w-[250px] min-h-[160px] p-6 rounded-xl bg-[#FAF9F7] border border-[#E5E3E0] shadow-sm flex flex-col justify-between will-change-transform text-start"
               style={{
                 left: '50%',
                 top: '50%',
-                transform: `translate3d(calc(-50% + ${card1X}px), -50%, 0) scale(${card1Scale})`,
-                opacity: card1Opacity,
-                zIndex: 10,
-                pointerEvents: card1Opacity > 0.5 ? 'auto' : 'none',
+                transform: prefersReducedMotion
+                  ? `translate3d(calc(-50% + ${-155 * 3 * (isRTL ? -1 : 1)}px), -50%, 0)`
+                  : 'translate3d(-50%, -50%, 0) scale(0.92)',
+                opacity: prefersReducedMotion ? 1 : 0,
+                pointerEvents: prefersReducedMotion ? 'auto' : 'none',
               }}
             >
               <div>
                 <div className="w-6 h-0.5 bg-[#681822] mb-3" />
-                <h3 className="font-display text-2xl xl:text-[1.7rem] text-[#141414] tracking-tight uppercase leading-none">
+                <h3 className="font-display text-2xl xl:text-[1.75rem] text-[#141414] tracking-tight uppercase leading-none">
                   {stepsData[0].title}
                 </h3>
-                <p className="font-ui text-xs xl:text-sm text-[#323232] mt-2.5 leading-relaxed font-normal">
+                <p className="font-ui text-xs xl:text-sm text-[#323232] mt-3 leading-relaxed font-normal">
                   {stepsData[0].desc}
                 </p>
               </div>
@@ -338,17 +387,21 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
 
             {/* ---------------- ARROW 1: WRITE -> REVIEW ---------------- */}
             <div
-              className="absolute flex items-center justify-center pointer-events-none will-change-transform z-5"
+              ref={arrow1Ref}
+              className="absolute flex items-center justify-center pointer-events-none will-change-transform z-15"
               style={{
                 left: '50%',
                 top: '50%',
-                transform: `translate3d(calc(-50% + ${arrow1X}px), -50%, 0)`,
-                opacity: prefersReducedMotion ? 1 : (arrow1Draw > 0 ? 1 : 0),
+                transform: prefersReducedMotion
+                  ? `translate3d(calc(-50% + ${-155 * 2 * (isRTL ? -1 : 1)}px), -50%, 0)`
+                  : 'translate3d(-50%, -50%, 0)',
+                opacity: prefersReducedMotion ? 1 : 0,
               }}
               aria-hidden="true"
             >
               <svg viewBox="0 0 64 24" className="w-12 xl:w-14 h-6 overflow-visible" fill="none">
                 <path
+                  ref={path1Ref}
                   d={
                     isRTL
                       ? 'M 62 12 L 10 12 M 22 4 L 10 12 L 22 20'
@@ -360,7 +413,7 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
                   strokeLinejoin="round"
                   style={{
                     strokeDasharray: 95,
-                    strokeDashoffset: (1 - arrow1Draw) * 95,
+                    strokeDashoffset: prefersReducedMotion ? 0 : 95,
                   }}
                 />
               </svg>
@@ -368,22 +421,24 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
 
             {/* ---------------- STATION 2: REVIEW ---------------- */}
             <div
-              className="absolute w-[220px] xl:w-[240px] min-h-[150px] p-5 xl:p-6 rounded-xl bg-[#FAF9F7] border border-[#E5E3E0]/80 shadow-none flex flex-col justify-between transition-all will-change-transform text-start"
+              ref={card2Ref}
+              className="absolute w-[230px] xl:w-[250px] min-h-[160px] p-6 rounded-xl bg-[#FAF9F7] border border-[#E5E3E0] shadow-sm flex flex-col justify-between will-change-transform text-start"
               style={{
                 left: '50%',
                 top: '50%',
-                transform: `translate3d(calc(-50% + ${card2X}px), -50%, 0) scale(${card2Scale})`,
-                opacity: card2Opacity,
-                zIndex: 10,
-                pointerEvents: card2Opacity > 0.5 ? 'auto' : 'none',
+                transform: prefersReducedMotion
+                  ? `translate3d(calc(-50% + ${-155 * 1 * (isRTL ? -1 : 1)}px), -50%, 0)`
+                  : 'translate3d(calc(-50% + 155px), -50%, 0) scale(0.92)',
+                opacity: prefersReducedMotion ? 1 : 0,
+                pointerEvents: prefersReducedMotion ? 'auto' : 'none',
               }}
             >
               <div>
                 <div className="w-6 h-0.5 bg-[#681822] mb-3" />
-                <h3 className="font-display text-2xl xl:text-[1.7rem] text-[#141414] tracking-tight uppercase leading-none">
+                <h3 className="font-display text-2xl xl:text-[1.75rem] text-[#141414] tracking-tight uppercase leading-none">
                   {stepsData[1].title}
                 </h3>
-                <p className="font-ui text-xs xl:text-sm text-[#323232] mt-2.5 leading-relaxed font-normal">
+                <p className="font-ui text-xs xl:text-sm text-[#323232] mt-3 leading-relaxed font-normal">
                   {stepsData[1].desc}
                 </p>
               </div>
@@ -391,17 +446,21 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
 
             {/* ---------------- ARROW 2: REVIEW -> ROUTE ---------------- */}
             <div
-              className="absolute flex items-center justify-center pointer-events-none will-change-transform z-5"
+              ref={arrow2Ref}
+              className="absolute flex items-center justify-center pointer-events-none will-change-transform z-15"
               style={{
                 left: '50%',
                 top: '50%',
-                transform: `translate3d(calc(-50% + ${arrow2X}px), -50%, 0)`,
-                opacity: prefersReducedMotion ? 1 : (arrow2Draw > 0 ? 1 : 0),
+                transform: prefersReducedMotion
+                  ? `translate3d(calc(-50% + 0px), -50%, 0)`
+                  : 'translate3d(calc(-50% + 155px), -50%, 0)',
+                opacity: prefersReducedMotion ? 1 : 0,
               }}
               aria-hidden="true"
             >
               <svg viewBox="0 0 64 24" className="w-12 xl:w-14 h-6 overflow-visible" fill="none">
                 <path
+                  ref={path2Ref}
                   d={
                     isRTL
                       ? 'M 62 12 L 10 12 M 22 4 L 10 12 L 22 20'
@@ -413,7 +472,7 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
                   strokeLinejoin="round"
                   style={{
                     strokeDasharray: 95,
-                    strokeDashoffset: (1 - arrow2Draw) * 95,
+                    strokeDashoffset: prefersReducedMotion ? 0 : 95,
                   }}
                 />
               </svg>
@@ -421,22 +480,24 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
 
             {/* ---------------- STATION 3: ROUTE ---------------- */}
             <div
-              className="absolute w-[220px] xl:w-[240px] min-h-[150px] p-5 xl:p-6 rounded-xl bg-[#FAF9F7] border border-[#E5E3E0]/80 shadow-none flex flex-col justify-between transition-all will-change-transform text-start"
+              ref={card3Ref}
+              className="absolute w-[230px] xl:w-[250px] min-h-[160px] p-6 rounded-xl bg-[#FAF9F7] border border-[#E5E3E0] shadow-sm flex flex-col justify-between will-change-transform text-start"
               style={{
                 left: '50%',
                 top: '50%',
-                transform: `translate3d(calc(-50% + ${card3X}px), -50%, 0) scale(${card3Scale})`,
-                opacity: card3Opacity,
-                zIndex: 10,
-                pointerEvents: card3Opacity > 0.5 ? 'auto' : 'none',
+                transform: prefersReducedMotion
+                  ? `translate3d(calc(-50% + ${155 * 1 * (isRTL ? -1 : 1)}px), -50%, 0)`
+                  : 'translate3d(calc(-50% + 310px), -50%, 0) scale(0.92)',
+                opacity: prefersReducedMotion ? 1 : 0,
+                pointerEvents: prefersReducedMotion ? 'auto' : 'none',
               }}
             >
               <div>
                 <div className="w-6 h-0.5 bg-[#681822] mb-3" />
-                <h3 className="font-display text-2xl xl:text-[1.7rem] text-[#141414] tracking-tight uppercase leading-none">
+                <h3 className="font-display text-2xl xl:text-[1.75rem] text-[#141414] tracking-tight uppercase leading-none">
                   {stepsData[2].title}
                 </h3>
-                <p className="font-ui text-xs xl:text-sm text-[#323232] mt-2.5 leading-relaxed font-normal">
+                <p className="font-ui text-xs xl:text-sm text-[#323232] mt-3 leading-relaxed font-normal">
                   {stepsData[2].desc}
                 </p>
               </div>
@@ -444,17 +505,21 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
 
             {/* ---------------- ARROW 3: ROUTE -> TRACK ---------------- */}
             <div
-              className="absolute flex items-center justify-center pointer-events-none will-change-transform z-5"
+              ref={arrow3Ref}
+              className="absolute flex items-center justify-center pointer-events-none will-change-transform z-15"
               style={{
                 left: '50%',
                 top: '50%',
-                transform: `translate3d(calc(-50% + ${arrow3X}px), -50%, 0)`,
-                opacity: prefersReducedMotion ? 1 : (arrow3Draw > 0 ? 1 : 0),
+                transform: prefersReducedMotion
+                  ? `translate3d(calc(-50% + ${155 * 2 * (isRTL ? -1 : 1)}px), -50%, 0)`
+                  : 'translate3d(calc(-50% + 310px), -50%, 0)',
+                opacity: prefersReducedMotion ? 1 : 0,
               }}
               aria-hidden="true"
             >
               <svg viewBox="0 0 64 24" className="w-12 xl:w-14 h-6 overflow-visible" fill="none">
                 <path
+                  ref={path3Ref}
                   d={
                     isRTL
                       ? 'M 62 12 L 10 12 M 22 4 L 10 12 L 22 20'
@@ -466,7 +531,7 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
                   strokeLinejoin="round"
                   style={{
                     strokeDasharray: 95,
-                    strokeDashoffset: (1 - arrow3Draw) * 95,
+                    strokeDashoffset: prefersReducedMotion ? 0 : 95,
                   }}
                 />
               </svg>
@@ -474,22 +539,24 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
 
             {/* ---------------- STATION 4: TRACK ---------------- */}
             <div
-              className="absolute w-[220px] xl:w-[240px] min-h-[150px] p-5 xl:p-6 rounded-xl bg-[#FAF9F7] border border-[#E5E3E0]/80 shadow-none flex flex-col justify-between transition-all will-change-transform text-start"
+              ref={card4Ref}
+              className="absolute w-[230px] xl:w-[250px] min-h-[160px] p-6 rounded-xl bg-[#FAF9F7] border border-[#E5E3E0] shadow-sm flex flex-col justify-between will-change-transform text-start"
               style={{
                 left: '50%',
                 top: '50%',
-                transform: `translate3d(calc(-50% + ${card4X}px), -50%, 0) scale(${card4Scale})`,
-                opacity: card4Opacity,
-                zIndex: 10,
-                pointerEvents: card4Opacity > 0.5 ? 'auto' : 'none',
+                transform: prefersReducedMotion
+                  ? `translate3d(calc(-50% + ${155 * 3 * (isRTL ? -1 : 1)}px), -50%, 0)`
+                  : 'translate3d(calc(-50% + 465px), -50%, 0) scale(0.92)',
+                opacity: prefersReducedMotion ? 1 : 0,
+                pointerEvents: prefersReducedMotion ? 'auto' : 'none',
               }}
             >
               <div>
                 <div className="w-6 h-0.5 bg-[#681822] mb-3" />
-                <h3 className="font-display text-2xl xl:text-[1.7rem] text-[#141414] tracking-tight uppercase leading-none">
+                <h3 className="font-display text-2xl xl:text-[1.75rem] text-[#141414] tracking-tight uppercase leading-none">
                   {stepsData[3].title}
                 </h3>
-                <p className="font-ui text-xs xl:text-sm text-[#323232] mt-2.5 leading-relaxed font-normal">
+                <p className="font-ui text-xs xl:text-sm text-[#323232] mt-3 leading-relaxed font-normal">
                   {stepsData[3].desc}
                 </p>
               </div>
@@ -499,17 +566,12 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
       </div>
 
       {/* ========================================================
-          MOBILE / TABLET PURPOSE-BUILT VERTICAL PROGRESSION (< 1024px)
+          MOBILE / TABLET VERTICAL PROGRESSION (< 1024px)
+          Vertical stack with downward vector arrows
           ======================================================== */}
       <div className="lg:hidden py-16 sm:py-24 px-4 sm:px-8 w-full max-w-md mx-auto">
-        <div
-          className="mb-10 sm:mb-14 text-center will-change-transform"
-          style={{
-            transform: `translate3d(0, ${mobileHeadingY}px, 0) scale(${mobileHeadingScale})`,
-            transformOrigin: 'center center',
-          }}
-        >
-          <h2 className="font-display text-4xl sm:text-5xl text-[#141414] uppercase tracking-tight">
+        <div className="mb-10 sm:mb-14 text-center">
+          <h2 className="font-display text-4xl sm:text-5xl text-[#141414] uppercase tracking-tight leading-tight">
             {t('processHeading') || (language === 'ur' ? 'طریقہ کار' : 'How It Works')}
           </h2>
         </div>
@@ -519,12 +581,12 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
             const threshold = 0.12 + index * 0.16;
             const arrowThreshold = threshold + 0.08;
             const isCardVisible = prefersReducedMotion || mobileProgress >= threshold;
-            const isArrowDrawn = prefersReducedMotion || mobileProgress >= arrowThreshold;
+            const isArrowVisible = prefersReducedMotion || mobileProgress >= arrowThreshold;
 
             return (
               <React.Fragment key={stg.key}>
                 <div
-                  className={`w-full p-5 sm:p-6 rounded-xl bg-[#FAF9F7] border border-[#E5E3E0]/80 shadow-none transition-all duration-500 ease-out text-start ${
+                  className={`w-full p-5 sm:p-6 rounded-xl bg-[#FAF9F7] border border-[#E5E3E0] shadow-none transition-all duration-500 ease-out text-start ${
                     isCardVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'
                   }`}
                 >
@@ -547,11 +609,9 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         style={{
-                          strokeDasharray: 90,
-                          strokeDashoffset: isArrowDrawn ? 0 : 90,
-                          transition: prefersReducedMotion
-                            ? 'none'
-                            : 'stroke-dashoffset 450ms cubic-bezier(0.22, 1, 0.36, 1)',
+                          strokeDasharray: 70,
+                          strokeDashoffset: isArrowVisible ? 0 : 70,
+                          transition: 'stroke-dashoffset 400ms ease-out',
                         }}
                       />
                     </svg>
