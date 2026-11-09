@@ -180,24 +180,28 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
   const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
 
   // =========================================================================
-  // TASK 1 & 2: NAVBAR-AWARE OPTICAL CENTERING & SMOOTHER UPWARD SHRINK
+  // TASK 1 & 2: NAVBAR-AWARE OPTICAL CENTERING & BALANCED COMPOSITION
   // Usable viewport height = windowHeight - navbarClearance (~80px).
   // Midpoint = navbarClearance + usableHeight / 2.
   // Dynamic offset translates the heading down so its optical center aligns
   // exactly with the midpoint of the visible canvas beneath the floating navbar.
-  // Final scale increased from 0.36 (~50px) to 0.48 (~66px at 1440px desktop),
-  // delivering commanding editorial presence while leaving ample clearance to cards.
-  // Heading transition timeline expanded from 0.14 to 0.22 (22% of total journey).
+  // Final scale increased to 0.61 (~84px rendered font size at 1440px desktop),
+  // delivering commanding editorial stature in the 78-88px target range.
+  // Heading transition timeline allocated over 22% of total journey (p: 0.03 -> 0.25).
   // =========================================================================
-  const navBottom = 80;
+  const navBottom = 96;
   const usableHeight = windowHeight - navBottom;
   const headingHeight = 138;
-  const topMargin = 20;
-  const desktopHeadingCenterY = Math.max(160, usableHeight / 2 - topMargin - headingHeight / 2);
+  const stickyTop = 96;
+  const containerPadTop = 20;
+  const unshiftedCenter = stickyTop + containerPadTop + headingHeight / 2;
+  const usableMidpoint = navBottom + usableHeight / 2;
+  const desktopHeadingCenterY = Math.max(160, usableMidpoint - unshiftedCenter);
 
   // Smooth, deliberate shrink & upward glide allocated over 22% of total journey (p: 0.03 -> 0.25)
+  // Final scale 0.61 gives ~84px rendered font size on 1440px desktop (within 78-88px target)
   const tHeading = smoother(clamp01((progress - 0.03) / 0.22));
-  const desktopHeadingScale = prefersReducedMotion ? 0.48 : 1.0 - tHeading * (1.0 - 0.48);
+  const desktopHeadingScale = prefersReducedMotion ? 0.61 : 1.0 - tHeading * (1.0 - 0.61);
   const desktopHeadingY = prefersReducedMotion ? 0 : desktopHeadingCenterY * (1 - tHeading);
 
   // =========================================================================
@@ -290,16 +294,16 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
           releasing cleanly into footer/next section
           ======================================================== */}
       <div
-        className={`hidden lg:flex w-full flex-col justify-between px-4 sm:px-10 lg:px-16 xl:px-20 py-5 xl:py-6 overflow-hidden ${
+        className={`hidden lg:flex w-full flex-col items-center px-4 sm:px-10 lg:px-16 xl:px-20 py-4 xl:py-6 overflow-hidden ${
           prefersReducedMotion
-            ? 'relative py-24 sm:py-32'
+            ? 'relative py-20 sm:py-28'
             : 'sticky top-20 sm:top-24 h-[calc(100vh-5rem)] sm:h-[calc(100vh-6rem)]'
         }`}
       >
         {/* Prominent, authoritative section heading */}
         {/* Massive & centered in usable viewport; smoothly shrinks & glides upward on scroll */}
         <div
-          className="max-w-7xl mx-auto w-full text-center pt-2 will-change-transform z-20 pointer-events-none"
+          className="max-w-7xl mx-auto w-full text-center pt-1 xl:pt-2 will-change-transform z-20 pointer-events-none"
           style={{
             transform: `translate3d(0, ${desktopHeadingY}px, 0) scale(${desktopHeadingScale})`,
             transformOrigin: 'center center',
@@ -310,10 +314,13 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
           </h2>
         </div>
 
-        {/* Central Linear Horizontal Stage (Centered in available area below settled heading) */}
+        {/* Central Linear Horizontal Stage — Unified composition directly beneath settled heading */}
         <div
-          className="relative w-full max-w-6xl mx-auto flex-1 flex items-center justify-center my-auto min-h-[300px]"
-          style={{ perspective: '1200px' }}
+          className="relative w-full max-w-6xl mx-auto flex items-center justify-center min-h-[190px] xl:min-h-[200px] will-change-transform"
+          style={{
+            perspective: '1200px',
+            marginTop: 'clamp(60px, 9.5vh, 92px)',
+          }}
         >
           {/* ---------------- CARD 1: WRITE ---------------- */}
           <div
