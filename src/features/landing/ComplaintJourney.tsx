@@ -113,7 +113,7 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
       // Initial: Enormous (1.0), optically centered, 1.0 opacity
       // State B+: Recedes subtly into background (scale -> 0.86, opacity -> 0.18)
       // =========================================================================
-      const tHeadingRecede = smoother(clamp01((p - 0.08) / 0.22));
+      const tHeadingRecede = smoother(clamp01((p - 0.06) / 0.18));
       const hScale = 1.0 - 0.14 * tHeadingRecede; // 1.0 -> 0.86
       const hOpacity = 1.0 - 0.82 * tHeadingRecede; // 1.0 -> 0.18
       const hY = -24 * tHeadingRecede; // subtle optical elevation to frame cards
@@ -127,29 +127,29 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
       // FOREGROUND LAYER: CARDS & CONNECTORS CHOREOGRAPHY OVER THE HEADING
       // =========================================================================
 
-      // Stage 1: WRITE Entrance at Center (p: 0.12 -> 0.26)
-      const tEnterWrite = smoother(clamp01((p - 0.12) / 0.14));
+      // Stage 1: WRITE Entrance at Center (p: 0.08 -> 0.20)
+      const tEnterWrite = smoother(clamp01((p - 0.08) / 0.12));
       const c1Opacity = tEnterWrite;
       const c1Scale = 0.92 + 0.08 * tEnterWrite;
 
-      // Stage 2: WRITE shifts left, Arrow 1 draws, REVIEW enters (p: 0.28 -> 0.48)
-      const tShift1 = smoother(clamp01((p - 0.28) / 0.18));
-      const tDraw1 = smoother(clamp01((p - 0.32) / 0.14));
-      const tEnterReview = smoother(clamp01((p - 0.36) / 0.12));
+      // Stage 2: WRITE shifts left, Arrow 1 draws, REVIEW enters (p: 0.22 -> 0.38)
+      const tShift1 = smoother(clamp01((p - 0.22) / 0.14));
+      const tDraw1 = smoother(clamp01((p - 0.25) / 0.11));
+      const tEnterReview = smoother(clamp01((p - 0.28) / 0.10));
       const c2Opacity = tEnterReview;
       const c2Scale = 0.92 + 0.08 * tEnterReview;
 
-      // Stage 3: Stations shift left, Arrow 2 draws, ROUTE enters (p: 0.48 -> 0.68)
-      const tShift2 = smoother(clamp01((p - 0.48) / 0.18));
-      const tDraw2 = smoother(clamp01((p - 0.52) / 0.14));
-      const tEnterRoute = smoother(clamp01((p - 0.56) / 0.12));
+      // Stage 3: Stations shift left, Arrow 2 draws, ROUTE enters (p: 0.38 -> 0.54)
+      const tShift2 = smoother(clamp01((p - 0.38) / 0.14));
+      const tDraw2 = smoother(clamp01((p - 0.41) / 0.11));
+      const tEnterRoute = smoother(clamp01((p - 0.44) / 0.10));
       const c3Opacity = tEnterRoute;
       const c3Scale = 0.92 + 0.08 * tEnterRoute;
 
-      // Stage 4: Stations shift left, Arrow 3 draws, TRACK enters (p: 0.68 -> 0.88)
-      const tShift3 = smoother(clamp01((p - 0.68) / 0.18));
-      const tDraw3 = smoother(clamp01((p - 0.72) / 0.14));
-      const tEnterTrack = smoother(clamp01((p - 0.76) / 0.12));
+      // Stage 4: Stations shift left, Arrow 3 draws, TRACK enters (p: 0.54 -> 0.70)
+      const tShift3 = smoother(clamp01((p - 0.54) / 0.14));
+      const tDraw3 = smoother(clamp01((p - 0.57) / 0.11));
+      const tEnterTrack = smoother(clamp01((p - 0.60) / 0.10));
       const c4Opacity = tEnterTrack;
       const c4Scale = 0.92 + 0.08 * tEnterTrack;
 
@@ -315,7 +315,7 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
       ref={containerRef}
       className="relative w-full border-t border-[#E5E3E0] bg-[#F7F6F3] text-[#141414] scroll-mt-20 sm:scroll-mt-24 select-none"
       style={{
-        minHeight: prefersReducedMotion || isMobile ? 'auto' : '360vh',
+        minHeight: prefersReducedMotion || isMobile ? 'auto' : '460vh',
       }}
       aria-label={t('processHeading') || 'How It Works'}
     >

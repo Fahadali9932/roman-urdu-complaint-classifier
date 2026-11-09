@@ -30,12 +30,12 @@ export const LandingPage: React.FC = () => {
 
         <div className="max-w-6xl mx-auto w-full relative z-10 flex flex-col items-center">
 
-          {/* Civic Microtags (Objective 3: SERVICE / RESPONSIBILITY / ACCOUNTABILITY) */}
+          {/* Civic Microtags (SERVICE / RESPONSIBILITY / ACCOUNTABILITY) */}
           <div className="flex items-center justify-center gap-2 sm:gap-2.5 mb-3 sm:mb-4 text-[11px] sm:text-[12px] font-mono tracking-[0.2em] sm:tracking-[0.25em] uppercase text-[#323232] select-none">
             <span>{t('heroCivicMicrotags') || (ur ? 'خدمت / ذمہ داری / احتساب' : 'SERVICE / RESPONSIBILITY / ACCOUNTABILITY')}</span>
           </div>
 
-          {/* Monumental Headline Intersected by Fountain Pen Nib (Reference 2) */}
+          {/* Monumental Headline Intersected by Fountain Pen Nib */}
           <div className="relative inline-block w-full max-w-5xl my-2 sm:my-4">
 
             {/* Monumental Display Headline */}
@@ -57,8 +57,7 @@ export const LandingPage: React.FC = () => {
               )}
             </h1>
 
-            {/* Fountain Pen Nib (Reference 2)
-                Angled across the central typography, casting realistic shadow */}
+            {/* Fountain Pen Nib Angled across central typography */}
             <div
               className="absolute -top-10 sm:-top-16 lg:-top-24 right-4 sm:right-12 lg:right-24 w-28 sm:w-40 lg:w-56 h-auto pointer-events-none z-20 transform -rotate-[26deg] sm:-rotate-[28deg] transition-transform duration-700 ease-out hover:scale-105"
               aria-hidden="true"
@@ -111,7 +110,7 @@ export const LandingPage: React.FC = () => {
           Sticky Layer 2 (z-20): Physically rises over Hero with
           deep shadow and contains the full-screen journey
           ======================================================== */}
-      <div className="relative z-20 w-full min-h-screen bg-[#F7F6F3] shadow-[0_-35px_70px_rgba(20,20,20,0.22)] motion-reduce:shadow-none">
+      <div className="relative z-20 w-full min-h-screen bg-[#F7F6F3] shadow-[0_-35px_70px_rgba(20,20,20,0.25)] border-t border-[#E5E3E0] motion-reduce:shadow-none">
         <ComplaintJourney id="steps" />
       </div>
 
@@ -121,7 +120,7 @@ export const LandingPage: React.FC = () => {
           with confident negative space and restrained typography,
           rises over Panel 2 with deep shadow
           ======================================================== */}
-      <div className="relative z-30 w-full min-h-screen bg-[#FAF9F7] shadow-[0_-35px_70px_rgba(20,20,20,0.25)] border-t border-[#E5E3E0] motion-reduce:shadow-none">
+      <div className="relative z-30 w-full min-h-[180vh] lg:min-h-[200vh] bg-[#FAF9F7] shadow-[0_-35px_70px_rgba(20,20,20,0.28)] border-t border-[#E5E3E0] motion-reduce:min-h-0 motion-reduce:shadow-none">
         <section
           id="write-intro"
           className="sticky top-0 z-30 h-screen w-full flex flex-col justify-center px-6 sm:px-12 lg:px-20 overflow-hidden select-none motion-reduce:static motion-reduce:h-auto motion-reduce:py-24"
@@ -129,7 +128,7 @@ export const LandingPage: React.FC = () => {
         >
           <div className="max-w-7xl mx-auto w-full relative">
 
-            {/* Monumental Cropped Typography (Reference 3)
+            {/* Monumental Cropped Typography
                 Huge cropped word creating editorial graphic architecture */}
             <div
               className="font-display text-[7.5rem] sm:text-[14rem] md:text-[18rem] lg:text-[23rem] text-[#141414] leading-none select-none tracking-tighter opacity-[0.06] sm:opacity-[0.08] absolute -top-16 sm:-top-32 -left-6 sm:-left-12 pointer-events-none uppercase overflow-hidden"
@@ -159,12 +158,12 @@ export const LandingPage: React.FC = () => {
       </div>
 
       {/* ========================================================
-          PANEL 4: FULL-SCREEN FOOTER
+          PANEL 4: FULL-SCREEN FOOTER (#footer)
           Layer 4 (z-40): Monumental closing statement that rises
           over WRITE intro with deep physical shadow
           ======================================================== */}
-      <div className="relative z-40 w-full min-h-screen bg-[#141414] shadow-[0_-35px_70px_rgba(0,0,0,0.4)] motion-reduce:shadow-none">
-        <PublicFooter />
+      <div className="relative z-40 w-full bg-[#141414] shadow-[0_-40px_80px_rgba(0,0,0,0.45)] border-t border-[#323232] motion-reduce:shadow-none">
+        <PublicFooter isHomePage={true} />
       </div>
 
     </div>
