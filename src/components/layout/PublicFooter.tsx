@@ -298,10 +298,10 @@ export const PublicFooter: React.FC<PublicFooterProps> = ({ isHomePage }) => {
                   <Link to="/contact" className="footer-link">
                     {t('footerNavContact')}
                   </Link>
-                  <Link to="/privacy" className="footer-link">
+                  <Link to="/privacy-policy" className="footer-link">
                     {t('footerNavPrivacy')}
                   </Link>
-                  <Link to="/terms" className="footer-link">
+                  <Link to="/terms-of-use" className="footer-link">
                     {t('footerNavTerms')}
                   </Link>
                 </nav>

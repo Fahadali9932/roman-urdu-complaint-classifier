@@ -4,6 +4,8 @@ import { AppLayout } from '../components/layout/AppLayout';
 import { CitizenLayout } from '../components/layout/CitizenLayout';
 import { LandingPage } from '../features/landing/LandingPage';
 import { ProjectInformation } from '../features/landing/ProjectInformation';
+import { PrivacyPolicyPage } from '../features/legal/pages/PrivacyPolicyPage';
+import { TermsOfUsePage } from '../features/legal/pages/TermsOfUsePage';
 import { ComplaintForm } from '../features/citizen/ComplaintForm';
 import { ComplaintTracker } from '../features/citizen/ComplaintTracker';
 import { CitizenDashboard } from '../features/citizen/CitizenDashboard';
@@ -36,8 +38,10 @@ export const AppRoutes: React.FC = () => {
       <Route element={<AppLayout />}>
         <Route path="/" element={<LandingPage />} />
         <Route path="/about" element={<ProjectInformation page="about" />} />
-        <Route path="/privacy" element={<ProjectInformation page="privacy" />} />
-        <Route path="/terms" element={<ProjectInformation page="terms" />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+        <Route path="/privacy" element={<Navigate to="/privacy-policy" replace />} />
+        <Route path="/terms-of-use" element={<TermsOfUsePage />} />
+        <Route path="/terms" element={<Navigate to="/terms-of-use" replace />} />
         <Route path="/contact" element={<ProjectInformation page="contact" />} />
         <Route path="/submit" element={<ComplaintForm />} />
         <Route path="/track" element={<ComplaintTracker />} />
