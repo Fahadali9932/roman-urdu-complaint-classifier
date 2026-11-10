@@ -11,20 +11,22 @@ export const PublicHeader: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrollSection, setScrollSection] = useState<'home' | 'steps' | 'submit' | 'footer'>('home');
   const [darkHeaderActive, setDarkHeaderActive] = useState(false);
-  const isDarkHeader = location.pathname === '/' && darkHeaderActive;
+  const [isScrolled, setIsScrolled] = useState(false);
+  const isDarkHeader = darkHeaderActive;
   const [dropdownPosition, setDropdownPosition] = useState<{ top: number; left?: number; right?: number }>({ top: 0 });
   const drawerRef = useRef<HTMLDivElement>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
 
   // Synchronized active-section detection and dark-footer contrast switching
   useEffect(() => {
-    if (location.pathname !== '/') return;
-
     const checkActiveSection = () => {
       const footerEl = document.getElementById('footer') || document.querySelector('footer');
       const writeIntroEl = document.getElementById('write-intro');
       const stepsEl = document.getElementById('steps');
       const vh = window.innerHeight;
+      const scrollY = window.scrollY || window.pageYOffset || 0;
+
+      setIsScrolled(scrollY > 20);
 
       // Dark header detection: dark footer surface is dominant behind header (< 72px)
       if (footerEl) {
@@ -35,8 +37,8 @@ export const PublicHeader: React.FC = () => {
           setDarkHeaderActive(false);
         }
 
-        // Objective 9: When footer is visible on screen, set neutral dock state (no pill active)
-        if (fRect.top <= vh * 0.45 && fRect.bottom > 72) {
+        // Objective 9: When footer is visible on screen on homepage, set neutral dock state (no pill active)
+        if (location.pathname === '/' && fRect.top <= vh * 0.45 && fRect.bottom > 72) {
           setScrollSection('footer');
           return;
         }
@@ -44,23 +46,25 @@ export const PublicHeader: React.FC = () => {
         setDarkHeaderActive(false);
       }
 
-      if (writeIntroEl) {
-        const rect = writeIntroEl.getBoundingClientRect();
-        if (rect.top <= vh * 0.45) {
-          setScrollSection('submit');
-          return;
+      if (location.pathname === '/') {
+        if (writeIntroEl) {
+          const rect = writeIntroEl.getBoundingClientRect();
+          if (rect.top <= vh * 0.45) {
+            setScrollSection('submit');
+            return;
+          }
         }
-      }
 
-      if (stepsEl) {
-        const rect = stepsEl.getBoundingClientRect();
-        if (rect.top <= vh * 0.45) {
-          setScrollSection('steps');
-          return;
+        if (stepsEl) {
+          const rect = stepsEl.getBoundingClientRect();
+          if (rect.top <= vh * 0.45) {
+            setScrollSection('steps');
+            return;
+          }
         }
-      }
 
-      setScrollSection('home');
+        setScrollSection('home');
+      }
     };
 
     window.addEventListener('scroll', checkActiveSection, { passive: true });
@@ -166,7 +170,15 @@ export const PublicHeader: React.FC = () => {
           Language & Account Controls (Right)
           Features dynamic contrast inversion on dark background
           ======================================================== */}
-      <header className="fixed top-0 left-0 right-0 z-50 py-3 sm:py-4 px-4 sm:px-8 lg:px-12 pointer-events-none transition-all duration-300">
+      <header
+        className={`fixed top-0 left-0 right-0 z-50 py-3 sm:py-4 px-4 sm:px-8 lg:px-12 transition-all duration-300 ${
+          isDarkHeader
+            ? 'bg-transparent border-b border-transparent pointer-events-none'
+            : location.pathname !== '/' && isScrolled
+              ? 'bg-[#F7F6F3]/90 backdrop-blur-md border-b border-[#E5E3E0]/80 shadow-[0_4px_20px_rgba(20,20,20,0.03)] pointer-events-auto'
+              : 'bg-transparent border-b border-transparent pointer-events-none'
+        }`}
+      >
         <div className="max-w-[1440px] mx-auto w-full relative flex items-center justify-between pointer-events-auto">
 
           {/* LEFT: Brand Wordmark (turns white on dark footer) */}
