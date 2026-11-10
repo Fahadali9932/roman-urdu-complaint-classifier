@@ -109,14 +109,15 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
       const pitch = 155; // spacing unit (310px center-to-center)
 
       // =========================================================================
-      // BACKGROUND LAYER: OVERSIZED "HOW IT WORKS" TYPOGRAPHIC SCENE
-      // Initial: Enormous (1.0), optically centered, 1.0 opacity
-      // State B+: Recedes subtly into background (scale -> 0.86, opacity -> 0.18)
+      // BACKGROUND LAYER: FULL-SCREEN MONUMENTAL "HOW IT WORKS" TYPOGRAPHY
+      // Initial (p <= 0.08): 1.0 opacity, scale 1.0, dominates usable canvas
+      // Scrolling (p > 0.08): Subdues smoothly to ~0.15 opacity, retains scale ~0.98
+      // Does NOT shrink into a tiny title; remains monumental editorial background
       // =========================================================================
-      const tHeadingRecede = smoother(clamp01((p - 0.06) / 0.18));
-      const hScale = 1.0 - 0.14 * tHeadingRecede; // 1.0 -> 0.86
-      const hOpacity = 1.0 - 0.82 * tHeadingRecede; // 1.0 -> 0.18
-      const hY = -24 * tHeadingRecede; // subtle optical elevation to frame cards
+      const tHeadingRecede = smoother(clamp01((p - 0.06) / 0.16));
+      const hScale = 1.0 - 0.03 * tHeadingRecede; // 1.0 -> 0.97 (retains monumental scale)
+      const hOpacity = 1.0 - 0.85 * tHeadingRecede; // 1.0 -> 0.15
+      const hY = 0; // perfectly centered, no arbitrary displacement
 
       if (headingRef.current) {
         headingRef.current.style.transform = `translate3d(0, ${hY}px, 0) scale(${hScale})`;
@@ -125,6 +126,7 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
 
       // =========================================================================
       // FOREGROUND LAYER: CARDS & CONNECTORS CHOREOGRAPHY OVER THE HEADING
+      // Harmonized intervals with perfectly matched entrance & translation pacing
       // =========================================================================
 
       // Stage 1: WRITE Entrance at Center (p: 0.08 -> 0.20)
@@ -132,24 +134,24 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
       const c1Opacity = tEnterWrite;
       const c1Scale = 0.92 + 0.08 * tEnterWrite;
 
-      // Stage 2: WRITE shifts left, Arrow 1 draws, REVIEW enters (p: 0.22 -> 0.38)
-      const tShift1 = smoother(clamp01((p - 0.22) / 0.14));
-      const tDraw1 = smoother(clamp01((p - 0.25) / 0.11));
-      const tEnterReview = smoother(clamp01((p - 0.28) / 0.10));
+      // Stage 2: WRITE shifts left, Arrow 1 draws, REVIEW enters (p: 0.20 -> 0.36)
+      const tShift1 = smoother(clamp01((p - 0.20) / 0.16));
+      const tDraw1 = smoother(clamp01((p - 0.21) / 0.14));
+      const tEnterReview = smoother(clamp01((p - 0.22) / 0.14));
       const c2Opacity = tEnterReview;
       const c2Scale = 0.92 + 0.08 * tEnterReview;
 
-      // Stage 3: Stations shift left, Arrow 2 draws, ROUTE enters (p: 0.38 -> 0.54)
-      const tShift2 = smoother(clamp01((p - 0.38) / 0.14));
-      const tDraw2 = smoother(clamp01((p - 0.41) / 0.11));
-      const tEnterRoute = smoother(clamp01((p - 0.44) / 0.10));
+      // Stage 3: Stations shift left, Arrow 2 draws, ROUTE enters (p: 0.36 -> 0.52)
+      const tShift2 = smoother(clamp01((p - 0.36) / 0.16));
+      const tDraw2 = smoother(clamp01((p - 0.37) / 0.14));
+      const tEnterRoute = smoother(clamp01((p - 0.38) / 0.14));
       const c3Opacity = tEnterRoute;
       const c3Scale = 0.92 + 0.08 * tEnterRoute;
 
-      // Stage 4: Stations shift left, Arrow 3 draws, TRACK enters (p: 0.54 -> 0.70)
-      const tShift3 = smoother(clamp01((p - 0.54) / 0.14));
-      const tDraw3 = smoother(clamp01((p - 0.57) / 0.11));
-      const tEnterTrack = smoother(clamp01((p - 0.60) / 0.10));
+      // Stage 4: Stations shift left, Arrow 3 draws, TRACK enters (p: 0.52 -> 0.68)
+      const tShift3 = smoother(clamp01((p - 0.52) / 0.16));
+      const tDraw3 = smoother(clamp01((p - 0.53) / 0.14));
+      const tEnterTrack = smoother(clamp01((p - 0.54) / 0.14));
       const c4Opacity = tEnterTrack;
       const c4Scale = 0.92 + 0.08 * tEnterTrack;
 
@@ -245,15 +247,15 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
           const current = currentProgressRef.current;
           const diff = target - current;
 
-          if (Math.abs(diff) <= 0.0003) {
+          if (Math.abs(diff) <= 0.0008) {
             currentProgressRef.current = target;
             applyMotionFrame(target);
             rafId.current = null;
             return;
           }
 
-          // Damping factor: 0.18 provides responsive 60fps tracking without lag
-          const next = current + diff * 0.18;
+          // Responsive tracking: 0.40 eliminates scroll lag and prevents excessive post-scroll drift
+          const next = current + diff * 0.40;
           currentProgressRef.current = next;
           applyMotionFrame(next);
           rafId.current = requestAnimationFrame(updateMotion);
@@ -331,25 +333,50 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
             : 'sticky top-0 h-screen'
         }`}
       >
-        <div className="relative w-full max-w-7xl mx-auto h-full flex flex-col items-center justify-center">
+        <div className="relative w-full h-full flex flex-col items-center justify-center">
 
           {/* ----------------------------------------------------
-              LAYER 0 (BACKGROUND): OVERSIZED DISPLAY TYPOGRAPHY
-              Occupies 80-90% usable screen width, optically centered
+              LAYER 0 (BACKGROUND): FULL-SCREEN MONUMENTAL TYPOGRAPHY
+              Two deliberate stacked lines: "HOW IT" / "WORKS"
+              Dominates usable canvas horizontally & vertically
+              Without covering navbar and without clipping
               ---------------------------------------------------- */}
-          <div
-            ref={headingRef}
-            className="absolute inset-0 flex items-center justify-center text-center will-change-transform z-10 pointer-events-none"
-            style={{
-              transformOrigin: 'center center',
-              transform: prefersReducedMotion ? 'translate3d(0, -140px, 0) scale(0.65)' : 'translate3d(0, 0, 0) scale(1)',
-              opacity: prefersReducedMotion ? 0.25 : 1,
-            }}
-          >
-            <h2 className="font-display text-[84px] sm:text-[112px] lg:text-[132px] xl:text-[156px] 2xl:text-[172px] text-[#141414] uppercase tracking-tight leading-none whitespace-nowrap">
-              {t('processHeading') || (language === 'ur' ? 'طریقہ کار' : 'How It Works')}
-            </h2>
-          </div>
+          {prefersReducedMotion ? (
+            <div className="mb-14 text-center">
+              <h2 className="font-display text-5xl xl:text-6xl text-[#141414] uppercase tracking-tight leading-tight">
+                {t('processHeading') || (language === 'ur' ? 'طریقہ کار' : 'How It Works')}
+              </h2>
+            </div>
+          ) : (
+            <div
+              ref={headingRef}
+              className="absolute inset-0 flex items-center justify-center text-center will-change-transform z-10 pointer-events-none px-4 sm:px-8 xl:px-12"
+              style={{
+                transformOrigin: 'center center',
+                transform: 'translate3d(0, 0, 0) scale(1)',
+                opacity: 1,
+              }}
+            >
+              <h2
+                className="font-display font-black text-[#141414] uppercase tracking-[-0.045em] leading-[0.82] select-none text-center w-full max-w-[1400px]"
+                style={{
+                  fontSize: 'clamp(140px, min(22vw, 34vh), 290px)',
+                }}
+              >
+                {language === 'ur' ? (
+                  <>
+                    <span className="block">طریقہ</span>
+                    <span className="block">کار</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="block">HOW IT</span>
+                    <span className="block">WORKS</span>
+                  </>
+                )}
+              </h2>
+            </div>
+          )}
 
           {/* ----------------------------------------------------
               LAYER 1 (FOREGROUND): REFINED TYPOGRAPHIC PROCESS STATIONS
