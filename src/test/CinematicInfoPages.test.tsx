@@ -44,9 +44,11 @@ describe('Cinematic Information Pages Suite', () => {
     expect(screen.getByRole('heading', { level: 2, name: /our purpose/i })).toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 2, name: /the team/i })).toBeInTheDocument();
 
-    // Prominent Lead Developer credit
+    // Five-member team structure and prominent Lead Developer credit
+    expect(screen.getByText(/built by a team of five\./i)).toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 3, name: /fahad ali/i })).toBeInTheDocument();
-    expect(screen.getByText(/lead developer & project lead/i)).toBeInTheDocument();
+    expect(screen.getByText(/team leader & lead developer/i)).toBeInTheDocument();
+    expect(screen.getByText(/supported by four fellow team members\./i)).toBeInTheDocument();
 
     // Unified shared civic footer rendered without duplicated monument hero or headline
     expect(screen.getByRole('contentinfo', { name: /awaaz-e-awam civic footer/i })).toBeInTheDocument();
@@ -172,8 +174,10 @@ describe('Cinematic Information Pages Suite', () => {
     );
     expect(screen.getByRole('heading', { level: 1, name: /ہمارا تعارف/i })).toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 2, name: /ہمارا مقصد/i })).toBeInTheDocument();
+    expect(screen.getByText(/پانچ ارکان پر مشتمل ٹیم کی تخلیق/i)).toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 3, name: /fahad ali/i })).toBeInTheDocument();
-    expect(screen.getByText(/لیڈ ڈویلپر اور پروجیکٹ لیڈ/i)).toBeInTheDocument();
+    expect(screen.getByText(/ٹیم لیڈر اور لیڈ ڈویلپر/i)).toBeInTheDocument();
+    expect(screen.getByText(/دیگر چار ساتھی اراکین کے اشتراک اور تعاون سے/i)).toBeInTheDocument();
     unmountAbout();
 
     // Test Contact Us in Urdu

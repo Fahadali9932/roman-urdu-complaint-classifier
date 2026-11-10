@@ -1,6 +1,8 @@
 export interface LeadCredit {
+  teamIntro?: string;
   name: string;
   role: string;
+  teamAcknowledgment?: string;
 }
 
 export interface InfoSectionContent {

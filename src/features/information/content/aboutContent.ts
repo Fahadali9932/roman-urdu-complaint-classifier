@@ -19,11 +19,13 @@ export const aboutContent: InfoDocumentContent = {
         id: 'the-team',
         title: 'The Team',
         leadCredit: {
+          teamIntro: 'BUILT BY A TEAM OF FIVE.',
           name: 'Fahad Ali',
-          role: 'Lead Developer & Project Lead',
+          role: 'Team Leader & Lead Developer',
+          teamAcknowledgment: 'Supported by four fellow team members.',
         },
         paragraphs: [
-          'Awaaz-e-Awam is an academic civic technology capstone project developed at Greenwich University, Karachi, Pakistan. It is an independent research initiative exploring natural language processing for Roman Urdu complaint formulation and is not an official service of any municipal authority.',
+          'Awaaz-e-Awam was built by a team of five students as an academic software engineering capstone project at Greenwich University in Karachi, Pakistan. It is an independent research initiative and is not an official service of any municipal authority.',
         ],
       },
     ],
@@ -46,11 +48,13 @@ export const aboutContent: InfoDocumentContent = {
         id: 'the-team',
         title: 'منصوبے کی ٹیم',
         leadCredit: {
+          teamIntro: 'پانچ ارکان پر مشتمل ٹیم کی تخلیق۔',
           name: 'فہد علی (Fahad Ali)',
-          role: 'لیڈ ڈویلپر اور پروجیکٹ لیڈ',
+          role: 'ٹیم لیڈر اور لیڈ ڈویلپر',
+          teamAcknowledgment: 'دیگر چار ساتھی اراکین کے اشتراک اور تعاون سے۔',
         },
         paragraphs: [
-          'آوازِ عوام گرین وچ یونیورسٹی، کراچی میں تیار کیا جانے والا ایک تعلیمی و تحقیقی پروجیکٹ ہے۔ یہ طلبہ کی ایک آزاد تحقیقی کاوش ہے اور اس کا حکومتِ سندھ یا کسی بلدیاتی ادارے سے کوئی سرکاری تعلق نہیں ہے۔',
+          'آوازِ عوام گرین وچ یونیورسٹی، کراچی میں پانچ طلبہ پر مشتمل ٹیم کا تیار کردہ ایک تعلیمی کیپسٹون پروجیکٹ ہے۔ یہ ایک آزاد تحقیقی کاوش ہے اور اس کا حکومتِ سندھ یا کسی بلدیاتی ادارے سے کوئی باضابطہ الحاق نہیں ہے۔',
         ],
       },
     ],

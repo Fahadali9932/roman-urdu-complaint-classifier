@@ -48,16 +48,22 @@ export const CinematicInfoSection: React.FC<CinematicInfoSectionProps> = ({
           : 'opacity-0 translate-y-8'
       }`}
     >
-      {/* Clean Editorial Section Heading */}
-      <div className="pb-2.5 border-b border-white/10">
-        <h2 className="font-display font-bold text-xl sm:text-2xl text-white uppercase tracking-tight leading-snug">
-          {section.title}
-        </h2>
-      </div>
+      {/* Clean Editorial Section Heading (No unnecessary decorative underline) */}
+      <h2 className="font-display font-bold text-xl sm:text-2xl text-white uppercase tracking-tight leading-snug mb-3">
+        {section.title}
+      </h2>
 
-      {/* Prominent Lead Developer / Project Lead Credit */}
+      {/* Three-Level Team & Lead Developer Credit */}
       {section.leadCredit && (
-        <div className="pt-2 pb-1 space-y-1.5">
+        <div className="pt-1 pb-1 space-y-2">
+          {/* Level 1: Team introduction */}
+          {section.leadCredit.teamIntro && (
+            <p className="font-mono text-[11px] sm:text-xs font-bold tracking-widest uppercase text-[#D1D0CD] opacity-85">
+              {section.leadCredit.teamIntro}
+            </p>
+          )}
+
+          {/* Level 2: Prominent Fahad Ali name */}
           <div className="flex items-center gap-2.5">
             <span
               className="w-2 h-2 rounded-full bg-[#681822] shrink-0"
@@ -67,13 +73,18 @@ export const CinematicInfoSection: React.FC<CinematicInfoSectionProps> = ({
               {section.leadCredit.name}
             </h3>
           </div>
-          <p
-            className={`font-mono text-xs sm:text-sm font-semibold tracking-wider uppercase text-[#D1D0CD] ${
-              isRTL ? 'pe-4' : 'ps-4.5'
-            }`}
-          >
-            {section.leadCredit.role}
-          </p>
+
+          {/* Level 3: Smaller role and team acknowledgment */}
+          <div className={`space-y-0.5 ${isRTL ? 'pe-4.5' : 'ps-4.5'}`}>
+            <p className="font-mono text-xs sm:text-sm font-semibold tracking-wider uppercase text-white">
+              {section.leadCredit.role}
+            </p>
+            {section.leadCredit.teamAcknowledgment && (
+              <p className="font-ui text-xs sm:text-sm text-[#A8A5A0]">
+                {section.leadCredit.teamAcknowledgment}
+              </p>
+            )}
+          </div>
         </div>
       )}
 
