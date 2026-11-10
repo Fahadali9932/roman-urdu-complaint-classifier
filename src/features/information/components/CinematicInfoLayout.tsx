@@ -66,10 +66,9 @@ export const CinematicInfoLayout: React.FC<CinematicInfoLayoutProps> = ({
   }, []);
 
   // Scroll-driven hero title kinematics
-  // Proportional travel: shifts upward smoothly and fades gracefully as user scrolls
-  const titleShift = prefersReducedMotion ? 0 : Math.min(50, scrollY * 0.16);
-  const titleOpacity = prefersReducedMotion ? 1 : Math.max(0.2, 1 - scrollY / 360);
-  const titleScale = prefersReducedMotion ? 1 : Math.max(0.95, 1 - (scrollY / 360) * 0.05);
+  // Pure natural document scroll with graceful opacity fade; zero upward velocity into navbar
+  const titleOpacity = prefersReducedMotion ? 1 : Math.max(0.15, 1 - scrollY / 420);
+  const titleScale = prefersReducedMotion ? 1 : Math.max(0.96, 1 - (scrollY / 420) * 0.04);
 
   return (
     <div
@@ -117,14 +116,15 @@ export const CinematicInfoLayout: React.FC<CinematicInfoLayoutProps> = ({
       {/* ========================================================
           REGION A — CINEMATIC INTRODUCTION
           Atmospheric architectural scene with prominent title
+          Generous top padding ensures safe clearance beneath fixed navbar pill
           ======================================================== */}
       <section
-        className="relative z-10 w-full flex flex-col justify-center items-center text-center px-6 sm:px-10 lg:px-12 pt-32 sm:pt-36 pb-12 sm:pb-16"
+        className="relative z-10 w-full flex flex-col justify-center items-center text-center px-6 sm:px-10 lg:px-12 pt-36 sm:pt-40 lg:pt-44 pb-12 sm:pb-16"
         aria-labelledby="cinematic-page-title"
       >
         <div
           style={{
-            transform: `translateY(-${titleShift}px) scale(${titleScale})`,
+            transform: `scale(${titleScale})`,
             opacity: titleOpacity,
             willChange: prefersReducedMotion ? 'auto' : 'transform, opacity',
           }}
@@ -137,8 +137,8 @@ export const CinematicInfoLayout: React.FC<CinematicInfoLayoutProps> = ({
             className={`font-display font-black tracking-tight text-white uppercase outline-none select-none ${
               ur
                 ? 'text-4xl sm:text-6xl md:text-7xl lg:text-8xl leading-tight'
-                : doc.title.length > 15
-                  ? 'text-3xl sm:text-5xl md:text-6xl lg:text-7xl leading-[0.98]'
+                : doc.title.length >= 14
+                  ? 'text-3xl sm:text-5xl md:text-6xl lg:text-7xl leading-[1.0]'
                   : 'text-4xl sm:text-6xl md:text-7xl lg:text-8xl leading-[0.95]'
             }`}
           >
@@ -170,16 +170,19 @@ export const CinematicInfoLayout: React.FC<CinematicInfoLayoutProps> = ({
             />
           ))}
 
-          {/* Bottom Document Peer Navigation (Clean, minimal) */}
+          {/* Bottom Document Peer Navigation (Aligned precisely with content reading measure) */}
           {doc.otherDocumentPath && doc.otherDocumentTitle && (
-            <div className="pt-8 sm:pt-10 border-t border-white/10 flex justify-end">
-              <Link
-                to={doc.otherDocumentPath}
-                className="inline-flex items-center gap-2 text-xs font-mono font-medium tracking-wider uppercase text-[#D1D0CD] hover:text-white transition-colors focus-visible:outline-2 focus-visible:outline-white"
-              >
-                <span>{doc.otherDocumentTitle}</span>
-                {isRTL ? <ArrowLeft className="w-3.5 h-3.5" /> : <ArrowRight className="w-3.5 h-3.5" />}
-              </Link>
+            <div className="grid grid-cols-1 md:grid-cols-[260px_1fr] lg:grid-cols-[300px_1fr] gap-6 md:gap-12 lg:gap-16 pt-4 sm:pt-6">
+              <div className="hidden md:block" aria-hidden="true" />
+              <div className="max-w-[720px] pt-6 border-t border-white/10 flex justify-end">
+                <Link
+                  to={doc.otherDocumentPath}
+                  className="inline-flex items-center gap-2 text-xs font-mono font-medium tracking-wider uppercase text-[#D1D0CD] hover:text-white transition-colors focus-visible:outline-2 focus-visible:outline-white"
+                >
+                  <span>{doc.otherDocumentTitle}</span>
+                  {isRTL ? <ArrowLeft className="w-3.5 h-3.5" /> : <ArrowRight className="w-3.5 h-3.5" />}
+                </Link>
+              </div>
             </div>
           )}
         </article>
