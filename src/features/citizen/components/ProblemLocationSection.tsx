@@ -148,7 +148,7 @@ export const ProblemLocationSection: React.FC<ProblemLocationSectionProps> = ({
               </div>
               <Select
                 id="district"
-                label="Karachi District"
+                aria-label="Karachi District"
                 required
                 placeholder={t('confirmDistrictPlaceholder')}
                 options={KARACHI_DISTRICTS_OPTIONS}
@@ -167,7 +167,7 @@ export const ProblemLocationSection: React.FC<ProblemLocationSectionProps> = ({
               </label>
               <Select
                 id="district"
-                label="Karachi District"
+                aria-label="Karachi District"
                 required
                 placeholder={t('formDistrictPlaceholder')}
                 options={KARACHI_DISTRICTS_OPTIONS}
