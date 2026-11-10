@@ -3,9 +3,10 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { AppLayout } from '../components/layout/AppLayout';
 import { CitizenLayout } from '../components/layout/CitizenLayout';
 import { LandingPage } from '../features/landing/LandingPage';
-import { ProjectInformation } from '../features/landing/ProjectInformation';
-import { PrivacyPolicyPage } from '../features/legal/pages/PrivacyPolicyPage';
-import { TermsOfUsePage } from '../features/legal/pages/TermsOfUsePage';
+import { AboutPage } from '../features/information/pages/AboutPage';
+import { ContactPage } from '../features/information/pages/ContactPage';
+import { PrivacyPolicyPage } from '../features/information/pages/PrivacyPolicyPage';
+import { TermsOfUsePage } from '../features/information/pages/TermsOfUsePage';
 import { ComplaintForm } from '../features/citizen/ComplaintForm';
 import { ComplaintTracker } from '../features/citizen/ComplaintTracker';
 import { CitizenDashboard } from '../features/citizen/CitizenDashboard';
@@ -37,12 +38,12 @@ export const AppRoutes: React.FC = () => {
       {/* Public Citizen Portal routes */}
       <Route element={<AppLayout />}>
         <Route path="/" element={<LandingPage />} />
-        <Route path="/about" element={<ProjectInformation page="about" />} />
+        <Route path="/about" element={<AboutPage />} />
         <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
         <Route path="/privacy" element={<Navigate to="/privacy-policy" replace />} />
         <Route path="/terms-of-use" element={<TermsOfUsePage />} />
         <Route path="/terms" element={<Navigate to="/terms-of-use" replace />} />
-        <Route path="/contact" element={<ProjectInformation page="contact" />} />
+        <Route path="/contact" element={<ContactPage />} />
         <Route path="/submit" element={<ComplaintForm />} />
         <Route path="/track" element={<ComplaintTracker />} />
         <Route path="/track/:referenceNumber" element={<ComplaintTracker />} />

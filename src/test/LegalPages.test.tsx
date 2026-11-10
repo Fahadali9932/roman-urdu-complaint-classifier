@@ -3,8 +3,8 @@ import { MemoryRouter } from 'react-router-dom';
 import { describe, it, expect } from 'vitest';
 import { LanguageProvider } from '../context/LanguageContext';
 import { AppRoutes } from '../routes/AppRoutes';
-import { privacyPolicyContent } from '../features/legal/content/privacyPolicyContent';
-import { termsOfUseContent } from '../features/legal/content/termsOfUseContent';
+import { privacyContent as privacyPolicyContent } from '../features/information/content/privacyContent';
+import { termsContent as termsOfUseContent } from '../features/information/content/termsContent';
 
 describe('Legal Pages (Privacy Policy & Terms of Use)', () => {
   it('renders Privacy Policy at /privacy-policy with verified academic disclosure', () => {

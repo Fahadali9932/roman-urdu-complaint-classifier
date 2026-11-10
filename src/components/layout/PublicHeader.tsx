@@ -12,7 +12,10 @@ export const PublicHeader: React.FC = () => {
   const [scrollSection, setScrollSection] = useState<'home' | 'steps' | 'submit' | 'footer'>('home');
   const [darkHeaderActive, setDarkHeaderActive] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const isDarkHeader = darkHeaderActive;
+  const isInfoPage = ['/about', '/contact', '/privacy-policy', '/terms-of-use', '/privacy', '/terms'].includes(
+    location.pathname
+  );
+  const isDarkHeader = isInfoPage || darkHeaderActive;
   const [dropdownPosition, setDropdownPosition] = useState<{ top: number; left?: number; right?: number }>({ top: 0 });
   const drawerRef = useRef<HTMLDivElement>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
@@ -172,11 +175,13 @@ export const PublicHeader: React.FC = () => {
           ======================================================== */}
       <header
         className={`fixed top-0 left-0 right-0 z-50 py-3 sm:py-4 px-4 sm:px-8 lg:px-12 transition-all duration-300 ${
-          isDarkHeader
-            ? 'bg-transparent border-b border-transparent pointer-events-none'
-            : location.pathname !== '/' && isScrolled
-              ? 'bg-[#F7F6F3]/90 backdrop-blur-md border-b border-[#E5E3E0]/80 shadow-[0_4px_20px_rgba(20,20,20,0.03)] pointer-events-auto'
-              : 'bg-transparent border-b border-transparent pointer-events-none'
+          isInfoPage && isScrolled
+            ? 'bg-[#141414]/80 backdrop-blur-md border-b border-white/10 pointer-events-auto'
+            : isDarkHeader
+              ? 'bg-transparent border-b border-transparent pointer-events-none'
+              : location.pathname !== '/' && isScrolled
+                ? 'bg-[#F7F6F3]/90 backdrop-blur-md border-b border-[#E5E3E0]/80 shadow-[0_4px_20px_rgba(20,20,20,0.03)] pointer-events-auto'
+                : 'bg-transparent border-b border-transparent pointer-events-none'
         }`}
       >
         <div className="max-w-[1440px] mx-auto w-full relative flex items-center justify-between pointer-events-auto">

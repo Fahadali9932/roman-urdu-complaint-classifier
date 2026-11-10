@@ -1,8 +1,8 @@
-import { LegalDocumentContent } from '../types';
+import { InfoDocumentContent } from '../types';
 
-export const privacyPolicyContent: LegalDocumentContent = {
+export const privacyContent: InfoDocumentContent = {
   en: {
-    title: 'Privacy Policy',
+    title: 'PRIVACY POLICY.',
     eyebrow: 'ACADEMIC PROJECT DISCLOSURE · AWAAZ-E-AWAM',
     subtitle:
       'This policy describes how information is handled within the current Awaaz-e-Awam prototype. As an academic research project, we provide full transparency regarding data collection, browser storage, and operational limitations.',
@@ -10,8 +10,7 @@ export const privacyPolicyContent: LegalDocumentContent = {
     academicNotice:
       'Awaaz-e-Awam is an independent university research initiative developed at Greenwich University, Karachi. It is not an official service of the Government of Sindh or any municipal authority.',
     tableOfContentsLabel: 'ON THIS PAGE',
-    returnHomeLabel: 'Return to Homepage',
-    otherDocumentLabel: 'Related Document',
+    returnHomeLabel: 'Return to Home',
     otherDocumentTitle: 'Read Terms of Use',
     otherDocumentPath: '/terms-of-use',
     sections: [
@@ -48,8 +47,7 @@ export const privacyPolicyContent: LegalDocumentContent = {
         title: 'How Information Is Processed',
         paragraphs: [
           'Information entered into the complaint form is processed entirely inside your local web browser. When you select "Submit Complaint", the application checks that mandatory fields are filled, validates phone number formatting, and verifies that the description does not exceed the 200-word limit.',
-          'Upon successful validation, the browser displays a confirmation modal showing a review summary. No data packet is transmitted over the internet to a server, API, or external machine learning service. Once the modal is dismissed or the page is refreshed, form entries exist only in temporary component memory.',
-          'The sign-in and registration screens similarly operate as client-side interface simulations. Entering an email address and password does not create a server account or initiate an authentication session.',
+          'Upon successful validation, the application displays a confirmation modal showing a preview of the submitted complaint along with a simulated tracking reference (e.g., KHI-2026-XXXX). No network transmission to a backend server takes place.',
         ],
       },
       {
@@ -88,11 +86,8 @@ export const privacyPolicyContent: LegalDocumentContent = {
         number: '07',
         title: 'Cookies and Browser LocalStorage',
         paragraphs: [
-          'The website does not set tracking, profiling, or advertising cookies on your computer.',
-          'The application uses your browser’s local storage (localStorage) for a single specific configuration key:',
-        ],
-        bulletPoints: [
-          'preferred_language: Stores your selected interface language ("en" for English or "ur" for Urdu) so your preference is remembered on subsequent visits.',
+          'Awaaz-e-Awam does not use HTTP cookies or session tracking cookies.',
+          'The application uses the browser’s standard localStorage API for exactly one technical purpose: storing your language selection ("en" for English or "ur" for Urdu) under the key "preferred_language". This ensures your preferred language persists when navigating between pages. No personal identifying information is stored in localStorage.',
         ],
       },
       {
@@ -100,8 +95,12 @@ export const privacyPolicyContent: LegalDocumentContent = {
         number: '08',
         title: 'Security and Safe Testing Practices',
         paragraphs: [
-          'The frontend implements defensive programming practices including input sanitization, form validation, and content length restrictions. However, because this is an educational prototype and not a hardened production government facility, we ask all evaluators and citizens to observe safe testing practices.',
-          'Do not enter real Computerized National Identity Card (CNIC) numbers, banking details, sensitive medical records, passwords, or confidential government documents into any form on this website.',
+          'Because this preview operates without a secure backend server or encrypted database connection, we advise all users and evaluators to exercise safe testing practices:',
+        ],
+        bulletPoints: [
+          'Do not enter real National Identity Card (CNIC) numbers, passport details, or banking information.',
+          'Do not enter actual passwords used for other accounts when testing the login or registration forms.',
+          'Use fictional descriptions or non-sensitive sample scenarios when testing the complaint-writing tool.',
         ],
       },
       {
@@ -109,8 +108,8 @@ export const privacyPolicyContent: LegalDocumentContent = {
         number: '09',
         title: 'Data Inquiries and Contact Information',
         paragraphs: [
-          'Because the prototype does not store personal records or user accounts on a server, there is no database from which to search, export, or delete personal data upon request.',
-          'A dedicated public telephone helpline or dedicated privacy support inbox has not yet been established for this student project. Evaluators participating in university coursework or demonstration sessions may direct questions to the student development team through Greenwich University academic supervision channels.',
+          'Because this project is an academic research demonstration conducted at Greenwich University, Karachi, Pakistan, there is no designated public data protection officer or commercial customer support helpline.',
+          'Academic reviewers, faculty, and project evaluators may direct methodological inquiries and project feedback through designated institutional academic channels.',
         ],
       },
       {
@@ -118,8 +117,8 @@ export const privacyPolicyContent: LegalDocumentContent = {
         number: '10',
         title: 'Updates to This Privacy Policy',
         paragraphs: [
-          'This Privacy Policy reflects the verified technical capabilities and operational posture of the Awaaz-e-Awam web application as of November 2026.',
-          'If and when backend database storage, live Roman Urdu ML classification APIs, or departmental routing mechanisms are connected in subsequent project phases, this policy will be thoroughly updated to explain the new data flows and citizen protections before any public deployment.',
+          'As the Awaaz-e-Awam project progresses from a frontend prototype toward potential backend integration, machine learning pipeline deployment, or pilot testing, this Privacy Policy will be revised to reflect actual server-side data handling, database storage, and municipal routing workflows.',
+          'All revisions will be published on this page with an updated effective date before any live civic data collection commences.',
         ],
       },
     ],
@@ -134,8 +133,7 @@ export const privacyPolicyContent: LegalDocumentContent = {
       'آوازِ عوام گرین وچ یونیورسٹی، کراچی کے طلبہ کا ایک آزاد تعلیمی و تحقیقی منصوبہ ہے۔ یہ حکومتِ سندھ یا کسی سرکاری یا بلدیاتی ادارے کی سرکاری ویب سائٹ نہیں ہے۔',
     tableOfContentsLabel: 'اس صفحے پر',
     returnHomeLabel: 'مرکزی صفحہ پر واپس جائیں',
-    otherDocumentLabel: 'متعلقہ دستاویز',
-    otherDocumentTitle: 'استعمال کی شرائط پڑھیں',
+    otherDocumentTitle: 'استعمال کے ضوابط پڑھیں',
     otherDocumentPath: '/terms-of-use',
     sections: [
       {
@@ -156,23 +154,22 @@ export const privacyPolicyContent: LegalDocumentContent = {
         number: '۰۲',
         title: 'وہ معلومات جو آپ فارم میں درج کرتے ہیں',
         paragraphs: [
-          'شہری شکایت لکھنے کے خانے میں عوامی مسئلہ بیان کرنے کے لیے درج ذیل معلومات کے اندراج کی سہولت دی گئی ہے:',
+          'شکایت کے آزمائشی فارم میں درج ذیل خانے فراہم کیے گئے ہیں جن کا مقصد عوامی مسئلہ واضح کرنا ہے:',
         ],
         bulletPoints: [
-          'شہری کے رابطے کی تفصیل: پورا نام اور پاکستانی موبائل فون نمبر (مثلاً 03XXXXXXXXX)۔',
-          'جغرافیائی مقام: کراچی کا انتظامی ضلع (مثلاً ضلع شرقی، جنوبی، وسطی، غربی، کورنگی، ملیر، کیماڑی)، علاقہ، بلاک، قریبی نشانی اور رہائشی پتہ۔',
-          'عوامی مسئلے کی تفصیل: شکایت کا عنوان اور روزمرہ کی زبان (رومن اردو، اردو یا انگریزی) میں مسئلے کی تفصیل (زیادہ سے زیادہ ۲۰۰ الفاظ تک)۔',
-          'اکاؤنٹ اور لاگ ان فارم: ای میل اور پاس ورڈ کے خانے محض انٹرفیس کے جائزے کے لیے موجود ہیں۔',
+          'رابطے کی معلومات: شہری کا نام اور پاکستانی موبائل نمبر (مثلاً 03XXXXXXXXX)۔',
+          'جغرافیائی مقام: کراچی کا متعلقہ ضلع (مثلاً ضلع شرقی، جنوبی، وسطی، غربی، کورنگی، ملیر، کیماڑی)، علاقہ یا بلاک، قریبی نشانی اور گلی کا پتہ۔',
+          'مسئلے کی تفصیل: شکایت کا عنوان اور روزمرہ زبان میں تفصیل (زیادہ سے زیادہ ۲۰۰ الفاظ کی حد)۔',
+          'آزمائشی لاگ ان اور رجسٹریشن: ای میل اور پاس ورڈ کے خانے صرف انٹرفیس کی آزمائش کے لیے ہیں۔',
         ],
       },
       {
         id: 'how-information-is-processed',
         number: '۰۳',
-        title: 'معلومات کی جانچ اور پراسیسنگ کا طریقہ',
+        title: 'معلومات کی جانچ اور پروسیسنگ کا طریقہ',
         paragraphs: [
-          'شکایت کے فارم میں درج کردہ معلومات صرف آپ کے اپنے براؤزر کے اندر ہی جانچی جاتی ہیں۔ جب آپ "شکایت جمع کرائیں" کا بٹن دباتے ہیں تو ایپلیکیشن صرف یہ چیک کرتی ہے کہ ضروری خانے بھرے ہوئے ہیں، فون نمبر کا فارمیٹ درست ہے، اور الفاظ کی تعداد ۲۰۰ سے زیادہ نہیں ہے۔',
-          'معلومات درست ہونے پر براؤزر میں ایک تصدیقی کھڑکی (ماڈل) کھلتی ہے جس میں درج شدہ تفصیلات کا جائزہ دکھایا جاتا ہے۔ کوئی بھی ڈیٹا انٹرنیٹ کے ذریعے کسی بیرونی سرور، ڈیٹا بیس یا مشین لرننگ سروس کو نہیں بھیجا جاتا۔ کھڑکی بند کرنے یا صفحہ ریفریش کرنے سے یہ معلومات ختم ہو جاتی ہیں۔',
-          'اسی طرح لاگ ان اور رجسٹریشن کے اسکرینز محض فرنٹ اینڈ ڈیزائن کا حصہ ہیں؛ ان میں معلومات درج کرنے سے سرور پر کوئی حقیقی اکاؤنٹ نہیں بنتا۔',
+          'فارم میں درج کی گئی تمام معلومات مکمل طور پر آپ کے مقامی ویب براؤزر کے اندر ہی جانچی جاتی ہیں۔ جب آپ "شکایت جمع کروائیں" کا بٹن دباتے ہیں، تو براؤزر ضروری خانوں کے اندراج، فون نمبر کی ساخت اور ۲۰۰ الفاظ کی حد کی تصدیق کرتا ہے۔',
+          'کامیاب جانچ کے بعد سکرین پر ایک تصدیقی کھڑکی کھلتی ہے جس میں درج شدہ معلومات اور ایک فرضی ٹریکنگ نمبر (مثلاً KHI-2026-XXXX) نظر آتا ہے۔ انٹرنیٹ کے ذریعے کسی بیرونی سرور پر کوئی ڈیٹا نہیں بھیجا جاتا۔',
         ],
       },
       {
@@ -180,12 +177,12 @@ export const privacyPolicyContent: LegalDocumentContent = {
         number: '۰۴',
         title: 'ڈیٹا کا ذخیرہ اور برقراری کی مدت',
         paragraphs: [
-          'موجودہ ایپلیکیشن سے کوئی ڈیٹا بیس منسلک نہیں ہے۔ شہریوں کا نام، موبائل نمبر، شکایات یا پاس ورڈز کسی بھی سرور، کلاؤڈ یا ہارڈ ڈرائیو پر محفوظ نہیں کیے جاتے۔',
-          'چونکہ سرور پر کوئی ذاتی ریکارڈ محفوظ ہی نہیں ہوتا، اس لیے ڈیٹا برقرار رکھنے یا خودکار طور پر مٹانے کی کوئی مصنوعی مدت لاگو نہیں ہوتی۔ براؤزر بند کرنے یا فارم ری سیٹ کرنے پر تمام درج شدہ مواد فوری ختم ہو جاتا ہے۔',
+          'موجودہ ایپلیکیشن کسی فعال ڈیٹابیس سے منسلک نہیں ہے۔ کوئی بھی شکایت، شہری کا نام، پاس ورڈ یا فون نمبر کسی سرور کی ہارڈ ڈسک یا کلاؤڈ ڈیٹا بیس میں محفوظ نہیں ہوتا۔',
+          'چونکہ کوئی ڈیٹا ہمارے پاس محفوظ نہیں ہوتا، اس لیے ڈیٹا ڈیلیٹ کرنے یا برقرار رکھنے کا کوئی خودکار شیڈول نافذ العمل نہیں ہے۔ جیسے ہی آپ صفحہ ریفریش کرتے ہیں یا فارم چھوڑتے ہیں، تمام درج شدہ معلومات میموری سے خود بخود صاف ہو جاتی ہیں۔',
         ],
         callout: {
-          title: 'مستقبل کی ترقیاتی اطلاع',
-          text: 'جب مستقبل کے مراحل میں ڈیٹا بیس اور مستند صارف اکاؤنٹس شامل کیے جائیں گے تو عوامی لانچ سے قبل ڈیٹا کی حفاظت اور حذف کرنے کی باقاعدہ پالیسی یہاں شائع کی جائے گی۔',
+          title: 'مستقبل کی منصوبہ بندی',
+          text: 'جب مستقبل کے مراحل میں ڈیٹا بیس اور محفوظ اکاؤنٹس کا نظام شامل کیا جائے گا، تو اس وقت ڈیٹا کے تحفظ اور اس کے اخراج کا باقاعدہ شیڈول عوامی اجرا سے قبل یہاں شائع کیا جائے گا۔',
         },
       },
       {
@@ -193,8 +190,8 @@ export const privacyPolicyContent: LegalDocumentContent = {
         number: '۰۵',
         title: 'معلومات تک رسائی کا نظام',
         paragraphs: [
-          'چونکہ شکایات کی معلومات کسی سرور پر محفوظ نہیں ہوتیں اور نہ ہی نیٹ ورک پر بھیجی جاتی ہیں، اس لیے کوئی تیسرا فریق، دوسرا شہری یا سرکاری اہلکار آپ کی لکھی ہوئی تفصیلات نہیں دیکھ سکتا۔',
-          'شہری ڈیش بورڈ یا ٹائم لائن میں نظر آنے والے کیس نمبرز (مثلاً KHI-2026-XXXX) محض نمونے کے فرضی ریکارڈز ہیں جو ٹریکنگ کا ممکنہ طریقہ کار سمجھانے کے لیے بنائے گئے ہیں۔',
+          'چونکہ شکایتی معلومات کسی سرور پر منتقل نہیں کی جاتیں، اس لیے کسی تیسرے فریق، دیگر صارفین یا سرکاری افسران کو آپ کی لکھی ہوئی تحریر تک کوئی رسائی حاصل نہیں ہے۔',
+          'ڈیش بورڈ یا ٹائم لائن میں نظر آنے والے کیسز اور ٹریکنگ نمبرز محض فرضی نمونے ہیں جو مستقبل کے نظام کا اندازہ کروانے کے لیے بنائے گئے ہیں۔',
         ],
       },
       {
@@ -202,8 +199,8 @@ export const privacyPolicyContent: LegalDocumentContent = {
         number: '۰۶',
         title: 'تیسرے فریق کی خدمات اور نیٹ ورک کا رابطہ',
         paragraphs: [
-          'ہم غیر ضروری بیرونی سروسز سے مکمل پرہیز کرتے ہیں۔ اس ویب سائٹ پر کوئی کمرشل اشتہارات، سوشل میڈیا ٹریکنگ پکسلز، یا بیرونی تجزیاتی ٹولز (جیسے گوگل اینالیٹکس یا میٹا پکسل) نصب نہیں ہیں۔',
-          'ویب سائٹ پر صرف ایک بیرونی تکنیکی سروس استعمال ہوتی ہے اور وہ ہے گوگل فونٹس (Google Fonts)، جس کے ذریعے خوبصورت خطاطی (Archivo, Outfit, Playfair Display, Inter) لوڈ ہوتی ہے۔ فونٹ فائلز ڈاؤن لوڈ کرتے وقت براؤزر گوگل کے سی ڈی این نیٹ ورک کو ایک روایتی ایچ ٹی ٹی پی درخواست بھیجتا ہے جس میں صارف کا آئی پی ایڈریس شامل ہوتا ہے۔',
+          'یہ ایپلیکیشن تجارتی اشتہارات، سوشل میڈیا ٹریکنگ کوڈز یا صارفین کے رویے جانچنے والے پروگرامز (جیسے گوگل اینالیٹکس یا میٹا پکسل) کا استعمال نہیں کرتی۔',
+          'صرف ایک بیرونی خدمت گوگل فونٹس (fonts.googleapis.com) کے ذریعے فونٹس ڈاؤن لوڈ کرنے کے لیے استعمال ہوتی ہے۔ جب آپ کا براؤزر یہ فونٹس حاصل کرتا ہے تو انٹرنیٹ پروٹوکول کے تحت آپ کا آئی پی ایڈریس گوگل کے مواد کی ترسیل کے نیٹ ورک کو موصول ہوتا ہے۔',
         ],
       },
       {
@@ -211,11 +208,8 @@ export const privacyPolicyContent: LegalDocumentContent = {
         number: '۰۷',
         title: 'کوکیز اور براؤزر کی لوکل اسٹوریج',
         paragraphs: [
-          'یہ ویب سائٹ آپ کے کمپیوٹر پر کوئی اشتہاری یا ٹریکنگ کوکیز سیٹ نہیں کرتی۔',
-          'ایپلیکیشن آپ کے براؤزر کی لوکل اسٹوریج (localStorage) میں صرف ایک ترجیحی سیٹنگ محفوظ کرتی ہے:',
-        ],
-        bulletPoints: [
-          'preferred_language: اس میں آپ کی منتخب کردہ زبان (انگریزی "en" یا اردو "ur") محفوظ رہتی ہے تاکہ اگلی بار آنے پر ویب سائٹ آپ کی پسندیدہ زبان میں کھلے۔',
+          'آوازِ عوام روایتی ٹریکنگ کوکیز کا استعمال نہیں کرتی۔',
+          'ویب سائٹ صرف براؤزر کی معیاری "لوکل اسٹوریج" (localStorage) کو زبان کے انتخاب ("en" یا "ur") کو یاد رکھنے کے لیے استعمال کرتی ہے تاکہ اگلے صفحے پر جانے سے آپ کی منتخب کردہ زبان تبدیل نہ ہو۔ لوکل اسٹوریج میں کوئی ذاتی یا نجی معلومات محفوظ نہیں کی جاتی۔',
         ],
       },
       {
@@ -223,17 +217,21 @@ export const privacyPolicyContent: LegalDocumentContent = {
         number: '۰۸',
         title: 'تکنیکی سیکیورٹی اور محفوظ استعمال کی ہدایات',
         paragraphs: [
-          'ویب سائٹ کے کوڈ میں ان پٹ کی صفائی، فارم کی تصدیق اور الفاظ کی حدود کا خیال رکھا گیا ہے۔ تاہم، چونکہ یہ ایک تعلیمی تحقیقی پروٹوٹائپ ہے اور کوئی تجارتی بینکنگ یا سرکاری دفاعی پورٹل نہیں ہے، اس لیے ہم تمام شہریوں سے محفوظ رویے کی درخواست کرتے ہیں۔',
-          'برائے مہربانی اس ویب سائٹ کے کسی بھی خانے میں اصل قومی شناختی کارڈ (CNIC) نمبر، بینک یا کریڈٹ کارڈ کی معلومات، پاس ورڈز یا خفیہ سرکاری دستاویزات درج نہ کریں۔',
+          'چونکہ یہ ایک آزمائشی ورژن ہے اور اس کے پیچھے محفوظ انکرپٹڈ ڈیٹابیس سرور فعال نہیں ہے، اس لیے تمام شہریوں اور ٹیسٹ کرنے والوں سے گزارش ہے کہ درج ذیل احتیاطی تدابیر اختیار کریں:',
+        ],
+        bulletPoints: [
+          'اصلی شناختی کارڈ نمبر (CNIC)، پاسپورٹ یا بینک اکاؤنٹ کی معلومات فارم میں نہ لکھیں۔',
+          'لاگ ان یا سائن اپ ٹیسٹ کرتے وقت اپنا اصل پاس ورڈ استعمال نہ کریں۔',
+          'شکایت لکھنے کے فارم میں فرضی یا نمونے کے واقعات درج کریں۔',
         ],
       },
       {
         id: 'data-inquiries',
         number: '۰۹',
-        title: 'معلومات سے متعلق سوالات اور رابطہ',
+        title: 'رابطہ اور سوالات',
         paragraphs: [
-          'چونکہ پروٹوٹائپ سرور پر کسی قسم کا ذاتی ریکارڈ محفوظ نہیں کرتا، اس لیے سرور پر تلاش، برآمد (export) یا حذف (delete) کرنے کے لیے کوئی ڈیٹا موجود نہیں ہے۔',
-          'اس تعلیمی پروجیکٹ کے لیے فی الحال کوئی عوامی ہیلپ لائن یا باضابطہ سپورٹ ای میل فعال نہیں ہے۔ یونیورسٹی کے تعلیمی مظاہرے میں شریک افراد گرین وچ یونیورسٹی کی فیکلٹی اور نگران اساتذہ کے توسط سے ٹیم سے رابطہ کر سکتے ہیں۔',
+          'چونکہ یہ گرین وچ یونیورسٹی، کراچی، پاکستان کے طلبہ کا تعلیمی منصوبہ ہے، اس لیے یہاں کوئی کمرشل سپورٹ ڈیسک یا عوامی ڈیٹا پروٹیکشن آفیسر موجود نہیں ہے۔',
+          'تعلیمی جائزہ کار اور اساتذہ اپنے سوالات اور فیڈ بیک مجاز تعلیمی ذرائع کے ذریعے پہنچا سکتے ہیں۔',
         ],
       },
       {
@@ -241,8 +239,8 @@ export const privacyPolicyContent: LegalDocumentContent = {
         number: '۱۰',
         title: 'پالیسی میں ترامیم اور تبدیلیاں',
         paragraphs: [
-          'یہ رازداری کی پالیسی نومبر ۲۰۲۶ء کے مطابق آوازِ عوام ایپلیکیشن کی موجودہ تکنیکی ساخت کی سچی عکاسی کرتی ہے۔',
-          'جب اس منصوبے میں ڈیٹا بیس کا نفاذ، رومن اردو ماڈلز کی حقیقی تفویض، اور محکموں کی براہِ راست رسائی فعال کی جائے گی تو عوامی نفاذ سے قبل اس دستاویز میں ضروری ترامیم کی جائیں گی۔',
+          'جیسے جیسے آوازِ عوام منصوبہ تحقیقی پروٹوٹائپ سے آگے بڑھے گا اور اس میں بیک اینڈ یا خودکار ترسیل کی صلاحیتیں شامل کی جائیں گی، اس پالیسی کو اپ ڈیٹ کیا جائے گا۔',
+          'تمام ترامیم عوامی سطح پر سروس شروع کرنے سے قبل اسی صفحے پر نئی تاریخ کے ساتھ شائع کی جائیں گی۔',
         ],
       },
     ],
