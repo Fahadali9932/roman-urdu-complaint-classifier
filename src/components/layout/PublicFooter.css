@@ -51,7 +51,7 @@
   justify-content: flex-start;
   width: 100%;
   min-height: 0;
-  padding-top: clamp(160px, 20vh, 185px);
+  padding-top: clamp(215px, 27vh, 280px);
   padding-bottom: clamp(16px, 2vh, 24px);
   padding-left: clamp(16px, 4vw, 40px);
   padding-right: clamp(16px, 4vw, 40px);
@@ -72,7 +72,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center 36%;
+  object-position: center 22%;
   opacity: 0.65;
   transform-origin: center center;
 }
@@ -85,7 +85,7 @@
   z-index: 2;
   background:
     radial-gradient(
-      ellipse 80% 75% at 50% 40%,
+      ellipse 80% 75% at 50% 46%,
       rgba(20, 20, 20, 0.12) 0%,
       rgba(20, 20, 20, 0.40) 55%,
       #141414 90%,
@@ -94,9 +94,9 @@
     linear-gradient(
       to bottom,
       rgba(20, 20, 20, 0.85) 0%,
-      rgba(20, 20, 20, 0.18) 24%,
-      rgba(20, 20, 20, 0.32) 55%,
-      rgba(20, 20, 20, 0.85) 85%,
+      rgba(20, 20, 20, 0.18) 26%,
+      rgba(20, 20, 20, 0.32) 58%,
+      rgba(20, 20, 20, 0.85) 86%,
       #141414 100%
     );
 }
@@ -327,7 +327,7 @@
 
   .footer-zone-a {
     min-height: clamp(200px, 28vh, 250px);
-    padding-top: 80px;
+    padding-top: clamp(86px, 12vh, 98px);
     padding-bottom: 16px;
     justify-content: center;
   }
