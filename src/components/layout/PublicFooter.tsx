@@ -91,23 +91,23 @@ export const PublicFooter: React.FC<PublicFooterProps> = ({ isHomePage }) => {
     (p: number) => {
       if (prefersReducedMotion || isMobile || !isHome) return;
 
-      // Headline movement: starts lower (centered in dark space) and glides upward into upper position
-      const tHeadline = smoother(clamp01(p / 0.75));
-      const headlineY = (1 - tHeadline) * 110;
+      // Headline movement: starts slightly lower and glides upward smoothly into position below navbar
+      const tHeadline = smoother(clamp01(p / 0.70));
+      const headlineY = (1 - tHeadline) * 60;
       if (headlineRef.current) {
         headlineRef.current.style.transform = `translate3d(0, ${headlineY}px, 0)`;
       }
 
       // Subtitle fade and subtle elevation
-      const tSub = smoother(clamp01((p - 0.15) / 0.45));
+      const tSub = smoother(clamp01((p - 0.08) / 0.45));
       if (subRef.current) {
         subRef.current.style.opacity = `${tSub * 0.85}`;
-        subRef.current.style.transform = `translate3d(0, ${(1 - tSub) * 20}px, 0)`;
+        subRef.current.style.transform = `translate3d(0, ${(1 - tSub) * 16}px, 0)`;
       }
 
-      // Lower navigation panel: reveals and expands upward from below, taking ~45% space
-      const tNav = smoother(clamp01((p - 0.25) / 0.55));
-      const navY = (1 - tNav) * 90;
+      // Lower navigation panel: reveals and settles into place, occupying lower ~45% space
+      const tNav = smoother(clamp01((p - 0.12) / 0.58));
+      const navY = (1 - tNav) * 28;
       if (navPanelRef.current) {
         navPanelRef.current.style.transform = `translate3d(0, ${navY}px, 0)`;
         navPanelRef.current.style.opacity = `${tNav}`;
@@ -133,14 +133,15 @@ export const PublicFooter: React.FC<PublicFooterProps> = ({ isHomePage }) => {
         const current = currentProgressRef.current;
         const diff = target - current;
 
-        if (Math.abs(diff) <= 0.0003) {
+        if (Math.abs(diff) <= 0.0008) {
           currentProgressRef.current = target;
           applyMotion(target);
           rafId.current = null;
           return;
         }
 
-        const next = current + diff * 0.18;
+        // Responsive tracking: 0.40 eliminates scroll lag and post-scroll drift
+        const next = current + diff * 0.40;
         currentProgressRef.current = next;
         applyMotion(next);
         rafId.current = requestAnimationFrame(updateLoop);
@@ -192,7 +193,7 @@ export const PublicFooter: React.FC<PublicFooterProps> = ({ isHomePage }) => {
             <h2
               ref={headlineRef}
               className="footer-statement-headline font-display will-change-transform"
-              style={isHome && !isMobile && !prefersReducedMotion ? { transform: 'translate3d(0, 110px, 0)' } : undefined}
+              style={isHome && !isMobile && !prefersReducedMotion ? { transform: 'translate3d(0, 60px, 0)' } : undefined}
             >
               {t('footerHeadline')}
             </h2>
@@ -201,7 +202,7 @@ export const PublicFooter: React.FC<PublicFooterProps> = ({ isHomePage }) => {
             <p
               ref={subRef}
               className="footer-statement-sub font-ui will-change-transform"
-              style={isHome && !isMobile && !prefersReducedMotion ? { opacity: 0, transform: 'translate3d(0, 20px, 0)' } : undefined}
+              style={isHome && !isMobile && !prefersReducedMotion ? { opacity: 0, transform: 'translate3d(0, 16px, 0)' } : undefined}
             >
               {t('footerSubtitle')}
             </p>
@@ -212,7 +213,7 @@ export const PublicFooter: React.FC<PublicFooterProps> = ({ isHomePage }) => {
         <div
           ref={navPanelRef}
           className="footer-navigation-panel will-change-transform"
-          style={isHome && !isMobile && !prefersReducedMotion ? { opacity: 0, transform: 'translate3d(0, 90px, 0)' } : undefined}
+          style={isHome && !isMobile && !prefersReducedMotion ? { opacity: 0, transform: 'translate3d(0, 28px, 0)' } : undefined}
         >
           <div className="footer-navigation-inner">
             {/* Minimal Navigation Links Bar */}
