@@ -23,7 +23,7 @@ describe('Professional Civic Complaint Form Suite', () => {
 
     // Page Heading & Subtitle
     expect(screen.getByRole('heading', { level: 1, name: /WRITE A COMPLAINT/i })).toBeInTheDocument();
-    expect(screen.getByText(/Tell us what happened and where the problem is/i)).toBeInTheDocument();
+    expect(screen.getByText(/Tell us what happened and where/i)).toBeInTheDocument();
 
     // Three clean editorial section headings (Unnumbered)
     expect(screen.getByText('APPLICANT DETAILS')).toBeInTheDocument();

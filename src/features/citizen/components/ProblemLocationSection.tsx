@@ -6,7 +6,7 @@ import { KarachiDistrict, ProblemLocationData } from '../../../types';
 import { KarachiAreaCombobox } from './KarachiAreaCombobox';
 import { KARACHI_DISTRICTS_DATA } from '../../../data/karachi/districts';
 import { defaultLocalityResolver } from '../../../data/karachi/locationResolver';
-import { CheckCircle2, AlertCircle } from 'lucide-react';
+import { CheckCircle2, AlertCircle, ExternalLink } from 'lucide-react';
 
 const KARACHI_DISTRICTS_OPTIONS: { value: KarachiDistrict; label: string }[] = KARACHI_DISTRICTS_DATA.map((d) => ({
   value: d.id,
@@ -24,7 +24,8 @@ export const ProblemLocationSection: React.FC<ProblemLocationSectionProps> = ({
   onChange,
   errors,
 }) => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const ur = language === 'ur';
 
   // Handle locality change with immediate automatic district resolution
   const handleLocalityChange = (localityName: string, explicitDistrict?: KarachiDistrict) => {
@@ -88,24 +89,46 @@ export const ProblemLocationSection: React.FC<ProblemLocationSectionProps> = ({
   return (
     <div className="space-y-4">
       {/* Editorial Section Heading */}
-      <div className="pb-2 border-b border-[#E5E3E0]">
-        <h2 className="font-display font-black text-sm tracking-widest text-[#141414] uppercase">
+      <div className="pb-3 border-b border-[#E5E3E0] flex items-baseline justify-between">
+        <h2 className="font-display font-black text-sm sm:text-base tracking-widest text-[#141414] uppercase">
           {t('sectionProblemLocation')}
         </h2>
+        <span className="font-mono text-[11px] text-[#777] hidden sm:inline">
+          {ur ? 'کراچی کا علاقہ' : 'Karachi Locality'}
+        </span>
       </div>
 
       {/* Grid: Area Combobox and District Display */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 items-start">
         {/* Locality Search Combobox */}
-        <KarachiAreaCombobox
-          id="locality"
-          label={t('formLocality')}
-          required
-          value={data.locality}
-          onChange={(val, matchedDistrict) => handleLocalityChange(val, matchedDistrict)}
-          error={errors.locality}
-          placeholder={t('formLocalityPlaceholder')}
-        />
+        <div className="space-y-1.5">
+          <KarachiAreaCombobox
+            id="locality"
+            label={t('formLocality')}
+            required
+            value={data.locality}
+            onChange={(val, matchedDistrict) => handleLocalityChange(val, matchedDistrict)}
+            error={errors.locality}
+            placeholder={t('formLocalityPlaceholder')}
+          />
+          <div className="flex items-center justify-between text-xs pt-0.5">
+            <span className="text-[11px] text-[#666] font-ui">
+              {ur ? 'شہر کراچی کے اندر واقع علاقہ' : 'Karachi metropolitan locality'}
+            </span>
+            <a
+              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                data.locality ? `${data.locality}, Karachi, Pakistan` : 'Karachi, Pakistan'
+              )}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-[11px] font-ui font-semibold text-[#681822] hover:text-[#52131b] hover:underline underline-offset-2 transition-colors"
+              aria-label={ur ? 'گوگل میپس پر تلاش کریں (نئی ونڈو میں کھلے گا)' : 'Find on Google Maps (opens in new tab)'}
+            >
+              <ExternalLink className="w-3 h-3" />
+              {ur ? 'گوگل میپس پر دیکھیں' : 'Find on Google Maps'}
+            </a>
+          </div>
+        </div>
 
         {/* District Display (Automatically Identified OR Confirmation Dropdown) */}
         <div>

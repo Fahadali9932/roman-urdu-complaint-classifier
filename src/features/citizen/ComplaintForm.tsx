@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '../../components/common/Button';
 import { useLanguage } from '../../context/LanguageContext';
 import { countWords, MAX_COMPLAINT_WORDS } from '../../utils/wordCounter';
@@ -40,7 +40,13 @@ const INITIAL_FORM_STATE: FullComplaintFormState = {
 };
 
 export const ComplaintForm: React.FC<ComplaintFormProps> = ({ embedded = false }) => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const ur = language === 'ur';
+
+  // Synchronize document title to eliminate stale title regression
+  useEffect(() => {
+    document.title = ur ? 'شکایت درج کریں — آوازِ عوام' : 'Write a Complaint — Awaaz-e-Awam';
+  }, [ur]);
 
   // Three-part organized form state
   const [formData, setFormData] = useState<FullComplaintFormState>(INITIAL_FORM_STATE);
@@ -221,73 +227,100 @@ export const ComplaintForm: React.FC<ComplaintFormProps> = ({ embedded = false }
 
   return (
     <div className="w-full bg-[#F7F6F3] min-h-screen">
+      {/* Asymmetric Editorial Citizen Intake Layout */}
       <div
-        className={`max-w-5xl mx-auto px-4 sm:px-8 text-start ${
+        className={`max-w-7xl mx-auto px-4 sm:px-8 lg:px-12 text-start ${
           embedded ? 'py-2' : 'pt-24 sm:pt-28 pb-20 sm:pb-28'
         }`}
       >
-        {/* Prominent Page Heading (Modern Civic Editorial) */}
-        {!embedded && (
-          <div className="mb-10 sm:mb-12 space-y-2">
-            <h1 className="font-display font-black text-3xl sm:text-5xl lg:text-6xl text-[#141414] uppercase tracking-tight leading-[0.98]">
-              {t('formTitle')}
-            </h1>
-            <p className="text-sm sm:text-base text-[#555] font-normal leading-relaxed font-ui max-w-2xl">
-              {t('formSubtitle')}
-            </p>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 xl:gap-16 items-start">
+          {/* Left Editorial Column (~35% on Desktop, Sticky Header) */}
+          {!embedded && (
+            <div className="lg:col-span-4 xl:col-span-4 lg:sticky lg:top-28 lg:self-start space-y-5">
+              <div className="space-y-3">
+                <h1 className="font-display font-black text-3xl sm:text-4xl lg:text-4xl xl:text-5xl text-[#141414] uppercase tracking-tight leading-[0.95]">
+                  {ur ? (
+                    <>
+                      شکایت <br />درج کریں
+                    </>
+                  ) : (
+                    <>
+                      WRITE <br />A COMPLAINT.
+                    </>
+                  )}
+                </h1>
+                <p className="text-sm sm:text-base text-[#555] font-normal leading-relaxed font-ui max-w-sm">
+                  {t('formSubtitle')}
+                </p>
+              </div>
+
+              {/* Quiet Editorial Context Indicator */}
+              <div className="hidden lg:block pt-8 border-t border-[#E5E3E0] space-y-3">
+                <p className="font-mono text-xs text-[#777] uppercase tracking-wider">
+                  {ur ? 'شہری شکایات کا پورٹل' : 'Awaaz-e-Awam / Civic Intake'}
+                </p>
+                <p className="font-ui text-xs text-[#666] leading-relaxed">
+                  {ur
+                    ? 'فون نمبر اور گھر کا پتہ کبھی محفوظ نہیں کیا جاتا۔'
+                    : 'Personal phone numbers and residential addresses are strictly kept transient and private.'}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Right Form Column (~65% on Desktop) */}
+          <div className={embedded ? 'w-full' : 'lg:col-span-8 xl:col-span-8'}>
+            <form onSubmit={handleSubmit} noValidate className="space-y-10 sm:space-y-12">
+              {/* SECTION 1: APPLICANT DETAILS */}
+              <ApplicantDetailsSection
+                data={formData.applicant}
+                onChange={handleApplicantChange}
+                errors={errors.applicant}
+              />
+
+              {/* SECTION 2: PROBLEM LOCATION */}
+              <ProblemLocationSection
+                data={formData.location}
+                onChange={handleLocationChange}
+                errors={errors.location}
+              />
+
+              {/* SECTION 3: COMPLAINT DETAILS */}
+              <ComplaintDetailsSection
+                data={formData.complaint}
+                onChange={handleComplaintChange}
+                errors={errors.complaint}
+                wordCount={descriptionWords}
+              />
+
+              {/* FORM ACTIONS */}
+              <div className="pt-4 border-t border-[#E5E3E0] flex flex-col sm:flex-row items-center justify-between gap-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="md"
+                  onClick={handleReset}
+                  className="w-full sm:w-auto px-5 tracking-wide text-xs font-bold"
+                  leftIcon={<RotateCcw className="w-3.5 h-3.5" />}
+                >
+                  {t('formClear')}
+                </Button>
+
+                <Button
+                  type="submit"
+                  variant="primary"
+                  size="md"
+                  isLoading={isSubmitting}
+                  disabled={descriptionWords > MAX_COMPLAINT_WORDS}
+                  leftIcon={<Send className="w-3.5 h-3.5 text-white" />}
+                  className="w-full sm:w-auto px-7 tracking-wide text-xs font-bold bg-[#681822] hover:bg-[#52131b] text-white border-transparent"
+                >
+                  {isSubmitting ? t('formSubmitting') : t('formSubmitButton')}
+                </Button>
+              </div>
+            </form>
           </div>
-        )}
-
-        {/* Form Container (Clean Canvas - No Fake Paper, No Ruled Lines) */}
-        <form onSubmit={handleSubmit} noValidate className="space-y-10 sm:space-y-12">
-          {/* SECTION 1: APPLICANT DETAILS */}
-          <ApplicantDetailsSection
-            data={formData.applicant}
-            onChange={handleApplicantChange}
-            errors={errors.applicant}
-          />
-
-          {/* SECTION 2: PROBLEM LOCATION */}
-          <ProblemLocationSection
-            data={formData.location}
-            onChange={handleLocationChange}
-            errors={errors.location}
-          />
-
-          {/* SECTION 3: COMPLAINT DETAILS */}
-          <ComplaintDetailsSection
-            data={formData.complaint}
-            onChange={handleComplaintChange}
-            errors={errors.complaint}
-            wordCount={descriptionWords}
-          />
-
-          {/* FORM ACTIONS */}
-          <div className="pt-4 border-t border-[#E5E3E0] flex flex-col sm:flex-row items-center justify-between gap-4">
-            <Button
-              type="button"
-              variant="outline"
-              size="md"
-              onClick={handleReset}
-              className="w-full sm:w-auto px-5 tracking-wide text-xs font-bold"
-              leftIcon={<RotateCcw className="w-3.5 h-3.5" />}
-            >
-              {t('formClear')}
-            </Button>
-
-            <Button
-              type="submit"
-              variant="primary"
-              size="md"
-              isLoading={isSubmitting}
-              disabled={descriptionWords > MAX_COMPLAINT_WORDS}
-              leftIcon={<Send className="w-3.5 h-3.5 text-white" />}
-              className="w-full sm:w-auto px-7 tracking-wide text-xs font-bold bg-[#681822] hover:bg-[#52131b] text-white border-transparent"
-            >
-              {isSubmitting ? t('formSubmitting') : t('formSubmitButton')}
-            </Button>
-          </div>
-        </form>
+        </div>
       </div>
 
       {/* Honest Application Review Modal */}

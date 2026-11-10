@@ -20,10 +20,13 @@ export const ApplicantDetailsSection: React.FC<ApplicantDetailsSectionProps> = (
   return (
     <div className="space-y-4">
       {/* Editorial Section Heading */}
-      <div className="pb-2 border-b border-[#E5E3E0]">
-        <h2 className="font-display font-black text-sm tracking-widest text-[#141414] uppercase">
+      <div className="pb-3 border-b border-[#E5E3E0] flex items-baseline justify-between">
+        <h2 className="font-display font-black text-sm sm:text-base tracking-widest text-[#141414] uppercase">
           {t('sectionApplicantDetails')}
         </h2>
+        <span className="font-mono text-[11px] text-[#777] hidden sm:inline">
+          {ur ? 'رابطے کی معلومات' : 'Contact Information'}
+        </span>
       </div>
 
       {/* Grid: 2 columns on desktop, 1 column on mobile */}
@@ -79,7 +82,7 @@ export const ApplicantDetailsSection: React.FC<ApplicantDetailsSectionProps> = (
       </div>
 
       {/* Transparent Privacy Reassurance */}
-      <p className="text-[11px] font-mono text-[#666] tracking-tight">
+      <p className="text-xs text-[#666] font-ui leading-relaxed">
         {t('applicantPrivacyNote')}
       </p>
     </div>

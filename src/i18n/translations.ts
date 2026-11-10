@@ -160,7 +160,7 @@ export const translations = {
 
     // Form: Submit Complaint
     formTitle: 'WRITE A COMPLAINT.',
-    formSubtitle: 'Tell us what happened and where the problem is.',
+    formSubtitle: 'Tell us what happened and where.',
     sectionApplicantDetails: 'APPLICANT DETAILS',
     sectionProblemLocation: 'PROBLEM LOCATION',
     sectionComplaintDetails: 'COMPLAINT DETAILS',

@@ -28,10 +28,13 @@ export const ComplaintDetailsSection: React.FC<ComplaintDetailsSectionProps> = (
   return (
     <div className="space-y-4">
       {/* Editorial Section Heading */}
-      <div className="pb-2 border-b border-[#E5E3E0]">
-        <h2 className="font-display font-black text-sm tracking-widest text-[#141414] uppercase">
+      <div className="pb-3 border-b border-[#E5E3E0] flex items-baseline justify-between">
+        <h2 className="font-display font-black text-sm sm:text-base tracking-widest text-[#141414] uppercase">
           {t('sectionComplaintDetails')}
         </h2>
+        <span className="font-mono text-[11px] text-[#777] hidden sm:inline">
+          {ur ? 'تفصیل و بیان' : 'Issue Narrative'}
+        </span>
       </div>
 
       {/* Subject Input */}
@@ -67,7 +70,7 @@ export const ComplaintDetailsSection: React.FC<ComplaintDetailsSectionProps> = (
 
         <textarea
           id="description"
-          rows={6}
+          rows={7}
           dir={textDirection}
           aria-label="Complaint Description"
           value={data.description}
@@ -75,10 +78,10 @@ export const ComplaintDetailsSection: React.FC<ComplaintDetailsSectionProps> = (
           placeholder={t('formDescribeComplaintPlaceholder')}
           aria-invalid={Boolean(errors.description)}
           aria-describedby={errors.description ? 'description-error' : undefined}
-          className={`w-full rounded-md border bg-white p-3.5 font-sans text-sm text-[#141414] leading-relaxed transition-all placeholder:text-[#888] outline-none min-h-[160px] ${
+          className={`w-full rounded-md border bg-white p-4 font-sans text-sm sm:text-base text-[#141414] leading-relaxed transition-all placeholder:text-[#888] outline-none min-h-[200px] ${
             errors.description
               ? 'border-[#681822] ring-1 ring-[#681822]/20'
-              : 'border-[#D8D6D2] focus:border-[#141414] focus:ring-1 focus:ring-[#141414]/15'
+              : 'border-[#D8D6D2] hover:border-[#141414] focus:border-[#681822] focus:ring-1 focus:ring-[#681822]/20'
           } ${isUrduScript ? 'font-serif text-base' : ''}`}
         />
 
