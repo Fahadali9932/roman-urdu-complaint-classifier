@@ -44,6 +44,10 @@ describe('Cinematic Information Pages Suite', () => {
     expect(screen.getByRole('heading', { level: 2, name: /our purpose/i })).toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 2, name: /the team/i })).toBeInTheDocument();
 
+    // Prominent Lead Developer credit
+    expect(screen.getByRole('heading', { level: 3, name: /fahad ali/i })).toBeInTheDocument();
+    expect(screen.getByText(/lead developer & project lead/i)).toBeInTheDocument();
+
     // Unified shared civic footer rendered with approved YOUR VOICE MATTERS headline
     expect(screen.getByRole('contentinfo', { name: /awaaz-e-awam civic footer/i })).toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 2, name: /YOUR VOICE MATTERS\./i })).toBeInTheDocument();
@@ -168,6 +172,8 @@ describe('Cinematic Information Pages Suite', () => {
     );
     expect(screen.getByRole('heading', { level: 1, name: /ہمارا تعارف/i })).toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 2, name: /ہمارا مقصد/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 3, name: /fahad ali/i })).toBeInTheDocument();
+    expect(screen.getByText(/لیڈ ڈویلپر اور پروجیکٹ لیڈ/i)).toBeInTheDocument();
     unmountAbout();
 
     // Test Contact Us in Urdu

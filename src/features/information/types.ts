@@ -1,6 +1,12 @@
+export interface LeadCredit {
+  name: string;
+  role: string;
+}
+
 export interface InfoSectionContent {
   id: string;
   title: string;
+  leadCredit?: LeadCredit;
   paragraphs: string[];
   bulletPoints?: string[];
 }

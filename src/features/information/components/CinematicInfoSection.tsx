@@ -49,11 +49,33 @@ export const CinematicInfoSection: React.FC<CinematicInfoSectionProps> = ({
       }`}
     >
       {/* Clean Editorial Section Heading */}
-      <div className="pb-2 border-b border-white/10">
+      <div className="pb-2.5 border-b border-white/10">
         <h2 className="font-display font-bold text-xl sm:text-2xl text-white uppercase tracking-tight leading-snug">
           {section.title}
         </h2>
       </div>
+
+      {/* Prominent Lead Developer / Project Lead Credit */}
+      {section.leadCredit && (
+        <div className="pt-2 pb-1 space-y-1.5">
+          <div className="flex items-center gap-2.5">
+            <span
+              className="w-2 h-2 rounded-full bg-[#681822] shrink-0"
+              aria-hidden="true"
+            />
+            <h3 className="font-display font-black text-2xl sm:text-3xl text-white tracking-tight uppercase">
+              {section.leadCredit.name}
+            </h3>
+          </div>
+          <p
+            className={`font-mono text-xs sm:text-sm font-semibold tracking-wider uppercase text-[#D1D0CD] ${
+              isRTL ? 'pe-4' : 'ps-4.5'
+            }`}
+          >
+            {section.leadCredit.role}
+          </p>
+        </div>
+      )}
 
       {/* Concise Paragraphs */}
       <div
