@@ -34,7 +34,7 @@ describe('Cinematic Information Pages Suite', () => {
 
     // Human, concise subtitle
     expect(
-      screen.getByText(/a student-built platform exploring a simpler way for citizens to report public-service concerns/i)
+      screen.getByText(/a civic complaint platform built to make reporting everyday public-service issues/i)
     ).toBeInTheDocument();
 
     // Academic attribution
