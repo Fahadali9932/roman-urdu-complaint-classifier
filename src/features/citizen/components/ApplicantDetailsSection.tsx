@@ -18,19 +18,16 @@ export const ApplicantDetailsSection: React.FC<ApplicantDetailsSectionProps> = (
   const ur = language === 'ur';
 
   return (
-    <div className="space-y-4">
-      {/* Editorial Section Heading */}
-      <div className="pb-3 border-b border-[#E5E3E0] flex items-baseline justify-between">
-        <h2 className="font-display font-black text-sm sm:text-base tracking-widest text-[#141414] uppercase">
+    <div className="space-y-5">
+      {/* Group Heading (Level 2) */}
+      <div className="pb-3 border-b border-[#E5E3E0]">
+        <h2 className="font-display font-bold text-lg sm:text-xl text-[#141414] tracking-tight">
           {t('sectionApplicantDetails')}
         </h2>
-        <span className="font-mono text-[11px] text-[#777] hidden sm:inline">
-          {ur ? 'رابطے کی معلومات' : 'Contact Information'}
-        </span>
       </div>
 
-      {/* Grid: 2 columns on desktop, 1 column on mobile */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+      {/* Fields Column */}
+      <div className="space-y-4">
         <Input
           label={t('formCitizenName')}
           required
@@ -54,7 +51,7 @@ export const ApplicantDetailsSection: React.FC<ApplicantDetailsSectionProps> = (
           error={errors.citizenPhone}
           helperText={
             ur
-              ? 'پاکستانی موبائل فارمیٹ: 03XXXXXXXXX یا +923XXXXXXXXX'
+              ? 'پاکستانی فارمیٹ: 03XXXXXXXXX یا +923XXXXXXXXX'
               : 'Pakistani format: 03XXXXXXXXX or +923XXXXXXXXX'
           }
         />
@@ -82,7 +79,7 @@ export const ApplicantDetailsSection: React.FC<ApplicantDetailsSectionProps> = (
       </div>
 
       {/* Transparent Privacy Reassurance */}
-      <p className="text-xs text-[#666] font-ui leading-relaxed">
+      <p className="text-xs text-[#666] font-ui leading-relaxed pt-0.5">
         {t('applicantPrivacyNote')}
       </p>
     </div>
