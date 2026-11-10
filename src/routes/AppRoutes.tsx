@@ -45,6 +45,7 @@ export const AppRoutes: React.FC = () => {
         <Route path="/terms" element={<Navigate to="/terms-of-use" replace />} />
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/submit" element={<ComplaintForm />} />
+        <Route path="/write-complaint" element={<Navigate to="/submit" replace />} />
         <Route path="/track" element={<ComplaintTracker />} />
         <Route path="/track/:referenceNumber" element={<ComplaintTracker />} />
         <Route path="/login" element={<LoginPage />} />
