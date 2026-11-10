@@ -32,21 +32,24 @@ describe('Cinematic Information Pages Suite', () => {
     // Heading
     expect(screen.getByRole('heading', { level: 1, name: /about us\./i })).toBeInTheDocument();
 
-    // Eyebrow and academic attribution
-    expect(screen.getByText(/academic research initiative · awaaz-e-awam/i)).toBeInTheDocument();
-    expect(screen.getAllByText(/Greenwich University, Karachi/i).length).toBeGreaterThan(0);
+    // Human, concise subtitle
+    expect(
+      screen.getByText(/a student-built platform exploring a simpler way for citizens to report public-service concerns/i)
+    ).toBeInTheDocument();
 
-    // 3 concise sections
+    // Academic attribution
+    expect(screen.getAllByText(/Greenwich University/i).length).toBeGreaterThan(0);
+
+    // 2 concise sections (no numbers)
     expect(screen.getByRole('heading', { level: 2, name: /our purpose/i })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { level: 2, name: /the academic project/i })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { level: 2, name: /what we are building/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: /the team/i })).toBeInTheDocument();
 
     // Compact footer rendered without duplicate #footer monument hero
     expect(screen.getByRole('contentinfo', { name: /awaaz-e-awam informational footer/i })).toBeInTheDocument();
     expect(screen.queryByLabelText(/awaaz-e-awam civic footer/i)).not.toBeInTheDocument();
   });
 
-  it('renders Contact Us at /contact with verified operational channels and emergency hotlines', async () => {
+  it('renders Contact Us at /contact with verified operational channels and no fake directory', async () => {
     render(
       <LanguageProvider>
         <MemoryRouter initialEntries={['/contact']}>
@@ -63,22 +66,15 @@ describe('Cinematic Information Pages Suite', () => {
     // Heading
     expect(screen.getByRole('heading', { level: 1, name: /contact us\./i })).toBeInTheDocument();
 
-    // Eyebrow
-    expect(screen.getByText(/communication & operational guidelines · awaaz-e-awam/i)).toBeInTheDocument();
-
-    // Academic coordination instructions
-    expect(screen.getByRole('heading', { level: 2, name: /academic & evaluation inquiries/i })).toBeInTheDocument();
-
-    // Official municipal hotline guidance
-    expect(screen.getByRole('heading', { level: 2, name: /official civic grievances & emergencies/i })).toBeInTheDocument();
-    expect(screen.getByText(/Karachi Metropolitan Corporation \(KMC\) Citizen Helpline: Dial 1339/i)).toBeInTheDocument();
-    expect(screen.getByText(/K-Electric Emergency Helpline: Dial 118/i)).toBeInTheDocument();
+    // Verified academic coordination instructions
+    expect(screen.getByRole('heading', { level: 2, name: /project inquiries/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: /public inquiries/i })).toBeInTheDocument();
 
     // No duplicate #footer monument
     expect(screen.getByRole('contentinfo', { name: /awaaz-e-awam informational footer/i })).toBeInTheDocument();
   });
 
-  it('renders Privacy Policy at /privacy-policy with verified academic disclosures', async () => {
+  it('renders Privacy Policy at /privacy-policy with concise verified disclosures', async () => {
     render(
       <LanguageProvider>
         <MemoryRouter initialEntries={['/privacy-policy']}>
@@ -95,21 +91,15 @@ describe('Cinematic Information Pages Suite', () => {
     // H1 check
     expect(screen.getByRole('heading', { level: 1, name: /privacy policy\./i })).toBeInTheDocument();
 
-    // Academic disclosure check
-    expect(screen.getAllByText(/Greenwich University, Karachi/i).length).toBeGreaterThan(0);
-    expect(screen.getByText(/academic project disclosure · awaaz-e-awam/i)).toBeInTheDocument();
-
     // Factual sections
-    expect(screen.getByRole('heading', { level: 2, name: /about awaaz-e-awam/i })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { level: 2, name: /storage and data retention/i })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { level: 2, name: /cookies and browser localstorage/i })).toBeInTheDocument();
-
-    // Table of contents rendered
-    const tocs = screen.getAllByLabelText(/on this page/i);
-    expect(tocs.length).toBeGreaterThan(0);
+    expect(screen.getByRole('heading', { level: 2, name: /information you share/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: /storage and privacy/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: /third-party services/i })).toBeInTheDocument();
 
     // Link to terms of use
-    expect(screen.getByRole('link', { name: /read terms of use/i })).toHaveAttribute('href', '/terms-of-use');
+    const termsLinks = screen.getAllByRole('link', { name: /terms of use/i });
+    expect(termsLinks.length).toBeGreaterThan(0);
+    expect(termsLinks[0]).toHaveAttribute('href', '/terms-of-use');
   });
 
   it('renders Terms of Use at /terms-of-use with prototype limitations', async () => {
@@ -130,14 +120,14 @@ describe('Cinematic Information Pages Suite', () => {
     expect(screen.getByRole('heading', { level: 1, name: /terms of use\./i })).toBeInTheDocument();
 
     // Prototype status check
-    expect(screen.getByRole('heading', { level: 2, name: /prototype status & no official filing/i })).toBeInTheDocument();
-    expect(screen.getByText(/NOT an official government grievance portal/i)).toBeInTheDocument();
-
-    // Acceptable use check
-    expect(screen.getByRole('heading', { level: 2, name: /acceptable use guidelines/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: /about the service/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: /complaint submissions/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: /service limitations/i })).toBeInTheDocument();
 
     // Link to privacy policy
-    expect(screen.getByRole('link', { name: /read privacy policy/i })).toHaveAttribute('href', '/privacy-policy');
+    const privacyLinks = screen.getAllByRole('link', { name: /privacy policy/i });
+    expect(privacyLinks.length).toBeGreaterThan(0);
+    expect(privacyLinks[0]).toHaveAttribute('href', '/privacy-policy');
   });
 
   it('redirects legacy /privacy to /privacy-policy', () => {
@@ -188,7 +178,7 @@ describe('Cinematic Information Pages Suite', () => {
       </LanguageProvider>
     );
     expect(screen.getByRole('heading', { level: 1, name: /ہم سے رابطہ/i })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { level: 2, name: /تعلیمی و تحقیقی رابطہ/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: /منصوبے سے رابطہ/i })).toBeInTheDocument();
     unmountContact();
 
     // Test Privacy Policy in Urdu
@@ -200,7 +190,7 @@ describe('Cinematic Information Pages Suite', () => {
       </LanguageProvider>
     );
     expect(screen.getByRole('heading', { level: 1, name: /رازداری کی پالیسی/i })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { level: 2, name: /منصوبے کا تعارف اور دائرہ کار/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: /معلومات جو آپ فراہم کرتے ہیں/i })).toBeInTheDocument();
     unmountPrivacy();
 
     // Test Terms in Urdu
@@ -212,7 +202,7 @@ describe('Cinematic Information Pages Suite', () => {
       </LanguageProvider>
     );
     expect(screen.getByRole('heading', { level: 1, name: /استعمال کے ضوابط/i })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { level: 2, name: /پلیٹ فارم کا تعارف/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: /سروس کا تعارف/i })).toBeInTheDocument();
 
     localStorage.setItem('preferred_language', 'en');
   });
@@ -223,9 +213,21 @@ describe('Cinematic Information Pages Suite', () => {
     const privacyIds = privacyContent.en.sections.map((s) => s.id);
     const termsIds = termsContent.en.sections.map((s) => s.id);
 
-    expect(aboutIds).toEqual(['our-purpose', 'the-project', 'what-we-are-building']);
-    expect(contactIds).toEqual(['academic-inquiries', 'official-grievances', 'prototype-communication-notice']);
-    expect(privacyIds.length).toBe(10);
-    expect(termsIds.length).toBe(12);
+    expect(aboutIds).toEqual(['our-purpose', 'the-team']);
+    expect(contactIds).toEqual(['project-inquiries', 'public-support']);
+    expect(privacyIds).toEqual([
+      'information-you-share',
+      'how-we-use-information',
+      'storage-and-privacy',
+      'third-party-services',
+      'questions-and-updates',
+    ]);
+    expect(termsIds).toEqual([
+      'about-service',
+      'using-platform',
+      'complaint-submissions',
+      'service-limitations',
+      'privacy-and-updates',
+    ]);
   });
 });

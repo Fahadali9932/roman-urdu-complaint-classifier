@@ -7,7 +7,7 @@ import { privacyContent as privacyPolicyContent } from '../features/information/
 import { termsContent as termsOfUseContent } from '../features/information/content/termsContent';
 
 describe('Legal Pages (Privacy Policy & Terms of Use)', () => {
-  it('renders Privacy Policy at /privacy-policy with verified academic disclosure', () => {
+  it('renders Privacy Policy at /privacy-policy with verified disclosures', () => {
     render(
       <LanguageProvider>
         <MemoryRouter initialEntries={['/privacy-policy']}>
@@ -19,21 +19,15 @@ describe('Legal Pages (Privacy Policy & Terms of Use)', () => {
     // H1 check
     expect(screen.getByRole('heading', { level: 1, name: /privacy policy/i })).toBeInTheDocument();
 
-    // Academic disclosure check
-    expect(screen.getAllByText(/Greenwich University, Karachi/i).length).toBeGreaterThan(0);
-    expect(screen.getByText(/academic project disclosure · awaaz-e-awam/i)).toBeInTheDocument();
-
-    // Verified section checks
-    expect(screen.getByRole('heading', { level: 2, name: /about awaaz-e-awam/i })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { level: 2, name: /storage and data retention/i })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { level: 2, name: /cookies and browser localstorage/i })).toBeInTheDocument();
-
-    // Table of contents rendered
-    const tocs = screen.getAllByLabelText(/on this page/i);
-    expect(tocs.length).toBeGreaterThan(0);
+    // Substantive section checks
+    expect(screen.getByRole('heading', { level: 2, name: /information you share/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: /storage and privacy/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: /third-party services/i })).toBeInTheDocument();
 
     // Link to terms of use
-    expect(screen.getByRole('link', { name: /read terms of use/i })).toHaveAttribute('href', '/terms-of-use');
+    const termsLinks = screen.getAllByRole('link', { name: /terms of use/i });
+    expect(termsLinks.length).toBeGreaterThan(0);
+    expect(termsLinks[0]).toHaveAttribute('href', '/terms-of-use');
   });
 
   it('renders Terms of Use at /terms-of-use with prototype limitations', () => {
@@ -48,15 +42,15 @@ describe('Legal Pages (Privacy Policy & Terms of Use)', () => {
     // H1 check
     expect(screen.getByRole('heading', { level: 1, name: /terms of use/i })).toBeInTheDocument();
 
-    // Prototype status check
-    expect(screen.getByRole('heading', { level: 2, name: /prototype status & no official filing/i })).toBeInTheDocument();
-    expect(screen.getByText(/NOT an official government grievance portal/i)).toBeInTheDocument();
-
-    // Acceptable use check
-    expect(screen.getByRole('heading', { level: 2, name: /acceptable use guidelines/i })).toBeInTheDocument();
+    // Prototype status and limitation checks
+    expect(screen.getByRole('heading', { level: 2, name: /about the service/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: /complaint submissions/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: /service limitations/i })).toBeInTheDocument();
 
     // Link to privacy policy
-    expect(screen.getByRole('link', { name: /read privacy policy/i })).toHaveAttribute('href', '/privacy-policy');
+    const privacyLinks = screen.getAllByRole('link', { name: /privacy policy/i });
+    expect(privacyLinks.length).toBeGreaterThan(0);
+    expect(privacyLinks[0]).toHaveAttribute('href', '/privacy-policy');
   });
 
   it('redirects legacy /privacy to /privacy-policy', () => {
@@ -97,43 +91,30 @@ describe('Legal Pages (Privacy Policy & Terms of Use)', () => {
 
     // Urdu H1 and sections
     expect(screen.getByRole('heading', { level: 1, name: /رازداری کی پالیسی/i })).toBeInTheDocument();
-    expect(screen.getByText(/تعلیمی منصوبے کی وضاحتی رپورٹ • آوازِ عوام/i)).toBeInTheDocument();
-    expect(screen.getByRole('heading', { level: 2, name: /منصوبے کا تعارف اور دائرہ کار/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: /معلومات جو آپ فراہم کرتے ہیں/i })).toBeInTheDocument();
 
     // Restore to English
     localStorage.setItem('preferred_language', 'en');
   });
 
-  it('ensures all TOC section anchors correspond to actual section IDs', () => {
+  it('ensures all section anchors correspond to actual section IDs', () => {
     const privacyIds = privacyPolicyContent.en.sections.map((s) => s.id);
     const termsIds = termsOfUseContent.en.sections.map((s) => s.id);
 
     expect(privacyIds).toEqual([
-      'about-platform',
-      'information-you-enter',
-      'how-information-is-processed',
-      'storage-and-retention',
-      'access-controls',
+      'information-you-share',
+      'how-we-use-information',
+      'storage-and-privacy',
       'third-party-services',
-      'cookies-local-storage',
-      'security-limitations',
-      'data-inquiries',
-      'policy-updates',
+      'questions-and-updates',
     ]);
 
     expect(termsIds).toEqual([
-      'about-platform',
-      'purpose-of-service',
-      'prototype-status',
-      'acceptable-use',
-      'accounts-and-access',
-      'complaint-submission',
-      'classification-and-routing',
-      'status-tracking',
-      'privacy-reference',
+      'about-service',
+      'using-platform',
+      'complaint-submissions',
       'service-limitations',
-      'modifications-to-terms',
-      'academic-contact',
+      'privacy-and-updates',
     ]);
   });
 });
