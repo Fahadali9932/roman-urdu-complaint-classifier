@@ -44,9 +44,9 @@ describe('Cinematic Information Pages Suite', () => {
     expect(screen.getByRole('heading', { level: 2, name: /our purpose/i })).toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 2, name: /the team/i })).toBeInTheDocument();
 
-    // Compact footer rendered without duplicate #footer monument hero
-    expect(screen.getByRole('contentinfo', { name: /awaaz-e-awam informational footer/i })).toBeInTheDocument();
-    expect(screen.queryByLabelText(/awaaz-e-awam civic footer/i)).not.toBeInTheDocument();
+    // Unified shared civic footer rendered with approved YOUR VOICE MATTERS headline
+    expect(screen.getByRole('contentinfo', { name: /awaaz-e-awam civic footer/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: /YOUR VOICE MATTERS\./i })).toBeInTheDocument();
   });
 
   it('renders Contact Us at /contact with verified operational channels and no fake directory', async () => {
@@ -70,8 +70,9 @@ describe('Cinematic Information Pages Suite', () => {
     expect(screen.getByRole('heading', { level: 2, name: /project inquiries/i })).toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 2, name: /public inquiries/i })).toBeInTheDocument();
 
-    // No duplicate #footer monument
-    expect(screen.getByRole('contentinfo', { name: /awaaz-e-awam informational footer/i })).toBeInTheDocument();
+    // Unified shared civic footer
+    expect(screen.getByRole('contentinfo', { name: /awaaz-e-awam civic footer/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: /YOUR VOICE MATTERS\./i })).toBeInTheDocument();
   });
 
   it('renders Privacy Policy at /privacy-policy with concise verified disclosures', async () => {

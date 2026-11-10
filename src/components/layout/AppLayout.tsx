@@ -32,7 +32,7 @@ export const AppLayout: React.FC = () => {
       >
         <Outlet />
       </main>
-      {!isHome && !isInfoPage && <PublicFooter />}
+      {!isHome && <PublicFooter />}
     </div>
   );
 };

@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { useLanguage } from '../../../context/LanguageContext';
 import { LocalizedInfoDocument } from '../types';
 import { CinematicInfoSection } from './CinematicInfoSection';
-import { CinematicInfoFooter } from './CinematicInfoFooter';
 import mazarDesktop from '../../../assets/mazar-e-quaid-monochrome.jpg';
 import mazarMobile from '../../../assets/mazar-e-quaid-mobile.jpg';
 import { ArrowLeft, ArrowRight, FileText } from 'lucide-react';
@@ -75,7 +74,7 @@ export const CinematicInfoLayout: React.FC<CinematicInfoLayoutProps> = ({
   return (
     <div
       dir={isRTL ? 'rtl' : 'ltr'}
-      className="relative w-full min-h-screen bg-[#141414] text-[#F7F6F3] overflow-x-clip selection:bg-[#681822] selection:text-white"
+      className="relative w-full bg-[#141414] text-[#F7F6F3] overflow-x-clip selection:bg-[#681822] selection:text-white"
     >
       {/* ========================================================
           BACKGROUND LAYER: Grayscale Mazar-e-Quaid Architecture
@@ -155,7 +154,7 @@ export const CinematicInfoLayout: React.FC<CinematicInfoLayoutProps> = ({
           CONTENT AREA: Concise Editorial Sections (~760px column)
           Clean headings, comfortable line lengths, natural pacing
           ======================================================== */}
-      <main className="relative z-10 w-full max-w-[760px] mx-auto px-4 sm:px-8 lg:px-12 pb-20 sm:pb-28">
+      <div className="relative z-10 w-full max-w-[760px] mx-auto px-4 sm:px-8 lg:px-12 pb-16 sm:pb-24">
         <article className="space-y-12 sm:space-y-14">
           {doc.sections.map((section) => (
             <CinematicInfoSection
@@ -187,13 +186,7 @@ export const CinematicInfoLayout: React.FC<CinematicInfoLayoutProps> = ({
             )}
           </div>
         </article>
-      </main>
-
-      {/* ========================================================
-          COMPACT CLOSING NAVIGATION FOOTER
-          (Avoids duplicate monument scene while preserving links)
-          ======================================================== */}
-      <CinematicInfoFooter />
+      </div>
     </div>
   );
 };

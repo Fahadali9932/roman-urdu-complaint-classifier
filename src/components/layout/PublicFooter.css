@@ -8,6 +8,7 @@
 .civic-editorial-footer {
   position: relative;
   isolation: isolate;
+  z-index: 20;
   width: 100%;
   background-color: #141414;
   color: #F7F6F3;

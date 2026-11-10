@@ -251,15 +251,15 @@ export const PublicFooter: React.FC<PublicFooterProps> = ({ isHomePage }) => {
 
               {/* LEFT: Brand Wordmark, Truthful Tagline & Signature Accent */}
               <div className="footer-col-brand">
-                <a
-                  href="#hero"
-                  onClick={scrollToTop}
+                <Link
+                  to="/"
+                  onClick={isHome ? scrollToTop : undefined}
                   className="font-wordmark footer-brand-title"
                   lang="en"
                   dir="ltr"
                 >
                   Awaaz-e-Awam
-                </a>
+                </Link>
                 <p className="footer-brand-tagline">
                   {t('footerTagline')}
                 </p>
@@ -271,12 +271,20 @@ export const PublicFooter: React.FC<PublicFooterProps> = ({ isHomePage }) => {
                   {t('footerColNav')}
                 </h3>
                 <nav className="footer-links-list" aria-label={ur ? 'اہم روابط' : 'Main navigation'}>
-                  <a href="#hero" onClick={(e) => handleSectionClick(e, 'hero')} className="footer-link">
+                  <Link
+                    to="/"
+                    onClick={(e) => handleSectionClick(e, 'hero')}
+                    className="footer-link"
+                  >
                     {t('footerNavHome')}
-                  </a>
-                  <a href="#steps" onClick={(e) => handleSectionClick(e, 'steps')} className="footer-link">
+                  </Link>
+                  <Link
+                    to="/#steps"
+                    onClick={(e) => handleSectionClick(e, 'steps')}
+                    className="footer-link"
+                  >
                     {t('footerNavSteps')}
-                  </a>
+                  </Link>
                   <Link to="/submit" className="footer-link">
                     {t('footerNavSubmit')}
                   </Link>
