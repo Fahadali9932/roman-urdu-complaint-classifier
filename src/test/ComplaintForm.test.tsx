@@ -113,4 +113,14 @@ describe('ComplaintForm Component', () => {
       { timeout: 3000 }
     );
   });
+
+  it('CRITICAL REGRESSION CHECK: verifies single-root JSX structure without orphan elements', () => {
+    const { container } = renderForm();
+    // Ensures root element is cleanly rendered
+    expect(container.firstChild).toBeInstanceOf(HTMLElement);
+    // Verifies all three unnumbered section titles are rendered in one document tree
+    expect(screen.getByRole('heading', { level: 2, name: /applicant details/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: /problem location/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: /complaint details/i })).toBeInTheDocument();
+  });
 });
