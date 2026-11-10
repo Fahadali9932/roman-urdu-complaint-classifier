@@ -9,7 +9,7 @@ export const PublicHeader: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [scrollSection, setScrollSection] = useState<'home' | 'steps' | 'submit'>('home');
+  const [scrollSection, setScrollSection] = useState<'home' | 'steps' | 'submit' | 'footer'>('home');
   const [darkHeaderActive, setDarkHeaderActive] = useState(false);
   const isDarkHeader = location.pathname === '/' && darkHeaderActive;
   const [dropdownPosition, setDropdownPosition] = useState<{ top: number; left?: number; right?: number }>({ top: 0 });
@@ -33,6 +33,12 @@ export const PublicHeader: React.FC = () => {
           setDarkHeaderActive(true);
         } else {
           setDarkHeaderActive(false);
+        }
+
+        // Objective 9: When footer is visible on screen, set neutral dock state (no pill active)
+        if (fRect.top <= vh * 0.45 && fRect.bottom > 72) {
+          setScrollSection('footer');
+          return;
         }
       } else {
         setDarkHeaderActive(false);

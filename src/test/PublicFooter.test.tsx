@@ -28,6 +28,7 @@ describe('PublicFooter Component', () => {
     expect(screen.getByRole('link', { name: /my complaints/i })).toBeInTheDocument();
 
     // Asserts concise academic attribution
-    expect(screen.getByText(/greenwich university, karachi • department of computer science/i)).toBeInTheDocument();
+    expect(screen.getByText(/greenwich university/i)).toBeInTheDocument();
+    expect(screen.getByText(/final year project • greenwich university/i)).toBeInTheDocument();
   });
 });

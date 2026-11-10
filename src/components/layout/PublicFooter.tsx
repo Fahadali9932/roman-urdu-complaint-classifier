@@ -24,8 +24,7 @@ export const PublicFooter: React.FC<PublicFooterProps> = ({ isHomePage }) => {
 
   const containerRef = useRef<HTMLElement>(null);
   const headlineRef = useRef<HTMLHeadingElement>(null);
-  const subRef = useRef<HTMLParagraphElement>(null);
-  const navPanelRef = useRef<HTMLDivElement>(null);
+  const functionalRef = useRef<HTMLDivElement>(null);
 
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(() => {
     if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false;
@@ -91,26 +90,19 @@ export const PublicFooter: React.FC<PublicFooterProps> = ({ isHomePage }) => {
     (p: number) => {
       if (prefersReducedMotion || isMobile || !isHome) return;
 
-      // Headline movement: starts slightly lower and glides upward smoothly into position below navbar
+      // Headline motion: starts slightly lower (+44px) and glides upward smoothly into position
       const tHeadline = smoother(clamp01(p / 0.70));
-      const headlineY = (1 - tHeadline) * 60;
+      const headlineY = (1 - tHeadline) * 44;
       if (headlineRef.current) {
         headlineRef.current.style.transform = `translate3d(0, ${headlineY}px, 0)`;
       }
 
-      // Subtitle fade and subtle elevation
-      const tSub = smoother(clamp01((p - 0.08) / 0.45));
-      if (subRef.current) {
-        subRef.current.style.opacity = `${tSub * 0.85}`;
-        subRef.current.style.transform = `translate3d(0, ${(1 - tSub) * 16}px, 0)`;
-      }
-
-      // Lower navigation panel: reveals and settles into place, occupying lower ~45% space
-      const tNav = smoother(clamp01((p - 0.12) / 0.58));
-      const navY = (1 - tNav) * 28;
-      if (navPanelRef.current) {
-        navPanelRef.current.style.transform = `translate3d(0, ${navY}px, 0)`;
-        navPanelRef.current.style.opacity = `${tNav}`;
+      // Zone B Functional Grid motion: reveals and slides up (+24px -> 0px)
+      const tFunctional = smoother(clamp01((p - 0.15) / 0.60));
+      const functionalY = (1 - tFunctional) * 24;
+      if (functionalRef.current) {
+        functionalRef.current.style.transform = `translate3d(0, ${functionalY}px, 0)`;
+        functionalRef.current.style.opacity = `${tFunctional}`;
       }
     },
     [isHome, isMobile, prefersReducedMotion]
@@ -177,6 +169,18 @@ export const PublicFooter: React.FC<PublicFooterProps> = ({ isHomePage }) => {
     }
   };
 
+  const handleSectionClick = (e: React.MouseEvent<HTMLAnchorElement>, sectionId: string) => {
+    if (isHome) {
+      e.preventDefault();
+      const el = document.getElementById(sectionId);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
+  };
+
   return (
     <footer
       id="footer"
@@ -186,83 +190,107 @@ export const PublicFooter: React.FC<PublicFooterProps> = ({ isHomePage }) => {
       aria-label={ur ? 'آوازِ عوام کا اختتامیہ' : 'Awaaz-e-Awam civic footer'}
     >
       <div className={`footer-canvas ${isHome && !isMobile && !prefersReducedMotion ? 'sticky top-0 h-screen' : ''}`}>
-        {/* Upper Closing Statement Scene */}
-        <div className="footer-statement-section">
+        {/* Zone A: Upper Closing Statement Scene (~55-60% height) */}
+        <div className="footer-zone-a">
           <div className="footer-statement-inner">
-            {/* Monumental Editorial Closing Statement (Strictly ONE line on desktop) */}
             <h2
               ref={headlineRef}
               className="footer-statement-headline font-display will-change-transform"
-              style={isHome && !isMobile && !prefersReducedMotion ? { transform: 'translate3d(0, 60px, 0)' } : undefined}
+              style={isHome && !isMobile && !prefersReducedMotion ? { transform: 'translate3d(0, 44px, 0)' } : undefined}
             >
               {t('footerHeadline')}
             </h2>
-
-            {/* Subtitle in Soft Paper White */}
-            <p
-              ref={subRef}
-              className="footer-statement-sub font-ui will-change-transform"
-              style={isHome && !isMobile && !prefersReducedMotion ? { opacity: 0, transform: 'translate3d(0, 16px, 0)' } : undefined}
-            >
-              {t('footerSubtitle')}
-            </p>
           </div>
         </div>
 
-        {/* Structured Minimal Navigation & Attribution Panel (Lower ~40-50% screen) */}
+        {/* Zone B: Lower Functional Footer (~40-45% height) */}
         <div
-          ref={navPanelRef}
-          className="footer-navigation-panel will-change-transform"
-          style={isHome && !isMobile && !prefersReducedMotion ? { opacity: 0, transform: 'translate3d(0, 28px, 0)' } : undefined}
+          ref={functionalRef}
+          className="footer-zone-b will-change-transform"
+          style={isHome && !isMobile && !prefersReducedMotion ? { opacity: 0, transform: 'translate3d(0, 24px, 0)' } : undefined}
         >
-          <div className="footer-navigation-inner">
-            {/* Minimal Navigation Links Bar */}
-            <nav className="footer-minimal-nav" aria-label={ur ? 'شہری روابط' : 'Citizen navigation'}>
-              <a href="#hero" className="footer-nav-link">{ur ? 'ہمارا تعارف' : 'About Us'}</a>
-              <span className="footer-nav-dot" aria-hidden="true">•</span>
-              <a href="#steps" className="footer-nav-link">{ur ? 'طریقہ کار' : 'How It Works'}</a>
-              <span className="footer-nav-dot" aria-hidden="true">•</span>
-              <Link to="/dashboard" className="footer-nav-link">{ur ? 'میری شکایات' : 'My Complaints'}</Link>
-              <span className="footer-nav-dot" aria-hidden="true">•</span>
-              <Link to="/submit" className="footer-nav-link">{ur ? 'شکایت لکھیں' : 'Write Complaint'}</Link>
-              <span className="footer-nav-dot" aria-hidden="true">•</span>
-              <Link to="/submit" className="footer-nav-link">{ur ? 'رابطہ کریں' : 'Contact Us'}</Link>
-              <span className="footer-nav-dot" aria-hidden="true">•</span>
-              <Link to="/terms" className="footer-nav-link">{ur ? 'رازداری کی پالیسی' : 'Privacy Policy'}</Link>
-              <span className="footer-nav-dot" aria-hidden="true">•</span>
-              <Link to="/terms" className="footer-nav-link">{ur ? 'استعمال کی شرائط' : 'Terms of Use'}</Link>
-            </nav>
-
-            {/* Sub-bar: Brand wordmark, academic note, copyright & back-to-top */}
-            <div className="footer-sub-bar">
-              <div className="footer-identity-group">
+          <div className="footer-zone-b-inner">
+            {/* Multi-column Editorial Grid */}
+            <div className="footer-grid">
+              {/* Column 1: Brand & Truthful Civic Tagline */}
+              <div className="footer-col-brand">
                 <a
                   href="#hero"
                   onClick={scrollToTop}
-                  className="font-wordmark footer-brand-wordmark"
+                  className="font-wordmark footer-brand-title"
                   lang="en"
                   dir="ltr"
                 >
                   Awaaz-e-Awam
                 </a>
-                <span className="footer-academic-line">
-                  {t('footerAcademicConcise')}
-                </span>
+                <p className="footer-brand-tagline">
+                  {t('footerTagline')}
+                </p>
+                <div className="footer-brand-signature" aria-hidden="true" />
               </div>
 
-              <div className="footer-actions-group">
-                <span className="footer-copyright">
-                  © {copyrightYear} <bdi>Awaaz-e-Awam</bdi>. {ur ? 'جملہ حقوق محفوظ ہیں۔' : 'All rights reserved.'}
-                </span>
+              {/* Column 2: Navigation Links */}
+              <div className="footer-col-links">
+                <h3 className="footer-col-heading">
+                  {t('footerColNav')}
+                </h3>
+                <nav className="footer-links-list" aria-label={ur ? 'اہم روابط' : 'Main navigation'}>
+                  <a href="#hero" onClick={(e) => handleSectionClick(e, 'hero')} className="footer-link">
+                    {t('footerNavHome')}
+                  </a>
+                  <a href="#steps" onClick={(e) => handleSectionClick(e, 'steps')} className="footer-link">
+                    {t('footerNavSteps')}
+                  </a>
+                  <Link to="/submit" className="footer-link">
+                    {t('footerNavSubmit')}
+                  </Link>
+                  <Link to="/dashboard" className="footer-link">
+                    {t('footerNavDashboard')}
+                  </Link>
+                </nav>
+              </div>
 
+              {/* Column 3: Information Links */}
+              <div className="footer-col-links">
+                <h3 className="footer-col-heading">
+                  {t('footerColInfo')}
+                </h3>
+                <nav className="footer-links-list" aria-label={ur ? 'معلوماتی روابط' : 'Information links'}>
+                  <Link to="/about" className="footer-link">
+                    {t('footerNavAbout')}
+                  </Link>
+                  <Link to="/contact" className="footer-link">
+                    {t('footerNavContact')}
+                  </Link>
+                  <Link to="/privacy" className="footer-link">
+                    {t('footerNavPrivacy')}
+                  </Link>
+                  <Link to="/terms" className="footer-link">
+                    {t('footerNavTerms')}
+                  </Link>
+                </nav>
+              </div>
+            </div>
+
+            {/* Bottom Row: Attribution, Academic Capstone & Back to top */}
+            <div className="footer-bottom-bar">
+              <div className="footer-copyright">
+                © {copyrightYear} <bdi>Awaaz-e-Awam</bdi>. {t('footerRights')}
+              </div>
+
+              <div className="footer-academic">
+                {t('footerAcademicConcise')}
+              </div>
+
+              <div className="footer-actions">
                 <a
                   href="#hero"
                   onClick={scrollToTop}
                   className="footer-back-to-top"
                   aria-label={ur ? 'صفحے کے آغاز پر جائیں' : 'Back to top of page'}
                 >
-                  <span>{ur ? 'واپس اوپر' : 'Back to top'}</span>
-                  <ArrowUp className="w-3.5 h-3.5" aria-hidden="true" />
+                  <span>{t('footerBackToTop')}</span>
+                  <ArrowUp className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
                 </a>
               </div>
             </div>
