@@ -1,151 +1,218 @@
 import React, { useState } from 'react';
-import { Input } from '../../components/common/Input';
-import { Select } from '../../components/common/Select';
 import { Button } from '../../components/common/Button';
-import { Modal } from '../../components/common/Modal';
-import { AlertBanner } from '../../components/common/AlertBanner';
 import { useLanguage } from '../../context/LanguageContext';
 import { countWords, MAX_COMPLAINT_WORDS } from '../../utils/wordCounter';
-import { type KarachiDistrict } from '../../types';
-import { Send, ShieldCheck, CheckCircle2, RotateCcw, MapPin, User, FileText } from 'lucide-react';
-import { ApplicationPaper } from './components/ApplicationPaper';
-import { KarachiAreaCombobox } from './components/KarachiAreaCombobox';
-import { RuledComplaintTextarea } from './components/RuledComplaintTextarea';
-import { KARACHI_DISTRICTS_DATA } from '../../data/karachi/districts';
-
-const KARACHI_DISTRICTS: { value: KarachiDistrict; label: string }[] = KARACHI_DISTRICTS_DATA.map((d) => ({
-  value: d.id,
-  label: `${d.name} (${d.headquarters})`,
-}));
+import {
+  FullComplaintFormState,
+  ApplicantFormData,
+  ProblemLocationData,
+  ComplaintDetailsData,
+  PersistableComplaintData,
+} from '../../types';
+import { Send, RotateCcw } from 'lucide-react';
+import { ApplicantDetailsSection } from './components/ApplicantDetailsSection';
+import { ProblemLocationSection } from './components/ProblemLocationSection';
+import { ComplaintDetailsSection } from './components/ComplaintDetailsSection';
+import { ComplaintReviewModal } from './components/ComplaintReviewModal';
 
 export interface ComplaintFormProps {
   embedded?: boolean;
 }
 
-export const ComplaintForm: React.FC<ComplaintFormProps> = ({ embedded = false }) => {
-  const { t, language } = useLanguage();
-  const ur = language === 'ur';
-
-  // Form fields state
-  const [formData, setFormData] = useState({
+const INITIAL_FORM_STATE: FullComplaintFormState = {
+  applicant: {
     citizenName: '',
     citizenPhone: '',
-    district: '' as KarachiDistrict,
+    citizenEmail: '',
+    applicantAddress: '',
+  },
+  location: {
     locality: '',
+    district: '',
+    isDistrictAutoResolved: false,
+    districtNeedsConfirmation: false,
     publicLocation: '',
-    privateAddress: '',
+  },
+  complaint: {
     title: '',
     description: '',
+  },
+};
+
+export const ComplaintForm: React.FC<ComplaintFormProps> = ({ embedded = false }) => {
+  const { t } = useLanguage();
+
+  // Three-part organized form state
+  const [formData, setFormData] = useState<FullComplaintFormState>(INITIAL_FORM_STATE);
+
+  // Grouped validation errors
+  const [errors, setErrors] = useState<{
+    applicant: Partial<Record<keyof ApplicantFormData, string>>;
+    location: Partial<Record<keyof ProblemLocationData, string>>;
+    complaint: Partial<Record<keyof ComplaintDetailsData, string>>;
+  }>({
+    applicant: {},
+    location: {},
+    complaint: {},
   });
 
-  // Validation errors
-  const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showModal, setShowModal] = useState(false);
 
-  // Derived word count for complaint description
-  const descriptionWords = countWords(formData.description);
+  // Live word counter for complaint description
+  const descriptionWords = countWords(formData.complaint.description);
 
-  // Current date for formal application header
-  const [currentDateIso] = useState(() => new Date().toISOString());
-
-  const handleChange = (field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-    if (errors[field]) {
+  // Field update handlers
+  const handleApplicantChange = (field: keyof ApplicantFormData, value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      applicant: { ...prev.applicant, [field]: value },
+    }));
+    if (errors.applicant[field]) {
       setErrors((prev) => {
-        const next = { ...prev };
-        delete next[field];
+        const next = { ...prev, applicant: { ...prev.applicant } };
+        delete next.applicant[field];
         return next;
       });
     }
   };
 
-  const handleLocalitySelect = (localityName: string, matchedDistrict?: KarachiDistrict) => {
+  const handleLocationChange = (updates: Partial<ProblemLocationData>) => {
     setFormData((prev) => ({
       ...prev,
-      locality: localityName,
-      // If user has not picked a district or area belongs to a specific district, auto-populate
-      district: prev.district || matchedDistrict || prev.district,
+      location: { ...prev.location, ...updates },
     }));
+    setErrors((prev) => {
+      const nextLoc = { ...prev.location };
+      Object.keys(updates).forEach((k) => {
+        delete nextLoc[k as keyof ProblemLocationData];
+      });
+      return { ...prev, location: nextLoc };
+    });
+  };
 
-    if (errors.locality) {
+  const handleComplaintChange = (field: keyof ComplaintDetailsData, value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      complaint: { ...prev.complaint, [field]: value },
+    }));
+    if (errors.complaint[field]) {
       setErrors((prev) => {
-        const next = { ...prev };
-        delete next.locality;
-        if (matchedDistrict && next.district) delete next.district;
+        const next = { ...prev, complaint: { ...prev.complaint } };
+        delete next.complaint[field];
         return next;
       });
     }
   };
 
   const handleReset = () => {
-    setFormData({
-      citizenName: '',
-      citizenPhone: '',
-      district: '' as KarachiDistrict,
-      locality: '',
-      publicLocation: '',
-      privateAddress: '',
-      title: '',
-      description: '',
-    });
-    setErrors({});
+    setFormData(INITIAL_FORM_STATE);
+    setErrors({ applicant: {}, location: {}, complaint: {} });
   };
 
+  // Comprehensive Form Validation
   const validateForm = (): boolean => {
-    const newErrors: Record<string, string> = {};
+    const applicantErrors: Partial<Record<keyof ApplicantFormData, string>> = {};
+    const locationErrors: Partial<Record<keyof ProblemLocationData, string>> = {};
+    const complaintErrors: Partial<Record<keyof ComplaintDetailsData, string>> = {};
 
-    if (!formData.citizenName.trim()) {
-      newErrors.citizenName = t('valNameRequired');
+    // 1. Applicant Details Validation
+    if (!formData.applicant.citizenName.trim()) {
+      applicantErrors.citizenName = t('valNameRequired');
     }
 
-    // Phone validation (Pakistani formats: 03XXXXXXXXX or +923XXXXXXXXX)
-    const phoneClean = formData.citizenPhone.replace(/[\s-]/g, '');
+    const phoneClean = formData.applicant.citizenPhone.replace(/[\s-]/g, '');
     const phoneRegex = /^((\+92)|(0092)|(03))\d{9}$/;
     if (!phoneClean || !phoneRegex.test(phoneClean)) {
-      newErrors.citizenPhone = t('valPhoneRequired');
+      applicantErrors.citizenPhone = t('valPhoneRequired');
     }
 
-    if (!formData.district) {
-      newErrors.district = t('valDistrictRequired');
+    if (formData.applicant.citizenEmail.trim()) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.applicant.citizenEmail.trim())) {
+        applicantErrors.citizenEmail = t('valEmailInvalid');
+      }
     }
 
-    if (!formData.locality.trim()) {
-      newErrors.locality = t('valLocalityRequired');
+    // 2. Problem Location Validation
+    if (!formData.location.locality.trim()) {
+      locationErrors.locality = t('valLocalityRequired');
     }
 
-    if (!formData.publicLocation.trim()) {
-      newErrors.publicLocation = t('valPublicLocationRequired');
+    if (!formData.location.district) {
+      locationErrors.district = t('valDistrictRequired');
     }
 
-    if (!formData.title.trim()) {
-      newErrors.title = t('valTitleRequired');
+    if (!formData.location.publicLocation.trim()) {
+      locationErrors.publicLocation = t('valPublicLocationRequired') || t('valStreetLandmarkRequired');
     }
 
-    if (!formData.description.trim()) {
-      newErrors.description = t('valDescRequired');
+    // 3. Complaint Details Validation
+    if (!formData.complaint.title.trim()) {
+      complaintErrors.title = t('valTitleRequired') || t('valSubjectRequired');
+    }
+
+    if (!formData.complaint.description.trim()) {
+      complaintErrors.description = t('valDescRequired');
     } else if (descriptionWords > MAX_COMPLAINT_WORDS) {
-      newErrors.description = t('valDescExceeded');
+      complaintErrors.description = t('valDescExceeded');
     }
 
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    const hasApplicantErrors = Object.keys(applicantErrors).length > 0;
+    const hasLocationErrors = Object.keys(locationErrors).length > 0;
+    const hasComplaintErrors = Object.keys(complaintErrors).length > 0;
+
+    setErrors({
+      applicant: applicantErrors,
+      location: locationErrors,
+      complaint: complaintErrors,
+    });
+
+    return !hasApplicantErrors && !hasLocationErrors && !hasComplaintErrors;
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!validateForm()) {
-      const firstError = Object.keys(errors)[0];
-      if (firstError) {
-        document.getElementById(firstError)?.focus();
+      // Focus first erroneous input element
+      const firstInvalidId =
+        (errors.applicant.citizenName && 'citizenName') ||
+        (errors.applicant.citizenPhone && 'citizenPhone') ||
+        (errors.applicant.citizenEmail && 'citizenEmail') ||
+        (errors.location.locality && 'locality') ||
+        (errors.location.district && 'district') ||
+        (errors.location.publicLocation && 'publicLocation') ||
+        (errors.complaint.title && 'title') ||
+        (errors.complaint.description && 'description');
+
+      if (firstInvalidId) {
+        document.getElementById(firstInvalidId)?.focus();
       }
       return;
     }
 
     setIsSubmitting(true);
 
-    // Simulated short client-side delay for prototype review modal
+    /**
+     * PRIVACY DATA ISOLATION DEMONSTRATION:
+     * When building a persistable complaint record, phone and applicant residential address
+     * are strictly omitted via explicit allowlist mapping.
+     */
+    const _persistablePayload: PersistableComplaintData = {
+      citizenName: formData.applicant.citizenName,
+      district: formData.location.district as any,
+      locality: formData.location.locality,
+      publicLocation: formData.location.publicLocation,
+      title: formData.complaint.title,
+      description: formData.complaint.description,
+      detectedLanguage: /[\u0600-\u06FF]/.test(formData.complaint.description) ? 'urdu' : 'roman_urdu',
+      status: 'submitted',
+      submittedAt: new Date().toISOString(),
+    };
+    void _persistablePayload;
+
+    // Client-side validation delay before showing honest review modal
     setTimeout(() => {
       setIsSubmitting(false);
       setShowModal(true);
@@ -154,269 +221,81 @@ export const ComplaintForm: React.FC<ComplaintFormProps> = ({ embedded = false }
 
   return (
     <div className="w-full bg-[#F7F6F3] min-h-screen">
-      <div className={`max-w-6xl mx-auto px-4 sm:px-8 text-start ${embedded ? 'py-2' : 'pt-28 sm:pt-32 pb-24 sm:pb-32'}`}>
-
-        {/* Page Editorial Header */}
+      <div
+        className={`max-w-5xl mx-auto px-4 sm:px-8 text-start ${
+          embedded ? 'py-2' : 'pt-24 sm:pt-28 pb-20 sm:pb-28'
+        }`}
+      >
+        {/* Prominent Page Heading (Modern Civic Editorial) */}
         {!embedded && (
-          <div className="mb-10 sm:mb-12 text-center max-w-3xl mx-auto space-y-3">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#141414]/5 border border-[#141414]/10 text-xs font-mono font-semibold tracking-wider text-[#681822] uppercase">
-              <span>{ur ? 'شہری بلدیاتی درخواست' : 'AWAAZ-E-AWAM // APPLICATION DESK'}</span>
-            </div>
+          <div className="mb-10 sm:mb-12 space-y-2">
             <h1 className="font-display font-black text-3xl sm:text-5xl lg:text-6xl text-[#141414] uppercase tracking-tight leading-[0.98]">
-              {ur ? 'اپنی شکایت درج کریں' : 'WRITE YOUR COMPLAINT.'}
+              {t('formTitle')}
             </h1>
-            <p className="text-sm sm:text-base text-[#444] max-w-xl mx-auto font-normal leading-relaxed font-ui">
-              {ur
-                ? 'اپنے روزمرہ کے عام فہم الفاظ میں عوامی مسئلہ بیان کریں۔'
-                : 'Describe the public-service issue in your own words.'}
+            <p className="text-sm sm:text-base text-[#555] font-normal leading-relaxed font-ui max-w-2xl">
+              {t('formSubtitle')}
             </p>
           </div>
         )}
 
-        {/* Digital Formal Application Paper Sheet */}
-        <ApplicationPaper currentDateIso={currentDateIso} applicantName={formData.citizenName}>
-          <form onSubmit={handleSubmit} noValidate className="space-y-9">
+        {/* Form Container (Clean Canvas - No Fake Paper, No Ruled Lines) */}
+        <form onSubmit={handleSubmit} noValidate className="space-y-10 sm:space-y-12">
+          {/* SECTION 1: APPLICANT DETAILS */}
+          <ApplicantDetailsSection
+            data={formData.applicant}
+            onChange={handleApplicantChange}
+            errors={errors.applicant}
+          />
 
-            {/* SECTION 1: APPLICANT DETAILS */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 pb-1 border-b border-[#E5E3E0]">
-                <User className="w-4 h-4 text-[#681822]" />
-                <h2 className="font-display font-black text-xs sm:text-sm tracking-wider text-[#141414] uppercase">
-                  {ur ? '۱. درخواست گزار کی تفصیلات' : '1. Applicant Details'}
-                </h2>
-              </div>
+          {/* SECTION 2: PROBLEM LOCATION */}
+          <ProblemLocationSection
+            data={formData.location}
+            onChange={handleLocationChange}
+            errors={errors.location}
+          />
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                <Input
-                  label={t('formCitizenName')}
-                  required
-                  id="citizenName"
-                  autoComplete="name"
-                  placeholder={t('formCitizenNamePlaceholder')}
-                  value={formData.citizenName}
-                  onChange={(e) => handleChange('citizenName', e.target.value)}
-                  error={errors.citizenName}
-                />
+          {/* SECTION 3: COMPLAINT DETAILS */}
+          <ComplaintDetailsSection
+            data={formData.complaint}
+            onChange={handleComplaintChange}
+            errors={errors.complaint}
+            wordCount={descriptionWords}
+          />
 
-                <Input
-                  label={t('formPhone')}
-                  required
-                  id="citizenPhone"
-                  type="tel"
-                  autoComplete="tel"
-                  placeholder={t('formPhonePlaceholder')}
-                  value={formData.citizenPhone}
-                  onChange={(e) => handleChange('citizenPhone', e.target.value)}
-                  error={errors.citizenPhone}
-                  helperText={ur ? 'فارمیٹ: 03XXXXXXXXX یا +923XXXXXXXXX' : 'Pakistani Mobile: 03XXXXXXXXX or +923XXXXXXXXX'}
-                />
-              </div>
-            </div>
+          {/* FORM ACTIONS */}
+          <div className="pt-4 border-t border-[#E5E3E0] flex flex-col sm:flex-row items-center justify-between gap-4">
+            <Button
+              type="button"
+              variant="outline"
+              size="md"
+              onClick={handleReset}
+              className="w-full sm:w-auto px-5 tracking-wide text-xs font-bold"
+              leftIcon={<RotateCcw className="w-3.5 h-3.5" />}
+            >
+              {t('formClear')}
+            </Button>
 
-            {/* SECTION 2: COMPLAINT LOCATION (Where the problem occurred) */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between pb-1 border-b border-[#E5E3E0]">
-                <div className="flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-[#681822]" />
-                  <h2 className="font-display font-black text-xs sm:text-sm tracking-wider text-[#141414] uppercase">
-                    {ur ? '۲. مسئلہ کہاں واقع ہے؟' : '2. Where is the problem located?'}
-                  </h2>
-                </div>
-                <span className="text-[11px] font-mono text-[#666]">
-                  {ur ? 'مسئلے کی درست جگہ' : 'Location of the issue'}
-                </span>
-              </div>
-
-              {/* District & Locality Combobox Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                <Select
-                  label={t('formDistrict')}
-                  required
-                  id="district"
-                  placeholder={t('formDistrictPlaceholder')}
-                  options={KARACHI_DISTRICTS}
-                  value={formData.district}
-                  onChange={(e) => handleChange('district', e.target.value)}
-                  error={errors.district}
-                />
-
-                <KarachiAreaCombobox
-                  label={t('formLocality')}
-                  required
-                  id="locality"
-                  value={formData.locality}
-                  selectedDistrict={formData.district}
-                  onChange={handleLocalitySelect}
-                  error={errors.locality}
-                  placeholder={t('formLocalityPlaceholder')}
-                />
-              </div>
-
-              {/* Public Issue Location & Specific Landmark Details */}
-              <Input
-                label={t('formPublicLocation')}
-                required
-                id="publicLocation"
-                placeholder={t('formPublicLocationPlaceholder')}
-                value={formData.publicLocation}
-                onChange={(e) => handleChange('publicLocation', e.target.value)}
-                error={errors.publicLocation}
-                helperText={t('formPublicLocationHelp')}
-              />
-
-              {/* Optional Private Address */}
-              <Input
-                label={t('formAddress')}
-                id="privateAddress"
-                placeholder={t('formAddressPlaceholder')}
-                value={formData.privateAddress}
-                onChange={(e) => handleChange('privateAddress', e.target.value)}
-                helperText={t('formPrivacyNote')}
-              />
-            </div>
-
-            {/* SECTION 3: COMPLAINT SUBJECT */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 pb-1 border-b border-[#E5E3E0]">
-                <FileText className="w-4 h-4 text-[#681822]" />
-                <h2 className="font-display font-black text-xs sm:text-sm tracking-wider text-[#141414] uppercase">
-                  {ur ? '۳. شکایت کا عنوان' : '3. Complaint Subject'}
-                </h2>
-              </div>
-
-              <Input
-                label={t('formComplaintTitle')}
-                required
-                id="title"
-                placeholder={t('formComplaintTitlePlaceholder')}
-                value={formData.title}
-                onChange={(e) => handleChange('title', e.target.value)}
-                error={errors.title}
-              />
-            </div>
-
-            {/* SECTION 4: RULED COMPLAINT WRITING REGION */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between pb-1 border-b border-[#E5E3E0]">
-                <h2 className="font-display font-black text-xs sm:text-sm tracking-wider text-[#141414] uppercase">
-                  {ur ? '۴. شکایت کی باضابطہ تحریر' : '4. Complaint Description'}
-                </h2>
-                <span className="text-[11px] font-mono text-[#666]">
-                  {ur ? 'لائنوں پر اپنی شکایت درج کریں' : 'Ruled writing surface'}
-                </span>
-              </div>
-
-              <RuledComplaintTextarea
-                id="description"
-                label={t('formDescription')}
-                required
-                value={formData.description}
-                onChange={(e) => handleChange('description', e.target.value)}
-                error={errors.description}
-                wordCount={descriptionWords}
-                placeholder={t('formDescriptionPlaceholder')}
-              />
-            </div>
-
-            {/* SECTION 5: ACTION CONTROLS */}
-            <div className="pt-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="flex items-center gap-2 text-xs font-mono text-[#555]">
-                <ShieldCheck className="w-4 h-4 text-[#681822] shrink-0" />
-                <span>
-                  {ur
-                    ? 'یہ فارم صرف جائزے کے لیے ہے؛ ابھی کوئی شکایت خودکار طور پر سرکاری محکمے کو ارسال نہیں ہوتی۔'
-                    : 'This form validates client requirements for review. No data is dispatched to government desks.'}
-                </span>
-              </div>
-
-              <div className="flex items-center gap-3 w-full sm:w-auto">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="md"
-                  onClick={handleReset}
-                  className="w-full sm:w-auto px-4 tracking-wide text-xs font-bold"
-                  leftIcon={<RotateCcw className="w-3.5 h-3.5" />}
-                >
-                  {ur ? 'صاف کریں' : 'Clear Form'}
-                </Button>
-
-                <Button
-                  type="submit"
-                  variant="primary"
-                  size="md"
-                  isLoading={isSubmitting}
-                  disabled={descriptionWords > MAX_COMPLAINT_WORDS}
-                  leftIcon={<Send className="w-3.5 h-3.5 text-white" />}
-                  className="w-full sm:w-auto px-6 tracking-wide text-xs font-bold"
-                >
-                  {isSubmitting ? t('formSubmitting') : t('formSubmitButton') || 'Review complaint'}
-                </Button>
-              </div>
-            </div>
-          </form>
-        </ApplicationPaper>
+            <Button
+              type="submit"
+              variant="primary"
+              size="md"
+              isLoading={isSubmitting}
+              disabled={descriptionWords > MAX_COMPLAINT_WORDS}
+              leftIcon={<Send className="w-3.5 h-3.5 text-white" />}
+              className="w-full sm:w-auto px-7 tracking-wide text-xs font-bold bg-[#681822] hover:bg-[#52131b] text-white border-transparent"
+            >
+              {isSubmitting ? t('formSubmitting') : t('formSubmitButton')}
+            </Button>
+          </div>
+        </form>
       </div>
 
       {/* Honest Application Review Modal */}
-      <Modal
+      <ComplaintReviewModal
         isOpen={showModal}
         onClose={() => setShowModal(false)}
-        title={t('modalTitle')}
-      >
-        <div className="space-y-5 text-start">
-          <div className="p-4 sm:p-5 rounded-xl bg-[#FAF9F7] border border-[#E5E3E0] flex items-center gap-4">
-            <CheckCircle2 className="w-8 h-8 text-emerald-600 shrink-0" />
-            <div className="space-y-1">
-              <span className="block text-sm font-bold text-[#141414] tracking-wide">
-                {ur ? 'فارم جائزے کے لیے تیار ہے' : 'Your form is ready to review'}
-              </span>
-              <p className="text-xs text-[#555]">
-                {ur
-                  ? 'تمام ضروری خانے، الفاظ کی حد اور کراچی لوکیشن ویلیڈیٹ ہو چکی ہیں۔'
-                  : 'Required fields, 200-word limit, and Karachi locality have been validated.'}
-              </p>
-            </div>
-          </div>
-
-          <div className="p-4 rounded-lg bg-white border border-[#E5E3E0] space-y-2 text-xs font-mono">
-            <div className="flex justify-between border-b border-[#F0EFEB] pb-1.5">
-              <span className="text-[#666] uppercase">{ur ? 'درخواست گزار:' : 'Applicant:'}</span>
-              <span className="font-bold text-[#141414]">{formData.citizenName}</span>
-            </div>
-            <div className="flex justify-between border-b border-[#F0EFEB] pb-1.5">
-              <span className="text-[#666] uppercase">{ur ? 'رابطہ نمبر:' : 'Contact:'}</span>
-              <span className="font-bold text-[#141414]">{formData.citizenPhone}</span>
-            </div>
-            <div className="flex justify-between border-b border-[#F0EFEB] pb-1.5">
-              <span className="text-[#666] uppercase">{ur ? 'ضلع و علاقہ:' : 'Location:'}</span>
-              <span className="font-bold text-[#141414]">{formData.district} — {formData.locality}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-[#666] uppercase">{ur ? 'عنوان:' : 'Subject:'}</span>
-              <span className="font-bold text-[#141414] truncate max-w-[200px]">{formData.title}</span>
-            </div>
-          </div>
-
-          <AlertBanner
-            type="info"
-            title={t('modalNoticeHeader')}
-          >
-            {t('modalNoticeText')}
-          </AlertBanner>
-
-          <div className="pt-2 flex items-center justify-end">
-            <Button
-              variant="outline"
-              size="md"
-              onClick={() => setShowModal(false)}
-              className="w-full sm:w-auto tracking-wider text-xs font-bold"
-            >
-              {ur ? 'درخواست پر واپس جائیں' : 'Return to form'}
-            </Button>
-          </div>
-        </div>
-      </Modal>
+        formData={formData}
+      />
     </div>
   );
 };

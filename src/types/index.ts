@@ -97,12 +97,71 @@ export const DEMO_CITIZEN: CitizenProfile = {
 
 export interface ComplaintSubmissionInput {
   citizenName: string;
-  citizenPhone: string;
+  citizenPhone?: string; // Optional transient input, stripped before persistence
+  citizenEmail?: string;
   district: KarachiDistrict;
   locality: string;
-  privateAddress?: string;
+  publicLocation?: string;
+  privateAddress?: string; // Optional transient input, stripped before persistence
   title: string;
   description: string;
+}
+
+/**
+ * Transient applicant details collected during active browser session.
+ * PRIVACY CONTRACT: citizenPhone and applicantAddress are transient and MUST NOT
+ * be written to database persistence, browser storage, or department-facing views.
+ */
+export interface ApplicantFormData {
+  citizenName: string;
+  citizenPhone: string;
+  citizenEmail: string;
+  applicantAddress: string;
+}
+
+/**
+ * Problem location data for municipal routing.
+ */
+export interface ProblemLocationData {
+  locality: string;
+  district: KarachiDistrict | '';
+  isDistrictAutoResolved: boolean;
+  districtNeedsConfirmation: boolean;
+  publicLocation: string; // Street, Block or Nearby Landmark
+}
+
+/**
+ * Complaint content details.
+ */
+export interface ComplaintDetailsData {
+  title: string;
+  description: string;
+}
+
+/**
+ * Complete in-memory complaint form state.
+ */
+export interface FullComplaintFormState {
+  applicant: ApplicantFormData;
+  location: ProblemLocationData;
+  complaint: ComplaintDetailsData;
+}
+
+/**
+ * Explicit allowlist for future persistable complaint payload.
+ * EXCLUDES citizenPhone and applicantAddress.
+ */
+export interface PersistableComplaintData {
+  id?: string;
+  citizenName: string;
+  district: KarachiDistrict;
+  locality: string;
+  publicLocation: string;
+  title: string;
+  description: string;
+  detectedLanguage: DetectedLanguage;
+  status: ComplaintStatus;
+  submittedAt: string;
 }
 
 export interface CitizenOverviewStats {
