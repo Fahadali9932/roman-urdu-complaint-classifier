@@ -38,6 +38,33 @@
 }
 
 /* ==========================================================================
+   INTEGRATED INFORMATIONAL ROUTE ADAPTATION
+   On pages with the Mazar-e-Quaid atmospheric backdrop, seamlessly merge
+   Zone B functional footer directly into the page's continuous architecture
+   ========================================================================== */
+.civic-editorial-footer.footer-integrated {
+  border-top: 1px solid rgba(255, 255, 255, 0.10);
+  background: transparent;
+  height: auto;
+  min-height: auto;
+}
+
+.footer-canvas-integrated {
+  height: auto;
+  min-height: auto;
+  background: transparent;
+  overflow: visible;
+}
+
+.footer-zone-b.footer-zone-b-integrated {
+  height: auto;
+  min-height: auto;
+  background: transparent;
+  flex: none;
+  padding: clamp(36px, 5vh, 52px) clamp(24px, 5vw, 64px) clamp(32px, 4vh, 44px);
+}
+
+/* ==========================================================================
    ZONE A: UPPER ARCHITECTURAL STATEMENT SCENE (~54% Viewport Height)
    Subtle, art-directed Mazar-e-Quaid grayscale backdrop with centered headline
    ========================================================================== */

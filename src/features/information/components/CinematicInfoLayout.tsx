@@ -117,7 +117,7 @@ export const CinematicInfoLayout: React.FC<CinematicInfoLayoutProps> = ({
           Centered, minimal, no warning cards or extra metadata
           ======================================================== */}
       <section
-        className="relative z-10 w-full min-h-[46vh] sm:min-h-[52vh] flex flex-col justify-center items-center text-center px-4 sm:px-8 lg:px-12 pt-28 sm:pt-32 pb-8 sm:pb-12"
+        className="relative z-10 w-full flex flex-col justify-center items-center text-center px-4 sm:px-8 lg:px-12 pt-32 sm:pt-36 pb-8 sm:pb-10"
         aria-labelledby="cinematic-page-title"
       >
         <div
@@ -154,7 +154,7 @@ export const CinematicInfoLayout: React.FC<CinematicInfoLayoutProps> = ({
           CONTENT AREA: Concise Editorial Sections (~760px column)
           Clean headings, comfortable line lengths, natural pacing
           ======================================================== */}
-      <div className="relative z-10 w-full max-w-[760px] mx-auto px-4 sm:px-8 lg:px-12 pb-16 sm:pb-24">
+      <div className="relative z-10 w-full max-w-[760px] mx-auto px-4 sm:px-8 lg:px-12 pb-10 sm:pb-14">
         <article className="space-y-12 sm:space-y-14">
           {doc.sections.map((section) => (
             <CinematicInfoSection

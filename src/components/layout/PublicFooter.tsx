@@ -16,13 +16,19 @@ const smoother = (x: number): number => {
 
 interface PublicFooterProps {
   isHomePage?: boolean;
+  showMonumentHero?: boolean;
 }
 
-export const PublicFooter: React.FC<PublicFooterProps> = ({ isHomePage }) => {
+export const PublicFooter: React.FC<PublicFooterProps> = ({ isHomePage, showMonumentHero: explicitShowHero }) => {
   const { t, language, isRTL } = useLanguage();
   const location = useLocation();
   const ur = language === 'ur';
   const isHome = isHomePage ?? (location.pathname === '/');
+  const isInfoPage = ['/about', '/contact', '/privacy-policy', '/terms-of-use', '/privacy', '/terms'].includes(
+    location.pathname
+  );
+  // Show monument hero only when on home or explicitly requested; informational pages share the page's single continuous architectural backdrop
+  const showMonumentHero = explicitShowHero ?? (!isInfoPage);
 
   const containerRef = useRef<HTMLElement>(null);
   const backdropRef = useRef<HTMLImageElement>(null);
@@ -196,45 +202,53 @@ export const PublicFooter: React.FC<PublicFooterProps> = ({ isHomePage }) => {
     <footer
       id="footer"
       ref={containerRef}
-      className={`civic-editorial-footer ${isHome && !isMobile && !prefersReducedMotion ? 'footer-animated-track' : ''}`}
+      className={`civic-editorial-footer ${
+        isHome && !isMobile && !prefersReducedMotion ? 'footer-animated-track' : ''
+      } ${!showMonumentHero ? 'footer-integrated' : ''}`}
       dir={isRTL ? 'rtl' : 'ltr'}
       aria-label={ur ? 'آوازِ عوام کا اختتامیہ' : 'Awaaz-e-Awam civic footer'}
     >
-      <div className={`footer-canvas ${isHome && !isMobile && !prefersReducedMotion ? 'sticky top-0 h-screen' : ''}`}>
+      <div
+        className={`footer-canvas ${
+          isHome && !isMobile && !prefersReducedMotion ? 'sticky top-0 h-screen' : ''
+        } ${!showMonumentHero ? 'footer-canvas-integrated' : ''}`}
+      >
 
         {/* ====================================================================
-            ZONE A: UPPER ARCHITECTURAL STATEMENT SCENE (~52-55% Viewport Height)
+            ZONE A: UPPER ARCHITECTURAL STATEMENT SCENE (Homepage Only)
             Subtle grayscale Mazar-e-Quaid background with prominent centered headline
             ==================================================================== */}
-        <div className="footer-zone-a">
-          {/* Mazar-e-Quaid Architectural Backdrop Layer */}
-          <div className="footer-monument-layer" aria-hidden="true">
-            <picture>
-              <source media="(max-width: 768px)" srcSet={mazarMobile} />
-              <img
-                ref={backdropRef}
-                src={mazarDesktop}
-                alt=""
-                className="footer-monument-img will-change-transform"
-                loading="lazy"
-                decoding="async"
-              />
-            </picture>
-            {/* Atmospheric gradient overlay: blends monument seamlessly into #141414 */}
-            <div className="footer-monument-gradient" />
-          </div>
+        {showMonumentHero && (
+          <div className="footer-zone-a">
+            {/* Mazar-e-Quaid Architectural Backdrop Layer */}
+            <div className="footer-monument-layer" aria-hidden="true">
+              <picture>
+                <source media="(max-width: 768px)" srcSet={mazarMobile} />
+                <img
+                  ref={backdropRef}
+                  src={mazarDesktop}
+                  alt=""
+                  className="footer-monument-img will-change-transform"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </picture>
+              {/* Atmospheric gradient overlay: blends monument seamlessly into #141414 */}
+              <div className="footer-monument-gradient" />
+            </div>
 
-          {/* Foreground Editorial Headline Scene */}
-          <div className="footer-statement-inner">
-            <h2
-              ref={headlineRef}
-              className="footer-statement-headline font-display will-change-transform"
-              style={isHome && !isMobile && !prefersReducedMotion ? { transform: 'translate3d(0, 36px, 0)' } : undefined}
-            >
-              {t('footerHeadline')}
-            </h2>
+            {/* Foreground Editorial Headline Scene */}
+            <div className="footer-statement-inner">
+              <h2
+                ref={headlineRef}
+                className="footer-statement-headline font-display will-change-transform"
+                style={isHome && !isMobile && !prefersReducedMotion ? { transform: 'translate3d(0, 36px, 0)' } : undefined}
+              >
+                {t('footerHeadline')}
+              </h2>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* ====================================================================
             ZONE B: LOWER FUNCTIONAL FOOTER (~45-48% Viewport Height)
@@ -242,7 +256,7 @@ export const PublicFooter: React.FC<PublicFooterProps> = ({ isHomePage }) => {
             ==================================================================== */}
         <div
           ref={functionalRef}
-          className="footer-zone-b will-change-transform"
+          className={`footer-zone-b will-change-transform ${!showMonumentHero ? 'footer-zone-b-integrated' : ''}`}
           style={isHome && !isMobile && !prefersReducedMotion ? { opacity: 0, transform: 'translate3d(0, 20px, 0)' } : undefined}
         >
           <div className="footer-zone-b-inner">

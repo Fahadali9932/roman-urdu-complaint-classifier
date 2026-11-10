@@ -48,9 +48,9 @@ describe('Cinematic Information Pages Suite', () => {
     expect(screen.getByRole('heading', { level: 3, name: /fahad ali/i })).toBeInTheDocument();
     expect(screen.getByText(/lead developer & project lead/i)).toBeInTheDocument();
 
-    // Unified shared civic footer rendered with approved YOUR VOICE MATTERS headline
+    // Unified shared civic footer rendered without duplicated monument hero or headline
     expect(screen.getByRole('contentinfo', { name: /awaaz-e-awam civic footer/i })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { level: 2, name: /YOUR VOICE MATTERS\./i })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { level: 2, name: /YOUR VOICE MATTERS\./i })).not.toBeInTheDocument();
   });
 
   it('renders Contact Us at /contact with verified operational channels and no fake directory', async () => {
@@ -74,9 +74,9 @@ describe('Cinematic Information Pages Suite', () => {
     expect(screen.getByRole('heading', { level: 2, name: /project inquiries/i })).toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 2, name: /public inquiries/i })).toBeInTheDocument();
 
-    // Unified shared civic footer
+    // Unified shared civic footer without duplicated hero scene
     expect(screen.getByRole('contentinfo', { name: /awaaz-e-awam civic footer/i })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { level: 2, name: /YOUR VOICE MATTERS\./i })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { level: 2, name: /YOUR VOICE MATTERS\./i })).not.toBeInTheDocument();
   });
 
   it('renders Privacy Policy at /privacy-policy with concise verified disclosures', async () => {
