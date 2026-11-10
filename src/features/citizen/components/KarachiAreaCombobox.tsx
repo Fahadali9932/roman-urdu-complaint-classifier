@@ -130,12 +130,12 @@ export const KarachiAreaCombobox: React.FC<KarachiAreaComboboxProps> = ({
   return (
     <div ref={containerRef} className="relative space-y-1.5 text-start">
       {/* Field Label */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between mb-1.5">
         <label
           htmlFor={id}
-          className="block font-ui text-xs sm:text-sm font-bold tracking-wide uppercase text-[#141414]"
+          className="block text-xs sm:text-sm font-medium text-[#141414] select-none font-ui"
         >
-          {label} {required && <span className="text-[#681822]">*</span>}
+          {label} {required && <span className="text-[#681822] ms-1" aria-hidden="true">*</span>}
         </label>
         {isManualMode ? (
           <span className="font-mono text-[11px] text-[#681822] font-semibold">
@@ -150,7 +150,7 @@ export const KarachiAreaCombobox: React.FC<KarachiAreaComboboxProps> = ({
 
       {/* Input Box */}
       <div className="relative">
-        <div className={`absolute top-1/2 -translate-y-1/2 ${isRTL ? 'right-3' : 'left-3'} pointer-events-none text-[#777]`}>
+        <div className={`absolute top-1/2 -translate-y-1/2 ${isRTL ? 'right-3.5' : 'left-3.5'} pointer-events-none text-[#777]`}>
           <Search className="w-4 h-4" />
         </div>
 
@@ -186,12 +186,12 @@ export const KarachiAreaCombobox: React.FC<KarachiAreaComboboxProps> = ({
               ? 'علاقہ منتخب کریں (مثلاً: گلشن، جوہر، کلفٹن، نارتھ ناظم آباد...)'
               : 'Type area, block or scheme (e.g., Gulshan, Johar, DHA, Clifton...)')
           }
-          className={`w-full rounded-md border bg-white py-2.5 font-sans text-sm text-[#141414] transition-all placeholder:text-[#888] outline-none ${
+          className={`w-full min-h-[44px] rounded-lg border bg-white py-2.5 font-sans text-sm sm:text-base text-[#141414] transition-all placeholder:text-[#888] outline-none ${
             isRTL ? 'pe-10 ps-10' : 'ps-10 pe-10'
           } ${
             error
-              ? 'border-[#681822] ring-1 ring-[#681822]/20'
-              : 'border-[#D8D6D2] focus:border-[#141414] focus:ring-1 focus:ring-[#141414]/15'
+              ? 'border-rose-500 focus:border-rose-600 focus:ring-1 focus:ring-rose-500 bg-rose-50/20'
+              : 'border-[#E5E3E0] hover:border-[#323232] focus:border-[#141414] focus:ring-1 focus:ring-[#141414]'
           }`}
         />
 
@@ -214,7 +214,7 @@ export const KarachiAreaCombobox: React.FC<KarachiAreaComboboxProps> = ({
           id={`${id}-listbox`}
           role="listbox"
           aria-label={label}
-          className="absolute z-50 left-0 right-0 mt-1 max-h-64 overflow-y-auto rounded-lg border border-[#D8D6D2] bg-white py-1.5 shadow-xl text-start divide-y divide-[#F0EFEB]"
+          className="absolute z-50 left-0 right-0 mt-1 max-h-64 overflow-y-auto rounded-lg border border-[#E5E3E0] bg-white py-1.5 shadow-lg shadow-black/5 text-start divide-y divide-[#F4F3F0]"
         >
           {results.map((item, index) => {
             const isHighlighted = index === highlightedIndex;
@@ -230,14 +230,14 @@ export const KarachiAreaCombobox: React.FC<KarachiAreaComboboxProps> = ({
                   onClick={() => handleSelect(item)}
                   onMouseEnter={() => setHighlightedIndex(index)}
                   className={`flex items-center gap-2.5 px-3.5 py-2.5 cursor-pointer text-xs font-ui transition-colors ${
-                    isHighlighted ? 'bg-[#FAF9F6] text-[#681822] font-semibold' : 'text-[#333]'
+                    isHighlighted ? 'bg-[#F7F6F3] text-[#681822]' : 'text-[#333]'
                   }`}
                 >
                   <PlusCircle className="w-4 h-4 text-[#681822] shrink-0" />
                   <div className="flex-1">
-                    <span className="font-semibold block">{item.name}</span>
-                    <span className="text-[11px] text-[#777] block">
-                      {ur ? 'فہرست سے باہر علاقہ درج کریں' : 'Cannot find your area? Enter it as custom text'}
+                    <span className="font-semibold block text-sm text-[#141414]">{item.name}</span>
+                    <span className="text-xs text-[#666] block pt-0.5">
+                      {ur ? 'فہرست میں نہیں ملا؟ دستی اندراج منتخب کریں' : 'Area not found. Select to enter area manually'}
                     </span>
                   </div>
                 </li>
@@ -252,14 +252,14 @@ export const KarachiAreaCombobox: React.FC<KarachiAreaComboboxProps> = ({
                 aria-selected={isSelected}
                 onClick={() => handleSelect(item)}
                 onMouseEnter={() => setHighlightedIndex(index)}
-                className={`flex items-center justify-between gap-3 px-3.5 py-2 cursor-pointer font-ui text-xs sm:text-sm transition-colors ${
-                  isHighlighted ? 'bg-[#FAF9F6] text-[#141414]' : 'text-[#222]'
+                className={`flex items-center justify-between gap-3 px-3.5 py-2.5 cursor-pointer font-ui text-xs sm:text-sm transition-colors ${
+                  isHighlighted ? 'bg-[#F7F6F3] text-[#681822]' : 'text-[#141414]'
                 }`}
               >
                 <div className="flex items-center gap-2.5 min-w-0">
-                  <MapPin className="w-3.5 h-3.5 text-[#681822] shrink-0" />
+                  <MapPin className={`w-3.5 h-3.5 shrink-0 ${isHighlighted ? 'text-[#681822]' : 'text-[#888]'}`} />
                   <div className="truncate">
-                    <span className="font-semibold block truncate">
+                    <span className="font-semibold block truncate text-sm">
                       {item.name}
                       {ur && item.nameUrdu && (
                         <span className="ms-2 text-xs font-normal text-[#555]">
@@ -267,7 +267,7 @@ export const KarachiAreaCombobox: React.FC<KarachiAreaComboboxProps> = ({
                         </span>
                       )}
                     </span>
-                    <span className="text-[11px] font-mono text-[#777] block">
+                    <span className="text-xs text-[#666] block pt-0.5">
                       {item.district}
                       {item.parentLocality ? ` • ${item.parentLocality}` : ''}
                     </span>
@@ -275,7 +275,7 @@ export const KarachiAreaCombobox: React.FC<KarachiAreaComboboxProps> = ({
                 </div>
 
                 {isSelected && (
-                  <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <Check className="w-4 h-4 text-[#681822] shrink-0" />
                 )}
               </li>
             );

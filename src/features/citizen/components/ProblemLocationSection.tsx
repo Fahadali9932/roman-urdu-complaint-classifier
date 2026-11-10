@@ -87,19 +87,16 @@ export const ProblemLocationSection: React.FC<ProblemLocationSectionProps> = ({
   };
 
   return (
-    <div className="space-y-4">
-      {/* Editorial Section Heading */}
-      <div className="pb-3 border-b border-[#E5E3E0] flex items-baseline justify-between">
-        <h2 className="font-display font-black text-sm sm:text-base tracking-widest text-[#141414] uppercase">
+    <div className="space-y-5">
+      {/* Group Heading (Level 2) */}
+      <div className="pb-3 border-b border-[#E5E3E0]">
+        <h2 className="font-display font-bold text-lg sm:text-xl text-[#141414] tracking-tight">
           {t('sectionProblemLocation')}
         </h2>
-        <span className="font-mono text-[11px] text-[#777] hidden sm:inline">
-          {ur ? 'کراچی کا علاقہ' : 'Karachi Locality'}
-        </span>
       </div>
 
-      {/* Grid: Area Combobox and District Display */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 items-start">
+      {/* Fields Column */}
+      <div className="space-y-4">
         {/* Locality Search Combobox */}
         <div className="space-y-1.5">
           <KarachiAreaCombobox
@@ -134,15 +131,15 @@ export const ProblemLocationSection: React.FC<ProblemLocationSectionProps> = ({
         <div>
           {data.isDistrictAutoResolved && data.district ? (
             <div className="space-y-1.5 text-start">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between mb-1.5">
                 <label
                   htmlFor="district"
-                  className="block font-ui text-xs sm:text-sm font-bold tracking-wide uppercase text-[#141414]"
+                  className="block text-xs sm:text-sm font-medium text-[#141414] select-none font-ui"
                 >
-                  {t('formDistrict')} <span className="text-[#681822]">*</span>
+                  {t('formDistrict')} <span className="text-[#681822] ms-1" aria-hidden="true">*</span>
                 </label>
-                <span className="inline-flex items-center gap-1 font-mono text-[11px] text-emerald-700 font-semibold">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                <span className="inline-flex items-center gap-1 font-mono text-[11px] text-[#555] font-semibold">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700" />
                   {t('districtAutoIdentified')}
                 </span>
               </div>
@@ -152,17 +149,17 @@ export const ProblemLocationSection: React.FC<ProblemLocationSectionProps> = ({
                 tabIndex={0}
                 aria-label="Karachi District"
                 value={data.district}
-                className="w-full rounded-md border border-[#D8D6D2] bg-[#FAF9F7] py-2.5 px-3.5 font-sans text-sm font-semibold text-[#141414] outline-none cursor-default"
+                className="w-full min-h-[44px] rounded-lg border border-[#E5E3E0] bg-[#FAF9F7] py-2.5 px-3.5 font-sans text-sm sm:text-base font-semibold text-[#141414] outline-none cursor-default"
               />
             </div>
           ) : data.districtNeedsConfirmation ? (
             <div className="space-y-1.5 text-start">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between mb-1.5">
                 <label
                   htmlFor="district"
-                  className="block font-ui text-xs sm:text-sm font-bold tracking-wide uppercase text-[#141414]"
+                  className="block text-xs sm:text-sm font-medium text-[#141414] select-none font-ui"
                 >
-                  {t('formDistrict')} <span className="text-[#681822]">*</span>
+                  {t('formDistrict')} <span className="text-[#681822] ms-1" aria-hidden="true">*</span>
                 </label>
                 <span className="inline-flex items-center gap-1 font-mono text-[11px] text-[#681822] font-semibold">
                   <AlertCircle className="w-3.5 h-3.5 text-[#681822]" />
@@ -184,9 +181,9 @@ export const ProblemLocationSection: React.FC<ProblemLocationSectionProps> = ({
             <div className="space-y-1.5 text-start">
               <label
                 htmlFor="district"
-                className="block font-ui text-xs sm:text-sm font-bold tracking-wide uppercase text-[#141414]"
+                className="block text-xs sm:text-sm font-medium text-[#141414] select-none font-ui mb-1.5"
               >
-                {t('formDistrict')} <span className="text-[#681822]">*</span>
+                {t('formDistrict')} <span className="text-[#681822] ms-1" aria-hidden="true">*</span>
               </label>
               <Select
                 id="district"
@@ -201,19 +198,26 @@ export const ProblemLocationSection: React.FC<ProblemLocationSectionProps> = ({
             </div>
           )}
         </div>
+
+        {/* Street, Block or Nearby Landmark Input */}
+        <Input
+          label={t('formStreetLandmark')}
+          required
+          id="publicLocation"
+          aria-label="Public issue location"
+          placeholder={t('formStreetLandmarkPlaceholder')}
+          value={data.publicLocation}
+          onChange={(e) => onChange({ publicLocation: e.target.value })}
+          error={errors.publicLocation}
+        />
       </div>
 
-      {/* Street, Block or Nearby Landmark Input */}
-      <Input
-        label={t('formStreetLandmark')}
-        required
-        id="publicLocation"
-        aria-label="Public issue location"
-        placeholder={t('formStreetLandmarkPlaceholder')}
-        value={data.publicLocation}
-        onChange={(e) => onChange({ publicLocation: e.target.value })}
-        error={errors.publicLocation}
-      />
+      {/* Transparent Municipal Forwarding Note */}
+      <p className="text-xs text-[#666] font-ui leading-relaxed pt-0.5">
+        {ur
+          ? 'یہ مقام متعلقہ میونسپل کارپوریشن کو حل کے لیے روانہ کیا جاتا ہے۔'
+          : 'The specified issue location directs municipal authorities to the exact site.'}
+      </p>
     </div>
   );
 };
