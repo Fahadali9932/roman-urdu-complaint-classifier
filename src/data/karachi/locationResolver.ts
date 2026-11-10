@@ -1,6 +1,6 @@
 import { KarachiDistrict } from '../../types';
 import { KARACHI_LOCALITIES_DATA, LocalityRecord } from './localities';
-import { searchKarachiLocalities, SearchLocalityResult } from './locationSearch';
+import { searchKarachiLocalities, SearchLocalityResult, normalizeSearchQuery } from './locationSearch';
 
 export interface LocationResolutionResult {
   status: 'verified' | 'ambiguous' | 'unlisted';
@@ -36,11 +36,11 @@ export class KarachiLocalityResolver implements LocationResolver {
       };
     }
 
-    const lower = trimmed.toLowerCase();
+    const normalized = normalizeSearchQuery(trimmed);
 
     // 1. Direct match by canonical name
     const exact = KARACHI_LOCALITIES_DATA.find(
-      (loc) => loc.name.toLowerCase() === lower
+      (loc) => normalizeSearchQuery(loc.name) === normalized
     );
     if (exact && exact.district && exact.district !== ('Unresolved' as any)) {
       return {
@@ -56,7 +56,7 @@ export class KarachiLocalityResolver implements LocationResolver {
     const aliasMatch = KARACHI_LOCALITIES_DATA.find(
       (loc) =>
         loc.aliases &&
-        loc.aliases.some((alias) => alias.toLowerCase() === lower)
+        loc.aliases.some((alias) => normalizeSearchQuery(alias) === normalized)
     );
     if (aliasMatch && aliasMatch.district) {
       return {
@@ -71,8 +71,8 @@ export class KarachiLocalityResolver implements LocationResolver {
     // 3. Substring match if unambiguous
     const candidates = KARACHI_LOCALITIES_DATA.filter(
       (loc) =>
-        loc.name.toLowerCase().includes(lower) ||
-        (loc.aliases && loc.aliases.some((a) => a.toLowerCase().includes(lower)))
+        normalizeSearchQuery(loc.name).includes(normalized) ||
+        (loc.aliases && loc.aliases.some((a) => normalizeSearchQuery(a).includes(normalized)))
     );
 
     if (candidates.length > 0) {

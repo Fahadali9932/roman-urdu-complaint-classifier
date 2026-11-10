@@ -9,6 +9,8 @@ export type LocalityCategory =
   | 'industrial_area'
   | 'commercial_area'
   | 'subdivision'
+  | 'road'
+  | 'landmark'
   | 'unresolved';
 
 export interface LocalityRecord {
@@ -27,7 +29,7 @@ export const KARACHI_LOCALITIES_DATA: LocalityRecord[] = [
   // =========================================================================
   // GULSHAN-E-IQBAL & SURROUNDINGS (District East)
   // =========================================================================
-  { id: 'gulshan-e-iqbal', name: 'Gulshan-e-Iqbal', nameUrdu: 'گلشن اقبال', district: 'District East', subdivision: 'gulshan-e-iqbal', town: 'gulshan-iqbal-town', category: 'neighbourhood', aliases: ['Gulshan', 'Gulshan e Iqbal'] },
+  { id: 'gulshan-e-iqbal', name: 'Gulshan-e-Iqbal', nameUrdu: 'گلشن اقبال', district: 'District East', subdivision: 'gulshan-e-iqbal', town: 'gulshan-iqbal-town', category: 'neighbourhood', aliases: ['Gulshan', 'Gulshan e Iqbal', 'Gulshn', 'Gulshan iqbal'] },
   { id: 'gulshan-block-1', name: 'Gulshan-e-Iqbal Block 1', nameUrdu: 'گلشن اقبال بلاک ۱', district: 'District East', parentLocality: 'Gulshan-e-Iqbal', category: 'block_sector', aliases: ['Gulshan Block 1'] },
   { id: 'gulshan-block-2', name: 'Gulshan-e-Iqbal Block 2', nameUrdu: 'گلشن اقبال بلاک ۲', district: 'District East', parentLocality: 'Gulshan-e-Iqbal', category: 'block_sector', aliases: ['Gulshan Block 2'] },
   { id: 'gulshan-block-3', name: 'Gulshan-e-Iqbal Block 3', nameUrdu: 'گلشن اقبال بلاک ۳', district: 'District East', parentLocality: 'Gulshan-e-Iqbal', category: 'block_sector', aliases: ['Gulshan Block 3'] },
@@ -59,7 +61,7 @@ export const KARACHI_LOCALITIES_DATA: LocalityRecord[] = [
   // =========================================================================
   // GULISTAN-E-JAUHAR & SCHEME 33 (District East & Malir)
   // =========================================================================
-  { id: 'gulistan-e-jauhar', name: 'Gulistan-e-Jauhar', nameUrdu: 'گلستان جوہر', district: 'District East', subdivision: 'gulshan-e-iqbal', town: 'gulshan-iqbal-town', category: 'neighbourhood', aliases: ['Johar', 'Jauhar', 'Gulistan e Johar', 'Gulistan-e-Johar'] },
+  { id: 'gulistan-e-jauhar', name: 'Gulistan-e-Jauhar', nameUrdu: 'گلستان جوہر', district: 'District East', subdivision: 'gulshan-e-iqbal', town: 'gulshan-iqbal-town', category: 'neighbourhood', aliases: ['Johar', 'Jauhar', 'Gulistan e Johar', 'Gulistan-e-Johar', 'Gulistan e Jauhar', 'Gulistan Jauhar'] },
   { id: 'jauhar-block-1', name: 'Gulistan-e-Jauhar Block 1', nameUrdu: 'گلستان جوہر بلاک ۱', district: 'District East', parentLocality: 'Gulistan-e-Jauhar', category: 'block_sector', aliases: ['Johar Block 1', 'Jauhar Block 1', 'Block 1-A'] },
   { id: 'jauhar-block-2', name: 'Gulistan-e-Jauhar Block 2', nameUrdu: 'گلستان جوہر بلاک ۲', district: 'District East', parentLocality: 'Gulistan-e-Jauhar', category: 'block_sector', aliases: ['Johar Block 2', 'Jauhar Block 2'] },
   { id: 'jauhar-block-3', name: 'Gulistan-e-Jauhar Block 3', nameUrdu: 'گلستان جوہر بلاک ۳', district: 'District East', parentLocality: 'Gulistan-e-Jauhar', category: 'block_sector', aliases: ['Johar Block 3', 'Jauhar Block 3', 'Block 3-A'] },
@@ -107,11 +109,16 @@ export const KARACHI_LOCALITIES_DATA: LocalityRecord[] = [
   { id: 'soldier-bazar', name: 'Soldier Bazar', nameUrdu: 'سولجر بازار', district: 'District East', subdivision: 'jamshed-quarters', category: 'commercial_area', aliases: ['Soldier Bazaar'] },
   { id: 'garden-east', name: 'Garden East', nameUrdu: 'گارڈن ایسٹ', district: 'District East', subdivision: 'jamshed-quarters', category: 'neighbourhood' },
   { id: 'pakistan-quarters', name: 'Pakistan Quarters', nameUrdu: 'پاکستان کوارٹرز', district: 'District East', subdivision: 'jamshed-quarters', category: 'colony' },
+  { id: 'tariq-road', name: 'Tariq Road', nameUrdu: 'طارق روڈ', district: 'District East', subdivision: 'ferozabad', category: 'commercial_area', aliases: ['Main Tariq Road', 'Tariq Road Market'] },
+  { id: 'shahrah-e-quaideen', name: 'Shahrah-e-Quaideen', nameUrdu: 'شاہراہ قائدین', district: 'District East', subdivision: 'ferozabad', category: 'road', aliases: ['Shara e Quaideen', 'Shahra e Qaidin', 'Shahrah e Quaideen', 'Shahra-e-Quaideen', 'Quaideen Road'] },
+  { id: 'shahrah-e-faisal', name: 'Shahrah-e-Faisal', nameUrdu: 'شاہراہ فیصل', district: 'District East', subdivision: 'ferozabad', category: 'road', aliases: ['Shara e Faisal', 'Shahra-e-Faisal', 'Sharah e Faisal', 'Main Sharea Faisal', 'Drigh Road Highway'] },
+  { id: 'rashid-minhas-road', name: 'Rashid Minhas Road', nameUrdu: 'راشد منہاس روڈ', district: 'District East', subdivision: 'gulshan-e-iqbal', category: 'road', aliases: ['Rashid Minhas', 'Shahrah-e-Rashid Minhas'] },
+  { id: 'university-road', name: 'University Road', nameUrdu: 'یونیورسٹی روڈ', district: 'District East', subdivision: 'gulshan-e-iqbal', category: 'road', aliases: ['Main University Road', 'Jamia Road', 'Safari Park Road'] },
 
   // =========================================================================
   // FEDERAL B AREA & CENTRAL (District Central)
   // =========================================================================
-  { id: 'federal-b-area', name: 'Federal B Area', nameUrdu: 'فیڈرل بی ایریا', district: 'District Central', subdivision: 'gulberg', town: 'gulberg-town', category: 'neighbourhood', aliases: ['FB Area', 'F.B. Area', 'Fed B Area', 'Federal B'] },
+  { id: 'federal-b-area', name: 'Federal B Area', nameUrdu: 'فیڈرل بی ایریا', district: 'District Central', subdivision: 'gulberg', town: 'gulberg-town', category: 'neighbourhood', aliases: ['FB Area', 'F B Area', 'F.B. Area', 'Fed B Area', 'Federal B Area', 'Federal B'] },
   { id: 'fb-area-block-1', name: 'Federal B Area Block 1 (Samnabad)', nameUrdu: 'بلاک ۱ (سمن آباد)', district: 'District Central', parentLocality: 'Federal B Area', category: 'block_sector', aliases: ['FB Area Block 1'] },
   { id: 'fb-area-block-2', name: 'Federal B Area Block 2', nameUrdu: 'بلاک ۲', district: 'District Central', parentLocality: 'Federal B Area', category: 'block_sector', aliases: ['FB Area Block 2'] },
   { id: 'fb-area-block-3', name: 'Federal B Area Block 3', nameUrdu: 'بلاک ۳', district: 'District Central', parentLocality: 'Federal B Area', category: 'block_sector', aliases: ['FB Area Block 3'] },
@@ -140,7 +147,7 @@ export const KARACHI_LOCALITIES_DATA: LocalityRecord[] = [
   // =========================================================================
   // NORTH NAZIMABAD & NAZIMABAD (District Central)
   // =========================================================================
-  { id: 'north-nazimabad', name: 'North Nazimabad', nameUrdu: 'نارتھ ناظم آباد', district: 'District Central', subdivision: 'north-nazimabad', town: 'north-nazimabad-town', category: 'neighbourhood', aliases: ['N. Nazimabad', 'North Nazim'] },
+  { id: 'north-nazimabad', name: 'North Nazimabad', nameUrdu: 'نارتھ ناظم آباد', district: 'District Central', subdivision: 'north-nazimabad', town: 'north-nazimabad-town', category: 'neighbourhood', aliases: ['N. Nazimabad', 'North Nazim', 'North Nazmabad', 'Nazmabad'] },
   { id: 'nn-block-a', name: 'North Nazimabad Block A', nameUrdu: 'نارتھ ناظم آباد بلاک اے', district: 'District Central', parentLocality: 'North Nazimabad', category: 'block_sector' },
   { id: 'nn-block-b', name: 'North Nazimabad Block B', nameUrdu: 'نارتھ ناظم آباد بلاک بی', district: 'District Central', parentLocality: 'North Nazimabad', category: 'block_sector' },
   { id: 'nn-block-c', name: 'North Nazimabad Block C', nameUrdu: 'نارتھ ناظم آباد بلاک سی', district: 'District Central', parentLocality: 'North Nazimabad', category: 'block_sector' },
@@ -225,7 +232,9 @@ export const KARACHI_LOCALITIES_DATA: LocalityRecord[] = [
   // =========================================================================
   // SADDAR, OLD CITY & LYARI (District South)
   // =========================================================================
-  { id: 'saddar', name: 'Saddar', nameUrdu: 'صدر', district: 'District South', subdivision: 'saddar', town: 'saddar-town', category: 'commercial_area', aliases: ['Saddar Bazaar', 'Empress Market', 'Regal Chowk'] },
+  { id: 'saddar', name: 'Saddar', nameUrdu: 'صدر', district: 'District South', subdivision: 'saddar', town: 'saddar-town', category: 'commercial_area', aliases: ['Sadar', 'Saddar Bazaar', 'Empress Market', 'Regal Chowk', 'Saddar Karachi'] },
+  { id: 'ma-jinnah-road', name: 'M.A. Jinnah Road', nameUrdu: 'ایم اے جناح روڈ', district: 'District South', subdivision: 'saddar', category: 'road', aliases: ['MA Jinnah Road', 'M A Jinnah Road', 'Bandar Road', 'Bunder Road'] },
+  { id: 'ii-chundrigar-road', name: 'I.I. Chundrigar Road', nameUrdu: 'آئی آئی چندریگر روڈ', district: 'District South', subdivision: 'saddar', category: 'road', aliases: ['II Chundrigar Road', 'I I Chundrigar Road', 'McLeod Road'] },
   { id: 'civil-lines', name: 'Civil Lines', nameUrdu: 'سول لائنز', district: 'District South', subdivision: 'civil-lines', category: 'neighbourhood', aliases: ['Karachi Club Area', 'Commissioner House'] },
   { id: 'arambagh', name: 'Arambagh', nameUrdu: 'آرام باغ', district: 'District South', subdivision: 'arambagh', category: 'neighbourhood', aliases: ['Ram Bagh'] },
   { id: 'burns-road', name: 'Burns Road', nameUrdu: 'برنس روڈ', district: 'District South', subdivision: 'arambagh', category: 'commercial_area', aliases: ['Burns Rd', 'Food Street Burns Road'] },
@@ -244,7 +253,7 @@ export const KARACHI_LOCALITIES_DATA: LocalityRecord[] = [
   // =========================================================================
   // KORANGI & SHAH FAISAL (District Korangi)
   // =========================================================================
-  { id: 'korangi', name: 'Korangi', nameUrdu: 'کورنگی', district: 'District Korangi', subdivision: 'korangi', town: 'korangi-town', category: 'neighbourhood', aliases: ['Korangi Town'] },
+  { id: 'korangi', name: 'Korangi', nameUrdu: 'کورنگی', district: 'District Korangi', subdivision: 'korangi', town: 'korangi-town', category: 'neighbourhood', aliases: ['Korngi', 'Korangi Town', 'Korangi No 1', 'Korangi No 2', 'Korangi No 3', 'Korangi No 4', 'Korangi No 5', 'Korangi No 6'] },
   { id: 'korangi-industrial-area', name: 'Korangi Industrial Area', nameUrdu: 'کورنگی انڈسٹریل ایریا', district: 'District Korangi', subdivision: 'korangi', category: 'industrial_area', aliases: ['KIA'] },
   { id: 'korangi-crossing', name: 'Korangi Crossing', nameUrdu: 'کورنگی کراسنگ', district: 'District Korangi', subdivision: 'korangi', category: 'neighbourhood' },
   { id: 'korangi-creek', name: 'Korangi Creek', nameUrdu: 'کورنگی کریک', district: 'District Korangi', subdivision: 'korangi', category: 'neighbourhood' },
@@ -266,6 +275,7 @@ export const KARACHI_LOCALITIES_DATA: LocalityRecord[] = [
   // =========================================================================
   // MALIR & GADAP (District Malir)
   // =========================================================================
+  { id: 'malir', name: 'Malir', nameUrdu: 'ملیر', district: 'District Malir', subdivision: 'airport', town: 'malir-town', category: 'neighbourhood', aliases: ['Malir Town', 'Malir Karachi'] },
   { id: 'malir-cantt', name: 'Malir Cantonment', nameUrdu: 'ملیر کینٹ', district: 'District Malir', subdivision: 'airport', category: 'neighbourhood', aliases: ['Malir Cantt', 'Cantt Malir'] },
   { id: 'malir-city', name: 'Malir City', nameUrdu: 'ملیر سٹی', district: 'District Malir', subdivision: 'airport', town: 'malir-town', category: 'neighbourhood', aliases: ['Malir Halt', 'Malir 15', 'Kala Board'] },
   { id: 'saudabad', name: 'Saudabad', nameUrdu: 'سعود آباد', district: 'District Malir', subdivision: 'airport', category: 'neighbourhood' },

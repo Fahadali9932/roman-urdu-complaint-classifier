@@ -107,6 +107,51 @@ describe('Karachi Location Dataset Integrity & Search Engine', () => {
     expect(results[0].isManual).toBe(true);
   });
 
+  it('matches all mandatory Objective 5 test queries including typos and transliterations', () => {
+    const testCases: { query: string; expectedSubstring: string }[] = [
+      { query: 'Gulshan', expectedSubstring: 'Gulshan' },
+      { query: 'Gulshn', expectedSubstring: 'Gulshan' }, // Typo
+      { query: 'Gulshan e iqbal', expectedSubstring: 'Gulshan-e-Iqbal' },
+      { query: 'Gulshan iqbal', expectedSubstring: 'Gulshan-e-Iqbal' },
+      { query: 'Johar', expectedSubstring: 'Gulistan-e-Jauhar' },
+      { query: 'Jauhar', expectedSubstring: 'Gulistan-e-Jauhar' },
+      { query: 'Gulistan e Johar', expectedSubstring: 'Gulistan-e-Jauhar' },
+      { query: 'Gulistan-e-Jauhar', expectedSubstring: 'Gulistan-e-Jauhar' },
+      { query: 'F B Area', expectedSubstring: 'Federal B Area' },
+      { query: 'FB Area', expectedSubstring: 'Federal B Area' },
+      { query: 'Federal B Area', expectedSubstring: 'Federal B Area' },
+      { query: 'DHA', expectedSubstring: 'DHA' },
+      { query: 'Defence', expectedSubstring: 'DHA' },
+      { query: 'DHA Phase 6', expectedSubstring: 'DHA Phase 6' },
+      { query: 'North Nazmabad', expectedSubstring: 'North Nazimabad' }, // Typo
+      { query: 'North Nazimabad', expectedSubstring: 'North Nazimabad' },
+      { query: 'Korangi', expectedSubstring: 'Korangi' },
+      { query: 'Korngi', expectedSubstring: 'Korangi' }, // Typo
+      { query: 'Saddar', expectedSubstring: 'Saddar' },
+      { query: 'Sadar', expectedSubstring: 'Saddar' },
+      { query: 'Shahrah-e-Quaideen', expectedSubstring: 'Shahrah-e-Quaideen' },
+      { query: 'Shara e Quaideen', expectedSubstring: 'Shahrah-e-Quaideen' },
+      { query: 'Shahra e Qaidin', expectedSubstring: 'Shahrah-e-Quaideen' },
+      { query: 'Shah Faisal', expectedSubstring: 'Shah Faisal' },
+      { query: 'Malir', expectedSubstring: 'Malir' },
+      { query: 'Surjani', expectedSubstring: 'Surjani' },
+      { query: 'Keamari', expectedSubstring: 'Keamari' },
+      { query: 'Kemari', expectedSubstring: 'Keamari' },
+    ];
+
+    for (const { query, expectedSubstring } of testCases) {
+      const res = searchKarachiLocalities(query);
+      const matched = res.some((r) => r.name.toLowerCase().includes(expectedSubstring.toLowerCase()));
+      expect(
+        matched,
+        `Expected query "${query}" to return results containing "${expectedSubstring}". Top results: ${res
+          .slice(0, 3)
+          .map((r) => r.name)
+          .join(', ')}`
+      ).toBe(true);
+    }
+  });
+
   it('finds locality by name or id accurately', () => {
     const loc = findLocalityByNameOrId('dha-defence');
     expect(loc).toBeDefined();
