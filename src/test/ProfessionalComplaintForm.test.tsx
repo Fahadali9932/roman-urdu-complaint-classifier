@@ -144,4 +144,22 @@ describe('Professional Civic Complaint Form Suite', () => {
 
     expect(screen.getByLabelText(/full name/i)).toHaveValue('');
   });
+
+  it('synchronizes document.title on mount eliminating stale title regression', () => {
+    // Simulate navigation by setting a stale title
+    document.title = 'Terms of Use — Awaaz-e-Awam';
+    renderWithProviders(<ComplaintForm />);
+    expect(document.title).toBe('Write a Complaint — Awaaz-e-Awam');
+  });
+
+  it('provides official Google Maps companion link with encoded Karachi query and zero billing', () => {
+    renderWithProviders(<ComplaintForm />);
+
+    const mapsLink = screen.getByRole('link', { name: /find on google maps/i });
+    expect(mapsLink).toBeInTheDocument();
+    expect(mapsLink).toHaveAttribute('target', '_blank');
+    expect(mapsLink).toHaveAttribute('rel', 'noopener noreferrer');
+    expect(mapsLink.getAttribute('href')).toContain('https://www.google.com/maps/search/?api=1&query=');
+    expect(mapsLink.getAttribute('href')).toContain(encodeURIComponent('Karachi, Pakistan'));
+  });
 });
