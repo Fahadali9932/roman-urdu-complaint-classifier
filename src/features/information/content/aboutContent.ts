@@ -25,7 +25,7 @@ export const aboutContent: InfoDocumentContent = {
           teamAcknowledgment: 'Supported by four fellow team members.',
         },
         paragraphs: [
-          'Awaaz-e-Awam was built by a team of five students as an academic software engineering capstone project at Greenwich University in Karachi, Pakistan. It is an independent research initiative and is not an official service of any municipal authority.',
+          'Awaaz-e-Awam was developed as an academic software engineering capstone project at Greenwich University in Karachi, Pakistan. It is an independent research initiative and is not an official service of any municipal authority.',
         ],
       },
     ],
@@ -54,7 +54,7 @@ export const aboutContent: InfoDocumentContent = {
           teamAcknowledgment: 'دیگر چار ساتھی اراکین کے اشتراک اور تعاون سے۔',
         },
         paragraphs: [
-          'آوازِ عوام گرین وچ یونیورسٹی، کراچی میں پانچ طلبہ پر مشتمل ٹیم کا تیار کردہ ایک تعلیمی کیپسٹون پروجیکٹ ہے۔ یہ ایک آزاد تحقیقی کاوش ہے اور اس کا حکومتِ سندھ یا کسی بلدیاتی ادارے سے کوئی باضابطہ الحاق نہیں ہے۔',
+          'آوازِ عوام گرین وچ یونیورسٹی، کراچی میں تیار کردہ ایک تعلیمی کیپسٹون پروجیکٹ ہے۔ یہ ایک آزاد تحقیقی کاوش ہے اور اس کا حکومتِ سندھ یا کسی بلدیاتی ادارے سے کوئی باضابطہ الحاق نہیں ہے۔',
         ],
       },
     ],
