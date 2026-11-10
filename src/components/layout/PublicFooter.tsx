@@ -263,7 +263,6 @@ export const PublicFooter: React.FC<PublicFooterProps> = ({ isHomePage }) => {
                 <p className="footer-brand-tagline">
                   {t('footerTagline')}
                 </p>
-                <div className="footer-brand-signature" aria-hidden="true" />
               </div>
 
               {/* CENTER: Primary Navigation */}
@@ -310,10 +309,10 @@ export const PublicFooter: React.FC<PublicFooterProps> = ({ isHomePage }) => {
 
             </div>
 
-            {/* Bottom Row: Restrained Copyright, Academic Capstone Attribution & Back to Top */}
+            {/* Bottom Row: Restrained Copyright, Academic Attribution & Back to Top */}
             <div className="footer-bottom-bar">
               <div className="footer-copyright">
-                © {copyrightYear} <bdi>Awaaz-e-Awam</bdi>. {t('footerRights')}
+                © {copyrightYear} <bdi>Awaaz-e-Awam</bdi>
               </div>
 
               <div className="footer-academic">

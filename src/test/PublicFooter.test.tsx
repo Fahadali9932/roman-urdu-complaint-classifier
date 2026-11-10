@@ -29,6 +29,6 @@ describe('PublicFooter Component', () => {
 
     // Asserts concise academic attribution
     expect(screen.getByText(/greenwich university/i)).toBeInTheDocument();
-    expect(screen.getByText(/final year project • greenwich university/i)).toBeInTheDocument();
+    expect(screen.getByText(/academic project · greenwich university/i)).toBeInTheDocument();
   });
 });
