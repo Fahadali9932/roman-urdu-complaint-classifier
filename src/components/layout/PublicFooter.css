@@ -2,6 +2,7 @@
    MONOCHROME CIVIC EDITORIAL FOOTER DESIGN SYSTEM
    Editorial Black #141414 | Paper White #F7F6F3 | Blood Maroon #681822
    Soft Gray #E5E3E0 | Graphite #323232
+   Architectural Backdrop: Mazar-e-Quaid, Karachi, Sindh
    ========================================================================== */
 
 .civic-editorial-footer {
@@ -29,7 +30,15 @@
   overflow: hidden;
 }
 
-/* Zone A: Editorial Statement Scene (Upper Portion ~55-60% height) */
+.footer-animated-track .footer-canvas {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+
+/* ==========================================================================
+   ZONE A: UPPER ARCHITECTURAL STATEMENT SCENE (~52-55% Viewport Height)
+   ========================================================================== */
 .footer-zone-a {
   position: relative;
   z-index: 10;
@@ -37,16 +46,62 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
-  padding-top: clamp(120px, 17vh, 170px);
-  padding-bottom: 24px;
+  justify-content: center;
+  width: 100%;
+  min-height: 0;
+  padding-top: clamp(80px, 11vh, 108px);
+  padding-bottom: 20px;
   padding-left: clamp(16px, 4vw, 40px);
   padding-right: clamp(16px, 4vw, 40px);
   text-align: center;
+  overflow: hidden;
+}
+
+/* Mazar-e-Quaid Architectural Backdrop */
+.footer-monument-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.footer-monument-img {
   width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 36%;
+  opacity: 0.70;
+  transform-origin: center center;
+}
+
+/* Atmospheric Multi-Stop Gradient Overlay (Dissolves monument smoothly into #141414) */
+.footer-monument-gradient {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  background:
+    radial-gradient(
+      ellipse 75% 70% at 50% 48%,
+      rgba(20, 20, 20, 0.20) 0%,
+      rgba(20, 20, 20, 0.60) 62%,
+      #141414 92%,
+      #141414 100%
+    ),
+    linear-gradient(
+      to bottom,
+      rgba(20, 20, 20, 0.90) 0%,
+      rgba(20, 20, 20, 0.35) 22%,
+      rgba(20, 20, 20, 0.45) 55%,
+      rgba(20, 20, 20, 0.88) 82%,
+      #141414 100%
+    );
 }
 
 .footer-statement-inner {
+  position: relative;
+  z-index: 10;
   max-width: 1380px;
   margin: 0 auto;
   width: 100%;
@@ -58,11 +113,12 @@
 }
 
 .footer-statement-headline {
-  font-size: clamp(2.5rem, min(6.2vw, 8.5vh), 5.75rem);
+  font-size: clamp(2.5rem, min(6.0vw, 8.2vh), 5.75rem);
   line-height: 1.04;
   letter-spacing: -0.035em;
   text-transform: uppercase;
   color: #FFFFFF;
+  text-shadow: 0 4px 28px rgba(0, 0, 0, 0.65);
   margin: 0 auto;
   text-align: center;
   width: 100%;
@@ -74,14 +130,15 @@
   }
 }
 
-/* Zone B: Functional Civic Grid & Attribution (Lower ~40-45% height) */
+/* ==========================================================================
+   ZONE B: LOWER FUNCTIONAL FOOTER (~45-48% Viewport Height)
+   ========================================================================== */
 .footer-zone-b {
   position: relative;
   z-index: 10;
   background-color: #141414;
-  border-top: 1px solid rgba(229, 227, 224, 0.08);
-  padding-top: clamp(28px, 4vh, 42px);
-  padding-bottom: clamp(24px, 3.5vh, 38px);
+  padding-top: clamp(24px, 3.5vh, 36px);
+  padding-bottom: clamp(24px, 3.5vh, 36px);
   padding-left: clamp(20px, 5vw, 64px);
   padding-right: clamp(20px, 5vw, 64px);
   width: 100%;
@@ -94,15 +151,15 @@
   width: 100%;
 }
 
-/* Multi-column Grid (2fr Brand | 1fr Nav | 1fr Info) */
+/* 3-Column Editorial Grid: Left Brand (2fr) | Center Nav (1fr) | Right Info (1fr) */
 .footer-grid {
   display: grid;
   grid-template-columns: 2fr 1fr 1fr;
-  gap: clamp(28px, 4.5vw, 64px);
-  margin-bottom: clamp(24px, 3.5vh, 40px);
+  gap: clamp(32px, 5vw, 72px);
+  margin-bottom: clamp(22px, 3vh, 34px);
 }
 
-/* Column 1: Brand */
+/* Column 1: Brand Wordmark & Truthful Tagline */
 .footer-col-brand {
   display: flex;
   flex-direction: column;
@@ -110,7 +167,7 @@
 }
 
 .footer-brand-title {
-  font-size: clamp(24px, 2.4vw, 32px);
+  font-size: clamp(24px, 2.3vw, 30px);
   font-style: italic;
   font-weight: 700;
   color: #FFFFFF;
@@ -125,12 +182,12 @@
 }
 
 .footer-brand-tagline {
-  font-size: 14px;
+  font-size: 13.5px;
   line-height: 1.6;
   color: #E5E3E0;
-  opacity: 0.72;
+  opacity: 0.70;
   margin-top: 10px;
-  max-width: 340px;
+  max-width: 320px;
   font-weight: 400;
 }
 
@@ -138,10 +195,10 @@
   width: 28px;
   height: 2px;
   background-color: #681822;
-  margin-top: 16px;
+  margin-top: 14px;
 }
 
-/* Columns 2 & 3: Links */
+/* Columns 2 & 3: Navigation & Information Lists */
 .footer-col-links {
   display: flex;
   flex-direction: column;
@@ -154,7 +211,7 @@
   text-transform: uppercase;
   letter-spacing: 0.16em;
   color: #E5E3E0;
-  opacity: 0.5;
+  opacity: 0.50;
   margin-bottom: 16px;
   font-weight: 600;
 }
@@ -162,14 +219,14 @@
 .footer-links-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 11px;
   width: 100%;
 }
 
 .footer-link {
-  font-size: 13.5px;
+  font-size: 13px;
   color: #E5E3E0;
-  opacity: 0.78;
+  opacity: 0.75;
   text-decoration: none;
   transition: opacity 180ms ease, color 180ms ease;
   font-weight: 400;
@@ -181,7 +238,7 @@
   color: #FFFFFF;
 }
 
-/* Bottom Bar: Copyright, Academic note & Back to top */
+/* Bottom Bar: Copyright, Academic Attribution & Back to top */
 .footer-bottom-bar {
   display: flex;
   flex-wrap: wrap;
@@ -264,24 +321,44 @@
   }
 
   .footer-zone-a {
-    padding-top: 80px;
-    padding-bottom: 40px;
+    min-height: clamp(220px, 30vh, 280px);
+    padding-top: 88px;
+    padding-bottom: 24px;
+    justify-content: center;
   }
 
   .footer-statement-headline {
     white-space: normal;
-    font-size: clamp(2.25rem, 8vw, 3.5rem);
+    font-size: clamp(1.75rem, 6.8vw, 2.5rem);
+    line-height: 1.1;
+  }
+
+  .footer-zone-b {
+    padding-top: 20px;
+    padding-bottom: 24px;
+    padding-left: 20px;
+    padding-right: 20px;
   }
 
   .footer-grid {
     grid-template-columns: 1fr;
-    gap: 32px;
+    gap: 24px;
+    margin-bottom: 20px;
+  }
+
+  .footer-col-heading {
+    margin-bottom: 10px;
+  }
+
+  .footer-links-list {
+    gap: 8px;
   }
 
   .footer-bottom-bar {
     flex-direction: column;
     align-items: flex-start;
-    gap: 12px;
+    gap: 10px;
+    padding-top: 14px;
   }
 }
 
@@ -313,6 +390,7 @@
     overflow: visible;
   }
 
+  .footer-monument-img,
   .footer-statement-headline,
   .footer-zone-b {
     transform: none !important;

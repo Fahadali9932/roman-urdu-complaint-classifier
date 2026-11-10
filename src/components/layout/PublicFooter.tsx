@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { ArrowUp } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
+import mazarDesktop from '../../assets/mazar-e-quaid-monochrome.jpg';
+import mazarMobile from '../../assets/mazar-e-quaid-mobile.jpg';
 import './PublicFooter.css';
 
 const copyrightYear = new Date().getFullYear();
@@ -23,6 +25,7 @@ export const PublicFooter: React.FC<PublicFooterProps> = ({ isHomePage }) => {
   const isHome = isHomePage ?? (location.pathname === '/');
 
   const containerRef = useRef<HTMLElement>(null);
+  const backdropRef = useRef<HTMLImageElement>(null);
   const headlineRef = useRef<HTMLHeadingElement>(null);
   const functionalRef = useRef<HTMLDivElement>(null);
 
@@ -90,16 +93,24 @@ export const PublicFooter: React.FC<PublicFooterProps> = ({ isHomePage }) => {
     (p: number) => {
       if (prefersReducedMotion || isMobile || !isHome) return;
 
-      // Headline motion: starts slightly lower (+44px) and glides upward smoothly into position
+      // Subtle architectural backdrop parallax: gentle translation + scale settle
+      const tBackdrop = smoother(clamp01(p / 0.85));
+      const backdropY = (1 - tBackdrop) * 18;
+      const backdropScale = 1.05 - tBackdrop * 0.03; // 1.05 -> 1.02
+      if (backdropRef.current) {
+        backdropRef.current.style.transform = `translate3d(0, ${backdropY}px, 0) scale(${backdropScale})`;
+      }
+
+      // Headline motion: starts slightly lower (+36px) and glides upward smoothly into position in Zone A center
       const tHeadline = smoother(clamp01(p / 0.70));
-      const headlineY = (1 - tHeadline) * 44;
+      const headlineY = (1 - tHeadline) * 36;
       if (headlineRef.current) {
         headlineRef.current.style.transform = `translate3d(0, ${headlineY}px, 0)`;
       }
 
-      // Zone B Functional Grid motion: reveals and slides up (+24px -> 0px)
+      // Zone B Functional Grid motion: reveals and slides up (+20px -> 0px)
       const tFunctional = smoother(clamp01((p - 0.15) / 0.60));
-      const functionalY = (1 - tFunctional) * 24;
+      const functionalY = (1 - tFunctional) * 20;
       if (functionalRef.current) {
         functionalRef.current.style.transform = `translate3d(0, ${functionalY}px, 0)`;
         functionalRef.current.style.opacity = `${tFunctional}`;
@@ -190,29 +201,55 @@ export const PublicFooter: React.FC<PublicFooterProps> = ({ isHomePage }) => {
       aria-label={ur ? 'آوازِ عوام کا اختتامیہ' : 'Awaaz-e-Awam civic footer'}
     >
       <div className={`footer-canvas ${isHome && !isMobile && !prefersReducedMotion ? 'sticky top-0 h-screen' : ''}`}>
-        {/* Zone A: Upper Closing Statement Scene (~55-60% height) */}
+
+        {/* ====================================================================
+            ZONE A: UPPER ARCHITECTURAL STATEMENT SCENE (~52-55% Viewport Height)
+            Subtle grayscale Mazar-e-Quaid background with prominent centered headline
+            ==================================================================== */}
         <div className="footer-zone-a">
+          {/* Mazar-e-Quaid Architectural Backdrop Layer */}
+          <div className="footer-monument-layer" aria-hidden="true">
+            <picture>
+              <source media="(max-width: 768px)" srcSet={mazarMobile} />
+              <img
+                ref={backdropRef}
+                src={mazarDesktop}
+                alt=""
+                className="footer-monument-img will-change-transform"
+                loading="lazy"
+                decoding="async"
+              />
+            </picture>
+            {/* Atmospheric gradient overlay: blends monument seamlessly into #141414 */}
+            <div className="footer-monument-gradient" />
+          </div>
+
+          {/* Foreground Editorial Headline Scene */}
           <div className="footer-statement-inner">
             <h2
               ref={headlineRef}
               className="footer-statement-headline font-display will-change-transform"
-              style={isHome && !isMobile && !prefersReducedMotion ? { transform: 'translate3d(0, 44px, 0)' } : undefined}
+              style={isHome && !isMobile && !prefersReducedMotion ? { transform: 'translate3d(0, 36px, 0)' } : undefined}
             >
               {t('footerHeadline')}
             </h2>
           </div>
         </div>
 
-        {/* Zone B: Lower Functional Footer (~40-45% height) */}
+        {/* ====================================================================
+            ZONE B: LOWER FUNCTIONAL FOOTER (~45-48% Viewport Height)
+            Refined, minimalist 3-column navigation grid and essential attribution
+            ==================================================================== */}
         <div
           ref={functionalRef}
           className="footer-zone-b will-change-transform"
-          style={isHome && !isMobile && !prefersReducedMotion ? { opacity: 0, transform: 'translate3d(0, 24px, 0)' } : undefined}
+          style={isHome && !isMobile && !prefersReducedMotion ? { opacity: 0, transform: 'translate3d(0, 20px, 0)' } : undefined}
         >
           <div className="footer-zone-b-inner">
-            {/* Multi-column Editorial Grid */}
+            {/* 3-Column Editorial Grid: Left Brand | Center Navigation | Right Information */}
             <div className="footer-grid">
-              {/* Column 1: Brand & Truthful Civic Tagline */}
+
+              {/* LEFT: Brand Wordmark, Truthful Tagline & Signature Accent */}
               <div className="footer-col-brand">
                 <a
                   href="#hero"
@@ -229,8 +266,8 @@ export const PublicFooter: React.FC<PublicFooterProps> = ({ isHomePage }) => {
                 <div className="footer-brand-signature" aria-hidden="true" />
               </div>
 
-              {/* Column 2: Navigation Links */}
-              <div className="footer-col-links">
+              {/* CENTER: Primary Navigation */}
+              <div className="footer-col-links footer-col-center">
                 <h3 className="footer-col-heading">
                   {t('footerColNav')}
                 </h3>
@@ -250,8 +287,8 @@ export const PublicFooter: React.FC<PublicFooterProps> = ({ isHomePage }) => {
                 </nav>
               </div>
 
-              {/* Column 3: Information Links */}
-              <div className="footer-col-links">
+              {/* RIGHT: Information */}
+              <div className="footer-col-links footer-col-right">
                 <h3 className="footer-col-heading">
                   {t('footerColInfo')}
                 </h3>
@@ -270,9 +307,10 @@ export const PublicFooter: React.FC<PublicFooterProps> = ({ isHomePage }) => {
                   </Link>
                 </nav>
               </div>
+
             </div>
 
-            {/* Bottom Row: Attribution, Academic Capstone & Back to top */}
+            {/* Bottom Row: Restrained Copyright, Academic Capstone Attribution & Back to Top */}
             <div className="footer-bottom-bar">
               <div className="footer-copyright">
                 © {copyrightYear} <bdi>Awaaz-e-Awam</bdi>. {t('footerRights')}
@@ -294,8 +332,10 @@ export const PublicFooter: React.FC<PublicFooterProps> = ({ isHomePage }) => {
                 </a>
               </div>
             </div>
+
           </div>
         </div>
+
       </div>
     </footer>
   );
