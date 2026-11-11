@@ -13,6 +13,7 @@ export interface KarachiAreaComboboxProps {
   error?: string;
   required?: boolean;
   placeholder?: string;
+  variant?: 'light' | 'glass';
 }
 
 export const KarachiAreaCombobox: React.FC<KarachiAreaComboboxProps> = ({
@@ -24,6 +25,7 @@ export const KarachiAreaCombobox: React.FC<KarachiAreaComboboxProps> = ({
   error,
   required = true,
   placeholder,
+  variant = 'light',
 }) => {
   const { language, isRTL } = useLanguage();
   const ur = language === 'ur';
@@ -133,16 +135,18 @@ export const KarachiAreaCombobox: React.FC<KarachiAreaComboboxProps> = ({
       <div className="flex items-center justify-between mb-1.5">
         <label
           htmlFor={id}
-          className="block text-xs sm:text-sm font-medium text-[#141414] select-none font-ui"
+          className={`block text-xs sm:text-sm font-medium select-none font-ui ${
+            variant === 'glass' ? 'text-white/90' : 'text-[#141414]'
+          }`}
         >
-          {label} {required && <span className="text-[#681822] ms-1" aria-hidden="true">*</span>}
+          {label} {required && <span className={variant === 'glass' ? 'text-[#E89BA4] ms-1' : 'text-[#681822] ms-1'} aria-hidden="true">*</span>}
         </label>
         {isManualMode ? (
-          <span className="font-mono text-[11px] text-[#681822] font-semibold">
+          <span className={`font-mono text-[11px] font-semibold ${variant === 'glass' ? 'text-[#E89BA4]' : 'text-[#681822]'}`}>
             {ur ? 'دستی اندراج' : 'Custom Entry'}
           </span>
         ) : (
-          <span className="font-mono text-[11px] text-[#666]">
+          <span className={`font-mono text-[11px] ${variant === 'glass' ? 'text-white/60' : 'text-[#666]'}`}>
             {ur ? 'علاقہ تلاش کریں' : 'Search by name or block'}
           </span>
         )}
@@ -150,7 +154,9 @@ export const KarachiAreaCombobox: React.FC<KarachiAreaComboboxProps> = ({
 
       {/* Input Box */}
       <div className="relative">
-        <div className={`absolute top-1/2 -translate-y-1/2 ${isRTL ? 'right-3.5' : 'left-3.5'} pointer-events-none text-[#77716E]`}>
+        <div className={`absolute top-1/2 -translate-y-1/2 ${isRTL ? 'right-3.5' : 'left-3.5'} pointer-events-none ${
+          variant === 'glass' ? 'text-white/60' : 'text-[#77716E]'
+        }`}>
           <Search className="w-4 h-4" />
         </div>
 
@@ -186,12 +192,16 @@ export const KarachiAreaCombobox: React.FC<KarachiAreaComboboxProps> = ({
               ? 'علاقہ منتخب کریں (مثلاً: گلشن، جوہر، کلفٹن، نارتھ ناظم آباد...)'
               : 'Type area, block or scheme (e.g., Gulshan, Johar, DHA, Clifton...)')
           }
-          className={`w-full min-h-[48px] rounded-xl border bg-white py-2.5 font-sans text-sm sm:text-base text-[#141414] transition-all placeholder:text-[#888] outline-none shadow-2xs ${
+          className={`w-full min-h-[48px] rounded-xl border py-2.5 font-sans text-sm sm:text-base transition-all outline-none shadow-2xs ${
             isRTL ? 'pe-10 ps-10' : 'ps-10 pe-10'
           } ${
-            error
-              ? 'border-rose-500 focus:border-rose-600 focus:ring-1 focus:ring-rose-500 bg-rose-50/20'
-              : 'border-[#E8E5E1] hover:border-[#323232] focus:border-[#141414] focus:ring-1 focus:ring-[#141414]'
+            variant === 'glass'
+              ? error
+                ? 'border-rose-400 bg-rose-950/30 text-white placeholder:text-white/40 focus:ring-1 focus:ring-rose-400'
+                : 'border-white/15 bg-white/[0.06] text-white placeholder:text-white/40 hover:border-white/30 focus:border-[#681822] focus:bg-white/[0.1] focus:ring-1 focus:ring-[#681822]'
+              : error
+                ? 'border-rose-500 focus:border-rose-600 focus:ring-1 focus:ring-rose-500 bg-rose-50/20 text-[#141414] placeholder:text-[#888]'
+                : 'border-[#E8E5E1] hover:border-[#323232] focus:border-[#141414] focus:ring-1 focus:ring-[#141414] bg-white text-[#141414] placeholder:text-[#888]'
           }`}
         />
 
@@ -199,7 +209,9 @@ export const KarachiAreaCombobox: React.FC<KarachiAreaComboboxProps> = ({
           <button
             type="button"
             onClick={handleClear}
-            className={`absolute top-1/2 -translate-y-1/2 ${isRTL ? 'left-3' : 'right-3'} p-1.5 text-[#77716E] hover:text-[#141414] transition-colors`}
+            className={`absolute top-1/2 -translate-y-1/2 ${isRTL ? 'left-3' : 'right-3'} p-1.5 transition-colors ${
+              variant === 'glass' ? 'text-white/60 hover:text-white' : 'text-[#77716E] hover:text-[#141414]'
+            }`}
             aria-label={ur ? 'صاف کریں' : 'Clear locality input'}
           >
             <X className="w-3.5 h-3.5" />
@@ -214,7 +226,11 @@ export const KarachiAreaCombobox: React.FC<KarachiAreaComboboxProps> = ({
           id={`${id}-listbox`}
           role="listbox"
           aria-label={label}
-          className="absolute z-50 left-0 right-0 mt-2 max-h-72 overflow-y-auto rounded-xl border border-[#E8E5E1] bg-white p-1.5 shadow-xl shadow-black/8 text-start divide-y divide-[#F4F3F0] transition-all"
+          className={`absolute z-50 left-0 right-0 mt-2 max-h-72 overflow-y-auto rounded-xl border p-1.5 text-start transition-all ${
+            variant === 'glass'
+              ? 'border-white/20 bg-[#181818]/95 backdrop-blur-2xl text-white divide-y divide-white/10 shadow-2xl shadow-black/80'
+              : 'border-[#E8E5E1] bg-white text-start divide-y divide-[#F4F3F0] shadow-xl shadow-black/8'
+          }`}
         >
           {results.map((item, index) => {
             const isHighlighted = index === highlightedIndex;
@@ -230,15 +246,23 @@ export const KarachiAreaCombobox: React.FC<KarachiAreaComboboxProps> = ({
                   onClick={() => handleSelect(item)}
                   onMouseEnter={() => setHighlightedIndex(index)}
                   className={`flex items-center gap-3 px-3.5 py-3 rounded-lg cursor-pointer text-xs font-ui transition-colors ${
-                    isHighlighted ? 'bg-[#F7EFF0] text-[#681822]' : 'text-[#141414] hover:bg-[#FAF9F7]'
+                    variant === 'glass'
+                      ? isHighlighted
+                        ? 'bg-[#681822]/40 text-white'
+                        : 'text-white/90 hover:bg-white/10'
+                      : isHighlighted
+                        ? 'bg-[#F7EFF0] text-[#681822]'
+                        : 'text-[#141414] hover:bg-[#FAF9F7]'
                   }`}
                 >
-                  <div className="w-7 h-7 rounded-lg bg-[#F7EFF0] text-[#681822] flex items-center justify-center shrink-0">
+                  <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                    variant === 'glass' ? 'bg-[#681822] text-white' : 'bg-[#F7EFF0] text-[#681822]'
+                  }`}>
                     <PlusCircle className="w-4 h-4" />
                   </div>
                   <div className="flex-1">
                     <span className="font-semibold block text-sm">{item.name}</span>
-                    <span className="text-xs text-[#77716E] block pt-0.5">
+                    <span className={`text-xs block pt-0.5 ${variant === 'glass' ? 'text-white/60' : 'text-[#77716E]'}`}>
                       {ur ? 'فہرست میں نہیں ملا؟ دستی اندراج منتخب کریں' : 'Area not found. Select to enter area manually'}
                     </span>
                   </div>
@@ -255,12 +279,24 @@ export const KarachiAreaCombobox: React.FC<KarachiAreaComboboxProps> = ({
                 onClick={() => handleSelect(item)}
                 onMouseEnter={() => setHighlightedIndex(index)}
                 className={`flex items-center justify-between gap-3 px-3.5 py-2.5 rounded-lg cursor-pointer font-ui text-xs sm:text-sm transition-colors ${
-                  isHighlighted ? 'bg-[#F7EFF0] text-[#681822]' : 'text-[#141414] hover:bg-[#FAF9F7]'
+                  variant === 'glass'
+                    ? isHighlighted
+                      ? 'bg-[#681822]/40 text-white'
+                      : 'text-white/90 hover:bg-white/10'
+                    : isHighlighted
+                      ? 'bg-[#F7EFF0] text-[#681822]'
+                      : 'text-[#141414] hover:bg-[#FAF9F7]'
                 }`}
               >
                 <div className="flex items-center gap-3 min-w-0">
                   <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
-                    isHighlighted ? 'bg-white text-[#681822]' : 'bg-[#FAF9F7] text-[#77716E]'
+                    variant === 'glass'
+                      ? isHighlighted
+                        ? 'bg-[#681822] text-white'
+                        : 'bg-white/10 text-white/70'
+                      : isHighlighted
+                        ? 'bg-white text-[#681822]'
+                        : 'bg-[#FAF9F7] text-[#77716E]'
                   }`}>
                     <MapPin className="w-3.5 h-3.5" />
                   </div>
@@ -268,12 +304,12 @@ export const KarachiAreaCombobox: React.FC<KarachiAreaComboboxProps> = ({
                     <span className="font-semibold block truncate text-sm">
                       {item.name}
                       {ur && item.nameUrdu && (
-                        <span className="ms-2 text-xs font-normal text-[#77716E]">
+                        <span className={`ms-2 text-xs font-normal ${variant === 'glass' ? 'text-white/60' : 'text-[#77716E]'}`}>
                           ({item.nameUrdu})
                         </span>
                       )}
                     </span>
-                    <span className="text-xs text-[#77716E] block pt-0.5">
+                    <span className={`text-xs block pt-0.5 ${variant === 'glass' ? 'text-white/60' : 'text-[#77716E]'}`}>
                       {item.district}
                       {item.parentLocality ? ` • ${item.parentLocality}` : ''}
                     </span>
@@ -281,7 +317,7 @@ export const KarachiAreaCombobox: React.FC<KarachiAreaComboboxProps> = ({
                 </div>
 
                 {isSelected && (
-                  <Check className="w-4 h-4 text-[#681822] shrink-0" />
+                  <Check className={`w-4 h-4 shrink-0 ${variant === 'glass' ? 'text-[#FFCCD2]' : 'text-[#681822]'}`} />
                 )}
               </li>
             );
