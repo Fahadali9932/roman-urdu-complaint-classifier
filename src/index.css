@@ -97,6 +97,16 @@
     outline-offset: 2px !important;
   }
 
+  /* Graceful browser autofill styling preventing jarring browser blue boxes */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover, 
+  input:-webkit-autofill:focus, 
+  textarea:-webkit-autofill {
+    -webkit-text-fill-color: var(--editorial-black) !important;
+    -webkit-box-shadow: 0 0 0px 1000px #FFFFFF inset !important;
+    transition: background-color 5000s ease-in-out 0s;
+  }
+
   /* Respect citizen reduced-motion accessibility preference */
   @media (prefers-reduced-motion: reduce) {
     *,

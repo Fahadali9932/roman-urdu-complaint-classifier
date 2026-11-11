@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Button } from '../../components/common/Button';
 import { useLanguage } from '../../context/LanguageContext';
 import { countWords, MAX_COMPLAINT_WORDS } from '../../utils/wordCounter';
 import {
@@ -9,7 +8,6 @@ import {
   ComplaintDetailsData,
   PersistableComplaintData,
 } from '../../types';
-import { Send, RotateCcw } from 'lucide-react';
 import { ApplicantDetailsSection } from './components/ApplicantDetailsSection';
 import { ProblemLocationSection } from './components/ProblemLocationSection';
 import { ComplaintDetailsSection } from './components/ComplaintDetailsSection';
@@ -227,35 +225,36 @@ export const ComplaintForm: React.FC<ComplaintFormProps> = ({ embedded = false }
 
   return (
     <div className="w-full bg-[#F7F6F3] min-h-screen">
-      {/* THE EDITORIAL COMPLAINT DESK: Wide, Unified Editorial Composition */}
+      {/* MODERN CIVIC EDITORIAL: Complaint Studio Layout */}
       <div
-        className={`max-w-[1140px] mx-auto px-4 sm:px-8 lg:px-10 text-start ${
+        className={`max-w-[1180px] mx-auto px-4 sm:px-6 lg:px-8 text-start ${
           embedded ? 'py-2' : 'pt-28 sm:pt-32 pb-20 sm:pb-28'
         }`}
       >
-        {/* ZONE A: Typographic Introduction (Full Width, One Line on Desktop) */}
+        {/* LEVEL A: Statement Header */}
         {!embedded && (
-          <div className="mb-10 sm:mb-12 space-y-2">
-            <h1 className="font-display font-black text-3xl sm:text-4xl md:text-5xl lg:text-[3.25rem] text-[#141414] uppercase tracking-tight leading-[1]">
+          <div className="mb-8 sm:mb-10 space-y-2.5">
+            <h1 className="font-display font-black text-3xl sm:text-4xl md:text-5xl lg:text-[3.5rem] text-[#141414] uppercase tracking-tight leading-[0.98]">
               {ur ? 'شکایت درج کریں' : 'WRITE A COMPLAINT.'}
             </h1>
-            <p className="text-sm sm:text-base text-[#555] font-normal leading-relaxed font-ui max-w-xl">
+            <p className="text-sm sm:text-base text-[#77716E] font-normal leading-relaxed font-ui max-w-xl">
               {t('formSubtitle')}
             </p>
+            <div className="w-10 h-1 bg-[#681822] rounded-full mt-3" aria-hidden="true" />
           </div>
         )}
 
-        <form onSubmit={handleSubmit} noValidate className="space-y-10 sm:space-y-12">
-          {/* ZONE B: Two Balanced Columns (Applicant Details on Left, Problem Location on Right) */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start">
-            {/* Left Column: Applicant Details */}
+        <form onSubmit={handleSubmit} noValidate className="space-y-6 sm:space-y-8">
+          {/* LEVEL B: Two Distinct Information Panels (Applicant & Location) */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-stretch">
+            {/* Left Panel: Applicant Details */}
             <ApplicantDetailsSection
               data={formData.applicant}
               onChange={handleApplicantChange}
               errors={errors.applicant}
             />
 
-            {/* Right Column: Problem Location */}
+            {/* Right Panel: Problem Location */}
             <ProblemLocationSection
               data={formData.location}
               onChange={handleLocationChange}
@@ -263,41 +262,15 @@ export const ComplaintForm: React.FC<ComplaintFormProps> = ({ embedded = false }
             />
           </div>
 
-          {/* ZONE C: Full-Width Complaint Writing & Actions */}
-          <div className="pt-2 border-t border-[#E5E3E0]/70 space-y-8 sm:space-y-10">
-            <ComplaintDetailsSection
-              data={formData.complaint}
-              onChange={handleComplaintChange}
-              errors={errors.complaint}
-              wordCount={descriptionWords}
-            />
-
-            {/* FORM ACTIONS */}
-            <div className="pt-4 border-t border-[#E5E3E0] flex flex-col sm:flex-row items-center justify-between gap-4">
-              <Button
-                type="button"
-                variant="outline"
-                size="md"
-                onClick={handleReset}
-                className="w-full sm:w-auto px-5 tracking-wide text-xs font-bold text-[#555] hover:text-[#141414]"
-                leftIcon={<RotateCcw className="w-3.5 h-3.5" />}
-              >
-                {t('formClear')}
-              </Button>
-
-              <Button
-                type="submit"
-                variant="primary"
-                size="md"
-                isLoading={isSubmitting}
-                disabled={descriptionWords > MAX_COMPLAINT_WORDS}
-                leftIcon={<Send className="w-3.5 h-3.5 text-white" />}
-                className="w-full sm:w-auto px-8 tracking-wide text-xs font-bold bg-[#681822] hover:bg-[#52131b] text-white border-transparent shadow-xs transition-colors"
-              >
-                {isSubmitting ? t('formSubmitting') : t('formSubmitButton')}
-              </Button>
-            </div>
-          </div>
+          {/* LEVEL C: Full-Width Complaint Writing Panel with Integrated Actions */}
+          <ComplaintDetailsSection
+            data={formData.complaint}
+            onChange={handleComplaintChange}
+            errors={errors.complaint}
+            wordCount={descriptionWords}
+            onReset={handleReset}
+            isSubmitting={isSubmitting}
+          />
         </form>
       </div>
 
