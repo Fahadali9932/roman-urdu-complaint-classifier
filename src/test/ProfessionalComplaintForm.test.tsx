@@ -46,7 +46,7 @@ describe('Professional Civic Complaint Form Suite (Guided 4-Stage Experience)', 
 
     expect(screen.getByText(/step 01 of 04/i)).toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 1, name: /what needs attention\?/i })).toBeInTheDocument();
-    expect(screen.getByText(/describe the public-service issue\./i)).toBeInTheDocument();
+    expect(screen.getByText(/tell us what happened\./i)).toBeInTheDocument();
 
     // Verify absence of obsolete rejected formal headers
     expect(screen.queryByText(/PUBLIC SERVICE COMPLAINT/i)).not.toBeInTheDocument();
@@ -68,7 +68,7 @@ describe('Professional Civic Complaint Form Suite (Guided 4-Stage Experience)', 
 
     // Reached Step 2
     await waitFor(() => {
-      expect(screen.getByRole('heading', { level: 1, name: /where is the problem\?/i })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { level: 1, name: /where did it happen\?/i })).toBeInTheDocument();
     });
 
     // Click Back button
@@ -176,11 +176,11 @@ describe('Professional Civic Complaint Form Suite (Guided 4-Stage Experience)', 
 
     // Reached Step 4 (Review)
     await waitFor(() => {
-      expect(screen.getByRole('heading', { level: 1, name: /check your complaint\./i })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { level: 1, name: /ready to review\?/i })).toBeInTheDocument();
     });
 
-    // Click Edit on "The Problem"
-    const editProblemBtn = screen.getByRole('button', { name: /edit the problem/i });
+    // Click Edit on "Complaint"
+    const editProblemBtn = screen.getByRole('button', { name: /edit complaint/i });
     fireEvent.click(editProblemBtn);
 
     // Returns directly to Step 1 with data intact
@@ -206,11 +206,11 @@ describe('Professional Civic Complaint Form Suite (Guided 4-Stage Experience)', 
     fireEvent.click(screen.getByRole('button', { name: /continue/i }));
 
     await waitFor(() => {
-      expect(screen.getByRole('heading', { level: 1, name: /check your complaint\./i })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { level: 1, name: /ready to review\?/i })).toBeInTheDocument();
     });
 
     // Final Submit
-    fireEvent.click(screen.getByRole('button', { name: /submit complaint \(prototype\)/i }));
+    fireEvent.click(screen.getByRole('button', { name: /submit complaint/i }));
 
     await waitFor(() => {
       expect(screen.getByText(/review your complaint/i)).toBeInTheDocument();

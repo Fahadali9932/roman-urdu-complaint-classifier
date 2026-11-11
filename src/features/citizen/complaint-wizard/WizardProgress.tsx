@@ -14,31 +14,53 @@ export const WizardProgress: React.FC<WizardProgressProps> = ({
   title,
   subtitle,
 }) => {
-  const { t, language } = useLanguage();
-  const ur = language === 'ur';
+  const { t } = useLanguage();
 
   const stepString = t('wizardStepCount')
     .replace('{current}', String(currentStep).padStart(2, '0'))
     .replace('{total}', String(totalSteps).padStart(2, '0'));
 
+  const stages = [
+    { step: 1, name: t('wizardStageProblem') },
+    { step: 2, name: t('wizardStageLocation') },
+    { step: 3, name: t('wizardStageContact') },
+    { step: 4, name: t('wizardStageReview') },
+  ];
+
   return (
-    <div className="space-y-3 pb-6 border-b border-[#F1EFEC] text-start">
-      {/* Step Counter Label */}
-      <div className="flex items-center justify-between">
-        <span className="font-mono text-xs font-bold uppercase tracking-widest text-[#77716E]">
+    <div className="space-y-2.5 pb-5 border-b border-[#F1EFEC] text-start">
+      {/* Top Meta: Step Counter & Subtle Stage Labels */}
+      <div className="flex items-center justify-between text-xs font-ui">
+        <span className="font-mono text-[11px] font-bold uppercase tracking-widest text-[#77716E]">
           {stepString}
         </span>
-        <span className="text-xs font-medium text-[#77716E] font-ui">
-          {currentStep === 1 && (ur ? 'شکایت' : 'Grievance')}
-          {currentStep === 2 && (ur ? 'مقام' : 'Location')}
-          {currentStep === 3 && (ur ? 'رابطہ' : 'Contact')}
-          {currentStep === 4 && (ur ? 'جائزہ' : 'Review')}
-        </span>
+        <div className="flex items-center gap-1.5 text-[11px] tracking-wide text-[#A8A29E]">
+          {stages.map((stage, idx) => {
+            const isCurrent = stage.step === currentStep;
+            const isCompleted = stage.step < currentStep;
+            return (
+              <React.Fragment key={stage.step}>
+                <span
+                  className={
+                    isCurrent
+                      ? 'text-[#141414] font-bold'
+                      : isCompleted
+                      ? 'text-[#681822] font-medium'
+                      : 'text-[#A8A29E]'
+                  }
+                >
+                  {stage.name}
+                </span>
+                {idx < stages.length - 1 && <span className="opacity-40">/</span>}
+              </React.Fragment>
+            );
+          })}
+        </div>
       </div>
 
-      {/* 4-Segmented Progress Bar */}
+      {/* Slim 4-Segmented Progress Indicator */}
       <div
-        className="grid grid-cols-4 gap-2"
+        className="grid grid-cols-4 gap-2 pt-0.5"
         role="progressbar"
         aria-valuenow={currentStep}
         aria-valuemin={1}
@@ -51,7 +73,7 @@ export const WizardProgress: React.FC<WizardProgressProps> = ({
           return (
             <div
               key={stepNum}
-              className={`h-1.5 rounded-full transition-all duration-300 ease-out ${
+              className={`h-[2.5px] rounded-full transition-all duration-300 ease-out ${
                 isActive ? 'bg-[#681822]' : 'bg-[#E8E5E1]'
               }`}
             />
@@ -59,13 +81,13 @@ export const WizardProgress: React.FC<WizardProgressProps> = ({
         })}
       </div>
 
-      {/* Step Heading & Subtitle */}
+      {/* Confident Question Heading & Supporting Line */}
       <div className="pt-2">
-        <h1 className="font-display font-black text-2xl sm:text-3xl text-[#141414] tracking-tight leading-tight">
+        <h1 className="font-display font-black text-2xl sm:text-[28px] text-[#141414] tracking-tight leading-tight">
           {title}
         </h1>
         {subtitle && (
-          <p className="text-xs sm:text-sm text-[#77716E] font-ui font-normal mt-1.5 leading-relaxed max-w-xl">
+          <p className="text-xs sm:text-sm text-[#77716E] font-ui font-normal mt-1 leading-relaxed">
             {subtitle}
           </p>
         )}

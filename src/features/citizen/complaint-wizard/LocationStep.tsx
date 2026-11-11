@@ -89,9 +89,9 @@ export const LocationStep: React.FC<LocationStepProps> = ({
   const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapsQuery)}`;
 
   return (
-    <div className="space-y-6 text-start">
+    <div className="space-y-5 text-start">
       {/* Locality Search Combobox */}
-      <div className="space-y-1.5">
+      <div className="space-y-1">
         <KarachiAreaCombobox
           id="locality"
           label={t('formLocality')}
@@ -109,8 +109,8 @@ export const LocationStep: React.FC<LocationStepProps> = ({
           error={errors.locality}
         />
 
-        {/* Free Official Google Maps Link */}
-        <div className="flex justify-end pt-1">
+        {/* Free Official Google Maps Companion Link */}
+        <div className="flex justify-end pt-0.5">
           <a
             href={mapsUrl}
             target="_blank"
@@ -123,33 +123,33 @@ export const LocationStep: React.FC<LocationStepProps> = ({
         </div>
       </div>
 
-      {/* District Surface: Custom Card for Auto-Resolved, Dropdown for Manual/Ambiguous */}
-      <div className="space-y-1.5">
+      {/* Quiet District Indicator after resolution */}
+      <div>
         {data.isDistrictAutoResolved && data.district ? (
-          <div className="rounded-xl border border-[#E8E5E1] bg-[#FAF9F7] p-3.5 transition-all shadow-2xs space-y-1">
-            <div className="flex items-center justify-between">
+          <div className="rounded-xl border border-[#E8E5E1] bg-[#FAF9F7] px-3.5 py-2.5 flex items-center justify-between transition-all">
+            <div className="flex items-center gap-2">
               <label
                 htmlFor="district"
                 className="text-[11px] font-mono font-bold tracking-wider uppercase text-[#77716E]"
               >
-                {t('formDistrict')} <span className="text-[#681822]">*</span>
+                {t('formDistrict')}:
               </label>
-              <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-[#681822] font-ui">
-                <CheckCircle2 className="w-3.5 h-3.5 text-[#681822]" />
-                {t('districtAutoIdentified')}
-              </span>
+              <input
+                id="district"
+                readOnly
+                tabIndex={0}
+                aria-label="Karachi District"
+                value={data.district}
+                className="bg-transparent font-ui text-sm font-bold text-[#141414] outline-none cursor-default"
+              />
             </div>
-            <input
-              id="district"
-              readOnly
-              tabIndex={0}
-              aria-label="Karachi District"
-              value={data.district}
-              className="w-full bg-transparent font-ui text-base font-bold text-[#141414] outline-none cursor-default"
-            />
+            <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#681822] font-ui shrink-0">
+              <CheckCircle2 className="w-3.5 h-3.5 text-[#681822]" />
+              {t('districtAutoIdentified')}
+            </span>
           </div>
         ) : data.districtNeedsConfirmation ? (
-          <div className="rounded-xl border border-[#681822]/30 bg-white p-3.5 transition-all shadow-2xs space-y-2">
+          <div className="rounded-xl border border-[#681822]/30 bg-white p-3 transition-all space-y-1.5">
             <div className="flex items-center justify-between">
               <label
                 htmlFor="district"
@@ -157,7 +157,7 @@ export const LocationStep: React.FC<LocationStepProps> = ({
               >
                 {t('formDistrict')} <span className="text-[#681822]">*</span>
               </label>
-              <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-[#681822] font-ui">
+              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#681822] font-ui">
                 <AlertCircle className="w-3.5 h-3.5 text-[#681822]" />
                 {t('districtNeedsConfirmation')}
               </span>
@@ -174,7 +174,7 @@ export const LocationStep: React.FC<LocationStepProps> = ({
             />
           </div>
         ) : (
-          <div className="rounded-xl border border-[#E8E5E1] bg-[#FAF9F7] p-3.5 transition-all space-y-2">
+          <div className="rounded-xl border border-[#E8E5E1] bg-[#FAF9F7] p-3 transition-all space-y-1.5">
             <label
               htmlFor="district"
               className="block text-[11px] font-mono font-bold tracking-wider uppercase text-[#77716E]"
@@ -212,11 +212,11 @@ export const LocationStep: React.FC<LocationStepProps> = ({
           value={data.publicLocation}
           onChange={(e) => onChange({ publicLocation: e.target.value })}
           error={errors.publicLocation}
-          className="text-base"
+          className="text-base h-[50px]"
         />
-        <p className="text-[11px] text-[#77716E] font-ui pt-1.5">
+        <p className="text-[11px] text-[#77716E] font-ui pt-1">
           {ur
-            ? 'مخصوص گلی، بلاک یا قریبی نشانی بلدیاتی عملے کو صحیح مقام تلاش کرنے میں مدد دیتی ہے۔'
+            ? 'مخصوص گلی، بلاک یا قریبی نشانی بلدیاتی عملے کو صحیح مقام پر پہنچنے میں مدد دیتی ہے۔'
             : 'The specified street or landmark directs municipal authorities to the exact site.'}
         </p>
       </div>

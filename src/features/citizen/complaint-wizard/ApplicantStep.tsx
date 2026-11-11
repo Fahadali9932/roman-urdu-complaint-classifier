@@ -31,9 +31,9 @@ export const ApplicantStep: React.FC<ApplicantStepProps> = ({
   };
 
   return (
-    <div className="space-y-6 text-start">
+    <div className="space-y-4.5 text-start">
       {/* Full Name & Phone Number */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4.5 sm:gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <Input
             label={t('formCitizenName')}
@@ -44,7 +44,7 @@ export const ApplicantStep: React.FC<ApplicantStepProps> = ({
             value={data.citizenName}
             onChange={(e) => onChange('citizenName', e.target.value)}
             error={errors.citizenName}
-            className="text-base"
+            className="text-base h-[50px]"
           />
         </div>
 
@@ -60,8 +60,8 @@ export const ApplicantStep: React.FC<ApplicantStepProps> = ({
             value={data.citizenPhone}
             onChange={(e) => onChange('citizenPhone', e.target.value)}
             error={errors.citizenPhone}
-            helperText={!errors.citizenPhone ? 'Format: 03XXXXXXXXX or +923XXXXXXXXX' : undefined}
-            className="text-base text-start"
+            helperText={!errors.citizenPhone ? '03XXXXXXXXX or +923XXXXXXXXX' : undefined}
+            className="text-base h-[50px] text-start"
           />
         </div>
       </div>
@@ -78,29 +78,30 @@ export const ApplicantStep: React.FC<ApplicantStepProps> = ({
           value={data.citizenEmail}
           onChange={(e) => onChange('citizenEmail', e.target.value)}
           error={errors.citizenEmail}
-          className="text-base text-start"
+          className="text-base h-[50px] text-start"
         />
       </div>
 
-      {/* Discreet Expandable Residential Address Control */}
-      <div>
+      {/* Discreet Expandable Residential Address */}
+      <div className="pt-0.5">
         {!showAddressField ? (
           <button
             type="button"
             onClick={handleToggleAddress}
-            className="inline-flex items-center gap-2 text-xs sm:text-sm font-medium text-[#681822] hover:text-[#52131b] hover:underline font-ui py-1 transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-medium text-[#681822] hover:text-[#52131b] hover:underline font-ui py-1 transition-colors cursor-pointer"
           >
-            <Plus className="w-4 h-4" />
-            {t('wizardAddAddress')}
+            <Plus className="w-3.5 h-3.5" />
+            <span>{t('wizardAddAddress')}</span>
           </button>
         ) : (
-          <div className="space-y-2 p-4 rounded-xl border border-[#E8E5E1] bg-[#FAF9F7] transition-all">
+          <div className="space-y-1.5 transition-all">
             <div className="flex items-center justify-between">
               <label
                 htmlFor="applicantAddress"
                 className="block text-xs sm:text-sm font-medium text-[#141414] select-none font-ui"
               >
-                {t('formApplicantAddress')} <span className="text-[#77716E] font-normal text-xs">({ur ? 'اختیاری' : 'Optional'})</span>
+                {t('formApplicantAddress')}{' '}
+                <span className="text-[#77716E] font-normal text-xs">({ur ? 'اختیاری' : 'Optional'})</span>
               </label>
               <button
                 type="button"
@@ -108,7 +109,7 @@ export const ApplicantStep: React.FC<ApplicantStepProps> = ({
                 className="inline-flex items-center gap-1 text-xs text-[#77716E] hover:text-[#681822] transition-colors cursor-pointer font-ui"
               >
                 <X className="w-3.5 h-3.5" />
-                {t('wizardRemoveAddress')}
+                <span>{t('wizardRemoveAddress')}</span>
               </button>
             </div>
             <Input
@@ -117,19 +118,17 @@ export const ApplicantStep: React.FC<ApplicantStepProps> = ({
               placeholder={t('formApplicantAddressPlaceholder')}
               value={data.applicantAddress}
               onChange={(e) => onChange('applicantAddress', e.target.value)}
-              className="text-base bg-white"
+              className="text-base h-[50px]"
             />
           </div>
         )}
       </div>
 
-      {/* Privacy Reassurance Note */}
+      {/* Brief, Accurate Privacy Reassurance Note */}
       <div className="pt-2">
-        <div className="flex items-start gap-2.5 p-3.5 rounded-xl bg-[#FAF9F7] border border-[#E8E5E1] text-[#77716E]">
-          <ShieldCheck className="w-4 h-4 text-[#681822] shrink-0 mt-0.5" />
-          <p className="text-xs font-ui leading-relaxed">
-            {t('applicantPrivacyNote')}
-          </p>
+        <div className="flex items-center gap-2 text-[#77716E] text-xs font-ui">
+          <ShieldCheck className="w-4 h-4 text-[#681822] shrink-0" />
+          <span>{t('applicantPrivacyNote')}</span>
         </div>
       </div>
     </div>

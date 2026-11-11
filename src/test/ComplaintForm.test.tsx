@@ -19,7 +19,7 @@ describe('ComplaintForm Component (Guided 4-Stage Workflow)', () => {
     renderForm();
 
     expect(screen.getByRole('heading', { level: 1, name: /what needs attention\?/i })).toBeInTheDocument();
-    expect(screen.getByText(/describe the public-service issue\./i)).toBeInTheDocument();
+    expect(screen.getByText(/tell us what happened\./i)).toBeInTheDocument();
     expect(screen.getByLabelText(/complaint subject \/ title/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/complaint description/i)).toBeInTheDocument();
     expect(screen.getByTestId('word-count-display')).toHaveTextContent('0');
@@ -84,7 +84,7 @@ describe('ComplaintForm Component (Guided 4-Stage Workflow)', () => {
 
     // STEP 2: The Location
     await waitFor(() => {
-      expect(screen.getByRole('heading', { level: 1, name: /where is the problem\?/i })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { level: 1, name: /where did it happen\?/i })).toBeInTheDocument();
     });
 
     fireEvent.change(screen.getByLabelText(/area \/ locality/i), {
@@ -110,13 +110,13 @@ describe('ComplaintForm Component (Guided 4-Stage Workflow)', () => {
 
     // STEP 4: Review
     await waitFor(() => {
-      expect(screen.getByRole('heading', { level: 1, name: /check your complaint\./i })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { level: 1, name: /ready to review\?/i })).toBeInTheDocument();
       expect(screen.getByText('Water supply line leak')).toBeInTheDocument();
       expect(screen.getByText('Bilal Ahmed')).toBeInTheDocument();
     });
 
     // Final Prototype Submit
-    const submitButton = screen.getByRole('button', { name: /submit complaint \(prototype\)/i });
+    const submitButton = screen.getByRole('button', { name: /submit complaint/i });
     fireEvent.click(submitButton);
 
     await waitFor(
