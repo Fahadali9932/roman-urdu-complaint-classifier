@@ -75,6 +75,7 @@ export const WizardShell: React.FC<WizardShellProps> = ({
               <div>
                 {currentStep > 1 ? (
                   <button
+                    id="wizard-back-btn"
                     type="button"
                     onClick={onBack}
                     className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[#E8E5E1] bg-white text-[#77716E] hover:text-[#141414] hover:bg-[#FAF9F7] font-semibold text-xs sm:text-sm tracking-wide transition-colors cursor-pointer font-ui"
@@ -84,6 +85,7 @@ export const WizardShell: React.FC<WizardShellProps> = ({
                   </button>
                 ) : onReset ? (
                   <button
+                    id="wizard-clear-btn"
                     type="button"
                     onClick={onReset}
                     className="inline-flex items-center gap-1.5 px-3 py-2 text-xs text-[#77716E] hover:text-[#141414] transition-colors cursor-pointer font-ui"
@@ -98,6 +100,7 @@ export const WizardShell: React.FC<WizardShellProps> = ({
 
               <div>
                 <button
+                  id="wizard-continue-btn"
                   type="button"
                   onClick={onContinue}
                   disabled={!canContinue || isSubmitting}
