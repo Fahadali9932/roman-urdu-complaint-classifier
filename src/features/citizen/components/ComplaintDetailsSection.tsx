@@ -32,7 +32,7 @@ export const ComplaintDetailsSection: React.FC<ComplaintDetailsSectionProps> = (
   const isOverLimit = wordCount > MAX_COMPLAINT_WORDS;
 
   return (
-    <div className="bg-white rounded-2xl border border-[#E8E5E1] p-6 sm:p-8 shadow-[0_4px_24px_-4px_rgba(20,20,20,0.04)] space-y-6">
+    <div id="complaint-details-panel" className="bg-white rounded-2xl border border-[#E8E5E1] p-6 sm:p-8 shadow-[0_4px_24px_-4px_rgba(20,20,20,0.04)] space-y-6">
       {/* Designed Panel Header */}
       <div className="flex items-center gap-3.5 pb-5 border-b border-[#F1EFEC]">
         <div className="w-10 h-10 rounded-xl bg-[#F7EFF0] text-[#681822] flex items-center justify-center shrink-0 border border-[#681822]/10">
@@ -115,7 +115,7 @@ export const ComplaintDetailsSection: React.FC<ComplaintDetailsSectionProps> = (
       </div>
 
       {/* Integrated Action Bar at bottom of panel */}
-      <div className="pt-6 border-t border-[#F1EFEC] flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div id="action-buttons-group" className="pt-6 border-t border-[#F1EFEC] flex flex-col sm:flex-row items-center justify-between gap-4">
         <Button
           type="button"
           variant="outline"

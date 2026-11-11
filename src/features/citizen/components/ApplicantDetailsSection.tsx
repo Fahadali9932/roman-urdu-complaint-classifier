@@ -19,7 +19,7 @@ export const ApplicantDetailsSection: React.FC<ApplicantDetailsSectionProps> = (
   const ur = language === 'ur';
 
   return (
-    <div className="bg-white rounded-2xl border border-[#E8E5E1] p-6 sm:p-7 shadow-[0_4px_20px_-2px_rgba(20,20,20,0.03)] flex flex-col justify-between">
+    <div id="applicant-details-panel" className="bg-white rounded-2xl border border-[#E8E5E1] p-6 sm:p-7 shadow-[0_4px_20px_-2px_rgba(20,20,20,0.03)] flex flex-col justify-between">
       <div>
         {/* Designed Panel Header */}
         <div className="flex items-center gap-3.5 pb-5 border-b border-[#F1EFEC]">
