@@ -38,7 +38,7 @@ export const PenProgressBar: React.FC<PenProgressBarProps> = ({
 
   return (
     <div
-      className="w-full relative py-4 sm:py-5 select-none"
+      className="w-full relative py-4 sm:py-6 select-none"
       role="progressbar"
       aria-label={ur ? 'شکایت فارم کی پیش رفت' : 'Complaint progress'}
       aria-valuenow={clampedProgress}
@@ -46,35 +46,44 @@ export const PenProgressBar: React.FC<PenProgressBarProps> = ({
       aria-valuemax={100}
       aria-valuetext={ur ? `${clampedProgress} فیصد مکمل` : `${clampedProgress}% completed`}
     >
-      {/* Track Container */}
-      <div className="relative w-full max-w-4xl mx-auto px-4 sm:px-8">
-        {/* Distance / Progress Endpoints (Reference 1 Inspiration) */}
-        <div className="flex items-center justify-between text-[11px] font-mono text-white/50 mb-3 px-1">
-          <span className="flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-white/40" />
-            <span>{ur ? 'آغاز' : 'Start'}</span>
+      {/* Target Geometry: Width ~680-740px where space allows */}
+      <div className="relative w-full max-w-[740px] mx-auto px-5 sm:px-6">
+        {/* Endpoints & Trajectory Header */}
+        <div className="flex items-center justify-between text-xs font-mono text-white/60 mb-3.5 px-1">
+          <span className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-white/50 ring-2 ring-white/20" />
+            <span className="font-medium tracking-wide">{ur ? 'آغاز' : 'Start'}</span>
           </span>
-          <span className="text-white/40 text-[10px] tracking-wider uppercase">
+          <span className="text-white/45 text-[11px] tracking-widest uppercase font-semibold">
             {ur ? 'قلمی پیش رفت' : 'Ink Trajectory'}
           </span>
-          <span className="flex items-center gap-1.5 font-semibold text-white/80">
-            <span>{isComplete ? (ur ? 'مکمل' : 'Ready') : '100%'}</span>
-            <span className={`w-2 h-2 rounded-full ${isComplete ? 'bg-[#FFCCD2] shadow-[0_0_8px_#FFCCD2]' : 'bg-white/40'}`} />
+          <span className="flex items-center gap-2 font-semibold text-white/90">
+            <span className="tracking-wide">{isComplete ? (ur ? 'مکمل' : 'Ready') : '100%'}</span>
+            <span
+              className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
+                isComplete
+                  ? 'bg-[#FFCCD2] shadow-[0_0_10px_#FFCCD2] ring-2 ring-[#FFCCD2]/50'
+                  : 'bg-white/40 ring-2 ring-white/15'
+              }`}
+            />
           </span>
         </div>
 
-        {/* Main Horizontal Track */}
-        <div className="relative h-2 w-full bg-white/10 rounded-full backdrop-blur-md overflow-visible border border-white/10">
-          {/* Active Ink Trail Fill */}
+        {/* Thick, Fully Rounded Main Horizontal Track (12-14px) */}
+        <div className="relative h-3.5 sm:h-[14px] w-full bg-black/45 rounded-full backdrop-blur-md overflow-visible border border-white/20 shadow-[inset_0_2px_4px_rgba(0,0,0,0.65),0_6px_18px_rgba(0,0,0,0.4)]">
+          {/* Active Substantial Ink Trail Fill with Rounded Ends */}
           <div
-            className="absolute top-0 bottom-0 rounded-full transition-all duration-300 ease-out bg-gradient-to-r from-[#681822] via-[#8A232E] to-[#E89BA4] shadow-[0_0_12px_rgba(232,155,164,0.4)]"
+            className="absolute top-0 bottom-0 rounded-full transition-all duration-300 ease-out bg-gradient-to-r from-[#681822] via-[#8A232E] to-[#E89BA4] shadow-[0_0_18px_rgba(232,155,164,0.55)] overflow-hidden"
             style={{
               [isRTL ? 'right' : 'left']: 0,
               width: `${clampedProgress}%`,
             }}
-          />
+          >
+            {/* Top-edge specular highlight inside the ink trail */}
+            <div className="absolute top-0 left-0 right-0 h-[1.5px] bg-white/40 rounded-full" />
+          </div>
 
-          {/* Milestone Checkpoints along track */}
+          {/* Milestone Checkpoints Along Track (Proportionate 22px discs) */}
           {stages.map((st) => {
             const isPassed = clampedProgress >= st.percent || st.ready;
             const isCurrent = currentStage === st.id;
@@ -86,12 +95,12 @@ export const PenProgressBar: React.FC<PenProgressBarProps> = ({
                 onClick={() => onSelectStage && onSelectStage(st.id)}
                 disabled={!onSelectStage || (!isPassed && currentStage < st.id)}
                 title={st.label}
-                className={`absolute top-1/2 -translate-y-1/2 -translate-x-1/2 z-10 w-4 h-4 rounded-full flex items-center justify-center transition-all duration-300 cursor-pointer ${
+                className={`absolute top-1/2 -translate-y-1/2 -translate-x-1/2 z-10 w-[22px] h-[22px] rounded-full flex items-center justify-center transition-all duration-300 cursor-pointer ${
                   isPassed
-                    ? 'bg-[#681822] text-white border-2 border-white ring-2 ring-[#681822]/50'
+                    ? 'bg-[#681822] text-white border-2 border-white ring-2 ring-[#681822]/60 shadow-[0_0_10px_rgba(104,24,34,0.7)]'
                     : isCurrent
-                      ? 'bg-white text-[#141414] border-2 border-[#681822] ring-2 ring-white/50'
-                      : 'bg-[#222] border-2 border-white/30 text-white/40'
+                      ? 'bg-white text-[#141414] border-2 border-[#681822] ring-2 ring-white/70 shadow-[0_0_12px_rgba(255,255,255,0.6)]'
+                      : 'bg-[#18181b] border-2 border-white/30 text-white/40 hover:border-white/50'
                 }`}
                 style={{
                   [isRTL ? 'right' : 'left']: `${st.percent}%`,
@@ -99,7 +108,7 @@ export const PenProgressBar: React.FC<PenProgressBarProps> = ({
                 }}
               >
                 {st.ready ? (
-                  <Check className="w-2.5 h-2.5 stroke-[3]" />
+                  <Check className="w-3 h-3 stroke-[3]" />
                 ) : (
                   <span className="w-1.5 h-1.5 rounded-full bg-current" />
                 )}
@@ -107,7 +116,7 @@ export const PenProgressBar: React.FC<PenProgressBarProps> = ({
             );
           })}
 
-          {/* MOVING FOUNTAIN PEN NIB & TOOLTIP BUBBLE (Signature Feature) */}
+          {/* VISUALLY PROMINENT FOUNTAIN PEN (32-38px) & TOOLTIP BUBBLE */}
           <div
             className="absolute top-1/2 -translate-y-1/2 z-20 pointer-events-none transition-all duration-300 ease-out"
             style={{
@@ -115,59 +124,101 @@ export const PenProgressBar: React.FC<PenProgressBarProps> = ({
               transform: 'translate(-50%, -50%)',
             }}
           >
-            {/* The Custom Pen Illustration */}
+            {/* Custom High-Fidelity Fountain Pen Illustration */}
             <div
-              className={`relative -top-4 transition-transform duration-300 ${
-                isComplete ? 'scale-115 animate-pulse' : 'scale-100'
+              className={`relative -top-5 sm:-top-6 transition-transform duration-300 origin-bottom ${
+                isComplete ? 'scale-110' : 'scale-100'
               } ${isRTL ? '-scale-x-100 -rotate-12' : 'rotate-12'}`}
             >
               <svg
-                viewBox="0 0 28 40"
+                viewBox="0 0 36 50"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
-                className="w-7 h-9 overflow-visible filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.6)]"
+                className="w-[32px] h-[44px] sm:w-[36px] sm:h-[50px] overflow-visible drop-shadow-[0_8px_16px_rgba(0,0,0,0.85)] filter"
               >
-                {/* Metallic Nib Blade */}
-                <path
-                  d="M14 2 L23 16 L20 28 L14 38 L8 28 L5 16 Z"
-                  fill="url(#pen-grad-body)"
-                  stroke="#FFFFFF"
-                  strokeWidth="1.2"
-                />
-                {/* Nib Inlay Blood Maroon Detail */}
-                <path
-                  d="M14 16 L18 24 L14 32 L10 24 Z"
-                  fill="#681822"
-                  opacity="0.9"
-                />
-                {/* Breather Hole & Ink Slit */}
-                <circle cx="14" cy="18" r="1.5" fill="#FFFFFF" />
-                <line x1="14" y1="18" x2="14" y2="38" stroke="#FFFFFF" strokeWidth="1" />
-                {/* Pen Collar Section */}
-                <rect x="7" y="10" width="14" height="3" rx="1" fill="#141414" stroke="#FFFFFF" strokeWidth="0.8" />
-                {/* Metallic Gradients */}
                 <defs>
-                  <linearGradient id="pen-grad-body" x1="5" y1="2" x2="23" y2="38" gradientUnits="userSpaceOnUse">
+                  {/* Metallic gradient for nib body */}
+                  <linearGradient id="pen-metal-grad" x1="0" y1="0" x2="36" y2="50" gradientUnits="userSpaceOnUse">
                     <stop offset="0%" stopColor="#FFFFFF" />
-                    <stop offset="35%" stopColor="#ECEAE6" />
-                    <stop offset="65%" stopColor="#B4B2AE" />
-                    <stop offset="100%" stopColor="#FAF6F0" />
+                    <stop offset="25%" stopColor="#F0EEEB" />
+                    <stop offset="50%" stopColor="#C4C1BC" />
+                    <stop offset="75%" stopColor="#ECEAE6" />
+                    <stop offset="100%" stopColor="#FFFFFF" />
+                  </linearGradient>
+                  {/* Collar grip gradient */}
+                  <linearGradient id="pen-grip-grad" x1="0" y1="0" x2="36" y2="0" gradientUnits="userSpaceOnUse">
+                    <stop offset="0%" stopColor="#181818" />
+                    <stop offset="50%" stopColor="#383838" />
+                    <stop offset="100%" stopColor="#141414" />
                   </linearGradient>
                 </defs>
+
+                {/* Pen Grip Section / Collar (Top) */}
+                <rect x="9" y="2" width="18" height="6" rx="2" fill="url(#pen-grip-grad)" stroke="#FFFFFF" strokeWidth="1" />
+                <line x1="9" y1="5" x2="27" y2="5" stroke="#E89BA4" strokeWidth="1.2" />
+
+                {/* Main Nib Blade Silhouette tapering to tip at bottom (18, 48) */}
+                <path
+                  d="M10 8 L26 8 L29 20 L23 34 L18 48 L13 34 L7 20 Z"
+                  fill="url(#pen-metal-grad)"
+                  stroke="#FFFFFF"
+                  strokeWidth="1.4"
+                  strokeLinejoin="round"
+                />
+
+                {/* Nib Inlaid Blood Maroon Emblem */}
+                <path
+                  d="M18 20 L22 30 L18 40 L14 30 Z"
+                  fill="#681822"
+                  stroke="#8A232E"
+                  strokeWidth="0.8"
+                />
+
+                {/* Breather Hole and Ink Slit */}
+                <circle cx="18" cy="22" r="2" fill="#FFFFFF" />
+                <line x1="18" y1="22" x2="18" y2="48" stroke="#FFFFFF" strokeWidth="1.2" />
               </svg>
 
-              {/* Ink Sparkle at Tip */}
-              <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-[#FFCCD2] shadow-[0_0_6px_#FFCCD2] animate-ping" />
+              {/* Glowing Ink Dot at Tip (Non-continuous pulse) */}
+              <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-[#FFCCD2] shadow-[0_0_8px_#FFCCD2]" />
             </div>
 
-            {/* Tooltip Bubble (Reference 1 Style) */}
-            <div className="absolute top-5 left-1/2 -translate-x-1/2 flex flex-col items-center">
+            {/* Speech Bubble Tooltip Indicator */}
+            <div
+              className={`absolute top-6 flex flex-col items-center transition-transform duration-300 ${
+                isRTL
+                  ? clampedProgress > 80
+                    ? '-translate-x-[20%]'
+                    : clampedProgress < 20
+                    ? '-translate-x-[80%]'
+                    : '-translate-x-1/2'
+                  : clampedProgress > 80
+                  ? '-translate-x-[80%]'
+                  : clampedProgress < 20
+                  ? '-translate-x-[20%]'
+                  : '-translate-x-1/2'
+              }`}
+            >
               {/* Upward Triangle Pointer */}
-              <div className="w-0 h-0 border-x-4 border-x-transparent border-b-4 border-b-white/95" />
+              <div
+                className={`w-0 h-0 border-x-[5px] border-x-transparent border-b-[5px] border-b-white/95 ${
+                  isRTL
+                    ? clampedProgress > 80
+                      ? 'me-6'
+                      : clampedProgress < 20
+                      ? 'ms-6'
+                      : ''
+                    : clampedProgress > 80
+                    ? 'ms-6'
+                    : clampedProgress < 20
+                    ? 'me-6'
+                    : ''
+                }`}
+              />
               {/* Tooltip Pill */}
-              <div className="px-2.5 py-0.5 rounded-full bg-white/95 backdrop-blur-md border border-white shadow-[0_4px_12px_rgba(0,0,0,0.35)] flex items-center gap-1.5 whitespace-nowrap">
+              <div className="px-3 py-0.5 rounded-full bg-white/95 backdrop-blur-md border border-white shadow-[0_6px_16px_rgba(0,0,0,0.4)] flex items-center gap-1.5 whitespace-nowrap">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#681822]" />
-                <span className="text-[10.5px] font-mono font-bold text-[#141414]">
+                <span className="text-[11px] font-mono font-bold text-[#141414]">
                   {isComplete ? (ur ? 'تیار ۱۰۰٪' : '100% Ready') : `${clampedProgress}%`}
                 </span>
               </div>
@@ -175,22 +226,22 @@ export const PenProgressBar: React.FC<PenProgressBarProps> = ({
           </div>
         </div>
 
-        {/* Milestone Labels below track */}
-        <div className="relative w-full mt-6 flex justify-between text-[11px] font-ui text-white/70">
+        {/* Milestone Labels Below Track */}
+        <div className="relative w-full mt-7 flex justify-between text-xs font-ui text-white/75">
           <span className="text-start">
-            <span className="block text-[9px] font-mono uppercase text-white/40">01</span>
+            <span className="block text-[10px] font-mono uppercase text-white/45">01</span>
             <span className={currentStage === 1 ? 'text-white font-semibold' : ''}>
               {stages[0].label}
             </span>
           </span>
           <span className="text-center">
-            <span className="block text-[9px] font-mono uppercase text-white/40">02</span>
+            <span className="block text-[10px] font-mono uppercase text-white/45">02</span>
             <span className={currentStage === 2 ? 'text-white font-semibold' : ''}>
               {stages[1].label}
             </span>
           </span>
           <span className="text-end">
-            <span className="block text-[9px] font-mono uppercase text-white/40">03</span>
+            <span className="block text-[10px] font-mono uppercase text-white/45">03</span>
             <span className={currentStage === 3 ? 'text-white font-semibold' : ''}>
               {stages[2].label}
             </span>

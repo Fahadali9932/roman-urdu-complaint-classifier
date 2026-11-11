@@ -192,13 +192,15 @@ export const KarachiAreaCombobox: React.FC<KarachiAreaComboboxProps> = ({
               ? 'علاقہ منتخب کریں (مثلاً: گلشن، جوہر، کلفٹن، نارتھ ناظم آباد...)'
               : 'Type area, block or scheme (e.g., Gulshan, Johar, DHA, Clifton...)')
           }
-          className={`w-full min-h-[48px] rounded-xl border py-2.5 font-sans text-sm sm:text-base transition-all outline-none shadow-2xs ${
+          className={`w-full ${
+            variant === 'glass' ? 'min-h-[52px] sm:min-h-14 rounded-[16px] border-[1.5px] py-3' : 'min-h-[48px] rounded-xl border py-2.5 shadow-2xs'
+          } font-sans text-sm sm:text-base transition-all outline-none ${
             isRTL ? 'pe-10 ps-10' : 'ps-10 pe-10'
           } ${
             variant === 'glass'
               ? error
                 ? 'border-rose-400 bg-rose-950/30 text-white placeholder:text-white/40 focus:ring-1 focus:ring-rose-400'
-                : 'border-white/15 bg-white/[0.06] text-white placeholder:text-white/40 hover:border-white/30 focus:border-[#681822] focus:bg-white/[0.1] focus:ring-1 focus:ring-[#681822]'
+                : 'border-white/14 bg-white/[0.07] text-white placeholder:text-white/40 hover:border-white/25 hover:bg-white/[0.09] focus:border-[#E89BA4] focus:bg-white/[0.11] focus:ring-2 focus:ring-[#681822]/40 focus:shadow-[0_0_16px_rgba(104,24,34,0.35)]'
               : error
                 ? 'border-rose-500 focus:border-rose-600 focus:ring-1 focus:ring-rose-500 bg-rose-50/20 text-[#141414] placeholder:text-[#888]'
                 : 'border-[#E8E5E1] hover:border-[#323232] focus:border-[#141414] focus:ring-1 focus:ring-[#141414] bg-white text-[#141414] placeholder:text-[#888]'
@@ -226,10 +228,10 @@ export const KarachiAreaCombobox: React.FC<KarachiAreaComboboxProps> = ({
           id={`${id}-listbox`}
           role="listbox"
           aria-label={label}
-          className={`absolute z-50 left-0 right-0 mt-2 max-h-72 overflow-y-auto rounded-xl border p-1.5 text-start transition-all ${
+          className={`absolute z-50 left-0 right-0 mt-2 max-h-72 overflow-y-auto border p-2 text-start transition-all ${
             variant === 'glass'
-              ? 'border-white/20 bg-[#181818]/95 backdrop-blur-2xl text-white divide-y divide-white/10 shadow-2xl shadow-black/80'
-              : 'border-[#E8E5E1] bg-white text-start divide-y divide-[#F4F3F0] shadow-xl shadow-black/8'
+              ? 'rounded-[20px] border-white/18 bg-[rgba(22,20,24,0.80)] backdrop-blur-2xl text-white divide-y divide-white/10 shadow-[0_24px_60px_rgba(0,0,0,0.65),inset_0_1px_0_rgba(255,255,255,0.15)]'
+              : 'rounded-xl border-[#E8E5E1] bg-white text-start divide-y divide-[#F4F3F0] shadow-xl shadow-black/8'
           }`}
         >
           {results.map((item, index) => {
@@ -245,10 +247,10 @@ export const KarachiAreaCombobox: React.FC<KarachiAreaComboboxProps> = ({
                   aria-selected={isSelected}
                   onClick={() => handleSelect(item)}
                   onMouseEnter={() => setHighlightedIndex(index)}
-                  className={`flex items-center gap-3 px-3.5 py-3 rounded-lg cursor-pointer text-xs font-ui transition-colors ${
+                  className={`flex items-center gap-3 px-3.5 py-3 rounded-[12px] cursor-pointer text-xs font-ui transition-colors ${
                     variant === 'glass'
                       ? isHighlighted
-                        ? 'bg-[#681822]/40 text-white'
+                        ? 'bg-[#681822]/45 text-white'
                         : 'text-white/90 hover:bg-white/10'
                       : isHighlighted
                         ? 'bg-[#F7EFF0] text-[#681822]'
@@ -278,10 +280,10 @@ export const KarachiAreaCombobox: React.FC<KarachiAreaComboboxProps> = ({
                 aria-selected={isSelected}
                 onClick={() => handleSelect(item)}
                 onMouseEnter={() => setHighlightedIndex(index)}
-                className={`flex items-center justify-between gap-3 px-3.5 py-2.5 rounded-lg cursor-pointer font-ui text-xs sm:text-sm transition-colors ${
+                className={`flex items-center justify-between gap-3 px-3.5 py-2.5 rounded-[12px] cursor-pointer font-ui text-xs sm:text-sm transition-colors ${
                   variant === 'glass'
                     ? isHighlighted
-                      ? 'bg-[#681822]/40 text-white'
+                      ? 'bg-[#681822]/45 text-white'
                       : 'text-white/90 hover:bg-white/10'
                     : isHighlighted
                       ? 'bg-[#F7EFF0] text-[#681822]'
