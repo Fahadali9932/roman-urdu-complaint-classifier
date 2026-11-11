@@ -150,7 +150,7 @@ export const KarachiAreaCombobox: React.FC<KarachiAreaComboboxProps> = ({
 
       {/* Input Box */}
       <div className="relative">
-        <div className={`absolute top-1/2 -translate-y-1/2 ${isRTL ? 'right-3.5' : 'left-3.5'} pointer-events-none text-[#777]`}>
+        <div className={`absolute top-1/2 -translate-y-1/2 ${isRTL ? 'right-3.5' : 'left-3.5'} pointer-events-none text-[#77716E]`}>
           <Search className="w-4 h-4" />
         </div>
 
@@ -186,12 +186,12 @@ export const KarachiAreaCombobox: React.FC<KarachiAreaComboboxProps> = ({
               ? 'علاقہ منتخب کریں (مثلاً: گلشن، جوہر، کلفٹن، نارتھ ناظم آباد...)'
               : 'Type area, block or scheme (e.g., Gulshan, Johar, DHA, Clifton...)')
           }
-          className={`w-full min-h-[44px] rounded-lg border bg-white py-2.5 font-sans text-sm sm:text-base text-[#141414] transition-all placeholder:text-[#888] outline-none ${
+          className={`w-full min-h-[48px] rounded-xl border bg-white py-2.5 font-sans text-sm sm:text-base text-[#141414] transition-all placeholder:text-[#888] outline-none shadow-2xs ${
             isRTL ? 'pe-10 ps-10' : 'ps-10 pe-10'
           } ${
             error
               ? 'border-rose-500 focus:border-rose-600 focus:ring-1 focus:ring-rose-500 bg-rose-50/20'
-              : 'border-[#E5E3E0] hover:border-[#323232] focus:border-[#141414] focus:ring-1 focus:ring-[#141414]'
+              : 'border-[#E8E5E1] hover:border-[#323232] focus:border-[#141414] focus:ring-1 focus:ring-[#141414]'
           }`}
         />
 
@@ -199,7 +199,7 @@ export const KarachiAreaCombobox: React.FC<KarachiAreaComboboxProps> = ({
           <button
             type="button"
             onClick={handleClear}
-            className={`absolute top-1/2 -translate-y-1/2 ${isRTL ? 'left-3' : 'right-3'} p-1 text-[#777] hover:text-[#141414] transition-colors`}
+            className={`absolute top-1/2 -translate-y-1/2 ${isRTL ? 'left-3' : 'right-3'} p-1.5 text-[#77716E] hover:text-[#141414] transition-colors`}
             aria-label={ur ? 'صاف کریں' : 'Clear locality input'}
           >
             <X className="w-3.5 h-3.5" />
@@ -214,7 +214,7 @@ export const KarachiAreaCombobox: React.FC<KarachiAreaComboboxProps> = ({
           id={`${id}-listbox`}
           role="listbox"
           aria-label={label}
-          className="absolute z-50 left-0 right-0 mt-1 max-h-64 overflow-y-auto rounded-lg border border-[#E5E3E0] bg-white py-1.5 shadow-lg shadow-black/5 text-start divide-y divide-[#F4F3F0]"
+          className="absolute z-50 left-0 right-0 mt-2 max-h-72 overflow-y-auto rounded-xl border border-[#E8E5E1] bg-white p-1.5 shadow-xl shadow-black/8 text-start divide-y divide-[#F4F3F0] transition-all"
         >
           {results.map((item, index) => {
             const isHighlighted = index === highlightedIndex;
@@ -229,14 +229,16 @@ export const KarachiAreaCombobox: React.FC<KarachiAreaComboboxProps> = ({
                   aria-selected={isSelected}
                   onClick={() => handleSelect(item)}
                   onMouseEnter={() => setHighlightedIndex(index)}
-                  className={`flex items-center gap-2.5 px-3.5 py-2.5 cursor-pointer text-xs font-ui transition-colors ${
-                    isHighlighted ? 'bg-[#F7F6F3] text-[#681822]' : 'text-[#333]'
+                  className={`flex items-center gap-3 px-3.5 py-3 rounded-lg cursor-pointer text-xs font-ui transition-colors ${
+                    isHighlighted ? 'bg-[#F7EFF0] text-[#681822]' : 'text-[#141414] hover:bg-[#FAF9F7]'
                   }`}
                 >
-                  <PlusCircle className="w-4 h-4 text-[#681822] shrink-0" />
+                  <div className="w-7 h-7 rounded-lg bg-[#F7EFF0] text-[#681822] flex items-center justify-center shrink-0">
+                    <PlusCircle className="w-4 h-4" />
+                  </div>
                   <div className="flex-1">
-                    <span className="font-semibold block text-sm text-[#141414]">{item.name}</span>
-                    <span className="text-xs text-[#666] block pt-0.5">
+                    <span className="font-semibold block text-sm">{item.name}</span>
+                    <span className="text-xs text-[#77716E] block pt-0.5">
                       {ur ? 'فہرست میں نہیں ملا؟ دستی اندراج منتخب کریں' : 'Area not found. Select to enter area manually'}
                     </span>
                   </div>
@@ -252,22 +254,26 @@ export const KarachiAreaCombobox: React.FC<KarachiAreaComboboxProps> = ({
                 aria-selected={isSelected}
                 onClick={() => handleSelect(item)}
                 onMouseEnter={() => setHighlightedIndex(index)}
-                className={`flex items-center justify-between gap-3 px-3.5 py-2.5 cursor-pointer font-ui text-xs sm:text-sm transition-colors ${
-                  isHighlighted ? 'bg-[#F7F6F3] text-[#681822]' : 'text-[#141414]'
+                className={`flex items-center justify-between gap-3 px-3.5 py-2.5 rounded-lg cursor-pointer font-ui text-xs sm:text-sm transition-colors ${
+                  isHighlighted ? 'bg-[#F7EFF0] text-[#681822]' : 'text-[#141414] hover:bg-[#FAF9F7]'
                 }`}
               >
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <MapPin className={`w-3.5 h-3.5 shrink-0 ${isHighlighted ? 'text-[#681822]' : 'text-[#888]'}`} />
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                    isHighlighted ? 'bg-white text-[#681822]' : 'bg-[#FAF9F7] text-[#77716E]'
+                  }`}>
+                    <MapPin className="w-3.5 h-3.5" />
+                  </div>
                   <div className="truncate">
                     <span className="font-semibold block truncate text-sm">
                       {item.name}
                       {ur && item.nameUrdu && (
-                        <span className="ms-2 text-xs font-normal text-[#555]">
+                        <span className="ms-2 text-xs font-normal text-[#77716E]">
                           ({item.nameUrdu})
                         </span>
                       )}
                     </span>
-                    <span className="text-xs text-[#666] block pt-0.5">
+                    <span className="text-xs text-[#77716E] block pt-0.5">
                       {item.district}
                       {item.parentLocality ? ` • ${item.parentLocality}` : ''}
                     </span>
