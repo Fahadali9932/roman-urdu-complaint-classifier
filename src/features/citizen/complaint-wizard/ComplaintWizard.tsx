@@ -64,6 +64,14 @@ export const ComplaintWizard: React.FC<ComplaintWizardProps> = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showModal, setShowModal] = useState(false);
 
+  // Keep each new casefile stage legible after a lower-page action advances it.
+  useEffect(() => {
+    if (currentStep === 1) return;
+    const flow = document.getElementById('casefile-flow');
+    const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    flow?.scrollIntoView?.({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+  }, [currentStep]);
+
   const descriptionWords = countWords(formData.complaint.description);
   const isOverWordLimit = descriptionWords > MAX_COMPLAINT_WORDS;
 

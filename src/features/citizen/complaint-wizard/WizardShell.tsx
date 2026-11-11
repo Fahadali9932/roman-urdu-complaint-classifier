@@ -1,7 +1,8 @@
 import React from 'react';
+import { ArrowLeft, ArrowRight, RotateCcw } from 'lucide-react';
 import { useLanguage } from '../../../context/LanguageContext';
 import { WizardProgress } from './WizardProgress';
-import { ArrowRight, ArrowLeft, RotateCcw } from 'lucide-react';
+import './editorial-casefile.css';
 
 export interface WizardShellProps {
   currentStep: number;
@@ -16,6 +17,31 @@ export interface WizardShellProps {
   canContinue?: boolean;
   onReset?: () => void;
 }
+
+const casefileCopy = {
+  en: {
+    displayTitles: ['SAY IT\nCLEARLY.', 'PLACE IT\nPRECISELY.', 'REACH YOU\nRESPONSIBLY.', 'READ IT\nONCE MORE.'],
+    prompts: [
+      'Write the public record. Keep it about the public issue.',
+      'A locality resolves to a district while you type.',
+      'Your contact details stay outside the case record.',
+      'This is a preview. Nothing will be sent, routed, or saved.',
+    ],
+    rail: 'WRITE\nTHE\nRECORD.',
+    clear: 'Clear draft',
+  },
+  ur: {
+    displayTitles: ['صاف\nلکھیں۔', 'مقام\nبتائیں۔', 'رابطہ\nرکھیں۔', 'ایک بار\nپڑھیں۔'],
+    prompts: [
+      'عوامی مسئلہ اپنی زبان میں بیان کریں۔',
+      'علاقہ لکھنے پر ضلع کی شناخت ہو جاتی ہے۔',
+      'رابطے کی تفصیل کیس ریکارڈ کا حصہ نہیں بنتی۔',
+      'یہ پیش منظر ہے، کچھ بھی بھیجا یا محفوظ نہیں ہوگا۔',
+    ],
+    rail: 'اپنی\nبات\nلکھیں۔',
+    clear: 'فارم صاف کریں',
+  },
+};
 
 export const WizardShell: React.FC<WizardShellProps> = ({
   currentStep,
@@ -32,90 +58,54 @@ export const WizardShell: React.FC<WizardShellProps> = ({
 }) => {
   const { t, language } = useLanguage();
   const ur = language === 'ur';
-
-  const defaultContinueText =
-    currentStep === totalSteps
-      ? t('wizardBtnSubmit')
-      : t('wizardBtnContinue');
-
-  const finalContinueText = continueText || defaultContinueText;
+  const copy = casefileCopy[ur ? 'ur' : 'en'];
+  const index = currentStep - 1;
+  const continueLabel = continueText || (currentStep === totalSteps ? t('wizardBtnSubmit') : t('wizardBtnContinue'));
 
   return (
-    <div className="w-full bg-[#F7F6F3] min-h-[calc(100vh-80px)] flex flex-col justify-center py-6 sm:py-10 md:py-12 px-4">
-      {/* Centered Panel Wrapper with Subtle Maroon Depth Layer */}
-      <div className="relative w-full max-w-[580px] mx-auto">
-        {/* Extremely subtle overlapping maroon background layer adding soft optical depth */}
-        <div
-          aria-hidden="true"
-          className="absolute -top-1 sm:-top-1.5 inset-x-2 sm:inset-x-3.5 bottom-0 rounded-[28px] sm:rounded-[30px] bg-[#681822]/[0.05] border border-[#681822]/[0.07] -z-10 pointer-events-none transition-all duration-300"
-        />
+    <main id="casefile-flow" className="casefile" dir={ur ? 'rtl' : 'ltr'}>
+      <section className="casefile__layout" aria-label={ur ? 'شکایت لکھیں' : 'Write a complaint'}>
+        <aside className="casefile__rail" aria-label={ur ? `مرحلہ ${currentStep}` : `Step ${currentStep}`}>
+          <span className="casefile__index">{String(currentStep).padStart(2, '0')}</span>
+          <p className="casefile__rail-title" aria-hidden="true">
+            {copy.rail.split('\n').map((line) => <span key={line}>{line}</span>)}
+          </p>
+          <p className="casefile__prompt">{copy.prompts[index]}</p>
+        </aside>
 
-        {/* Primary Interactive White Panel */}
-        <div className="relative w-full bg-white rounded-[26px] sm:rounded-[28px] border border-[#EAE7E2] p-6 sm:p-7 md:p-8 shadow-[0_16px_40px_-12px_rgba(20,20,20,0.05),0_2px_6px_rgba(104,24,34,0.02)] transition-all">
-          {/* Integrated Step Progress & Heading */}
-          <WizardProgress
-            currentStep={currentStep}
-            totalSteps={totalSteps}
-            title={stepTitle}
-            subtitle={stepSubtitle}
-          />
-
-          {/* Step Body */}
-          <div className="py-5 transition-all duration-200 ease-out">
-            {children}
+        <div className="casefile__content">
+          <WizardProgress currentStep={currentStep} totalSteps={totalSteps} title={stepTitle} subtitle={stepSubtitle} />
+          <div className="casefile__heading">
+            <p className="casefile__kicker">{String(currentStep).padStart(2, '0')} / {String(totalSteps).padStart(2, '0')}</p>
+            <h1 aria-label={stepTitle}>
+              {copy.displayTitles[index].split('\n').map((line) => <span key={line} aria-hidden="true">{line}</span>)}
+            </h1>
+            {stepSubtitle && <p className="casefile__subtitle">{stepSubtitle}</p>}
           </div>
 
-          {/* Bottom Actions Bar */}
-          <div className="pt-5 border-t border-[#F1EFEC] flex items-center justify-between gap-4">
-            <div className="flex items-center">
+          <div className="casefile__sheet">
+            <div key={currentStep} className="casefile__step">{children}</div>
+            <div className="casefile__actions">
               {currentStep > 1 ? (
-                <button
-                  id="wizard-back-btn"
-                  type="button"
-                  onClick={onBack}
-                  className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-[#E8E5E1] bg-white text-[#77716E] hover:text-[#141414] hover:bg-[#FAF9F7] hover:border-[#CDC8C0] focus:ring-2 focus:ring-[#681822]/20 font-semibold text-xs sm:text-sm tracking-wide transition-all cursor-pointer font-ui outline-none"
-                >
-                  {ur ? <ArrowRight className="w-4 h-4" /> : <ArrowLeft className="w-4 h-4" />}
+                <button id="wizard-back-btn" type="button" onClick={onBack} className="casefile__secondary">
+                  {ur ? <ArrowRight aria-hidden="true" /> : <ArrowLeft aria-hidden="true" />}
                   <span>{t('wizardBtnBack')}</span>
                 </button>
               ) : onReset ? (
-                <button
-                  id="wizard-clear-btn"
-                  type="button"
-                  onClick={onReset}
-                  className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-[#77716E] hover:text-[#141414] transition-colors cursor-pointer font-ui"
-                >
-                  <RotateCcw className="w-3.5 h-3.5" />
-                  <span>{t('formClear')}</span>
+                <button id="wizard-clear-btn" type="button" onClick={onReset} className="casefile__clear">
+                  <RotateCcw aria-hidden="true" />
+                  <span>{copy.clear}</span>
                 </button>
-              ) : (
-                <div />
-              )}
-            </div>
+              ) : <span />}
 
-            <div className="flex items-center">
-              <button
-                id="wizard-continue-btn"
-                type="button"
-                onClick={onContinue}
-                disabled={!canContinue || isSubmitting}
-                className="inline-flex items-center justify-center gap-2 px-6 sm:px-7 py-2.5 sm:py-3 rounded-xl bg-[#681822] hover:bg-[#52131b] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 text-white font-bold text-xs sm:text-sm tracking-wide transition-all cursor-pointer font-ui shadow-xs hover:shadow focus:ring-2 focus:ring-[#681822]/30 outline-none"
-              >
-                {isSubmitting ? (
-                  <span>{t('formSubmitting')}</span>
-                ) : (
-                  <>
-                    <span>{finalContinueText}</span>
-                    {currentStep < totalSteps && (
-                      ur ? <ArrowLeft className="w-4 h-4 text-white" /> : <ArrowRight className="w-4 h-4 text-white" />
-                    )}
-                  </>
-                )}
+              <button id="wizard-continue-btn" type="button" onClick={onContinue} disabled={!canContinue || isSubmitting} className="casefile__primary">
+                <span>{isSubmitting ? t('formSubmitting') : continueLabel}</span>
+                {!isSubmitting && currentStep < totalSteps && (ur ? <ArrowLeft aria-hidden="true" /> : <ArrowRight aria-hidden="true" />)}
               </button>
             </div>
           </div>
         </div>
-      </div>
-    </div>
+      </section>
+    </main>
   );
 };

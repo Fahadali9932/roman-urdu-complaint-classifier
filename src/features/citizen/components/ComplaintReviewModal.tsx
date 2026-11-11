@@ -22,11 +22,11 @@ export const ComplaintReviewModal: React.FC<ComplaintReviewModalProps> = ({
   const { applicant, location, complaint } = formData;
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={t('modalTitle')}>
-      <div className="space-y-5 text-start">
+    <Modal isOpen={isOpen} onClose={onClose} title={t('modalTitle')} className="casefile-modal">
+      <div className="casefile-modal__body space-y-5 text-start">
         {/* Verification Success Pill */}
-        <div className="p-4 sm:p-5 rounded-xl bg-[#FAF9F7] border border-[#E5E3E0] flex items-center gap-4">
-          <CheckCircle2 className="w-8 h-8 text-emerald-600 shrink-0" />
+        <div className="casefile-modal__lead p-4 sm:p-5 rounded-xl bg-[#F7F6F3] border border-[#681822] flex items-center gap-4">
+          <CheckCircle2 className="w-8 h-8 text-[#681822] shrink-0" />
           <div className="space-y-1">
             <span className="block text-sm font-bold text-[#141414] tracking-wide">
               {ur ? 'فارم جائزے کے لیے تیار ہے' : 'Your form is ready to review'}
@@ -40,7 +40,7 @@ export const ComplaintReviewModal: React.FC<ComplaintReviewModalProps> = ({
         </div>
 
         {/* Clean Structured Review Card */}
-        <div className="p-4 sm:p-5 rounded-xl border border-[#D8D6D2] bg-white space-y-3 font-sans text-xs sm:text-sm">
+        <div className="casefile-modal__record p-4 sm:p-5 rounded-xl border border-[#D8D6D2] bg-white space-y-3 font-sans text-xs sm:text-sm">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-2 border-b border-[#F0EFEB] gap-1">
             <span className="text-[#666] font-mono text-[11px] uppercase tracking-wider">
               {ur ? 'درخواست گزار' : 'Applicant'}
@@ -91,7 +91,7 @@ export const ComplaintReviewModal: React.FC<ComplaintReviewModalProps> = ({
         </div>
 
         {/* Honest Prototype Notice & Privacy Guarantee */}
-        <div className="p-3.5 rounded-lg bg-[#FAF9F7] border border-[#E5E3E0] flex items-start gap-3 text-xs text-[#555] font-ui">
+        <div className="casefile-modal__notice p-3.5 rounded-lg bg-[#F7F6F3] border border-[#681822]/35 flex items-start gap-3 text-xs text-[#555] font-ui">
           <ShieldAlert className="w-4 h-4 text-[#681822] shrink-0 mt-0.5" />
           <div className="space-y-1">
             <p className="font-semibold text-[#141414]">
