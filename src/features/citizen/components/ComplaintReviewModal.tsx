@@ -1,7 +1,7 @@
 import React from 'react';
 import { Modal } from '../../../components/common/Modal';
 import { Button } from '../../../components/common/Button';
-import { CheckCircle2, ShieldAlert, ArrowLeft } from 'lucide-react';
+import { CheckCircle2, ShieldAlert, ArrowLeft, Pencil } from 'lucide-react';
 import { useLanguage } from '../../../context/LanguageContext';
 import { FullComplaintFormState } from '../../../types';
 
@@ -9,12 +9,16 @@ export interface ComplaintReviewModalProps {
   isOpen: boolean;
   onClose: () => void;
   formData: FullComplaintFormState;
+  onEditDetails: () => void;
+  onEditContact: () => void;
 }
 
 export const ComplaintReviewModal: React.FC<ComplaintReviewModalProps> = ({
   isOpen,
   onClose,
   formData,
+  onEditDetails,
+  onEditContact,
 }) => {
   const { t, language } = useLanguage();
   const ur = language === 'ur';
@@ -24,7 +28,7 @@ export const ComplaintReviewModal: React.FC<ComplaintReviewModalProps> = ({
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={t('modalTitle')} className="casefile-modal">
       <div className="casefile-modal__body space-y-5 text-start">
-        {/* Verification Success Pill */}
+        {/* This is the single review sheet: it validates and previews, but never submits. */}
         <div className="casefile-modal__lead p-4 sm:p-5 rounded-xl bg-[#F7F6F3] border border-[#681822] flex items-center gap-4">
           <CheckCircle2 className="w-8 h-8 text-[#681822] shrink-0" />
           <div className="space-y-1">
@@ -39,7 +43,7 @@ export const ComplaintReviewModal: React.FC<ComplaintReviewModalProps> = ({
           </div>
         </div>
 
-        {/* Clean Structured Review Card */}
+        {/* Compact record summary; never expose a phone number or residential address here. */}
         <div className="casefile-modal__record p-4 sm:p-5 rounded-xl border border-[#D8D6D2] bg-white space-y-3 font-sans text-xs sm:text-sm">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-2 border-b border-[#F0EFEB] gap-1">
             <span className="text-[#666] font-mono text-[11px] uppercase tracking-wider">
@@ -47,6 +51,11 @@ export const ComplaintReviewModal: React.FC<ComplaintReviewModalProps> = ({
             </span>
             <span className="font-semibold text-[#141414]">{applicant.citizenName}</span>
           </div>
+
+          <button type="button" onClick={onEditContact} className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#681822] hover:underline">
+            <Pencil className="w-3.5 h-3.5" aria-hidden="true" />
+            {ur ? 'رابطے کی تفصیل تبدیل کریں' : 'Edit contact details'}
+          </button>
 
           {applicant.citizenEmail && (
             <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-2 border-b border-[#F0EFEB] gap-1">
@@ -88,6 +97,11 @@ export const ComplaintReviewModal: React.FC<ComplaintReviewModalProps> = ({
               {complaint.description}
             </p>
           </div>
+
+          <button type="button" onClick={onEditDetails} className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#681822] hover:underline">
+            <Pencil className="w-3.5 h-3.5" aria-hidden="true" />
+            {ur ? 'مسئلہ یا مقام تبدیل کریں' : 'Edit issue or location'}
+          </button>
         </div>
 
         {/* Honest Prototype Notice & Privacy Guarantee */}
@@ -118,7 +132,7 @@ export const ComplaintReviewModal: React.FC<ComplaintReviewModalProps> = ({
             className="w-full sm:w-auto px-5 tracking-wide text-xs font-bold"
             leftIcon={<ArrowLeft className="w-3.5 h-3.5" />}
           >
-            {ur ? 'درخواست پر واپس جائیں' : 'Return to form'}
+            {ur ? 'پیش منظر بند کریں' : 'Close preview'}
           </Button>
         </div>
       </div>
