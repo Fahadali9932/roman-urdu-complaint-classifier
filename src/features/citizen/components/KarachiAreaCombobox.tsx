@@ -226,10 +226,10 @@ export const KarachiAreaCombobox: React.FC<KarachiAreaComboboxProps> = ({
           id={`${id}-listbox`}
           role="listbox"
           aria-label={label}
-          className={`absolute z-50 left-0 right-0 mt-2 max-h-72 overflow-y-auto border p-2 text-start transition-all ${
+          className={`absolute z-50 left-0 right-0 mt-2 max-h-60 sm:max-h-72 overflow-y-auto border p-1.5 sm:p-2 text-start transition-all ${
             variant === 'glass'
-              ? 'rounded-[20px] border-white/18 bg-[rgba(22,20,24,0.80)] backdrop-blur-2xl text-white divide-y divide-white/10 shadow-[0_24px_60px_rgba(0,0,0,0.65),inset_0_1px_0_rgba(255,255,255,0.15)]'
-              : 'rounded-xl border-[#E6E3DF] bg-white text-start divide-y divide-[#F2EFEA] shadow-[0_16px_36px_rgba(20,20,20,0.08)]'
+              ? 'rounded-[20px] border-white/18 bg-[rgba(22,20,24,0.85)] backdrop-blur-2xl text-white divide-y divide-white/10 shadow-[0_24px_60px_rgba(0,0,0,0.65),inset_0_1px_0_rgba(255,255,255,0.15)]'
+              : 'rounded-xl border-[#E6E3DF] bg-white text-start divide-y divide-[#F2EFEA] shadow-[0_16px_36px_rgba(20,20,20,0.12)]'
           }`}
         >
           {results.map((item, index) => {
@@ -245,7 +245,7 @@ export const KarachiAreaCombobox: React.FC<KarachiAreaComboboxProps> = ({
                   aria-selected={isSelected}
                   onClick={() => handleSelect(item)}
                   onMouseEnter={() => setHighlightedIndex(index)}
-                  className={`flex items-center gap-3 px-3.5 py-3 rounded-[12px] cursor-pointer text-xs font-ui transition-colors ${
+                  className={`flex min-h-[46px] items-center gap-3 px-3.5 py-2.5 sm:py-3 rounded-[12px] cursor-pointer text-xs font-ui transition-colors ${
                     variant === 'glass'
                       ? isHighlighted
                         ? 'bg-[#681822]/45 text-white'
@@ -260,9 +260,9 @@ export const KarachiAreaCombobox: React.FC<KarachiAreaComboboxProps> = ({
                   }`}>
                     <PlusCircle className="w-4 h-4" />
                   </div>
-                  <div className="flex-1">
+                  <div className="flex-1 min-w-0">
                     <span className="font-semibold block text-sm">{item.name}</span>
-                    <span className={`text-xs block pt-0.5 ${variant === 'glass' ? 'text-white/60' : 'text-[#77716E]'}`}>
+                    <span className={`text-xs block pt-0.5 truncate ${variant === 'glass' ? 'text-white/60' : 'text-[#77716E]'}`}>
                       {ur ? 'فہرست میں نہیں ملا؟ دستی اندراج منتخب کریں' : 'Area not found. Select to enter area manually'}
                     </span>
                   </div>
@@ -278,7 +278,7 @@ export const KarachiAreaCombobox: React.FC<KarachiAreaComboboxProps> = ({
                 aria-selected={isSelected}
                 onClick={() => handleSelect(item)}
                 onMouseEnter={() => setHighlightedIndex(index)}
-                className={`flex items-center justify-between gap-3 px-3.5 py-2.5 rounded-[12px] cursor-pointer font-ui text-xs sm:text-sm transition-colors ${
+                className={`flex min-h-[46px] items-center justify-between gap-3 px-3.5 py-2 sm:py-2.5 rounded-[12px] cursor-pointer font-ui text-xs sm:text-sm transition-colors ${
                   variant === 'glass'
                     ? isHighlighted
                       ? 'bg-[#681822]/45 text-white'
@@ -288,7 +288,7 @@ export const KarachiAreaCombobox: React.FC<KarachiAreaComboboxProps> = ({
                       : 'text-[#141414] hover:bg-[#FAF9F7]'
                 }`}
               >
-                <div className="flex items-center gap-3 min-w-0">
+                <div className="flex items-center gap-3 min-w-0 flex-1">
                   <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
                     variant === 'glass'
                       ? isHighlighted
@@ -300,7 +300,7 @@ export const KarachiAreaCombobox: React.FC<KarachiAreaComboboxProps> = ({
                   }`}>
                     <MapPin className="w-3.5 h-3.5" />
                   </div>
-                  <div className="truncate">
+                  <div className="min-w-0 flex-1">
                     <span className="font-semibold block truncate text-sm">
                       {item.name}
                       {ur && item.nameUrdu && (
@@ -309,7 +309,7 @@ export const KarachiAreaCombobox: React.FC<KarachiAreaComboboxProps> = ({
                         </span>
                       )}
                     </span>
-                    <span className={`text-xs block pt-0.5 ${variant === 'glass' ? 'text-white/60' : 'text-[#77716E]'}`}>
+                    <span className={`text-xs block pt-0.5 truncate ${variant === 'glass' ? 'text-white/60' : 'text-[#77716E]'}`}>
                       {item.district}
                       {item.parentLocality ? ` • ${item.parentLocality}` : ''}
                     </span>
@@ -317,7 +317,7 @@ export const KarachiAreaCombobox: React.FC<KarachiAreaComboboxProps> = ({
                 </div>
 
                 {isSelected && (
-                  <Check className={`w-4 h-4 shrink-0 ${variant === 'glass' ? 'text-[#FFCCD2]' : 'text-[#681822]'}`} />
+                  <Check className={`w-4 h-4 shrink-0 ms-2 ${variant === 'glass' ? 'text-[#FFCCD2]' : 'text-[#681822]'}`} />
                 )}
               </li>
             );

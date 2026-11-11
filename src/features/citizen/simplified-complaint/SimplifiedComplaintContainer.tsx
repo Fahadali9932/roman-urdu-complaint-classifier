@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   ArrowLeft,
   Check,
@@ -243,9 +244,9 @@ export const SimplifiedComplaintContainer: React.FC = () => {
             </ol>
           </section>
 
-          {/* Form Container Card */}
-          <section className="overflow-hidden rounded-[24px] sm:rounded-[28px] border border-[#E6E3DF] bg-white shadow-[0_12px_42px_rgba(20,20,20,0.05)]">
-            <div className="border-b border-[#EFECE8] bg-[#FAF9F7]/70 px-6 py-5 sm:px-9 sm:py-6">
+          {/* Form Container Card - overflow-visible prevents clipping combobox dropdown */}
+          <section className="overflow-visible rounded-[24px] sm:rounded-[28px] border border-[#E6E3DF] bg-white shadow-[0_12px_42px_rgba(20,20,20,0.05)]">
+            <div className="rounded-t-[24px] sm:rounded-t-[28px] border-b border-[#EFECE8] bg-[#FAF9F7]/70 px-5 py-4 sm:px-9 sm:py-6">
               <div className="flex items-center gap-3.5">
                 <span className="grid h-8 w-8 sm:h-9 sm:w-9 place-items-center rounded-full bg-[#681822] text-xs sm:text-sm font-bold text-white shrink-0 shadow-sm">
                   {stage}
@@ -261,7 +262,7 @@ export const SimplifiedComplaintContainer: React.FC = () => {
               </div>
             </div>
 
-            <div className="p-6 sm:p-9 lg:p-10">
+            <div className="p-5 sm:p-9 lg:p-10">
               {stage === 1 && (
                 <form
                   noValidate
@@ -366,13 +367,13 @@ export const SimplifiedComplaintContainer: React.FC = () => {
                   </div>
 
                   {formData.location.isDistrictAutoResolved && formData.location.district ? (
-                    <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#E0DCD6] bg-[#FAF9F7] px-4 py-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 sm:gap-3 rounded-xl border border-[#E0DCD6] bg-[#FAF9F7] px-4 py-3">
                       <span data-testid="resolved-district" className="text-sm font-semibold text-[#141414]">
                         {copy.district}: {formData.location.district}
                       </span>
                       <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#681822]">
-                        <CheckCircle2 className="h-4 w-4" />
-                        {ur ? 'خودکار تصدیق شدہ' : 'Automatically identified'}
+                        <CheckCircle2 className="h-4 w-4 shrink-0" />
+                        <span>{ur ? 'خودکار تصدیق شدہ' : 'Automatically identified'}</span>
                       </span>
                     </div>
                   ) : (
@@ -555,7 +556,7 @@ export const SimplifiedComplaintContainer: React.FC = () => {
             </div>
 
             {/* Privacy Guarantee Footer Inside Panel */}
-            <div className="flex items-start gap-3 border-t border-[#EFECE8] bg-[#FAF9F7]/70 px-6 py-4 text-xs leading-5 text-[#625D58] sm:px-9">
+            <div className="rounded-b-[24px] sm:rounded-b-[28px] flex items-start gap-3 border-t border-[#EFECE8] bg-[#FAF9F7]/70 px-5 py-3.5 text-xs leading-5 text-[#625D58] sm:px-9 sm:py-4">
               <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-[#681822]" />
               <span>{copy.privacy}</span>
             </div>
@@ -619,9 +620,9 @@ const SubmissionModal: React.FC<{
   onEdit: () => void;
 }> = ({ submission, formData, copy, ur, onClose, onEdit }) => {
   const isSuccess = !submission.isSimulated;
-  return (
+  const modalContent = (
     <div
-      className="fixed inset-0 z-50 grid place-items-center bg-[#141414]/50 p-4 backdrop-blur-xs"
+      className="fixed inset-0 z-[100] grid place-items-center bg-[#141414]/50 p-4 backdrop-blur-xs"
       role="dialog"
       aria-modal="true"
       aria-labelledby="submission-title"
@@ -689,4 +690,6 @@ const SubmissionModal: React.FC<{
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined' ? createPortal(modalContent, document.body) : modalContent;
 };

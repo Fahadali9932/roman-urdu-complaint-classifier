@@ -2,6 +2,7 @@ import React from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { PublicHeader } from './PublicHeader';
 import { PublicFooter } from './PublicFooter';
+import { StackedScrollContainer, StackedScrollSection } from './stacked-scroll';
 
 export const AppLayout: React.FC = () => {
   const location = useLocation();
@@ -12,33 +13,52 @@ export const AppLayout: React.FC = () => {
 
   const isSubmit = location.pathname === '/submit' || location.pathname === '/write-complaint';
 
+  if (isHome) {
+    return (
+      <div className="min-h-screen flex flex-col w-full bg-[#F7F6F3] text-[#141414] overflow-visible selection:bg-[#681822] selection:text-[#FFFFFF]">
+        <PublicHeader />
+        <main className="flex-1 w-full overflow-visible p-0 m-0">
+          <Outlet />
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div
       className={`min-h-screen flex flex-col w-full selection:bg-[#681822] selection:text-[#FFFFFF] ${
-        isHome
-          ? 'bg-[#F7F6F3] text-[#141414] overflow-visible'
-          : isInfoPage
-            ? 'bg-[#141414] text-[#F7F6F3] overflow-x-clip'
-            : isSubmit
-              ? 'bg-[#F7F6F3] text-[#141414] overflow-visible'
-              : 'bg-[#F7F6F3] text-[#141414] overflow-x-clip'
+        isInfoPage
+          ? 'bg-[#141414] text-[#F7F6F3] overflow-x-clip'
+          : 'bg-[#F7F6F3] text-[#141414] overflow-x-clip'
       }`}
     >
       <PublicHeader />
-      <main
-        className={`flex-1 w-full ${
-          isHome
-            ? 'overflow-visible'
-            : isInfoPage
-              ? 'p-0 m-0 overflow-x-clip'
+      <StackedScrollContainer as="div" className="flex-1 w-full flex flex-col">
+        <StackedScrollSection
+          depth={10}
+          recedeOnScroll={true}
+          as="main"
+          className={`flex-1 w-full ${
+            isInfoPage
+              ? 'p-0 m-0'
               : isSubmit
-                ? 'overflow-visible p-0 m-0'
-                : 'overflow-x-clip pt-24 sm:pt-28 pb-32 sm:pb-36'
-        }`}
-      >
-        <Outlet />
-      </main>
-      {!isHome && <PublicFooter />}
+                ? 'p-0 m-0 overflow-visible'
+                : 'pt-24 sm:pt-28 pb-16 sm:pb-24'
+          }`}
+        >
+          <Outlet />
+        </StackedScrollSection>
+
+        <StackedScrollSection
+          depth={30}
+          recedeOnScroll={false}
+          hasIncomingShadow={true}
+          as="div"
+          className="w-full"
+        >
+          <PublicFooter />
+        </StackedScrollSection>
+      </StackedScrollContainer>
     </div>
   );
 };
