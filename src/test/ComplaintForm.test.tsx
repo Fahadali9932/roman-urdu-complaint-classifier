@@ -19,7 +19,7 @@ describe('ComplaintForm Component (Guided 4-Stage Workflow)', () => {
     renderForm();
 
     expect(screen.getByRole('heading', { level: 1, name: /what needs attention\?/i })).toBeInTheDocument();
-    expect(screen.getByText(/tell us what happened\./i)).toBeInTheDocument();
+    expect(screen.getByText(/tell us what happened in your own words\./i)).toBeInTheDocument();
     expect(screen.getByLabelText(/complaint subject \/ title/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/complaint description/i)).toBeInTheDocument();
     expect(screen.getByTestId('word-count-display')).toHaveTextContent('0');
@@ -110,7 +110,7 @@ describe('ComplaintForm Component (Guided 4-Stage Workflow)', () => {
 
     // STEP 4: Review
     await waitFor(() => {
-      expect(screen.getByRole('heading', { level: 1, name: /ready to review\?/i })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { level: 1, name: /review your complaint\./i })).toBeInTheDocument();
       expect(screen.getByText('Water supply line leak')).toBeInTheDocument();
       expect(screen.getByText('Bilal Ahmed')).toBeInTheDocument();
     });
@@ -121,7 +121,7 @@ describe('ComplaintForm Component (Guided 4-Stage Workflow)', () => {
 
     await waitFor(
       () => {
-        expect(screen.getByText(/review your complaint/i)).toBeInTheDocument();
+        expect(screen.getByRole('heading', { level: 3, name: /review your complaint/i })).toBeInTheDocument();
         expect(screen.getByText(/your form is ready to review/i)).toBeInTheDocument();
         expect(screen.getByText(/nothing has been submitted/i)).toBeInTheDocument();
       },

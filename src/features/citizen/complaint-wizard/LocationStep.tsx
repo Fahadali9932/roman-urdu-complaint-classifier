@@ -212,12 +212,12 @@ export const LocationStep: React.FC<LocationStepProps> = ({
           value={data.publicLocation}
           onChange={(e) => onChange({ publicLocation: e.target.value })}
           error={errors.publicLocation}
-          className="text-base h-[50px]"
+          className="text-sm sm:text-base h-[46px]"
         />
         <p className="text-[11px] text-[#77716E] font-ui pt-1">
           {ur
             ? 'مخصوص گلی، بلاک یا قریبی نشانی بلدیاتی عملے کو صحیح مقام پر پہنچنے میں مدد دیتی ہے۔'
-            : 'The specified street or landmark directs municipal authorities to the exact site.'}
+            : 'Street, block number, or landmark helps authorities identify the site.'}
         </p>
       </div>
     </div>

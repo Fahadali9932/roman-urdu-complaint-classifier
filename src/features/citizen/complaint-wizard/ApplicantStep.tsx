@@ -44,7 +44,7 @@ export const ApplicantStep: React.FC<ApplicantStepProps> = ({
             value={data.citizenName}
             onChange={(e) => onChange('citizenName', e.target.value)}
             error={errors.citizenName}
-            className="text-base h-[50px]"
+            className="text-sm sm:text-base h-[46px]"
           />
         </div>
 
@@ -61,7 +61,7 @@ export const ApplicantStep: React.FC<ApplicantStepProps> = ({
             onChange={(e) => onChange('citizenPhone', e.target.value)}
             error={errors.citizenPhone}
             helperText={!errors.citizenPhone ? '03XXXXXXXXX or +923XXXXXXXXX' : undefined}
-            className="text-base h-[50px] text-start"
+            className="text-sm sm:text-base h-[46px] text-start"
           />
         </div>
       </div>
@@ -78,7 +78,7 @@ export const ApplicantStep: React.FC<ApplicantStepProps> = ({
           value={data.citizenEmail}
           onChange={(e) => onChange('citizenEmail', e.target.value)}
           error={errors.citizenEmail}
-          className="text-base h-[50px] text-start"
+          className="text-sm sm:text-base h-[46px] text-start"
         />
       </div>
 
@@ -118,7 +118,7 @@ export const ApplicantStep: React.FC<ApplicantStepProps> = ({
               placeholder={t('formApplicantAddressPlaceholder')}
               value={data.applicantAddress}
               onChange={(e) => onChange('applicantAddress', e.target.value)}
-              className="text-base h-[50px]"
+              className="text-sm sm:text-base h-[46px]"
             />
           </div>
         )}

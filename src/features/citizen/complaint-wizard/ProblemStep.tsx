@@ -37,7 +37,7 @@ export const ProblemStep: React.FC<ProblemStepProps> = ({
           value={data.title}
           onChange={(e) => onChange('title', e.target.value)}
           error={errors.title}
-          className="text-base h-[50px]"
+          className="text-sm sm:text-base h-[46px]"
         />
       </div>
 
@@ -64,14 +64,14 @@ export const ProblemStep: React.FC<ProblemStepProps> = ({
             id="description"
             aria-label="Complaint Description"
             dir={textDirection}
-            rows={7}
+            rows={6}
             value={data.description}
             onChange={(e) => onChange('description', e.target.value)}
             placeholder={t('formDescribeComplaintPlaceholder')}
-            className={`w-full min-h-[200px] rounded-xl border p-4 text-base font-ui leading-relaxed transition-all duration-200 outline-none resize-y ${
+            className={`w-full min-h-[175px] rounded-xl border p-3.5 text-sm sm:text-base font-ui leading-relaxed transition-all duration-200 outline-none resize-y ${
               errors.description
                 ? 'border-[#681822] bg-[#FAF9F7] focus:bg-white focus:border-[#681822] focus:ring-1 focus:ring-[#681822]'
-                : 'border-[#E8E5E1] bg-[#FAF9F7] focus:bg-white focus:border-[#681822] focus:ring-1 focus:ring-[#681822]'
+                : 'border-[#E8E5E1] bg-[#FAF9F7] hover:border-[#CDC8C0] focus:bg-white focus:border-[#681822] focus:ring-1 focus:ring-[#681822]'
             }`}
           />
         </div>
