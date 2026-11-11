@@ -33,6 +33,28 @@ describe('Simplified Write your complaint flow', () => {
     expect(await screen.findByRole('heading', { level: 2, name: /tell us where/i })).toBeInTheDocument();
   });
 
+  it('requires mandatory home address before advancing from location stage', async () => {
+    renderForm();
+    fireEvent.change(screen.getByLabelText(/full name/i), { target: { value: 'Fatima Noor' } });
+    fireEvent.change(screen.getByLabelText(/phone number/i), { target: { value: '03001234567' } });
+    fireEvent.click(screen.getByRole('button', { name: /continue/i }));
+    await screen.findByRole('heading', { level: 2, name: /tell us where/i });
+
+    const locality = screen.getByLabelText(/area \/ locality/i);
+    fireEvent.change(locality, { target: { value: 'Clifton' } });
+    fireEvent.change(screen.getByLabelText(/street, block or nearby landmark/i), { target: { value: 'Block 4' } });
+
+    // Attempt to continue without home address
+    fireEvent.click(screen.getByRole('button', { name: /continue/i }));
+    expect(await screen.findByText(/enter your home address/i)).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { level: 2, name: /describe what happened/i })).not.toBeInTheDocument();
+
+    // Fill home address and advance
+    fireEvent.change(screen.getByLabelText(/home address/i), { target: { value: 'House 12-B, Clifton Block 4' } });
+    fireEvent.click(screen.getByRole('button', { name: /continue/i }));
+    expect(await screen.findByRole('heading', { level: 2, name: /describe what happened/i })).toBeInTheDocument();
+  });
+
   it('keeps the resolver and privacy boundary, then opens an honest demo outcome', async () => {
     renderForm();
     fireEvent.change(screen.getByLabelText(/full name/i), { target: { value: 'Fatima Noor' } });
@@ -42,6 +64,7 @@ describe('Simplified Write your complaint flow', () => {
     fireEvent.change(locality, { target: { value: 'DHA Phase 6' } });
     expect(await screen.findByText(/automatically identified/i)).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText(/street, block or nearby landmark/i), { target: { value: '26th Street' } });
+    fireEvent.change(screen.getByLabelText(/home address/i), { target: { value: 'House 42-A, Street 26, Phase 6' } });
     fireEvent.click(screen.getByRole('button', { name: /continue/i }));
     expect(await screen.findByRole('heading', { level: 2, name: /describe what happened/i })).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText(/complaint description/i), { target: { value: 'The streetlight has not worked for two weeks.' } });

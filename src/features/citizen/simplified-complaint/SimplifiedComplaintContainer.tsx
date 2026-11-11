@@ -44,7 +44,6 @@ export const SimplifiedComplaintContainer: React.FC = () => {
   const ur = language === 'ur';
   const [stage, setStage] = useState<Stage>(1);
   const [formData, setFormData] = useState<FullComplaintFormState>(INITIAL_FORM);
-  const [showAddress, setShowAddress] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submission, setSubmission] = useState<SubmissionResult | null>(null);
@@ -59,7 +58,12 @@ export const SimplifiedComplaintContainer: React.FC = () => {
   const emailIsValid = !email || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const complete = [
     Boolean(formData.applicant.citizenName.trim() && phoneIsValid && emailIsValid),
-    Boolean(formData.location.locality && formData.location.district && formData.location.publicLocation.trim()),
+    Boolean(
+      formData.location.locality &&
+      formData.location.district &&
+      formData.location.publicLocation.trim() &&
+      formData.applicant.applicantAddress.trim()
+    ),
     words > 0 && words <= MAX_COMPLAINT_WORDS,
   ];
   const progress = Math.max(0, Math.min(100, ((stage - 1) * 33) + (complete[stage - 1] ? 34 : 12)));
@@ -72,7 +76,7 @@ export const SimplifiedComplaintContainer: React.FC = () => {
     complaintLead: 'اپنے الفاظ میں بتائیں کہ کیا ہوا۔',
     name: 'پورا نام', phone: 'پاکستانی موبائل نمبر', email: 'ای میل (اختیاری)',
     locationLabel: 'علاقہ / محلہ', district: 'کراچی کا ضلع', landmark: 'گلی، بلاک یا قریبی نشانی',
-    address: 'رہائشی پتہ (اختیاری)', addAddress: 'رہائشی پتہ شامل کریں', remove: 'ہٹائیں',
+    address: 'رہائشی پتہ', addressHelp: 'آپ کا ذاتی رہائشی پتہ جو رابطہ اور تصدیق کے لیے ضروری ہے۔',
     description: 'شکایت کی تفصیل', continue: 'آگے بڑھیں', back: 'واپس', submit: 'شکایت جمع کروائیں',
     privacy: 'آپ کا فون نمبر اور رہائشی پتہ محفوظ رکھا جاتا ہے اور عوامی ریکارڈ میں شامل نہیں ہوتا۔',
     emailNote: 'ای میل صرف رابطے کے لیے لی جاتی ہے؛ اطلاعات کا وعدہ تبھی ہوگا جب ای میل سروس فعال ہو۔',
@@ -86,7 +90,7 @@ export const SimplifiedComplaintContainer: React.FC = () => {
     complaintLead: 'Describe what happened in your own words.',
     name: 'Full name', phone: 'Pakistani mobile number', email: 'Email (optional)',
     locationLabel: 'Area / Locality', district: 'Karachi district', landmark: 'Street, block or nearby landmark',
-    address: 'Home address (optional)', addAddress: 'Add home address', remove: 'Remove',
+    address: 'Home address', addressHelp: 'Your residential address, kept strictly confidential.',
     description: 'Complaint description', continue: 'Continue', back: 'Back', submit: 'Submit Complaint',
     privacy: 'Your phone number and home address stay private and never appear in the public record.',
     emailNote: 'Email is optional. We only promise notifications when a real email service is available.',
@@ -121,6 +125,7 @@ export const SimplifiedComplaintContainer: React.FC = () => {
       if (!formData.location.locality.trim()) next.locality = ur ? 'علاقہ درج کریں۔' : 'Enter an area or locality.';
       if (!formData.location.district) next.district = ur ? 'ضلع منتخب کریں۔' : 'Select a Karachi district.';
       if (!formData.location.publicLocation.trim()) next.publicLocation = ur ? 'قریبی نشانی درج کریں۔' : 'Enter the incident street or landmark.';
+      if (!formData.applicant.applicantAddress.trim()) next.applicantAddress = ur ? 'رہائشی پتہ درج کریں۔' : 'Enter your home address.';
     }
     if (target === 3) {
       if (!words) next.description = ur ? 'شکایت کی تفصیل درج کریں۔' : 'Describe the complaint.';
@@ -169,7 +174,7 @@ export const SimplifiedComplaintContainer: React.FC = () => {
       className="write-complaint-wrapper relative w-full bg-[#F7F6F3] text-[#171717]"
       dir={isRTL ? 'rtl' : 'ltr'}
     >
-      <div className="write-complaint-viewport lg:sticky lg:bottom-0 z-10 w-full px-4 pt-28 pb-12 sm:px-6 sm:pt-32 sm:pb-16 lg:pt-36 lg:pb-20">
+      <div className="write-complaint-viewport sticky bottom-0 z-10 w-full px-4 pt-28 pb-12 sm:px-6 sm:pt-32 sm:pb-16 lg:pt-36 lg:pb-20 motion-reduce:static">
         <div className="mx-auto max-w-5xl">
           {/* Main Page Header */}
           <header className="mb-7 text-center sm:mb-9">
@@ -421,42 +426,27 @@ export const SimplifiedComplaintContainer: React.FC = () => {
                     <p className="mt-2 text-xs text-[#6B6864]">{copy.streetHelp}</p>
                   </Field>
 
-                  {!showAddress ? (
-                    <button
-                      type="button"
-                      onClick={() => setShowAddress(true)}
-                      className="inline-flex items-center gap-2 text-sm font-semibold text-[#681822] hover:underline cursor-pointer"
-                    >
-                      <Home className="h-4 w-4" />
-                      {copy.addAddress}
-                    </button>
-                  ) : (
-                    <div className="rounded-xl border border-[#E6E3DF] bg-[#FAF9F7] p-4">
-                      <div className="mb-3 flex items-center justify-between">
-                        <label htmlFor="applicantAddress" className="text-sm font-semibold text-[#141414]">
-                          {copy.address}
-                        </label>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            updateApplicant('applicantAddress', '');
-                            setShowAddress(false);
-                          }}
-                          className="text-xs font-semibold text-[#681822] hover:underline cursor-pointer"
-                        >
-                          {copy.remove}
-                        </button>
-                      </div>
+                  <Field htmlFor="applicantAddress" label={copy.address} required error={errors.applicantAddress}>
+                    <div className="relative">
+                      <Home
+                        className={`pointer-events-none absolute top-1/2 h-4 w-4 -translate-y-1/2 text-[#88827A] ${
+                          isRTL ? 'right-4' : 'left-4'
+                        }`}
+                      />
                       <input
                         id="applicantAddress"
                         aria-label="Home Address"
                         autoComplete="street-address"
+                        placeholder={ur ? 'مکان نمبر، گلی، علاقہ' : 'House / Flat no., street, residential area'}
                         value={formData.applicant.applicantAddress}
                         onChange={(e) => updateApplicant('applicantAddress', e.target.value)}
-                        className={fieldClass(false)}
+                        className={`${fieldClass(Boolean(errors.applicantAddress))} ${
+                          isRTL ? 'pr-11 pl-4' : 'pl-11 pr-4'
+                        }`}
                       />
                     </div>
-                  )}
+                    <p className="mt-2 text-xs text-[#6B6864]">{copy.addressHelp}</p>
+                  </Field>
 
                   <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-between">
                     <button
@@ -564,8 +554,8 @@ export const SimplifiedComplaintContainer: React.FC = () => {
         </div>
       </div>
 
-      {/* Reveal spacer on desktop for the rising curtain effect */}
-      <div className="hidden lg:block h-[50vh] pointer-events-none" aria-hidden="true" />
+      {/* Reveal spacer for the rising footer curtain effect across mobile, tablet, and desktop */}
+      <div className="h-[40vh] sm:h-[45vh] lg:h-[50vh] pointer-events-none motion-reduce:hidden" aria-hidden="true" />
 
       {submission && (
         <SubmissionModal
@@ -658,6 +648,11 @@ const SubmissionModal: React.FC<{
             {formData.location.locality}
             {formData.location.district ? ` · ${formData.location.district}` : ''}
           </p>
+          {formData.applicant.applicantAddress && (
+            <p className="mt-1 text-xs text-[#78716C]">
+              <span className="font-medium text-[#141414]">{copy.address}:</span> {formData.applicant.applicantAddress} ({ur ? 'محفوظ / غیر عوامی' : 'Confidential'})
+            </p>
+          )}
           <p className="mt-2 text-[#625D58]">{formData.complaint.description}</p>
         </div>
 

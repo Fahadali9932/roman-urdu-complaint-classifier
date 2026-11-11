@@ -11,6 +11,7 @@ export interface StackedScrollSectionProps {
   recedeOnScroll?: boolean;
   hasIncomingShadow?: boolean;
   stickyMode?: 'top' | 'bottom' | 'none';
+  trackHeight?: string;
   minHeight?: string;
   ariaLabel?: string;
 }
@@ -25,12 +26,13 @@ export const StackedScrollSection: React.FC<StackedScrollSectionProps> = ({
   recedeOnScroll = true,
   hasIncomingShadow = depth > 10,
   stickyMode = 'none',
+  trackHeight,
   minHeight,
   ariaLabel,
 }) => {
   const outerRef = useRef<HTMLElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
-  const { registerSection, unregisterSection, prefersReducedMotion, isMobile } = useStackedScroll();
+  const { registerSection, unregisterSection, prefersReducedMotion } = useStackedScroll();
 
   const generatedId = useId();
   const sectionId = id || generatedId;
@@ -51,20 +53,69 @@ export const StackedScrollSection: React.FC<StackedScrollSectionProps> = ({
     };
   }, [sectionId, depth, recedeOnScroll, registerSection, unregisterSection]);
 
-  const stickyClass =
-    stickyMode === 'top'
-      ? 'sticky top-0 motion-reduce:static'
-      : stickyMode === 'bottom'
-        ? 'sticky bottom-0 motion-reduce:static'
-        : 'relative';
-
   // Physical top shadow on incoming sections that overlap previous sheets
   const shadowClass =
     hasIncomingShadow && !prefersReducedMotion
-      ? isMobile
-        ? 'shadow-[0_-16px_38px_-8px_rgba(18,18,20,0.28),0_-4px_14px_-3px_rgba(18,18,20,0.15)]'
-        : 'shadow-[0_-28px_65px_-10px_rgba(18,18,20,0.32),0_-8px_22px_-5px_rgba(18,18,20,0.18)]'
+      ? 'stacked-incoming-shadow'
       : '';
+
+  const effectiveMinHeight = trackHeight || minHeight || undefined;
+
+  if (stickyMode === 'top') {
+    return (
+      <Component
+        id={id}
+        ref={outerRef as any}
+        aria-label={ariaLabel}
+        style={{
+          zIndex: depth,
+          minHeight: effectiveMinHeight,
+        }}
+        className={`stacked-scroll-section relative w-full ${shadowClass} ${className}`}
+      >
+        <div className="sticky top-0 w-full min-h-screen flex flex-col justify-center overflow-visible motion-reduce:static motion-reduce:min-h-0">
+          <div
+            ref={innerRef}
+            style={{
+              transformOrigin: '50% 25%',
+              willChange: prefersReducedMotion ? 'auto' : 'transform, filter',
+            }}
+            className={`stacked-scroll-inner w-full ${innerClassName}`}
+          >
+            {children}
+          </div>
+        </div>
+      </Component>
+    );
+  }
+
+  if (stickyMode === 'bottom') {
+    return (
+      <Component
+        id={id}
+        ref={outerRef as any}
+        aria-label={ariaLabel}
+        style={{
+          zIndex: depth,
+          minHeight: effectiveMinHeight,
+        }}
+        className={`stacked-scroll-section relative w-full ${shadowClass} ${className}`}
+      >
+        <div className="sticky bottom-0 w-full flex flex-col overflow-visible motion-reduce:static">
+          <div
+            ref={innerRef}
+            style={{
+              transformOrigin: '50% 75%',
+              willChange: prefersReducedMotion ? 'auto' : 'transform, filter',
+            }}
+            className={`stacked-scroll-inner w-full ${innerClassName}`}
+          >
+            {children}
+          </div>
+        </div>
+      </Component>
+    );
+  }
 
   return (
     <Component
@@ -73,9 +124,9 @@ export const StackedScrollSection: React.FC<StackedScrollSectionProps> = ({
       aria-label={ariaLabel}
       style={{
         zIndex: depth,
-        minHeight: minHeight || undefined,
+        minHeight: effectiveMinHeight,
       }}
-      className={`stacked-scroll-section ${stickyClass} w-full ${shadowClass} ${className}`}
+      className={`stacked-scroll-section relative w-full ${shadowClass} ${className}`}
     >
       <div
         ref={innerRef}

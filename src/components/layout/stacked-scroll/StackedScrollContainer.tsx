@@ -96,8 +96,10 @@ export const StackedScrollContainer: React.FC<StackedScrollContainerProps> = ({
 
       // How far has the incoming section moved into the viewport?
       // When nextRect.top >= windowH: next section is completely below screen -> t = 0
-      // When nextRect.top <= 0: next section completely covers or reaches top -> t = 1
-      const rawProgress = (windowH - nextRect.top) / windowH;
+      // When nextRect.top <= (windowH - travelDistance): incoming section has fully entered -> t = 1
+      const nextHeight = next.outerEl.offsetHeight || windowH;
+      const travelDistance = Math.min(windowH, Math.max(180, nextHeight));
+      const rawProgress = (windowH - nextRect.top) / travelDistance;
       const t = clamp01(rawProgress);
 
       if (t <= 0) {
@@ -112,30 +114,30 @@ export const StackedScrollContainer: React.FC<StackedScrollContainerProps> = ({
         let brightness: number;
 
         if (isNarrow) {
-          // Mobile: restrained 3D motion, no rotation, gentle scale down to 0.988
-          scale = 1.0 - 0.012 * t;
-          translateY = 4 * t;
+          // Mobile: Noticeable 3.5% scale reduction, 8% atmospheric dimming, 8px downward sink
+          scale = 1.0 - 0.035 * t;
+          translateY = 8 * t;
           translateZ = 0;
           rotateX = 0;
-          brightness = 1.0 - 0.04 * t;
+          brightness = 1.0 - 0.08 * t;
           current.innerEl.style.transform = `translate3d(0, ${translateY}px, 0) scale(${scale})`;
           current.innerEl.style.filter = `brightness(${brightness})`;
         } else if (isMid) {
-          // Tablet: moderate perspective, scale down to 0.982
-          scale = 1.0 - 0.018 * t;
-          translateY = 8 * t;
-          translateZ = -15 * t;
+          // Tablet: 2.5% scale reduction, 8% atmospheric dimming, moderate depth
+          scale = 1.0 - 0.025 * t;
+          translateY = 10 * t;
+          translateZ = -18 * t;
           rotateX = 0.4 * t;
-          brightness = 1.0 - 0.06 * t;
+          brightness = 1.0 - 0.08 * t;
           current.innerEl.style.transform = `perspective(1400px) translate3d(0, ${translateY}px, ${translateZ}px) rotateX(${rotateX}deg) scale(${scale})`;
           current.innerEl.style.filter = `brightness(${brightness})`;
         } else {
-          // Desktop: full premium cinematic stacked 3D layering (scale down to 0.975, perspective, 0.8deg tilt, depth)
-          scale = 1.0 - 0.025 * t;
-          translateY = 12 * t;
-          translateZ = -28 * t;
+          // Desktop: 3.0% scale reduction, 10% atmospheric dimming, perspective + 0.8deg tilt
+          scale = 1.0 - 0.030 * t;
+          translateY = 14 * t;
+          translateZ = -32 * t;
           rotateX = 0.8 * t;
-          brightness = 1.0 - 0.08 * t;
+          brightness = 1.0 - 0.10 * t;
           current.innerEl.style.transform = `perspective(1400px) translate3d(0, ${translateY}px, ${translateZ}px) rotateX(${rotateX}deg) scale(${scale})`;
           current.innerEl.style.filter = `brightness(${brightness})`;
         }

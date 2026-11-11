@@ -23,6 +23,7 @@ export const LandingPage: React.FC = () => {
         id="hero"
         depth={10}
         stickyMode="top"
+        trackHeight="125vh"
         recedeOnScroll={true}
         className="w-full bg-[#F7F6F3] overflow-hidden"
       >
@@ -139,13 +140,15 @@ export const LandingPage: React.FC = () => {
       <StackedScrollSection
         id="write-intro-panel"
         depth={30}
+        stickyMode="top"
+        trackHeight="175vh"
         recedeOnScroll={true}
         hasIncomingShadow={true}
-        className="w-full min-h-[180vh] lg:min-h-[200vh] bg-[#FAF9F7] border-t border-[#E5E3E0] motion-reduce:min-h-0"
+        className="w-full bg-[#FAF9F7] border-t border-[#E5E3E0]"
       >
         <section
           id="write-intro"
-          className="sticky top-0 z-30 h-screen w-full flex flex-col justify-center px-6 sm:px-12 lg:px-20 overflow-hidden select-none motion-reduce:static motion-reduce:h-auto motion-reduce:py-24"
+          className="w-full flex flex-col justify-center px-6 sm:px-12 lg:px-20 overflow-hidden select-none py-16 sm:py-24"
           aria-label="Editorial Write Introduction"
         >
           <div className="max-w-7xl mx-auto w-full relative">

@@ -38,7 +38,7 @@ export const AppLayout: React.FC = () => {
           depth={10}
           recedeOnScroll={true}
           as="main"
-          className={`flex-1 w-full ${
+          className={`flex-1 w-full relative ${
             isInfoPage
               ? 'p-0 m-0'
               : isSubmit
@@ -46,7 +46,12 @@ export const AppLayout: React.FC = () => {
                 : 'pt-24 sm:pt-28 pb-16 sm:pb-24'
           }`}
         >
-          <Outlet />
+          <div className={!isSubmit && !isInfoPage ? 'sticky bottom-0 z-10 motion-reduce:static' : ''}>
+            <Outlet />
+          </div>
+          {!isSubmit && !isInfoPage && (
+            <div className="h-[40vh] sm:h-[45vh] lg:h-[50vh] pointer-events-none motion-reduce:hidden" aria-hidden="true" />
+          )}
         </StackedScrollSection>
 
         <StackedScrollSection

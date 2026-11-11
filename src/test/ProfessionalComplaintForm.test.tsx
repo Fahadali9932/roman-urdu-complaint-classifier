@@ -32,7 +32,6 @@ describe('Complaint form safeguards', () => {
 
   it('keeps a home address client-only', async () => {
     await reachLocation();
-    fireEvent.click(screen.getByRole('button', { name: /add home address/i }));
     fireEvent.change(screen.getByLabelText(/home address/i), { target: { value: 'Private Street House 42' } });
     expect(screen.getByLabelText(/home address/i)).toHaveValue('Private Street House 42');
     expect(localStorage.getItem('applicantAddress')).toBeNull();
@@ -43,6 +42,7 @@ describe('Complaint form safeguards', () => {
     await reachLocation();
     fireEvent.change(screen.getByLabelText(/area \/ locality/i), { target: { value: 'Saddar' } });
     fireEvent.change(screen.getByLabelText(/street, block or nearby landmark/i), { target: { value: 'Frere Road' } });
+    fireEvent.change(screen.getByLabelText(/home address/i), { target: { value: 'House 99, Saddar' } });
     fireEvent.click(screen.getByRole('button', { name: /continue/i }));
     const description = await screen.findByLabelText(/complaint description/i);
     fireEvent.change(description, { target: { value: Array.from({ length: 205 }, (_, index) => `word${index}`).join(' ') } });

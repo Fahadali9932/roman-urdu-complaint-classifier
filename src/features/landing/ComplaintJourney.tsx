@@ -237,7 +237,10 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
       setMobileProgress(Math.max(0, Math.min(1, mobRaw)));
     } else {
       const currentScroll = scrollY - containerTop;
-      const rawProgress = currentScroll / scrollableDistance;
+      // Active card sequence animates smoothly across the first 340vh, leaving a 100vh hold runway
+      // where Station 4 stays pinned at top:0 as Write Intro rises over it
+      const animDistance = Math.max(1, scrollableDistance - vh);
+      const rawProgress = currentScroll / animDistance;
       const clamped = Math.max(0, Math.min(1, rawProgress));
       targetProgressRef.current = clamped;
 
@@ -317,7 +320,7 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
       ref={containerRef}
       className="relative w-full border-t border-[#E5E3E0] bg-[#F7F6F3] text-[#141414] scroll-mt-20 sm:scroll-mt-24 select-none"
       style={{
-        minHeight: prefersReducedMotion || isMobile ? 'auto' : '460vh',
+        minHeight: prefersReducedMotion || isMobile ? 'auto' : '540vh',
       }}
       aria-label={t('processHeading') || 'How It Works'}
     >
