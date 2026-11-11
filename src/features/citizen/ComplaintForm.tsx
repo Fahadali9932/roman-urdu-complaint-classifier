@@ -1,12 +1,12 @@
 import React from 'react';
-import { CinematicGlassContainer } from './cinematic-glass/CinematicGlassContainer';
+import { SimplifiedComplaintContainer } from './simplified-complaint/SimplifiedComplaintContainer';
 
 export interface ComplaintFormProps {
   embedded?: boolean;
 }
 
 export const ComplaintForm: React.FC<ComplaintFormProps> = () => {
-  return <CinematicGlassContainer />;
+  return <SimplifiedComplaintContainer />;
 };
 
 export default ComplaintForm;
