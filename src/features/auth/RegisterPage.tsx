@@ -31,7 +31,7 @@ export const RegisterPage: React.FC = () => {
       {/* Main Registration Container (1100px desktop, 28px radius, two columns 43/57) */}
       <div className="w-full max-w-[1100px] bg-white rounded-[28px] border border-[#EAE7E2] shadow-[0_28px_75px_rgba(20,20,20,0.08)] overflow-hidden flex flex-col lg:flex-row items-stretch transition-all duration-300">
         {/* LEFT COLUMN: 43% Form Section */}
-        <div className="w-full lg:w-[43%] p-6 sm:px-8 sm:py-7 lg:px-10 lg:py-8 flex flex-col justify-between text-start">
+        <div className="w-full lg:w-[43%] p-5 sm:px-8 sm:py-7 lg:px-10 lg:py-8 flex flex-col justify-between text-start">
           <div className="max-w-[355px] w-full mx-auto lg:mx-0">
             {/* Brand Mark */}
             <div className="flex items-center gap-2 mb-3">

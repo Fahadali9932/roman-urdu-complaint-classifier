@@ -39,7 +39,7 @@ export const LoginPage: React.FC = () => {
           </p>
         </div>
 
-        <div className="bg-white border border-[#E5E3E0] rounded-2xl p-6 sm:p-10 text-start space-y-5 shadow-[0_12px_36px_rgba(20,20,20,0.06)]">
+        <div className="bg-white border border-[#E5E3E0] rounded-2xl p-5 sm:p-10 text-start space-y-5 shadow-[0_12px_36px_rgba(20,20,20,0.06)]">
           <form onSubmit={handleSubmit} className="space-y-4">
             <Input
               label={t('authEmail')}

@@ -119,7 +119,7 @@ export const CinematicInfoLayout: React.FC<CinematicInfoLayoutProps> = ({
           Generous top padding ensures safe clearance beneath fixed navbar pill
           ======================================================== */}
       <section
-        className="relative z-10 w-full flex flex-col justify-center items-center text-center px-6 sm:px-10 lg:px-12 pt-36 sm:pt-40 lg:pt-44 pb-12 sm:pb-16"
+        className="relative z-10 w-full flex flex-col justify-center items-center text-center px-4 sm:px-10 lg:px-12 pt-36 sm:pt-40 lg:pt-44 pb-12 sm:pb-16"
         aria-labelledby="cinematic-page-title"
       >
         <div
@@ -159,7 +159,7 @@ export const CinematicInfoLayout: React.FC<CinematicInfoLayoutProps> = ({
           Professional responsive editorial grid (~1140px container)
           Quiet, controlled reading surface in pure #141414
           ======================================================== */}
-      <div className="relative z-10 w-full max-w-[1140px] mx-auto px-6 sm:px-10 lg:px-12 pb-16 sm:pb-20">
+      <div className="relative z-10 w-full max-w-[1140px] mx-auto px-4 sm:px-10 lg:px-12 pb-16 sm:pb-20">
         <article className="space-y-16 sm:space-y-20">
           {doc.sections.map((section) => (
             <CinematicInfoSection

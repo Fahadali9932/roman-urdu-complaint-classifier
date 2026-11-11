@@ -213,7 +213,7 @@ export const PublicHeader: React.FC = () => {
               Only ONE item selected at a time with #681822 Blood Maroon highlight */}
           <nav
             aria-label="Desktop primary navigation"
-            className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 hidden md:flex items-center p-1 sm:p-1.5 rounded-full bg-[#FAF9F7]/95 backdrop-blur-md border border-[#E5E3E0] shadow-[0_8px_24px_rgba(20,20,20,0.08)] select-none z-10"
+            className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 hidden lg:flex items-center p-1 sm:p-1.5 rounded-full bg-[#FAF9F7]/95 backdrop-blur-md border border-[#E5E3E0] shadow-[0_8px_24px_rgba(20,20,20,0.08)] select-none z-10"
           >
             {/* Home Link */}
             <a
@@ -275,13 +275,13 @@ export const PublicHeader: React.FC = () => {
           <div className="flex items-center gap-2 sm:gap-3 z-20 shrink-0">
             <LanguageToggle isDark={isDarkHeader} />
 
-            <div className={`hidden sm:block h-3.5 w-px shrink-0 mx-0.5 transition-colors ${
+            <div className={`hidden lg:block h-3.5 w-px shrink-0 mx-0.5 transition-colors ${
               isDarkHeader ? 'bg-white/20' : 'bg-[#E5E3E0]'
             }`} />
 
             <Link
               to="/login"
-              className={`hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] font-ui font-normal transition-colors select-none cursor-pointer ${
+              className={`hidden lg:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] font-ui font-normal transition-colors select-none cursor-pointer ${
                 isDarkHeader
                   ? 'text-[#FFFFFF] hover:text-[#FAF9F7] hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-white'
                   : 'text-[#141414] hover:text-[#681822] hover:bg-[#E5E3E0]/40 focus-visible:outline-2 focus-visible:outline-[#141414]'
@@ -296,7 +296,7 @@ export const PublicHeader: React.FC = () => {
               ref={menuButtonRef}
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className={`md:hidden inline-flex items-center justify-center p-2 rounded-full transition-colors cursor-pointer select-none shadow-sm ${
+              className={`lg:hidden inline-flex items-center justify-center p-2 rounded-full transition-colors cursor-pointer select-none shadow-sm ${
                 isDarkHeader
                   ? 'bg-white/10 border border-white/20 text-[#FFFFFF] hover:bg-white/20 focus-visible:outline-2 focus-visible:outline-white'
                   : 'bg-[#FAF9F7] border border-[#E5E3E0] text-[#141414] hover:bg-[#E5E3E0]/50 focus-visible:outline-2 focus-visible:outline-[#141414]'
@@ -337,7 +337,7 @@ export const PublicHeader: React.FC = () => {
               ...(dropdownPosition.left !== undefined ? { left: `${dropdownPosition.left}px` } : {}),
               ...(dropdownPosition.right !== undefined ? { right: `${dropdownPosition.right}px` } : {}),
             }}
-            className="fixed z-50 w-72 sm:w-80 rounded-2xl bg-[#FAF9F7] border border-[#E5E3E0] p-4 shadow-2xl pointer-events-auto animate-in fade-in zoom-in-95 duration-200"
+            className="fixed z-50 w-72 sm:w-80 max-w-[calc(100vw-24px)] rounded-2xl bg-[#FAF9F7] border border-[#E5E3E0] p-4 shadow-2xl pointer-events-auto animate-in fade-in zoom-in-95 duration-200"
           >
             <div className="flex items-center justify-between pb-3 border-b border-[#E5E3E0]/70 mb-3">
               <span className="text-[11px] font-mono uppercase tracking-widest text-[#323232]">

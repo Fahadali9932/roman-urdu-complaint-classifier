@@ -10,6 +10,8 @@ export const AppLayout: React.FC = () => {
     location.pathname
   );
 
+  const isSubmit = location.pathname === '/submit' || location.pathname === '/write-complaint';
+
   return (
     <div
       className={`min-h-screen flex flex-col w-full selection:bg-[#681822] selection:text-[#FFFFFF] ${
@@ -17,7 +19,9 @@ export const AppLayout: React.FC = () => {
           ? 'bg-[#F7F6F3] text-[#141414] overflow-visible'
           : isInfoPage
             ? 'bg-[#141414] text-[#F7F6F3] overflow-x-clip'
-            : 'bg-[#F7F6F3] text-[#141414] overflow-x-clip'
+            : isSubmit
+              ? 'bg-[#F7F6F3] text-[#141414] overflow-visible'
+              : 'bg-[#F7F6F3] text-[#141414] overflow-x-clip'
       }`}
     >
       <PublicHeader />
@@ -27,7 +31,9 @@ export const AppLayout: React.FC = () => {
             ? 'overflow-visible'
             : isInfoPage
               ? 'p-0 m-0 overflow-x-clip'
-              : 'overflow-x-clip pt-24 sm:pt-28 pb-32 sm:pb-36'
+              : isSubmit
+                ? 'overflow-visible p-0 m-0'
+                : 'overflow-x-clip pt-24 sm:pt-28 pb-32 sm:pb-36'
         }`}
       >
         <Outlet />

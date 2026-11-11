@@ -193,17 +193,15 @@ export const KarachiAreaCombobox: React.FC<KarachiAreaComboboxProps> = ({
               : 'Type area, block or scheme (e.g., Gulshan, Johar, DHA, Clifton...)')
           }
           className={`w-full ${
-            variant === 'glass' ? 'min-h-[52px] sm:min-h-14 rounded-[16px] border-[1.5px] py-3' : 'min-h-[48px] rounded-xl border py-2.5 shadow-2xs'
-          } font-sans text-sm sm:text-base transition-all outline-none ${
-            isRTL ? 'pe-10 ps-10' : 'ps-10 pe-10'
-          } ${
             variant === 'glass'
-              ? error
-                ? 'border-rose-400 bg-rose-950/30 text-white placeholder:text-white/40 focus:ring-1 focus:ring-rose-400'
-                : 'border-white/14 bg-white/[0.07] text-white placeholder:text-white/40 hover:border-white/25 hover:bg-white/[0.09] focus:border-[#E89BA4] focus:bg-white/[0.11] focus:ring-2 focus:ring-[#681822]/40 focus:shadow-[0_0_16px_rgba(104,24,34,0.35)]'
-              : error
-                ? 'border-rose-500 focus:border-rose-600 focus:ring-1 focus:ring-rose-500 bg-rose-50/20 text-[#141414] placeholder:text-[#888]'
-                : 'border-[#E8E5E1] hover:border-[#323232] focus:border-[#141414] focus:ring-1 focus:ring-[#141414] bg-white text-[#141414] placeholder:text-[#888]'
+              ? `min-h-[52px] sm:min-h-14 rounded-[16px] border-[1.5px] py-3 ${
+                  error
+                    ? 'border-rose-400 bg-rose-950/30 text-white placeholder:text-white/40 focus:ring-1 focus:ring-rose-400'
+                    : 'border-white/14 bg-white/[0.07] text-white placeholder:text-white/40 hover:border-white/25 hover:bg-white/[0.09] focus:border-[#E89BA4] focus:bg-white/[0.11] focus:ring-2 focus:ring-[#681822]/40 focus:shadow-[0_0_16px_rgba(104,24,34,0.35)]'
+                }`
+              : `field-refined py-3 ${error ? 'field-refined-error' : ''}`
+          } font-sans text-sm sm:text-base outline-none ${
+            isRTL ? 'pe-11 ps-11' : 'ps-11 pe-11'
           }`}
         />
 
@@ -231,7 +229,7 @@ export const KarachiAreaCombobox: React.FC<KarachiAreaComboboxProps> = ({
           className={`absolute z-50 left-0 right-0 mt-2 max-h-72 overflow-y-auto border p-2 text-start transition-all ${
             variant === 'glass'
               ? 'rounded-[20px] border-white/18 bg-[rgba(22,20,24,0.80)] backdrop-blur-2xl text-white divide-y divide-white/10 shadow-[0_24px_60px_rgba(0,0,0,0.65),inset_0_1px_0_rgba(255,255,255,0.15)]'
-              : 'rounded-xl border-[#E8E5E1] bg-white text-start divide-y divide-[#F4F3F0] shadow-xl shadow-black/8'
+              : 'rounded-xl border-[#E6E3DF] bg-white text-start divide-y divide-[#F2EFEA] shadow-[0_16px_36px_rgba(20,20,20,0.08)]'
           }`}
         >
           {results.map((item, index) => {

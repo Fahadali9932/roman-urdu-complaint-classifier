@@ -27,6 +27,7 @@ export const PublicFooter: React.FC<PublicFooterProps> = ({ isHomePage, showMonu
   const isInfoPage = ['/about', '/contact', '/privacy-policy', '/terms-of-use', '/privacy', '/terms'].includes(
     location.pathname
   );
+  const isSubmit = location.pathname === '/submit' || location.pathname === '/write-complaint';
   // Show monument hero only when on home or explicitly requested; informational pages share the page's single continuous architectural backdrop
   const showMonumentHero = explicitShowHero ?? (!isInfoPage);
 
@@ -203,6 +204,8 @@ export const PublicFooter: React.FC<PublicFooterProps> = ({ isHomePage, showMonu
       id="footer"
       ref={containerRef}
       className={`civic-editorial-footer ${
+        isSubmit ? 'footer-write-complaint' : ''
+      } ${
         isHome && !isMobile && !prefersReducedMotion ? 'footer-animated-track' : ''
       } ${!showMonumentHero ? 'footer-integrated' : ''}`}
       dir={isRTL ? 'rtl' : 'ltr'}

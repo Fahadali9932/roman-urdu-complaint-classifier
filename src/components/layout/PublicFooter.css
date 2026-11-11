@@ -17,6 +17,17 @@
   border-top: 1px solid #323232;
 }
 
+/* ==========================================================================
+   WRITE COMPLAINT EDITORIAL FOOTER REVEAL
+   Elevated rising layer that covers the complaint canvas on scroll
+   ========================================================================== */
+.civic-editorial-footer.footer-write-complaint {
+  position: relative;
+  z-index: 30;
+  box-shadow: 0 -24px 60px rgba(0, 0, 0, 0.45), 0 -4px 16px rgba(0, 0, 0, 0.25);
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
 .footer-animated-track {
   min-height: 175vh;
 }

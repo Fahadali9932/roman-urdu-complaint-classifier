@@ -6,7 +6,7 @@ export const RegistrationArtwork: React.FC = () => {
   const { t, isRTL } = useLanguage();
 
   return (
-    <div className="relative w-full h-full min-h-[520px] rounded-[22px] overflow-hidden bg-gradient-to-br from-[#300A0F] via-[#4A1017] to-[#1A0507] flex flex-col justify-end p-6 sm:p-7 select-none">
+    <div className="relative w-full h-full min-h-[320px] sm:min-h-[420px] lg:min-h-[520px] rounded-[22px] overflow-hidden bg-gradient-to-br from-[#300A0F] via-[#4A1017] to-[#1A0507] flex flex-col justify-end p-5 sm:p-7 select-none">
       {/* Background Layer: Atmospheric Organic Curves & Ambient Glows */}
       <svg
         className="absolute inset-0 w-full h-full object-cover pointer-events-none"

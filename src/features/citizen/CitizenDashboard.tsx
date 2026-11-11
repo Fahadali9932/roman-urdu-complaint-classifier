@@ -39,7 +39,7 @@ export const CitizenDashboard: React.FC = () => {
       </div>
 
       {/* Honest Digital Correspondence Empty State (Personal Letter Archive) */}
-      <div className="p-8 sm:p-16 rounded-3xl bg-white border border-[#E5E3E0] text-center max-w-2xl mx-auto my-8 space-y-6 shadow-[0_12px_36px_rgba(20,20,20,0.06)]">
+      <div className="p-6 sm:p-16 rounded-3xl bg-white border border-[#E5E3E0] text-center max-w-2xl mx-auto my-8 space-y-6 shadow-[0_12px_36px_rgba(20,20,20,0.06)]">
         <div className="w-20 h-20 rounded-2xl bg-[#FAF9F7] border border-[#E5E3E0] flex items-center justify-center mx-auto text-[#681822]">
           <FolderOpen className="w-10 h-10 stroke-[1.5]" />
         </div>

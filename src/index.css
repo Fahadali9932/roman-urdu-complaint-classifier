@@ -87,14 +87,56 @@
     unicode-bidi: isolate;
   }
 
-  /* High-contrast accessible focus visible outline (WCAG 2.2 AA) */
-  input:focus-visible,
-  textarea:focus-visible,
-  select:focus-visible,
+  /* High-contrast accessible focus visible outline for buttons & links */
   button:focus-visible,
   a:focus-visible {
     outline: 2px solid var(--editorial-black) !important;
     outline-offset: 2px !important;
+  }
+
+  /* Accessible, single-border focus treatment for form controls (no double outlines) */
+  input:focus,
+  textarea:focus,
+  select:focus,
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible {
+    outline: none !important;
+  }
+
+  /* Shared refined form control tokens */
+  .field-refined {
+    background-color: #FAF9F7;
+    border: 1px solid #E6E3DF;
+    border-radius: 12px;
+    min-height: 50px;
+    color: #171717;
+    outline: none !important;
+    transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+  }
+
+  .field-refined:hover {
+    border-color: #C8C2BA;
+  }
+
+  .field-refined:focus,
+  .field-refined:focus-visible {
+    background-color: #FFFFFF;
+    border-color: #681822 !important;
+    box-shadow: 0 0 0 3px rgba(104, 24, 34, 0.10) !important;
+    outline: none !important;
+  }
+
+  .field-refined-error {
+    border-color: #B4233E !important;
+  }
+
+  .field-refined-error:focus,
+  .field-refined-error:focus-visible {
+    background-color: #FFFFFF;
+    border-color: #B4233E !important;
+    box-shadow: 0 0 0 3px rgba(180, 35, 62, 0.12) !important;
+    outline: none !important;
   }
 
   /* Graceful browser autofill styling preventing jarring browser blue boxes */

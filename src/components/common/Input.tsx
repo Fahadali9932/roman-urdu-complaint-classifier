@@ -50,12 +50,12 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             ref={ref}
             aria-invalid={Boolean(error)}
             aria-describedby={errorId || helperId}
-            className={`w-full min-h-[44px] rounded-lg border bg-white px-3.5 py-2.5 text-sm sm:text-base text-[#141414] placeholder:text-[#6B6864]/50 transition-colors focus:bg-white focus:outline-hidden ${
-              leftIcon ? 'ps-10' : ''
+            className={`w-full min-h-[50px] rounded-xl border bg-[#FAF9F7] px-4 py-3 text-sm sm:text-base text-[#141414] placeholder:text-[#88827A] transition-[border-color,box-shadow,background-color] duration-150 outline-none ${
+              leftIcon ? 'ps-11' : ''
             } ${rightAction || rightIcon ? 'pe-11' : ''} ${
               error
-                ? 'border-rose-500 focus:border-rose-600 focus:ring-1 focus:ring-rose-500 bg-rose-50/20'
-                : 'border-[#E5E3E0] hover:border-[#323232] focus:border-[#141414] focus:ring-1 focus:ring-[#141414]'
+                ? 'border-[#B4233E] focus:bg-white focus:border-[#B4233E] focus:shadow-[0_0_0_3px_rgba(180,35,62,0.12)]'
+                : 'border-[#E6E3DF] hover:border-[#C8C2BA] focus:bg-white focus:border-[#681822] focus:shadow-[0_0_0_3px_rgba(104,24,34,0.10)]'
             } ${className}`}
             {...props}
           />

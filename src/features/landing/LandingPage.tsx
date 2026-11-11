@@ -39,17 +39,17 @@ export const LandingPage: React.FC = () => {
           <div className="relative inline-block w-full max-w-5xl my-2 sm:my-4">
 
             {/* Monumental Display Headline */}
-            <h1 className="font-display text-[3.25rem] sm:text-6xl md:text-7xl lg:text-[9rem] xl:text-[10.5rem] text-[#141414] uppercase leading-[0.88] tracking-tight relative z-10">
+            <h1 className="font-display text-[1.95rem] xs:text-[2.4rem] sm:text-5xl md:text-[3.75rem] lg:text-[8rem] xl:text-[10.5rem] text-[#141414] uppercase leading-[0.88] tracking-tight relative z-10">
               {ur ? (
                 <>
-                  <span className="block text-2xl sm:text-4xl md:text-5xl text-[#323232] font-medium tracking-normal mb-1">
+                  <span className="block text-lg sm:text-2xl md:text-3xl text-[#323232] font-medium tracking-normal mb-1">
                     آپ کی شکایت۔
                   </span>
                   <span>آپ کی آواز۔</span>
                 </>
               ) : (
                 <>
-                  <span className="block text-xl sm:text-3xl md:text-4xl text-[#323232] font-semibold tracking-wider mb-1 sm:mb-2">
+                  <span className="block text-sm sm:text-xl md:text-2xl text-[#323232] font-semibold tracking-wider mb-1 sm:mb-2">
                     YOUR COMPLAINT.
                   </span>
                   <span>YOUR VOICE.</span>
@@ -59,7 +59,11 @@ export const LandingPage: React.FC = () => {
 
             {/* Fountain Pen Nib Angled across central typography */}
             <div
-              className="absolute -top-10 sm:-top-16 lg:-top-24 right-4 sm:right-12 lg:right-24 w-28 sm:w-40 lg:w-56 h-auto pointer-events-none z-20 transform -rotate-[26deg] sm:-rotate-[28deg] transition-transform duration-700 ease-out hover:scale-105"
+              className={`absolute h-auto pointer-events-none z-20 transition-transform duration-700 ease-out hover:scale-105 ${
+                isRTL
+                  ? '-top-6 sm:-top-10 lg:-top-24 left-0 sm:left-2 md:left-6 lg:left-24 w-16 xs:w-20 sm:w-28 md:w-36 lg:w-56 rotate-[26deg] sm:rotate-[28deg]'
+                  : '-top-6 sm:-top-10 lg:-top-24 right-0 sm:right-2 md:right-6 lg:right-24 w-16 xs:w-20 sm:w-28 md:w-36 lg:w-56 -rotate-[26deg] sm:-rotate-[28deg]'
+              }`}
               aria-hidden="true"
             >
               <FountainPenNib className="w-full h-auto drop-shadow-[0_25px_35px_rgba(20,20,20,0.3)]" />
