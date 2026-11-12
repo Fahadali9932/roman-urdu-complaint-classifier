@@ -13,8 +13,9 @@ export const CitizenLayout: React.FC = () => {
           depth={10}
           recedeOnScroll={true}
           as="main"
-          stickyMode="top"
-          trackHeight="150vh"
+          // Dashboard height changes with records and filters, so keep its
+          // footer transition in normal flow instead of reserving a fake track.
+          stickyMode="none"
           className="flex-1 w-full bg-[#F7F6F3]"
         >
           <div className="w-full max-w-[1360px] mx-auto px-4 sm:px-8 pt-24 sm:pt-28 pb-16 sm:pb-24">

@@ -192,7 +192,9 @@ export const PublicFooter: React.FC<PublicFooterProps> = ({ isHomePage, showMonu
       e.preventDefault();
       const el = document.getElementById(sectionId);
       if (el) {
-        el.scrollIntoView({ behavior: 'smooth' });
+        const headerOffset = window.innerWidth < 640 ? 72 : 96;
+        const top = Math.max(0, el.getBoundingClientRect().top + window.scrollY - headerOffset);
+        window.scrollTo({ top, behavior: 'smooth' });
       } else {
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }

@@ -38,8 +38,10 @@ export const AppLayout: React.FC = () => {
           depth={10}
           recedeOnScroll={true}
           as="main"
-          stickyMode={!isSubmit && !isInfoPage ? 'top' : 'none'}
-          trackHeight={!isSubmit && !isInfoPage ? '150vh' : undefined}
+          // Dynamic routes (forms, tables and trackers) must stay in normal
+          // document flow.  A viewport sticky track here created blank space
+          // and could put the footer over active controls.
+          stickyMode="none"
           className={`flex-1 w-full ${
             isInfoPage
               ? 'p-0 m-0'

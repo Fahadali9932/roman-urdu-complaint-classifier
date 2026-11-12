@@ -21,6 +21,9 @@ describe('LandingPage Component', () => {
     // Write-intro section
     const writeIntro = container.querySelector('#write-intro');
     expect(writeIntro).toBeInTheDocument();
+    // The sticky sheet needs a real viewport-sized canvas; without this the
+    // editorial content sits at the top and leaves a large blank lower half.
+    expect(writeIntro).toHaveClass('min-h-[100svh]');
 
     // Check WRITE headline
     const writeHeading = screen.getByRole('heading', { level: 2, name: /PUT IT IN WORDS\./i });
@@ -32,5 +35,6 @@ describe('LandingPage Component', () => {
 
     // Ensure architectural ghosted background typography exists
     expect(writeIntro?.textContent).toContain('WRITE');
+    expect(writeIntro?.querySelector('[aria-hidden="true"]')).toHaveClass('top-1/2');
   });
 });

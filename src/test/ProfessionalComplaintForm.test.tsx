@@ -38,6 +38,17 @@ describe('Complaint form safeguards', () => {
     expect(sessionStorage.getItem('applicantAddress')).toBeNull();
   });
 
+  it('requires a home address before proceeding from the location stage', async () => {
+    await reachLocation();
+    fireEvent.change(screen.getByLabelText(/area \/ locality/i), { target: { value: 'Saddar' } });
+    fireEvent.change(screen.getByLabelText(/street, block or nearby landmark/i), { target: { value: 'Frere Road' } });
+    fireEvent.click(screen.getByRole('button', { name: /continue/i }));
+
+    expect(screen.getByText(/enter your home address/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/home address/i)).toHaveFocus();
+    expect(screen.queryByLabelText(/complaint description/i)).not.toBeInTheDocument();
+  });
+
   it('enforces the 200-word description limit', async () => {
     await reachLocation();
     fireEvent.change(screen.getByLabelText(/area \/ locality/i), { target: { value: 'Saddar' } });

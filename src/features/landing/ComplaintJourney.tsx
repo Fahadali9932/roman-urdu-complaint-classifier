@@ -4,6 +4,8 @@ import { useLanguage } from '../../context/LanguageContext';
 interface ComplaintJourneyProps {
   id?: string;
   externalScrollTrack?: boolean;
+  /** Total height of the parent stacked track, in viewport units. */
+  scrollTrackVh?: number;
 }
 
 // Ken Perlin quintic smootherstep ease (C^2 continuous: 0 velocity & acceleration at boundaries)
@@ -14,7 +16,11 @@ const smoother = (x: number): number => {
 
 const clamp01 = (v: number): number => Math.max(0, Math.min(1, v));
 
-export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps', externalScrollTrack = false }) => {
+export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({
+  id = 'steps',
+  externalScrollTrack = false,
+  scrollTrackVh = 340,
+}) => {
   const { t, language, isRTL } = useLanguage();
   const containerRef = useRef<HTMLElement>(null);
 
@@ -55,9 +61,6 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
     return window.matchMedia('(max-width: 1023px)').matches;
   });
 
-  // Mobile scroll progress
-  const [mobileProgress, setMobileProgress] = useState(0);
-
   // Recalculate and cache layout geometry
   const measureLayout = useCallback(() => {
     if (!containerRef.current) return;
@@ -68,7 +71,12 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
     const rect = trackElement.getBoundingClientRect();
     const scrollY = window.scrollY;
     const containerTop = externalScrollTrack && !isMobile ? trackElement.offsetTop : rect.top + scrollY;
-    const containerHeight = trackElement.offsetHeight + (externalScrollTrack && !isMobile ? window.innerHeight * 4.4 : 0);
+    // The parent section owns the scroll track.  Counting an invented 4.4
+    // viewports here made the cards finish long before the following panel,
+    // leaving a large dead stretch after “How it works”.
+    const containerHeight = externalScrollTrack && !isMobile
+      ? window.innerHeight * (scrollTrackVh / 100)
+      : trackElement.offsetHeight;
     const scrollableDistance = Math.max(1, containerHeight - vh);
 
     layoutMetricsRef.current = {
@@ -77,7 +85,7 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
       vh,
       scrollableDistance,
     };
-  }, [externalScrollTrack, isMobile]);
+  }, [externalScrollTrack, isMobile, scrollTrackVh]);
 
   // Subscribe to media queries and viewport resize
   useEffect(() => {
@@ -232,18 +240,13 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
     if (prefersReducedMotion) return;
 
     const scrollY = window.scrollY;
-    const { containerTop, scrollableDistance, vh, containerHeight } = layoutMetricsRef.current;
+    const { containerTop, scrollableDistance } = layoutMetricsRef.current;
 
-    if (isMobile) {
-      const mobDistance = vh + containerHeight * 0.5;
-      const currentMob = scrollY + vh - containerTop;
-      const mobRaw = mobDistance > 0 ? currentMob / mobDistance : 1;
-      setMobileProgress(Math.max(0, Math.min(1, mobRaw)));
-    } else {
+    if (!isMobile) {
       const currentScroll = scrollY - containerTop;
-      // Active card sequence animates smoothly across the first 340vh, leaving a 100vh hold runway
-      // where Station 4 stays pinned at top:0 as Write Intro rises over it
-      const animDistance = Math.max(1, scrollableDistance - vh);
+      // Complete the card sequence shortly before the next physical sheet
+      // arrives, retaining a compact runway for the stacked transition.
+      const animDistance = Math.max(1, scrollableDistance * 0.88);
       const rawProgress = currentScroll / animDistance;
       const clamped = Math.max(0, Math.min(1, rawProgress));
       targetProgressRef.current = clamped;
@@ -614,16 +617,11 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
 
         <div className="flex flex-col items-center w-full">
           {stepsData.map((stg, index) => {
-            const threshold = 0.12 + index * 0.16;
-            const arrowThreshold = threshold + 0.08;
-            const isCardVisible = prefersReducedMotion || mobileProgress >= threshold;
-            const isArrowVisible = prefersReducedMotion || mobileProgress >= arrowThreshold;
-
             return (
               <React.Fragment key={stg.key}>
                 <div
                   className={`w-full p-5 sm:p-6 rounded-xl bg-[#FAF9F7] border border-[#E5E3E0] shadow-none transition-all duration-500 ease-out text-start ${
-                    isCardVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'
+                    'opacity-100 translate-y-0'
                   }`}
                 >
                   <div className="w-6 h-0.5 bg-[#681822] mb-2.5" />
@@ -646,7 +644,7 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
                         strokeLinejoin="round"
                         style={{
                           strokeDasharray: 70,
-                          strokeDashoffset: isArrowVisible ? 0 : 70,
+                          strokeDashoffset: 0,
                           transition: 'stroke-dashoffset 400ms ease-out',
                         }}
                       />

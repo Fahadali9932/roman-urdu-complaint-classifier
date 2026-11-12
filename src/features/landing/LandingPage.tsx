@@ -23,7 +23,7 @@ export const LandingPage: React.FC = () => {
         id="hero"
         depth={10}
         stickyMode="top"
-        trackHeight="125vh"
+        trackHeight="115svh"
         recedeOnScroll={true}
         className="w-full bg-[#F7F6F3] overflow-hidden"
       >
@@ -125,12 +125,12 @@ export const LandingPage: React.FC = () => {
         id="steps-panel"
         depth={20}
         stickyMode="top-desktop"
-        trackHeight="540vh"
+        trackHeight="340svh"
         recedeOnScroll={true}
         hasIncomingShadow={true}
         className="w-full min-h-screen bg-[#F7F6F3] border-t border-[#E5E3E0]"
       >
-        <ComplaintJourney id="steps" externalScrollTrack />
+        <ComplaintJourney id="steps" externalScrollTrack scrollTrackVh={340} />
       </StackedScrollSection>
 
       {/* ========================================================
@@ -143,29 +143,29 @@ export const LandingPage: React.FC = () => {
         id="write-intro-panel"
         depth={30}
         stickyMode="top"
-        trackHeight="175vh"
+        trackHeight="125svh"
         recedeOnScroll={true}
         hasIncomingShadow={true}
         className="w-full bg-[#FAF9F7] border-t border-[#E5E3E0]"
       >
         <section
           id="write-intro"
-          className="w-full flex flex-col justify-center px-6 sm:px-12 lg:px-20 overflow-hidden select-none py-16 sm:py-24"
+          className="min-h-[100svh] w-full flex flex-col justify-center px-6 sm:px-12 lg:px-20 overflow-hidden select-none py-20 sm:py-24"
           aria-label="Editorial Write Introduction"
         >
-          <div className="max-w-7xl mx-auto w-full relative">
+          <div className="max-w-7xl mx-auto w-full min-h-[calc(100svh-10rem)] flex items-center relative">
 
             {/* Monumental Cropped Typography
                 Huge cropped word creating editorial graphic architecture */}
             <div
-              className="font-display text-[7.5rem] sm:text-[14rem] md:text-[18rem] lg:text-[23rem] text-[#141414] leading-none select-none tracking-tighter opacity-[0.06] sm:opacity-[0.08] absolute -top-16 sm:-top-32 -left-6 sm:-left-12 pointer-events-none uppercase overflow-hidden"
+              className="font-display text-[7rem] sm:text-[12rem] md:text-[15rem] lg:text-[19rem] text-[#141414] leading-none whitespace-nowrap select-none tracking-tighter opacity-[0.06] sm:opacity-[0.08] absolute top-1/2 -translate-y-1/2 -left-2 sm:-left-8 pointer-events-none uppercase"
               aria-hidden="true"
             >
               {ur ? 'تحریر' : 'WRITE'}
             </div>
 
             {/* Active Editorial Content nested in the negative space */}
-            <div className="relative z-10 max-w-2xl sm:ml-auto">
+            <div className="relative z-10 max-w-2xl sm:ml-auto sm:mr-[7%]">
 
               {/* Fine Blood Maroon Accent Rule */}
               <div className="w-16 h-1 bg-[#681822] mb-6" />

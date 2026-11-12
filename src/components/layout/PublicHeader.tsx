@@ -148,7 +148,11 @@ export const PublicHeader: React.FC = () => {
       e.preventDefault();
       const el = document.getElementById(targetId);
       if (el) {
-        el.scrollIntoView({ behavior: 'smooth' });
+        // Sticky panels can make scrollIntoView place an anchor underneath the
+        // fixed header.  Keep the first heading and control comfortably clear.
+        const headerOffset = window.innerWidth < 640 ? 72 : 96;
+        const top = Math.max(0, el.getBoundingClientRect().top + window.scrollY - headerOffset);
+        window.scrollTo({ top, behavior: 'smooth' });
         window.history.pushState(null, '', `#${targetId}`);
       } else {
         window.scrollTo({ top: 0, behavior: 'smooth' });
