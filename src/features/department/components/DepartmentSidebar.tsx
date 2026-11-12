@@ -1,78 +1,42 @@
 import React from 'react';
+import { CircleDot, CheckCircle2, Clock3, Inbox } from 'lucide-react';
 import { useLanguage } from '../../../context/LanguageContext';
-import { Inbox, Sparkles, Clock, CheckCircle2 } from 'lucide-react';
 
 export type DepartmentStatusFilter = 'all' | 'new' | 'in_progress' | 'resolved';
 
 interface DepartmentSidebarProps {
   activeFilter: DepartmentStatusFilter;
   onSelectFilter: (filter: DepartmentStatusFilter) => void;
-  counts: {
-    all: number;
-    new: number;
-    in_progress: number;
-    resolved: number;
-  };
+  counts: Record<DepartmentStatusFilter, number>;
 }
 
-export const DepartmentSidebar: React.FC<DepartmentSidebarProps> = ({
-  activeFilter,
-  onSelectFilter,
-  counts,
-}) => {
+export const DepartmentSidebar: React.FC<DepartmentSidebarProps> = ({ activeFilter, onSelectFilter, counts }) => {
   const { t } = useLanguage();
-
-  const filterItems: {
-    id: DepartmentStatusFilter;
-    label: string;
-    count: number;
-    icon: React.ComponentType<{ className?: string }>;
-  }[] = [
-    { id: 'all', label: t('deptFilterAll'), count: counts.all, icon: Inbox },
-    { id: 'new', label: t('deptFilterNew'), count: counts.new, icon: Sparkles },
-    { id: 'in_progress', label: t('deptFilterInProgress'), count: counts.in_progress, icon: Clock },
-    { id: 'resolved', label: t('deptFilterResolved'), count: counts.resolved, icon: CheckCircle2 },
+  const filterItems = [
+    { id: 'all' as const, label: t('deptFilterAll'), icon: Inbox },
+    { id: 'new' as const, label: t('deptFilterNew'), icon: CircleDot },
+    { id: 'in_progress' as const, label: t('deptFilterInProgress'), icon: Clock3 },
+    { id: 'resolved' as const, label: t('deptFilterResolved'), icon: CheckCircle2 },
   ];
 
   return (
-    <aside className="w-56 lg:w-60 shrink-0 flex flex-col">
-      <nav className="bg-[#FFFFFF] border border-[#E1E4E6] rounded-xl p-2 shadow-xs space-y-1">
-        <div className="px-3 py-2 text-xs font-bold text-[#5B646B] uppercase tracking-wider flex items-center gap-2">
-          <Inbox className="w-3.5 h-3.5 text-[#687E8B]" />
-          <span>{t('deptWorkspaceTitle')}</span>
-        </div>
-
+    <aside className="dept-rail hidden shrink-0 flex-col items-center py-5 xl:flex">
+      <nav aria-label={t('deptWorkspaceTitle')} className="flex flex-col items-center gap-3">
         {filterItems.map((item) => {
-          const isActive = activeFilter === item.id;
           const Icon = item.icon;
+          const active = activeFilter === item.id;
           return (
             <button
               key={item.id}
               type="button"
+              className="dept-rail-button group flex items-center justify-center"
               onClick={() => onSelectFilter(item.id)}
-              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
-                isActive
-                  ? 'bg-[#122E32] text-[#FFFFFF] shadow-xs'
-                  : 'text-[#0F1E21] hover:bg-[#F4F6F6] text-left rtl:text-right'
-              }`}
+              aria-current={active ? 'true' : undefined}
+              aria-label={item.label + ': ' + counts[item.id]}
+              title={item.label + ' (' + counts[item.id] + ')'}
             >
-              <div className="flex items-center gap-2 min-w-0">
-                <Icon
-                  className={`w-4 h-4 shrink-0 ${
-                    isActive ? 'text-white' : 'text-[#687E8B]'
-                  }`}
-                />
-                <span className="truncate">{item.label}</span>
-              </div>
-              <span
-                className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-                  isActive
-                    ? 'bg-[#FFFFFF]/25 text-[#FFFFFF]'
-                    : 'bg-[#F4F6F6] text-[#5B646B] border border-[#E1E4E6]'
-                }`}
-              >
-                {item.count}
-              </span>
+              <Icon className="h-[18px] w-[18px]" strokeWidth={1.9} />
+              <span className="sr-only">{item.label} ({counts[item.id]})</span>
             </button>
           );
         })}

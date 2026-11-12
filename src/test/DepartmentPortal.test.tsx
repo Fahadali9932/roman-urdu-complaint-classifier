@@ -261,6 +261,8 @@ describe('Department Portal — Security, Privacy, and Workflow Integrity', () =
 
   describe('5. Department Dashboard UI & Interaction', () => {
     it('renders the department workspace with authentic complaints', async () => {
+      // Master-detail is intentionally reserved for wide desktops; tablet remains inbox-first.
+      Object.defineProperty(window, 'innerWidth', { configurable: true, value: 1280 });
       sessionStorage.setItem(
         'awaaz_department_auth_session_v1',
         JSON.stringify({

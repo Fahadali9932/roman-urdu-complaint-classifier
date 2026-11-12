@@ -26,29 +26,29 @@ const STATUS_OPTIONS: {
     status: 'under_review',
     labelEn: 'Under Review',
     labelUr: 'زیرِ جائزہ',
-    descEn: 'Assigned engineering team is verifying details',
-    descUr: 'متعلقہ ٹیم شکایت کی تصدیق کر رہی ہے',
+    descEn: 'Record that the complaint is being reviewed.',
+    descUr: 'درج کریں کہ شکایت کا جائزہ لیا جا رہا ہے۔',
   },
   {
     status: 'in_progress',
     labelEn: 'In Progress',
     labelUr: 'زیرِ کارروائی',
-    descEn: 'Field team or operational crew actively addressing issue',
-    descUr: 'فیلڈ عملہ مسئلے کے حل پر کام کر رہا ہے',
+    descEn: 'Record that work is in progress.',
+    descUr: 'درج کریں کہ کام جاری ہے۔',
   },
   {
     status: 'resolved',
     labelEn: 'Resolved',
     labelUr: 'حل شدہ',
-    descEn: 'On-ground civic action completed and verified',
-    descUr: 'مسئلہ حل کر دیا گیا ہے',
+    descEn: 'Record the complaint as resolved.',
+    descUr: 'شکایت کو حل شدہ کے طور پر درج کریں۔',
   },
   {
     status: 'rejected',
     labelEn: 'Closed / Not Actionable',
     labelUr: 'شکایت بند',
-    descEn: 'Duplicate, insufficient location details, or outside jurisdiction',
-    descUr: 'دائرہ کار سے باہر یا ناکافی تفصیلات',
+    descEn: 'Record the complaint as closed.',
+    descUr: 'شکایت کو بند کے طور پر درج کریں۔',
   },
 ];
 
@@ -109,31 +109,31 @@ export const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0F1E21]/50 backdrop-blur-xs dept-fade-in"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 dept-fade-in"
       role="dialog"
       aria-modal="true"
       onClick={onClose}
     >
       <div
-        className="bg-[#FFFFFF] border border-[#E1E4E6] rounded-2xl max-w-lg w-full shadow-xl overflow-hidden flex flex-col"
+        className="w-full max-w-lg overflow-hidden rounded-2xl border border-[var(--dept-border)] bg-white shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="px-5 py-4 border-b border-[#E1E4E6] flex items-center justify-between bg-[#FAFBFB]">
+        <div className="flex items-center justify-between border-b border-[var(--dept-border)] bg-[var(--dept-panel)] px-5 py-4">
           <div className="space-y-0.5">
             <div className="flex items-center gap-2">
-              <span className="font-mono text-xs font-bold text-[#2C4A52] bg-[#2C4A52]/10 px-2 py-0.5 rounded">
+              <span className="rounded bg-[var(--dept-tint)] px-2 py-0.5 font-mono text-xs font-bold text-[var(--dept-primary)]">
                 {complaint.referenceNumber}
               </span>
             </div>
-            <h3 className="font-bold text-base sm:text-lg text-[#0F1E21]">
+            <h3 className="text-base font-bold text-[var(--dept-ink)] sm:text-lg">
               {t('deptUpdateStatus')}
             </h3>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="w-8 h-8 rounded-lg border border-[#E1E4E6] text-[#5B646B] hover:text-[#0F1E21] hover:bg-[#F4F6F6] flex items-center justify-center transition-colors cursor-pointer"
+            className="flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--dept-border)] text-[var(--dept-muted)] transition-colors hover:bg-[var(--dept-tint)] hover:text-[var(--dept-ink)]"
             aria-label="Close dialog"
           >
             <X className="w-4 h-4" />
@@ -151,7 +151,7 @@ export const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({
 
           {/* Status Options */}
           <div className="space-y-1.5">
-            <label className="block text-xs font-bold text-[#0F1E21] uppercase tracking-wider">
+            <label className="block text-xs font-bold uppercase tracking-wider text-[var(--dept-ink)]">
               {language === 'ur' ? 'نیا سٹیٹس منتخب کریں' : 'Select Target Status'}
             </label>
             <div className="space-y-2">
@@ -162,8 +162,8 @@ export const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({
                     key={opt.status}
                     className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
                       isSelected
-                        ? 'border-[#122E32] bg-[#F0F4F5] shadow-xs ring-1 ring-[#122E32]/20'
-                        : 'border-[#E1E4E6] bg-white hover:bg-[#FAFBFB]'
+                        ? 'border-[var(--dept-primary)] bg-[var(--dept-tint)] ring-1 ring-[var(--dept-accent)]'
+                        : 'border-[var(--dept-border)] bg-white hover:bg-[var(--dept-panel)]'
                     }`}
                   >
                     <input
@@ -175,10 +175,10 @@ export const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({
                       className="mt-0.5 text-[#122E32] focus:ring-[#122E32]"
                     />
                     <div className="min-w-0 flex-1">
-                      <div className="text-xs sm:text-sm font-bold text-[#0F1E21]">
+                      <div className="text-xs font-bold text-[var(--dept-ink)] sm:text-sm">
                         {language === 'ur' ? opt.labelUr : opt.labelEn}
                       </div>
-                      <div className="text-xs text-[#5B646B] mt-0.5">
+                      <div className="mt-0.5 text-xs text-[var(--dept-muted)]">
                         {language === 'ur' ? opt.descUr : opt.descEn}
                       </div>
                     </div>
@@ -192,7 +192,7 @@ export const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({
           <div className="space-y-1.5">
             <label
               htmlFor="statusNote"
-              className="block text-xs font-bold text-[#0F1E21] uppercase tracking-wider"
+              className="block text-xs font-bold uppercase tracking-wider text-[var(--dept-ink)]"
             >
               {t('deptRemediationNote')}
             </label>
@@ -202,12 +202,12 @@ export const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({
               value={note}
               onChange={(e) => setNote(e.target.value)}
               placeholder={t('deptRemediationNotePlaceholder')}
-              className="w-full text-xs sm:text-sm p-3 rounded-xl border border-[#E1E4E6] bg-white text-[#0F1E21] placeholder-[#8A9298] focus:outline-none focus:border-[#2C4A52] focus:ring-2 focus:ring-[#2C4A52]/15 transition-all resize-none"
+              className="w-full resize-none rounded-xl border border-[var(--dept-border)] bg-white p-3 text-xs text-[var(--dept-ink)] placeholder:text-[var(--dept-muted)] focus:border-[var(--dept-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--dept-accent)] sm:text-sm"
             />
           </div>
 
           {/* Dialog Actions */}
-          <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-[#ECEEEF]">
+          <div className="flex items-center justify-end gap-2.5 border-t border-[var(--dept-border)] pt-2">
             <button
               type="button"
               onClick={onClose}

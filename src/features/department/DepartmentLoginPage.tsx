@@ -1,20 +1,9 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useEffect, useRef, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { ArrowLeft, ArrowRight, Check, ChevronDown, Eye, EyeOff, Globe, Landmark, LockKeyhole } from 'lucide-react';
 import { useDepartmentAuth } from '../../context/DepartmentAuthContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { type DepartmentId } from '../../types';
-import {
-  Globe,
-  ExternalLink,
-  Lock,
-  ChevronDown,
-  Check,
-  Eye,
-  EyeOff,
-  ArrowRight,
-  ArrowLeft,
-  FileText,
-} from 'lucide-react';
 import { getDepartmentIcon } from './components/DepartmentHeader';
 import './department-theme.css';
 
@@ -22,227 +11,96 @@ export const DepartmentLoginPage: React.FC = () => {
   const { availableDepartments, signIn } = useDepartmentAuth();
   const { language, toggleLanguage, t, isRTL } = useLanguage();
   const navigate = useNavigate();
-
   const [selectedDeptId, setSelectedDeptId] = useState<DepartmentId>('kelectric');
   const [accessKey, setAccessKey] = useState('');
   const [showKey, setShowKey] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const selectedDepartment = availableDepartments.find((department) => department.id === selectedDeptId) || availableDepartments[0];
+  const ArrowIcon = isRTL ? ArrowLeft : ArrowRight;
 
-  // Close dropdown on outside click or Escape key
   useEffect(() => {
-    const handleOutsideClick = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setIsDropdownOpen(false);
-      }
+    const closeOnOutsideClick = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) setIsDropdownOpen(false);
     };
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setIsDropdownOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleOutsideClick);
-    document.addEventListener('keydown', handleKeyDown);
+    const closeOnEscape = (event: KeyboardEvent) => { if (event.key === 'Escape') setIsDropdownOpen(false); };
+    document.addEventListener('mousedown', closeOnOutsideClick);
+    document.addEventListener('keydown', closeOnEscape);
     return () => {
-      document.removeEventListener('mousedown', handleOutsideClick);
-      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('mousedown', closeOnOutsideClick);
+      document.removeEventListener('keydown', closeOnEscape);
     };
   }, []);
 
-  const selectedDepartment =
-    availableDepartments.find((d) => d.id === selectedDeptId) || availableDepartments[0];
-
-  const handleSignIn = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSignIn = (event: React.FormEvent) => {
+    event.preventDefault();
     setError(null);
-
-    const res = signIn(selectedDeptId, accessKey);
-    if (res.success) {
-      navigate('/department');
-    } else {
-      setError(res.error || 'Failed to sign in.');
-    }
+    const result = signIn(selectedDeptId, accessKey);
+    if (result.success) navigate('/department');
+    else setError(result.error || 'Unable to continue.');
   };
 
-  const ArrowIcon = isRTL ? ArrowLeft : ArrowRight;
-
   return (
-    <div className="dept-workspace-root flex flex-col justify-between min-h-screen relative selection:bg-[#2C4A52]/20">
-      {/* Top Navbar */}
-      <header className="border-b border-[#E1E4E6] bg-[#FFFFFF] px-4 sm:px-6 lg:px-8 py-3.5">
-        <div className="max-w-[1080px] mx-auto w-full flex items-center justify-between">
-          <Link
-            to="/"
-            className="flex items-center gap-2.5 focus-visible:outline-2 focus-visible:outline-[#122E32]"
-          >
-            <div className="w-8 h-8 rounded-lg bg-[#122E32] text-[#FFFFFF] flex items-center justify-center font-bold text-sm">
-              آ
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="font-bold text-sm sm:text-base tracking-tight text-[#0F1E21]">
-                {language === 'ur' ? 'آوازِ عوام' : 'Awaaz-e-Awam'}
-              </span>
-              <span className="text-xs font-medium text-[#5B646B] bg-[#F4F6F6] px-2 py-0.5 rounded border border-[#E1E4E6]">
-                {t('deptPortalLabel')}
-              </span>
-            </div>
-          </Link>
-
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={toggleLanguage}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#E1E4E6] text-xs font-semibold text-[#0F1E21] hover:bg-[#F4F6F6] transition-colors cursor-pointer"
-            >
-              <Globe className="w-3.5 h-3.5 text-[#5B646B]" />
-              <span>{language === 'en' ? 'اردو' : 'English'}</span>
-            </button>
-            <Link
-              to="/"
-              className="hidden sm:flex items-center gap-1 text-xs font-semibold text-[#5B646B] hover:text-[#0F1E21] transition-colors"
-            >
-              <ExternalLink className="w-3.5 h-3.5" />
-              <span>{t('deptSwitchToCitizenPortal')}</span>
-            </Link>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Authentication Container */}
-      <main className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-        <div className="max-w-[1020px] w-full mx-auto bg-[#FFFFFF] border border-[#E1E4E6] rounded-2xl shadow-sm overflow-hidden grid grid-cols-1 lg:grid-cols-12 min-h-[520px]">
-          {/* LEFT SECTION — BRAND AND PURPOSE (lg:col-span-5) */}
-          <section className="lg:col-span-5 relative bg-[#122E32] text-[#FFFFFF] p-8 sm:p-10 lg:p-12 flex flex-col justify-between overflow-hidden">
-            {/* Subtle Abstract Architectural Motif (Delicate lines, no marketing tiles) */}
-            <div
-              className="pointer-events-none absolute inset-0 opacity-10"
-              style={{
-                backgroundImage:
-                  'radial-gradient(circle at 100% 0%, rgba(255,255,255,0.2) 0%, transparent 60%), linear-gradient(180deg, rgba(255,255,255,0.05) 1px, transparent 1px)',
-                backgroundSize: '100% 100%, 100% 24px',
-              }}
-              aria-hidden="true"
-            />
-
-            <div className="relative z-10 space-y-3">
-              <div className="w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center text-white mb-4 border border-white/15">
-                <FileText className="w-4 h-4" />
+    <div className="dept-workspace-root dept-login-root" data-department={selectedDeptId} dir={isRTL ? 'rtl' : 'ltr'}>
+      <main className="dept-login-stage relative flex items-center justify-center px-0 py-0 sm:px-6 sm:py-10">
+        <div className="dept-login-frame relative z-10 grid overflow-hidden lg:grid-cols-[1.08fr_.92fr]">
+          <section className="dept-login-brand flex min-h-[360px] flex-col justify-between p-7 text-white sm:p-10 lg:min-h-0 lg:p-12">
+            <div>
+              <div className="mb-14 flex items-center justify-between">
+                <Link to="/" className="flex items-center gap-3 rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-white">
+                  <span className="dept-login-brand-mark flex h-9 w-9 items-center justify-center rounded-lg text-sm font-bold">آ</span>
+                  <span className="text-sm font-semibold tracking-tight">Awaaz-e-Awam</span>
+                </Link>
+                <button type="button" onClick={toggleLanguage} className="flex items-center gap-1.5 rounded-lg border border-white/15 bg-white/5 px-2.5 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white" title="Switch language">
+                  <Globe className="h-3.5 w-3.5" />
+                  <span>{language === 'en' ? 'اردو' : 'English'}</span>
+                </button>
               </div>
-              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white leading-tight">
-                {t('deptBrandPanelTitle')}
-              </h1>
-              <p className="text-sm sm:text-base text-[#ACAFB6] leading-relaxed max-w-xs">
-                {t('deptBrandPanelSubtitle')}
-              </p>
+              <div className="max-w-md">
+                <p className="mb-4 text-xs font-bold uppercase tracking-[.16em] text-white/55">{t('deptPortalLabel')}</p>
+                <h1 className="text-4xl font-bold leading-[1.03] tracking-[-.045em] sm:text-5xl">{t('deptBrandPanelTitle')}</h1>
+                <p className="mt-5 max-w-sm text-sm leading-6 text-white/68 sm:text-base">{t('deptBrandPanelSubtitle')}</p>
+              </div>
             </div>
-
-            {/* Restrained Institutional Context Note */}
-            <div className="relative z-10 pt-6 mt-6 border-t border-white/10 text-xs text-[#ACAFB6] leading-relaxed">
-              <p>{t('deptBrandPanelNotice')}</p>
+            <div className="max-w-sm border-t border-white/14 pt-5 text-xs leading-5 text-white/62">
+              {language === 'ur' ? 'شکایت کی تفصیلات صرف اپنے محکمے کی فہرست میں دیکھیں۔' : 'Review complaint details only in your department’s assigned queue.'}
             </div>
           </section>
 
-          {/* RIGHT SECTION — SIGN-IN FORM (lg:col-span-7) */}
-          <section className="lg:col-span-7 p-6 sm:p-10 lg:p-12 flex flex-col justify-center bg-[#FFFFFF]">
-            <div className="max-w-md w-full mx-auto space-y-6">
-              {/* Header */}
-              <div className="space-y-1">
-                <h2 className="text-2xl font-bold tracking-tight text-[#0F1E21]">
-                  {t('deptSignInTitle')}
-                </h2>
-                <p className="text-sm text-[#5B646B]">
-                  {t('deptSignInSubtitle')}
-                </p>
+          <section className="dept-login-form flex items-center p-7 sm:p-10 lg:p-12">
+            <div className="mx-auto w-full max-w-sm">
+              <div className="mb-8">
+                <span className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-white/8 text-white"><Landmark className="h-5 w-5" /></span>
+                <h2 className="text-2xl font-bold tracking-[-.03em] text-white">{t('deptSignInTitle')}</h2>
+                <p className="mt-2 text-sm leading-6 text-white/62">{language === 'ur' ? 'اپنے محکمے کو تفویض کردہ شکایات کا انتظام کریں۔' : 'Manage complaints assigned to your department.'}</p>
               </div>
 
-              {/* Form */}
               <form onSubmit={handleSignIn} className="space-y-5">
-                {error && (
-                  <div className="p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold">
-                    {error}
-                  </div>
-                )}
-
-                {/* Department Selection */}
-                <div className="space-y-1.5 relative" ref={dropdownRef}>
-                  <label className="block text-xs font-semibold text-[#0F1E21] uppercase tracking-wider">
-                    {t('deptSelectAgency')}
-                  </label>
-
-                  {/* Accessible Dropdown Trigger */}
-                  <button
-                    type="button"
-                    onClick={() => setIsDropdownOpen((prev) => !prev)}
-                    className="w-full h-[50px] px-3.5 rounded-xl border border-[#E1E4E6] bg-[#FFFFFF] hover:bg-[#FAFBFB] text-[#0F1E21] flex items-center justify-between transition-colors focus:outline-none focus:border-[#2C4A52] focus:ring-2 focus:ring-[#2C4A52]/15 cursor-pointer"
-                    aria-haspopup="listbox"
-                    aria-expanded={isDropdownOpen}
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-7 h-7 rounded-lg bg-[#F4F6F6] text-[#2C4A52] flex items-center justify-center shrink-0 border border-[#E1E4E6]">
-                        {getDepartmentIcon(selectedDepartment.id, 'w-3.5 h-3.5')}
-                      </div>
-                      <span className="block text-sm font-semibold text-[#0F1E21] truncate text-left rtl:text-right">
-                        {language === 'ur' ? selectedDepartment.nameUrdu : selectedDepartment.name}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <span className="font-mono text-xs font-bold text-[#5B646B] bg-[#F4F6F6] px-2 py-0.5 rounded border border-[#E1E4E6]">
-                        {selectedDepartment.code}
-                      </span>
-                      <ChevronDown
-                        className={`w-4 h-4 text-[#687E8B] transition-transform duration-150 ${
-                          isDropdownOpen ? 'rotate-180' : ''
-                        }`}
-                      />
-                    </div>
+                {error && <div className="rounded-xl border border-rose-300/35 bg-rose-950/35 p-3 text-xs font-semibold text-rose-100">{error}</div>}
+                <div ref={dropdownRef} className="relative">
+                  <label className="dept-label">{t('deptSelectAgency')}</label>
+                  <button type="button" onClick={() => setIsDropdownOpen((open) => !open)} aria-haspopup="listbox" aria-expanded={isDropdownOpen} className="dept-select-trigger flex h-12 w-full items-center justify-between rounded-xl border px-3.5 text-left transition-colors rtl:text-right">
+                    <span className="flex min-w-0 items-center gap-3">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white/10 text-[var(--dept-accent)]">{getDepartmentIcon(selectedDepartment.id, 'h-3.5 w-3.5')}</span>
+                      <span className="truncate text-sm font-semibold">{language === 'ur' ? selectedDepartment.nameUrdu : selectedDepartment.name}</span>
+                    </span>
+                    <span className="flex shrink-0 items-center gap-2">
+                      <span className="rounded-md bg-white/10 px-1.5 py-0.5 font-mono text-[11px] font-bold text-white/72">{selectedDepartment.code}</span>
+                      <ChevronDown className={'h-4 w-4 text-white/58 transition-transform ' + (isDropdownOpen ? 'rotate-180' : '')} />
+                    </span>
                   </button>
-
-                  {/* Dropdown Menu Popover */}
                   {isDropdownOpen && (
-                    <div
-                      className="absolute z-30 left-0 right-0 mt-1 bg-[#FFFFFF] border border-[#E1E4E6] rounded-xl shadow-lg overflow-hidden py-1 max-h-[280px] overflow-y-auto dept-fade-in"
-                      role="listbox"
-                    >
-                      {availableDepartments.map((dept) => {
-                        const isSelected = selectedDeptId === dept.id;
+                    <div role="listbox" className="dept-fade-in absolute z-30 mt-2 max-h-72 w-full overflow-y-auto rounded-xl border border-white/15 bg-[#182027] py-1 shadow-[0_18px_38px_rgba(0,0,0,.36)]">
+                      {availableDepartments.map((department) => {
+                        const isSelected = department.id === selectedDeptId;
                         return (
-                          <button
-                            key={dept.id}
-                            type="button"
-                            onClick={() => {
-                              setSelectedDeptId(dept.id);
-                              setIsDropdownOpen(false);
-                            }}
-                            className={`w-full px-3.5 py-2.5 flex items-center justify-between text-left rtl:text-right transition-colors cursor-pointer ${
-                              isSelected
-                                ? 'bg-[#F0F4F5] font-semibold text-[#0F1E21]'
-                                : 'hover:bg-[#FAFBFB] text-[#0F1E21]'
-                            }`}
-                            role="option"
-                            aria-selected={isSelected}
-                          >
-                            <div className="flex items-center gap-3 min-w-0">
-                              <div
-                                className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border ${
-                                  isSelected
-                                    ? 'bg-[#122E32] text-white border-[#122E32]'
-                                    : 'bg-[#F4F6F6] text-[#2C4A52] border-[#E1E4E6]'
-                                }`}
-                              >
-                                {getDepartmentIcon(dept.id, 'w-3.5 h-3.5')}
-                              </div>
-                              <span className="block text-sm font-semibold truncate">
-                                {language === 'ur' ? dept.nameUrdu : dept.name}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-2 shrink-0">
-                              <span className="font-mono text-xs font-bold text-[#5B646B]">
-                                {dept.code}
-                              </span>
-                              {isSelected && <Check className="w-4 h-4 text-[#122E32]" />}
-                            </div>
+                          <button key={department.id} type="button" role="option" aria-selected={isSelected} onClick={() => { setSelectedDeptId(department.id); setIsDropdownOpen(false); }} className={'flex w-full items-center justify-between px-3.5 py-2.5 text-left text-sm transition-colors rtl:text-right ' + (isSelected ? 'bg-white/10 text-white' : 'text-white/78 hover:bg-white/7')}>
+                            <span className="flex min-w-0 items-center gap-3">
+                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white/8 text-[var(--dept-accent)]">{getDepartmentIcon(department.id, 'h-3.5 w-3.5')}</span>
+                              <span className="truncate font-semibold">{language === 'ur' ? department.nameUrdu : department.name}</span>
+                            </span>
+                            <span className="flex items-center gap-2 font-mono text-[11px] font-bold text-white/54">{department.code}{isSelected && <Check className="h-4 w-4 text-[var(--dept-accent)]" />}</span>
                           </button>
                         );
                       })}
@@ -250,70 +108,26 @@ export const DepartmentLoginPage: React.FC = () => {
                   )}
                 </div>
 
-                {/* Access Key Input */}
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <label htmlFor="accessKey" className="block text-xs font-semibold text-[#0F1E21] uppercase tracking-wider">
-                      {t('deptAccessKeyLabel')}
-                    </label>
-                  </div>
+                <div>
+                  <label htmlFor="accessKey" className="dept-label">{t('deptAccessKeyLabel')}</label>
                   <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#687E8B]">
-                      <Lock className="w-4 h-4" />
-                    </div>
-                    <input
-                      id="accessKey"
-                      type={showKey ? 'text' : 'password'}
-                      value={accessKey}
-                      onChange={(e) => setAccessKey(e.target.value)}
-                      placeholder={t('deptAccessKeyPlaceholder')}
-                      className="dept-input h-[50px] pl-10 pr-10 text-sm bg-white rounded-xl"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowKey(!showKey)}
-                      className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-[#687E8B] hover:text-[#0F1E21] transition-colors cursor-pointer"
-                      title={showKey ? 'Hide key' : 'Show key'}
-                    >
-                      {showKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    <LockKeyhole className="pointer-events-none absolute left-3.5 top-3.5 h-4 w-4 text-white/48 rtl:left-auto rtl:right-3.5" />
+                    <input id="accessKey" type={showKey ? 'text' : 'password'} value={accessKey} onChange={(event) => setAccessKey(event.target.value)} placeholder={t('deptAccessKeyPlaceholder')} className="dept-input pl-10 pr-10 rtl:pr-10 rtl:pl-10" />
+                    <button type="button" onClick={() => setShowKey((show) => !show)} className="absolute right-3 top-3 rounded p-0.5 text-white/48 hover:text-white rtl:right-auto rtl:left-3" aria-label={showKey ? 'Hide access key' : 'Show access key'}>
+                      {showKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
-                  <p className="text-xs text-[#5B646B] leading-relaxed pt-0.5">
-                    {t('deptPrototypeNotice')}
-                  </p>
                 </div>
 
-                {/* Primary Button */}
-                <button
-                  type="submit"
-                  className="dept-btn-primary w-full h-[50px] rounded-xl text-sm font-semibold shadow-xs flex items-center justify-center gap-2 cursor-pointer mt-2"
-                >
-                  <span>{t('deptEnterPortal')}</span>
-                  <ArrowIcon className="w-4 h-4" />
-                </button>
+                <p className="dept-prototype-note rounded-r-lg py-2 pl-3 text-xs leading-5 text-white/62 rtl:rounded-r-none rtl:rounded-l-lg rtl:border-l-0 rtl:border-r-2 rtl:pl-0 rtl:pr-3">
+                  {language === 'ur' ? 'پروٹو ٹائپ رسائی: اس مرحلے پر رسائی کوڈ کی تصدیق نہیں ہوتی۔' : 'Prototype access: this key is not validated at this stage.'}
+                </p>
+                <button type="submit" className="dept-btn-primary w-full"><span>{t('deptEnterPortal')}</span><ArrowIcon className="h-4 w-4" /></button>
               </form>
             </div>
           </section>
         </div>
       </main>
-
-      {/* Footer */}
-      <footer className="py-4 border-t border-[#E1E4E6] bg-[#FFFFFF] text-center text-xs text-[#5B646B]">
-        <div className="max-w-[1080px] mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <p>© 2026 Awaaz-e-Awam • Department Portal</p>
-          <div className="flex items-center gap-4 text-xs">
-            <Link to="/about" className="hover:text-[#0F1E21] transition-colors">
-              About
-            </Link>
-            <Link to="/privacy-policy" className="hover:text-[#0F1E21] transition-colors">
-              Privacy Policy
-            </Link>
-            <Link to="/terms-of-use" className="hover:text-[#0F1E21] transition-colors">
-              Terms of Use
-            </Link>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 };
