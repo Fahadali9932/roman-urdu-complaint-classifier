@@ -8,3 +8,4 @@ export const DepartmentPortalLayout: React.FC = () => {
     </div>
   );
 };
+

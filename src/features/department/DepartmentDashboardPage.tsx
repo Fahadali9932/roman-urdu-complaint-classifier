@@ -10,15 +10,16 @@ import {
 import { DepartmentHeader } from './components/DepartmentHeader';
 import {
   DepartmentSidebar,
-  type DepartmentFilterType,
+  type DepartmentStatusFilter,
 } from './components/DepartmentSidebar';
 import { ComplaintInboxList } from './components/ComplaintInboxList';
 import { ComplaintDetailView } from './components/ComplaintDetailView';
 import { StatusUpdateModal } from './components/StatusUpdateModal';
-import { Loader2, CheckCircle2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
+import './department-theme.css';
 
 export const DepartmentDashboardPage: React.FC = () => {
-  const { departmentId, departmentMeta, isAuthenticated } = useDepartmentAuth();
+  const { departmentId, isAuthenticated } = useDepartmentAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
   const { referenceNumber: urlRef } = useParams<{ referenceNumber?: string }>();
@@ -26,43 +27,54 @@ export const DepartmentDashboardPage: React.FC = () => {
 
   const [complaints, setComplaints] = useState<DepartmentComplaintView[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeFilter, setActiveFilter] = useState<DepartmentFilterType>('all');
+  const [activeFilter, setActiveFilter] = useState<DepartmentStatusFilter>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedReference, setSelectedReference] = useState<string | null>(null);
   const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
-  const [notification, setNotification] = useState<{ message: string; type: 'success' | 'info' } | null>(null);
+  const [unauthorizedRefError, setUnauthorizedRefError] = useState<string | null>(null);
 
-  // Redirect if not authenticated
+  // Authentication guard: if unauthenticated, redirect to login
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!isAuthenticated || !departmentId) {
       navigate('/department/login', { replace: true });
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, departmentId, navigate]);
 
-  // Load complaints for current department
+  // Load complaints assigned to the authenticated department
   useEffect(() => {
+    if (!departmentId) return;
+
     let isCancelled = false;
     const fetchComplaints = async () => {
       setIsLoading(true);
+      setUnauthorizedRefError(null);
       try {
         const data = await complaintService.getDepartmentComplaints(departmentId);
         if (!isCancelled) {
           setComplaints(data);
 
-          // Resolve initial selected reference from URL or default to first on desktop
-          const queryRef = searchParams.get('ref') || urlRef;
-          if (queryRef) {
+          // Handle URL reference deep-link
+          const targetRef = searchParams.get('ref') || urlRef;
+          if (targetRef) {
+            const cleaned = targetRef.trim().toUpperCase();
             const match = data.find(
-              (c) => c.referenceNumber.toUpperCase() === queryRef.trim().toUpperCase()
+              (c) => c.referenceNumber.toUpperCase() === cleaned
             );
             if (match) {
               setSelectedReference(match.referenceNumber);
               return;
+            } else {
+              // Target reference exists in URL but is not assigned to this department
+              const globalComplaint = await complaintService.getComplaintByReference(cleaned);
+              if (globalComplaint && globalComplaint.assignedDepartmentId !== departmentId) {
+                setUnauthorizedRefError(cleaned);
+                setSelectedReference(null);
+                return;
+              }
             }
           }
 
-          // On desktop (>= 768px), auto-select first complaint for master-detail view.
-          // On mobile (< 768px), start on the inbox list so the officer sees grievances first.
+          // Desktop: auto-select first complaint if available
           const isDesktop = typeof window !== 'undefined' && window.innerWidth >= 768;
           if (isDesktop && data.length > 0) {
             setSelectedReference(data[0].referenceNumber);
@@ -71,7 +83,7 @@ export const DepartmentDashboardPage: React.FC = () => {
           }
         }
       } catch (err) {
-        console.error('Failed to load complaints:', err);
+        console.error('Failed to load department complaints:', err);
       } finally {
         if (!isCancelled) {
           setIsLoading(false);
@@ -85,14 +97,7 @@ export const DepartmentDashboardPage: React.FC = () => {
     };
   }, [departmentId, urlRef, searchParams]);
 
-  // Dismiss notification toast after 4s
-  useEffect(() => {
-    if (!notification) return;
-    const timer = setTimeout(() => setNotification(null), 4000);
-    return () => clearTimeout(timer);
-  }, [notification]);
-
-  // Calculate counts for sidebar filters
+  // Status counts for filters
   const counts = useMemo(() => {
     return {
       all: complaints.length,
@@ -103,25 +108,22 @@ export const DepartmentDashboardPage: React.FC = () => {
         (c) => c.status === 'assigned' || c.status === 'in_progress'
       ).length,
       resolved: complaints.filter((c) => c.status === 'resolved').length,
-      rejected: complaints.filter((c) => c.status === 'rejected').length,
     };
   }, [complaints]);
 
   // Filter complaints according to activeFilter and searchQuery
   const filteredComplaints = useMemo(() => {
     return complaints.filter((c) => {
-      // Filter by status tab
+      // Status filter
       if (activeFilter === 'new') {
         if (c.status !== 'submitted' && c.status !== 'under_review') return false;
       } else if (activeFilter === 'in_progress') {
         if (c.status !== 'assigned' && c.status !== 'in_progress') return false;
       } else if (activeFilter === 'resolved') {
         if (c.status !== 'resolved') return false;
-      } else if (activeFilter === 'rejected') {
-        if (c.status !== 'rejected') return false;
       }
 
-      // Filter by search query
+      // Search query filter (reference, locality, text)
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase().trim();
         const matchesRef = c.referenceNumber.toLowerCase().includes(q);
@@ -136,7 +138,7 @@ export const DepartmentDashboardPage: React.FC = () => {
     });
   }, [complaints, activeFilter, searchQuery]);
 
-  // Active selected complaint object
+  // Selected complaint view
   const selectedComplaint = useMemo(() => {
     if (!selectedReference) return null;
     return (
@@ -144,20 +146,14 @@ export const DepartmentDashboardPage: React.FC = () => {
     );
   }, [complaints, selectedReference]);
 
-  // Handle successful status update from modal or quick action
   const handleComplaintUpdated = (updated: DepartmentComplaintView) => {
     setComplaints((prev) =>
       prev.map((c) => (c.id === updated.id ? updated : c))
     );
-    setNotification({
-      message: `${updated.referenceNumber} status updated to ${updated.status.replace('_', ' ')}`,
-      type: 'success',
-    });
   };
 
-  // Quick status update without full modal
   const handleQuickStatusUpdate = async (newStatus: ComplaintStatus) => {
-    if (!selectedComplaint) return;
+    if (!selectedComplaint || !departmentId) return;
     try {
       const res = await complaintService.updateComplaintStatus(
         departmentId,
@@ -172,51 +168,61 @@ export const DepartmentDashboardPage: React.FC = () => {
     }
   };
 
+  if (!isAuthenticated || !departmentId) {
+    return null;
+  }
+
   return (
-    <div className="min-h-screen bg-[#F7F6F3] text-[#141414] flex flex-col relative selection:bg-[#681822]/20">
-      {/* Subtle Atmospheric Warm Glow at upper background */}
+    <div className="dept-workspace-root flex flex-col relative selection:bg-[#2C4A52]/20">
+      {/* Subtle Upper Atmosphere Slate Tint */}
       <div
-        className="pointer-events-none absolute inset-x-0 top-0 h-[400px] opacity-70 z-0"
+        className="pointer-events-none absolute inset-x-0 top-0 h-[320px] opacity-40 z-0"
         style={{
           background:
-            'radial-gradient(1200px circle at 50% -20%, rgba(212, 160, 23, 0.08) 0%, transparent 70%)',
+            'radial-gradient(1000px circle at 50% -10%, rgba(44, 74, 82, 0.08) 0%, transparent 70%)',
         }}
+        aria-hidden="true"
       />
 
       {/* Top Header */}
       <DepartmentHeader />
 
-      {/* Notification Toast */}
-      {notification && (
-        <div className="fixed top-20 right-6 z-50 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#141414] text-[#FFFFFF] shadow-xl text-xs font-medium animate-in slide-in-from-top-2 duration-200">
-          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-          <span>{notification.message}</span>
+      {/* Main Container */}
+      <main className="flex-1 max-w-[1440px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 relative z-10 flex flex-col">
+        {/* Workspace Title & Supporting Line */}
+        <div className="mb-4 sm:mb-6">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#0F1E21]">
+            {t('deptWorkspaceTitle')}
+          </h1>
+          <p className="text-xs sm:text-sm text-[#5B646B] mt-0.5">
+            {t('deptWorkspaceSubtitle')}
+          </p>
         </div>
-      )}
 
-      {/* Main Workspace */}
-      <main className="flex-1 max-w-[1600px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 relative z-10 flex flex-col">
+        {/* Unauthorized Tampering Alert */}
+        {unauthorizedRefError && (
+          <div className="mb-4 p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 leading-relaxed">
+            <strong>{t('deptAccessDenied')}</strong> ({unauthorizedRefError})
+          </div>
+        )}
+
         {isLoading ? (
-          <div className="flex-1 flex flex-col items-center justify-center py-24 text-center">
-            <Loader2 className="w-8 h-8 text-[#681822] animate-spin mb-3" />
-            <p className="text-xs text-[#737373]">
-              Loading {departmentMeta.name} workspace...
-            </p>
+          <div className="flex-1 flex flex-col items-center justify-center py-20 text-center">
+            <Loader2 className="w-6 h-6 text-[#122E32] animate-spin mb-2" />
+            <p className="text-xs text-[#5B646B]">Loading assigned complaints...</p>
           </div>
         ) : (
           <div className="flex-1 flex flex-col lg:flex-row gap-5 items-stretch">
-            {/* Desktop Left Sidebar: Always visible on large screens */}
+            {/* Desktop Left Navigation */}
             <div className="hidden lg:block">
               <DepartmentSidebar
                 activeFilter={activeFilter}
-                onSelectFilter={(f) => {
-                  setActiveFilter(f);
-                }}
+                onSelectFilter={(f) => setActiveFilter(f)}
                 counts={counts}
               />
             </div>
 
-            {/* Mobile / Tablet Filter Pills */}
+            {/* Mobile / Tablet Filter Bar */}
             <div className="lg:hidden flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
               {(
                 [
@@ -232,11 +238,6 @@ export const DepartmentDashboardPage: React.FC = () => {
                     label: t('deptFilterResolved'),
                     count: counts.resolved,
                   },
-                  {
-                    id: 'rejected',
-                    label: t('deptFilterRejected'),
-                    count: counts.rejected,
-                  },
                 ] as const
               ).map((f) => {
                 const isActive = activeFilter === f.id;
@@ -247,8 +248,8 @@ export const DepartmentDashboardPage: React.FC = () => {
                     onClick={() => setActiveFilter(f.id)}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors shrink-0 ${
                       isActive
-                        ? 'bg-[#681822] text-[#FFFFFF]'
-                        : 'bg-[#FFFFFF] border border-[#E5E3E0] text-[#141414] hover:bg-[#FAFAF8]'
+                        ? 'bg-[#122E32] text-[#FFFFFF]'
+                        : 'bg-[#FFFFFF] border border-[#E1E4E6] text-[#0F1E21] hover:bg-[#FAFBFB]'
                     }`}
                   >
                     <span>{f.label}</span>
@@ -256,7 +257,7 @@ export const DepartmentDashboardPage: React.FC = () => {
                       className={`text-[10px] px-1.5 py-0.2 rounded-full ${
                         isActive
                           ? 'bg-[#FFFFFF]/20 text-[#FFFFFF]'
-                          : 'bg-[#F0EDE6] text-[#555555]'
+                          : 'bg-[#F4F6F6] text-[#5B646B]'
                       }`}
                     >
                       {f.count}
@@ -266,19 +267,17 @@ export const DepartmentDashboardPage: React.FC = () => {
               })}
             </div>
 
-            {/* Master-Detail Container */}
-            <div className="flex-1 flex flex-col md:flex-row gap-5 items-stretch min-h-[600px]">
-              {/* Inbox List Pane:
-                  On mobile: visible if no complaint selected OR if viewing list.
-                  On desktop: always visible as middle column.
-              */}
+            {/* Main Workspace (Inbox List + Detail View) */}
+            <div className="flex-1 flex flex-col md:flex-row gap-5 items-stretch min-h-[560px]">
+              {/* Inbox List: On mobile visible if no complaint selected */}
               <div
-                className={`w-full md:w-80 lg:w-96 flex flex-col ${
+                className={`w-full md:w-80 lg:w-[380px] flex flex-col ${
                   selectedReference ? 'hidden md:flex' : 'flex'
                 }`}
               >
                 <ComplaintInboxList
                   complaints={filteredComplaints}
+                  totalAssignedCount={complaints.length}
                   selectedReference={selectedReference}
                   onSelectComplaint={(ref) => setSelectedReference(ref)}
                   searchQuery={searchQuery}
@@ -286,10 +285,7 @@ export const DepartmentDashboardPage: React.FC = () => {
                 />
               </div>
 
-              {/* Detail View Pane:
-                  On mobile: visible only when complaint selected.
-                  On desktop: always visible as main column.
-              */}
+              {/* Detail View: On mobile visible when complaint selected */}
               <div
                 className={`flex-1 flex flex-col ${
                   !selectedReference ? 'hidden md:flex' : 'flex'
@@ -307,7 +303,7 @@ export const DepartmentDashboardPage: React.FC = () => {
         )}
       </main>
 
-      {/* Status Update Modal */}
+      {/* Status Update Dialog */}
       {selectedComplaint && (
         <StatusUpdateModal
           isOpen={isStatusModalOpen}

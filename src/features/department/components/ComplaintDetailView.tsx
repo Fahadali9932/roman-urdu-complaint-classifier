@@ -5,17 +5,15 @@ import {
   type DepartmentComplaintView,
   type ComplaintStatus,
 } from '../../../types';
-import { getStatusBadge } from './ComplaintInboxList';
+import { getStatusChip } from './ComplaintInboxList';
 import {
   MapPin,
   Clock,
-  ShieldCheck,
-  Cpu,
+  ArrowLeft,
+  Edit3,
   FileText,
   History,
   CheckCircle2,
-  ArrowLeft,
-  Edit3,
 } from 'lucide-react';
 
 interface ComplaintDetailViewProps {
@@ -36,15 +34,15 @@ export const ComplaintDetailView: React.FC<ComplaintDetailViewProps> = ({
 
   if (!complaint) {
     return (
-      <div className="flex-1 bg-[#FFFFFF] border border-[#E5E3E0] rounded-xl p-12 flex flex-col items-center justify-center text-center shadow-sm min-h-[500px]">
-        <div className="w-16 h-16 rounded-2xl bg-[#F7F6F3] text-[#737373] flex items-center justify-center mb-4">
-          <FileText className="w-8 h-8" />
+      <div className="flex-1 bg-[#FFFFFF] border border-[#E1E4E6] rounded-xl p-12 flex flex-col items-center justify-center text-center shadow-xs min-h-[480px]">
+        <div className="w-12 h-12 rounded-xl bg-[#F4F6F6] text-[#687E8B] flex items-center justify-center mb-3">
+          <FileText className="w-6 h-6" />
         </div>
-        <h3 className="text-base font-bold text-[#141414] mb-1">
-          {t('deptSelectComplaint')}
+        <h3 className="text-sm font-semibold text-[#0F1E21] mb-1">
+          {t('deptSelectPrompt')}
         </h3>
-        <p className="text-xs text-[#737373] max-w-md leading-relaxed">
-          {t('deptSelectComplaintDesc')}
+        <p className="text-xs text-[#5B646B] max-w-sm leading-relaxed">
+          Select an assigned complaint from the list to review the issue and record progress.
         </p>
       </div>
     );
@@ -62,44 +60,26 @@ export const ComplaintDetailView: React.FC<ComplaintDetailViewProps> = ({
     }
   };
 
-  const getActorBadge = (role: string) => {
+  const getActorLabel = (role: string) => {
     switch (role) {
       case 'citizen':
-        return (
-          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
-            {language === 'ur' ? 'شہری' : 'Citizen'}
-          </span>
-        );
-      case 'system':
-        return (
-          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200">
-            {language === 'ur' ? 'اے آئی ٹرائج' : 'AI Classifier'}
-          </span>
-        );
+        return language === 'ur' ? 'شہری' : 'Citizen';
       case 'department_officer':
-        return (
-          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
-            {language === 'ur' ? 'محکمہ افسر' : 'Department Officer'}
-          </span>
-        );
+        return language === 'ur' ? 'محکمہ' : 'Department';
       default:
-        return (
-          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">
-            {role}
-          </span>
-        );
+        return language === 'ur' ? 'سسٹم' : 'System';
     }
   };
 
   return (
-    <div className="flex-1 bg-[#FFFFFF] border border-[#E5E3E0] rounded-xl shadow-sm flex flex-col overflow-hidden">
-      {/* Mobile Back Button Bar */}
+    <div className="flex-1 bg-[#FFFFFF] border border-[#E1E4E6] rounded-xl shadow-xs flex flex-col overflow-hidden">
+      {/* Mobile Back Button */}
       {onBackToList && (
-        <div className="md:hidden p-3 border-b border-[#E5E3E0] bg-[#FAFAF8] flex items-center">
+        <div className="md:hidden p-3 border-b border-[#E1E4E6] bg-[#FAFBFB] flex items-center">
           <button
             type="button"
             onClick={onBackToList}
-            className="flex items-center gap-1.5 text-xs font-semibold text-[#681822] hover:underline"
+            className="flex items-center gap-1.5 text-xs font-semibold text-[#122E32] hover:underline"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>{t('deptBackToInbox')}</span>
@@ -108,29 +88,29 @@ export const ComplaintDetailView: React.FC<ComplaintDetailViewProps> = ({
       )}
 
       {/* Main Top Header */}
-      <div className="p-4 sm:p-6 border-b border-[#E5E3E0] bg-[#FAFAF8] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="p-4 sm:p-6 border-b border-[#E1E4E6] bg-[#FAFBFB] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="space-y-1">
-          <div className="flex items-center gap-2.5 flex-wrap">
-            <span className="font-mono text-base sm:text-lg font-bold tracking-tight text-[#141414]">
+          <div className="flex items-center gap-3 flex-wrap">
+            <span className="font-mono text-base sm:text-lg font-bold tracking-tight text-[#0F1E21]">
               {complaint.referenceNumber}
             </span>
-            {getStatusBadge(complaint.status, language)}
-            <span className="text-[11px] text-[#737373] flex items-center gap-1">
-              <Clock className="w-3.5 h-3.5" />
+            {getStatusChip(complaint.status, language)}
+            <span className="text-xs text-[#5B646B] flex items-center gap-1">
+              <Clock className="w-3.5 h-3.5 text-[#687E8B]" />
               <span>{formatDateTime(complaint.submittedAt)}</span>
             </span>
           </div>
-          <h2 className="text-sm sm:text-base font-semibold text-[#141414]">
+          <h2 className="text-sm sm:text-base font-semibold text-[#0F1E21]">
             {complaint.title}
           </h2>
         </div>
 
-        {/* Action Button */}
-        <div className="flex items-center gap-2 shrink-0">
+        {/* Primary Status Update Action */}
+        <div className="shrink-0">
           <button
             type="button"
             onClick={onOpenStatusModal}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#681822] hover:bg-[#50131B] text-[#FFFFFF] text-xs font-semibold shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-[#681822]/30"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#122E32] hover:bg-[#0F1E21] text-[#FFFFFF] text-xs font-medium transition-colors shadow-xs"
           >
             <Edit3 className="w-3.5 h-3.5" />
             <span>{t('deptUpdateStatus')}</span>
@@ -138,190 +118,156 @@ export const ComplaintDetailView: React.FC<ComplaintDetailViewProps> = ({
         </div>
       </div>
 
-      {/* Scrollable Content Body */}
+      {/* Detail Content Body */}
       <div className="p-4 sm:p-6 space-y-6 overflow-y-auto max-h-[calc(100vh-230px)]">
-        {/* Citizen Privacy Banner */}
-        <div className="p-3.5 rounded-xl bg-emerald-50/70 border border-emerald-200 flex items-start gap-3">
-          <ShieldCheck className="w-5 h-5 text-emerald-700 shrink-0 mt-0.5" />
-          <div className="text-xs text-emerald-900 leading-relaxed">
-            <span className="font-semibold block">
-              {t('deptPrivacyShield')}
-            </span>
-            <span className="text-[11px] text-emerald-800">
-              {t('deptPrivacyNotice')}
-            </span>
+        {/* Original Complaint (Centerpiece) */}
+        <section className="bg-[#FAFBFB] border border-[#E1E4E6] rounded-xl p-5 space-y-2">
+          <div className="flex items-center gap-2 text-xs font-semibold text-[#2C4A52] uppercase tracking-wider">
+            <FileText className="w-4 h-4 text-[#2C4A52]" />
+            <span>{t('deptOriginalComplaint')}</span>
           </div>
-        </div>
+          <p className="text-sm sm:text-[15px] text-[#0F1E21] leading-relaxed whitespace-pre-wrap">
+            {complaint.description}
+          </p>
+        </section>
 
-        {/* Dual Meta Cards: Location & AI Triage */}
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-          {/* Incident Location Card */}
-          <div className="bg-[#FAF9F6] border border-[#EBE7DF] rounded-xl p-4 space-y-3">
-            <div className="flex items-center gap-2 text-[#141414] font-semibold text-xs uppercase tracking-wider">
-              <MapPin className="w-4 h-4 text-[#681822]" />
+        {/* Incident Location & Department Assignment */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Incident Location (Zero PII - Only municipal location) */}
+          <div className="bg-[#FAFBFB] border border-[#E1E4E6] rounded-xl p-4 space-y-3">
+            <div className="flex items-center gap-2 text-xs font-semibold text-[#0F1E21] uppercase tracking-wider">
+              <MapPin className="w-3.5 h-3.5 text-[#2C4A52]" />
               <span>{t('deptIncidentLocation')}</span>
             </div>
-            <div className="space-y-1.5 text-xs">
-              <div className="flex justify-between items-center gap-3 py-1.5 border-b border-[#EBE7DF]">
-                <span className="text-[#737373] shrink-0">{t('deptDistrict')}:</span>
-                <span className="font-semibold text-[#141414] text-right">
-                  {complaint.district}
-                </span>
+            <div className="space-y-2 text-xs">
+              <div className="flex justify-between items-center py-1 border-b border-[#ECEEEF]">
+                <span className="text-[#5B646B]">{t('deptDistrict')}</span>
+                <span className="font-semibold text-[#0F1E21]">{complaint.district}</span>
               </div>
-              <div className="flex justify-between items-center gap-3 py-1.5 border-b border-[#EBE7DF]">
-                <span className="text-[#737373] shrink-0">{t('deptLocality')}:</span>
-                <span className="font-semibold text-[#141414] text-right">
-                  {complaint.locality}
-                </span>
+              <div className="flex justify-between items-center py-1 border-b border-[#ECEEEF]">
+                <span className="text-[#5B646B]">{t('deptLocality')}</span>
+                <span className="font-semibold text-[#0F1E21]">{complaint.locality}</span>
               </div>
-              <div className="flex justify-between items-center gap-3 py-1.5">
-                <span className="text-[#737373] shrink-0">{t('deptStreetLandmark')}:</span>
-                <span className="font-medium text-[#141414] text-right">
-                  {complaint.publicLocation || 'Not specified by citizen'}
+              <div className="flex justify-between items-center py-1">
+                <span className="text-[#5B646B]">{t('deptStreetLandmark')}</span>
+                <span className="font-medium text-[#0F1E21] text-right">
+                  {complaint.publicLocation || '—'}
                 </span>
               </div>
             </div>
           </div>
 
-          {/* AI Categorization Card */}
-          <div className="bg-[#FAF9F6] border border-[#EBE7DF] rounded-xl p-4 space-y-3">
-            <div className="flex items-center gap-2 text-[#141414] font-semibold text-xs uppercase tracking-wider">
-              <Cpu className="w-4 h-4 text-[#681822]" />
-              <span>{t('deptAiCategorization')}</span>
+          {/* Assigned Department (Real configuration - no fake AI percentages) */}
+          <div className="bg-[#FAFBFB] border border-[#E1E4E6] rounded-xl p-4 space-y-3">
+            <div className="flex items-center gap-2 text-xs font-semibold text-[#0F1E21] uppercase tracking-wider">
+              <span>{language === 'ur' ? 'تفویض شدہ محکمہ' : 'Assigned Department'}</span>
             </div>
-            <div className="space-y-1.5 text-xs">
-              <div className="flex justify-between items-center gap-3 py-1.5 border-b border-[#EBE7DF]">
-                <span className="text-[#737373] shrink-0">
-                  {language === 'ur' ? 'شناخت شدہ زبان' : 'Detected Language'}:
+            <div className="space-y-2 text-xs">
+              <div className="py-1 border-b border-[#ECEEEF]">
+                <span className="text-[#5B646B] block mb-0.5">
+                  {language === 'ur' ? 'محکمہ کا نام' : 'Department Name'}
                 </span>
-                <span className="font-semibold text-[#141414] text-right">
-                  Roman Urdu (اردو رسم الخط برائے انگریزی)
-                </span>
-              </div>
-              <div className="flex justify-between items-center gap-3 py-1.5 border-b border-[#EBE7DF]">
-                <span className="text-[#737373] shrink-0">
-                  {language === 'ur' ? 'متعلقہ محکمہ' : 'Target Authority'}:
-                </span>
-                <span className="font-semibold text-[#141414] text-right">
-                  {departmentMeta.name} ({departmentMeta.code})
+                <span className="font-semibold text-[#0F1E21]">
+                  {departmentMeta?.name || complaint.assignedDepartmentName || 'Assigned'}
                 </span>
               </div>
-              <div className="flex justify-between items-center gap-3 py-1.5">
-                <span className="text-[#737373] shrink-0">
-                  {language === 'ur' ? 'اعتماد کی شرح' : 'Classifier Confidence'}:
+              <div className="flex justify-between items-center py-1">
+                <span className="text-[#5B646B]">
+                  {language === 'ur' ? 'محکمانہ کوڈ' : 'Department Code'}
                 </span>
-                <span className="font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                  {Math.round((complaint.predictionConfidence || 0.94) * 100)}% Match
+                <span className="font-mono font-semibold text-[#2C4A52] bg-[#2C4A52]/10 px-2 py-0.5 rounded">
+                  {departmentMeta?.code || complaint.assignedDepartmentId.toUpperCase()}
                 </span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Prominent Roman Urdu Grievance Card */}
-        <div className="bg-[#FCFBF9] border-2 border-[#E8E2D5] rounded-xl p-5 shadow-xs relative overflow-hidden">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2 text-xs font-bold text-[#681822] uppercase tracking-wider">
-              <FileText className="w-4 h-4" />
-              <span>{t('deptCitizenStatement')}</span>
-            </div>
-            <span className="text-[10px] font-bold text-[#681822] bg-[#681822]/10 px-2 py-0.5 rounded">
-              VERBATIM CITIZEN RECORD
-            </span>
-          </div>
-
-          <div className="border-l-4 border-l-[#681822] pl-4 py-1 space-y-2">
-            <h4 className="text-sm font-bold text-[#141414]">
-              &ldquo;{complaint.title}&rdquo;
-            </h4>
-            <p className="text-xs sm:text-sm text-[#222222] italic leading-relaxed font-serif">
-              &ldquo;{complaint.description}&rdquo;
-            </p>
-          </div>
-        </div>
-
-        {/* Quick Status Action Controls */}
-        <div className="bg-[#FAF9F6] border border-[#EBE7DF] rounded-xl p-4 space-y-3">
+        {/* Quick Operational Transitions */}
+        <section className="bg-[#FAFBFB] border border-[#E1E4E6] rounded-xl p-4 space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-[#141414] uppercase tracking-wider">
-              {language === 'ur' ? 'فوری کارروائی' : 'Quick Operational Transitions'}
-            </span>
-            <span className="text-[11px] text-[#737373]">
-              Click to advance workflow or open full dialog for custom notes
+            <span className="text-xs font-semibold text-[#0F1E21] uppercase tracking-wider">
+              {t('deptStatusManagement')}
             </span>
           </div>
+
           <div className="flex flex-wrap gap-2">
-            {complaint.status !== 'in_progress' && (
+            {complaint.status === 'submitted' && (
+              <button
+                type="button"
+                onClick={() => onQuickStatusUpdate('under_review')}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#ACAFB6] bg-[#FFFFFF] hover:bg-[#F4F6F6] text-xs font-medium text-[#0F1E21] transition-colors"
+              >
+                <CheckCircle2 className="w-3.5 h-3.5 text-[#2C4A52]" />
+                <span>{t('deptMarkSeen')}</span>
+              </button>
+            )}
+
+            {(complaint.status === 'submitted' || complaint.status === 'under_review') && (
               <button
                 type="button"
                 onClick={() => onQuickStatusUpdate('in_progress')}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-purple-200 bg-purple-50 hover:bg-purple-100 text-purple-700 text-xs font-medium transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#C2D6D9] bg-[#EAF1F2] hover:bg-[#DEEBEF] text-xs font-medium text-[#122E32] transition-colors"
               >
                 <Clock className="w-3.5 h-3.5" />
-                <span>Mark In Progress</span>
+                <span>{t('deptStartWork')}</span>
               </button>
             )}
-            {complaint.status !== 'assigned' && (
-              <button
-                type="button"
-                onClick={() => onQuickStatusUpdate('assigned')}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-amber-200 bg-amber-50 hover:bg-amber-100 text-amber-800 text-xs font-medium transition-colors"
-              >
-                <CheckCircle2 className="w-3.5 h-3.5" />
-                <span>Dispatch Field Team</span>
-              </button>
-            )}
-            {complaint.status !== 'resolved' && (
+
+            {complaint.status === 'in_progress' && (
               <button
                 type="button"
                 onClick={() => onQuickStatusUpdate('resolved')}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-medium transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#CCE0D3] bg-[#EEF5F1] hover:bg-[#E2EFE6] text-xs font-medium text-[#245938] transition-colors"
               >
                 <CheckCircle2 className="w-3.5 h-3.5" />
-                <span>Mark Resolved</span>
+                <span>{t('deptMarkResolved')}</span>
               </button>
             )}
+
             <button
               type="button"
               onClick={onOpenStatusModal}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#E5E3E0] bg-[#FFFFFF] hover:bg-[#F3EFEA] text-[#141414] text-xs font-medium transition-colors ml-auto"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#E1E4E6] bg-[#FFFFFF] hover:bg-[#F4F6F6] text-xs font-medium text-[#5B646B] hover:text-[#0F1E21] transition-colors ml-auto"
             >
-              <Edit3 className="w-3.5 h-3.5 text-[#737373]" />
-              <span>{t('deptUpdateStatus')} &amp; Add Note...</span>
+              <Edit3 className="w-3.5 h-3.5" />
+              <span>{t('deptUpdateStatus')}...</span>
             </button>
           </div>
-        </div>
+        </section>
 
-        {/* Audit Timeline */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-2 text-xs font-bold text-[#141414] uppercase tracking-wider">
-            <History className="w-4 h-4 text-[#681822]" />
-            <span>{t('deptTimeline')}</span>
+        {/* Progress History / Timeline */}
+        <section className="space-y-4">
+          <div className="flex items-center gap-2 text-xs font-semibold text-[#0F1E21] uppercase tracking-wider">
+            <History className="w-3.5 h-3.5 text-[#687E8B]" />
+            <span>{t('deptProgressHistory')}</span>
           </div>
 
-          <div className="relative pl-6 sm:pl-8 space-y-6 before:absolute before:left-2.5 sm:before:left-3.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-[#E5E3E0]">
+          <div className="relative pl-6 sm:pl-7 space-y-4 before:absolute before:left-2 sm:before:left-2.5 before:top-2 before:bottom-2 before:w-px before:bg-[#E1E4E6]">
             {complaint.timeline.map((evt) => (
-              <div key={evt.id} className="relative flex flex-col gap-1 text-xs">
-                {/* Marker Dot */}
-                <div className="absolute -left-6 sm:-left-8 top-1 w-2.5 h-2.5 rounded-full bg-[#681822] ring-4 ring-[#FFFFFF]" />
+              <div key={evt.id} className="relative flex flex-col gap-0.5 text-xs">
+                {/* Timeline Marker */}
+                <div className="absolute -left-6 sm:-left-7 top-1 w-2 h-2 rounded-full bg-[#122E32] ring-3 ring-[#FFFFFF]" />
 
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-semibold text-[#141414]">
+                  <span className="font-semibold text-[#0F1E21]">
                     {language === 'ur' ? evt.titleUrdu : evt.title}
                   </span>
-                  {getActorBadge(evt.actorRole)}
-                  <span className="text-[10px] text-[#737373]">
+                  <span className="text-[10px] text-[#5B646B] bg-[#F4F6F6] px-1.5 py-0.2 rounded border border-[#E1E4E6]">
+                    {getActorLabel(evt.actorRole)}
+                  </span>
+                  <span className="text-[11px] text-[#5B646B]">
                     {formatDateTime(evt.timestamp)}
                   </span>
                 </div>
 
-                <p className="text-[#5B5B5B] leading-relaxed">
+                <p className="text-[#5B646B] leading-relaxed">
                   {language === 'ur' ? evt.descriptionUrdu : evt.description}
                 </p>
               </div>
             ))}
           </div>
-        </div>
+        </section>
       </div>
     </div>
   );

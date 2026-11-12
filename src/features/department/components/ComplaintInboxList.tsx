@@ -5,62 +5,66 @@ import { Search, X, MapPin, Inbox } from 'lucide-react';
 
 interface ComplaintInboxListProps {
   complaints: DepartmentComplaintView[];
+  totalAssignedCount: number;
   selectedReference: string | null;
   onSelectComplaint: (refNumber: string) => void;
   searchQuery: string;
   onSearchChange: (query: string) => void;
 }
 
-export const getStatusBadge = (status: ComplaintStatus, language: 'en' | 'ur') => {
-  const styles: Record<ComplaintStatus, { bg: string; text: string; border: string; labelEn: string; labelUr: string }> = {
+export const getStatusChip = (status: ComplaintStatus, language: 'en' | 'ur') => {
+  const styles: Record<
+    ComplaintStatus,
+    { bg: string; text: string; border: string; labelEn: string; labelUr: string }
+  > = {
     submitted: {
-      bg: 'bg-blue-50',
-      text: 'text-blue-700',
-      border: 'border-blue-200',
-      labelEn: 'Submitted',
-      labelUr: 'درج شدہ',
+      bg: 'bg-[#F0F4F7]',
+      text: 'text-[#2C4A52]',
+      border: 'border-[#D0D9DE]',
+      labelEn: 'New',
+      labelUr: 'نئی',
     },
     under_review: {
-      bg: 'bg-indigo-50',
-      text: 'text-indigo-700',
-      border: 'border-indigo-200',
+      bg: 'bg-[#F0F4F7]',
+      text: 'text-[#2C4A52]',
+      border: 'border-[#D0D9DE]',
       labelEn: 'Under Review',
       labelUr: 'زیرِ جائزہ',
     },
     assigned: {
-      bg: 'bg-amber-50',
-      text: 'text-amber-800',
-      border: 'border-amber-200',
+      bg: 'bg-[#F2F5F0]',
+      text: 'text-[#2C4A52]',
+      border: 'border-[#D2DEC8]',
       labelEn: 'Assigned',
       labelUr: 'تفویض شدہ',
     },
     in_progress: {
-      bg: 'bg-purple-50',
-      text: 'text-purple-700',
-      border: 'border-purple-200',
+      bg: 'bg-[#EAF1F2]',
+      text: 'text-[#122E32]',
+      border: 'border-[#C2D6D9]',
       labelEn: 'In Progress',
       labelUr: 'زیرِ کارروائی',
     },
     resolved: {
-      bg: 'bg-emerald-50',
-      text: 'text-emerald-800',
-      border: 'border-emerald-200',
+      bg: 'bg-[#EEF5F1]',
+      text: 'text-[#245938]',
+      border: 'border-[#CCE0D3]',
       labelEn: 'Resolved',
       labelUr: 'حل شدہ',
     },
     rejected: {
-      bg: 'bg-rose-50',
-      text: 'text-rose-700',
-      border: 'border-rose-200',
-      labelEn: 'Rejected',
-      labelUr: 'مسترد',
+      bg: 'bg-[#F4F6F6]',
+      text: 'text-[#5B646B]',
+      border: 'border-[#E1E4E6]',
+      labelEn: 'Closed',
+      labelUr: 'بند',
     },
   };
 
   const current = styles[status] || styles.submitted;
   return (
     <span
-      className={`inline-flex items-center text-[10px] sm:text-[11px] font-semibold px-2 py-0.5 rounded-full border ${current.bg} ${current.text} ${current.border}`}
+      className={`inline-flex items-center text-[11px] font-medium px-2 py-0.5 rounded border ${current.bg} ${current.text} ${current.border}`}
     >
       {language === 'ur' ? current.labelUr : current.labelEn}
     </span>
@@ -69,6 +73,7 @@ export const getStatusBadge = (status: ComplaintStatus, language: 'en' | 'ur') =
 
 export const ComplaintInboxList: React.FC<ComplaintInboxListProps> = ({
   complaints,
+  totalAssignedCount,
   selectedReference,
   onSelectComplaint,
   searchQuery,
@@ -82,6 +87,7 @@ export const ComplaintInboxList: React.FC<ComplaintInboxListProps> = ({
       return d.toLocaleDateString(language === 'ur' ? 'ur-PK' : 'en-US', {
         month: 'short',
         day: 'numeric',
+        year: 'numeric',
       });
     } catch {
       return isoStr;
@@ -89,53 +95,56 @@ export const ComplaintInboxList: React.FC<ComplaintInboxListProps> = ({
   };
 
   return (
-    <div className="w-full md:w-80 lg:w-96 shrink-0 flex flex-col bg-[#FFFFFF] border border-[#E5E3E0] rounded-xl overflow-hidden shadow-sm">
-      {/* Search Bar Header */}
-      <div className="p-3 border-b border-[#E5E3E0] bg-[#FAFAF8] space-y-2">
+    <div className="w-full md:w-80 lg:w-[380px] shrink-0 flex flex-col bg-[#FFFFFF] border border-[#E1E4E6] rounded-xl overflow-hidden shadow-xs">
+      {/* Search Header */}
+      <div className="p-3 border-b border-[#E1E4E6] bg-[#FAFBFB] space-y-2">
         <div className="relative">
-          <Search className="w-4 h-4 text-[#737373] absolute top-2.5 left-3 pointer-events-none" />
+          <Search className="w-4 h-4 text-[#687E8B] absolute top-2.5 left-3 pointer-events-none" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder={t('deptSearchPlaceholder')}
-            className="w-full text-xs pl-9 pr-8 py-2 rounded-lg border border-[#E5E3E0] bg-[#FFFFFF] text-[#141414] placeholder-[#8A8A8A] focus:outline-none focus:ring-2 focus:ring-[#681822]/20 focus:border-[#681822]"
+            className="w-full text-xs pl-9 pr-8 py-2 rounded-lg border border-[#E1E4E6] bg-[#FFFFFF] text-[#0F1E21] placeholder-[#8A9298] focus:outline-none focus:border-[#2C4A52] focus:ring-1 focus:ring-[#2C4A52]"
           />
           {searchQuery && (
             <button
               type="button"
               onClick={() => onSearchChange('')}
-              className="absolute top-2.5 right-2.5 text-[#737373] hover:text-[#141414]"
-              aria-label="Clear Search"
+              className="absolute top-2.5 right-2.5 text-[#5B646B] hover:text-[#0F1E21]"
+              aria-label="Clear search"
             >
               <X className="w-3.5 h-3.5" />
             </button>
           )}
         </div>
-        <div className="flex items-center justify-between text-[11px] text-[#737373] px-1">
+
+        <div className="flex items-center justify-between text-[11px] text-[#5B646B] px-0.5">
           <span>
-            {complaints.length} {language === 'ur' ? 'شکایات' : 'grievances found'}
+            {complaints.length} {language === 'ur' ? 'شکایات' : 'complaints'}
           </span>
           {searchQuery && (
-            <span className="text-[#681822] font-medium">
-              Filtered by &quot;{searchQuery}&quot;
-            </span>
+            <span className="text-[#2C4A52] font-medium">Filtered</span>
           )}
         </div>
       </div>
 
-      {/* List Rows */}
-      <div className="flex-1 overflow-y-auto divide-y divide-[#F0EEEB] max-h-[calc(100vh-230px)]">
+      {/* Complaint Rows */}
+      <div className="flex-1 overflow-y-auto divide-y divide-[#ECEEEF] max-h-[calc(100vh-230px)]">
         {complaints.length === 0 ? (
-          <div className="p-8 text-center space-y-3">
-            <div className="w-12 h-12 rounded-2xl bg-[#F7F6F3] text-[#737373] flex items-center justify-center mx-auto">
-              <Inbox className="w-6 h-6" />
+          <div className="p-8 text-center space-y-2">
+            <div className="w-10 h-10 rounded-xl bg-[#F4F6F6] text-[#687E8B] flex items-center justify-center mx-auto mb-2">
+              <Inbox className="w-5 h-5" />
             </div>
-            <p className="text-xs font-semibold text-[#141414]">
-              {t('deptEmptyInbox')}
+            <p className="text-xs font-semibold text-[#0F1E21]">
+              {totalAssignedCount === 0
+                ? t('deptEmptyAssigned')
+                : t('deptEmptyFilter')}
             </p>
-            <p className="text-[11px] text-[#737373] leading-relaxed">
-              {t('deptEmptyInboxDesc')}
+            <p className="text-[11px] text-[#5B646B] max-w-xs mx-auto leading-relaxed">
+              {totalAssignedCount === 0
+                ? t('deptEmptyPrompt')
+                : 'Try adjusting your search query or filter.'}
             </p>
           </div>
         ) : (
@@ -146,51 +155,42 @@ export const ComplaintInboxList: React.FC<ComplaintInboxListProps> = ({
                 key={c.id}
                 type="button"
                 onClick={() => onSelectComplaint(c.referenceNumber)}
-                className={`w-full text-left p-3.5 transition-all flex flex-col gap-1.5 focus:outline-none ${
+                className={`w-full text-left p-3.5 transition-colors flex flex-col gap-1.5 focus:outline-none cursor-pointer ${
                   isSelected
                     ? isRTL
-                      ? 'bg-[#FDFCF9] border-r-4 border-r-[#681822] shadow-xs'
-                      : 'bg-[#FDFCF9] border-l-4 border-l-[#681822] shadow-xs'
-                    : 'hover:bg-[#FAFAF8] text-[#141414]'
+                      ? 'bg-[#F0F4F5] border-r-3 border-r-[#122E32]'
+                      : 'bg-[#F0F4F5] border-l-3 border-l-[#122E32]'
+                    : 'hover:bg-[#FAFBFB] text-[#0F1E21]'
                 }`}
               >
                 {/* Reference & Date */}
                 <div className="flex items-center justify-between gap-2">
                   <span
                     className={`font-mono text-xs font-bold tracking-tight ${
-                      isSelected ? 'text-[#681822]' : 'text-[#141414]'
+                      isSelected ? 'text-[#122E32]' : 'text-[#0F1E21]'
                     }`}
                   >
                     {c.referenceNumber}
                   </span>
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-[10px] text-[#737373]">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] text-[#5B646B]">
                       {formatDate(c.submittedAt)}
                     </span>
-                    {getStatusBadge(c.status, language)}
+                    {getStatusChip(c.status, language)}
                   </div>
                 </div>
 
                 {/* Location */}
-                <div className="flex items-center gap-1.5 text-[11px] text-[#5B5B5B] truncate">
-                  <MapPin className="w-3 h-3 text-[#737373] shrink-0" />
+                <div className="flex items-center gap-1.5 text-[11px] text-[#5B646B] truncate">
+                  <MapPin className="w-3 h-3 text-[#687E8B] shrink-0" />
                   <span className="truncate">
-                    {c.locality} • {c.district}
+                    {c.locality} · {c.district}
                   </span>
                 </div>
 
-                {/* Title */}
-                <h4
-                  className={`text-xs font-medium line-clamp-1 ${
-                    isSelected ? 'text-[#141414]' : 'text-[#333333]'
-                  }`}
-                >
-                  {c.title}
-                </h4>
-
-                {/* Roman Urdu Excerpt */}
-                <p className="text-[11px] text-[#737373] line-clamp-2 italic leading-relaxed bg-[#FAF9F6] p-1.5 rounded border border-[#F0EFEB]">
-                  &ldquo;{c.description}&rdquo;
+                {/* Concise preview of complaint text */}
+                <p className="text-xs text-[#5B646B] line-clamp-2 leading-relaxed">
+                  {c.description}
                 </p>
               </button>
             );

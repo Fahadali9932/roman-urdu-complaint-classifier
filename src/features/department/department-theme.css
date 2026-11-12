@@ -1,0 +1,77 @@
+/* ==============================================================================
+   AWAAZ-E-AWAM — DEPARTMENT PORTAL SCOPED THEME
+   Strictly scoped to .dept-workspace-root.
+   Palette Reference:
+   - Slate Gray:      #5B646B (Secondary surfaces & subdued elements)
+   - Soft Silver:     #ACAFB6 (Light borders & tertiary elements)
+   - Blue Slate:      #687E8B (Secondary accents & supporting information)
+   - Deep Slate Teal: #2C4A52 (Active states & secondary actions)
+   - Dark Teal:       #122E32 (Primary interactive elements)
+   - Near-black Teal: #0F1E21 (Main typography & deep surfaces)
+   ============================================================================== */
+
+.dept-workspace-root {
+  --dept-slate-gray: #5B646B;
+  --dept-soft-silver: #ACAFB6;
+  --dept-blue-slate: #687E8B;
+  --dept-deep-slate-teal: #2C4A52;
+  --dept-dark-teal: #122E32;
+  --dept-near-black-teal: #0F1E21;
+
+  --dept-bg: #F4F6F6;
+  --dept-surface: #FFFFFF;
+  --dept-surface-muted: #FAFBFB;
+  --dept-border: #E1E4E6;
+  --dept-border-light: #ECEEEF;
+
+  background-color: var(--dept-bg);
+  color: var(--dept-near-black-teal);
+  min-height: 100vh;
+}
+
+.dept-btn-primary {
+  background-color: var(--dept-dark-teal);
+  color: #FFFFFF;
+  transition: background-color 0.15s ease, transform 0.1s ease;
+}
+
+.dept-btn-primary:hover:not(:disabled) {
+  background-color: var(--dept-near-black-teal);
+}
+
+.dept-btn-primary:focus-visible {
+  outline: 2px solid var(--dept-deep-slate-teal);
+  outline-offset: 2px;
+}
+
+.dept-btn-secondary {
+  background-color: #FFFFFF;
+  border: 1px solid var(--dept-border);
+  color: var(--dept-dark-teal);
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.dept-btn-secondary:hover:not(:disabled) {
+  background-color: var(--dept-surface-muted);
+  border-color: var(--dept-soft-silver);
+}
+
+.dept-input {
+  background-color: #FFFFFF;
+  border: 1px solid var(--dept-border);
+  color: var(--dept-near-black-teal);
+  border-radius: 10px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.dept-input:focus {
+  outline: none;
+  border-color: var(--dept-deep-slate-teal);
+  box-shadow: 0 0 0 3px rgba(44, 74, 82, 0.12);
+}
+
+.dept-card {
+  background-color: #FFFFFF;
+  border: 1px solid var(--dept-border);
+  border-radius: 14px;
+}

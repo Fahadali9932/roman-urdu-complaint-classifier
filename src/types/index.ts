@@ -86,6 +86,7 @@ export interface Complaint {
   citizenName: string;
   district: KarachiDistrict;
   locality: string;
+  publicLocation?: string;
   title: string;
   description: string;
   detectedLanguage: DetectedLanguage;
