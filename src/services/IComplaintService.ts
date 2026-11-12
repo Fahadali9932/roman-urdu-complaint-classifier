@@ -3,6 +3,9 @@ import {
   type ComplaintSubmissionInput,
   type CitizenOverviewStats,
   type SubmissionResult,
+  type DepartmentId,
+  type DepartmentComplaintView,
+  type ComplaintStatus,
 } from '../types';
 
 export interface IComplaintService {
@@ -30,4 +33,32 @@ export interface IComplaintService {
    * Retrieves summary counts for the citizen dashboard
    */
   getOverviewStats(): Promise<CitizenOverviewStats>;
+
+  /**
+   * Retrieves all complaints assigned to the specified department.
+   * STRICT SECURITY: Only complaints where assignedDepartmentId === departmentId are returned.
+   * PRIVACY: Citizen personal identifiers (name, phone, address) are strictly redacted.
+   */
+  getDepartmentComplaints(departmentId: DepartmentId): Promise<DepartmentComplaintView[]>;
+
+  /**
+   * Looks up a complaint by reference number scoped strictly to an authorized department.
+   * If the reference exists but belongs to a different department, returns null.
+   */
+  getDepartmentComplaintByReference(
+    departmentId: DepartmentId,
+    referenceNumber: string
+  ): Promise<DepartmentComplaintView | null>;
+
+  /**
+   * Updates complaint status by an authorized department officer.
+   * STRICT SECURITY: Verifies that the complaint is assigned to the authorized department.
+   */
+  updateComplaintStatus(
+    departmentId: DepartmentId,
+    referenceNumber: string,
+    newStatus: ComplaintStatus,
+    note?: string,
+    noteUrdu?: string
+  ): Promise<{ success: boolean; complaint: DepartmentComplaintView }>;
 }

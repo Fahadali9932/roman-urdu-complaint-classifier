@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../context/LanguageContext';
 import { LanguageToggle } from '../common/LanguageToggle';
-import { Menu, X, User, Home, HelpCircle, FolderOpen, PenTool } from 'lucide-react';
+import { Menu, X, User, Home, HelpCircle, FolderOpen, PenTool, Building2 } from 'lucide-react';
 
 export const PublicHeader: React.FC = () => {
   const { t, language } = useLanguage();
@@ -415,6 +415,14 @@ export const PublicHeader: React.FC = () => {
                 >
                   <User className="w-4 h-4 text-[#323232]" />
                   <span className="font-medium">{t('navAccount') || t('navSignIn')}</span>
+                </Link>
+                <Link
+                  to="/department"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-ui text-[#681822] hover:bg-[#E5E3E0]/40 transition-colors mt-1"
+                >
+                  <Building2 className="w-4 h-4 text-[#681822]" />
+                  <span className="font-medium">{language === 'ur' ? 'محکمہ ورک اسپیس' : 'Department Portal'}</span>
                 </Link>
               </div>
             </nav>

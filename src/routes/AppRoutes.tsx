@@ -12,6 +12,9 @@ import { ComplaintTracker } from '../features/citizen/ComplaintTracker';
 import { CitizenDashboard } from '../features/citizen/CitizenDashboard';
 import { LoginPage } from '../features/auth/LoginPage';
 import { RegisterPage } from '../features/auth/RegisterPage';
+import { DepartmentPortalLayout } from '../features/department/DepartmentPortalLayout';
+import { DepartmentDashboardPage } from '../features/department/DepartmentDashboardPage';
+import { DepartmentLoginPage } from '../features/department/DepartmentLoginPage';
 import { Card } from '../components/common/Card';
 import { Container } from '../components/layout/Container';
 import { Building2 } from 'lucide-react';
@@ -52,8 +55,14 @@ export const AppRoutes: React.FC = () => {
         <Route path="/register" element={<RegisterPage />} />
 
         {/* Future Phase 4 Portals */}
-        <Route path="/department/*" element={<FuturePortalPlaceholder role="department" />} />
         <Route path="/admin/*" element={<FuturePortalPlaceholder role="admin" />} />
+      </Route>
+
+      {/* Department Portal Workspace */}
+      <Route element={<DepartmentPortalLayout />}>
+        <Route path="/department" element={<DepartmentDashboardPage />} />
+        <Route path="/department/login" element={<DepartmentLoginPage />} />
+        <Route path="/department/:referenceNumber" element={<DepartmentDashboardPage />} />
       </Route>
 
       {/* Authenticated Citizen Workspace layout */}

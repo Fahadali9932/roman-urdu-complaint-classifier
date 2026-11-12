@@ -1,6 +1,7 @@
 import React, { useLayoutEffect } from 'react';
 import { BrowserRouter, useLocation } from 'react-router-dom';
 import { LanguageProvider } from './context/LanguageContext';
+import { DepartmentAuthProvider } from './context/DepartmentAuthContext';
 import { AppRoutes } from './routes/AppRoutes';
 
 const ScrollToTop: React.FC = () => {
@@ -25,7 +26,9 @@ export const App: React.FC = () => {
     <BrowserRouter>
       <ScrollToTop />
       <LanguageProvider>
-        <AppRoutes />
+        <DepartmentAuthProvider>
+          <AppRoutes />
+        </DepartmentAuthProvider>
       </LanguageProvider>
     </BrowserRouter>
   );

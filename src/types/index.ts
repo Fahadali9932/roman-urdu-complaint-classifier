@@ -28,6 +28,7 @@ export type DepartmentId =
   | 'kelectric'
   | 'kmc'
   | 'sbca'
+  | 'ssgc'
   | 'unassigned';
 
 export interface Department {
@@ -38,6 +39,30 @@ export interface Department {
   description: string;
   descriptionUrdu: string;
   iconName: string;
+}
+
+/**
+ * Department-facing complaint view.
+ * PRIVACY CONTRACT: Strictly excludes citizenName, citizenPhone, citizenEmail, and applicantAddress.
+ */
+export interface DepartmentComplaintView {
+  id: string;
+  referenceNumber: string;
+  district: KarachiDistrict;
+  locality: string;
+  publicLocation?: string;
+  title: string;
+  description: string;
+  detectedLanguage: DetectedLanguage;
+  status: ComplaintStatus;
+  assignedDepartmentId: DepartmentId;
+  assignedDepartmentName?: string;
+  predictedDepartmentId?: DepartmentId;
+  predictionConfidence?: number;
+  submittedAt: string;
+  updatedAt: string;
+  timeline: ComplaintTimelineEvent[];
+  isDemonstration: boolean;
 }
 
 export type DetectedLanguage = 'roman_urdu' | 'english' | 'urdu';
