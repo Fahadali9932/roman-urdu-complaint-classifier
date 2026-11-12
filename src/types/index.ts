@@ -59,10 +59,8 @@ export interface Complaint {
   citizenId?: string;
   referenceNumber: string;
   citizenName: string;
-  citizenPhone: string;
   district: KarachiDistrict;
   locality: string;
-  privateAddress?: string;
   title: string;
   description: string;
   detectedLanguage: DetectedLanguage;
@@ -97,12 +95,9 @@ export const DEMO_CITIZEN: CitizenProfile = {
 
 export interface ComplaintSubmissionInput {
   citizenName: string;
-  citizenPhone?: string; // Optional transient input, stripped before persistence
-  citizenEmail?: string;
   district: KarachiDistrict;
   locality: string;
   publicLocation?: string;
-  privateAddress?: string; // Optional transient input, stripped before persistence
   title: string;
   description: string;
 }

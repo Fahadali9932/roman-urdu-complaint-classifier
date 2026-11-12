@@ -3,6 +3,7 @@ import { useLanguage } from '../../context/LanguageContext';
 
 interface ComplaintJourneyProps {
   id?: string;
+  externalScrollTrack?: boolean;
 }
 
 // Ken Perlin quintic smootherstep ease (C^2 continuous: 0 velocity & acceleration at boundaries)
@@ -13,7 +14,7 @@ const smoother = (x: number): number => {
 
 const clamp01 = (v: number): number => Math.max(0, Math.min(1, v));
 
-export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps' }) => {
+export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps', externalScrollTrack = false }) => {
   const { t, language, isRTL } = useLanguage();
   const containerRef = useRef<HTMLElement>(null);
 
@@ -60,11 +61,14 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
   // Recalculate and cache layout geometry
   const measureLayout = useCallback(() => {
     if (!containerRef.current) return;
+    const trackElement = externalScrollTrack && !isMobile
+      ? containerRef.current.closest<HTMLElement>('.stacked-scroll-section') || containerRef.current
+      : containerRef.current;
     const vh = window.innerHeight;
-    const rect = containerRef.current.getBoundingClientRect();
+    const rect = trackElement.getBoundingClientRect();
     const scrollY = window.scrollY;
-    const containerTop = rect.top + scrollY;
-    const containerHeight = containerRef.current.offsetHeight;
+    const containerTop = externalScrollTrack && !isMobile ? trackElement.offsetTop : rect.top + scrollY;
+    const containerHeight = trackElement.offsetHeight + (externalScrollTrack && !isMobile ? window.innerHeight * 4.4 : 0);
     const scrollableDistance = Math.max(1, containerHeight - vh);
 
     layoutMetricsRef.current = {
@@ -73,7 +77,7 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
       vh,
       scrollableDistance,
     };
-  }, []);
+  }, [externalScrollTrack, isMobile]);
 
   // Subscribe to media queries and viewport resize
   useEffect(() => {
@@ -320,7 +324,7 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
       ref={containerRef}
       className="relative w-full border-t border-[#E5E3E0] bg-[#F7F6F3] text-[#141414] scroll-mt-20 sm:scroll-mt-24 select-none"
       style={{
-        minHeight: prefersReducedMotion || isMobile ? 'auto' : '540vh',
+        minHeight: prefersReducedMotion || isMobile || externalScrollTrack ? 'auto' : '540vh',
       }}
       aria-label={t('processHeading') || 'How It Works'}
     >
@@ -333,7 +337,9 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({ id = 'steps'
         className={`hidden lg:flex w-full flex-col justify-center items-center px-4 sm:px-10 lg:px-16 xl:px-20 overflow-hidden ${
           prefersReducedMotion
             ? 'relative py-24 sm:py-32'
-            : 'sticky top-0 h-screen'
+            : externalScrollTrack
+              ? 'relative h-[100svh]'
+              : 'sticky top-0 h-screen'
         }`}
       >
         <div className="relative w-full h-full flex flex-col items-center justify-center">

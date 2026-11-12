@@ -73,6 +73,7 @@ describe('Simplified Write your complaint flow', () => {
     await waitFor(() => expect(screen.getByRole('dialog')).toBeInTheDocument());
     expect(screen.getByText(/no real complaint was delivered/i)).toBeInTheDocument();
     expect(screen.queryByText('03129876543')).not.toBeInTheDocument();
+    expect(screen.queryByText('House 42-A, Street 26, Phase 6')).not.toBeInTheDocument();
   });
 
   it('preserves the Urdu RTL experience', async () => {

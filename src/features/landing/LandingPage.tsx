@@ -124,11 +124,13 @@ export const LandingPage: React.FC = () => {
       <StackedScrollSection
         id="steps-panel"
         depth={20}
+        stickyMode="top-desktop"
+        trackHeight="540vh"
         recedeOnScroll={true}
         hasIncomingShadow={true}
         className="w-full min-h-screen bg-[#F7F6F3] border-t border-[#E5E3E0]"
       >
-        <ComplaintJourney id="steps" />
+        <ComplaintJourney id="steps" externalScrollTrack />
       </StackedScrollSection>
 
       {/* ========================================================

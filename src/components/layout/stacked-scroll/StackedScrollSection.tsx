@@ -10,7 +10,7 @@ export interface StackedScrollSectionProps {
   children: React.ReactNode;
   recedeOnScroll?: boolean;
   hasIncomingShadow?: boolean;
-  stickyMode?: 'top' | 'bottom' | 'none';
+  stickyMode?: 'top' | 'bottom' | 'top-desktop' | 'none';
   trackHeight?: string;
   minHeight?: string;
   ariaLabel?: string;
@@ -32,7 +32,7 @@ export const StackedScrollSection: React.FC<StackedScrollSectionProps> = ({
 }) => {
   const outerRef = useRef<HTMLElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
-  const { registerSection, unregisterSection, prefersReducedMotion } = useStackedScroll();
+  const { registerSection, unregisterSection, prefersReducedMotion, isMobile } = useStackedScroll();
 
   const generatedId = useId();
   const sectionId = id || generatedId;
@@ -59,21 +59,29 @@ export const StackedScrollSection: React.FC<StackedScrollSectionProps> = ({
       ? 'stacked-incoming-shadow'
       : '';
 
-  const effectiveMinHeight = trackHeight || minHeight || undefined;
+  const usesViewportTrack = stickyMode === 'top' || stickyMode === 'bottom' || (stickyMode === 'top-desktop' && !isMobile);
+  const effectiveMinHeight = usesViewportTrack ? '100svh' : minHeight || undefined;
+  const trackSpacer = usesViewportTrack && trackHeight ? (
+    <div
+      className="stacked-scroll-track-spacer pointer-events-none motion-reduce:hidden"
+      style={{ height: `calc(${trackHeight} - 100svh)` }}
+      aria-hidden="true"
+    />
+  ) : null;
 
-  if (stickyMode === 'top') {
+  if (usesViewportTrack && (stickyMode === 'top' || stickyMode === 'top-desktop')) {
     return (
-      <Component
-        id={id}
-        ref={outerRef as any}
-        aria-label={ariaLabel}
-        style={{
-          zIndex: depth,
-          minHeight: effectiveMinHeight,
-        }}
-        className={`stacked-scroll-section relative w-full ${shadowClass} ${className}`}
-      >
-        <div className="sticky top-0 w-full min-h-screen flex flex-col justify-center overflow-visible motion-reduce:static motion-reduce:min-h-0">
+      <>
+        <Component
+          id={id}
+          ref={outerRef as any}
+          aria-label={ariaLabel}
+          style={{
+            zIndex: depth,
+            minHeight: effectiveMinHeight,
+          }}
+          className={`stacked-scroll-section sticky top-0 w-full overflow-visible ${shadowClass} ${className}`}
+        >
           <div
             ref={innerRef}
             style={{
@@ -84,24 +92,25 @@ export const StackedScrollSection: React.FC<StackedScrollSectionProps> = ({
           >
             {children}
           </div>
-        </div>
-      </Component>
+        </Component>
+        {trackSpacer}
+      </>
     );
   }
 
-  if (stickyMode === 'bottom') {
+  if (usesViewportTrack && stickyMode === 'bottom') {
     return (
-      <Component
-        id={id}
-        ref={outerRef as any}
-        aria-label={ariaLabel}
-        style={{
-          zIndex: depth,
-          minHeight: effectiveMinHeight,
-        }}
-        className={`stacked-scroll-section relative w-full ${shadowClass} ${className}`}
-      >
-        <div className="sticky bottom-0 w-full flex flex-col overflow-visible motion-reduce:static">
+      <>
+        <Component
+          id={id}
+          ref={outerRef as any}
+          aria-label={ariaLabel}
+          style={{
+            zIndex: depth,
+            minHeight: effectiveMinHeight,
+          }}
+          className={`stacked-scroll-section sticky bottom-0 w-full overflow-visible ${shadowClass} ${className}`}
+        >
           <div
             ref={innerRef}
             style={{
@@ -112,8 +121,9 @@ export const StackedScrollSection: React.FC<StackedScrollSectionProps> = ({
           >
             {children}
           </div>
-        </div>
-      </Component>
+        </Component>
+        {trackSpacer}
+      </>
     );
   }
 

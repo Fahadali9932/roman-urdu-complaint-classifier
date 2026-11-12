@@ -76,9 +76,9 @@ export const SimplifiedComplaintContainer: React.FC = () => {
     complaintLead: 'اپنے الفاظ میں بتائیں کہ کیا ہوا۔',
     name: 'پورا نام', phone: 'پاکستانی موبائل نمبر', email: 'ای میل (اختیاری)',
     locationLabel: 'علاقہ / محلہ', district: 'کراچی کا ضلع', landmark: 'گلی، بلاک یا قریبی نشانی',
-    address: 'رہائشی پتہ', addressHelp: 'آپ کا ذاتی رہائشی پتہ جو رابطہ اور تصدیق کے لیے ضروری ہے۔',
+    address: 'رہائشی پتہ', addressHelp: 'یہ فارم مکمل کرنے کے لیے ضروری ہے، مگر صرف اسی براؤزر میں عارضی طور پر رکھا جاتا ہے؛ عوامی یا محکمانہ ریکارڈ میں نہیں بھیجا یا محفوظ کیا جاتا۔',
     description: 'شکایت کی تفصیل', continue: 'آگے بڑھیں', back: 'واپس', submit: 'شکایت جمع کروائیں',
-    privacy: 'آپ کا فون نمبر اور رہائشی پتہ محفوظ رکھا جاتا ہے اور عوامی ریکارڈ میں شامل نہیں ہوتا۔',
+    privacy: 'آپ کا فون نمبر اور رہائشی پتہ صرف اس فارم میں عارضی طور پر رہتا ہے؛ عوامی یا محکمانہ ریکارڈ میں شامل نہیں ہوتا۔',
     emailNote: 'ای میل صرف رابطے کے لیے لی جاتی ہے؛ اطلاعات کا وعدہ تبھی ہوگا جب ای میل سروس فعال ہو۔',
     streetHelp: 'سڑک، بلاک یا قریبی نشانی مسئلے کی جگہ سمجھنے میں مدد دیتی ہے۔',
     success: 'شکایت درج ہو گئی', preview: 'پروٹوٹائپ پیش منظر', close: 'بند کریں', edit: 'ترمیم کریں',
@@ -90,9 +90,9 @@ export const SimplifiedComplaintContainer: React.FC = () => {
     complaintLead: 'Describe what happened in your own words.',
     name: 'Full name', phone: 'Pakistani mobile number', email: 'Email (optional)',
     locationLabel: 'Area / Locality', district: 'Karachi district', landmark: 'Street, block or nearby landmark',
-    address: 'Home address', addressHelp: 'Your residential address, kept strictly confidential.',
+    address: 'Home address', addressHelp: 'Required to complete this form, but kept only in this browser preview and never sent to or saved in public or departmental records.',
     description: 'Complaint description', continue: 'Continue', back: 'Back', submit: 'Submit Complaint',
-    privacy: 'Your phone number and home address stay private and never appear in the public record.',
+    privacy: 'Your phone number and home address stay only in this form and are never sent to or saved in public or departmental records.',
     emailNote: 'Email is optional. We only promise notifications when a real email service is available.',
     streetHelp: 'A street, block or nearby landmark helps identify the incident location.',
     success: 'Complaint submitted', preview: 'Prototype preview', close: 'Close', edit: 'Edit form',
@@ -148,9 +148,6 @@ export const SimplifiedComplaintContainer: React.FC = () => {
     try {
       const result = await complaintService.submitComplaint({
         citizenName: formData.applicant.citizenName,
-        citizenPhone: formData.applicant.citizenPhone,
-        citizenEmail: formData.applicant.citizenEmail,
-        privateAddress: formData.applicant.applicantAddress,
         locality: formData.location.locality,
         district: formData.location.district as KarachiDistrict,
         publicLocation: formData.location.publicLocation,
@@ -554,9 +551,6 @@ export const SimplifiedComplaintContainer: React.FC = () => {
         </div>
       </div>
 
-      {/* Reveal spacer for the rising footer curtain effect across mobile, tablet, and desktop */}
-      <div className="h-[40vh] sm:h-[45vh] lg:h-[50vh] pointer-events-none motion-reduce:hidden" aria-hidden="true" />
-
       {submission && (
         <SubmissionModal
           submission={submission}
@@ -648,11 +642,6 @@ const SubmissionModal: React.FC<{
             {formData.location.locality}
             {formData.location.district ? ` · ${formData.location.district}` : ''}
           </p>
-          {formData.applicant.applicantAddress && (
-            <p className="mt-1 text-xs text-[#78716C]">
-              <span className="font-medium text-[#141414]">{copy.address}:</span> {formData.applicant.applicantAddress} ({ur ? 'محفوظ / غیر عوامی' : 'Confidential'})
-            </p>
-          )}
           <p className="mt-2 text-[#625D58]">{formData.complaint.description}</p>
         </div>
 

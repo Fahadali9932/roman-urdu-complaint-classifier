@@ -28,8 +28,8 @@ export const AppLayout: React.FC = () => {
     <div
       className={`min-h-screen flex flex-col w-full selection:bg-[#681822] selection:text-[#FFFFFF] ${
         isInfoPage
-          ? 'bg-[#141414] text-[#F7F6F3] overflow-x-clip'
-          : 'bg-[#F7F6F3] text-[#141414] overflow-x-clip'
+          ? 'bg-[#141414] text-[#F7F6F3] overflow-visible'
+          : 'bg-[#F7F6F3] text-[#141414] overflow-visible'
       }`}
     >
       <PublicHeader />
@@ -38,20 +38,17 @@ export const AppLayout: React.FC = () => {
           depth={10}
           recedeOnScroll={true}
           as="main"
-          className={`flex-1 w-full relative ${
+          stickyMode={!isSubmit && !isInfoPage ? 'top' : 'none'}
+          trackHeight={!isSubmit && !isInfoPage ? '150vh' : undefined}
+          className={`flex-1 w-full ${
             isInfoPage
               ? 'p-0 m-0'
               : isSubmit
                 ? 'p-0 m-0 overflow-visible'
-                : 'pt-24 sm:pt-28 pb-16 sm:pb-24'
+                : 'bg-[#F7F6F3] pt-24 sm:pt-28 pb-16 sm:pb-24'
           }`}
         >
-          <div className={!isSubmit && !isInfoPage ? 'sticky bottom-0 z-10 motion-reduce:static' : ''}>
-            <Outlet />
-          </div>
-          {!isSubmit && !isInfoPage && (
-            <div className="h-[40vh] sm:h-[45vh] lg:h-[50vh] pointer-events-none motion-reduce:hidden" aria-hidden="true" />
-          )}
+          <Outlet />
         </StackedScrollSection>
 
         <StackedScrollSection

@@ -17,6 +17,7 @@ export const StackedScrollContainer: React.FC<StackedScrollContainerProps> = ({
   const containerRef = useRef<HTMLElement>(null);
   const sectionsRef = useRef<SectionRegistration[]>([]);
   const rafId = useRef<number | null>(null);
+  const resizeObserverRef = useRef<ResizeObserver | null>(null);
 
   const [isMobile, setIsMobile] = useState(() => {
     if (typeof window === 'undefined') return false;
@@ -47,26 +48,17 @@ export const StackedScrollContainer: React.FC<StackedScrollContainerProps> = ({
     window.addEventListener('resize', handleResize, { passive: true });
 
     let mq: MediaQueryList | null = null;
+    let handleMotion: ((event: MediaQueryListEvent) => void) | null = null;
     if (typeof window.matchMedia === 'function') {
       mq = window.matchMedia('(prefers-reduced-motion: reduce)');
-      const handleMotion = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches);
+      handleMotion = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches);
       mq.addEventListener('change', handleMotion);
     }
 
     return () => {
       window.removeEventListener('resize', handleResize);
-      if (mq) mq.removeEventListener('change', () => {});
+      if (mq && handleMotion) mq.removeEventListener('change', handleMotion);
     };
-  }, []);
-
-  const registerSection = useCallback((reg: SectionRegistration) => {
-    sectionsRef.current = [...sectionsRef.current.filter((s) => s.id !== reg.id), reg].sort(
-      (a, b) => a.depth - b.depth
-    );
-  }, []);
-
-  const unregisterSection = useCallback((id: string) => {
-    sectionsRef.current = sectionsRef.current.filter((s) => s.id !== id);
   }, []);
 
   // Scrub and apply physical 3D transforms continuously based on scroll position
@@ -114,13 +106,13 @@ export const StackedScrollContainer: React.FC<StackedScrollContainerProps> = ({
         let brightness: number;
 
         if (isNarrow) {
-          // Mobile: Noticeable 3.5% scale reduction, 8% atmospheric dimming, 8px downward sink
-          scale = 1.0 - 0.035 * t;
-          translateY = 8 * t;
-          translateZ = 0;
-          rotateX = 0;
-          brightness = 1.0 - 0.08 * t;
-          current.innerEl.style.transform = `translate3d(0, ${translateY}px, 0) scale(${scale})`;
+          // Keep the physical-depth cue on narrow screens without shrinking the readable canvas.
+          scale = 1.0 - 0.022 * t;
+          translateY = 6 * t;
+          translateZ = -10 * t;
+          rotateX = 0.25 * t;
+          brightness = 1.0 - 0.06 * t;
+          current.innerEl.style.transform = `perspective(900px) translate3d(0, ${translateY}px, ${translateZ}px) rotateX(${rotateX}deg) scale(${scale})`;
           current.innerEl.style.filter = `brightness(${brightness})`;
         } else if (isMid) {
           // Tablet: 2.5% scale reduction, 8% atmospheric dimming, moderate depth
@@ -145,20 +137,46 @@ export const StackedScrollContainer: React.FC<StackedScrollContainerProps> = ({
     }
   }, [isMobile, isTablet, prefersReducedMotion]);
 
+  const requestTransformUpdate = useCallback(() => {
+    if (rafId.current !== null) return;
+    rafId.current = requestAnimationFrame(() => {
+      updateTransforms();
+      rafId.current = null;
+    });
+  }, [updateTransforms]);
+
+  const registerSection = useCallback((reg: SectionRegistration) => {
+    sectionsRef.current = [...sectionsRef.current.filter((s) => s.id !== reg.id), reg].sort(
+      (a, b) => a.depth - b.depth
+    );
+    resizeObserverRef.current?.observe(reg.outerEl);
+    requestTransformUpdate();
+  }, [requestTransformUpdate]);
+
+  const unregisterSection = useCallback((id: string) => {
+    const registration = sectionsRef.current.find((section) => section.id === id);
+    if (registration) resizeObserverRef.current?.unobserve(registration.outerEl);
+    sectionsRef.current = sectionsRef.current.filter((section) => section.id !== id);
+    requestTransformUpdate();
+  }, [requestTransformUpdate]);
+
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    const onScroll = () => {
-      if (rafId.current === null) {
-        rafId.current = requestAnimationFrame(() => {
-          updateTransforms();
-          rafId.current = null;
-        });
-      }
-    };
+    const onScroll = () => requestTransformUpdate();
+
+    if (typeof ResizeObserver !== 'undefined') {
+      resizeObserverRef.current = new ResizeObserver(onScroll);
+      if (containerRef.current) resizeObserverRef.current.observe(containerRef.current);
+      sectionsRef.current.forEach((section) => resizeObserverRef.current?.observe(section.outerEl));
+    }
+
+    const visualViewport = window.visualViewport;
 
     window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('resize', onScroll, { passive: true });
+    visualViewport?.addEventListener('resize', onScroll, { passive: true });
+    visualViewport?.addEventListener('scroll', onScroll, { passive: true });
 
     // Initial pass on mount
     updateTransforms();
@@ -166,11 +184,16 @@ export const StackedScrollContainer: React.FC<StackedScrollContainerProps> = ({
     return () => {
       window.removeEventListener('scroll', onScroll);
       window.removeEventListener('resize', onScroll);
+      visualViewport?.removeEventListener('resize', onScroll);
+      visualViewport?.removeEventListener('scroll', onScroll);
+      resizeObserverRef.current?.disconnect();
+      resizeObserverRef.current = null;
       if (rafId.current !== null) {
         cancelAnimationFrame(rafId.current);
+        rafId.current = null;
       }
     };
-  }, [updateTransforms]);
+  }, [requestTransformUpdate, updateTransforms]);
 
   return (
     <StackedScrollContext.Provider
@@ -185,7 +208,7 @@ export const StackedScrollContainer: React.FC<StackedScrollContainerProps> = ({
     >
       <Component
         ref={containerRef as any}
-        className={`stacked-scroll-container relative w-full overflow-x-clip ${className}`}
+        className={`stacked-scroll-container relative w-full ${className}`}
         style={{
           perspective: prefersReducedMotion ? 'none' : '1400px',
           perspectiveOrigin: '50% 25%',
