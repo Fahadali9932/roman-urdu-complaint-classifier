@@ -13,14 +13,12 @@ export const CitizenLayout: React.FC = () => {
           depth={10}
           recedeOnScroll={true}
           as="main"
-          // Dashboard height changes with records and filters, so keep its
-          // footer transition in normal flow instead of reserving a fake track.
-          stickyMode="none"
-          className="flex-1 w-full bg-[#F7F6F3]"
+          className="flex-1 w-full bg-[#F7F6F3] relative"
         >
-          <div className="w-full max-w-[1360px] mx-auto px-4 sm:px-8 pt-24 sm:pt-28 pb-16 sm:pb-24">
+          <div className="sticky bottom-0 z-10 w-full max-w-[1360px] mx-auto px-4 sm:px-8 pt-24 sm:pt-28 pb-16 sm:pb-24 motion-reduce:static">
             <Outlet />
           </div>
+          <div className="h-[40vh] sm:h-[45vh] lg:h-[50vh] pointer-events-none motion-reduce:hidden" aria-hidden="true" />
         </StackedScrollSection>
 
         <StackedScrollSection

@@ -124,13 +124,11 @@ export const LandingPage: React.FC = () => {
       <StackedScrollSection
         id="steps-panel"
         depth={20}
-        stickyMode="top-desktop"
-        trackHeight="340svh"
         recedeOnScroll={true}
         hasIncomingShadow={true}
-        className="w-full min-h-screen bg-[#F7F6F3] border-t border-[#E5E3E0]"
+        className="w-full bg-[#F7F6F3] border-t border-[#E5E3E0]"
       >
-        <ComplaintJourney id="steps" externalScrollTrack scrollTrackVh={340} />
+        <ComplaintJourney id="steps" scrollTrackVh={260} />
       </StackedScrollSection>
 
       {/* ========================================================
@@ -142,8 +140,8 @@ export const LandingPage: React.FC = () => {
       <StackedScrollSection
         id="write-intro-panel"
         depth={30}
-        stickyMode="top"
-        trackHeight="125svh"
+        stickyMode="top-desktop"
+        trackHeight="140vh"
         recedeOnScroll={true}
         hasIncomingShadow={true}
         className="w-full bg-[#FAF9F7] border-t border-[#E5E3E0]"

@@ -148,9 +148,10 @@ export const PublicHeader: React.FC = () => {
       e.preventDefault();
       const el = document.getElementById(targetId);
       if (el) {
-        // Sticky panels can make scrollIntoView place an anchor underneath the
-        // fixed header.  Keep the first heading and control comfortably clear.
-        const headerOffset = window.innerWidth < 640 ? 72 : 96;
+        const isMobile = window.innerWidth < 640;
+        // On mobile, keep comfortable header clearance.
+        // On desktop, full-screen sticky stages (like #steps) align flush at top: 0.
+        const headerOffset = isMobile ? 72 : (targetId === 'steps' ? 0 : 0);
         const top = Math.max(0, el.getBoundingClientRect().top + window.scrollY - headerOffset);
         window.scrollTo({ top, behavior: 'smooth' });
         window.history.pushState(null, '', `#${targetId}`);

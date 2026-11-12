@@ -3,8 +3,7 @@ import { useLanguage } from '../../context/LanguageContext';
 
 interface ComplaintJourneyProps {
   id?: string;
-  externalScrollTrack?: boolean;
-  /** Total height of the parent stacked track, in viewport units. */
+  /** Total height of the scroll runway in viewport units on desktop. Default: 260 */
   scrollTrackVh?: number;
 }
 
@@ -18,8 +17,7 @@ const clamp01 = (v: number): number => Math.max(0, Math.min(1, v));
 
 export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({
   id = 'steps',
-  externalScrollTrack = false,
-  scrollTrackVh = 340,
+  scrollTrackVh = 260,
 }) => {
   const { t, language, isRTL } = useLanguage();
   const containerRef = useRef<HTMLElement>(null);
@@ -61,22 +59,14 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({
     return window.matchMedia('(max-width: 1023px)').matches;
   });
 
-  // Recalculate and cache layout geometry
+  // Recalculate and cache layout geometry accurately
   const measureLayout = useCallback(() => {
     if (!containerRef.current) return;
-    const trackElement = externalScrollTrack && !isMobile
-      ? containerRef.current.closest<HTMLElement>('.stacked-scroll-section') || containerRef.current
-      : containerRef.current;
     const vh = window.innerHeight;
-    const rect = trackElement.getBoundingClientRect();
+    const rect = containerRef.current.getBoundingClientRect();
     const scrollY = window.scrollY;
-    const containerTop = externalScrollTrack && !isMobile ? trackElement.offsetTop : rect.top + scrollY;
-    // The parent section owns the scroll track.  Counting an invented 4.4
-    // viewports here made the cards finish long before the following panel,
-    // leaving a large dead stretch after “How it works”.
-    const containerHeight = externalScrollTrack && !isMobile
-      ? window.innerHeight * (scrollTrackVh / 100)
-      : trackElement.offsetHeight;
+    const containerTop = rect.top + scrollY;
+    const containerHeight = containerRef.current.offsetHeight;
     const scrollableDistance = Math.max(1, containerHeight - vh);
 
     layoutMetricsRef.current = {
@@ -85,7 +75,7 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({
       vh,
       scrollableDistance,
     };
-  }, [externalScrollTrack, isMobile, scrollTrackVh]);
+  }, []);
 
   // Subscribe to media queries and viewport resize
   useEffect(() => {
@@ -327,7 +317,7 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({
       ref={containerRef}
       className="relative w-full border-t border-[#E5E3E0] bg-[#F7F6F3] text-[#141414] scroll-mt-20 sm:scroll-mt-24 select-none"
       style={{
-        minHeight: prefersReducedMotion || isMobile || externalScrollTrack ? 'auto' : '540vh',
+        minHeight: prefersReducedMotion || isMobile ? 'auto' : `${scrollTrackVh}vh`,
       }}
       aria-label={t('processHeading') || 'How It Works'}
     >
@@ -338,11 +328,7 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({
           ======================================================== */}
       <div
         className={`hidden lg:flex w-full flex-col justify-center items-center px-4 sm:px-10 lg:px-16 xl:px-20 overflow-hidden ${
-          prefersReducedMotion
-            ? 'relative py-24 sm:py-32'
-            : externalScrollTrack
-              ? 'relative h-[100svh]'
-              : 'sticky top-0 h-screen'
+          prefersReducedMotion ? 'relative py-24 sm:py-32' : 'sticky top-0 h-screen'
         }`}
       >
         <div className="relative w-full h-full flex flex-col items-center justify-center">
