@@ -347,8 +347,12 @@ describe('Department Portal — Security, Privacy, and Workflow Integrity', () =
         </MemoryRouter>
       );
 
-      expect(screen.getByRole('heading', { name: /Department Sign In/i })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /Sign In to Portal/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole('heading', { name: /Sign in to your department|Department Sign In/i })
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: /Sign in to department|Sign In to Portal/i })
+      ).toBeInTheDocument();
     });
   });
 });

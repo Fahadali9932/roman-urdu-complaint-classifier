@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams, Link } from 'react-router-dom';
 import { useDepartmentAuth } from '../../context/DepartmentAuthContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { complaintService } from '../../services/MockComplaintService';
@@ -15,12 +15,12 @@ import {
 import { ComplaintInboxList } from './components/ComplaintInboxList';
 import { ComplaintDetailView } from './components/ComplaintDetailView';
 import { StatusUpdateModal } from './components/StatusUpdateModal';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Inbox, ShieldCheck, ExternalLink, Sparkles } from 'lucide-react';
 import './department-theme.css';
 
 export const DepartmentDashboardPage: React.FC = () => {
-  const { departmentId, isAuthenticated } = useDepartmentAuth();
-  const { t } = useLanguage();
+  const { departmentId, departmentMeta, isAuthenticated } = useDepartmentAuth();
+  const { language, t } = useLanguage();
   const navigate = useNavigate();
   const { referenceNumber: urlRef } = useParams<{ referenceNumber?: string }>();
   const [searchParams] = useSearchParams();
@@ -74,8 +74,8 @@ export const DepartmentDashboardPage: React.FC = () => {
             }
           }
 
-          // Desktop: auto-select first complaint if available
-          const isDesktop = typeof window !== 'undefined' && window.innerWidth >= 768;
+          // Desktop: auto-select first complaint on widescreen (>= 1024px)
+          const isDesktop = typeof window !== 'undefined' && window.innerWidth >= 1024;
           if (isDesktop && data.length > 0) {
             setSelectedReference(data[0].referenceNumber);
           } else {
@@ -172,14 +172,20 @@ export const DepartmentDashboardPage: React.FC = () => {
     return null;
   }
 
+  const deptDisplayName = departmentMeta
+    ? language === 'ur'
+      ? departmentMeta.nameUrdu
+      : departmentMeta.name
+    : '';
+
   return (
-    <div className="dept-workspace-root flex flex-col relative selection:bg-[#2C4A52]/20">
-      {/* Subtle Upper Atmosphere Slate Tint */}
+    <div className="dept-workspace-root flex flex-col min-h-screen relative selection:bg-[#2C4A52]/20">
+      {/* Subtle Atmospheric Gradient */}
       <div
-        className="pointer-events-none absolute inset-x-0 top-0 h-[320px] opacity-40 z-0"
+        className="pointer-events-none absolute inset-x-0 top-0 h-[360px] opacity-40 z-0"
         style={{
           background:
-            'radial-gradient(1000px circle at 50% -10%, rgba(44, 74, 82, 0.08) 0%, transparent 70%)',
+            'radial-gradient(1200px circle at 50% -10%, rgba(44, 74, 82, 0.08) 0%, transparent 70%)',
         }}
         aria-hidden="true"
       />
@@ -188,31 +194,51 @@ export const DepartmentDashboardPage: React.FC = () => {
       <DepartmentHeader />
 
       {/* Main Container */}
-      <main className="flex-1 max-w-[1440px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 relative z-10 flex flex-col">
+      <main className="flex-1 max-w-[1440px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-8 relative z-10 flex flex-col">
         {/* Workspace Title & Supporting Line */}
-        <div className="mb-4 sm:mb-6">
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#0F1E21]">
-            {t('deptWorkspaceTitle')}
-          </h1>
-          <p className="text-xs sm:text-sm text-[#5B646B] mt-0.5">
-            {t('deptWorkspaceSubtitle')}
-          </p>
+        <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#0F1E21]">
+              {t('deptWorkspaceTitle')}
+            </h1>
+            <p className="text-sm text-[#5B646B] mt-1">
+              {t('deptWorkspaceSubtitle')}
+            </p>
+          </div>
+
+          {/* Quick Stats Pill */}
+          <div className="flex items-center gap-2 self-start sm:self-auto">
+            <span className="text-xs font-semibold text-[#5B646B] bg-white border border-[#E1E4E6] px-3 py-1.5 rounded-xl shadow-xs">
+              {complaints.length} {language === 'ur' ? 'تفویض شدہ شکایات' : 'assigned records'}
+            </span>
+          </div>
         </div>
 
         {/* Unauthorized Tampering Alert */}
         {unauthorizedRefError && (
-          <div className="mb-4 p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 leading-relaxed">
-            <strong>{t('deptAccessDenied')}</strong> ({unauthorizedRefError})
+          <div className="mb-6 p-4 rounded-2xl bg-amber-50 border border-amber-200 text-sm text-amber-900 leading-relaxed flex items-center justify-between">
+            <div>
+              <strong>{t('deptAccessDenied')}</strong> ({unauthorizedRefError})
+            </div>
+            <button
+              type="button"
+              onClick={() => setUnauthorizedRefError(null)}
+              className="text-xs font-semibold underline text-amber-900 ml-4 cursor-pointer"
+            >
+              Dismiss
+            </button>
           </div>
         )}
 
         {isLoading ? (
-          <div className="flex-1 flex flex-col items-center justify-center py-20 text-center">
-            <Loader2 className="w-6 h-6 text-[#122E32] animate-spin mb-2" />
-            <p className="text-xs text-[#5B646B]">Loading assigned complaints...</p>
+          <div className="flex-1 flex flex-col items-center justify-center py-24 text-center">
+            <Loader2 className="w-8 h-8 text-[#122E32] animate-spin mb-3" />
+            <p className="text-sm font-semibold text-[#5B646B]">
+              Loading assigned complaints...
+            </p>
           </div>
         ) : (
-          <div className="flex-1 flex flex-col lg:flex-row gap-5 items-stretch">
+          <div className="flex-1 flex flex-col lg:flex-row gap-6 items-stretch">
             {/* Desktop Left Navigation */}
             <div className="hidden lg:block">
               <DepartmentSidebar
@@ -223,7 +249,7 @@ export const DepartmentDashboardPage: React.FC = () => {
             </div>
 
             {/* Mobile / Tablet Filter Bar */}
-            <div className="lg:hidden flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+            <div className="lg:hidden flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
               {(
                 [
                   { id: 'all', label: t('deptFilterAll'), count: counts.all },
@@ -246,18 +272,18 @@ export const DepartmentDashboardPage: React.FC = () => {
                     key={f.id}
                     type="button"
                     onClick={() => setActiveFilter(f.id)}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors shrink-0 ${
+                    className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-colors shrink-0 cursor-pointer ${
                       isActive
-                        ? 'bg-[#122E32] text-[#FFFFFF]'
+                        ? 'bg-[#122E32] text-[#FFFFFF] shadow-xs'
                         : 'bg-[#FFFFFF] border border-[#E1E4E6] text-[#0F1E21] hover:bg-[#FAFBFB]'
                     }`}
                   >
                     <span>{f.label}</span>
                     <span
-                      className={`text-[10px] px-1.5 py-0.2 rounded-full ${
+                      className={`text-xs px-2 py-0.5 rounded-full ${
                         isActive
-                          ? 'bg-[#FFFFFF]/20 text-[#FFFFFF]'
-                          : 'bg-[#F4F6F6] text-[#5B646B]'
+                          ? 'bg-[#FFFFFF]/25 text-[#FFFFFF]'
+                          : 'bg-[#F4F6F6] text-[#5B646B] border border-[#E1E4E6]'
                       }`}
                     >
                       {f.count}
@@ -267,38 +293,94 @@ export const DepartmentDashboardPage: React.FC = () => {
               })}
             </div>
 
-            {/* Main Workspace (Inbox List + Detail View) */}
-            <div className="flex-1 flex flex-col md:flex-row gap-5 items-stretch min-h-[560px]">
-              {/* Inbox List: On mobile visible if no complaint selected */}
-              <div
-                className={`w-full md:w-80 lg:w-[380px] flex flex-col ${
-                  selectedReference ? 'hidden md:flex' : 'flex'
-                }`}
-              >
-                <ComplaintInboxList
-                  complaints={filteredComplaints}
-                  totalAssignedCount={complaints.length}
-                  selectedReference={selectedReference}
-                  onSelectComplaint={(ref) => setSelectedReference(ref)}
-                  searchQuery={searchQuery}
-                  onSearchChange={(q) => setSearchQuery(q)}
-                />
-              </div>
+            {/* =========================================================================
+                CONTENT-ADAPTIVE WORKSPACE
+                STATE A: ZERO COMPLAINTS ASSIGNED
+                When the selected department has zero complaints:
+                DO NOT show an enormous empty complaint-detail panel.
+                Instead, show a single beautifully composed, appropriately sized empty surface.
+               ========================================================================= */}
+            {complaints.length === 0 ? (
+              <div className="flex-1 flex items-center justify-center p-4">
+                <div className="max-w-xl w-full bg-[#FFFFFF] border border-[#E1E4E6] rounded-3xl p-8 sm:p-12 text-center shadow-sm space-y-5">
+                  <div className="w-16 h-16 rounded-3xl bg-[#F0F4F5] text-[#122E32] flex items-center justify-center mx-auto border border-[#D0D9DE] shadow-xs">
+                    <Inbox className="w-8 h-8" />
+                  </div>
 
-              {/* Detail View: On mobile visible when complaint selected */}
-              <div
-                className={`flex-1 flex flex-col ${
-                  !selectedReference ? 'hidden md:flex' : 'flex'
-                }`}
-              >
-                <ComplaintDetailView
-                  complaint={selectedComplaint}
-                  onOpenStatusModal={() => setIsStatusModalOpen(true)}
-                  onQuickStatusUpdate={handleQuickStatusUpdate}
-                  onBackToList={() => setSelectedReference(null)}
-                />
+                  <div className="space-y-2">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#F4F6F6] border border-[#E1E4E6] text-xs font-semibold text-[#2C4A52]">
+                      <div className="w-2 h-2 rounded-full bg-[#2C4A52]" />
+                      <span>{deptDisplayName} ({departmentMeta?.code})</span>
+                    </div>
+                    <h2 className="text-2xl font-bold tracking-tight text-[#0F1E21]">
+                      {t('deptEmptyAssigned')}
+                    </h2>
+                    <p className="text-sm text-[#5B646B] leading-relaxed max-w-md mx-auto">
+                      {t('deptEmptyPrompt')}
+                    </p>
+                  </div>
+
+                  <div className="pt-4 border-t border-[#ECEEEF] flex flex-col sm:flex-row items-center justify-center gap-3 text-xs sm:text-sm">
+                    <Link
+                      to="/"
+                      className="dept-btn-secondary h-11 px-5 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2 w-full sm:w-auto"
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                      <span>{t('deptSwitchToCitizenPortal')}</span>
+                    </Link>
+                    <Link
+                      to="/write"
+                      className="dept-btn-primary h-11 px-5 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2 w-full sm:w-auto"
+                    >
+                      <Sparkles className="w-4 h-4" />
+                      <span>{language === 'ur' ? 'ٹیسٹ شکایت درج کریں' : 'File a Test Complaint'}</span>
+                    </Link>
+                  </div>
+
+                  <div className="flex items-center justify-center gap-2 text-xs text-[#5B646B]">
+                    <ShieldCheck className="w-4 h-4 text-[#2C4A52]" />
+                    <span>Citizen PII protection active • Zero unauthorized access</span>
+                  </div>
+                </div>
               </div>
-            </div>
+            ) : (
+              /* =========================================================================
+                 STATE B & C: COMPLAINTS EXIST
+                 - STATE B: Desktop/Mobile with no selection (or mobile inbox-first)
+                 - STATE C: Master-Detail view with complaint selected
+                 ========================================================================= */
+              <div className="flex-1 flex flex-col lg:flex-row gap-6 items-stretch min-h-[580px]">
+                {/* Inbox Column: ~38% width on desktop (>=1024px), full width on mobile/tablet when no selection */}
+                <div
+                  className={`w-full lg:w-[380px] xl:w-[420px] shrink-0 flex flex-col ${
+                    selectedReference ? 'hidden lg:flex' : 'flex'
+                  }`}
+                >
+                  <ComplaintInboxList
+                    complaints={filteredComplaints}
+                    totalAssignedCount={complaints.length}
+                    selectedReference={selectedReference}
+                    onSelectComplaint={(ref) => setSelectedReference(ref)}
+                    searchQuery={searchQuery}
+                    onSearchChange={(q) => setSearchQuery(q)}
+                  />
+                </div>
+
+                {/* Detail View Column: ~62% width on desktop (>=1024px), full width on mobile/tablet when selected */}
+                <div
+                  className={`flex-1 flex flex-col ${
+                    !selectedReference ? 'hidden lg:flex' : 'flex'
+                  }`}
+                >
+                  <ComplaintDetailView
+                    complaint={selectedComplaint}
+                    onOpenStatusModal={() => setIsStatusModalOpen(true)}
+                    onQuickStatusUpdate={handleQuickStatusUpdate}
+                    onBackToList={() => setSelectedReference(null)}
+                  />
+                </div>
+              </div>
+            )}
           </div>
         )}
       </main>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useLanguage } from '../../../context/LanguageContext';
-import { Inbox } from 'lucide-react';
+import { Inbox, Sparkles, Clock, CheckCircle2 } from 'lucide-react';
 
 export type DepartmentStatusFilter = 'all' | 'new' | 'in_progress' | 'resolved';
 
@@ -22,40 +22,53 @@ export const DepartmentSidebar: React.FC<DepartmentSidebarProps> = ({
 }) => {
   const { t } = useLanguage();
 
-  const filterItems: { id: DepartmentStatusFilter; label: string; count: number }[] = [
-    { id: 'all', label: t('deptFilterAll'), count: counts.all },
-    { id: 'new', label: t('deptFilterNew'), count: counts.new },
-    { id: 'in_progress', label: t('deptFilterInProgress'), count: counts.in_progress },
-    { id: 'resolved', label: t('deptFilterResolved'), count: counts.resolved },
+  const filterItems: {
+    id: DepartmentStatusFilter;
+    label: string;
+    count: number;
+    icon: React.ComponentType<{ className?: string }>;
+  }[] = [
+    { id: 'all', label: t('deptFilterAll'), count: counts.all, icon: Inbox },
+    { id: 'new', label: t('deptFilterNew'), count: counts.new, icon: Sparkles },
+    { id: 'in_progress', label: t('deptFilterInProgress'), count: counts.in_progress, icon: Clock },
+    { id: 'resolved', label: t('deptFilterResolved'), count: counts.resolved, icon: CheckCircle2 },
   ];
 
   return (
-    <aside className="w-52 lg:w-56 shrink-0 flex flex-col gap-2">
-      <nav className="bg-[#FFFFFF] border border-[#E1E4E6] rounded-xl p-2 space-y-1">
-        <div className="px-3 py-2 text-[11px] font-semibold text-[#5B646B] uppercase tracking-wider flex items-center gap-2">
-          <Inbox className="w-3.5 h-3.5 text-[#687E8B]" />
+    <aside className="w-56 lg:w-64 shrink-0 flex flex-col gap-3">
+      <nav className="bg-[#FFFFFF] border border-[#E1E4E6] rounded-2xl p-3 shadow-xs space-y-1.5">
+        <div className="px-3 py-2 text-xs font-bold text-[#5B646B] uppercase tracking-wider flex items-center gap-2">
+          <Inbox className="w-4 h-4 text-[#687E8B]" />
           <span>{t('deptWorkspaceTitle')}</span>
         </div>
 
         {filterItems.map((item) => {
           const isActive = activeFilter === item.id;
+          const Icon = item.icon;
           return (
             <button
               key={item.id}
               type="button"
               onClick={() => onSelectFilter(item.id)}
-              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer ${
                 isActive
-                  ? 'bg-[#122E32] text-[#FFFFFF]'
-                  : 'text-[#0F1E21] hover:bg-[#F4F6F6] text-left'
+                  ? 'bg-[#122E32] text-[#FFFFFF] shadow-sm'
+                  : 'text-[#0F1E21] hover:bg-[#F4F6F6] text-left rtl:text-right'
               }`}
             >
-              <span>{item.label}</span>
+              <div className="flex items-center gap-2.5 min-w-0">
+                <Icon
+                  className={`w-4 h-4 shrink-0 ${
+                    isActive ? 'text-white' : 'text-[#687E8B]'
+                  }`}
+                />
+                <span className="truncate">{item.label}</span>
+              </div>
               <span
-                className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${
+                className={`text-xs font-bold px-2 py-0.5 rounded-full ${
                   isActive
-                    ? 'bg-[#FFFFFF]/20 text-[#FFFFFF]'
-                    : 'bg-[#F4F6F6] text-[#5B646B]'
+                    ? 'bg-[#FFFFFF]/25 text-[#FFFFFF]'
+                    : 'bg-[#F4F6F6] text-[#5B646B] border border-[#E1E4E6]'
                 }`}
               >
                 {item.count}
