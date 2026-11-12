@@ -254,7 +254,7 @@ describe('Department Portal — Security, Privacy, and Workflow Integrity', () =
       );
 
       await waitFor(() => {
-        expect(screen.getByText(/No complaints assigned yet/i)).toBeInTheDocument();
+        expect(screen.getByText(/No complaints yet/i)).toBeInTheDocument();
       });
     });
   });
@@ -348,10 +348,10 @@ describe('Department Portal — Security, Privacy, and Workflow Integrity', () =
       );
 
       expect(
-        screen.getByRole('heading', { name: /Sign in to your department|Department Sign In/i })
+        screen.getByRole('heading', { name: /^Sign in$/i })
       ).toBeInTheDocument();
       expect(
-        screen.getByRole('button', { name: /Sign in to department|Sign In to Portal/i })
+        screen.getByRole('button', { name: /Continue to portal/i })
       ).toBeInTheDocument();
     });
   });

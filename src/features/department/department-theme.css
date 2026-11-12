@@ -2,12 +2,12 @@
    AWAAZ-E-AWAM — DEPARTMENT PORTAL SCOPED DESIGN SYSTEM
    Strictly scoped to .dept-workspace-root.
    Palette Reference:
-   - Slate Gray:      #5B646B (Secondary surfaces & muted metadata)
-   - Soft Silver:     #ACAFB6 (Light borders, dividers & tertiary elements)
+   - Slate Gray:      #5B646B (Muted text & secondary metadata)
+   - Soft Silver:     #ACAFB6 (Light borders, outlines & secondary lines)
    - Blue Slate:      #687E8B (Supporting accents & secondary controls)
-   - Deep Slate Teal: #2C4A52 (Active states, emphasis & secondary actions)
+   - Deep Slate Teal: #2C4A52 (Active states, emphasis & key selections)
    - Dark Teal:       #122E32 (Primary brand & interactive actions)
-   - Near-black Teal: #0F1E21 (Headings, primary typography & deep accents)
+   - Near-black Teal: #0F1E21 (Main headings & high-contrast typography)
 
    Supporting Surfaces:
    - Pure White:      #FFFFFF
@@ -31,15 +31,11 @@
   --dept-border: #E1E4E6;
   --dept-border-light: #ECEEEF;
 
-  /* Typography Scale */
-  --dept-font-display: inherit;
-
-  /* Shadow Foundations */
-  --dept-shadow-xs: 0 1px 2px rgba(15, 30, 33, 0.04);
+  /* Shadow Foundations (Subtle, controlled elevation) */
+  --dept-shadow-xs: 0 1px 2px rgba(15, 30, 33, 0.03);
   --dept-shadow-sm: 0 2px 4px rgba(15, 30, 33, 0.04), 0 1px 2px rgba(15, 30, 33, 0.02);
-  --dept-shadow-md: 0 4px 12px -2px rgba(15, 30, 33, 0.06), 0 2px 4px -1px rgba(15, 30, 33, 0.03);
-  --dept-shadow-lg: 0 12px 32px -4px rgba(15, 30, 33, 0.08), 0 4px 8px -2px rgba(15, 30, 33, 0.04);
-  --dept-shadow-xl: 0 20px 48px -8px rgba(15, 30, 33, 0.12), 0 8px 16px -4px rgba(15, 30, 33, 0.06);
+  --dept-shadow-md: 0 4px 12px -2px rgba(15, 30, 33, 0.05), 0 2px 4px -1px rgba(15, 30, 33, 0.02);
+  --dept-shadow-lg: 0 12px 28px -4px rgba(15, 30, 33, 0.07), 0 4px 8px -2px rgba(15, 30, 33, 0.03);
 
   background-color: var(--dept-bg);
   color: var(--dept-near-black-teal);
@@ -82,35 +78,32 @@
   color: #FFFFFF;
   font-size: 0.9375rem; /* 15px */
   font-weight: 600;
-  height: 3.25rem; /* 52px */
+  height: 3.125rem; /* 50px */
   padding: 0 1.5rem;
-  border-radius: 14px;
+  border-radius: 12px;
   border: 1px solid transparent;
-  box-shadow: 0 1px 3px rgba(18, 46, 50, 0.2), 0 1px 2px rgba(18, 46, 50, 0.1);
+  box-shadow: 0 1px 2px rgba(18, 46, 50, 0.16);
   transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
   cursor: pointer;
 }
 
 .dept-btn-primary:hover:not(:disabled) {
   background-color: var(--dept-near-black-teal);
-  box-shadow: 0 4px 12px rgba(15, 30, 33, 0.25);
-  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(15, 30, 33, 0.2);
 }
 
 .dept-btn-primary:active:not(:disabled) {
   transform: translateY(0);
-  box-shadow: 0 1px 2px rgba(15, 30, 33, 0.2);
 }
 
 .dept-btn-primary:focus-visible {
   outline: 2px solid var(--dept-deep-slate-teal);
-  outline-offset: 3px;
+  outline-offset: 2px;
 }
 
 .dept-btn-primary:disabled {
   opacity: 0.6;
   cursor: not-allowed;
-  transform: none;
 }
 
 /* Secondary Button */
@@ -123,9 +116,9 @@
   color: var(--dept-near-black-teal);
   font-size: 0.9375rem; /* 15px */
   font-weight: 600;
-  height: 3rem; /* 48px */
+  height: 2.875rem; /* 46px */
   padding: 0 1.25rem;
-  border-radius: 14px;
+  border-radius: 12px;
   border: 1px solid var(--dept-border);
   box-shadow: var(--dept-shadow-xs);
   transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
@@ -136,11 +129,6 @@
   background-color: var(--dept-surface-muted);
   border-color: var(--dept-soft-silver);
   color: var(--dept-dark-teal);
-  box-shadow: var(--dept-shadow-sm);
-}
-
-.dept-btn-secondary:active:not(:disabled) {
-  transform: translateY(0);
 }
 
 .dept-btn-secondary:focus-visible {
@@ -154,9 +142,9 @@
   border: 1px solid var(--dept-border);
   color: var(--dept-near-black-teal);
   font-size: 0.9375rem; /* 15px */
-  height: 3.25rem; /* 52px */
+  height: 3.125rem; /* 50px */
   padding: 0 1rem;
-  border-radius: 14px;
+  border-radius: 12px;
   width: 100%;
   transition: border-color 0.18s ease, box-shadow 0.18s ease;
 }
@@ -168,7 +156,7 @@
 .dept-input:focus {
   outline: none;
   border-color: var(--dept-deep-slate-teal);
-  box-shadow: 0 0 0 3px rgba(44, 74, 82, 0.14);
+  box-shadow: 0 0 0 3px rgba(44, 74, 82, 0.12);
 }
 
 /* Form Label */
@@ -187,7 +175,7 @@
   gap: 0.375rem;
   font-size: 0.8125rem; /* 13px */
   font-weight: 600;
-  padding: 0.25rem 0.75rem;
+  padding: 0.25rem 0.625rem;
   border-radius: 9999px;
   border: 1px solid transparent;
   line-height: 1.25;
@@ -197,7 +185,7 @@
 @keyframes deptFadeIn {
   from {
     opacity: 0;
-    transform: translateY(6px);
+    transform: translateY(4px);
   }
   to {
     opacity: 1;
@@ -206,7 +194,7 @@
 }
 
 .dept-fade-in {
-  animation: deptFadeIn 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: deptFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -14,7 +14,6 @@ import {
   Edit3,
   FileText,
   History,
-  CheckCircle2,
   Building2,
   ShieldCheck,
 } from 'lucide-react';
@@ -38,14 +37,14 @@ export const ComplaintDetailView: React.FC<ComplaintDetailViewProps> = ({
 
   if (!complaint) {
     return (
-      <div className="flex-1 bg-[#FFFFFF] border border-[#E1E4E6] rounded-2xl p-8 sm:p-12 flex flex-col items-center justify-center text-center shadow-xs min-h-[460px]">
-        <div className="w-14 h-14 rounded-2xl bg-[#F4F6F6] text-[#687E8B] flex items-center justify-center mb-4 border border-[#E1E4E6]">
-          <FileText className="w-7 h-7" />
+      <div className="flex-1 bg-[#FFFFFF] border border-[#E1E4E6] rounded-xl p-8 sm:p-12 flex flex-col items-center justify-center text-center shadow-xs min-h-[460px]">
+        <div className="w-12 h-12 rounded-xl bg-[#F4F6F6] text-[#687E8B] flex items-center justify-center mb-3 border border-[#E1E4E6]">
+          <FileText className="w-6 h-6" />
         </div>
-        <h3 className="text-base sm:text-lg font-bold text-[#0F1E21] mb-1.5">
+        <h3 className="text-base font-bold text-[#0F1E21] mb-1">
           {t('deptSelectPrompt')}
         </h3>
-        <p className="text-sm text-[#5B646B] max-w-sm leading-relaxed">
+        <p className="text-xs sm:text-sm text-[#5B646B] max-w-sm leading-relaxed">
           Select an assigned complaint from the list to review the issue and record progress.
         </p>
       </div>
@@ -76,14 +75,14 @@ export const ComplaintDetailView: React.FC<ComplaintDetailViewProps> = ({
   };
 
   return (
-    <div className="flex-1 bg-[#FFFFFF] border border-[#E1E4E6] rounded-2xl shadow-xs flex flex-col overflow-hidden">
+    <div className="flex-1 bg-[#FFFFFF] border border-[#E1E4E6] rounded-xl shadow-xs flex flex-col overflow-hidden">
       {/* Mobile / Tablet Back Button */}
       {onBackToList && (
-        <div className="lg:hidden p-3.5 border-b border-[#E1E4E6] bg-[#FAFBFB] flex items-center">
+        <div className="lg:hidden p-3 border-b border-[#E1E4E6] bg-[#FAFBFB] flex items-center">
           <button
             type="button"
             onClick={onBackToList}
-            className="flex items-center gap-2 text-sm font-semibold text-[#122E32] hover:underline cursor-pointer"
+            className="flex items-center gap-2 text-xs sm:text-sm font-semibold text-[#122E32] hover:underline cursor-pointer"
           >
             <BackIcon className="w-4 h-4" />
             <span>{t('deptBackToInbox')}</span>
@@ -92,15 +91,15 @@ export const ComplaintDetailView: React.FC<ComplaintDetailViewProps> = ({
       )}
 
       {/* Main Top Header */}
-      <div className="p-5 sm:p-6 border-b border-[#E1E4E6] bg-[#FAFBFB] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="space-y-1.5 min-w-0">
-          <div className="flex items-center gap-3 flex-wrap">
-            <span className="font-mono text-xl sm:text-2xl font-bold tracking-tight text-[#0F1E21]">
+      <div className="p-4 sm:p-6 border-b border-[#E1E4E6] bg-[#FAFBFB] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="space-y-1 min-w-0">
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <span className="font-mono text-base sm:text-lg font-bold text-[#0F1E21]">
               {complaint.referenceNumber}
             </span>
             {getStatusChip(complaint.status, language)}
-            <span className="text-xs sm:text-sm text-[#5B646B] flex items-center gap-1.5">
-              <Clock className="w-4 h-4 text-[#687E8B]" />
+            <span className="text-xs text-[#5B646B] flex items-center gap-1">
+              <Clock className="w-3.5 h-3.5 text-[#687E8B]" />
               <span>{formatDateTime(complaint.submittedAt)}</span>
             </span>
           </div>
@@ -114,26 +113,26 @@ export const ComplaintDetailView: React.FC<ComplaintDetailViewProps> = ({
           <button
             type="button"
             onClick={onOpenStatusModal}
-            className="dept-btn-primary h-11 px-5 rounded-xl text-sm font-semibold shadow-sm flex items-center gap-2 cursor-pointer"
+            className="dept-btn-primary h-10 px-4 rounded-lg text-xs sm:text-sm font-semibold shadow-xs flex items-center gap-1.5 cursor-pointer"
           >
-            <Edit3 className="w-4 h-4" />
+            <Edit3 className="w-3.5 h-3.5" />
             <span>{t('deptUpdateStatus')}</span>
           </button>
         </div>
       </div>
 
       {/* Detail Content Body */}
-      <div className="p-5 sm:p-6 space-y-6 overflow-y-auto max-h-[calc(100vh-250px)]">
+      <div className="p-4 sm:p-6 space-y-5 overflow-y-auto max-h-[calc(100vh-250px)]">
         {/* Original Complaint (Centerpiece) */}
-        <section className="bg-[#FAFBFB] border border-[#E1E4E6] rounded-2xl p-5 sm:p-6 space-y-3 shadow-xs">
+        <section className="bg-[#FAFBFB] border border-[#E1E4E6] rounded-xl p-4 sm:p-5 space-y-2">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-xs font-bold text-[#2C4A52] uppercase tracking-wider">
-              <FileText className="w-4 h-4 text-[#2C4A52]" />
+            <div className="flex items-center gap-1.5 text-xs font-bold text-[#2C4A52] uppercase tracking-wider">
+              <FileText className="w-3.5 h-3.5 text-[#2C4A52]" />
               <span>{t('deptOriginalComplaint')}</span>
             </div>
             <span className="text-xs text-[#5B646B] font-medium">Roman Urdu / English</span>
           </div>
-          <p className="text-base sm:text-lg text-[#0F1E21] leading-relaxed whitespace-pre-wrap font-normal">
+          <p className="text-sm sm:text-base text-[#0F1E21] leading-relaxed whitespace-pre-wrap font-normal">
             {complaint.description}
           </p>
         </section>
@@ -141,18 +140,18 @@ export const ComplaintDetailView: React.FC<ComplaintDetailViewProps> = ({
         {/* Incident Location & Department Assignment */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {/* Incident Location (Zero PII - Only municipal coordinates) */}
-          <div className="bg-[#FAFBFB] border border-[#E1E4E6] rounded-2xl p-5 space-y-3.5 shadow-xs">
-            <div className="flex items-center gap-2 text-xs font-bold text-[#0F1E21] uppercase tracking-wider">
-              <MapPin className="w-4 h-4 text-[#2C4A52]" />
+          <div className="bg-[#FAFBFB] border border-[#E1E4E6] rounded-xl p-4 space-y-2.5">
+            <div className="flex items-center gap-1.5 text-xs font-bold text-[#0F1E21] uppercase tracking-wider">
+              <MapPin className="w-3.5 h-3.5 text-[#2C4A52]" />
               <span>{t('deptIncidentLocation')}</span>
             </div>
 
-            <div className="space-y-2 text-sm">
-              <div className="flex items-start justify-between gap-2 border-b border-[#ECEEEF] pb-2">
+            <div className="space-y-1.5 text-xs sm:text-sm">
+              <div className="flex items-start justify-between gap-2 border-b border-[#ECEEEF] pb-1.5">
                 <span className="text-xs text-[#5B646B] font-medium">{t('deptLocality')}:</span>
                 <span className="font-semibold text-[#0F1E21] text-right rtl:text-left">{complaint.locality}</span>
               </div>
-              <div className="flex items-start justify-between gap-2 border-b border-[#ECEEEF] pb-2">
+              <div className="flex items-start justify-between gap-2 border-b border-[#ECEEEF] pb-1.5">
                 <span className="text-xs text-[#5B646B] font-medium">{t('deptDistrict')}:</span>
                 <span className="font-semibold text-[#0F1E21] text-right rtl:text-left">{complaint.district}</span>
               </div>
@@ -166,33 +165,33 @@ export const ComplaintDetailView: React.FC<ComplaintDetailViewProps> = ({
           </div>
 
           {/* Department Assignment */}
-          <div className="bg-[#FAFBFB] border border-[#E1E4E6] rounded-2xl p-5 space-y-3.5 shadow-xs flex flex-col justify-between">
+          <div className="bg-[#FAFBFB] border border-[#E1E4E6] rounded-xl p-4 space-y-2.5 flex flex-col justify-between">
             <div>
-              <div className="flex items-center gap-2 text-xs font-bold text-[#0F1E21] uppercase tracking-wider mb-3">
-                <Building2 className="w-4 h-4 text-[#2C4A52]" />
-                <span>{language === 'ur' ? 'تفویض شدہ بلدیاتی ادارہ' : 'Assigned Authority'}</span>
+              <div className="flex items-center gap-1.5 text-xs font-bold text-[#0F1E21] uppercase tracking-wider mb-2">
+                <Building2 className="w-3.5 h-3.5 text-[#2C4A52]" />
+                <span>{language === 'ur' ? 'تفویض شدہ ادارہ' : 'Assigned Authority'}</span>
               </div>
-              <div className="space-y-2">
-                <div className="text-base font-bold text-[#0F1E21]">
+              <div className="space-y-1.5">
+                <div className="text-sm sm:text-base font-bold text-[#0F1E21]">
                   {departmentMeta ? (language === 'ur' ? departmentMeta.nameUrdu : departmentMeta.name) : (complaint.assignedDepartmentName || complaint.assignedDepartmentId.toUpperCase())}
                 </div>
-                <div className="inline-block text-xs font-bold font-mono text-[#2C4A52] bg-[#2C4A52]/10 px-2.5 py-1 rounded-md">
+                <div className="inline-block text-xs font-bold font-mono text-[#2C4A52] bg-[#2C4A52]/10 px-2 py-0.5 rounded">
                   {departmentMeta?.code || complaint.assignedDepartmentId.toUpperCase()}
                 </div>
               </div>
             </div>
 
-            <div className="pt-3 border-t border-[#ECEEEF] flex items-center gap-2 text-xs text-[#5B646B]">
-              <ShieldCheck className="w-4 h-4 text-[#2C4A52] shrink-0" />
+            <div className="pt-2 border-t border-[#ECEEEF] flex items-center gap-1.5 text-xs text-[#5B646B]">
+              <ShieldCheck className="w-3.5 h-3.5 text-[#2C4A52] shrink-0" />
               <span>{language === 'ur' ? 'شہری رازداری محفوظ' : 'Citizen privacy strictly enforced.'}</span>
             </div>
           </div>
         </div>
 
         {/* Progress History Timeline */}
-        <section className="bg-[#FFFFFF] border border-[#E1E4E6] rounded-2xl p-5 sm:p-6 space-y-4 shadow-xs">
-          <div className="flex items-center justify-between border-b border-[#ECEEEF] pb-3">
-            <div className="flex items-center gap-2 text-sm font-bold text-[#0F1E21]">
+        <section className="bg-[#FFFFFF] border border-[#E1E4E6] rounded-xl p-4 sm:p-5 space-y-3">
+          <div className="flex items-center justify-between border-b border-[#ECEEEF] pb-2.5">
+            <div className="flex items-center gap-1.5 text-xs sm:text-sm font-bold text-[#0F1E21]">
               <History className="w-4 h-4 text-[#2C4A52]" />
               <span>{t('deptProgressHistory')}</span>
             </div>
@@ -201,11 +200,11 @@ export const ComplaintDetailView: React.FC<ComplaintDetailViewProps> = ({
             </span>
           </div>
 
-          <div className="space-y-4 pt-1">
+          <div className="space-y-3 pt-1">
             {complaint.timeline && complaint.timeline.length > 0 ? (
               complaint.timeline.map((item, idx) => (
-                <div key={item.id || idx} className="relative pl-6 rtl:pl-0 rtl:pr-6 border-l-2 rtl:border-l-0 rtl:border-r-2 border-[#D0D9DE] pb-4 last:pb-0">
-                  <div className="absolute -left-[7px] rtl:-left-auto rtl:-right-[7px] top-1 w-3 h-3 rounded-full bg-[#122E32] ring-4 ring-white" />
+                <div key={item.id || idx} className="relative pl-5 rtl:pl-0 rtl:pr-5 border-l-2 rtl:border-l-0 rtl:border-r-2 border-[#D0D9DE] pb-3 last:pb-0">
+                  <div className="absolute -left-[5px] rtl:-left-auto rtl:-right-[5px] top-1 w-2.5 h-2.5 rounded-full bg-[#122E32] ring-3 ring-white" />
                   <div className="flex items-center justify-between gap-2 flex-wrap mb-1">
                     <span className="text-xs font-bold text-[#0F1E21]">
                       {getActorLabel(item.actorRole)}
@@ -216,16 +215,15 @@ export const ComplaintDetailView: React.FC<ComplaintDetailViewProps> = ({
                   </div>
                   <div className="mb-1">{getStatusChip(item.status, language)}</div>
                   {(item.description || item.descriptionUrdu) && (
-                    <p className="text-sm text-[#0F1E21] bg-[#FAFBFB] border border-[#E1E4E6] rounded-xl p-3 mt-2 leading-relaxed">
+                    <p className="text-xs sm:text-sm text-[#0F1E21] bg-[#FAFBFB] border border-[#E1E4E6] rounded-lg p-2.5 mt-1.5 leading-relaxed">
                       {language === 'ur' ? (item.descriptionUrdu || item.description) : item.description}
                     </p>
                   )}
                 </div>
               ))
             ) : (
-              <div className="flex items-center gap-3 text-sm text-[#5B646B] py-2">
-                <CheckCircle2 className="w-4 h-4 text-[#2C4A52]" />
-                <span>Logged into departmental queue.</span>
+              <div className="text-xs text-[#5B646B] py-1">
+                Logged into departmental queue.
               </div>
             )}
           </div>

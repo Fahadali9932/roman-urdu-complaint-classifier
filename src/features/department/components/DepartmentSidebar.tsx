@@ -35,10 +35,10 @@ export const DepartmentSidebar: React.FC<DepartmentSidebarProps> = ({
   ];
 
   return (
-    <aside className="w-56 lg:w-64 shrink-0 flex flex-col gap-3">
-      <nav className="bg-[#FFFFFF] border border-[#E1E4E6] rounded-2xl p-3 shadow-xs space-y-1.5">
+    <aside className="w-56 lg:w-60 shrink-0 flex flex-col">
+      <nav className="bg-[#FFFFFF] border border-[#E1E4E6] rounded-xl p-2 shadow-xs space-y-1">
         <div className="px-3 py-2 text-xs font-bold text-[#5B646B] uppercase tracking-wider flex items-center gap-2">
-          <Inbox className="w-4 h-4 text-[#687E8B]" />
+          <Inbox className="w-3.5 h-3.5 text-[#687E8B]" />
           <span>{t('deptWorkspaceTitle')}</span>
         </div>
 
@@ -50,13 +50,13 @@ export const DepartmentSidebar: React.FC<DepartmentSidebarProps> = ({
               key={item.id}
               type="button"
               onClick={() => onSelectFilter(item.id)}
-              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer ${
+              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
                 isActive
-                  ? 'bg-[#122E32] text-[#FFFFFF] shadow-sm'
+                  ? 'bg-[#122E32] text-[#FFFFFF] shadow-xs'
                   : 'text-[#0F1E21] hover:bg-[#F4F6F6] text-left rtl:text-right'
               }`}
             >
-              <div className="flex items-center gap-2.5 min-w-0">
+              <div className="flex items-center gap-2 min-w-0">
                 <Icon
                   className={`w-4 h-4 shrink-0 ${
                     isActive ? 'text-white' : 'text-[#687E8B]'
