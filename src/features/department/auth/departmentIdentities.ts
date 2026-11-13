@@ -93,3 +93,4 @@ export const getIdentityByDepartmentId = (
 export const getAllDepartmentIdentities = (): DepartmentStaffIdentity[] => {
   return Object.values(DEPARTMENT_STAFF_IDENTITIES);
 };
+

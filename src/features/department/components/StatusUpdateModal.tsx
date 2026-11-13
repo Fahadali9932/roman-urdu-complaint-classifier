@@ -38,7 +38,7 @@ const STATUS_OPTIONS: {
   },
   {
     status: 'resolved',
-    labelEn: 'Resolved',
+    labelEn: 'Work Done / Resolved',
     labelUr: 'حل شدہ',
     descEn: 'On-ground civic action completed and verified',
     descUr: 'مسئلہ حل کر دیا گیا ہے',
@@ -115,19 +115,19 @@ export const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({
       role="dialog"
       aria-modal="true"
       aria-labelledby="status-modal-title"
-      className="fixed inset-0 z-50 overflow-y-auto bg-black/40 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn"
+      className="fixed inset-0 z-50 overflow-y-auto bg-black/75 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn"
       onClick={(e) => {
         if (e.target === e.currentTarget && !isSubmitting) onClose();
       }}
     >
-      <div className="relative w-full max-w-lg rounded-3xl bg-white border border-black/[0.08] p-6 sm:p-8 shadow-2xl transition-all">
+      <div className="relative w-full max-w-lg rounded-3xl bg-[#1b1a1f]/95 border border-white/15 p-6 sm:p-7 shadow-[0_32px_90px_rgba(0,0,0,0.7)] text-white transition-all">
         {/* Header */}
-        <div className="flex items-start justify-between pb-4 border-b border-black/[0.08]">
+        <div className="flex items-start justify-between pb-4 border-b border-white/[0.08]">
           <div>
-            <h3 id="status-modal-title" className="text-lg sm:text-xl font-bold tracking-tight text-[#111827]">
+            <h3 id="status-modal-title" className="text-lg sm:text-xl font-bold tracking-tight text-white">
               {t('deptUpdateStatus')}
             </h3>
-            <p className="text-xs text-slate-500 font-mono mt-0.5">
+            <p className="text-xs text-slate-400 font-mono mt-0.5">
               {complaint.referenceNumber}
             </p>
           </div>
@@ -136,15 +136,15 @@ export const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({
             onClick={onClose}
             disabled={isSubmitting}
             aria-label="Close"
-            className="p-1 rounded-xl text-slate-400 hover:text-[#111827] hover:bg-black/5 transition-colors cursor-pointer"
+            className="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
         {error && (
-          <div className="mt-4 p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700 flex items-center gap-2" role="alert">
-            <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+          <div className="mt-4 p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-xs text-red-300 flex items-center gap-2" role="alert">
+            <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
             <span>{error}</span>
           </div>
         )}
@@ -152,7 +152,7 @@ export const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({
         <form onSubmit={handleSubmit} className="mt-5 space-y-5">
           {/* Status Radio List */}
           <div className="space-y-2">
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider">
               {t('deptStatusManagement')}
             </label>
             <div className="space-y-2">
@@ -163,8 +163,8 @@ export const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({
                     key={opt.status}
                     className={`flex items-start gap-3 p-3 rounded-xl border transition-all cursor-pointer ${
                       isSelected
-                        ? 'border-[#111827] bg-black/[0.03] ring-1 ring-[#111827]'
-                        : 'border-black/[0.08] hover:border-black/20 bg-white'
+                        ? 'border-[var(--dept-accent)] bg-white/[0.06] ring-1 ring-[var(--dept-accent)]'
+                        : 'border-white/[0.08] hover:border-white/20 bg-white/[0.02]'
                     }`}
                   >
                     <input
@@ -173,13 +173,13 @@ export const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({
                       value={opt.status}
                       checked={isSelected}
                       onChange={() => setSelectedStatus(opt.status)}
-                      className="mt-1 text-[#111827] focus:ring-[#111827]"
+                      className="mt-1 text-[var(--dept-accent)] focus:ring-[var(--dept-accent)]"
                     />
                     <div className="flex-1 min-w-0">
-                      <div className="text-xs sm:text-sm font-bold text-[#111827]">
+                      <div className="text-xs sm:text-sm font-bold text-white">
                         {language === 'ur' ? opt.labelUr : opt.labelEn}
                       </div>
-                      <div className="text-[11px] text-slate-500">
+                      <div className="text-[11px] text-slate-400">
                         {language === 'ur' ? opt.descUr : opt.descEn}
                       </div>
                     </div>
@@ -191,10 +191,10 @@ export const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({
 
           {/* Operational Notes */}
           <div className="space-y-1.5">
-            <label htmlFor="status-notes" className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+            <label htmlFor="status-notes" className="block text-xs font-bold text-slate-400 uppercase tracking-wider">
               {t('deptRemediationNote')}
               {selectedStatus === 'resolved' && (
-                <span className="text-red-500 ml-1">*</span>
+                <span className="text-amber-400 ml-1">*</span>
               )}
             </label>
             <textarea
@@ -203,24 +203,28 @@ export const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder={t('deptRemediationNotePlaceholder')}
-              className="w-full text-xs sm:text-sm rounded-xl p-3 bg-white border border-black/15 text-[#111827] placeholder:text-slate-400 focus:outline-none focus:border-[#111827] focus:ring-1 focus:ring-[#111827]/10"
+              className="w-full text-xs sm:text-sm rounded-xl p-3 bg-white/[0.04] border border-white/10 text-white placeholder:text-slate-500 focus:outline-none focus:border-white/30 focus:ring-1 focus:ring-white/20"
             />
           </div>
 
           {/* Actions */}
-          <div className="pt-2 flex items-center justify-end gap-3 border-t border-black/[0.08]">
+          <div className="pt-2 flex items-center justify-end gap-3 border-t border-white/[0.08]">
             <button
               type="button"
               onClick={onClose}
               disabled={isSubmitting}
-              className="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-600 hover:text-[#111827] hover:bg-black/5 transition-colors cursor-pointer"
+              className="px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold text-slate-400 hover:text-white transition-colors cursor-pointer"
             >
               {t('deptCancel')}
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#111827] hover:bg-black text-white text-xs sm:text-sm font-bold shadow-sm transition-all cursor-pointer disabled:opacity-50"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm shadow-md transition-all cursor-pointer disabled:opacity-50"
+              style={{
+                backgroundColor: 'var(--dept-accent)',
+                color: '#151417',
+              }}
             >
               {isSubmitting ? (
                 <>

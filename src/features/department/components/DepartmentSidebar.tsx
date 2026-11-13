@@ -1,82 +1,342 @@
-import React from 'react';
-import { useLanguage } from '../../../context/LanguageContext';
-import { Inbox, Sparkles, Clock, CheckCircle2 } from 'lucide-react';
+import React, { useState } from 'react';
+import {
+  Home,
+  BarChart3,
+  Bell,
+  CheckSquare2,
+  ChevronDown,
+  ChevronUp,
+  Settings,
+  Search,
+  LogOut,
+  Building,
+} from 'lucide-react';
+import { useDepartmentAuth } from '../../../context/DepartmentAuthContext';
+import { useNavigate } from 'react-router-dom';
 
-export type DepartmentStatusFilter = 'all' | 'new' | 'in_progress' | 'resolved';
+export type WorkspaceSection = 'home' | 'dashboard' | 'notifications' | 'tasks' | 'settings';
+export type TaskFilterType = 'all' | 'accepted' | 'rejected' | 'in_progress' | 'resolved';
 
 interface DepartmentSidebarProps {
-  activeFilter: DepartmentStatusFilter;
-  onSelectFilter: (filter: DepartmentStatusFilter) => void;
-  counts: {
+  currentSection: WorkspaceSection;
+  onSelectSection: (section: WorkspaceSection) => void;
+  activeTaskFilter: TaskFilterType;
+  onSelectTaskFilter: (filter: TaskFilterType) => void;
+  searchQuery: string;
+  onSearchChange: (query: string) => void;
+  taskCounts?: {
     all: number;
-    new: number;
+    accepted: number;
+    rejected: number;
     in_progress: number;
     resolved: number;
   };
+  onCloseMobileDrawer?: () => void;
 }
 
 export const DepartmentSidebar: React.FC<DepartmentSidebarProps> = ({
-  activeFilter,
-  onSelectFilter,
-  counts,
+  currentSection,
+  onSelectSection,
+  activeTaskFilter,
+  onSelectTaskFilter,
+  searchQuery,
+  onSearchChange,
+  taskCounts,
+  onCloseMobileDrawer,
 }) => {
-  const { t } = useLanguage();
+  const { session, departmentMeta, signOut } = useDepartmentAuth();
+  const navigate = useNavigate();
+  const [isTasksExpanded, setIsTasksExpanded] = useState(true);
 
-  const filterItems: {
-    id: DepartmentStatusFilter;
-    label: string;
-    count: number;
-    icon: React.ComponentType<{ className?: string }>;
-  }[] = [
-    { id: 'all', label: t('deptFilterAll'), count: counts.all, icon: Inbox },
-    { id: 'new', label: t('deptFilterNew'), count: counts.new, icon: Sparkles },
-    { id: 'in_progress', label: t('deptFilterInProgress'), count: counts.in_progress, icon: Clock },
-    { id: 'resolved', label: t('deptFilterResolved'), count: counts.resolved, icon: CheckCircle2 },
-  ];
+  const handleSignOut = () => {
+    signOut();
+    navigate('/department/login');
+  };
+
+  const handleNavClick = (section: WorkspaceSection) => {
+    onSelectSection(section);
+    if (onCloseMobileDrawer) {
+      onCloseMobileDrawer();
+    }
+  };
+
+  const handleTaskFilterClick = (filter: TaskFilterType, e: React.MouseEvent) => {
+    e.stopPropagation();
+    onSelectSection('tasks');
+    onSelectTaskFilter(filter);
+    if (onCloseMobileDrawer) {
+      onCloseMobileDrawer();
+    }
+  };
+
+  // User badge initials
+  const username = session?.username || 'roads-01';
+  const initialLetter = username.charAt(0).toUpperCase() || 'R';
+  const departmentName = departmentMeta?.name || 'Municipal Agency';
 
   return (
-    <aside className="w-56 lg:w-60 shrink-0 flex flex-col">
-      <nav className="bg-white/80 backdrop-blur-xl border border-black/[0.08] rounded-2xl p-2.5 shadow-sm space-y-1">
-        <div className="px-3 py-2 text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
-          <Inbox className="w-3.5 h-3.5 text-slate-400" />
-          <span>{t('deptWorkspaceTitle')}</span>
+    <aside className="w-full h-full flex flex-col justify-between p-5 text-slate-300 select-none">
+      {/* Top Segment: Brand, Search, Primary Navigation */}
+      <div className="space-y-5">
+        {/* Brand Wordmark (Single, Clean) */}
+        <div className="flex items-center justify-between pb-4 border-b border-white/[0.08]">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-white/10 border border-white/15 flex items-center justify-center font-serif font-black text-white text-base shadow-inner">
+              a.
+            </div>
+            <div className="flex flex-col">
+              <span className="font-bold text-base tracking-tight text-white leading-tight">
+                Awaaz-e-Awam
+              </span>
+              <span className="text-[10px] text-slate-400 font-medium">
+                Department Workspace
+              </span>
+            </div>
+          </div>
         </div>
 
-        {filterItems.map((item) => {
-          const isActive = activeFilter === item.id;
-          const Icon = item.icon;
-          return (
+        {/* Scoped Search Input (Searches department complaints only) */}
+        <div className="relative">
+          <div className="h-10 px-3 rounded-xl bg-white/[0.04] border border-white/10 hover:border-white/20 focus-within:border-white/30 transition-all flex items-center gap-2 text-slate-400 focus-within:text-white">
+            <Search className="w-4 h-4 shrink-0" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => onSearchChange(e.target.value)}
+              placeholder="Search by reference, locality, or keyword..."
+              className="w-full bg-transparent border-0 outline-none text-xs text-white placeholder:text-slate-500"
+              aria-label="Search accessible complaints"
+            />
+            <kbd className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-mono text-slate-400 bg-white/5 rounded border border-white/10">
+              ⌘F
+            </kbd>
+          </div>
+        </div>
+
+        {/* Primary Navigation Menu */}
+        <nav className="space-y-1.5" aria-label="Main Navigation">
+          {/* 1. Home */}
+          <button
+            type="button"
+            onClick={() => handleNavClick('home')}
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+              currentSection === 'home'
+                ? 'dept-nav-active'
+                : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
+            }`}
+          >
+            <Home className="w-4 h-4 shrink-0" />
+            <span>Home</span>
+          </button>
+
+          {/* 2. Dashboard */}
+          <button
+            type="button"
+            onClick={() => handleNavClick('dashboard')}
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+              currentSection === 'dashboard'
+                ? 'dept-nav-active'
+                : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
+            }`}
+          >
+            <BarChart3 className="w-4 h-4 shrink-0" />
+            <span>Dashboard</span>
+          </button>
+
+          {/* 3. Notifications */}
+          <button
+            type="button"
+            onClick={() => handleNavClick('notifications')}
+            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+              currentSection === 'notifications'
+                ? 'dept-nav-active'
+                : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <Bell className="w-4 h-4 shrink-0" />
+              <span>Notifications</span>
+            </div>
+            <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-full bg-white/5 text-slate-400 border border-white/10">
+              0
+            </span>
+          </button>
+
+          {/* 4. Tasks (Expandable) */}
+          <div className="pt-1">
             <button
-              key={item.id}
               type="button"
-              onClick={() => onSelectFilter(item.id)}
-              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
-                isActive
-                  ? 'bg-[#111827] text-white shadow-sm'
-                  : 'text-[#111827] hover:bg-black/5 text-left rtl:text-right'
+              onClick={() => {
+                if (currentSection !== 'tasks') {
+                  onSelectSection('tasks');
+                } else {
+                  setIsTasksExpanded(!isTasksExpanded);
+                }
+              }}
+              aria-expanded={isTasksExpanded}
+              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+                currentSection === 'tasks' && activeTaskFilter === 'all'
+                  ? 'dept-nav-active'
+                  : currentSection === 'tasks'
+                  ? 'bg-white/[0.06] text-white'
+                  : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
               }`}
             >
-              <div className="flex items-center gap-2.5 min-w-0">
-                <Icon
-                  className={`w-4 h-4 shrink-0 ${
-                    isActive ? 'text-white' : 'text-slate-500'
-                  }`}
-                />
-                <span className="truncate">{item.label}</span>
+              <div className="flex items-center gap-3">
+                <CheckSquare2 className="w-4 h-4 shrink-0" />
+                <span>Tasks</span>
               </div>
-              <span
-                className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-                  isActive
-                    ? 'bg-white/20 text-white'
-                    : 'bg-black/5 text-slate-600 border border-black/5'
-                }`}
-              >
-                {item.count}
-              </span>
+              <div className="flex items-center gap-2">
+                {taskCounts && (
+                  <span className="text-[10px] font-mono text-slate-400 bg-white/5 px-1.5 py-0.5 rounded">
+                    {taskCounts.all}
+                  </span>
+                )}
+                {isTasksExpanded ? (
+                  <ChevronUp className="w-3.5 h-3.5 text-slate-400" />
+                ) : (
+                  <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+                )}
+              </div>
             </button>
-          );
-        })}
-      </nav>
+
+            {/* Indented Sub-items: Accepted, Rejected, In Progress, Work Done */}
+            {isTasksExpanded && (
+              <div className="ml-5 mt-1.5 pl-4 border-l border-white/15 space-y-1">
+                <button
+                  type="button"
+                  onClick={(e) => handleTaskFilterClick('accepted', e)}
+                  className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors text-left cursor-pointer ${
+                    currentSection === 'tasks' && activeTaskFilter === 'accepted'
+                      ? 'text-white font-bold bg-white/10'
+                      : 'text-slate-400 hover:text-white hover:bg-white/[0.03]'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full border border-slate-400" />
+                    <span>Accepted</span>
+                  </div>
+                  {taskCounts && taskCounts.accepted > 0 && (
+                    <span className="text-[10px] font-mono text-slate-400">
+                      {taskCounts.accepted}
+                    </span>
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={(e) => handleTaskFilterClick('rejected', e)}
+                  className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors text-left cursor-pointer ${
+                    currentSection === 'tasks' && activeTaskFilter === 'rejected'
+                      ? 'text-white font-bold bg-white/10'
+                      : 'text-slate-400 hover:text-white hover:bg-white/[0.03]'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full border border-slate-400" />
+                    <span>Rejected</span>
+                  </div>
+                  {taskCounts && taskCounts.rejected > 0 && (
+                    <span className="text-[10px] font-mono text-slate-400">
+                      {taskCounts.rejected}
+                    </span>
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={(e) => handleTaskFilterClick('in_progress', e)}
+                  className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors text-left cursor-pointer ${
+                    currentSection === 'tasks' && activeTaskFilter === 'in_progress'
+                      ? 'text-white font-bold bg-white/10'
+                      : 'text-slate-400 hover:text-white hover:bg-white/[0.03]'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full border border-slate-400" />
+                    <span>In Progress</span>
+                  </div>
+                  {taskCounts && taskCounts.in_progress > 0 && (
+                    <span className="text-[10px] font-mono text-slate-400">
+                      {taskCounts.in_progress}
+                    </span>
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={(e) => handleTaskFilterClick('resolved', e)}
+                  className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors text-left cursor-pointer ${
+                    currentSection === 'tasks' && activeTaskFilter === 'resolved'
+                      ? 'text-white font-bold bg-white/10'
+                      : 'text-slate-400 hover:text-white hover:bg-white/[0.03]'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full border border-slate-400" />
+                    <span>Work Done</span>
+                  </div>
+                  {taskCounts && taskCounts.resolved > 0 && (
+                    <span className="text-[10px] font-mono text-slate-400">
+                      {taskCounts.resolved}
+                    </span>
+                  )}
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* 5. Settings */}
+          <button
+            type="button"
+            onClick={() => handleNavClick('settings')}
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+              currentSection === 'settings'
+                ? 'dept-nav-active'
+                : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
+            }`}
+          >
+            <Settings className="w-4 h-4 shrink-0" />
+            <span>Settings</span>
+          </button>
+        </nav>
+      </div>
+
+      {/* Bottom Segment: Anchored Profile Card with Real Identity & Logout */}
+      <div className="pt-6 border-t border-white/[0.08]">
+        <div className="p-3.5 rounded-2xl bg-white/[0.04] border border-white/10 shadow-inner">
+          <div className="flex items-center gap-3 mb-3">
+            <div
+              className="w-9 h-9 rounded-xl flex items-center justify-center font-bold text-sm shrink-0 border border-white/15"
+              style={{
+                backgroundColor: 'var(--dept-accent-muted)',
+                color: 'var(--dept-accent)',
+              }}
+            >
+              {initialLetter}
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="font-semibold text-xs text-white truncate">
+                {username}
+              </div>
+              <div className="text-[11px] text-slate-400 truncate flex items-center gap-1 mt-0.5">
+                <Building className="w-3 h-3 text-slate-500 shrink-0" />
+                <span>{departmentName}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Working Sign Out Action */}
+          <button
+            type="button"
+            onClick={handleSignOut}
+            className="w-full h-8 px-3 rounded-lg bg-white/5 hover:bg-red-500/10 border border-white/10 hover:border-red-500/30 text-slate-300 hover:text-red-400 text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+            <span>Sign out</span>
+          </button>
+        </div>
+      </div>
     </aside>
   );
 };

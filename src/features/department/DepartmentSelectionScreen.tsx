@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { ChevronDown } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { type DepartmentId } from '../../types';
-import { LimeRibbonArtwork } from './design-system/DepartmentArtwork';
 import { DepartmentSelectionModal } from './design-system/DepartmentSelectionModal';
 
 interface DepartmentSelectionScreenProps {
@@ -12,66 +11,63 @@ interface DepartmentSelectionScreenProps {
 export const DepartmentSelectionScreen: React.FC<DepartmentSelectionScreenProps> = ({
   onSelectDepartment,
 }) => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(true);
+  const navigate = useNavigate();
 
   const handleDepartmentChosen = (deptId: DepartmentId) => {
     setIsModalOpen(false);
     onSelectDepartment(deptId);
   };
 
-  return (
-    <div className="relative min-h-screen w-full overflow-hidden bg-[#FAF8F5] text-[#111827] flex flex-col justify-between selection:bg-[#111827] selection:text-white">
-      {/* 1. Sweeping Vibrant Lime Ribbon Artwork (Reference 03) */}
-      <LimeRibbonArtwork />
+  const handleClose = () => {
+    setIsModalOpen(false);
+    navigate('/');
+  };
 
-      {/* 2. Top Clean Branding */}
-      <header className="relative z-10 w-full px-6 py-6 sm:px-12 sm:py-8 flex items-center justify-between">
-        <div className="flex items-center gap-2.5">
-          <span className="font-serif font-black text-2xl text-[#111827]">a.</span>
-          <span className="font-bold text-base tracking-tight text-[#111827]">
+  return (
+    <div className="relative min-h-screen w-full overflow-hidden bg-[#151417] text-white flex flex-col justify-between select-none">
+      {/* 1. Subtle Dark Ambient Underlay (Matching Reference 03 / Visual Preview) */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-30">
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[500px] bg-gradient-to-tr from-amber-500/10 via-transparent to-purple-500/10 rounded-full blur-3xl" />
+      </div>
+
+      {/* 2. Top Clean Minimal Brand Header */}
+      <header className="relative z-10 w-full px-6 py-6 sm:px-12 sm:py-8 flex items-center justify-between border-b border-white/[0.08]">
+        <div className="flex items-center gap-3">
+          <span className="font-serif font-black text-2xl text-white">a.</span>
+          <span className="font-bold text-base tracking-tight text-white">
             Awaaz-e-Awam
+          </span>
+          <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-white/5 text-slate-400 border border-white/10">
+            Department Access
           </span>
         </div>
       </header>
 
-      {/* 3. Center Monumental Typography & Prominent Selector Composition */}
-      <main className="relative z-10 w-full px-6 sm:px-12 my-auto flex flex-col items-center justify-center">
-        <div className="w-full max-w-5xl flex flex-col items-center">
-          {/* Monumental DEPARTMENT Heading */}
-          <h1 className="w-full text-center text-[2.6rem] xs:text-[3.25rem] sm:text-7xl md:text-8xl lg:text-[9.5rem] font-black tracking-tighter text-[#111827] leading-[0.88] select-none uppercase mb-6 sm:mb-8">
-            DEPARTMENT.
-          </h1>
-
-          {/* Prominent, Oversized Selector Control */}
-          <div className="w-full max-w-4xl px-2 sm:px-4">
-            <button
-              type="button"
-              onClick={() => setIsModalOpen(true)}
-              aria-haspopup="dialog"
-              aria-expanded={isModalOpen}
-              className="w-full py-4 sm:py-5 px-6 sm:px-8 rounded-2xl sm:rounded-full bg-white/85 hover:bg-white backdrop-blur-xl border border-black/10 hover:border-black/25 shadow-[0_12px_36px_rgba(0,0,0,0.06)] hover:shadow-[0_16px_44px_rgba(0,0,0,0.1)] transition-all duration-200 cursor-pointer flex items-center justify-between gap-4 group focus:outline-none focus:ring-2 focus:ring-[#111827]/20"
-            >
-              <span className="text-xl sm:text-2xl font-bold tracking-tight text-[#111827] text-left">
-                Select Department
-              </span>
-              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-black/5 group-hover:bg-[#111827] group-hover:text-white flex items-center justify-center transition-colors shrink-0">
-                <ChevronDown className="w-5 h-5 sm:w-6 sm:h-6 transition-transform group-hover:translate-y-0.5" />
-              </div>
-            </button>
-          </div>
-        </div>
+      {/* 3. Center Context Trigger */}
+      <main className="relative z-10 w-full px-6 sm:px-12 my-auto flex flex-col items-center justify-center text-center">
+        <h2 className="text-xl sm:text-2xl font-bold text-slate-300 mb-4">
+          Municipal Operations Gateway
+        </h2>
+        <button
+          type="button"
+          onClick={() => setIsModalOpen(true)}
+          className="px-6 py-3 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/20 text-white font-semibold text-sm transition-all cursor-pointer shadow-lg hover:shadow-xl"
+        >
+          Choose department console
+        </button>
       </main>
 
-      {/* 4. Minimal Clean Bottom Anchor */}
-      <footer className="relative z-10 w-full px-6 py-6 sm:px-12 sm:py-8 flex items-center justify-between text-xs text-slate-400">
+      {/* 4. Minimal Clean Footer */}
+      <footer className="relative z-10 w-full px-6 py-6 sm:px-12 sm:py-8 flex items-center justify-between text-xs text-slate-500 border-t border-white/[0.08]">
         <span>Awaaz-e-Awam • Department Portal</span>
         <span>Karachi Municipal Operational Workspace</span>
       </footer>
 
-      {/* Full-Screen Selection Menu Modal Overlay */}
+      {/* 5. Approved Frosted-Glass Modal Popup Overlay */}
       <DepartmentSelectionModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={handleClose}
         onSelectDepartment={handleDepartmentChosen}
       />
     </div>

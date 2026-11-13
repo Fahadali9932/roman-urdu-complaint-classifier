@@ -98,11 +98,11 @@ describe('Staff & Administrator Access Screens (Figma 35:1282, 35:1332, 35:1363,
   });
 
   describe('2. Department Entry & Selection Screen', () => {
-    it('renders department selection entry with monumental DEPARTMENT. heading', () => {
+    it('renders department selection entry with Choose department heading', () => {
       renderWithProviders('/department/login');
 
-      expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('DEPARTMENT.');
-      expect(screen.getByText(/Select Department/i)).toBeInTheDocument();
+      expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Choose department');
+      expect(screen.getByText(/Continue to your department sign-in/i)).toBeInTheDocument();
     });
 
     it('renders Roads login screen when dept=kmc is present', () => {
@@ -128,17 +128,14 @@ describe('Staff & Administrator Access Screens (Figma 35:1282, 35:1332, 35:1363,
   });
 
   describe('4. Department Selector Modal Interaction', () => {
-    it('opens full-screen modal and lists municipal agencies', async () => {
+    it('opens modal and lists municipal agencies', async () => {
       renderWithProviders('/department/login');
 
-      const triggerBtn = screen.getByText(/Select Department/i).closest('button');
-      fireEvent.click(triggerBtn!);
-
       expect(screen.getByRole('dialog')).toBeInTheDocument();
-      expect(screen.getByText('Select Municipal Department Console')).toBeInTheDocument();
-      expect(screen.getAllByText('KMC').length).toBeGreaterThanOrEqual(1);
-      expect(screen.getByText('KWSC')).toBeInTheDocument();
-      expect(screen.getByText('SSGC')).toBeInTheDocument();
+      expect(screen.getByText('Choose department')).toBeInTheDocument();
+      expect(screen.getByText('Roads & Infrastructure')).toBeInTheDocument();
+      expect(screen.getByText('Water & Sewerage')).toBeInTheDocument();
+      expect(screen.getByText('Gas Utility')).toBeInTheDocument();
     });
   });
 });

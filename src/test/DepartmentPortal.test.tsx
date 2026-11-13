@@ -349,9 +349,9 @@ describe('Department Portal — Security, Privacy, and Workflow Integrity', () =
 
       expect(
         screen.getByRole('heading', { level: 1 })
-      ).toHaveTextContent('DEPARTMENT.');
+      ).toHaveTextContent('Choose department');
       expect(
-        screen.getByText(/Select Department/i)
+        screen.getByText(/Continue to your department sign-in/i)
       ).toBeInTheDocument();
     });
   });

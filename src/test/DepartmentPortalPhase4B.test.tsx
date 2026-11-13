@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import React from 'react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { LanguageProvider } from '../context/LanguageContext';
@@ -98,43 +98,41 @@ describe('AWAAZ-E-AWAM — Phase 4B: Department Portal Design System & PWA Found
   };
 
   describe('1. First Screen — Department Selection Composition', () => {
-    it('renders the dominant DEPARTMENT. monumental heading and trigger card', () => {
+    it('renders the approved Choose department modal and branding', () => {
       renderDepartmentPortal('/department/login');
 
-      // Monumental Primary Heading
+      // Primary Heading in Modal
       const dominantHeading = screen.getByRole('heading', { level: 1 });
-      expect(dominantHeading).toHaveTextContent('DEPARTMENT.');
+      expect(dominantHeading).toHaveTextContent('Choose department');
+      expect(screen.getByText(/Continue to your department sign-in/i)).toBeInTheDocument();
 
       // Header branding
-      expect(screen.getByText('Awaaz-e-Awam')).toBeInTheDocument();
+      expect(screen.getAllByText('Awaaz-e-Awam').length).toBeGreaterThanOrEqual(1);
 
-      // Prominent Department Selector Card
-      expect(screen.getByText(/Select Department/i)).toBeInTheDocument();
+      // 6 Municipal departments listed
+      expect(screen.getByText('Roads & Infrastructure')).toBeInTheDocument();
+      expect(screen.getByText('Electricity & Power')).toBeInTheDocument();
+      expect(screen.getByText('Water & Sewerage')).toBeInTheDocument();
+      expect(screen.getByText('Gas Utility')).toBeInTheDocument();
+      expect(screen.getByText('Sanitation')).toBeInTheDocument();
+      expect(screen.getByText('Building Control')).toBeInTheDocument();
     });
 
-    it('opens full-screen selection menu listing all 6 municipal authorities and closes with Escape key', async () => {
+    it('opens selection modal listing all 6 municipal authorities and closes with Escape key', async () => {
       renderDepartmentPortal('/department/login');
-
-      // Click to open selection menu
-      const triggerBtn = screen.getByText(/Select Department/i).closest('button');
-      expect(triggerBtn).toBeInTheDocument();
-      fireEvent.click(triggerBtn!);
 
       // Verify Modal Dialog is open
       const dialog = screen.getByRole('dialog');
       expect(dialog).toBeInTheDocument();
-      expect(screen.getByText('Select Municipal Department Console')).toBeInTheDocument();
+      expect(screen.getByText('Choose department')).toBeInTheDocument();
 
-      // Verify all 6 authoritative authorities are present
-      expect(screen.getAllByText('KMC').length).toBeGreaterThanOrEqual(1);
-      expect(screen.getByText('KE')).toBeInTheDocument();
-      expect(screen.getByText('KWSC')).toBeInTheDocument();
-      expect(screen.getByText('SSGC')).toBeInTheDocument();
-      expect(screen.getByText('SSWMB')).toBeInTheDocument();
-      expect(screen.getByText('SBCA')).toBeInTheDocument();
-
-      // Verify Roads has ACTIVE CONSOLE status
-      expect(screen.getByText('ACTIVE CONSOLE')).toBeInTheDocument();
+      // Verify all 6 authorities are present
+      expect(screen.getByText('Roads & Infrastructure')).toBeInTheDocument();
+      expect(screen.getByText('Electricity & Power')).toBeInTheDocument();
+      expect(screen.getByText('Water & Sewerage')).toBeInTheDocument();
+      expect(screen.getByText('Gas Utility')).toBeInTheDocument();
+      expect(screen.getByText('Sanitation')).toBeInTheDocument();
+      expect(screen.getByText('Building Control')).toBeInTheDocument();
 
       // Close via Escape key
       fireEvent.keyDown(window, { key: 'Escape', code: 'Escape' });
@@ -146,14 +144,10 @@ describe('AWAAZ-E-AWAM — Phase 4B: Department Portal Design System & PWA Found
     it('navigates to Roads Login when Roads & Infrastructure is selected from modal', async () => {
       renderDepartmentPortal('/department/login');
 
-      // Open modal
-      const triggerBtn = screen.getByText(/Select Department/i).closest('button');
-      fireEvent.click(triggerBtn!);
-
-      // Click Roads card
-      const roadsCard = screen.getByText('Roads & Infrastructure').closest('button');
-      expect(roadsCard).toBeInTheDocument();
-      fireEvent.click(roadsCard!);
+      // Click Roads card/row
+      const roadsRow = screen.getByText('Roads & Infrastructure').closest('button');
+      expect(roadsRow).toBeInTheDocument();
+      fireEvent.click(roadsRow!);
 
       // Modal closes and Roads login renders
       await waitFor(() => {
@@ -187,7 +181,7 @@ describe('AWAAZ-E-AWAM — Phase 4B: Department Portal Design System & PWA Found
       ).toBeInTheDocument();
     });
 
-    it('navigates back to Department Selection when back button is clicked', async () => {
+    it('opens department chooser when back button is clicked', async () => {
       renderDepartmentPortal('/department/login?dept=kmc');
 
       expect(screen.getByText('ROADS & INFRASTRUCTURE')).toBeInTheDocument();
@@ -196,7 +190,9 @@ describe('AWAAZ-E-AWAM — Phase 4B: Department Portal Design System & PWA Found
       fireEvent.click(backBtn);
 
       await waitFor(() => {
-        expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('DEPARTMENT.');
+        const dialog = screen.getByRole('dialog');
+        expect(dialog).toBeInTheDocument();
+        expect(within(dialog).getByRole('heading', { level: 1 })).toHaveTextContent('Choose department');
       });
     });
 

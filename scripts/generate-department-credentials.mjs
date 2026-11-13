@@ -143,3 +143,4 @@ if (isMain) {
   const force = process.argv.includes('--force');
   generateCredentials(force);
 }
+

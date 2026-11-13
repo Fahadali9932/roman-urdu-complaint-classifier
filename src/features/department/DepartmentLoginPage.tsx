@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { type DepartmentId } from '../../types';
 import { DepartmentSelectionScreen } from './DepartmentSelectionScreen';
 import { ThemedDepartmentLoginScreen } from './ThemedDepartmentLoginScreen';
+import { DepartmentSelectionModal } from './design-system/DepartmentSelectionModal';
 
 const VALID_DEPARTMENT_IDS: Record<string, DepartmentId> = {
   kmc: 'kmc',
@@ -27,6 +28,8 @@ export const DepartmentLoginPage: React.FC = () => {
   // Derive active department view directly from URL search params
   const selectedDept: DepartmentId | null = deptParam ? VALID_DEPARTMENT_IDS[deptParam] || null : null;
 
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   // Track online/offline network status for PWA
   const [isOnline, setIsOnline] = useState(() =>
     typeof navigator !== 'undefined' ? navigator.onLine : true
@@ -46,6 +49,7 @@ export const DepartmentLoginPage: React.FC = () => {
   }, []);
 
   const handleSelectDepartment = (deptId: DepartmentId) => {
+    setIsModalOpen(false);
     setSearchParams((prev) => {
       const next = new URLSearchParams(prev);
       next.set('dept', deptId);
@@ -53,21 +57,24 @@ export const DepartmentLoginPage: React.FC = () => {
     });
   };
 
-  const handleBackToSelection = () => {
-    setSearchParams((prev) => {
-      const next = new URLSearchParams(prev);
-      next.delete('dept');
-      return next;
-    });
+  const handleOpenModal = () => {
+    setIsModalOpen(true);
   };
 
   if (selectedDept) {
     return (
-      <ThemedDepartmentLoginScreen
-        departmentId={selectedDept}
-        onBackToDepartmentSelection={handleBackToSelection}
-        isOnline={isOnline}
-      />
+      <>
+        <ThemedDepartmentLoginScreen
+          departmentId={selectedDept}
+          onBackToDepartmentSelection={handleOpenModal}
+          isOnline={isOnline}
+        />
+        <DepartmentSelectionModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onSelectDepartment={handleSelectDepartment}
+        />
+      </>
     );
   }
 
