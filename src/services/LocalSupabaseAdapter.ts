@@ -72,6 +72,58 @@ export interface AccessAuditLogRow {
   created_at: string;
 }
 
+export interface ComplaintRow {
+  id: string;
+  reference_number: string;
+  citizen_id: string;
+  title?: string | null;
+  description: string;
+  detected_language: 'roman_urdu' | 'english' | 'urdu';
+  incident_district: string;
+  incident_locality: string;
+  incident_public_location: string;
+  status: 'submitted' | 'under_review' | 'assigned' | 'in_progress' | 'resolved' | 'rejected';
+  assigned_department_id: string;
+  predicted_department_id?: string | null;
+  prediction_confidence?: number | null;
+  is_reviewed_by_admin: boolean;
+  is_demonstration: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ComplaintCitizenPrivateRow {
+  complaint_id: string;
+  citizen_name: string;
+  citizen_phone: string;
+  citizen_email?: string | null;
+  residential_address: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ComplaintTimelineEventRow {
+  id: string;
+  complaint_id: string;
+  status: 'submitted' | 'under_review' | 'assigned' | 'in_progress' | 'resolved' | 'rejected';
+  title: string;
+  title_urdu: string;
+  description: string;
+  description_urdu: string;
+  actor_role: 'system' | 'citizen' | 'department_staff' | 'main_admin';
+  actor_id?: string | null;
+  created_at: string;
+}
+
+export interface AuthRateLimitRow {
+  id: string;
+  identifier: string;
+  failed_attempts: number;
+  first_attempt_at: string;
+  last_attempt_at: string;
+  locked_until?: string | null;
+}
+
 interface StoredUserCredential {
   userId: string;
   email: string;
@@ -85,6 +137,10 @@ interface DatabaseState {
   requests: DepartmentAccessRequestRow[];
   memberships: DepartmentMembershipRow[];
   auditLogs: AccessAuditLogRow[];
+  complaints: ComplaintRow[];
+  citizenPrivateDetails: ComplaintCitizenPrivateRow[];
+  timelineEvents: ComplaintTimelineEventRow[];
+  rateLimits: AuthRateLimitRow[];
 }
 
 const STORAGE_KEY = 'awaaz_local_supabase_db_v2';
@@ -162,6 +218,14 @@ export class LocalSupabaseAdapter {
         if (stored) {
           const parsed = JSON.parse(stored) as DatabaseState;
           if (parsed && Array.isArray(parsed.departments) && Array.isArray(parsed.profiles)) {
+            parsed.complaints = Array.isArray(parsed.complaints) ? parsed.complaints : [];
+            parsed.citizenPrivateDetails = Array.isArray(parsed.citizenPrivateDetails)
+              ? parsed.citizenPrivateDetails
+              : [];
+            parsed.timelineEvents = Array.isArray(parsed.timelineEvents)
+              ? parsed.timelineEvents
+              : [];
+            parsed.rateLimits = Array.isArray(parsed.rateLimits) ? parsed.rateLimits : [];
             return parsed;
           }
         }
@@ -220,6 +284,10 @@ export class LocalSupabaseAdapter {
           created_at: new Date().toISOString(),
         },
       ],
+      complaints: [],
+      citizenPrivateDetails: [],
+      timelineEvents: [],
+      rateLimits: [],
     };
   }
 
@@ -765,6 +833,594 @@ export class LocalSupabaseAdapter {
   // ---------------------------------------------------------------------------
   public getAuditLog(): AccessAuditLogRow[] {
     return [...this.state.auditLogs];
+  }
+
+  // ===========================================================================
+  // PHASE 3B: CORE COMPLAINT TABLES, PRIVACY ISOLATION & RLS ENFORCEMENT
+  // ===========================================================================
+
+  public isMainAdmin(userId: string): boolean {
+    const profile = this.state.profiles.find((p) => p.id === userId);
+    return profile?.role === 'main_admin';
+  }
+
+  // ---------------------------------------------------------------------------
+  // Helper: Profile & Membership Creation (Test Harness)
+  // ---------------------------------------------------------------------------
+  public createTestProfile(
+    id: string,
+    fullName: string,
+    email: string,
+    role: 'citizen' | 'department_staff' | 'main_admin'
+  ): ProfileRow {
+    const existing = this.state.profiles.find((p) => p.id === id);
+    if (existing) {
+      existing.full_name = fullName;
+      existing.email = email;
+      existing.role = role;
+      existing.updated_at = new Date().toISOString();
+      this.saveState();
+      return existing;
+    }
+    const profile: ProfileRow = {
+      id,
+      full_name: fullName,
+      email,
+      role,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    this.state.profiles.push(profile);
+    this.saveState();
+    return profile;
+  }
+
+  public createTestMembership(
+    userId: string,
+    departmentId: string,
+    status: 'active' | 'revoked' = 'active',
+    approvedBy: string = SEED_ADMIN_ID
+  ): DepartmentMembershipRow {
+    const existing = this.state.memberships.find(
+      (m) => m.user_id === userId && m.department_id === departmentId
+    );
+    if (existing) {
+      existing.status = status;
+      existing.updated_at = new Date().toISOString();
+      this.saveState();
+      return existing;
+    }
+    const membership: DepartmentMembershipRow = {
+      id: generateId('mem'),
+      user_id: userId,
+      department_id: departmentId,
+      status,
+      approved_by: approvedBy,
+      approved_at: new Date().toISOString(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    this.state.memberships.push(membership);
+    this.saveState();
+    return membership;
+  }
+
+  // ---------------------------------------------------------------------------
+  // RLS: INSERT Complaint (Citizens own id or Admin, title optional/null)
+  // ---------------------------------------------------------------------------
+  public insertComplaint(
+    complaintInput: {
+      reference_number: string;
+      citizen_id: string;
+      title?: string | null;
+      description: string;
+      detected_language?: 'roman_urdu' | 'english' | 'urdu';
+      incident_district: string;
+      incident_locality: string;
+      incident_public_location: string;
+      assigned_department_id: string;
+      status?: 'submitted' | 'under_review' | 'assigned' | 'in_progress' | 'resolved' | 'rejected';
+      predicted_department_id?: string | null;
+      prediction_confidence?: number | null;
+      is_demonstration?: boolean;
+    },
+    callerUserId: string
+  ): { success: boolean; complaint?: ComplaintRow; error?: string } {
+    const isAdmin = this.isMainAdmin(callerUserId);
+    if (!isAdmin && callerUserId !== complaintInput.citizen_id) {
+      return {
+        success: false,
+        error: 'RLS Permission Denied: Citizens can only insert complaints for their own authenticated account.',
+      };
+    }
+
+    const callerProfile = this.state.profiles.find((p) => p.id === callerUserId);
+    if (callerProfile?.role === 'department_staff' && !isAdmin) {
+      return {
+        success: false,
+        error: 'RLS Permission Denied: Department staff cannot insert citizen complaints.',
+      };
+    }
+
+    const now = new Date().toISOString();
+    const newComplaint: ComplaintRow = {
+      id: generateId('cmp'),
+      reference_number: complaintInput.reference_number,
+      citizen_id: complaintInput.citizen_id,
+      title: complaintInput.title || null,
+      description: complaintInput.description,
+      detected_language: complaintInput.detected_language || 'roman_urdu',
+      incident_district: complaintInput.incident_district,
+      incident_locality: complaintInput.incident_locality,
+      incident_public_location: complaintInput.incident_public_location,
+      status: complaintInput.status || 'submitted',
+      assigned_department_id: complaintInput.assigned_department_id,
+      predicted_department_id: complaintInput.predicted_department_id || null,
+      prediction_confidence: complaintInput.prediction_confidence ?? null,
+      is_reviewed_by_admin: false,
+      is_demonstration: complaintInput.is_demonstration ?? false,
+      created_at: now,
+      updated_at: now,
+    };
+
+    this.state.complaints.push(newComplaint);
+    this.saveState();
+    return { success: true, complaint: newComplaint };
+  }
+
+  // ---------------------------------------------------------------------------
+  // RLS: INSERT Citizen Private Details (Strictly isolated PII)
+  // ---------------------------------------------------------------------------
+  public insertCitizenPrivateDetails(
+    details: {
+      complaint_id: string;
+      citizen_name: string;
+      citizen_phone: string;
+      citizen_email?: string | null;
+      residential_address: string;
+    },
+    callerUserId: string
+  ): { success: boolean; error?: string } {
+    const isAdmin = this.isMainAdmin(callerUserId);
+    const complaint = this.state.complaints.find((c) => c.id === details.complaint_id);
+    if (!complaint) {
+      return { success: false, error: 'Foreign Key Violation: Complaint not found.' };
+    }
+
+    if (!isAdmin && complaint.citizen_id !== callerUserId) {
+      return {
+        success: false,
+        error: 'RLS Permission Denied: Cannot insert private details for a complaint owned by another user.',
+      };
+    }
+
+    const now = new Date().toISOString();
+    const newPrivateRow: ComplaintCitizenPrivateRow = {
+      complaint_id: details.complaint_id,
+      citizen_name: details.citizen_name,
+      citizen_phone: details.citizen_phone,
+      citizen_email: details.citizen_email || null,
+      residential_address: details.residential_address,
+      created_at: now,
+      updated_at: now,
+    };
+
+    const existingIdx = this.state.citizenPrivateDetails.findIndex(
+      (p) => p.complaint_id === details.complaint_id
+    );
+    if (existingIdx >= 0) {
+      this.state.citizenPrivateDetails[existingIdx] = newPrivateRow;
+    } else {
+      this.state.citizenPrivateDetails.push(newPrivateRow);
+    }
+
+    this.saveState();
+    return { success: true };
+  }
+
+  // ---------------------------------------------------------------------------
+  // RLS: SELECT Complaints
+  // Citizens: citizen_id = auth.uid() (Database ownership only; NO reference-header bypass)
+  // Staff: assigned_department_id === membership.department_id AND status = 'active'
+  // Admin: ALL
+  // ---------------------------------------------------------------------------
+  public selectComplaints(callerUserId: string): ComplaintRow[] {
+    const isAdmin = this.isMainAdmin(callerUserId);
+    if (isAdmin) {
+      return [...this.state.complaints];
+    }
+
+    const activeMembership = this.state.memberships.find(
+      (m) => m.user_id === callerUserId && m.status === 'active'
+    );
+    if (activeMembership) {
+      return this.state.complaints.filter(
+        (c) => c.assigned_department_id === activeMembership.department_id
+      );
+    }
+
+    return this.state.complaints.filter((c) => c.citizen_id === callerUserId);
+  }
+
+  // ---------------------------------------------------------------------------
+  // RLS: SELECT Citizen Private Details (ZERO STAFF PERMISSION)
+  // Returns PII ONLY to authenticated Citizen owner or Admin.
+  // Department staff receive NULL / 0 rows (No name, phone, email, home address).
+  // ---------------------------------------------------------------------------
+  public selectCitizenPrivateDetails(
+    complaintId: string,
+    callerUserId: string
+  ): ComplaintCitizenPrivateRow | null {
+    const isAdmin = this.isMainAdmin(callerUserId);
+    const complaint = this.state.complaints.find((c) => c.id === complaintId);
+    if (!complaint) return null;
+
+    if (!isAdmin && complaint.citizen_id !== callerUserId) {
+      return null;
+    }
+
+    const details = this.state.citizenPrivateDetails.find((p) => p.complaint_id === complaintId);
+    return details ? { ...details } : null;
+  }
+
+  // ---------------------------------------------------------------------------
+  // RLS: SELECT Timeline Events
+  // Accessible only if caller has access to parent complaint
+  // ---------------------------------------------------------------------------
+  public selectTimelineEvents(
+    complaintId: string,
+    callerUserId: string
+  ): ComplaintTimelineEventRow[] {
+    const accessibleComplaints = this.selectComplaints(callerUserId);
+    const canAccess = accessibleComplaints.some((c) => c.id === complaintId);
+    if (!canAccess) {
+      return [];
+    }
+
+    return this.state.timelineEvents
+      .filter((e) => e.complaint_id === complaintId)
+      .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+  }
+
+  // ---------------------------------------------------------------------------
+  // RPC: staff_update_complaint_status
+  // Security Definer function enforcing:
+  // 1. Staff active membership in assigned department
+  // 2. Strict status transition state machine
+  // 3. Immutable timeline insertion
+  // ---------------------------------------------------------------------------
+  public staffUpdateComplaintStatus(
+    params: {
+      complaint_id: string;
+      new_status: 'submitted' | 'under_review' | 'assigned' | 'in_progress' | 'resolved' | 'rejected';
+      title_en: string;
+      title_ur: string;
+      note_en: string;
+      note_ur: string;
+    },
+    callerUserId: string
+  ): { success: boolean; old_status?: string; new_status?: string; error?: string } {
+    const complaint = this.state.complaints.find((c) => c.id === params.complaint_id);
+    if (!complaint) {
+      return { success: false, error: `Complaint not found: ${params.complaint_id}` };
+    }
+
+    const isAdmin = this.isMainAdmin(callerUserId);
+
+    if (!isAdmin) {
+      const membership = this.state.memberships.find(
+        (m) =>
+          m.user_id === callerUserId &&
+          m.department_id === complaint.assigned_department_id &&
+          m.status === 'active'
+      );
+      if (!membership) {
+        return {
+          success: false,
+          error: 'Unauthorized: You do not have active staff credentials for this department.',
+        };
+      }
+
+      const current = complaint.status;
+      const next = params.new_status;
+
+      const validTransitions: Record<string, string[]> = {
+        submitted: ['under_review', 'assigned', 'rejected'],
+        under_review: ['assigned', 'in_progress', 'rejected'],
+        assigned: ['in_progress', 'rejected'],
+        in_progress: ['resolved', 'rejected'],
+        resolved: [],
+        rejected: [],
+      };
+
+      if (!validTransitions[current]?.includes(next)) {
+        return {
+          success: false,
+          error: `Invalid status transition: ${current} -> ${next}`,
+        };
+      }
+    }
+
+    const oldStatus = complaint.status;
+    const now = new Date().toISOString();
+    complaint.status = params.new_status;
+    complaint.updated_at = now;
+
+    this.state.timelineEvents.push({
+      id: generateId('time'),
+      complaint_id: params.complaint_id,
+      status: params.new_status,
+      title: params.title_en,
+      title_urdu: params.title_ur,
+      description: params.note_en,
+      description_urdu: params.note_ur,
+      actor_role: isAdmin ? 'main_admin' : 'department_staff',
+      actor_id: callerUserId,
+      created_at: now,
+    });
+
+    this.saveState();
+    return {
+      success: true,
+      old_status: oldStatus,
+      new_status: params.new_status,
+    };
+  }
+
+  // ---------------------------------------------------------------------------
+  // RPC: admin_provision_department_staff
+  // Server-side trusted provisioning: links user to department with role
+  // ---------------------------------------------------------------------------
+  public adminProvisionDepartmentStaff(
+    params: {
+      userId: string;
+      email: string;
+      fullName: string;
+      departmentId: string;
+    },
+    callerAdminId: string = SEED_ADMIN_ID
+  ): { success: boolean; error?: string } {
+    if (!this.isMainAdmin(callerAdminId)) {
+      return {
+        success: false,
+        error: 'Unauthorized: Only Main Administrators can provision staff accounts.',
+      };
+    }
+
+    const dept = this.getDepartmentById(params.departmentId);
+    if (!dept) {
+      return {
+        success: false,
+        error: `Department does not exist or is inactive: ${params.departmentId}`,
+      };
+    }
+
+    const now = new Date().toISOString();
+    let profile = this.state.profiles.find((p) => p.id === params.userId);
+    if (profile) {
+      profile.full_name = params.fullName;
+      profile.email = params.email.toLowerCase();
+      profile.role = 'department_staff';
+      profile.updated_at = now;
+    } else {
+      profile = {
+        id: params.userId,
+        full_name: params.fullName,
+        email: params.email.toLowerCase(),
+        role: 'department_staff',
+        created_at: now,
+        updated_at: now,
+      };
+      this.state.profiles.push(profile);
+    }
+
+    let membership = this.state.memberships.find(
+      (m) => m.user_id === params.userId && m.department_id === params.departmentId
+    );
+    if (membership) {
+      membership.status = 'active';
+      membership.approved_by = callerAdminId;
+      membership.revoked_by = null;
+      membership.revoked_at = null;
+      membership.revocation_reason = null;
+      membership.updated_at = now;
+    } else {
+      membership = {
+        id: generateId('mem'),
+        user_id: params.userId,
+        department_id: params.departmentId,
+        status: 'active',
+        approved_by: callerAdminId,
+        approved_at: now,
+        created_at: now,
+        updated_at: now,
+      };
+      this.state.memberships.push(membership);
+    }
+
+    this.state.auditLogs.unshift({
+      id: generateId('audit'),
+      action: 'admin_provisioned',
+      target_user_id: params.userId,
+      target_email: params.email.toLowerCase(),
+      department_id: params.departmentId,
+      actor_id: callerAdminId,
+      details: { department: params.departmentId },
+      created_at: now,
+    });
+
+    this.saveState();
+    return { success: true };
+  }
+
+  // ---------------------------------------------------------------------------
+  // RPC: admin_reassign_complaint
+  // Corrects misclassified department routing
+  // ---------------------------------------------------------------------------
+  public adminReassignComplaint(
+    complaintId: string,
+    newDepartmentId: string,
+    reason: string,
+    callerAdminId: string = SEED_ADMIN_ID
+  ): { success: boolean; error?: string } {
+    if (!this.isMainAdmin(callerAdminId)) {
+      return {
+        success: false,
+        error: 'Unauthorized: Only Main Administrators can reassign complaints.',
+      };
+    }
+
+    const complaint = this.state.complaints.find((c) => c.id === complaintId);
+    if (!complaint) {
+      return { success: false, error: `Complaint not found: ${complaintId}` };
+    }
+
+    const oldDept = complaint.assigned_department_id;
+    const now = new Date().toISOString();
+    complaint.assigned_department_id = newDepartmentId;
+    complaint.is_reviewed_by_admin = true;
+    complaint.updated_at = now;
+
+    this.state.timelineEvents.push({
+      id: generateId('time'),
+      complaint_id: complaintId,
+      status: complaint.status,
+      title: 'Department Reassigned by Administrator',
+      title_urdu: 'ایڈمنسٹریٹر کی جانب سے محکمہ تبدیل کیا گیا',
+      description: `Rerouted from ${oldDept} to ${newDepartmentId}. Reason: ${reason}`,
+      description_urdu: `شکایت دوسرے محکمے کو منتقل کر دی گئی۔ وجہ: ${reason}`,
+      actor_role: 'main_admin',
+      actor_id: callerAdminId,
+      created_at: now,
+    });
+
+    this.saveState();
+    return { success: true };
+  }
+
+  // ---------------------------------------------------------------------------
+  // RLS: Direct UPDATE & DELETE Restrictions
+  // Staff and Citizens are DENIED direct update and delete on complaints
+  // ---------------------------------------------------------------------------
+  public directUpdateComplaint(
+    complaintId: string,
+    updates: Partial<ComplaintRow>,
+    callerUserId: string
+  ): { success: boolean; error?: string } {
+    if (!this.isMainAdmin(callerUserId)) {
+      return {
+        success: false,
+        error:
+          'RLS Permission Denied: Direct update on complaints is disallowed. Staff must use staff_update_complaint_status RPC.',
+      };
+    }
+
+    const complaint = this.state.complaints.find((c) => c.id === complaintId);
+    if (!complaint) return { success: false, error: 'Complaint not found.' };
+
+    Object.assign(complaint, updates, { updated_at: new Date().toISOString() });
+    this.saveState();
+    return { success: true };
+  }
+
+  public directDeleteComplaint(
+    complaintId: string,
+    callerUserId: string
+  ): { success: boolean; error?: string } {
+    if (!this.isMainAdmin(callerUserId)) {
+      return {
+        success: false,
+        error: 'RLS Permission Denied: Only Main Administrators can delete complaints.',
+      };
+    }
+
+    const idx = this.state.complaints.findIndex((c) => c.id === complaintId);
+    if (idx === -1) return { success: false, error: 'Complaint not found.' };
+
+    this.state.complaints.splice(idx, 1);
+    this.state.citizenPrivateDetails = this.state.citizenPrivateDetails.filter(
+      (p) => p.complaint_id !== complaintId
+    );
+    this.state.timelineEvents = this.state.timelineEvents.filter(
+      (t) => t.complaint_id !== complaintId
+    );
+    this.saveState();
+    return { success: true };
+  }
+
+  // ---------------------------------------------------------------------------
+  // Server-Enforced Authentication Rate Limiter
+  // Progressive backoff: 0-3: 0s, 4-5: 2s, 6-9: 5s, 10+: 15-min lock
+  // ---------------------------------------------------------------------------
+  public checkAuthRateLimit(identifier: string): {
+    allowed: boolean;
+    delay_seconds?: number;
+    retry_after_seconds?: number;
+    error?: string;
+  } {
+    const norm = identifier.trim().toLowerCase();
+    const record = this.state.rateLimits.find((r) => r.identifier === norm);
+    if (!record) {
+      return { allowed: true, delay_seconds: 0 };
+    }
+
+    const now = new Date();
+    if (record.locked_until && new Date(record.locked_until) > now) {
+      const remainingSeconds = Math.ceil(
+        (new Date(record.locked_until).getTime() - now.getTime()) / 1000
+      );
+      return {
+        allowed: false,
+        retry_after_seconds: remainingSeconds,
+        error: 'Too many failed login attempts. Please wait before retrying.',
+      };
+    }
+
+    if (record.failed_attempts >= 10) {
+      record.locked_until = new Date(now.getTime() + 15 * 60 * 1000).toISOString();
+      this.saveState();
+      return {
+        allowed: false,
+        retry_after_seconds: 900,
+        error: 'Account locked for 15 minutes due to repeated authentication failures.',
+      };
+    } else if (record.failed_attempts >= 6) {
+      return { allowed: true, delay_seconds: 5 };
+    } else if (record.failed_attempts >= 4) {
+      return { allowed: true, delay_seconds: 2 };
+    }
+
+    return { allowed: true, delay_seconds: 0 };
+  }
+
+  public recordAuthAttempt(identifier: string, isSuccess: boolean): void {
+    const norm = identifier.trim().toLowerCase();
+    const now = new Date().toISOString();
+    const existing = this.state.rateLimits.find((r) => r.identifier === norm);
+
+    if (isSuccess) {
+      if (existing) {
+        const idx = this.state.rateLimits.indexOf(existing);
+        this.state.rateLimits.splice(idx, 1);
+        this.saveState();
+      }
+      return;
+    }
+
+    if (existing) {
+      existing.failed_attempts += 1;
+      existing.last_attempt_at = now;
+    } else {
+      this.state.rateLimits.push({
+        id: generateId('rate'),
+        identifier: norm,
+        failed_attempts: 1,
+        first_attempt_at: now,
+        last_attempt_at: now,
+        locked_until: null,
+      });
+    }
+    this.saveState();
   }
 }
 

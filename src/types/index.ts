@@ -198,3 +198,56 @@ export interface SubmissionResult {
   timestamp: string;
   message: string;
 }
+
+/**
+ * Phase 3B: Database Schema Representation of public.complaints
+ */
+export interface DbComplaint {
+  id: string;
+  reference_number: string;
+  citizen_id: string;
+  title?: string | null;
+  description: string;
+  detected_language: DetectedLanguage;
+  incident_district: KarachiDistrict;
+  incident_locality: string;
+  incident_public_location: string;
+  status: ComplaintStatus;
+  assigned_department_id: DepartmentId;
+  predicted_department_id?: DepartmentId | null;
+  prediction_confidence?: number | null;
+  is_reviewed_by_admin: boolean;
+  is_demonstration: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * Phase 3B: Database Schema Representation of public.complaint_citizen_private (Strictly Isolated PII)
+ */
+export interface DbComplaintCitizenPrivate {
+  complaint_id: string;
+  citizen_name: string;
+  citizen_phone: string;
+  citizen_email?: string | null;
+  residential_address: string;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * Phase 3B: Database Schema Representation of public.complaint_timeline_events (Immutable Audit Trail)
+ */
+export interface DbComplaintTimelineEvent {
+  id: string;
+  complaint_id: string;
+  status: ComplaintStatus;
+  title: string;
+  title_urdu: string;
+  description: string;
+  description_urdu: string;
+  actor_role: 'system' | 'citizen' | 'department_staff' | 'main_admin';
+  actor_id?: string | null;
+  created_at: string;
+}
+
