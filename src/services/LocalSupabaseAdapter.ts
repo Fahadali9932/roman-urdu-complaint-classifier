@@ -905,6 +905,28 @@ export class LocalSupabaseAdapter {
     return membership;
   }
 
+  public createTestCredentials(
+    userId: string,
+    email: string,
+    passwordAttempt: string
+  ): void {
+    const emailNorm = email.trim().toLowerCase();
+    const existingCredIdx = this.state.credentials.findIndex(
+      (c) => c.email.toLowerCase() === emailNorm
+    );
+    const newCred: StoredUserCredential = {
+      userId,
+      email: emailNorm,
+      passwordHash: hashPassword(passwordAttempt),
+    };
+    if (existingCredIdx >= 0) {
+      this.state.credentials[existingCredIdx] = newCred;
+    } else {
+      this.state.credentials.push(newCred);
+    }
+    this.saveState();
+  }
+
   // ---------------------------------------------------------------------------
   // RLS: INSERT Complaint (Citizens own id or Admin, title optional/null)
   // ---------------------------------------------------------------------------

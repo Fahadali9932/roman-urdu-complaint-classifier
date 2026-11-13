@@ -348,10 +348,10 @@ describe('Department Portal — Security, Privacy, and Workflow Integrity', () =
       );
 
       expect(
-        screen.getByRole('heading', { name: /^Sign in$/i })
-      ).toBeInTheDocument();
+        screen.getByRole('heading', { level: 1 })
+      ).toHaveTextContent('DEPARTMENT.');
       expect(
-        screen.getByRole('button', { name: /Continue to portal/i })
+        screen.getByText(/CLICK TO SELECT CONSOLE/i)
       ).toBeInTheDocument();
     });
   });

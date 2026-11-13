@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import React from 'react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { LanguageProvider } from '../context/LanguageContext';
@@ -97,93 +97,49 @@ describe('Staff & Administrator Access Screens (Figma 35:1282, 35:1332, 35:1363,
     });
   });
 
-  describe('2. Department Sign-In (Frame 35:1332)', () => {
-    it('renders department sign-in with work email and password', () => {
+  describe('2. Department Entry & Selection Screen', () => {
+    it('renders department selection entry with monumental DEPARTMENT. heading', () => {
       renderWithProviders('/department/login');
 
-      expect(screen.getAllByText('Department Portal').length).toBeGreaterThan(0);
-      expect(screen.getByRole('heading', { name: /^Sign in$/i })).toBeInTheDocument();
-      expect(screen.getByText(/Welcome back\./i)).toBeInTheDocument();
-      expect(
-        screen.getByText(/Sign in with your approved departmental account/i)
-      ).toBeInTheDocument();
+      expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('DEPARTMENT.');
+      expect(screen.getByText('Roads & Infrastructure')).toBeInTheDocument();
+      expect(screen.getByText(/CLICK TO SELECT CONSOLE/i)).toBeInTheDocument();
+    });
 
-      // Navigation link to Main Admin
-      expect(
-        screen.getByRole('button', { name: /Main Administrator sign in →/i })
-      ).toBeInTheDocument();
+    it('renders Roads login screen when dept=kmc is present', () => {
+      renderWithProviders('/department/login?dept=kmc');
+
+      expect(screen.getByText('ROADS & INFRASTRUCTURE')).toBeInTheDocument();
+      expect(screen.getByLabelText(/Assigned Work Email/i)).toBeInTheDocument();
+      expect(screen.getByLabelText(/Access Key \/ Password/i)).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Sign In to Roads Console/i })).toBeInTheDocument();
     });
   });
 
-  describe('3. Staff Request Access & Pending Approval (Frames 35:1363 & 35:1390)', () => {
-    it('renders request access fields and validates required inputs', () => {
-      renderWithProviders('/department/login');
+  describe('3. Staff Security Guard: Public Request Access Controls Retired', () => {
+    it('confirms public request access fields and pending approval states are removed', () => {
+      renderWithProviders('/department/login?dept=kmc');
 
-      expect(screen.getByText(/Request access • Approval required before sign-in/i)).toBeInTheDocument();
-      expect(screen.getByLabelText(/Full name/i)).toBeInTheDocument();
-      expect(screen.getAllByLabelText(/Work email/i).length).toBe(2); // One in signin, one in request
-
-      const requestBtn = screen.getByRole('button', { name: /Request Access/i });
-      fireEvent.click(requestBtn);
-
-      expect(screen.getByText(/Please enter your full name/i)).toBeInTheDocument();
-    });
-
-    it('transitions to Pending Approval state (Frame 35:1390) upon valid request', () => {
-      renderWithProviders('/department/login');
-
-      // Fill in Request Access form
-      fireEvent.change(screen.getByLabelText(/Full name/i), {
-        target: { value: 'Tariq Mansoor' },
-      });
-      fireEvent.change(screen.getAllByLabelText(/Work email/i)[1], {
-        target: { value: 'tariq.mansoor@ke.com.pk' },
-      });
-      fireEvent.change(screen.getAllByLabelText(/Password/i)[1], {
-        target: { value: 'SecureStaff123' },
-      });
-
-      fireEvent.click(screen.getByRole('button', { name: /Request Access/i }));
-
-      // Pending Approval State (Figma Frame 35:1390)
-      expect(
-        screen.getByRole('heading', { name: /Awaiting administrator approval/i })
-      ).toBeInTheDocument();
-      expect(screen.getByText('PENDING REVIEW')).toBeInTheDocument();
-      expect(
-        screen.getByText(/This sample request is pending review\. You can sign in once an administrator approves your access\./i)
-      ).toBeInTheDocument();
-      expect(
-        screen.getByText(/Design example • No account is created/i)
-      ).toBeInTheDocument();
-
-      // Reset action restores form
-      const resetBtn = screen.getByRole('button', { name: /Submit another request/i });
-      fireEvent.click(resetBtn);
-      expect(screen.getByLabelText(/Full name/i)).toBeInTheDocument();
+      // Obsolete controls must not exist
+      expect(screen.queryByText(/Request access • Approval required before sign-in/i)).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /Request Access/i })).not.toBeInTheDocument();
+      expect(screen.queryByText(/Awaiting administrator approval/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/Design example • No account is created/i)).not.toBeInTheDocument();
     });
   });
 
-  describe('4. Department Selector Interaction', () => {
-    it('opens popover and allows selecting a municipal agency', async () => {
+  describe('4. Department Selector Modal Interaction', () => {
+    it('opens full-screen modal and lists municipal agencies', async () => {
       renderWithProviders('/department/login');
 
-      // The button is associated with the label "Department"
-      const selectorBtn = screen.getByLabelText(/^Department$/i);
-      fireEvent.click(selectorBtn);
+      const triggerBtn = screen.getByText(/CLICK TO SELECT CONSOLE/i).closest('button');
+      fireEvent.click(triggerBtn!);
 
-      // Verify agency options are listed
-      expect(screen.getByText('Karachi Water & Sewerage Corporation (KW&SC)')).toBeInTheDocument();
-      expect(screen.getByText('Sui Southern Gas Company (SSGC)')).toBeInTheDocument();
-
-      // Select KWSC
-      const kwscOption = screen.getByText('Karachi Water & Sewerage Corporation (KW&SC)');
-      fireEvent.click(kwscOption);
-
-      // Verify selection updated
-      await waitFor(() => {
-        expect(screen.getAllByText('Karachi Water & Sewerage Corporation (KW&SC)').length).toBeGreaterThan(0);
-      });
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+      expect(screen.getByText('Select Municipal Department Console')).toBeInTheDocument();
+      expect(screen.getAllByText('KMC').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getByText('KWSC')).toBeInTheDocument();
+      expect(screen.getByText('SSGC')).toBeInTheDocument();
     });
   });
 });
