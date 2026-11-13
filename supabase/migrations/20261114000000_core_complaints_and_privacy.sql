@@ -870,3 +870,4 @@ $$;
 
 REVOKE ALL ON FUNCTION public.record_auth_attempt(TEXT, BOOLEAN) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.record_auth_attempt(TEXT, BOOLEAN) TO anon, authenticated;
+

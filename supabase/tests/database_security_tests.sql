@@ -222,3 +222,4 @@ $$;
 ROLLBACK;
 
 RAISE NOTICE 'All Phase 3B database security tests passed with 100% compliance.';
+
