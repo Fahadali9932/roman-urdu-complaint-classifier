@@ -189,3 +189,4 @@ export const DepartmentSelectionModal: React.FC<DepartmentSelectionModalProps> =
     </div>
   );
 };
+

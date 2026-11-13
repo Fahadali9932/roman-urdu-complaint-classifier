@@ -73,3 +73,4 @@ export const DepartmentBackground: React.FC<DepartmentBackgroundProps> = ({
     </div>
   );
 };
+
