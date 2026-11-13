@@ -1,319 +1,511 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useDepartmentAuth } from '../../context/DepartmentAuthContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { type DepartmentId } from '../../types';
+import { StaffAuthLayout } from '../auth/components/StaffAuthLayout';
+import { DepartmentSelector } from '../auth/components/DepartmentSelector';
 import {
-  Globe,
-  ExternalLink,
-  Lock,
-  ChevronDown,
-  Check,
   Eye,
   EyeOff,
   ArrowRight,
   ArrowLeft,
-  FileText,
+  Building2,
+  AlertCircle,
+  Info,
+  Clock,
+  ShieldCheck,
 } from 'lucide-react';
-import { getDepartmentIcon } from './components/DepartmentHeader';
-import './department-theme.css';
 
 export const DepartmentLoginPage: React.FC = () => {
   const { availableDepartments, signIn } = useDepartmentAuth();
-  const { language, toggleLanguage, t, isRTL } = useLanguage();
+  const { language, isRTL } = useLanguage();
   const navigate = useNavigate();
 
-  const [selectedDeptId, setSelectedDeptId] = useState<DepartmentId>('kelectric');
-  const [accessKey, setAccessKey] = useState('');
-  const [showKey, setShowKey] = useState(false);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  // Sign In Form State (Frame 35:1332)
+  const [signInEmail, setSignInEmail] = useState('');
+  const [signInPassword, setSignInPassword] = useState('');
+  const [showSignInPassword, setShowSignInPassword] = useState(false);
+  const [signInError, setSignInError] = useState<string | null>(null);
+  const [signInNotice, setSignInNotice] = useState<string | null>(null);
 
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  // Request Access Form State (Frame 35:1363)
+  const [reqDepartment, setReqDepartment] = useState<DepartmentId | ''>('kelectric');
+  const [reqFullName, setReqFullName] = useState('');
+  const [reqEmail, setReqEmail] = useState('');
+  const [reqPassword, setReqPassword] = useState('');
+  const [showReqPassword, setShowReqPassword] = useState(false);
+  const [reqError, setReqError] = useState<string | null>(null);
 
-  // Close dropdown on outside click or Escape key
-  useEffect(() => {
-    const handleOutsideClick = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setIsDropdownOpen(false);
-      }
-    };
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setIsDropdownOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleOutsideClick);
-    document.addEventListener('keydown', handleKeyDown);
-    return () => {
-      document.removeEventListener('mousedown', handleOutsideClick);
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, []);
-
-  const selectedDepartment =
-    availableDepartments.find((d) => d.id === selectedDeptId) || availableDepartments[0];
-
-  const handleSignIn = (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-
-    const res = signIn(selectedDeptId, accessKey);
-    if (res.success) {
-      navigate('/department');
-    } else {
-      setError(res.error || 'Failed to sign in.');
-    }
-  };
+  // Pending Approval State Toggle (Frame 35:1390)
+  const [isAccessRequested, setIsAccessRequested] = useState(false);
 
   const ArrowIcon = isRTL ? ArrowLeft : ArrowRight;
 
+  // Handle Sign In (Frame 35:1332)
+  const handleSignIn = (e: React.FormEvent) => {
+    e.preventDefault();
+    setSignInError(null);
+    setSignInNotice(null);
+
+    if (!signInEmail.trim()) {
+      setSignInError(
+        language === 'ur'
+          ? 'براہ کرم اپنا دفتری ای میل درج کریں۔'
+          : 'Please enter your work email.'
+      );
+      return;
+    }
+    if (!signInPassword) {
+      setSignInError(
+        language === 'ur'
+          ? 'براہ کرم اپنا پاس ورڈ درج کریں۔'
+          : 'Please enter your password.'
+      );
+      return;
+    }
+
+    // Try finding matching department by email or default to KE for preview
+    const matchingDept = availableDepartments.find((d) =>
+      signInEmail.toLowerCase().includes(d.id.toLowerCase())
+    ) || availableDepartments[0];
+
+    // Local prototype sign-in for preview testing without saving password
+    const res = signIn(matchingDept.id);
+    if (res.success) {
+      navigate('/department');
+    } else {
+      setSignInError(res.error || 'Authentication failed.');
+    }
+  };
+
+  // Handle Request Access Submission (Frame 35:1363 -> Frame 35:1390)
+  const handleRequestAccess = (e: React.FormEvent) => {
+    e.preventDefault();
+    setReqError(null);
+
+    if (!reqDepartment) {
+      setReqError(
+        language === 'ur'
+          ? 'براہ کرم اپنا متعلقہ محکمہ منتخب کریں۔'
+          : 'Please select your department.'
+      );
+      return;
+    }
+    if (!reqFullName.trim()) {
+      setReqError(
+        language === 'ur'
+          ? 'براہ کرم اپنا مکمل نام درج کریں۔'
+          : 'Please enter your full name.'
+      );
+      return;
+    }
+    if (!reqEmail.trim() || !reqEmail.includes('@')) {
+      setReqError(
+        language === 'ur'
+          ? 'براہ کرم ایک درست دفتری ای میل درج کریں۔'
+          : 'Please enter a valid work email.'
+      );
+      return;
+    }
+    if (!reqPassword || reqPassword.length < 6) {
+      setReqError(
+        language === 'ur'
+          ? 'پاس ورڈ کم از کم 6 حروف پر مشتمل ہونا چاہیے۔'
+          : 'Password must be at least 6 characters.'
+      );
+      return;
+    }
+
+    // Transition to Pending Approval State (Frame 35:1390)
+    // NOTE: ZERO passwords stored in localStorage or sessionStorage
+    setIsAccessRequested(true);
+  };
+
   return (
-    <div className="dept-workspace-root flex flex-col justify-between min-h-screen relative selection:bg-[#2C4A52]/20">
-      {/* Top Navbar */}
-      <header className="border-b border-[#E1E4E6] bg-[#FFFFFF] px-4 sm:px-6 lg:px-8 py-3.5">
-        <div className="max-w-[1080px] mx-auto w-full flex items-center justify-between">
-          <Link
-            to="/"
-            className="flex items-center gap-2.5 focus-visible:outline-2 focus-visible:outline-[#122E32]"
-          >
-            <div className="w-8 h-8 rounded-lg bg-[#122E32] text-[#FFFFFF] flex items-center justify-center font-bold text-sm">
-              آ
+    <StaffAuthLayout activeRole="department">
+      <div className="space-y-8">
+        {/* =====================================================================
+            SECTION 1: DEPARTMENT SIGN IN (Figma Frame 35:1332)
+            ===================================================================== */}
+        <section className="space-y-5" aria-labelledby="dept-signin-heading">
+          {/* Header Block */}
+          <div className="space-y-2">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#F1F5F9] border border-[#E2E8F0] text-xs font-mono font-semibold tracking-wide text-[#0F1E21]">
+              <Building2 className="w-3.5 h-3.5 text-[#122E32]" />
+              <span>{language === 'ur' ? 'محکمہ پورٹل' : 'Department Portal'}</span>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="font-bold text-sm sm:text-base tracking-tight text-[#0F1E21]">
-                {language === 'ur' ? 'آوازِ عوام' : 'Awaaz-e-Awam'}
-              </span>
-              <span className="text-xs font-medium text-[#5B646B] bg-[#F4F6F6] px-2 py-0.5 rounded border border-[#E1E4E6]">
-                {t('deptPortalLabel')}
-              </span>
-            </div>
-          </Link>
 
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={toggleLanguage}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#E1E4E6] text-xs font-semibold text-[#0F1E21] hover:bg-[#F4F6F6] transition-colors cursor-pointer"
+            <h2
+              id="dept-signin-heading"
+              className="text-2xl sm:text-3xl font-bold tracking-tight text-[#0F1E21]"
             >
-              <Globe className="w-3.5 h-3.5 text-[#5B646B]" />
-              <span>{language === 'en' ? 'اردو' : 'English'}</span>
-            </button>
-            <Link
-              to="/"
-              className="hidden sm:flex items-center gap-1 text-xs font-semibold text-[#5B646B] hover:text-[#0F1E21] transition-colors"
-            >
-              <ExternalLink className="w-3.5 h-3.5" />
-              <span>{t('deptSwitchToCitizenPortal')}</span>
-            </Link>
+              {language === 'ur' ? 'سائن ان' : 'Sign in'}
+            </h2>
+
+            <p className="text-sm font-semibold text-[#0F1E21]">
+              {language === 'ur' ? 'خوش آمدید' : 'Welcome back.'}
+            </p>
+
+            <p className="text-sm text-[#64748B] leading-relaxed">
+              {language === 'ur'
+                ? 'اپنے منظور شدہ محکمانہ اکاؤنٹ سے لاگ ان کریں۔'
+                : 'Sign in with your approved departmental account.'}
+            </p>
           </div>
-        </div>
-      </header>
 
-      {/* Main Authentication Container */}
-      <main className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-        <div className="max-w-[1020px] w-full mx-auto bg-[#FFFFFF] border border-[#E1E4E6] rounded-2xl shadow-sm overflow-hidden grid grid-cols-1 lg:grid-cols-12 min-h-[520px]">
-          {/* LEFT SECTION — BRAND AND PURPOSE (lg:col-span-5) */}
-          <section className="lg:col-span-5 relative bg-[#122E32] text-[#FFFFFF] p-8 sm:p-10 lg:p-12 flex flex-col justify-between overflow-hidden">
-            {/* Subtle Abstract Architectural Motif (Delicate lines, no marketing tiles) */}
+          {/* Feedback messages */}
+          {signInError && (
             <div
-              className="pointer-events-none absolute inset-0 opacity-10"
-              style={{
-                backgroundImage:
-                  'radial-gradient(circle at 100% 0%, rgba(255,255,255,0.2) 0%, transparent 60%), linear-gradient(180deg, rgba(255,255,255,0.05) 1px, transparent 1px)',
-                backgroundSize: '100% 100%, 100% 24px',
-              }}
-              aria-hidden="true"
-            />
+              className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold flex items-center gap-2"
+              role="alert"
+            >
+              <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
+              <span>{signInError}</span>
+            </div>
+          )}
 
-            <div className="relative z-10 space-y-3">
-              <div className="w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center text-white mb-4 border border-white/15">
-                <FileText className="w-4 h-4" />
+          {signInNotice && (
+            <div
+              className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs leading-relaxed flex items-start gap-2"
+              role="status"
+            >
+              <Info className="w-4 h-4 shrink-0 text-amber-600 mt-0.5" />
+              <span>{signInNotice}</span>
+            </div>
+          )}
+
+          {/* Department Sign In Form */}
+          <form onSubmit={handleSignIn} className="space-y-4">
+            {/* Work email */}
+            <div className="space-y-1.5">
+              <label
+                htmlFor="dept-signin-email"
+                className="block text-xs font-semibold text-[#0F1E21] uppercase tracking-wider"
+              >
+                {language === 'ur' ? 'دفتری ای میل' : 'Work email'}
+              </label>
+              <input
+                id="dept-signin-email"
+                type="email"
+                value={signInEmail}
+                onChange={(e) => setSignInEmail(e.target.value)}
+                placeholder="name@example.org"
+                className="staff-input"
+                autoComplete="email"
+              />
+            </div>
+
+            {/* Password */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <label
+                  htmlFor="dept-signin-password"
+                  className="block text-xs font-semibold text-[#0F1E21] uppercase tracking-wider"
+                >
+                  {language === 'ur' ? 'پاس ورڈ' : 'Password'}
+                </label>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setSignInNotice(
+                      language === 'ur'
+                        ? 'پاس ورڈ ری سیٹ کی سہولت تصدیقی بیک اینڈ کے ساتھ فعال ہوگی۔'
+                        : 'Password reset will be available once the backend auth system is connected.'
+                    )
+                  }
+                  className="text-xs font-medium text-[#64748B] hover:text-[#0F1E21] transition-colors cursor-pointer"
+                >
+                  {language === 'ur' ? 'پاس ورڈ بھول گئے؟' : 'Forgot password?'}
+                </button>
               </div>
-              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white leading-tight">
-                {t('deptBrandPanelTitle')}
-              </h1>
-              <p className="text-sm sm:text-base text-[#ACAFB6] leading-relaxed max-w-xs">
-                {t('deptBrandPanelSubtitle')}
+              <div className="relative">
+                <input
+                  id="dept-signin-password"
+                  type={showSignInPassword ? 'text' : 'password'}
+                  value={signInPassword}
+                  onChange={(e) => setSignInPassword(e.target.value)}
+                  placeholder={
+                    language === 'ur' ? 'اپنا پاس ورڈ درج کریں' : 'Enter your password'
+                  }
+                  className="staff-input pr-10 rtl:pr-4 rtl:pl-10"
+                  autoComplete="current-password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowSignInPassword(!showSignInPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 rtl:right-auto rtl:left-0 rtl:pl-3 flex items-center text-[#64748B] hover:text-[#0F1E21] cursor-pointer transition-colors"
+                  title={showSignInPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showSignInPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+
+            {/* Sign in button (Figma 35:1360 / Continue to portal) */}
+            <button
+              type="submit"
+              className="staff-btn-primary w-full mt-2"
+            >
+              <span>{language === 'ur' ? 'پورٹل میں داخل ہوں' : 'Continue to portal'}</span>
+              <ArrowIcon className="w-4 h-4 staff-icon-arrow" />
+            </button>
+
+            {/* Sub-navigation links */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-2 pt-1 text-xs text-[#64748B]">
+              <button
+                type="button"
+                onClick={() => navigate('/admin/login')}
+                className="font-medium hover:text-[#0F1E21] transition-colors cursor-pointer"
+              >
+                {language === 'ur'
+                  ? 'مین ایڈمنسٹریٹر لاگ ان →'
+                  : 'Main Administrator sign in →'}
+              </button>
+              <span>
+                {language === 'ur'
+                  ? 'پروٹوٹائپ • انٹرفیس معائنے کے لیے'
+                  : 'Prototype • Visual interface inspection'}
+              </span>
+            </div>
+          </form>
+        </section>
+
+        {/* =====================================================================
+            SECTION 2: REQUEST ACCESS / PENDING APPROVAL (Figma Frames 35:1363 & 35:1390)
+            ===================================================================== */}
+        <section
+          className="staff-subtle-card p-6 sm:p-7 space-y-4"
+          aria-labelledby="dept-request-heading"
+        >
+          {isAccessRequested ? (
+            /* --- STATE / Department / Access requested (Figma Frame 35:1390) --- */
+            <div className="space-y-4 py-2" role="region" aria-live="polite">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-100/70 border border-amber-200 text-amber-700 flex items-center justify-center shrink-0">
+                  <Clock className="w-5 h-5 text-amber-800" />
+                </div>
+                <div>
+                  <h3
+                    id="dept-request-heading"
+                    className="text-base sm:text-lg font-bold text-[#0F1E21]"
+                  >
+                    {language === 'ur'
+                      ? 'ایڈمنسٹریٹر کی منظوری کا انتظار ہے'
+                      : 'Awaiting administrator approval'}
+                  </h3>
+                  <span className="text-xs font-mono text-amber-800 bg-amber-100/60 px-2 py-0.5 rounded">
+                    {language === 'ur' ? 'زیرِ جائزہ' : 'PENDING REVIEW'}
+                  </span>
+                </div>
+              </div>
+
+              <p className="text-xs sm:text-sm text-[#334155] leading-relaxed">
+                {language === 'ur'
+                  ? 'یہ درخواست زیرِ جائزہ ہے۔ ایک بار جب ایڈمنسٹریٹر آپ کی رسائی کی تصدیق کر دے گا تو آپ لاگ ان کر سکیں گے۔'
+                  : 'This sample request is pending review. You can sign in once an administrator approves your access.'}
               </p>
-            </div>
 
-            {/* Restrained Institutional Context Note */}
-            <div className="relative z-10 pt-6 mt-6 border-t border-white/10 text-xs text-[#ACAFB6] leading-relaxed">
-              <p>{t('deptBrandPanelNotice')}</p>
-            </div>
-          </section>
-
-          {/* RIGHT SECTION — SIGN-IN FORM (lg:col-span-7) */}
-          <section className="lg:col-span-7 p-6 sm:p-10 lg:p-12 flex flex-col justify-center bg-[#FFFFFF]">
-            <div className="max-w-md w-full mx-auto space-y-6">
-              {/* Header */}
-              <div className="space-y-1">
-                <h2 className="text-2xl font-bold tracking-tight text-[#0F1E21]">
-                  {t('deptSignInTitle')}
-                </h2>
-                <p className="text-sm text-[#5B646B]">
-                  {t('deptSignInSubtitle')}
+              <div className="p-3.5 rounded-xl bg-white border border-[#E2E8F0] text-xs text-[#64748B] leading-relaxed space-y-1.5">
+                <div className="flex items-center gap-2 text-[#0F1E21] font-semibold">
+                  <ShieldCheck className="w-4 h-4 text-[#122E32]" />
+                  <span>
+                    {language === 'ur'
+                      ? 'انتظامی گورننس ضابطہ'
+                      : 'Administrative Governance Policy'}
+                  </span>
+                </div>
+                <p>
+                  {language === 'ur'
+                    ? 'عملے کو صرف اپنے متعلقہ محکمے کی شکایات تک رسائی حاصل ہوتی ہے۔ شہریوں کے نجی رابطے کے کوائف مخفی رکھے جاتے ہیں۔'
+                    : 'Staff access only assigned complaints. Citizen contact details are restricted.'}
                 </p>
               </div>
 
-              {/* Form */}
-              <form onSubmit={handleSignIn} className="space-y-5">
-                {error && (
-                  <div className="p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold">
-                    {error}
-                  </div>
-                )}
-
-                {/* Department Selection */}
-                <div className="space-y-1.5 relative" ref={dropdownRef}>
-                  <label className="block text-xs font-semibold text-[#0F1E21] uppercase tracking-wider">
-                    {t('deptSelectAgency')}
-                  </label>
-
-                  {/* Accessible Dropdown Trigger */}
-                  <button
-                    type="button"
-                    onClick={() => setIsDropdownOpen((prev) => !prev)}
-                    className="w-full h-[50px] px-3.5 rounded-xl border border-[#E1E4E6] bg-[#FFFFFF] hover:bg-[#FAFBFB] text-[#0F1E21] flex items-center justify-between transition-colors focus:outline-none focus:border-[#2C4A52] focus:ring-2 focus:ring-[#2C4A52]/15 cursor-pointer"
-                    aria-haspopup="listbox"
-                    aria-expanded={isDropdownOpen}
+              <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+                <span className="font-mono text-[#64748B] text-[11px]">
+                  {language === 'ur'
+                    ? 'ڈیزائن نمونہ • کوئی اکاؤنٹ نہیں بنایا گیا'
+                    : 'Design example • No account is created'}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setIsAccessRequested(false)}
+                  className="font-semibold text-[#122E32] hover:underline cursor-pointer"
+                >
+                  {language === 'ur'
+                    ? 'دوسری درخواست جمع کرائیں'
+                    : 'Submit another request'}
+                </button>
+              </div>
+            </div>
+          ) : (
+            /* --- Department access / request preview (Figma Frame 35:1363) --- */
+            <div className="space-y-4">
+              <div className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <h3
+                    id="dept-request-heading"
+                    className="text-base font-bold text-[#0F1E21]"
                   >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-7 h-7 rounded-lg bg-[#F4F6F6] text-[#2C4A52] flex items-center justify-center shrink-0 border border-[#E1E4E6]">
-                        {getDepartmentIcon(selectedDepartment.id, 'w-3.5 h-3.5')}
-                      </div>
-                      <span className="block text-sm font-semibold text-[#0F1E21] truncate text-left rtl:text-right">
-                        {language === 'ur' ? selectedDepartment.nameUrdu : selectedDepartment.name}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <span className="font-mono text-xs font-bold text-[#5B646B] bg-[#F4F6F6] px-2 py-0.5 rounded border border-[#E1E4E6]">
-                        {selectedDepartment.code}
-                      </span>
-                      <ChevronDown
-                        className={`w-4 h-4 text-[#687E8B] transition-transform duration-150 ${
-                          isDropdownOpen ? 'rotate-180' : ''
-                        }`}
+                    {language === 'ur' ? 'محکمہ پورٹل' : 'Department Portal'}
+                  </h3>
+                  <span className="text-[11px] font-mono text-[#64748B] uppercase tracking-wider">
+                    {language === 'ur' ? 'رسائی کی درخواست' : 'Request Access'}
+                  </span>
+                </div>
+                <p className="text-xs text-[#64748B] leading-relaxed">
+                  {language === 'ur'
+                    ? 'رسائی کی درخواست کریں • لاگ ان سے پہلے ایڈمنسٹریٹر کی منظوری لازمی ہے'
+                    : 'Request access • Approval required before sign-in'}
+                </p>
+              </div>
+
+              {/* Request Access Form Validation Error */}
+              {reqError && (
+                <div
+                  className="p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold flex items-center gap-2"
+                  role="alert"
+                >
+                  <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
+                  <span>{reqError}</span>
+                </div>
+              )}
+
+              <form onSubmit={handleRequestAccess} className="space-y-3.5">
+                {/* 2-Column Grid (Figma: width 270 per field) */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  {/* Field 1: Department Selector */}
+                  <div className="space-y-1.5">
+                    <label
+                      htmlFor="req-department-select"
+                      className="block text-xs font-semibold text-[#0F1E21]"
+                    >
+                      {language === 'ur' ? 'محکمہ' : 'Department'}
+                    </label>
+                    <DepartmentSelector
+                      id="req-department-select"
+                      value={reqDepartment}
+                      onChange={(id) => setReqDepartment(id)}
+                      placeholder={
+                        language === 'ur' ? 'محکمہ منتخب کریں' : 'Select department'
+                      }
+                      hasError={!reqDepartment && !!reqError}
+                    />
+                  </div>
+
+                  {/* Field 2: Full Name */}
+                  <div className="space-y-1.5">
+                    <label
+                      htmlFor="req-fullname"
+                      className="block text-xs font-semibold text-[#0F1E21]"
+                    >
+                      {language === 'ur' ? 'مکمل نام' : 'Full name'}
+                    </label>
+                    <input
+                      id="req-fullname"
+                      type="text"
+                      value={reqFullName}
+                      onChange={(e) => setReqFullName(e.target.value)}
+                      placeholder={language === 'ur' ? 'آپ کا مکمل نام' : 'Your full name'}
+                      className="staff-input"
+                      autoComplete="name"
+                    />
+                  </div>
+
+                  {/* Field 3: Work Email */}
+                  <div className="space-y-1.5">
+                    <label
+                      htmlFor="req-email"
+                      className="block text-xs font-semibold text-[#0F1E21]"
+                    >
+                      {language === 'ur' ? 'دفتری ای میل' : 'Work email'}
+                    </label>
+                    <input
+                      id="req-email"
+                      type="email"
+                      value={reqEmail}
+                      onChange={(e) => setReqEmail(e.target.value)}
+                      placeholder="name@example.org"
+                      className="staff-input"
+                      autoComplete="email"
+                    />
+                  </div>
+
+                  {/* Field 4: Password Creation */}
+                  <div className="space-y-1.5">
+                    <label
+                      htmlFor="req-password"
+                      className="block text-xs font-semibold text-[#0F1E21]"
+                    >
+                      {language === 'ur' ? 'پاس ورڈ' : 'Password'}
+                    </label>
+                    <div className="relative">
+                      <input
+                        id="req-password"
+                        type={showReqPassword ? 'text' : 'password'}
+                        value={reqPassword}
+                        onChange={(e) => setReqPassword(e.target.value)}
+                        placeholder={
+                          language === 'ur'
+                            ? 'پاس ورڈ بنائیں'
+                            : 'Create password'
+                        }
+                        className="staff-input pr-10 rtl:pr-4 rtl:pl-10"
+                        autoComplete="new-password"
                       />
+                      <button
+                        type="button"
+                        onClick={() => setShowReqPassword(!showReqPassword)}
+                        className="absolute inset-y-0 right-0 pr-3 rtl:right-auto rtl:left-0 rtl:pl-3 flex items-center text-[#64748B] hover:text-[#0F1E21] cursor-pointer"
+                        title={showReqPassword ? 'Hide password' : 'Show password'}
+                      >
+                        {showReqPassword ? (
+                          <EyeOff className="w-4 h-4" />
+                        ) : (
+                          <Eye className="w-4 h-4" />
+                        )}
+                      </button>
                     </div>
+                  </div>
+                </div>
+
+                {/* Submit Row: Request Access CTA & Navigation Link */}
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2">
+                  <button
+                    type="submit"
+                    className="staff-btn-primary w-full sm:w-[220px]"
+                  >
+                    <span>
+                      {language === 'ur' ? 'رسائی کی درخواست کریں' : 'Request Access'}
+                    </span>
+                    <ArrowIcon className="w-4 h-4 staff-icon-arrow" />
                   </button>
 
-                  {/* Dropdown Menu Popover */}
-                  {isDropdownOpen && (
-                    <div
-                      className="absolute z-30 left-0 right-0 mt-1 bg-[#FFFFFF] border border-[#E1E4E6] rounded-xl shadow-lg overflow-hidden py-1 max-h-[280px] overflow-y-auto dept-fade-in"
-                      role="listbox"
-                    >
-                      {availableDepartments.map((dept) => {
-                        const isSelected = selectedDeptId === dept.id;
-                        return (
-                          <button
-                            key={dept.id}
-                            type="button"
-                            onClick={() => {
-                              setSelectedDeptId(dept.id);
-                              setIsDropdownOpen(false);
-                            }}
-                            className={`w-full px-3.5 py-2.5 flex items-center justify-between text-left rtl:text-right transition-colors cursor-pointer ${
-                              isSelected
-                                ? 'bg-[#F0F4F5] font-semibold text-[#0F1E21]'
-                                : 'hover:bg-[#FAFBFB] text-[#0F1E21]'
-                            }`}
-                            role="option"
-                            aria-selected={isSelected}
-                          >
-                            <div className="flex items-center gap-3 min-w-0">
-                              <div
-                                className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border ${
-                                  isSelected
-                                    ? 'bg-[#122E32] text-white border-[#122E32]'
-                                    : 'bg-[#F4F6F6] text-[#2C4A52] border-[#E1E4E6]'
-                                }`}
-                              >
-                                {getDepartmentIcon(dept.id, 'w-3.5 h-3.5')}
-                              </div>
-                              <span className="block text-sm font-semibold truncate">
-                                {language === 'ur' ? dept.nameUrdu : dept.name}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-2 shrink-0">
-                              <span className="font-mono text-xs font-bold text-[#5B646B]">
-                                {dept.code}
-                              </span>
-                              {isSelected && <Check className="w-4 h-4 text-[#122E32]" />}
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
+                  <a
+                    href="#dept-signin-heading"
+                    className="text-xs font-medium text-[#64748B] hover:text-[#0F1E21] text-center sm:text-right rtl:sm:text-left transition-colors"
+                  >
+                    {language === 'ur'
+                      ? 'پہلے سے منظور شدہ؟ محکمہ لاگ ان اوپر ہے ↑'
+                      : 'Already approved? Department sign in ↑'}
+                  </a>
                 </div>
 
-                {/* Access Key Input */}
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <label htmlFor="accessKey" className="block text-xs font-semibold text-[#0F1E21] uppercase tracking-wider">
-                      {t('deptAccessKeyLabel')}
-                    </label>
-                  </div>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#687E8B]">
-                      <Lock className="w-4 h-4" />
-                    </div>
-                    <input
-                      id="accessKey"
-                      type={showKey ? 'text' : 'password'}
-                      value={accessKey}
-                      onChange={(e) => setAccessKey(e.target.value)}
-                      placeholder={t('deptAccessKeyPlaceholder')}
-                      className="dept-input h-[50px] pl-10 pr-10 text-sm bg-white rounded-xl"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowKey(!showKey)}
-                      className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-[#687E8B] hover:text-[#0F1E21] transition-colors cursor-pointer"
-                      title={showKey ? 'Hide key' : 'Show key'}
-                    >
-                      {showKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
-                  </div>
-                  <p className="text-xs text-[#5B646B] leading-relaxed pt-0.5">
-                    {t('deptPrototypeNotice')}
-                  </p>
+                {/* Operational Security Disclosure (Figma 35:1381) */}
+                <div className="pt-2 border-t border-[#E2E8F0] text-[11px] text-[#64748B] leading-relaxed flex items-center gap-1.5">
+                  <ShieldCheck className="w-3.5 h-3.5 text-[#122E32] shrink-0" />
+                  <span>
+                    {language === 'ur'
+                      ? 'عملے کو صرف اپنے متعلقہ محکمے کی شکایات تک رسائی حاصل ہوتی ہے۔ شہریوں کے رابطے کے کوائف مخفی رہتے ہیں۔'
+                      : 'Staff access only assigned complaints. Citizen contact details are restricted.'}
+                  </span>
                 </div>
-
-                {/* Primary Button */}
-                <button
-                  type="submit"
-                  className="dept-btn-primary w-full h-[50px] rounded-xl text-sm font-semibold shadow-xs flex items-center justify-center gap-2 cursor-pointer mt-2"
-                >
-                  <span>{t('deptEnterPortal')}</span>
-                  <ArrowIcon className="w-4 h-4" />
-                </button>
               </form>
             </div>
-          </section>
-        </div>
-      </main>
-
-      {/* Footer */}
-      <footer className="py-4 border-t border-[#E1E4E6] bg-[#FFFFFF] text-center text-xs text-[#5B646B]">
-        <div className="max-w-[1080px] mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <p>© 2026 Awaaz-e-Awam • Department Portal</p>
-          <div className="flex items-center gap-4 text-xs">
-            <Link to="/about" className="hover:text-[#0F1E21] transition-colors">
-              About
-            </Link>
-            <Link to="/privacy-policy" className="hover:text-[#0F1E21] transition-colors">
-              Privacy Policy
-            </Link>
-            <Link to="/terms-of-use" className="hover:text-[#0F1E21] transition-colors">
-              Terms of Use
-            </Link>
-          </div>
-        </div>
-      </footer>
-    </div>
+          )}
+        </section>
+      </div>
+    </StaffAuthLayout>
   );
 };

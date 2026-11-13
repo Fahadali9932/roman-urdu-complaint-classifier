@@ -15,6 +15,7 @@ import { RegisterPage } from '../features/auth/RegisterPage';
 import { DepartmentPortalLayout } from '../features/department/DepartmentPortalLayout';
 import { DepartmentDashboardPage } from '../features/department/DepartmentDashboardPage';
 import { DepartmentLoginPage } from '../features/department/DepartmentLoginPage';
+import { AdminLoginPage } from '../features/auth/pages/AdminLoginPage';
 import { Card } from '../components/common/Card';
 import { Container } from '../components/layout/Container';
 import { Building2 } from 'lucide-react';
@@ -51,12 +52,17 @@ export const AppRoutes: React.FC = () => {
         <Route path="/write-complaint" element={<Navigate to="/submit" replace />} />
         <Route path="/track" element={<ComplaintTracker />} />
         <Route path="/track/:referenceNumber" element={<ComplaintTracker />} />
+        {/* Citizen Auth routes */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
 
-        {/* Future Phase 4 Portals */}
+        {/* Future Portals */}
         <Route path="/admin/*" element={<FuturePortalPlaceholder role="admin" />} />
       </Route>
+
+      {/* Staff & Administrator Authentication Screens */}
+      <Route path="/admin/login" element={<AdminLoginPage />} />
+      <Route path="/admin" element={<Navigate to="/admin/login" replace />} />
 
       {/* Department Portal Workspace */}
       <Route element={<DepartmentPortalLayout />}>

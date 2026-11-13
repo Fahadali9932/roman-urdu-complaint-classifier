@@ -1,0 +1,159 @@
+/* ==============================================================================
+   AWAAZ-E-AWAM — STAFF & ADMINISTRATOR AUTHENTICATION SCOPED DESIGN SYSTEM
+   Figma Source of Truth: Frames 35:1282, 35:1332, 35:1363, 35:1390
+   Strictly scoped to .staff-auth-root to prevent any pollution of citizen styles.
+   ============================================================================== */
+
+.staff-auth-root {
+  /* Slate & Mineral Tokens */
+  --staff-bg-dark: #0B1618;
+  --staff-bg-canvas: #0F1E21;
+  --staff-bg-card: #FFFFFF;
+  --staff-bg-subtle: #F8FAFC;
+  --staff-bg-input: #FFFFFF;
+  --staff-border-subtle: #E2E8F0;
+  --staff-border-focus: #122E32;
+
+  /* Text Tokens */
+  --staff-text-title: #0F1E21;
+  --staff-text-body: #334155;
+  --staff-text-muted: #64748B;
+  --staff-text-light: #F8FAFC;
+  --staff-text-light-muted: #94A3B8;
+
+  /* Material Tokens for Sculptural Composition */
+  --staff-bronze-light: #A37B48;
+  --staff-bronze-dark: #65482A;
+  --staff-jade-light: #164E44;
+  --staff-jade-dark: #0B2420;
+  --staff-porcelain-face: #FFFFFF;
+  --staff-porcelain-recess: #EFECE6;
+
+  /* Radii */
+  --staff-radius-surface: 28px;
+  --staff-radius-card: 20px;
+  --staff-radius-control: 12px;
+
+  /* Elevation Shadows */
+  --staff-shadow-porcelain: 0 25px 50px -12px rgba(15, 30, 33, 0.18), 0 0 0 1px rgba(226, 232, 240, 0.8);
+  --staff-shadow-card: 0 1px 3px rgba(15, 30, 33, 0.04), 0 1px 2px rgba(15, 30, 33, 0.02);
+  --staff-shadow-control: 0 1px 2px rgba(15, 30, 33, 0.04);
+  --staff-shadow-recess: inset 0 4px 10px rgba(15, 30, 33, 0.12), inset 0 1px 2px rgba(15, 30, 33, 0.08);
+
+  background-color: var(--staff-bg-canvas);
+  color: var(--staff-text-title);
+  min-height: 100vh;
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Porcelain Surface Container */
+.staff-porcelain-surface {
+  background-color: var(--staff-bg-card);
+  border: 1px solid var(--staff-border-subtle);
+  border-radius: var(--staff-radius-surface);
+  box-shadow: var(--staff-shadow-porcelain);
+}
+
+/* Secondary Inset Surface Card */
+.staff-subtle-card {
+  background-color: var(--staff-bg-subtle);
+  border: 1px solid var(--staff-border-subtle);
+  border-radius: var(--staff-radius-card);
+  box-shadow: var(--staff-shadow-card);
+}
+
+/* Input Fields */
+.staff-input {
+  width: 100%;
+  height: 48px;
+  padding: 0 1rem;
+  background-color: var(--staff-bg-input);
+  border: 1px solid var(--staff-border-subtle);
+  border-radius: var(--staff-radius-control);
+  font-size: 0.875rem;
+  color: var(--staff-text-title);
+  box-shadow: var(--staff-shadow-control);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.staff-input:focus {
+  outline: none;
+  border-color: var(--staff-border-focus);
+  box-shadow: 0 0 0 3px rgba(18, 46, 50, 0.12);
+}
+
+.staff-input::placeholder {
+  color: #94A3B8;
+}
+
+/* Buttons */
+.staff-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  height: 48px;
+  padding: 0 1.5rem;
+  background-color: #0F1E21;
+  color: #FFFFFF;
+  border-radius: var(--staff-radius-control);
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: background-color 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
+  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.staff-btn-primary:hover {
+  background-color: #1A3337;
+  box-shadow: 0 4px 12px rgba(15, 30, 33, 0.2);
+}
+
+.staff-btn-primary:active {
+  transform: scale(0.99);
+}
+
+.staff-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  height: 48px;
+  padding: 0 1.25rem;
+  background-color: #FFFFFF;
+  color: #0F1E21;
+  border: 1px solid var(--staff-border-subtle);
+  border-radius: var(--staff-radius-control);
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+  cursor: pointer;
+}
+
+.staff-btn-secondary:hover {
+  background-color: #F8FAFC;
+  border-color: #CBD5E1;
+}
+
+/* Sculptural Recessed Center */
+.staff-sculpture-recess {
+  box-shadow: var(--staff-shadow-recess);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+/* RTL Arrow Mirroring */
+[dir="rtl"] .staff-icon-arrow {
+  transform: rotate(180deg);
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .staff-btn-primary,
+  .staff-btn-secondary,
+  .staff-input {
+    transition: none !important;
+    transform: none !important;
+  }
+}
