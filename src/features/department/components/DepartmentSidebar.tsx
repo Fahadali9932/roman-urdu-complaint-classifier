@@ -36,9 +36,9 @@ export const DepartmentSidebar: React.FC<DepartmentSidebarProps> = ({
 
   return (
     <aside className="w-56 lg:w-60 shrink-0 flex flex-col">
-      <nav className="bg-[#FFFFFF] border border-[#E1E4E6] rounded-xl p-2 shadow-xs space-y-1">
-        <div className="px-3 py-2 text-xs font-bold text-[#5B646B] uppercase tracking-wider flex items-center gap-2">
-          <Inbox className="w-3.5 h-3.5 text-[#687E8B]" />
+      <nav className="bg-white/80 backdrop-blur-xl border border-black/[0.08] rounded-2xl p-2.5 shadow-sm space-y-1">
+        <div className="px-3 py-2 text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
+          <Inbox className="w-3.5 h-3.5 text-slate-400" />
           <span>{t('deptWorkspaceTitle')}</span>
         </div>
 
@@ -50,16 +50,16 @@ export const DepartmentSidebar: React.FC<DepartmentSidebarProps> = ({
               key={item.id}
               type="button"
               onClick={() => onSelectFilter(item.id)}
-              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
                 isActive
-                  ? 'bg-[#122E32] text-[#FFFFFF] shadow-xs'
-                  : 'text-[#0F1E21] hover:bg-[#F4F6F6] text-left rtl:text-right'
+                  ? 'bg-[#111827] text-white shadow-sm'
+                  : 'text-[#111827] hover:bg-black/5 text-left rtl:text-right'
               }`}
             >
-              <div className="flex items-center gap-2 min-w-0">
+              <div className="flex items-center gap-2.5 min-w-0">
                 <Icon
                   className={`w-4 h-4 shrink-0 ${
-                    isActive ? 'text-white' : 'text-[#687E8B]'
+                    isActive ? 'text-white' : 'text-slate-500'
                   }`}
                 />
                 <span className="truncate">{item.label}</span>
@@ -67,8 +67,8 @@ export const DepartmentSidebar: React.FC<DepartmentSidebarProps> = ({
               <span
                 className={`text-xs font-bold px-2 py-0.5 rounded-full ${
                   isActive
-                    ? 'bg-[#FFFFFF]/25 text-[#FFFFFF]'
-                    : 'bg-[#F4F6F6] text-[#5B646B] border border-[#E1E4E6]'
+                    ? 'bg-white/20 text-white'
+                    : 'bg-black/5 text-slate-600 border border-black/5'
                 }`}
               >
                 {item.count}

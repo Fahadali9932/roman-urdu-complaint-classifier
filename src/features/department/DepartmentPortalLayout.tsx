@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
+import { Outlet } from 'react-router-dom';
 import { WifiOff } from 'lucide-react';
 
 export const DepartmentPortalLayout: React.FC = () => {
   const [isOnline, setIsOnline] = useState(() =>
     typeof navigator !== 'undefined' ? navigator.onLine : true
   );
-  const location = useLocation();
 
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
@@ -37,14 +36,8 @@ export const DepartmentPortalLayout: React.FC = () => {
     };
   }, []);
 
-  const isLoginPage = location.pathname.includes('/login');
-
   return (
-    <div
-      className={`min-h-screen w-full ${
-        isLoginPage ? 'bg-[#0A0D12] text-white' : 'bg-[#F7F6F3] text-[#141414]'
-      }`}
-    >
+    <div className="min-h-screen w-full bg-[#FAF8F5] text-[#111827] selection:bg-[#111827] selection:text-white">
       {!isOnline && (
         <div
           role="status"

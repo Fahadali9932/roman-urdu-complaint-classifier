@@ -102,8 +102,7 @@ describe('Staff & Administrator Access Screens (Figma 35:1282, 35:1332, 35:1363,
       renderWithProviders('/department/login');
 
       expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('DEPARTMENT.');
-      expect(screen.getByText('Roads & Infrastructure')).toBeInTheDocument();
-      expect(screen.getByText(/CLICK TO SELECT CONSOLE/i)).toBeInTheDocument();
+      expect(screen.getByText(/Select Department/i)).toBeInTheDocument();
     });
 
     it('renders Roads login screen when dept=kmc is present', () => {
@@ -132,7 +131,7 @@ describe('Staff & Administrator Access Screens (Figma 35:1282, 35:1332, 35:1363,
     it('opens full-screen modal and lists municipal agencies', async () => {
       renderWithProviders('/department/login');
 
-      const triggerBtn = screen.getByText(/CLICK TO SELECT CONSOLE/i).closest('button');
+      const triggerBtn = screen.getByText(/Select Department/i).closest('button');
       fireEvent.click(triggerBtn!);
 
       expect(screen.getByRole('dialog')).toBeInTheDocument();

@@ -105,22 +105,18 @@ describe('AWAAZ-E-AWAM — Phase 4B: Department Portal Design System & PWA Found
       const dominantHeading = screen.getByRole('heading', { level: 1 });
       expect(dominantHeading).toHaveTextContent('DEPARTMENT.');
 
-      // Institutional header & branding
+      // Header branding
       expect(screen.getByText('Awaaz-e-Awam')).toBeInTheDocument();
-      expect(screen.getByText('INSTITUTIONAL')).toBeInTheDocument();
-      expect(screen.getByText(/AUTHORITATIVE ACCESS CONSOLE/i)).toBeInTheDocument();
 
       // Prominent Department Selector Card
-      expect(screen.getByText(/CLICK TO SELECT CONSOLE/i)).toBeInTheDocument();
-      expect(screen.getByText('Roads & Infrastructure')).toBeInTheDocument();
-      expect(screen.getByText(/Karachi Metropolitan Corporation/i)).toBeInTheDocument();
+      expect(screen.getByText(/Select Department/i)).toBeInTheDocument();
     });
 
     it('opens full-screen selection menu listing all 6 municipal authorities and closes with Escape key', async () => {
       renderDepartmentPortal('/department/login');
 
       // Click to open selection menu
-      const triggerBtn = screen.getByText(/CLICK TO SELECT CONSOLE/i).closest('button');
+      const triggerBtn = screen.getByText(/Select Department/i).closest('button');
       expect(triggerBtn).toBeInTheDocument();
       fireEvent.click(triggerBtn!);
 
@@ -151,11 +147,11 @@ describe('AWAAZ-E-AWAM — Phase 4B: Department Portal Design System & PWA Found
       renderDepartmentPortal('/department/login');
 
       // Open modal
-      const triggerBtn = screen.getByText(/CLICK TO SELECT CONSOLE/i).closest('button');
+      const triggerBtn = screen.getByText(/Select Department/i).closest('button');
       fireEvent.click(triggerBtn!);
 
       // Click Roads card
-      const roadsCard = screen.getByText('Enter Roads Console').closest('button');
+      const roadsCard = screen.getByText('Roads & Infrastructure').closest('button');
       expect(roadsCard).toBeInTheDocument();
       fireEvent.click(roadsCard!);
 

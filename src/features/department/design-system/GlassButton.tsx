@@ -1,70 +1,65 @@
-import React, { type ButtonHTMLAttributes } from 'react';
+import React, { type ButtonHTMLAttributes, type ReactNode } from 'react';
 import { Loader2 } from 'lucide-react';
 
 interface GlassButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'ghost';
+  children: ReactNode;
+  variant?: 'primary' | 'secondary' | 'dark' | 'outline';
   isLoading?: boolean;
+  icon?: ReactNode;
   accentColor?: string;
   accentHoverColor?: string;
-  icon?: React.ReactNode;
 }
 
 export const GlassButton: React.FC<GlassButtonProps> = ({
   children,
-  variant = 'primary',
+  variant = 'dark',
   isLoading = false,
-  accentColor = '#D4AF37',
-  accentHoverColor = '#E5C158',
   icon,
+  accentColor = '#111827',
+  accentHoverColor = '#000000',
   className = '',
   disabled,
   ...rest
 }) => {
-  const isPrimary = variant === 'primary';
+  const isDark = variant === 'dark' || variant === 'primary';
+  const isOutline = variant === 'outline';
   const isSecondary = variant === 'secondary';
+
+  const baseStyle =
+    'relative inline-flex items-center justify-center font-bold text-sm tracking-wide rounded-2xl py-3.5 px-6 transition-all duration-200 active:scale-[0.99] cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed select-none';
+
+  let variantStyle = '';
+  if (isDark) {
+    variantStyle =
+      'bg-[#111827] hover:bg-black text-white shadow-[0_4px_14px_rgba(0,0,0,0.15)] focus:ring-[#111827]/40';
+  } else if (isOutline) {
+    variantStyle =
+      'bg-transparent hover:bg-black/5 text-[#111827] border border-black/15 focus:ring-[#111827]/30';
+  } else if (isSecondary) {
+    variantStyle =
+      'bg-white/80 hover:bg-white text-[#111827] border border-black/10 shadow-sm focus:ring-[#111827]/30';
+  }
 
   return (
     <button
       disabled={disabled || isLoading}
-      className={`relative inline-flex items-center justify-center gap-2 font-bold text-sm tracking-wide rounded-xl py-3.5 px-6 transition-all duration-200 active:scale-[0.99] cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#0C1015] ${
-        disabled || isLoading ? 'opacity-60 cursor-not-allowed' : ''
-      } ${
-        isPrimary
-          ? 'text-[#0C1015] shadow-lg'
-          : isSecondary
-          ? 'bg-white/5 border border-white/15 text-white hover:bg-white/10'
-          : 'bg-transparent text-slate-300 hover:text-white'
-      } ${className}`}
-      style={
-        isPrimary
-          ? {
-              backgroundColor: accentColor,
-              boxShadow: `0 8px 24px -4px ${accentColor}44`,
-            }
-          : undefined
-      }
-      onMouseEnter={(e) => {
-        if (isPrimary && !disabled && !isLoading) {
-          e.currentTarget.style.backgroundColor = accentHoverColor;
-        }
+      style={{
+        ['--btn-accent' as string]: accentColor,
+        ['--btn-hover' as string]: accentHoverColor,
       }}
-      onMouseLeave={(e) => {
-        if (isPrimary && !disabled && !isLoading) {
-          e.currentTarget.style.backgroundColor = accentColor;
-        }
-      }}
+      className={`${baseStyle} ${variantStyle} ${className}`}
       {...rest}
     >
       {isLoading ? (
-        <>
+        <span className="inline-flex items-center gap-2">
           <Loader2 className="w-4 h-4 animate-spin shrink-0" />
-          <span>Authenticating...</span>
-        </>
+          <span>Signing In...</span>
+        </span>
       ) : (
-        <>
-          {icon && <span className="shrink-0">{icon}</span>}
+        <span className="inline-flex items-center gap-2">
           <span>{children}</span>
-        </>
+          {icon && <span className="shrink-0">{icon}</span>}
+        </span>
       )}
     </button>
   );

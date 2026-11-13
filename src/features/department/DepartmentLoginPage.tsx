@@ -2,15 +2,30 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { type DepartmentId } from '../../types';
 import { DepartmentSelectionScreen } from './DepartmentSelectionScreen';
-import { RoadsLoginScreen } from './RoadsLoginScreen';
+import { ThemedDepartmentLoginScreen } from './ThemedDepartmentLoginScreen';
+
+const VALID_DEPARTMENT_IDS: Record<string, DepartmentId> = {
+  kmc: 'kmc',
+  roads: 'kmc',
+  kelectric: 'kelectric',
+  ke: 'kelectric',
+  electricity: 'kelectric',
+  kwsc: 'kwsc',
+  water: 'kwsc',
+  ssgc: 'ssgc',
+  gas: 'ssgc',
+  sswmb: 'sswmb',
+  sanitation: 'sswmb',
+  sbca: 'sbca',
+  building: 'sbca',
+};
 
 export const DepartmentLoginPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const deptParam = searchParams.get('dept');
+  const deptParam = searchParams.get('dept')?.toLowerCase() || null;
 
   // Derive active department view directly from URL search params
-  const selectedDept: DepartmentId | null =
-    deptParam === 'kmc' || deptParam === 'roads' ? 'kmc' : null;
+  const selectedDept: DepartmentId | null = deptParam ? VALID_DEPARTMENT_IDS[deptParam] || null : null;
 
   // Track online/offline network status for PWA
   const [isOnline, setIsOnline] = useState(() =>
@@ -31,13 +46,11 @@ export const DepartmentLoginPage: React.FC = () => {
   }, []);
 
   const handleSelectDepartment = (deptId: DepartmentId) => {
-    if (deptId === 'kmc') {
-      setSearchParams((prev) => {
-        const next = new URLSearchParams(prev);
-        next.set('dept', 'kmc');
-        return next;
-      });
-    }
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.set('dept', deptId);
+      return next;
+    });
   };
 
   const handleBackToSelection = () => {
@@ -48,9 +61,10 @@ export const DepartmentLoginPage: React.FC = () => {
     });
   };
 
-  if (selectedDept === 'kmc') {
+  if (selectedDept) {
     return (
-      <RoadsLoginScreen
+      <ThemedDepartmentLoginScreen
+        departmentId={selectedDept}
         onBackToDepartmentSelection={handleBackToSelection}
         isOnline={isOnline}
       />

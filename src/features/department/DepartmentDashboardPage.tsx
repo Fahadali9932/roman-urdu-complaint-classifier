@@ -181,38 +181,38 @@ export const DepartmentDashboardPage: React.FC = () => {
   }
 
   return (
-    <div className="dept-workspace-root flex flex-col min-h-screen relative selection:bg-[#2C4A52]/20">
+    <div className="dept-workspace-root flex flex-col min-h-screen bg-[#FAF8F5] text-[#111827] selection:bg-[#111827] selection:text-white">
       {/* Top Header */}
       <DepartmentHeader />
 
       {/* Main Workspace Container */}
-      <main className="flex-1 max-w-[1400px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-6 relative z-10 flex flex-col">
+      <main className="flex-1 max-w-[1440px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-6 relative z-10 flex flex-col">
         {/* Workspace Title & Stats Banner */}
-        <div className="mb-5 flex items-baseline justify-between border-b border-[#E1E4E6] pb-3.5">
+        <div className="mb-5 flex items-baseline justify-between border-b border-black/[0.08] pb-3.5">
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#0F1E21]">
+            <h1 className="text-xl sm:text-2xl font-black tracking-tight text-[#111827]">
               {t('deptWorkspaceTitle')}
             </h1>
-            <p className="text-xs sm:text-sm text-[#5B646B] mt-0.5">
+            <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
               {t('deptWorkspaceSubtitle')}
             </p>
           </div>
 
-          <div className="text-xs font-semibold text-[#5B646B] bg-[#FFFFFF] border border-[#E1E4E6] px-2.5 py-1 rounded-md shadow-xs">
+          <div className="text-xs font-bold text-slate-700 bg-white/80 border border-black/10 px-3 py-1 rounded-full shadow-2xs">
             {complaints.length} {language === 'ur' ? 'شکایات' : complaints.length === 1 ? 'record' : 'records'}
           </div>
         </div>
 
         {/* Unauthorized Tampering Alert */}
         {unauthorizedRefError && (
-          <div className="mb-5 p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 leading-relaxed flex items-center justify-between">
+          <div className="mb-5 p-4 rounded-2xl bg-amber-50 border border-amber-200 text-xs text-amber-900 leading-relaxed flex items-center justify-between shadow-2xs">
             <div>
               <strong>{t('deptAccessDenied')}</strong> ({unauthorizedRefError})
             </div>
             <button
               type="button"
               onClick={() => setUnauthorizedRefError(null)}
-              className="text-xs font-semibold underline text-amber-900 ml-4 cursor-pointer"
+              className="text-xs font-bold underline text-amber-900 ml-4 cursor-pointer"
             >
               Dismiss
             </button>
@@ -221,15 +221,15 @@ export const DepartmentDashboardPage: React.FC = () => {
 
         {isLoading ? (
           <div className="flex-1 flex flex-col items-center justify-center py-20 text-center">
-            <Loader2 className="w-7 h-7 text-[#122E32] animate-spin mb-2.5" />
-            <p className="text-xs text-[#5B646B]">
+            <Loader2 className="w-8 h-8 text-[#111827] animate-spin mb-3" />
+            <p className="text-xs font-bold text-slate-500">
               Loading assigned complaints...
             </p>
           </div>
         ) : (
           <div className="flex-1 flex flex-col lg:flex-row gap-5 items-stretch">
-            {/* Desktop Left Navigation (Starts at exact same top boundary) */}
-            <div className="hidden lg:block">
+            {/* Desktop Left Navigation */}
+            <div className="hidden lg:block shrink-0">
               <DepartmentSidebar
                 activeFilter={activeFilter}
                 onSelectFilter={(f) => setActiveFilter(f)}
@@ -238,7 +238,7 @@ export const DepartmentDashboardPage: React.FC = () => {
             </div>
 
             {/* Mobile / Tablet Filter Bar */}
-            <div className="lg:hidden flex items-center gap-1.5 overflow-x-auto pb-1.5 scrollbar-none">
+            <div className="lg:hidden flex items-center gap-1.5 overflow-x-auto pb-2 scrollbar-none">
               {(
                 [
                   { id: 'all', label: t('deptFilterAll'), count: counts.all },
@@ -261,18 +261,18 @@ export const DepartmentDashboardPage: React.FC = () => {
                     key={f.id}
                     type="button"
                     onClick={() => setActiveFilter(f.id)}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors shrink-0 cursor-pointer ${
+                    className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all shrink-0 cursor-pointer ${
                       isActive
-                        ? 'bg-[#122E32] text-[#FFFFFF] shadow-xs'
-                        : 'bg-[#FFFFFF] border border-[#E1E4E6] text-[#0F1E21] hover:bg-[#FAFBFB]'
+                        ? 'bg-[#111827] text-white shadow-sm'
+                        : 'bg-white/80 border border-black/10 text-[#111827] hover:bg-white'
                     }`}
                   >
                     <span>{f.label}</span>
                     <span
-                      className={`text-xs px-1.5 py-0.2 rounded-full ${
+                      className={`text-xs px-2 py-0.2 rounded-full ${
                         isActive
-                          ? 'bg-[#FFFFFF]/25 text-[#FFFFFF]'
-                          : 'bg-[#F4F6F6] text-[#5B646B] border border-[#E1E4E6]'
+                          ? 'bg-white/20 text-white'
+                          : 'bg-black/5 text-slate-600 border border-black/5'
                       }`}
                     >
                       {f.count}
@@ -282,31 +282,22 @@ export const DepartmentDashboardPage: React.FC = () => {
               })}
             </div>
 
-            {/* =========================================================================
-                CONTENT-ADAPTIVE WORKSPACE
-                STATE A: ZERO COMPLAINTS ASSIGNED
-                Integrated directly into the workspace surface alongside the sidebar.
-               ========================================================================= */}
+            {/* Content-Adaptive Workspace */}
             {complaints.length === 0 ? (
-              <div className="flex-1 bg-[#FFFFFF] border border-[#E1E4E6] rounded-xl p-8 sm:p-12 flex flex-col items-center justify-center text-center shadow-xs min-h-[420px]">
-                <div className="w-12 h-12 rounded-xl bg-[#F4F6F6] text-[#687E8B] flex items-center justify-center mx-auto mb-3 border border-[#E1E4E6]">
+              <div className="flex-1 bg-white/80 backdrop-blur-xl border border-black/[0.08] rounded-2xl p-8 sm:p-12 flex flex-col items-center justify-center text-center shadow-xs min-h-[420px]">
+                <div className="w-12 h-12 rounded-2xl bg-black/5 text-slate-400 flex items-center justify-center mx-auto mb-3 border border-black/10">
                   <Inbox className="w-6 h-6" />
                 </div>
-                <h2 className="text-base sm:text-lg font-bold tracking-tight text-[#0F1E21] mb-1">
+                <h2 className="text-base sm:text-lg font-bold tracking-tight text-[#111827] mb-1">
                   {t('deptEmptyAssigned')}
                 </h2>
-                <p className="text-xs sm:text-sm text-[#5B646B] max-w-sm leading-relaxed">
+                <p className="text-xs sm:text-sm text-slate-500 max-w-sm leading-relaxed">
                   {t('deptEmptyPrompt')}
                 </p>
               </div>
             ) : (
-              /* =========================================================================
-                 STATE B & C: COMPLAINTS EXIST
-                 - Desktop (>= 1024px): Master-Detail side-by-side (~38% inbox / ~62% detail)
-                 - Tablet/Mobile (< 1024px): Inbox-first adaptive layout
-                 ========================================================================= */
               <div className="flex-1 flex flex-col lg:flex-row gap-5 items-stretch min-h-[560px]">
-                {/* Inbox Column: ~38% width on desktop (>=1024px), full width on mobile/tablet when no selection */}
+                {/* Inbox Column */}
                 <div
                   className={`w-full lg:w-[380px] xl:w-[400px] shrink-0 flex flex-col ${
                     selectedReference ? 'hidden lg:flex' : 'flex'
@@ -322,7 +313,7 @@ export const DepartmentDashboardPage: React.FC = () => {
                   />
                 </div>
 
-                {/* Detail View Column: ~62% width on desktop (>=1024px), full width on mobile/tablet when selected */}
+                {/* Detail View Column */}
                 <div
                   className={`flex-1 flex flex-col ${
                     !selectedReference ? 'hidden lg:flex' : 'flex'

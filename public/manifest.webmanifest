@@ -1,14 +1,13 @@
 {
   "name": "Awaaz-e-Awam — Department Portal",
   "short_name": "Dept Portal",
-  "description": "Institutional Progressive Web App for municipal complaint management in Karachi",
+  "description": "Institutional Operations Console for Karachi Municipal Services",
   "start_url": "/department",
   "scope": "/department",
   "display": "standalone",
-  "background_color": "#0A0D12",
-  "theme_color": "#0A0D12",
-  "categories": ["government", "productivity"],
   "orientation": "any",
+  "background_color": "#FAF8F5",
+  "theme_color": "#0A0D12",
   "icons": [
     {
       "src": "/pwa-icon.svg",
@@ -24,4 +23,3 @@
     }
   ]
 }
-

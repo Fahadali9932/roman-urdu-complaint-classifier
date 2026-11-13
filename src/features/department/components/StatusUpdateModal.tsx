@@ -6,7 +6,7 @@ import {
   type DepartmentComplaintView,
   type ComplaintStatus,
 } from '../../../types';
-import { X, AlertCircle, Loader2 } from 'lucide-react';
+import { X, AlertCircle, Loader2, CheckCircle2 } from 'lucide-react';
 
 interface StatusUpdateModalProps {
   isOpen: boolean;
@@ -62,26 +62,29 @@ export const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({
   const { language, t } = useLanguage();
 
   const [selectedStatus, setSelectedStatus] = useState<ComplaintStatus>(complaint.status);
-  const [note, setNote] = useState('');
+  const [notes, setNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Close modal on Escape key
   useEffect(() => {
-    if (!isOpen) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose();
-      }
-    };
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
+    if (isOpen) {
+      setSelectedStatus(complaint.status);
+      setNotes('');
+      setError(null);
+    }
+  }, [isOpen, complaint]);
 
-  if (!isOpen || !departmentId) return null;
+  if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!departmentId) return;
+
+    if (selectedStatus === 'resolved' && !notes.trim()) {
+      setError('Resolution notes are required when marking a complaint as resolved.');
+      return;
+    }
+
     setIsSubmitting(true);
     setError(null);
 
@@ -90,17 +93,17 @@ export const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({
         departmentId,
         complaint.referenceNumber,
         selectedStatus,
-        note.trim() || undefined
+        notes.trim() || undefined
       );
 
-      if (res.success) {
+      if (res.success && res.complaint) {
         onUpdated(res.complaint);
         onClose();
       } else {
-        setError('Failed to update status.');
+        setError('Failed to update status. Please try again.');
       }
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'An error occurred';
+      const msg = err instanceof Error ? err.message : 'Failed to update status.';
       setError(msg);
     } finally {
       setIsSubmitting(false);
@@ -109,50 +112,48 @@ export const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0F1E21]/50 backdrop-blur-xs dept-fade-in"
       role="dialog"
       aria-modal="true"
-      onClick={onClose}
+      aria-labelledby="status-modal-title"
+      className="fixed inset-0 z-50 overflow-y-auto bg-black/40 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn"
+      onClick={(e) => {
+        if (e.target === e.currentTarget && !isSubmitting) onClose();
+      }}
     >
-      <div
-        className="bg-[#FFFFFF] border border-[#E1E4E6] rounded-2xl max-w-lg w-full shadow-xl overflow-hidden flex flex-col"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className="relative w-full max-w-lg rounded-3xl bg-white border border-black/[0.08] p-6 sm:p-8 shadow-2xl transition-all">
         {/* Header */}
-        <div className="px-5 py-4 border-b border-[#E1E4E6] flex items-center justify-between bg-[#FAFBFB]">
-          <div className="space-y-0.5">
-            <div className="flex items-center gap-2">
-              <span className="font-mono text-xs font-bold text-[#2C4A52] bg-[#2C4A52]/10 px-2 py-0.5 rounded">
-                {complaint.referenceNumber}
-              </span>
-            </div>
-            <h3 className="font-bold text-base sm:text-lg text-[#0F1E21]">
+        <div className="flex items-start justify-between pb-4 border-b border-black/[0.08]">
+          <div>
+            <h3 id="status-modal-title" className="text-lg sm:text-xl font-bold tracking-tight text-[#111827]">
               {t('deptUpdateStatus')}
             </h3>
+            <p className="text-xs text-slate-500 font-mono mt-0.5">
+              {complaint.referenceNumber}
+            </p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="w-8 h-8 rounded-lg border border-[#E1E4E6] text-[#5B646B] hover:text-[#0F1E21] hover:bg-[#F4F6F6] flex items-center justify-center transition-colors cursor-pointer"
-            aria-label="Close dialog"
+            disabled={isSubmitting}
+            aria-label="Close"
+            className="p-1 rounded-xl text-slate-400 hover:text-[#111827] hover:bg-black/5 transition-colors cursor-pointer"
           >
-            <X className="w-4 h-4" />
+            <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-5 space-y-4">
-          {error && (
-            <div className="p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 shrink-0" />
-              <span>{error}</span>
-            </div>
-          )}
+        {error && (
+          <div className="mt-4 p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700 flex items-center gap-2" role="alert">
+            <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+            <span>{error}</span>
+          </div>
+        )}
 
-          {/* Status Options */}
-          <div className="space-y-1.5">
-            <label className="block text-xs font-bold text-[#0F1E21] uppercase tracking-wider">
-              {language === 'ur' ? 'نیا سٹیٹس منتخب کریں' : 'Select Target Status'}
+        <form onSubmit={handleSubmit} className="mt-5 space-y-5">
+          {/* Status Radio List */}
+          <div className="space-y-2">
+            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+              {t('deptStatusManagement')}
             </label>
             <div className="space-y-2">
               {STATUS_OPTIONS.map((opt) => {
@@ -160,10 +161,10 @@ export const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({
                 return (
                   <label
                     key={opt.status}
-                    className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
+                    className={`flex items-start gap-3 p-3 rounded-xl border transition-all cursor-pointer ${
                       isSelected
-                        ? 'border-[#122E32] bg-[#F0F4F5] shadow-xs ring-1 ring-[#122E32]/20'
-                        : 'border-[#E1E4E6] bg-white hover:bg-[#FAFBFB]'
+                        ? 'border-[#111827] bg-black/[0.03] ring-1 ring-[#111827]'
+                        : 'border-black/[0.08] hover:border-black/20 bg-white'
                     }`}
                   >
                     <input
@@ -172,13 +173,13 @@ export const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({
                       value={opt.status}
                       checked={isSelected}
                       onChange={() => setSelectedStatus(opt.status)}
-                      className="mt-0.5 text-[#122E32] focus:ring-[#122E32]"
+                      className="mt-1 text-[#111827] focus:ring-[#111827]"
                     />
-                    <div className="min-w-0 flex-1">
-                      <div className="text-xs sm:text-sm font-bold text-[#0F1E21]">
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs sm:text-sm font-bold text-[#111827]">
                         {language === 'ur' ? opt.labelUr : opt.labelEn}
                       </div>
-                      <div className="text-xs text-[#5B646B] mt-0.5">
+                      <div className="text-[11px] text-slate-500">
                         {language === 'ur' ? opt.descUr : opt.descEn}
                       </div>
                     </div>
@@ -188,38 +189,38 @@ export const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({
             </div>
           </div>
 
-          {/* Progress / Resolution Note */}
+          {/* Operational Notes */}
           <div className="space-y-1.5">
-            <label
-              htmlFor="statusNote"
-              className="block text-xs font-bold text-[#0F1E21] uppercase tracking-wider"
-            >
+            <label htmlFor="status-notes" className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
               {t('deptRemediationNote')}
+              {selectedStatus === 'resolved' && (
+                <span className="text-red-500 ml-1">*</span>
+              )}
             </label>
             <textarea
-              id="statusNote"
+              id="status-notes"
               rows={3}
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
               placeholder={t('deptRemediationNotePlaceholder')}
-              className="w-full text-xs sm:text-sm p-3 rounded-xl border border-[#E1E4E6] bg-white text-[#0F1E21] placeholder-[#8A9298] focus:outline-none focus:border-[#2C4A52] focus:ring-2 focus:ring-[#2C4A52]/15 transition-all resize-none"
+              className="w-full text-xs sm:text-sm rounded-xl p-3 bg-white border border-black/15 text-[#111827] placeholder:text-slate-400 focus:outline-none focus:border-[#111827] focus:ring-1 focus:ring-[#111827]/10"
             />
           </div>
 
-          {/* Dialog Actions */}
-          <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-[#ECEEEF]">
+          {/* Actions */}
+          <div className="pt-2 flex items-center justify-end gap-3 border-t border-black/[0.08]">
             <button
               type="button"
               onClick={onClose}
               disabled={isSubmitting}
-              className="dept-btn-secondary h-10 px-4 rounded-lg text-xs sm:text-sm font-semibold cursor-pointer"
+              className="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-600 hover:text-[#111827] hover:bg-black/5 transition-colors cursor-pointer"
             >
               {t('deptCancel')}
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="dept-btn-primary h-10 px-5 rounded-lg text-xs sm:text-sm font-semibold flex items-center gap-2 cursor-pointer shadow-xs"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#111827] hover:bg-black text-white text-xs sm:text-sm font-bold shadow-sm transition-all cursor-pointer disabled:opacity-50"
             >
               {isSubmitting ? (
                 <>
@@ -227,7 +228,10 @@ export const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({
                   <span>{t('deptSaving')}</span>
                 </>
               ) : (
-                <span>{t('deptSave')}</span>
+                <>
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>{t('deptSave')}</span>
+                </>
               )}
             </button>
           </div>

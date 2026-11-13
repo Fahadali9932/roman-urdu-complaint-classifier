@@ -351,7 +351,7 @@ describe('Department Portal — Security, Privacy, and Workflow Integrity', () =
         screen.getByRole('heading', { level: 1 })
       ).toHaveTextContent('DEPARTMENT.');
       expect(
-        screen.getByText(/CLICK TO SELECT CONSOLE/i)
+        screen.getByText(/Select Department/i)
       ).toBeInTheDocument();
     });
   });

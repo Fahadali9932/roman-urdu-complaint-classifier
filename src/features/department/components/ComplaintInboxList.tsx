@@ -18,49 +18,49 @@ export const getStatusChip = (status: ComplaintStatus, language: 'en' | 'ur') =>
     { bg: string; text: string; border: string; labelEn: string; labelUr: string; icon: React.ComponentType<{ className?: string }> }
   > = {
     submitted: {
-      bg: 'bg-[#F0F4F7]',
-      text: 'text-[#2C4A52]',
-      border: 'border-[#D0D9DE]',
+      bg: 'bg-amber-50',
+      text: 'text-amber-800',
+      border: 'border-amber-200',
       labelEn: 'New',
       labelUr: 'نئی',
       icon: Sparkles,
     },
     under_review: {
-      bg: 'bg-[#F0F4F7]',
-      text: 'text-[#2C4A52]',
-      border: 'border-[#D0D9DE]',
+      bg: 'bg-blue-50',
+      text: 'text-blue-800',
+      border: 'border-blue-200',
       labelEn: 'Under Review',
       labelUr: 'زیرِ جائزہ',
       icon: Clock,
     },
     assigned: {
-      bg: 'bg-[#F2F5F0]',
-      text: 'text-[#2C4A52]',
-      border: 'border-[#D2DEC8]',
+      bg: 'bg-indigo-50',
+      text: 'text-indigo-800',
+      border: 'border-indigo-200',
       labelEn: 'Assigned',
       labelUr: 'تفویض شدہ',
       icon: Clock,
     },
     in_progress: {
-      bg: 'bg-[#EAF1F2]',
-      text: 'text-[#122E32]',
-      border: 'border-[#C2D6D9]',
+      bg: 'bg-purple-50',
+      text: 'text-purple-800',
+      border: 'border-purple-200',
       labelEn: 'In Progress',
       labelUr: 'زیرِ کارروائی',
       icon: Clock,
     },
     resolved: {
-      bg: 'bg-[#EEF5F1]',
-      text: 'text-[#245938]',
-      border: 'border-[#CCE0D3]',
+      bg: 'bg-emerald-50',
+      text: 'text-emerald-800',
+      border: 'border-emerald-200',
       labelEn: 'Resolved',
       labelUr: 'حل شدہ',
       icon: CheckCircle2,
     },
     rejected: {
-      bg: 'bg-[#F4F6F6]',
-      text: 'text-[#5B646B]',
-      border: 'border-[#E1E4E6]',
+      bg: 'bg-slate-100',
+      text: 'text-slate-700',
+      border: 'border-slate-200',
       labelEn: 'Closed',
       labelUr: 'بند',
       icon: CheckCircle2,
@@ -71,7 +71,7 @@ export const getStatusChip = (status: ComplaintStatus, language: 'en' | 'ur') =>
   const Icon = current.icon;
   return (
     <span
-      className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2 py-0.5 rounded-full border ${current.bg} ${current.text} ${current.border}`}
+      className={`inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-0.5 rounded-full border ${current.bg} ${current.text} ${current.border}`}
     >
       <Icon className="w-3 h-3" />
       <span>{language === 'ur' ? current.labelUr : current.labelEn}</span>
@@ -81,7 +81,6 @@ export const getStatusChip = (status: ComplaintStatus, language: 'en' | 'ur') =>
 
 export const ComplaintInboxList: React.FC<ComplaintInboxListProps> = ({
   complaints,
-  totalAssignedCount,
   selectedReference,
   onSelectComplaint,
   searchQuery,
@@ -103,96 +102,89 @@ export const ComplaintInboxList: React.FC<ComplaintInboxListProps> = ({
   };
 
   return (
-    <div className="w-full flex flex-col bg-[#FFFFFF] border border-[#E1E4E6] rounded-xl overflow-hidden shadow-xs">
+    <div className="w-full lg:w-96 shrink-0 flex flex-col bg-white/80 backdrop-blur-xl border border-black/[0.08] rounded-2xl shadow-sm overflow-hidden">
       {/* Search Header */}
-      <div className="p-3 border-b border-[#E1E4E6] bg-[#FAFBFB] space-y-2">
-        <div className="relative">
-          <Search className="w-4 h-4 text-[#687E8B] absolute top-2.5 left-3 pointer-events-none" />
+      <div className="p-3.5 border-b border-black/[0.08] bg-black/[0.02]">
+        <div className="relative rounded-xl overflow-hidden">
+          <div className="pointer-events-none absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
+            <Search className="w-4 h-4" />
+          </div>
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder={t('deptSearchPlaceholder')}
-            className="w-full text-xs sm:text-sm pl-9 pr-8 py-2 rounded-lg border border-[#E1E4E6] bg-[#FFFFFF] text-[#0F1E21] placeholder-[#8A9298] focus:outline-none focus:border-[#2C4A52] focus:ring-2 focus:ring-[#2C4A52]/15 transition-all"
+            className="w-full bg-white border border-black/10 text-xs sm:text-sm text-[#111827] placeholder:text-slate-400 rounded-xl py-2 pl-9 pr-8 focus:outline-none focus:border-[#111827] focus:ring-1 focus:ring-[#111827]/10 transition-all"
           />
           {searchQuery && (
             <button
               type="button"
               onClick={() => onSearchChange('')}
-              className="absolute top-2.5 right-2.5 text-[#5B646B] hover:text-[#0F1E21] p-0.5"
-              aria-label="Clear search"
+              className="absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-[#111827] cursor-pointer"
             >
               <X className="w-3.5 h-3.5" />
             </button>
           )}
         </div>
-
-        <div className="flex items-center justify-between text-xs font-semibold text-[#5B646B] px-1">
-          <span>
-            {complaints.length} {language === 'ur' ? 'شکایات' : 'complaints'}
-          </span>
-          {searchQuery && (
-            <span className="text-[#2C4A52] font-semibold bg-[#F0F4F5] px-2 py-0.5 rounded border border-[#D0D9DE]">
-              Filtered
-            </span>
-          )}
-        </div>
       </div>
 
-      {/* Complaint List */}
-      <div className="flex-1 overflow-y-auto divide-y divide-[#ECEEEF] max-h-[calc(100vh-230px)]">
+      {/* List Container */}
+      <div className="flex-1 overflow-y-auto max-h-[calc(100vh-250px)] divide-y divide-black/[0.06] p-2 space-y-1">
         {complaints.length === 0 ? (
-          <div className="p-8 text-center space-y-2">
-            <div className="w-10 h-10 rounded-xl bg-[#F4F6F6] text-[#687E8B] flex items-center justify-center mx-auto mb-2 border border-[#E1E4E6]">
-              <Inbox className="w-5 h-5" />
+          <div className="p-8 text-center text-slate-500 space-y-2">
+            <Inbox className="w-8 h-8 mx-auto text-slate-400 opacity-60" />
+            <div className="text-xs font-bold text-[#111827]">
+              {searchQuery ? 'No matching complaints found' : t('deptEmptyAssigned')}
             </div>
-            <p className="text-xs sm:text-sm font-bold text-[#0F1E21]">
-              {totalAssignedCount === 0
-                ? t('deptEmptyAssigned')
-                : t('deptEmptyFilter')}
-            </p>
-            <p className="text-xs text-[#5B646B] max-w-xs mx-auto leading-relaxed">
-              {totalAssignedCount === 0
-                ? t('deptEmptyPrompt')
-                : 'Try adjusting your search query or status filter.'}
+            <p className="text-[11px] text-slate-500">
+              {searchQuery
+                ? 'Try searching with a different reference number or location.'
+                : 'No assigned municipal complaints currently in queue.'}
             </p>
           </div>
         ) : (
-          complaints.map((c) => {
-            const isSelected = selectedReference === c.referenceNumber;
+          complaints.map((item) => {
+            const isSelected = selectedReference === item.referenceNumber;
             return (
               <button
-                key={c.id}
+                key={item.id}
                 type="button"
-                onClick={() => onSelectComplaint(c.referenceNumber)}
-                className={`w-full text-left rtl:text-right p-3.5 sm:p-4 transition-all cursor-pointer ${
+                onClick={() => onSelectComplaint(item.referenceNumber)}
+                className={`w-full text-left p-3.5 rounded-xl transition-all cursor-pointer block border ${
                   isSelected
-                    ? 'border-l-3 rtl:border-l-0 rtl:border-r-3 rtl:border-r-[#122E32] border-l-[#122E32] bg-[#F4F6F6]'
-                    : 'bg-white hover:bg-[#FAFBFB]'
+                    ? 'bg-white border-[#111827] shadow-sm ring-1 ring-[#111827]'
+                    : 'bg-white/60 hover:bg-white border-transparent hover:border-black/10'
                 }`}
               >
                 <div className="flex items-center justify-between gap-2 mb-1.5">
-                  <span className="font-mono text-xs font-bold text-[#5B646B]">
-                    {c.referenceNumber}
+                  <span className="font-mono text-xs font-bold text-[#111827]">
+                    {item.referenceNumber}
                   </span>
-                  {getStatusChip(c.status, language)}
+                  {getStatusChip(item.status, language)}
                 </div>
 
-                {/* Complaint Preview has visual priority */}
-                <p className="text-sm font-semibold text-[#0F1E21] line-clamp-2 leading-snug mb-1.5">
-                  {c.description}
-                </p>
+                <div className="text-xs font-bold text-[#111827] truncate mb-1">
+                  {item.title || item.locality}
+                </div>
 
-                <div className="flex items-center gap-1.5 text-xs text-[#5B646B]">
-                  <MapPin className="w-3 h-3 text-[#687E8B] shrink-0" />
-                  <span className="truncate">{c.locality}</span>
-                  <span className="text-[#ACAFB6]">•</span>
-                  <span className="truncate">{formatDate(c.submittedAt)}</span>
+                <div className="flex items-center justify-between text-[11px] text-slate-500">
+                  <div className="flex items-center gap-1 truncate max-w-[190px]">
+                    <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
+                    <span className="truncate">{item.locality}, {item.district}</span>
+                  </div>
+                  <span className="font-mono text-[10px] shrink-0">
+                    {formatDate(item.submittedAt)}
+                  </span>
                 </div>
               </button>
             );
           })
         )}
+      </div>
+
+      {/* Footer Info */}
+      <div className="p-2.5 border-t border-black/[0.08] bg-black/[0.02] text-[11px] font-bold text-slate-500 text-center">
+        {complaints.length} complaints
       </div>
     </div>
   );
