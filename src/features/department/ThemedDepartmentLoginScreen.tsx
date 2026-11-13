@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, ShieldAlert, Lock, Mail, ArrowRight } from 'lucide-react';
+import { ArrowLeft, ShieldAlert, KeyRound, User, ArrowRight } from 'lucide-react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useDepartmentAuth } from '../../context/DepartmentAuthContext';
 import { staffAuthService } from '../../services/staffAuthService';
@@ -9,6 +9,7 @@ import { DepartmentArtwork } from './design-system/DepartmentArtwork';
 import { GlassCard } from './design-system/GlassCard';
 import { GlassInput } from './design-system/GlassInput';
 import { GlassButton } from './design-system/GlassButton';
+import { getIdentityByDepartmentId } from './auth/departmentIdentities';
 
 interface ThemedDepartmentLoginScreenProps {
   departmentId: DepartmentId;
@@ -25,13 +26,15 @@ export const ThemedDepartmentLoginScreen: React.FC<ThemedDepartmentLoginScreenPr
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  const [workEmail, setWorkEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('');
+  const [accessKey, setAccessKey] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const theme = DEPARTMENT_THEMES[departmentId] || DEPARTMENT_THEMES.kmc;
   const isRoads = departmentId === 'kmc';
+  const defaultIdentity = getIdentityByDepartmentId(departmentId);
+  const defaultUsername = defaultIdentity?.username || 'roads-01';
 
   // Real-time Revocation Query Parameter Detection
   const isRevokedParam = searchParams.get('revoked') === 'true';
@@ -50,13 +53,13 @@ export const ThemedDepartmentLoginScreen: React.FC<ThemedDepartmentLoginScreenPr
     e.preventDefault();
     setErrorMessage(null);
 
-    const trimmedEmail = workEmail.trim();
-    if (!trimmedEmail) {
-      setErrorMessage('Please enter your assigned work email.');
+    const trimmedUsername = username.trim();
+    if (!trimmedUsername) {
+      setErrorMessage('Please enter your assigned department username.');
       return;
     }
-    if (!password) {
-      setErrorMessage('Please enter your password / access key.');
+    if (!accessKey) {
+      setErrorMessage('Please enter your access key.');
       return;
     }
 
@@ -70,20 +73,24 @@ export const ThemedDepartmentLoginScreen: React.FC<ThemedDepartmentLoginScreenPr
     setIsLoading(true);
 
     try {
-      // 1. Authenticate with backend service
-      const res = await staffAuthService.signInDepartmentStaff(trimmedEmail, password);
+      // 1. Authenticate with backend service using Username + Access Key & strict department check
+      const res = await staffAuthService.signInDepartmentStaffWithUsername(
+        trimmedUsername,
+        accessKey,
+        departmentId
+      );
 
       if (!res.success) {
         if (res.status === 'revoked') {
           setExplicitRevocation(
             `Access Revoked: ${res.rejectionReason || 'Withdrawn by Main Administrator.'}`
           );
-        } else if (res.status === 'invalid_password') {
-          setErrorMessage('Invalid password or credentials. Please verify your work access key.');
-        } else if (res.status === 'not_found') {
-          setErrorMessage('No authorized departmental account found for this email.');
+        } else if (res.status === 'wrong_department') {
+          setErrorMessage(
+            res.error || `Access Denied: Account is not authorized for the ${theme.shortName} console.`
+          );
         } else {
-          setErrorMessage(res.error || 'Authentication failed. Please verify your credentials.');
+          setErrorMessage(res.error || 'Invalid username or access key. Please verify your credentials.');
         }
         return;
       }
@@ -91,7 +98,6 @@ export const ThemedDepartmentLoginScreen: React.FC<ThemedDepartmentLoginScreenPr
       // 2. Strict Server-Side Department Verification
       const authenticatedDeptId = res.session?.departmentId;
       if (authenticatedDeptId !== departmentId) {
-        // Sign out immediately to prevent cross-department privilege escalation
         staffAuthService.signOutStaff();
         const otherDeptName =
           res.session?.departmentName || authenticatedDeptId?.toUpperCase() || 'another agency';
@@ -102,7 +108,7 @@ export const ThemedDepartmentLoginScreen: React.FC<ThemedDepartmentLoginScreenPr
       }
 
       // 3. Establish Context Session and navigate to workspace
-      const contextRes = await signInWithCredentials(trimmedEmail, password);
+      const contextRes = await signInWithCredentials(trimmedUsername, accessKey, departmentId);
       if (contextRes.success) {
         navigate('/department', { replace: true });
       } else {
@@ -219,30 +225,30 @@ export const ThemedDepartmentLoginScreen: React.FC<ThemedDepartmentLoginScreenPr
             {/* Login Form */}
             <form onSubmit={handleSubmit} className="space-y-4" noValidate>
               <GlassInput
-                id={isRoads ? 'roads-work-email' : `${departmentId}-work-email`}
-                label="Assigned Work Email"
-                type="email"
-                value={workEmail}
-                onChange={(e) => setWorkEmail(e.target.value)}
-                placeholder={`officer@${departmentId === 'kmc' ? 'kmc.gos.pk' : `${departmentId}.gov.pk`}`}
+                id={isRoads ? 'roads-username' : `${departmentId}-username`}
+                label="Username"
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder={defaultUsername}
                 autoComplete="username"
                 required
                 disabled={isLoading}
-                leadingIcon={<Mail className="w-4 h-4" />}
+                leadingIcon={<User className="w-4 h-4" />}
                 variant="light"
               />
 
               <GlassInput
-                id={isRoads ? 'roads-password' : `${departmentId}-password`}
-                label="Access Key / Password"
+                id={isRoads ? 'roads-access-key' : `${departmentId}-access-key`}
+                label="Access Key"
                 type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••••••••••"
+                value={accessKey}
+                onChange={(e) => setAccessKey(e.target.value)}
+                placeholder="••••••••••••••••••••••••"
                 autoComplete="current-password"
                 required
                 disabled={isLoading}
-                leadingIcon={<Lock className="w-4 h-4" />}
+                leadingIcon={<KeyRound className="w-4 h-4" />}
                 variant="light"
               />
 
@@ -254,7 +260,7 @@ export const ThemedDepartmentLoginScreen: React.FC<ThemedDepartmentLoginScreenPr
                   icon={<ArrowRight className="w-4 h-4" />}
                   className="w-full"
                 >
-                  {isRoads ? 'Sign In to Roads Console' : `Sign In to ${theme.shortName}`}
+                  Sign In
                 </GlassButton>
               </div>
             </form>

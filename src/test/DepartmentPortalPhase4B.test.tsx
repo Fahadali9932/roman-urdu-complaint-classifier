@@ -159,8 +159,8 @@ describe('AWAAZ-E-AWAM — Phase 4B: Department Portal Design System & PWA Found
       await waitFor(() => {
         expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
         expect(screen.getByText('ROADS & INFRASTRUCTURE')).toBeInTheDocument();
-        expect(screen.getByLabelText(/Assigned Work Email/i)).toBeInTheDocument();
-        expect(screen.getByLabelText(/Access Key \/ Password/i)).toBeInTheDocument();
+        expect(screen.getByLabelText(/Username/i)).toBeInTheDocument();
+        expect(screen.getByLabelText(/Access Key/i)).toBeInTheDocument();
       });
     });
   });
@@ -177,10 +177,10 @@ describe('AWAAZ-E-AWAM — Phase 4B: Department Portal Design System & PWA Found
       ).toBeInTheDocument();
 
       // Controls
-      expect(screen.getByLabelText(/Assigned Work Email/i)).toBeInTheDocument();
-      expect(screen.getByLabelText(/Access Key \/ Password/i)).toBeInTheDocument();
+      expect(screen.getByLabelText(/Username/i)).toBeInTheDocument();
+      expect(screen.getByLabelText(/Access Key/i)).toBeInTheDocument();
       expect(
-        screen.getByRole('button', { name: /Sign In to Roads Console/i })
+        screen.getByRole('button', { name: /^Sign In$/i })
       ).toBeInTheDocument();
       expect(
         screen.getByRole('button', { name: /Back to Department Selection/i })
@@ -203,7 +203,7 @@ describe('AWAAZ-E-AWAM — Phase 4B: Department Portal Design System & PWA Found
     it('toggles password visibility with show/hide button', () => {
       renderDepartmentPortal('/department/login?dept=kmc');
 
-      const passwordInput = screen.getByLabelText(/Access Key \/ Password/i);
+      const passwordInput = screen.getByLabelText(/Access Key/i);
       expect(passwordInput).toHaveAttribute('type', 'password');
 
       const toggleBtn = screen.getByRole('button', { name: /Show password/i });
@@ -231,25 +231,25 @@ describe('AWAAZ-E-AWAM — Phase 4B: Department Portal Design System & PWA Found
     it('validates empty inputs and prevents empty submission', async () => {
       renderDepartmentPortal('/department/login?dept=kmc');
 
-      const submitBtn = screen.getByRole('button', { name: /Sign In to Roads Console/i });
+      const submitBtn = screen.getByRole('button', { name: /^Sign In$/i });
       fireEvent.click(submitBtn);
 
       await waitFor(() => {
-        expect(screen.getByText(/Please enter your assigned work email/i)).toBeInTheDocument();
+        expect(screen.getByText(/Please enter your assigned department username/i)).toBeInTheDocument();
       });
     });
 
     it('denies access when a staff member from another department (KWSC) attempts to log into Roads (KMC)', async () => {
       renderDepartmentPortal('/department/login?dept=kmc');
 
-      fireEvent.change(screen.getByLabelText(/Assigned Work Email/i), {
+      fireEvent.change(screen.getByLabelText(/Username/i), {
         target: { value: 'asim.jameel@kwsc.gos.pk' },
       });
-      fireEvent.change(screen.getByLabelText(/Access Key \/ Password/i), {
+      fireEvent.change(screen.getByLabelText(/Access Key/i), {
         target: { value: 'ValidWaterPass123!' },
       });
 
-      fireEvent.click(screen.getByRole('button', { name: /Sign In to Roads Console/i }));
+      fireEvent.click(screen.getByRole('button', { name: /^Sign In$/i }));
 
       // Strict Department Isolation Assertion
       await waitFor(() => {
@@ -266,14 +266,14 @@ describe('AWAAZ-E-AWAM — Phase 4B: Department Portal Design System & PWA Found
     it('authenticates authorized Roads staff member and navigates to department workspace', async () => {
       renderDepartmentPortal('/department/login?dept=kmc');
 
-      fireEvent.change(screen.getByLabelText(/Assigned Work Email/i), {
+      fireEvent.change(screen.getByLabelText(/Username/i), {
         target: { value: 'farhan.rizvi@kmc.gos.pk' },
       });
-      fireEvent.change(screen.getByLabelText(/Access Key \/ Password/i), {
+      fireEvent.change(screen.getByLabelText(/Access Key/i), {
         target: { value: 'RoadsChiefPass123!' },
       });
 
-      fireEvent.click(screen.getByRole('button', { name: /Sign In to Roads Console/i }));
+      fireEvent.click(screen.getByRole('button', { name: /^Sign In$/i }));
 
       await waitFor(() => {
         expect(screen.getByTestId('department-workspace')).toBeInTheDocument();

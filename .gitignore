@@ -54,3 +54,5 @@ ehthumbs.db
 *.tsbuildinfo
 .vite/
 screenshots/
+.credentials/
+credentials/

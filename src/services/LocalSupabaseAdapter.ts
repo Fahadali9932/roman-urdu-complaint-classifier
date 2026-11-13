@@ -10,6 +10,10 @@
  * identical table semantics.
  */
 
+import {
+  resolveDepartmentIdentity,
+} from '../features/department/auth/departmentIdentities';
+
 export interface DepartmentRow {
   id: string;
   name: string;
@@ -519,6 +523,149 @@ export class LocalSupabaseAdapter {
       status: 'not_found',
       error: 'Unable to verify departmental authorization.',
     };
+  }
+
+  /**
+   * Ensures that a specific department demonstration identity is provisioned in local state on demand.
+   */
+  public ensureDemonstrationAccount(username: string): void {
+    const identity = resolveDepartmentIdentity(username);
+    if (!identity) return;
+
+    let profile = this.state.profiles.find(
+      (p) => p.email.toLowerCase() === identity.authEmail.toLowerCase()
+    );
+    if (!profile) {
+      profile = {
+        id: `staff-${identity.departmentId}-demo-01`,
+        full_name: identity.defaultTitle,
+        email: identity.authEmail,
+        role: 'department_staff',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+      this.state.profiles.push(profile);
+    }
+
+    let membership = this.state.memberships.find(
+      (m) => m.department_id === identity.departmentId && m.user_id === profile!.id
+    );
+    if (!membership) {
+      membership = {
+        id: `mem-${identity.departmentId}-demo-01`,
+        user_id: profile.id,
+        department_id: identity.departmentId,
+        status: 'active',
+        approved_by: SEED_ADMIN_ID,
+        approved_at: new Date().toISOString(),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+      this.state.memberships.push(membership);
+    }
+
+    let cred = this.state.credentials.find(
+      (c) => c.email.toLowerCase() === identity.authEmail.toLowerCase()
+    );
+    if (!cred) {
+      cred = {
+        userId: profile.id,
+        email: identity.authEmail.toLowerCase(),
+        passwordHash: hashPassword('DemoAccessKey2026!Secure'),
+      };
+      this.state.credentials.push(cred);
+    }
+    this.saveState();
+  }
+
+  /**
+   * Real Username + Access Key staff authentication
+   * Resolves department username, checks department boundary, and validates credentials.
+   */
+  public authenticateStaffWithUsername(
+    rawUsername: string,
+    accessKey: string,
+    expectedDeptId?: string
+  ): {
+    success: boolean;
+    status: 'approved' | 'pending' | 'rejected' | 'revoked' | 'not_found' | 'invalid_password' | 'wrong_department';
+    user?: ProfileRow;
+    department?: DepartmentRow;
+    membership?: DepartmentMembershipRow;
+    rejectionReason?: string | null;
+    error?: string;
+  } {
+    const identity = resolveDepartmentIdentity(rawUsername);
+    if (identity) {
+      // Server-side department check: prevent cross-department theme sign-in
+      if (expectedDeptId && identity.departmentId !== expectedDeptId) {
+        const targetName =
+          expectedDeptId === 'kmc'
+            ? 'Roads & Infrastructure'
+            : this.getDepartmentById(expectedDeptId)?.name || expectedDeptId.toUpperCase();
+        return {
+          success: false,
+          status: 'wrong_department',
+          error: `Access Denied: Your staff account is authorized for "${identity.departmentName}". You cannot access the ${targetName} console with these credentials.`,
+        };
+      }
+
+      this.ensureDemonstrationAccount(identity.username);
+
+      const authRes = this.authenticateStaff(identity.authEmail, accessKey);
+      if (!authRes.success && authRes.status === 'invalid_password') {
+        return {
+          ...authRes,
+          error: 'Invalid username or access key.',
+        };
+      }
+      return authRes;
+    }
+
+    // Fallback: If rawUsername is an email (e.g. test setups or legacy accounts)
+    const emailRes = this.authenticateStaff(rawUsername, accessKey);
+    if (!emailRes.success) {
+      return {
+        ...emailRes,
+        status: emailRes.status === 'not_found' ? 'invalid_password' : emailRes.status,
+        error:
+          emailRes.status === 'invalid_password' || emailRes.status === 'not_found'
+            ? 'Invalid username or access key.'
+            : emailRes.error,
+      };
+    }
+    if (expectedDeptId && emailRes.department && emailRes.department.id !== expectedDeptId) {
+      const targetName =
+        expectedDeptId === 'kmc'
+          ? 'Roads & Infrastructure'
+          : this.getDepartmentById(expectedDeptId)?.name || expectedDeptId.toUpperCase();
+      return {
+        success: false,
+        status: 'wrong_department',
+        department: emailRes.department,
+        user: emailRes.user,
+        membership: emailRes.membership,
+        error: `Access Denied: Your staff account is authorized for "${emailRes.department.name}". You cannot access the ${targetName} console with these credentials.`,
+      };
+    }
+    return emailRes;
+  }
+
+  /**
+   * Updates or sets an access key for a department username (for testing and admin management).
+   */
+  public setDepartmentAccessKey(username: string, accessKey: string): boolean {
+    const identity = resolveDepartmentIdentity(username);
+    if (!identity) return false;
+    const cred = this.state.credentials.find(
+      (c) => c.email.toLowerCase() === identity.authEmail.toLowerCase()
+    );
+    if (cred) {
+      cred.passwordHash = hashPassword(accessKey);
+      this.saveState();
+      return true;
+    }
+    return false;
   }
 
   // ---------------------------------------------------------------------------

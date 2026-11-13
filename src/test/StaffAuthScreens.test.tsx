@@ -109,9 +109,9 @@ describe('Staff & Administrator Access Screens (Figma 35:1282, 35:1332, 35:1363,
       renderWithProviders('/department/login?dept=kmc');
 
       expect(screen.getByText('ROADS & INFRASTRUCTURE')).toBeInTheDocument();
-      expect(screen.getByLabelText(/Assigned Work Email/i)).toBeInTheDocument();
-      expect(screen.getByLabelText(/Access Key \/ Password/i)).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /Sign In to Roads Console/i })).toBeInTheDocument();
+      expect(screen.getByLabelText(/Username/i)).toBeInTheDocument();
+      expect(screen.getByLabelText(/Access Key/i)).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /^Sign In$/i })).toBeInTheDocument();
     });
   });
 

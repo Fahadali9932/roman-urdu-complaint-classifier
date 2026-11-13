@@ -1,4 +1,5 @@
 import { isSupabaseConfigured, supabase } from '../lib/supabase';
+import { resolveDepartmentIdentity } from '../features/department/auth/departmentIdentities';
 import {
   localSupabaseAdapter,
   type DepartmentRow,
@@ -22,6 +23,7 @@ export interface DepartmentMembershipWithDetails extends DepartmentMembershipRow
 export interface StaffSession {
   userId: string;
   email: string;
+  username?: string;
   fullName: string;
   role: StaffRole;
   departmentId?: string;
@@ -256,6 +258,183 @@ class StaffAuthService {
       rejectionReason: result.rejectionReason,
       error: result.error,
     };
+  }
+
+  // ---------------------------------------------------------------------------
+  // Staff Sign-In with Username + Access Key
+  // ---------------------------------------------------------------------------
+  public async signInDepartmentStaffWithUsername(
+    rawUsername: string,
+    accessKey: string,
+    expectedDeptId?: string
+  ): Promise<{
+    success: boolean;
+    status: 'approved' | 'pending' | 'rejected' | 'revoked' | 'not_found' | 'invalid_password' | 'wrong_department';
+    session?: StaffSession;
+    rejectionReason?: string | null;
+    error?: string;
+  }> {
+    const identity = resolveDepartmentIdentity(rawUsername);
+    if (!identity) {
+      // Fallback for test suites or legacy accounts
+      const result = localSupabaseAdapter.authenticateStaffWithUsername(
+        rawUsername,
+        accessKey,
+        expectedDeptId
+      );
+      if (result.success && result.user && result.department) {
+        const staffSession: StaffSession = {
+          userId: result.user.id,
+          email: result.user.email,
+          fullName: result.user.full_name,
+          role: 'department_staff',
+          departmentId: result.department.id,
+          departmentName: result.department.name,
+          departmentCode: result.department.code,
+          authenticatedAt: new Date().toISOString(),
+        };
+        this.setStoredStaffSession(staffSession);
+        return {
+          success: true,
+          status: 'approved',
+          session: staffSession,
+        };
+      }
+      return {
+        success: false,
+        status: result.status,
+        rejectionReason: result.rejectionReason,
+        error: result.error,
+      };
+    }
+
+    // Strict server-side department check: prevent cross-department theme sign-in
+    if (expectedDeptId && identity.departmentId !== expectedDeptId) {
+      return {
+        success: false,
+        status: 'wrong_department',
+        error: `Access Denied: Your staff account is authorized for "${identity.departmentName}". You cannot access the Roads & Infrastructure console with these credentials.`,
+      };
+    }
+
+    if (isSupabaseConfigured() && supabase) {
+      try {
+        const { data: authData, error: authErr } = await supabase.auth.signInWithPassword({
+          email: identity.authEmail,
+          password: accessKey,
+        });
+
+        if (authErr) {
+          return {
+            success: false,
+            status: 'invalid_password',
+            error: 'Invalid username or access key.',
+          };
+        }
+
+        const user = authData.user;
+        if (!user) {
+          return { success: false, status: 'not_found', error: 'User not found.' };
+        }
+
+        // Check active membership
+        const { data: memberships, error: memErr } = await supabase
+          .from('department_memberships')
+          .select('*, departments(*)')
+          .eq('user_id', user.id);
+
+        if (memErr) {
+          return { success: false, status: 'not_found', error: memErr.message };
+        }
+
+        const revokedMembership = memberships?.find(
+          (m) => m.department_id === identity.departmentId && m.status === 'revoked'
+        );
+        if (revokedMembership) {
+          return {
+            success: false,
+            status: 'revoked',
+            rejectionReason: revokedMembership.revocation_reason,
+            error: `Your departmental access has been revoked: ${
+              revokedMembership.revocation_reason || 'Access withdrawn by Main Administrator.'
+            }`,
+          };
+        }
+
+        const activeMembership = memberships?.find(
+          (m) => m.department_id === identity.departmentId && m.status === 'active'
+        );
+        if (activeMembership) {
+          const staffSession: StaffSession = {
+            userId: user.id,
+            email: identity.authEmail,
+            username: identity.username,
+            fullName: user.user_metadata?.full_name || identity.defaultTitle,
+            role: 'department_staff',
+            departmentId: activeMembership.department_id,
+            departmentName: activeMembership.departments?.name || identity.departmentName,
+            departmentCode: activeMembership.departments?.code || identity.departmentCode,
+            authenticatedAt: new Date().toISOString(),
+          };
+          this.setStoredStaffSession(staffSession);
+          return {
+            success: true,
+            status: 'approved',
+            session: staffSession,
+          };
+        }
+
+        return {
+          success: false,
+          status: 'not_found',
+          error: 'No active department membership found for this account.',
+        };
+      } catch (err: unknown) {
+        return {
+          success: false,
+          status: 'not_found',
+          error: err instanceof Error ? err.message : 'Authentication service error',
+        };
+      }
+    }
+
+    // Local / Offline Adapter
+    const result = localSupabaseAdapter.authenticateStaffWithUsername(
+      rawUsername,
+      accessKey,
+      expectedDeptId
+    );
+
+    if (result.success && result.user && result.department) {
+      const staffSession: StaffSession = {
+        userId: result.user.id,
+        email: identity.authEmail,
+        username: identity.username,
+        fullName: result.user.full_name,
+        role: 'department_staff',
+        departmentId: result.department.id,
+        departmentName: result.department.name,
+        departmentCode: result.department.code,
+        authenticatedAt: new Date().toISOString(),
+      };
+      this.setStoredStaffSession(staffSession);
+      return {
+        success: true,
+        status: 'approved',
+        session: staffSession,
+      };
+    }
+
+    return {
+      success: false,
+      status: result.status,
+      rejectionReason: result.rejectionReason,
+      error: result.error,
+    };
+  }
+
+  public setDepartmentAccessKey(username: string, accessKey: string): boolean {
+    return localSupabaseAdapter.setDepartmentAccessKey(username, accessKey);
   }
 
   // ---------------------------------------------------------------------------

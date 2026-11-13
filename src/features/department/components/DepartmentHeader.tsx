@@ -34,7 +34,7 @@ export const getDepartmentIcon = (id: DepartmentId | null, className = 'w-4 h-4'
 };
 
 export const DepartmentHeader: React.FC = () => {
-  const { departmentId, departmentMeta, signOut } = useDepartmentAuth();
+  const { departmentId, departmentMeta, session, signOut } = useDepartmentAuth();
   const { language, toggleLanguage, t } = useLanguage();
   const navigate = useNavigate();
 
@@ -87,6 +87,14 @@ export const DepartmentHeader: React.FC = () => {
               <span className="font-mono text-xs font-bold text-slate-700 bg-white px-1.5 py-0.5 rounded shrink-0 border border-black/10 shadow-2xs">
                 {departmentMeta.code}
               </span>
+              {session?.username && (
+                <span
+                  className="hidden md:inline-flex font-mono text-[11px] font-semibold text-slate-600 bg-black/5 px-1.5 py-0.5 rounded shrink-0"
+                  title="Authenticated Staff Username"
+                >
+                  {session.username}
+                </span>
+              )}
             </div>
           )}
 

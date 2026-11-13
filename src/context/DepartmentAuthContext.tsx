@@ -6,6 +6,7 @@ import { staffAuthService } from '../services/staffAuthService';
 export interface DepartmentAuthSession {
   userId?: string;
   email?: string;
+  username?: string;
   departmentId: DepartmentId;
   departmentName: string;
   departmentCode: string;
@@ -20,11 +21,12 @@ export interface DepartmentAuthContextType {
   session: DepartmentAuthSession | null;
   signIn: (deptId: DepartmentId, accessKey?: string) => { success: boolean; error?: string };
   signInWithCredentials: (
-    email: string,
-    passwordAttempt: string
+    identifier: string,
+    passwordAttempt: string,
+    expectedDeptId?: DepartmentId
   ) => Promise<{
     success: boolean;
-    status: 'approved' | 'pending' | 'rejected' | 'revoked' | 'not_found' | 'invalid_password';
+    status: 'approved' | 'pending' | 'rejected' | 'revoked' | 'not_found' | 'invalid_password' | 'wrong_department';
     rejectionReason?: string | null;
     error?: string;
   }>;
@@ -125,21 +127,35 @@ export const DepartmentAuthProvider: React.FC<{ children: ReactNode }> = ({ chil
   };
 
   const signInWithCredentials = async (
-    email: string,
-    passwordAttempt: string
+    identifier: string,
+    passwordAttempt: string,
+    expectedDeptId?: DepartmentId
   ): Promise<{
     success: boolean;
-    status: 'approved' | 'pending' | 'rejected' | 'revoked' | 'not_found' | 'invalid_password';
+    status: 'approved' | 'pending' | 'rejected' | 'revoked' | 'not_found' | 'invalid_password' | 'wrong_department';
     rejectionReason?: string | null;
     error?: string;
   }> => {
-    const res = await staffAuthService.signInDepartmentStaff(email, passwordAttempt);
+    // Try username authentication first
+    let res = await staffAuthService.signInDepartmentStaffWithUsername(
+      identifier,
+      passwordAttempt,
+      expectedDeptId
+    );
+
+    // Fallback to legacy email sign-in if not resolved as username and contains @
+    if (!res.success && identifier.includes('@')) {
+      const emailRes = await staffAuthService.signInDepartmentStaff(identifier, passwordAttempt);
+      res = emailRes;
+    }
+
     if (res.success && res.session && res.session.departmentId) {
       const deptId = res.session.departmentId as DepartmentId;
       const dept = KARACHI_DEPARTMENTS[deptId];
       const newSession: DepartmentAuthSession = {
         userId: res.session.userId,
         email: res.session.email,
+        username: res.session.username,
         departmentId: deptId,
         departmentName: res.session.departmentName || dept?.name || deptId,
         departmentCode: res.session.departmentCode || dept?.code || deptId.toUpperCase(),
