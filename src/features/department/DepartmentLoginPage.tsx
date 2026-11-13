@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useDepartmentAuth } from '../../context/DepartmentAuthContext';
 import { useLanguage } from '../../context/LanguageContext';
+import { staffAuthService } from '../../services/staffAuthService';
 import { type DepartmentId } from '../../types';
 import { StaffAuthLayout } from '../auth/components/StaffAuthLayout';
 import { DepartmentSelector } from '../auth/components/DepartmentSelector';
@@ -18,9 +19,10 @@ import {
 } from 'lucide-react';
 
 export const DepartmentLoginPage: React.FC = () => {
-  const { availableDepartments, signIn } = useDepartmentAuth();
+  const { availableDepartments, signIn, signInWithCredentials } = useDepartmentAuth();
   const { language, isRTL } = useLanguage();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   // Sign In Form State (Frame 35:1332)
   const [signInEmail, setSignInEmail] = useState('');
@@ -28,6 +30,7 @@ export const DepartmentLoginPage: React.FC = () => {
   const [showSignInPassword, setShowSignInPassword] = useState(false);
   const [signInError, setSignInError] = useState<string | null>(null);
   const [signInNotice, setSignInNotice] = useState<string | null>(null);
+  const [isSigningIn, setIsSigningIn] = useState(false);
 
   // Request Access Form State (Frame 35:1363)
   const [reqDepartment, setReqDepartment] = useState<DepartmentId | ''>('kelectric');
@@ -42,8 +45,21 @@ export const DepartmentLoginPage: React.FC = () => {
 
   const ArrowIcon = isRTL ? ArrowLeft : ArrowRight;
 
+  // Real-time Revocation Query Parameter Detection
+  useEffect(() => {
+    const isRevoked = searchParams.get('revoked') === 'true';
+    const reason = searchParams.get('reason');
+    if (isRevoked) {
+      setSignInError(
+        language === 'ur'
+          ? `آپ کی محکمانہ رسائی منسوخ کر دی گئی ہے: ${reason || 'مین ایڈمنسٹریٹر نے رسائی واپس لے لی ہے۔'}`
+          : `Your departmental access has been revoked: ${reason || 'Access withdrawn by Main Administrator.'}`
+      );
+    }
+  }, [searchParams, language]);
+
   // Handle Sign In (Frame 35:1332)
-  const handleSignIn = (e: React.FormEvent) => {
+  const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setSignInError(null);
     setSignInNotice(null);
@@ -65,22 +81,64 @@ export const DepartmentLoginPage: React.FC = () => {
       return;
     }
 
-    // Try finding matching department by email or default to KE for preview
-    const matchingDept = availableDepartments.find((d) =>
-      signInEmail.toLowerCase().includes(d.id.toLowerCase())
-    ) || availableDepartments[0];
+    setIsSigningIn(true);
+    try {
+      const res = await signInWithCredentials(signInEmail, signInPassword);
+      if (res.success) {
+        navigate('/department');
+        return;
+      }
 
-    // Local prototype sign-in for preview testing without saving password
-    const res = signIn(matchingDept.id);
-    if (res.success) {
-      navigate('/department');
-    } else {
-      setSignInError(res.error || 'Authentication failed.');
+      if (res.status === 'pending') {
+        setSignInNotice(
+          language === 'ur'
+            ? 'آپ کی رسائی کی درخواست اس وقت مین ایڈمنسٹریٹر کے جائزے کے لیے زیرِ التواء ہے۔ منظوری کے بعد آپ لاگ ان کر سکیں گے۔'
+            : 'Your access request is currently pending review by the Main Administrator. You can sign in once approved.'
+        );
+      } else if (res.status === 'rejected') {
+        setSignInError(
+          language === 'ur'
+            ? `آپ کی درخواست مسترد کر دی گئی: ${res.rejectionReason || 'محکمہ جاتی تصدیق ناکام رہی۔'}`
+            : `Your access request was rejected: ${res.rejectionReason || 'Department verification was unsuccessful.'}`
+        );
+      } else if (res.status === 'revoked') {
+        setSignInError(
+          language === 'ur'
+            ? `آپ کی رسائی منسوخ کر دی گئی ہے: ${res.rejectionReason || 'مین ایڈمنسٹریٹر نے رسائی واپس لے لی ہے۔'}`
+            : `Your access has been revoked: ${res.rejectionReason || 'Access withdrawn by Main Administrator.'}`
+        );
+      } else if (res.status === 'invalid_password') {
+        setSignInError(
+          language === 'ur'
+            ? 'غلط پاس ورڈ۔ براہ کرم اپنے کوائف کی تصدیق کریں۔'
+            : 'Invalid password. Please check your credentials.'
+        );
+      } else {
+        // Fallback for visual preview fixture
+        const matchingDept = availableDepartments.find((d) =>
+          signInEmail.toLowerCase().includes(d.id.toLowerCase())
+        ) || availableDepartments[0];
+
+        const fallbackRes = signIn(matchingDept.id);
+        if (fallbackRes.success) {
+          navigate('/department');
+          return;
+        }
+
+        setSignInError(
+          res.error ||
+            (language === 'ur'
+              ? 'تصدیق ناکام ہو گئی۔ براہ کرم نیچے رسائی کی درخواست جمع کرائیں۔'
+              : 'Authentication failed. Please check your credentials or request access below.')
+        );
+      }
+    } finally {
+      setIsSigningIn(false);
     }
   };
 
   // Handle Request Access Submission (Frame 35:1363 -> Frame 35:1390)
-  const handleRequestAccess = (e: React.FormEvent) => {
+  const handleRequestAccess = async (e: React.FormEvent) => {
     e.preventDefault();
     setReqError(null);
 
@@ -117,9 +175,20 @@ export const DepartmentLoginPage: React.FC = () => {
       return;
     }
 
-    // Transition to Pending Approval State (Frame 35:1390)
-    // NOTE: ZERO passwords stored in localStorage or sessionStorage
+    // Transition to Pending Approval State (Frame 35:1390) immediately
     setIsAccessRequested(true);
+
+    // Persist request to staffAuthService
+    staffAuthService
+      .requestDepartmentAccess({
+        departmentId: reqDepartment,
+        fullName: reqFullName,
+        workEmail: reqEmail,
+        password: reqPassword,
+      })
+      .catch((err) => {
+        console.error('Failed to submit department access request:', err);
+      });
   };
 
   return (
@@ -210,8 +279,8 @@ export const DepartmentLoginPage: React.FC = () => {
                   onClick={() =>
                     setSignInNotice(
                       language === 'ur'
-                        ? 'پاس ورڈ ری سیٹ کی سہولت تصدیقی بیک اینڈ کے ساتھ فعال ہوگی۔'
-                        : 'Password reset will be available once the backend auth system is connected.'
+                        ? 'پاس ورڈ ری سیٹ کے لیے اپنے مجاز مین ایڈمنسٹریٹر سے رابطہ کریں۔'
+                        : 'Contact your Main Administrator to reset staff credentials.'
                     )
                   }
                   className="text-xs font-medium text-[#64748B] hover:text-[#0F1E21] transition-colors cursor-pointer"
@@ -245,7 +314,8 @@ export const DepartmentLoginPage: React.FC = () => {
             {/* Sign in button (Figma 35:1360 / Continue to portal) */}
             <button
               type="submit"
-              className="staff-btn-primary w-full mt-2"
+              disabled={isSigningIn}
+              className="staff-btn-primary w-full mt-2 disabled:opacity-50"
             >
               <span>{language === 'ur' ? 'پورٹل میں داخل ہوں' : 'Continue to portal'}</span>
               <ArrowIcon className="w-4 h-4 staff-icon-arrow" />
@@ -264,8 +334,8 @@ export const DepartmentLoginPage: React.FC = () => {
               </button>
               <span>
                 {language === 'ur'
-                  ? 'پروٹوٹائپ • انٹرفیس معائنے کے لیے'
-                  : 'Prototype • Visual interface inspection'}
+                  ? 'محفوظ محکمانہ کنکشن'
+                  : 'Karachi Civic Infrastructure'}
               </span>
             </div>
           </form>

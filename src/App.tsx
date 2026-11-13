@@ -1,6 +1,7 @@
 import React, { useLayoutEffect } from 'react';
 import { BrowserRouter, useLocation } from 'react-router-dom';
 import { LanguageProvider } from './context/LanguageContext';
+import { AdminAuthProvider } from './context/AdminAuthContext';
 import { DepartmentAuthProvider } from './context/DepartmentAuthContext';
 import { AppRoutes } from './routes/AppRoutes';
 
@@ -26,9 +27,11 @@ export const App: React.FC = () => {
     <BrowserRouter>
       <ScrollToTop />
       <LanguageProvider>
-        <DepartmentAuthProvider>
-          <AppRoutes />
-        </DepartmentAuthProvider>
+        <AdminAuthProvider>
+          <DepartmentAuthProvider>
+            <AppRoutes />
+          </DepartmentAuthProvider>
+        </AdminAuthProvider>
       </LanguageProvider>
     </BrowserRouter>
   );

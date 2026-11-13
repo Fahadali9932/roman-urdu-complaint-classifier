@@ -19,7 +19,7 @@ import { Loader2, Inbox } from 'lucide-react';
 import './department-theme.css';
 
 export const DepartmentDashboardPage: React.FC = () => {
-  const { departmentId, isAuthenticated } = useDepartmentAuth();
+  const { departmentId, isAuthenticated, checkRevocationStatus } = useDepartmentAuth();
   const { language, t } = useLanguage();
   const navigate = useNavigate();
   const { referenceNumber: urlRef } = useParams<{ referenceNumber?: string }>();
@@ -33,12 +33,20 @@ export const DepartmentDashboardPage: React.FC = () => {
   const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
   const [unauthorizedRefError, setUnauthorizedRefError] = useState<string | null>(null);
 
-  // Authentication guard: redirect to login if not authenticated
+  // Authentication & immediate revocation guard
   useEffect(() => {
     if (!isAuthenticated || !departmentId) {
       navigate('/department/login', { replace: true });
+      return;
     }
-  }, [isAuthenticated, departmentId, navigate]);
+    const revCheck = checkRevocationStatus();
+    if (!revCheck.authorized) {
+      navigate(
+        `/department/login?revoked=true&reason=${encodeURIComponent(revCheck.reason || '')}`,
+        { replace: true }
+      );
+    }
+  }, [isAuthenticated, departmentId, checkRevocationStatus, navigate]);
 
   // Load complaints assigned to the authenticated department
   useEffect(() => {

@@ -16,25 +16,8 @@ import { DepartmentPortalLayout } from '../features/department/DepartmentPortalL
 import { DepartmentDashboardPage } from '../features/department/DepartmentDashboardPage';
 import { DepartmentLoginPage } from '../features/department/DepartmentLoginPage';
 import { AdminLoginPage } from '../features/auth/pages/AdminLoginPage';
-import { Card } from '../components/common/Card';
-import { Container } from '../components/layout/Container';
-import { Building2 } from 'lucide-react';
-
-const FuturePortalPlaceholder: React.FC<{ role: 'department' | 'admin' }> = ({ role }) => (
-  <div className="py-16">
-    <Container size="md">
-      <Card className="p-8 text-center space-y-4">
-        <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-700 flex items-center justify-center mx-auto">
-          <Building2 className="w-6 h-6 text-[#111111]" />
-        </div>
-        <h2 className="text-xl font-bold text-slate-900">
-          {role === 'department' ? 'Department area' : 'Administrator area'}
-        </h2>
-        <p className="text-sm text-[#5B5B5B]">This area is not available in this preview.</p>
-      </Card>
-    </Container>
-  </div>
-);
+import { AdminRequestsPage } from '../features/auth/pages/AdminRequestsPage';
+import { AdminAccessPage } from '../features/auth/pages/AdminAccessPage';
 
 export const AppRoutes: React.FC = () => {
   return (
@@ -55,14 +38,14 @@ export const AppRoutes: React.FC = () => {
         {/* Citizen Auth routes */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
-
-        {/* Future Portals */}
-        <Route path="/admin/*" element={<FuturePortalPlaceholder role="admin" />} />
       </Route>
 
-      {/* Staff & Administrator Authentication Screens */}
+      {/* Staff & Administrator Management Routes */}
       <Route path="/admin/login" element={<AdminLoginPage />} />
-      <Route path="/admin" element={<Navigate to="/admin/login" replace />} />
+      <Route path="/admin/requests" element={<AdminRequestsPage />} />
+      <Route path="/admin/access" element={<AdminAccessPage />} />
+      <Route path="/admin/overview" element={<Navigate to="/admin/requests" replace />} />
+      <Route path="/admin" element={<Navigate to="/admin/requests" replace />} />
 
       {/* Department Portal Workspace */}
       <Route element={<DepartmentPortalLayout />}>
