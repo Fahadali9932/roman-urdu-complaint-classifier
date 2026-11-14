@@ -26,16 +26,28 @@ export const ComplaintFolder: React.FC<ComplaintFolderProps> = ({
             Resolved
           </span>
         );
+      case 'rejected':
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[11px] font-mono font-bold uppercase bg-[#B4233E] text-white">
+            Rejected
+          </span>
+        );
       case 'in_progress':
         return (
           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[11px] font-mono font-bold uppercase bg-[#EAEAE8] text-[#111111] border border-[#D5D5D3]">
             In Progress
           </span>
         );
+      case 'accepted':
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[11px] font-mono font-bold uppercase bg-[#E0F2FE] text-[#0369A1] border border-[#BAE6FD]">
+            Accepted
+          </span>
+        );
       case 'assigned':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[11px] font-mono font-bold uppercase bg-[#FAFAF9] text-[#111111] border border-[#D5D5D3]">
-            Assigned
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[11px] font-mono font-bold uppercase bg-[#FEF3C7] text-[#92400E] border border-[#FDE68A]">
+            Pending Acceptance
           </span>
         );
       case 'under_review':

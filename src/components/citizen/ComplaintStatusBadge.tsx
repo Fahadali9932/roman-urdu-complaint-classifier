@@ -51,6 +51,17 @@ export const ComplaintStatusBadge: React.FC<ComplaintStatusBadgeProps> = ({
           {t('statusAssigned')}
         </Badge>
       );
+    case 'accepted':
+      return (
+        <Badge
+          variant="blue"
+          size={size}
+          icon={<Clock className="w-3 h-3" />}
+          className={className}
+        >
+          {t('statusAccepted') || 'Accepted'}
+        </Badge>
+      );
     case 'in_progress':
       return (
         <Badge

@@ -364,7 +364,8 @@ export const translations = {
     // Status Badges
     statusSubmitted: 'Submitted',
     statusUnderReview: 'Under Review',
-    statusAssigned: 'Assigned',
+    statusAssigned: 'Pending Acceptance',
+    statusAccepted: 'Accepted by Department',
     statusInProgress: 'In Progress',
     statusResolved: 'Resolved',
     statusRejected: 'Rejected',
@@ -805,7 +806,8 @@ export const translations = {
     // Status Badges
     statusSubmitted: 'درج شدہ',
     statusUnderReview: 'زیرِ جائزہ',
-    statusAssigned: 'تفویض شدہ',
+    statusAssigned: 'محکمانہ توثیق کے منتظر',
+    statusAccepted: 'منظور شدہ',
     statusInProgress: 'زیرِ کارروائی',
     statusResolved: 'حل شدہ',
     statusRejected: 'مسترد',

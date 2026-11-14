@@ -1,15 +1,18 @@
 -- ==============================================================================
--- AWAAZ-E-AWAM — DEPARTMENT ACCEPTANCE AND STATUS WORKFLOW
+-- AWAAZ-E-AWAM — DEPARTMENT ACCEPTANCE AND STATUS WORKFLOW & NOTIFICATIONS
 -- Migration: 20261117000000_department_acceptance_workflow.sql
 --
--- Incorporates explicit department acceptance lifecycle:
+-- Incorporates explicit department acceptance lifecycle & notification outbox:
 -- 1. Updates CHECK constraints on public.complaints and public.complaint_timeline_events
 --    to include 'accepted'.
--- 2. Updates public.staff_update_complaint_status RPC to enforce:
+-- 2. Creates public.complaint_notification_outbox for transactional citizen emails.
+-- 3. Updates public.staff_update_complaint_status RPC to enforce:
 --    - assigned -> accepted, rejected
 --    - accepted -> in_progress, rejected
 --    - in_progress -> resolved, rejected
 --    - resolved / rejected are strictly terminal (no further transitions).
+--    - Automatically records transactional email dispatch in notification outbox.
+-- 4. Enables Supabase Realtime publication for complaints & timeline events.
 -- ==============================================================================
 
 -- 1. Update check constraint on public.complaints
@@ -28,7 +31,38 @@ ALTER TABLE public.complaint_timeline_events
     ADD CONSTRAINT complaint_timeline_events_status_check
     CHECK (status IN ('submitted', 'under_review', 'assigned', 'accepted', 'in_progress', 'resolved', 'rejected'));
 
--- 3. Replace staff_update_complaint_status RPC
+-- 3. Create Notification Outbox Table (PII isolated from department staff)
+CREATE TABLE IF NOT EXISTS public.complaint_notification_outbox (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    complaint_id UUID NOT NULL REFERENCES public.complaints(id) ON DELETE CASCADE,
+    recipient_email TEXT NOT NULL,
+    recipient_name TEXT NOT NULL,
+    event_type TEXT NOT NULL,
+    status TEXT NOT NULL,
+    payload JSONB NOT NULL,
+    delivery_status TEXT NOT NULL DEFAULT 'pending',
+    delivery_error TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    sent_at TIMESTAMPTZ
+);
+
+CREATE INDEX IF NOT EXISTS idx_notification_outbox_status 
+    ON public.complaint_notification_outbox(delivery_status, created_at);
+
+ALTER TABLE public.complaint_notification_outbox ENABLE ROW LEVEL SECURITY;
+
+-- Department staff must NEVER view recipient email addresses
+REVOKE ALL ON public.complaint_notification_outbox FROM anon, authenticated;
+
+-- Main admin can view notification audit log
+CREATE POLICY admin_manage_notifications
+    ON public.complaint_notification_outbox
+    FOR ALL
+    TO authenticated
+    USING (public.is_main_admin(auth.uid()))
+    WITH CHECK (public.is_main_admin(auth.uid()));
+
+-- 4. Replace staff_update_complaint_status RPC
 CREATE OR REPLACE FUNCTION public.staff_update_complaint_status(
     p_complaint_id UUID,
     p_new_status TEXT,
@@ -45,6 +79,8 @@ AS $$
 DECLARE
     v_caller_id UUID := auth.uid();
     v_complaint public.complaints%ROWTYPE;
+    v_citizen_email TEXT;
+    v_citizen_name TEXT;
     v_is_staff_active BOOLEAN;
     v_is_admin BOOLEAN;
 BEGIN
@@ -121,6 +157,41 @@ BEGIN
         v_caller_id
     );
 
+    -- Securely fetch citizen notification contact from private table
+    SELECT citizen_email, citizen_name 
+    INTO v_citizen_email, v_citizen_name
+    FROM public.complaint_citizen_private
+    WHERE complaint_id = p_complaint_id;
+
+    -- Queue transactional notification in outbox (Staff caller NEVER sees this email)
+    IF v_citizen_email IS NOT NULL AND trim(v_citizen_email) <> '' THEN
+        INSERT INTO public.complaint_notification_outbox (
+            complaint_id,
+            recipient_email,
+            recipient_name,
+            event_type,
+            status,
+            payload
+        )
+        VALUES (
+            p_complaint_id,
+            trim(v_citizen_email),
+            coalesce(v_citizen_name, 'Citizen'),
+            'status_updated',
+            p_new_status,
+            jsonb_build_object(
+                'reference_number', v_complaint.reference_number,
+                'status', p_new_status,
+                'title_en', p_title_en,
+                'title_ur', p_title_ur,
+                'note_en', p_note_en,
+                'note_ur', p_note_ur,
+                'department_id', v_complaint.assigned_department_id,
+                'timestamp', now()
+            )
+        );
+    END IF;
+
     RETURN jsonb_build_object(
         'success', true,
         'complaint_id', p_complaint_id,
@@ -133,3 +204,18 @@ $$;
 REVOKE ALL ON FUNCTION public.staff_update_complaint_status(UUID, TEXT, TEXT, TEXT, TEXT, TEXT) FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.staff_update_complaint_status(UUID, TEXT, TEXT, TEXT, TEXT, TEXT) FROM anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.staff_update_complaint_status(UUID, TEXT, TEXT, TEXT, TEXT, TEXT) TO authenticated;
+
+-- 5. Enable Realtime Publications for Live Status Sync
+DO $$
+BEGIN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.complaints;
+EXCEPTION
+    WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$
+BEGIN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.complaint_timeline_events;
+EXCEPTION
+    WHEN duplicate_object THEN NULL;
+END $$;

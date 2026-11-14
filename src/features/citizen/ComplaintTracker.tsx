@@ -6,6 +6,7 @@ import { useLanguage } from '../../context/LanguageContext';
 import { FolderOpen, PenTool } from 'lucide-react';
 import { complaintService } from '../../services';
 import type { Complaint } from '../../types';
+import { supabase, isSupabaseConfigured } from '../../lib/supabase';
 
 export const ComplaintTracker: React.FC = () => {
   const { language, t } = useLanguage();
@@ -16,10 +17,66 @@ export const ComplaintTracker: React.FC = () => {
   const [error, setError] = useState('');
   useEffect(() => {
     if (!referenceNumber) return;
-    complaintService
-      .getComplaintByReference(referenceNumber)
-      .then(setComplaint)
-      .catch(() => setError('This complaint is unavailable in your account.'));
+
+    let isCancelled = false;
+    const fetchSingle = () => {
+      complaintService
+        .getComplaintByReference(referenceNumber)
+        .then((data) => {
+          if (!isCancelled) setComplaint(data);
+        })
+        .catch(() => {
+          if (!isCancelled) setError('This complaint is unavailable in your account.');
+        });
+    };
+
+    fetchSingle();
+
+    // 1. Realtime subscription for this complaint
+    let channel: any = null;
+    if (isSupabaseConfigured() && supabase) {
+      channel = supabase
+        .channel(`tracker-live-${referenceNumber.toUpperCase()}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'complaints',
+          },
+          () => {
+            fetchSingle();
+          }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'complaint_timeline_events',
+          },
+          () => {
+            fetchSingle();
+          }
+        )
+        .subscribe();
+    }
+
+    // 2. Window focus refresh
+    const handleFocus = () => fetchSingle();
+    window.addEventListener('focus', handleFocus);
+
+    // 3. 15-second interval fallback
+    const intervalId = setInterval(fetchSingle, 15000);
+
+    return () => {
+      isCancelled = true;
+      if (channel && supabase) {
+        supabase.removeChannel(channel);
+      }
+      window.removeEventListener('focus', handleFocus);
+      clearInterval(intervalId);
+    };
   }, [referenceNumber]);
 
   const getStatusLabel = (status: string, lang: string) => {

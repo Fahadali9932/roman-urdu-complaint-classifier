@@ -213,7 +213,26 @@ export class SupabaseComplaintService implements IComplaintService {
     });
 
     if (error) {
+      if (error.message?.includes('Invalid status transition') && newStatus === 'accepted') {
+        throw new Error(
+          'Database migration required: Please run migration 20261117000000_department_acceptance_workflow.sql in the Supabase Dashboard SQL Editor to permit the "accepted" status transition.'
+        );
+      }
       throw new Error(error.message || 'Failed to update complaint status in database.');
+    }
+
+    // Trigger server-side citizen email notification (Edge Function)
+    try {
+      await supabase.functions.invoke('send-status-notification', {
+        body: {
+          complaintId: item.id,
+          newStatus,
+          title: titleEn,
+          note: noteEn,
+        },
+      });
+    } catch (notifErr) {
+      console.warn('[SupabaseComplaintService] Status notification dispatch logged:', notifErr);
     }
 
     const updated = await this.getDepartmentComplaintByReference(departmentId, item.id);

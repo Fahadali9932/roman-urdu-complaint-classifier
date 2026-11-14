@@ -428,6 +428,110 @@ describe('Phase 3B — Core Supabase Database Foundation & Security Tests', () =
     expect(timeline[2].status).toBe('resolved');
   });
 
+  it('triggers transactional notification outbox records on department acceptance, progress, and resolution', () => {
+    // 1. Citizen submits complaint
+    const complaint = localSupabaseAdapter.insertComplaint(
+      {
+        reference_number: 'KHI-2026-NOTIF-TEST',
+        citizen_id: CITIZEN_A_ID,
+        description: 'Pani ki main line phat chuki hai.',
+        incident_district: 'District East',
+        incident_locality: 'Gulshan-e-Iqbal',
+        incident_public_location: 'Block 13-D near Civic Centre',
+        status: 'assigned',
+        assigned_department_id: 'kwsc',
+        predicted_department_id: 'kwsc',
+        prediction_confidence: 0.95,
+      },
+      CITIZEN_A_ID
+    ).complaint!;
+
+    // 2. Citizen attaches private email
+    localSupabaseAdapter.insertCitizenPrivateDetails(
+      {
+        complaint_id: complaint.id,
+        citizen_name: 'Muhammad Bilal',
+        citizen_phone: '+92 300 1234567',
+        citizen_email: 'bilal.notification@awaaz-e-awam.pk',
+        residential_address: 'Flat 402, Block 13-D, Karachi',
+      },
+      CITIZEN_A_ID
+    );
+
+    // Initial outbox check
+    const initialOutbox = localSupabaseAdapter.getNotificationOutbox().filter(
+      (n) => n.complaint_id === complaint.id
+    );
+    expect(initialOutbox).toHaveLength(0);
+
+    // 3. Department staff accepts complaint: assigned -> accepted
+    const acceptRes = localSupabaseAdapter.staffUpdateComplaintStatus(
+      {
+        complaint_id: complaint.id,
+        new_status: 'accepted',
+        title_en: 'Complaint Accepted',
+        title_ur: 'شکایت منظور',
+        note_en: 'KW&SC field unit dispatched',
+        note_ur: 'فیلڈ ٹیم روانہ',
+      },
+      KWSC_STAFF_ID
+    );
+    expect(acceptRes.success).toBe(true);
+
+    const outboxAfterAccept = localSupabaseAdapter.getNotificationOutbox().filter(
+      (n) => n.complaint_id === complaint.id
+    );
+    expect(outboxAfterAccept).toHaveLength(1);
+    expect(outboxAfterAccept[0].recipient_email).toBe('bilal.notification@awaaz-e-awam.pk');
+    expect(outboxAfterAccept[0].recipient_name).toBe('Muhammad Bilal');
+    expect(outboxAfterAccept[0].status).toBe('accepted');
+    expect(outboxAfterAccept[0].delivery_status).toBe('logged');
+
+    // 4. Department staff starts work: accepted -> in_progress
+    const progressRes = localSupabaseAdapter.staffUpdateComplaintStatus(
+      {
+        complaint_id: complaint.id,
+        new_status: 'in_progress',
+        title_en: 'Work In Progress',
+        title_ur: 'کام جاری',
+        note_en: 'Repair ongoing',
+        note_ur: 'مرمت کا کام جاری ہے',
+      },
+      KWSC_STAFF_ID
+    );
+    expect(progressRes.success).toBe(true);
+
+    const outboxAfterProgress = localSupabaseAdapter.getNotificationOutbox().filter(
+      (n) => n.complaint_id === complaint.id
+    );
+    expect(outboxAfterProgress).toHaveLength(2);
+    expect(outboxAfterProgress[1].status).toBe('in_progress');
+
+    // 5. Department staff resolves complaint: in_progress -> resolved
+    const resolveRes = localSupabaseAdapter.staffUpdateComplaintStatus(
+      {
+        complaint_id: complaint.id,
+        new_status: 'resolved',
+        title_en: 'Line Restored',
+        title_ur: 'لائن بحال',
+        note_en: 'Water supply normalized',
+        note_ur: 'پانی کی فراہمی معمول پر آ گئی',
+      },
+      KWSC_STAFF_ID
+    );
+    expect(resolveRes.success).toBe(true);
+
+    const outboxAfterResolve = localSupabaseAdapter.getNotificationOutbox().filter(
+      (n) => n.complaint_id === complaint.id
+    );
+    expect(outboxAfterResolve).toHaveLength(3);
+    expect(outboxAfterResolve[2].status).toBe('resolved');
+
+    // 6. Zero PII verification: department staff can NEVER query private details
+    const staffRead = localSupabaseAdapter.selectCitizenPrivateDetails(complaint.id, KWSC_STAFF_ID);
+    expect(staffRead).toBeNull();
+  });
+
   // ---------------------------------------------------------------------------
   // 7. Immediate Revocation Denial
   // ---------------------------------------------------------------------------

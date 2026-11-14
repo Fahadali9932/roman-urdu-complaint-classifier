@@ -12,6 +12,7 @@ import {
   type WorkspaceSection,
   type TaskFilterType,
 } from './components/DepartmentSidebar';
+import { supabase, isSupabaseConfigured } from '../../lib/supabase';
 import { ComplaintInboxList } from './components/ComplaintInboxList';
 import { ComplaintDetailView } from './components/ComplaintDetailView';
 import { StatusUpdateModal } from './components/StatusUpdateModal';
@@ -67,60 +68,102 @@ export const DepartmentDashboardPage: React.FC = () => {
     }
   }, [isAuthenticated, departmentId, checkRevocationStatus, navigate]);
 
-  // Load complaints assigned to this department
+  // Load complaints assigned to this department with real-time sync & polling fallback
   useEffect(() => {
     if (!departmentId) return;
 
     let isCancelled = false;
-    const fetchComplaints = async () => {
-      setIsLoading(true);
+    const fetchComplaints = async (options?: { silent?: boolean }) => {
+      if (!options?.silent) {
+        setIsLoading(true);
+      }
       setUnauthorizedRefError(null);
       try {
         const data = await complaintService.getDepartmentComplaints(departmentId);
-        if (!isCancelled) {
-          setComplaints(data);
+        if (isCancelled) return;
+        setComplaints(data);
 
-          // Deep-link reference handling
+        // Deep-link reference handling or persistent selection
+        setSelectedReference((prevRef) => {
           const targetRef = searchParams.get('ref') || urlRef;
           if (targetRef) {
             const cleaned = targetRef.trim().toUpperCase();
-            const match = data.find(
-              (c) => c.referenceNumber.toUpperCase() === cleaned
-            );
-            if (match) {
-              setSelectedReference(match.referenceNumber);
-              return;
-            } else {
-              // Target reference exists in URL but is not assigned to this department
-              const globalComplaint = await complaintService.getComplaintByReference(cleaned);
-              if (globalComplaint && globalComplaint.assignedDepartmentId !== departmentId) {
+            const match = data.find((c) => c.referenceNumber.toUpperCase() === cleaned);
+            if (match) return match.referenceNumber;
+            // Check unauthorized
+            complaintService.getComplaintByReference(cleaned).then((globalComp) => {
+              if (globalComp && globalComp.assignedDepartmentId !== departmentId) {
                 setUnauthorizedRefError(cleaned);
-                setSelectedReference(null);
-                return;
               }
-            }
+            });
           }
-
-          // Auto-select first complaint on desktop if complaints exist
+          if (prevRef && data.some((c) => c.referenceNumber === prevRef)) {
+            return prevRef;
+          }
           const isDesktop = typeof window !== 'undefined' && window.innerWidth >= 1024;
-          if (isDesktop && data.length > 0) {
-            setSelectedReference(data[0].referenceNumber);
-          } else {
-            setSelectedReference(null);
-          }
-        }
+          return isDesktop && data.length > 0 ? data[0].referenceNumber : null;
+        });
       } catch (err) {
         console.error('Failed to load department complaints:', err);
       } finally {
-        if (!isCancelled) {
+        if (!isCancelled && !options?.silent) {
           setIsLoading(false);
         }
       }
     };
 
+    // Initial load
     fetchComplaints();
+
+    // 1. Supabase Realtime Subscription for live updates
+    let channel: any = null;
+    if (isSupabaseConfigured() && supabase) {
+      channel = supabase
+        .channel(`dept-complaints-live-${departmentId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'complaints',
+            filter: `assigned_department_id=eq.${departmentId}`,
+          },
+          () => {
+            fetchComplaints({ silent: true });
+          }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'complaint_timeline_events',
+          },
+          () => {
+            fetchComplaints({ silent: true });
+          }
+        )
+        .subscribe();
+    }
+
+    // 2. Window focus refresh
+    const handleFocus = () => {
+      fetchComplaints({ silent: true });
+    };
+    window.addEventListener('focus', handleFocus);
+
+    // 3. 15-second polling fallback
+    const intervalId = setInterval(() => {
+      fetchComplaints({ silent: true });
+    }, 15000);
+
     return () => {
       isCancelled = true;
+      if (channel && supabase) {
+        supabase.removeChannel(channel);
+      }
+      window.removeEventListener('focus', handleFocus);
+      clearInterval(intervalId);
     };
   }, [departmentId, urlRef, searchParams]);
 

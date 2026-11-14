@@ -134,6 +134,20 @@ interface StoredUserCredential {
   passwordHash: string; // Emulated hashed storage
 }
 
+export interface NotificationOutboxRow {
+  id: string;
+  complaint_id: string;
+  recipient_email: string;
+  recipient_name: string;
+  event_type: string;
+  status: string;
+  payload: Record<string, unknown>;
+  delivery_status: string;
+  delivery_error?: string | null;
+  created_at: string;
+  sent_at?: string | null;
+}
+
 interface DatabaseState {
   departments: DepartmentRow[];
   profiles: ProfileRow[];
@@ -145,6 +159,7 @@ interface DatabaseState {
   citizenPrivateDetails: ComplaintCitizenPrivateRow[];
   timelineEvents: ComplaintTimelineEventRow[];
   rateLimits: AuthRateLimitRow[];
+  notificationOutbox: NotificationOutboxRow[];
 }
 
 const STORAGE_KEY = 'awaaz_local_supabase_db_v2';
@@ -292,6 +307,7 @@ export class LocalSupabaseAdapter {
       citizenPrivateDetails: [],
       timelineEvents: [],
       rateLimits: [],
+      notificationOutbox: [],
     };
   }
 
@@ -1336,12 +1352,41 @@ export class LocalSupabaseAdapter {
       created_at: now,
     });
 
+    // Queue notification in outbox if citizen email exists (Server-side definer)
+    const privateRow = this.state.citizenPrivateDetails?.find(
+      (cp) => cp.complaint_id === params.complaint_id
+    );
+    if (privateRow?.citizen_email) {
+      if (!this.state.notificationOutbox) this.state.notificationOutbox = [];
+      this.state.notificationOutbox.push({
+        id: generateId('notif'),
+        complaint_id: params.complaint_id,
+        recipient_email: privateRow.citizen_email,
+        recipient_name: privateRow.citizen_name,
+        event_type: 'status_updated',
+        status: params.new_status,
+        payload: {
+          reference_number: complaint.reference_number,
+          title_en: params.title_en,
+          note_en: params.note_en,
+          title_ur: params.title_ur,
+          note_ur: params.note_ur,
+        },
+        delivery_status: 'logged',
+        created_at: now,
+      });
+    }
+
     this.saveState();
     return {
       success: true,
       old_status: oldStatus,
       new_status: params.new_status,
     };
+  }
+
+  public getNotificationOutbox(): NotificationOutboxRow[] {
+    return this.state.notificationOutbox || [];
   }
 
   // ---------------------------------------------------------------------------
