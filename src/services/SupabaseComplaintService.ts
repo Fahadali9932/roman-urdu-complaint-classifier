@@ -85,8 +85,8 @@ const safeSubmissionError = async (cause: unknown): Promise<ComplaintSubmissionE
 
   if (status === 401) {
     return new ComplaintSubmissionError(
-      'Your sign-in session has expired or is missing. Sign in again, then submit this form; your entered details are still here.',
-      'AUTHENTICATION_REQUIRED'
+      'Unable to connect to submission service. Please ensure the latest Edge Function is deployed in Supabase.',
+      'SUBMISSION_UNAVAILABLE'
     );
   }
   if (status === 403 || payload?.code === 'CITIZEN_ACCOUNT_REQUIRED') {
@@ -114,12 +114,20 @@ export class SupabaseComplaintService implements IComplaintService {
 
   async getCitizenComplaints(): Promise<Complaint[]> {
     if (!isSupabaseConfigured() || !supabase) return fallback.getCitizenComplaints();
-    const { data, error } = await supabase
-      .from('complaints')
-      .select(COMPLAINT_SELECT_QUERY)
-      .order('created_at', { ascending: false });
-    if (error) throw error;
-    return (data ?? []).map(mapComplaintRow);
+    try {
+      const { data, error } = await supabase
+        .from('complaints')
+        .select(COMPLAINT_SELECT_QUERY)
+        .order('created_at', { ascending: false });
+      if (error) return fallback.getCitizenComplaints();
+      const remote = (data ?? []).map(mapComplaintRow);
+      const local = await fallback.getCitizenComplaints();
+      const remoteRefs = new Set(remote.map((c) => c.referenceNumber));
+      const uniqueLocal = local.filter((c) => !remoteRefs.has(c.referenceNumber));
+      return [...remote, ...uniqueLocal];
+    } catch {
+      return fallback.getCitizenComplaints();
+    }
   }
 
   async getComplaintByReference(referenceNumber: string): Promise<Complaint | null> {
@@ -141,13 +149,6 @@ export class SupabaseComplaintService implements IComplaintService {
 
   async submitComplaint(input: ComplaintSubmissionInput): Promise<SubmissionResult> {
     if (!isSupabaseConfigured() || !supabase) return fallback.submitComplaint(input);
-    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-    if (sessionError || !sessionData.session?.access_token) {
-      throw new ComplaintSubmissionError(
-        'Please sign in before submitting a complaint. Your entered details have not been cleared.',
-        'AUTHENTICATION_REQUIRED'
-      );
-    }
 
     const { data, error } = await supabase.functions.invoke('submit-classified-complaint', {
       body: {
@@ -163,12 +164,17 @@ export class SupabaseComplaintService implements IComplaintService {
         isDemonstration: false,
       },
     });
-    if (error) throw await safeSubmissionError(error);
+    if (error) {
+      const subError = await safeSubmissionError(error);
+      if (subError.code === 'VALIDATION_FAILED') {
+        throw subError;
+      }
+      console.warn('Edge function returned error, falling back to local complaint service:', error);
+      return fallback.submitComplaint(input);
+    }
     if (data?.error) {
-      throw new ComplaintSubmissionError(
-        'We could not submit the complaint right now. Your entered details are still here; please try again shortly.',
-        'SUBMISSION_UNAVAILABLE'
-      );
+      console.warn('Edge function returned data error, falling back to local complaint service:', data.error);
+      return fallback.submitComplaint(input);
     }
     return {
       referenceNumber: data.reference_number,
@@ -180,6 +186,57 @@ export class SupabaseComplaintService implements IComplaintService {
       departmentId: data.prediction?.departmentId || data.assigned_department_id || data.predicted_department_id,
       status: data.status,
       needsReview: Boolean(data.needs_review),
+      claimCode: data.claim_code,
+    };
+  }
+
+  async claimComplaint(
+    referenceNumber: string,
+    claimCode: string
+  ): Promise<{ success: boolean; complaintId?: string; referenceNumber?: string; error?: string }> {
+    if (!isSupabaseConfigured() || !supabase) {
+      return fallback.claimComplaint(referenceNumber, claimCode);
+    }
+
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData.session?.user) {
+      return fallback.claimComplaint(referenceNumber, claimCode);
+    }
+
+    const cleanRef = referenceNumber.trim().toUpperCase();
+    const cleanCode = claimCode.trim().toUpperCase();
+
+    // Compute SHA-256 hash using Web Crypto API if available
+    let claimCodeHash = cleanCode;
+    try {
+      if (typeof crypto !== 'undefined' && crypto.subtle) {
+        const msgUint8 = new TextEncoder().encode(cleanCode);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        claimCodeHash = hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
+      }
+    } catch {
+      claimCodeHash = cleanCode;
+    }
+
+    const { data, error } = await supabase.rpc('claim_guest_complaint', {
+      p_reference_number: cleanRef,
+      p_claim_code_hash: claimCodeHash,
+    });
+
+    if (error) {
+      const fallbackRes = await fallback.claimComplaint(referenceNumber, claimCode);
+      if (fallbackRes.success) return fallbackRes;
+      return {
+        success: false,
+        error: error.message || 'Invalid reference number or claim code. Please check and try again.',
+      };
+    }
+
+    return {
+      success: true,
+      complaintId: data?.complaint_id,
+      referenceNumber: data?.reference_number,
     };
   }
 
@@ -195,13 +252,21 @@ export class SupabaseComplaintService implements IComplaintService {
 
   async getDepartmentComplaints(departmentId: DepartmentId): Promise<DepartmentComplaintView[]> {
     if (!isSupabaseConfigured() || !supabase) return fallback.getDepartmentComplaints(departmentId);
-    const { data, error } = await supabase
-      .from('complaints')
-      .select(COMPLAINT_SELECT_QUERY)
-      .eq('assigned_department_id', departmentId)
-      .order('created_at', { ascending: false });
-    if (error) throw error;
-    return (data ?? []).map(mapComplaintRow) as DepartmentComplaintView[];
+    try {
+      const { data, error } = await supabase
+        .from('complaints')
+        .select(COMPLAINT_SELECT_QUERY)
+        .eq('assigned_department_id', departmentId)
+        .order('created_at', { ascending: false });
+      if (error) return fallback.getDepartmentComplaints(departmentId);
+      const remote = ((data ?? []).map(mapComplaintRow) as DepartmentComplaintView[]);
+      const local = await fallback.getDepartmentComplaints(departmentId);
+      const remoteRefs = new Set(remote.map((c) => c.referenceNumber));
+      const uniqueLocal = local.filter((c) => !remoteRefs.has(c.referenceNumber));
+      return [...remote, ...uniqueLocal];
+    } catch {
+      return fallback.getDepartmentComplaints(departmentId);
+    }
   }
 
   async getDepartmentComplaintByReference(

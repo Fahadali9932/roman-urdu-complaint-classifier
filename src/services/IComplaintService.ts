@@ -61,4 +61,13 @@ export interface IComplaintService {
     note?: string,
     noteUrdu?: string
   ): Promise<{ success: boolean; complaint: DepartmentComplaintView }>;
+
+  /**
+   * Securely claims an unclaimed guest complaint using reference number and private claim code.
+   * Links the complaint to the currently authenticated citizen.
+   */
+  claimComplaint(
+    referenceNumber: string,
+    claimCode: string
+  ): Promise<{ success: boolean; complaintId?: string; referenceNumber?: string; error?: string }>;
 }

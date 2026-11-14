@@ -82,7 +82,7 @@ export interface ComplaintTimelineEvent {
 
 export interface Complaint {
   id: string;
-  citizenId?: string;
+  citizenId?: string | null;
   referenceNumber: string;
   citizenName: string;
   district: KarachiDistrict;
@@ -100,6 +100,8 @@ export interface Complaint {
   updatedAt: string;
   timeline: ComplaintTimelineEvent[];
   isDemonstration: boolean;
+  claimCodeHash?: string | null;
+  claimedAt?: string | null;
 }
 
 export interface CitizenProfile {
@@ -206,6 +208,7 @@ export interface SubmissionResult {
   departmentId?: string;
   status?: string;
   needsReview?: boolean;
+  claimCode?: string;
 }
 
 /**
@@ -214,7 +217,7 @@ export interface SubmissionResult {
 export interface DbComplaint {
   id: string;
   reference_number: string;
-  citizen_id: string;
+  citizen_id: string | null;
   title?: string | null;
   description: string;
   detected_language: DetectedLanguage;
@@ -229,6 +232,8 @@ export interface DbComplaint {
   is_demonstration: boolean;
   created_at: string;
   updated_at: string;
+  claim_code_hash?: string | null;
+  claimed_at?: string | null;
 }
 
 /**

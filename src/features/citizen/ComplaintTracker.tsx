@@ -146,11 +146,18 @@ export const ComplaintTracker: React.FC = () => {
                 : 'Progress will be shown here when complaints can be sent and saved. Sign in, then open a complaint reference to view its live progress timeline.')}
             </p>
           </div>
-          <Link to="/submit" className="inline-block">
-            <Button variant="primary" size="md" leftIcon={<PenTool className="w-4 h-4 text-[#FFFFFF]" />}>
-              {t('navWriteComplaint')}
-            </Button>
-          </Link>
+          <div className="pt-2 flex flex-wrap items-center justify-center gap-3">
+            <Link to="/login" className="inline-block">
+              <Button variant="secondary" size="md">
+                {language === 'ur' ? 'سائن ان کریں' : 'Sign In to Account'}
+              </Button>
+            </Link>
+            <Link to="/submit" className="inline-block">
+              <Button variant="primary" size="md" leftIcon={<PenTool className="w-4 h-4 text-[#FFFFFF]" />}>
+                {t('navWriteComplaint')}
+              </Button>
+            </Link>
+          </div>
         </div>
       </Container>
     </div>

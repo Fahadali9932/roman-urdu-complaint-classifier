@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import {
   AlertCircle,
   ArrowLeft,
@@ -9,8 +9,8 @@ import {
   ChevronRight,
   Copy,
   Home,
+  Info,
   Lock,
-  LogIn,
   Mail,
   MapPin,
   Phone,
@@ -333,41 +333,7 @@ export const SimplifiedComplaintContainer: React.FC = () => {
 
             <div className="p-5 sm:p-9 lg:p-10">
               {errors.submit && (
-                errors.submitCode === 'AUTHENTICATION_REQUIRED' ? (
-                  <div role="alert" className="mb-6 rounded-2xl border border-[#F0D5D8] bg-[#FDF7F8] p-5 shadow-xs">
-                    <div className="flex items-start gap-3.5">
-                      <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[#681822] text-white">
-                        <Lock className="h-5 w-5" />
-                      </div>
-                      <div className="flex-1 space-y-1">
-                        <h3 className="text-sm font-bold text-[#141414]">
-                          {ur ? 'شہری لاگ ان درکار ہے' : 'Citizen Sign-In Required'}
-                        </h3>
-                        <p className="text-xs sm:text-[13px] leading-relaxed text-[#625D58]">
-                          {ur
-                            ? 'شکایت جمع کروانے کے لیے اپنے شہری اکاؤنٹ سے سائن ان کریں۔ آپ کا اندراج شدہ فارم خودکار طور پر محفوظ کر لیا گیا ہے۔'
-                            : 'Please sign in with your citizen account to file this grievance. All your entered details (name, locality, and description) are safely saved in this session.'}
-                        </p>
-                        <div className="pt-2 flex flex-wrap gap-2">
-                          <Link
-                            to="/login"
-                            state={{ from: '/submit' }}
-                            className="inline-flex items-center gap-1.5 rounded-lg bg-[#681822] px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-[#53131B] transition cursor-pointer"
-                          >
-                            <LogIn className="h-3.5 w-3.5" />
-                            <span>{ur ? 'سائن ان کریں' : 'Sign In as Citizen'}</span>
-                          </Link>
-                          <Link
-                            to="/register"
-                            className="inline-flex items-center gap-1.5 rounded-lg border border-[#D9D3CC] bg-white px-4 py-2 text-xs font-semibold text-[#171717] hover:bg-[#FAF9F7] transition cursor-pointer"
-                          >
-                            <span>{ur ? 'نیا اکاؤنٹ بنائیں' : 'Create Account'}</span>
-                          </Link>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ) : errors.submitCode === 'CITIZEN_ACCOUNT_REQUIRED' ? (
+                errors.submitCode === 'CITIZEN_ACCOUNT_REQUIRED' ? (
                   <div role="alert" className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 p-5 shadow-xs">
                     <div className="flex items-start gap-3.5">
                       <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-amber-700 text-white">
@@ -614,6 +580,28 @@ export const SimplifiedComplaintContainer: React.FC = () => {
                   className="mx-auto max-w-2xl space-y-5 text-start"
                 >
                   <div>
+                    {/* Bilingual Guest Submission Informational Notice */}
+                    <div
+                      data-testid="guest-submission-notice"
+                      className="mb-4 rounded-xl border border-[#E6E3DF] bg-[#FAF9F7] p-3.5 sm:p-4 text-start"
+                    >
+                      <div className="flex items-start gap-2.5">
+                        <Info className="h-4 w-4 shrink-0 text-[#681822] mt-0.5" />
+                        <div className="space-y-0.5">
+                          <p className="text-xs sm:text-[13px] font-bold text-[#141414]">
+                            {ur
+                              ? 'شکایت درج کرنے کے لیے اکاؤنٹ بنانا لازمی نہیں ہے۔'
+                              : 'No account required to submit a complaint.'}
+                          </p>
+                          <p className="text-xs leading-relaxed text-[#625D58]">
+                            {ur
+                              ? 'آپ اپنی شکایت براہ راست جمع کروا سکتے ہیں۔ بعد میں اس کی پیش رفت جانچنے یا اپ ڈیٹس دیکھنے کے لیے آپ کو اکاؤنٹ بنانا ہوگا۔'
+                              : 'You can submit your complaint directly. To track its progress or view updates later, you\'ll need to create an account.'}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
                     <div className="mb-2 flex items-center justify-between gap-4">
                       <label htmlFor="description" className="text-sm font-semibold text-[#141414]">
                         {copy.description} <span className="text-[#681822]">*</span>
@@ -752,13 +740,25 @@ const SubmissionModal: React.FC<{
   onClose: () => void;
 }> = ({ submission, formData, copy, ur, onClose }) => {
   const navigate = useNavigate();
-  const [copied, setCopied] = useState(false);
+  const [copiedRef, setCopiedRef] = useState(false);
+  const [copiedClaim, setCopiedClaim] = useState(false);
 
-  const handleCopy = async () => {
+  const handleCopyRef = async () => {
     try {
       await navigator.clipboard.writeText(submission.referenceNumber);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      setCopiedRef(true);
+      setTimeout(() => setCopiedRef(false), 2000);
+    } catch {
+      // Ignore clipboard restrictions
+    }
+  };
+
+  const handleCopyClaim = async () => {
+    if (!submission.claimCode) return;
+    try {
+      await navigator.clipboard.writeText(submission.claimCode);
+      setCopiedClaim(true);
+      setTimeout(() => setCopiedClaim(false), 2000);
     } catch {
       // Ignore clipboard restrictions
     }
@@ -766,6 +766,9 @@ const SubmissionModal: React.FC<{
 
   const deptMeta = submission.departmentId ? KARACHI_DEPARTMENTS[submission.departmentId] : null;
   const isUnderReview = submission.needsReview || submission.status === 'under_review';
+  const deptDisplayName = ur
+    ? deptMeta?.nameUrdu || deptMeta?.name || 'بلدیاتی ادارہ'
+    : deptMeta?.name || submission.departmentId?.toUpperCase() || 'Municipal Authority';
 
   const modalContent = (
     <div
@@ -774,16 +777,19 @@ const SubmissionModal: React.FC<{
       aria-modal="true"
       aria-labelledby="submission-title"
     >
-      <div className="w-full max-w-lg animate-in fade-in zoom-in-95 duration-200 rounded-[28px] bg-white p-6 shadow-2xl sm:p-8 text-start">
+      <div className="w-full max-w-lg animate-in fade-in zoom-in-95 duration-200 rounded-[28px] bg-white p-6 shadow-2xl sm:p-8 text-start max-h-[90vh] overflow-y-auto">
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-1">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200 px-3 py-1 text-xs font-bold text-emerald-800">
               <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-              <span>{ur ? 'شکایت کامیابی سے درج ہو گئی' : 'Complaint Registered Successfully'}</span>
+              <span>{ur ? 'شکایت کامیابی سے درج ہو گئی' : 'Complaint Submitted Successfully'}</span>
             </span>
             <h2 id="submission-title" className="pt-2 text-2xl font-black text-[#141414] tracking-tight">
-              {ur ? 'آپ کی شکایت کا سرکاری ریکارڈ قائم ہو گیا ہے' : 'Official Complaint Filed'}
+              {ur ? 'شکایت کامیابی سے درج ہو گئی' : 'Complaint Submitted Successfully'}
             </h2>
+            <p className="text-xs sm:text-[13px] text-[#625D58]">
+              {ur ? 'آپ کی شکایت کا باقاعدہ اندراج کر لیا گیا ہے۔' : 'Your complaint has been saved.'}
+            </p>
           </div>
           <button
             type="button"
@@ -806,15 +812,49 @@ const SubmissionModal: React.FC<{
             </span>
             <button
               type="button"
-              onClick={handleCopy}
+              onClick={handleCopyRef}
               className="inline-flex items-center gap-1.5 rounded-lg border border-[#D9D3CC] bg-white px-3 py-1.5 text-xs font-semibold text-[#141414] hover:bg-[#F2EFEA] transition cursor-pointer"
               aria-label="Copy reference number"
             >
-              {copied ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5 text-[#625D58]" />}
-              <span>{copied ? (ur ? 'کاپی ہو گیا' : 'Copied!') : (ur ? 'کاپی کریں' : 'Copy')}</span>
+              {copiedRef ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5 text-[#625D58]" />}
+              <span>{copiedRef ? (ur ? 'کاپی ہو گیا' : 'Copied!') : (ur ? 'حوالہ نمبر کاپی کریں' : 'Copy Reference')}</span>
             </button>
           </div>
         </div>
+
+        {/* Private Claim Code Display Card (For Guest Submissions) */}
+        {submission.claimCode && (
+          <div className="mt-4 rounded-2xl border border-amber-300 bg-amber-50/70 p-4 sm:p-5">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-amber-900 flex items-center gap-1.5">
+                <Lock className="h-3.5 w-3.5 text-amber-700" />
+                {ur ? 'نجی کلیم کوڈ (محفوظ رکھیں)' : 'Private Claim Code'}
+              </span>
+              <span className="text-[10px] font-bold uppercase bg-amber-200/80 text-amber-950 px-2 py-0.5 rounded-full">
+                {ur ? 'لازمی برائے ٹریکنگ' : 'Save Securely'}
+              </span>
+            </div>
+            <div className="mt-2 flex items-center justify-between gap-3">
+              <span className="font-mono text-lg sm:text-xl font-black tracking-wider text-amber-950">
+                {submission.claimCode}
+              </span>
+              <button
+                type="button"
+                onClick={handleCopyClaim}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-amber-300 bg-white px-3 py-1.5 text-xs font-semibold text-amber-950 hover:bg-amber-100/50 transition cursor-pointer"
+                aria-label="Copy claim code"
+              >
+                {copiedClaim ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5 text-amber-800" />}
+                <span>{copiedClaim ? (ur ? 'کاپی ہو گیا' : 'Copied!') : (ur ? 'کلیم کوڈ کاپی کریں' : 'Copy Claim Code')}</span>
+              </button>
+            </div>
+            <p className="mt-2 text-xs leading-relaxed text-amber-900">
+              {ur
+                ? 'اپنا کلیم کوڈ محفوظ رکھیں۔ بعد میں اپنی شکایات میں پیش رفت جانچنے یا اپ ڈیٹس دیکھنے کے لیے آپ کو اکاؤنٹ بنا کر یہ کوڈ منسلک کرنا ہوگا۔'
+                : 'Save your Claim Code securely. If you want to track progress or view updates in My Complaints later, you will need this code to link the complaint to your account.'}
+            </p>
+          </div>
+        )}
 
         {/* Department Routing Status Card */}
         <div className="mt-4 rounded-2xl border border-[#E6E3DF] p-4 sm:p-5 space-y-2.5">
@@ -827,8 +867,8 @@ const SubmissionModal: React.FC<{
               </div>
               <p className="mt-2 text-xs leading-relaxed text-[#625D58]">
                 {ur
-                  ? 'شکایت کی خودکار درجہ بندی کے بعد اسے بلدیاتی جائزے میں رکھا گیا ہے تاکہ تصدیق کے بعد متعلقہ محکمے کو بھیجا جا سکے۔'
-                  : 'Your grievance has been safely received and held for municipal review to guarantee it reaches the correct authority without misrouting.'}
+                  ? 'آپ کی شکایت موصول ہو چکی ہے اور درجہ بندی کے جائزے کے منتظر ہے۔'
+                  : 'Your complaint has been received and is awaiting classification review.'}
               </p>
             </div>
           ) : (
@@ -838,7 +878,7 @@ const SubmissionModal: React.FC<{
               </p>
               <div className="mt-1 flex items-center justify-between gap-2">
                 <span className="font-display font-bold text-[#141414] text-sm sm:text-base">
-                  {ur ? deptMeta?.nameUrdu || deptMeta?.name : deptMeta?.name || submission.departmentId?.toUpperCase()}
+                  {deptDisplayName}
                 </span>
                 <span className="inline-flex items-center rounded-md bg-[#FEF3C7] border border-[#FDE68A] px-2 py-0.5 text-[10px] font-mono font-bold uppercase text-[#92400E] shrink-0">
                   {ur ? 'محکمانہ منظوری کا انتظار' : 'Pending Acceptance'}
@@ -846,8 +886,8 @@ const SubmissionModal: React.FC<{
               </div>
               <p className="mt-2 text-xs leading-relaxed text-[#625D58]">
                 {ur
-                  ? 'آپ کی شکایت متعلقہ ادارے کو بھیج دی گئی ہے۔ محکمہ کا مجاز افسر اس کا جائزہ لے کر باضابطہ طور پر کارروائی شروع کرے گا۔'
-                  : 'Classified and delivered to the department desk. Staff will formally review and accept the complaint before commencing field resolution.'}
+                  ? `آپ کی شکایت ${deptDisplayName} کو بھیج دی گئی ہے اور محکمانہ توثیق کے منتظر ہے۔`
+                  : `Your complaint has been forwarded to ${deptDisplayName} and is awaiting department acceptance.`}
               </p>
             </div>
           )}
@@ -868,21 +908,21 @@ const SubmissionModal: React.FC<{
             type="button"
             onClick={() => {
               onClose();
-              navigate('/dashboard');
+              navigate('/');
             }}
             className="min-h-11 rounded-xl border border-[#D9D3CC] bg-[#FAF9F7] px-4 text-xs sm:text-sm font-semibold text-[#141414] hover:bg-[#F2EFEA] transition cursor-pointer"
           >
-            {ur ? 'میری شکایات دیکھیں' : 'View in My Complaints'}
+            {ur ? 'ہوم پیج پر جائیں' : 'Return Home'}
           </button>
           <button
             type="button"
             onClick={() => {
               onClose();
-              navigate(`/track/${submission.referenceNumber}`);
+              navigate('/register');
             }}
-            className="min-h-11 rounded-xl bg-[#681822] px-5 text-xs sm:text-sm font-bold text-white hover:bg-[#53131B] shadow-[0_4px_16px_rgba(104,24,34,0.20)] transition cursor-pointer"
+            className="min-h-11 inline-flex items-center justify-center rounded-xl bg-[#681822] px-5 text-xs sm:text-sm font-bold text-white hover:bg-[#53131B] shadow-[0_4px_16px_rgba(104,24,34,0.20)] transition cursor-pointer"
           >
-            {ur ? 'شکایت ٹریک کریں' : 'Track Complaint'}
+            {ur ? 'ٹریک کرنے کے لیے اکاؤنٹ بنائیں' : 'Create Account to Track'}
           </button>
         </div>
       </div>

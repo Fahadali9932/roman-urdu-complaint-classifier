@@ -17,6 +17,25 @@ function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 }
 
+function generateClaimCode(): string {
+  const chars = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
+  const bytes = new Uint8Array(12);
+  crypto.getRandomValues(bytes);
+  let str = "";
+  for (let i = 0; i < 12; i++) {
+    str += chars[bytes[i] % chars.length];
+  }
+  return `CLM-${str.slice(0, 4)}-${str.slice(4, 8)}-${str.slice(8, 12)}`;
+}
+
+async function sha256Hex(text: string): Promise<string> {
+  const data = new TextEncoder().encode(text);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  return Array.from(new Uint8Array(hashBuffer))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
 function features(text: string): Map<number, number> {
   const counts = new Map<number, number>();
   const words = text.toLowerCase().normalize("NFKC").match(/[^\s]+/g) ?? [];
@@ -56,25 +75,28 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "Method not allowed." }, 405);
   try {
-    const authorization = req.headers.get("Authorization");
-    if (!authorization) return json({ error: "Authentication required." }, 401);
     const url = Deno.env.get("SUPABASE_URL")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const admin = createClient(url, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
-    const { data: identity, error: identityError } = await admin.auth.getUser(authorization.replace(/^Bearer\s+/i, ""));
-    if (identityError || !identity.user) return json({ error: "Invalid session." }, 401);
 
-    const { data: profile, error: profileError } = await admin
-      .from("profiles")
-      .select("role")
-      .eq("id", identity.user.id)
-      .maybeSingle();
-    if (profileError) {
-      console.error("Could not verify submitting account role", profileError);
-      return json({ error: "Submission service is temporarily unavailable.", code: "SUBMISSION_UNAVAILABLE" }, 500);
-    }
-    if (profile?.role !== "citizen") {
-      return json({ error: "A citizen account is required to submit a complaint.", code: "CITIZEN_ACCOUNT_REQUIRED" }, 403);
+    // Check optional authenticated user session
+    let citizenId: string | null = null;
+    const authorization = req.headers.get("Authorization");
+    if (authorization) {
+      const token = authorization.replace(/^Bearer\s+/i, "");
+      const { data: identity } = await admin.auth.getUser(token);
+      if (identity?.user) {
+        const { data: profile } = await admin
+          .from("profiles")
+          .select("role")
+          .eq("id", identity.user.id)
+          .maybeSingle();
+        if (profile?.role === "citizen") {
+          citizenId = identity.user.id;
+        } else if (profile?.role === "department_staff") {
+          return json({ error: "A citizen account is required to submit a complaint.", code: "CITIZEN_ACCOUNT_REQUIRED" }, 403);
+        }
+      }
     }
 
     const input = await req.json();
@@ -90,21 +112,37 @@ Deno.serve(async (req) => {
       return json({ error: "Please complete all required complaint fields.", code: "INVALID_COMPLAINT_PAYLOAD" }, 400);
     }
 
+    // Generate cryptographic private claim code for guest submissions
+    let claimCode: string | undefined;
+    let claimCodeHash: string | null = null;
+    if (!citizenId) {
+      claimCode = generateClaimCode();
+      claimCodeHash = await sha256Hex(claimCode);
+    }
+
     const result = classify(`${input.title ?? ""} ${input.description}`);
     const { data, error } = await admin.rpc("submit_citizen_complaint", {
-      p_citizen_id: identity.user.id, p_title: input.title ?? "", p_description: input.description,
-      p_incident_district: input.incidentDistrict, p_incident_locality: input.incidentLocality,
-      p_incident_public_location: input.incidentPublicLocation, p_citizen_name: input.citizenName,
-      p_citizen_phone: input.citizenPhone, p_citizen_email: input.citizenEmail ?? "",
-      p_residential_address: input.residentialAddress, p_predicted_department_id: result.departmentId,
-      p_prediction_confidence: result.confidence, p_needs_review: result.needsReview,
+      p_citizen_id: citizenId,
+      p_title: input.title ?? "",
+      p_description: input.description,
+      p_incident_district: input.incidentDistrict,
+      p_incident_locality: input.incidentLocality,
+      p_incident_public_location: input.incidentPublicLocation,
+      p_citizen_name: input.citizenName,
+      p_citizen_phone: input.citizenPhone,
+      p_citizen_email: input.citizenEmail ?? "",
+      p_residential_address: input.residentialAddress,
+      p_predicted_department_id: result.departmentId,
+      p_prediction_confidence: result.confidence,
+      p_needs_review: result.needsReview,
       p_is_demonstration: input.isDemonstration === true,
+      p_claim_code_hash: claimCodeHash,
     });
     if (error) {
       console.error("Complaint submission RPC failed", error);
       return json({ error: "Submission service is temporarily unavailable.", code: "SUBMISSION_UNAVAILABLE" }, 500);
     }
-    return json({ ...data, prediction: result });
+    return json({ ...data, prediction: result, claim_code: claimCode });
   } catch (error) {
     console.error("Unexpected complaint submission failure", error);
     return json({ error: "Submission service is temporarily unavailable.", code: "SUBMISSION_UNAVAILABLE" }, 500);

@@ -162,10 +162,11 @@ export class MockComplaintService implements IComplaintService {
     const refNumber = generateMockReference(2026);
     const now = new Date().toISOString();
     const routed = this.routeDepartment(`${input.title} ${input.description}`);
+    const claimCode = `CLM-${Math.random().toString(36).substring(2, 6).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
 
     const newComplaint: Complaint = {
       id: `cmp-${Date.now()}`,
-      citizenId: DEMO_CITIZEN.id,
+      citizenId: null, // Guest complaint starts unclaimed
       referenceNumber: refNumber,
       citizenName: input.citizenName,
       district: input.district,
@@ -174,12 +175,13 @@ export class MockComplaintService implements IComplaintService {
       title: input.title,
       description: input.description,
       detectedLanguage: 'roman_urdu',
-      status: 'submitted',
+      status: 'assigned',
       assignedDepartmentId: routed.id,
       assignedDepartmentName: routed.name,
       submittedAt: now,
       updatedAt: now,
       isDemonstration: false,
+      claimCodeHash: claimCode,
       timeline: [
         {
           id: `t-${Date.now()}`,
@@ -190,6 +192,16 @@ export class MockComplaintService implements IComplaintService {
           descriptionUrdu: 'شہری کی جانب سے شکایت پورٹل پر درج ہوئی۔',
           timestamp: now,
           actorRole: 'citizen',
+        },
+        {
+          id: `t-${Date.now() + 1}`,
+          status: 'assigned',
+          title: 'Department Assigned',
+          titleUrdu: 'محکمہ تفویض کر دیا گیا',
+          description: 'The classifier routed this complaint to the responsible department.',
+          descriptionUrdu: 'درجہ بندی کے بعد شکایت متعلقہ محکمے کو بھیج دی گئی ہے۔',
+          timestamp: now,
+          actorRole: 'system',
         },
       ],
     };
@@ -206,6 +218,57 @@ export class MockComplaintService implements IComplaintService {
       departmentId: routed.id,
       status: 'assigned',
       needsReview: false,
+      claimCode,
+    };
+  }
+
+  async claimComplaint(
+    referenceNumber: string,
+    claimCode: string
+  ): Promise<{ success: boolean; complaintId?: string; referenceNumber?: string; error?: string }> {
+    await this.delay(100);
+    const cleanedRef = referenceNumber.trim().toUpperCase();
+    const cleanedCode = claimCode.trim().toUpperCase();
+
+    const complaint = this.complaints.find(
+      (c) => c.referenceNumber.toUpperCase() === cleanedRef
+    );
+
+    if (!complaint) {
+      return { success: false, error: 'Invalid reference number or claim code.' };
+    }
+
+    if (complaint.citizenId) {
+      return { success: false, error: 'This complaint has already been claimed or linked to an account.' };
+    }
+
+    if (complaint.claimCodeHash && complaint.claimCodeHash.toUpperCase() !== cleanedCode) {
+      return { success: false, error: 'Invalid reference number or claim code.' };
+    }
+
+    const now = new Date().toISOString();
+    complaint.citizenId = DEMO_CITIZEN.id;
+    complaint.claimedAt = now;
+    complaint.claimCodeHash = null;
+    complaint.updatedAt = now;
+
+    complaint.timeline.push({
+      id: `t-${Date.now()}`,
+      status: complaint.status,
+      title: 'Complaint Claimed',
+      titleUrdu: 'شکایت اکاؤنٹ سے منسلک ہو گئی',
+      description: 'Complaint securely linked to citizen account.',
+      descriptionUrdu: 'شکایت محفوظ طریقے سے شہری کے اکاؤنٹ سے منسلک کر دی گئی ہے۔',
+      timestamp: now,
+      actorRole: 'citizen',
+    });
+
+    this.persistToStorage();
+
+    return {
+      success: true,
+      complaintId: complaint.id,
+      referenceNumber: complaint.referenceNumber,
     };
   }
 

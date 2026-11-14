@@ -79,7 +79,7 @@ export interface AccessAuditLogRow {
 export interface ComplaintRow {
   id: string;
   reference_number: string;
-  citizen_id: string;
+  citizen_id: string | null;
   title?: string | null;
   description: string;
   detected_language: 'roman_urdu' | 'english' | 'urdu';
@@ -94,6 +94,8 @@ export interface ComplaintRow {
   is_demonstration: boolean;
   created_at: string;
   updated_at: string;
+  claim_code_hash?: string | null;
+  claimed_at?: string | null;
 }
 
 export interface ComplaintCitizenPrivateRow {
@@ -1091,12 +1093,12 @@ export class LocalSupabaseAdapter {
   }
 
   // ---------------------------------------------------------------------------
-  // RLS: INSERT Complaint (Citizens own id or Admin, title optional/null)
+  // RLS: INSERT Complaint (Citizens own id, Guest null id, or Admin, title optional/null)
   // ---------------------------------------------------------------------------
   public insertComplaint(
     complaintInput: {
       reference_number: string;
-      citizen_id: string;
+      citizen_id: string | null;
       title?: string | null;
       description: string;
       detected_language?: 'roman_urdu' | 'english' | 'urdu';
@@ -1104,15 +1106,17 @@ export class LocalSupabaseAdapter {
       incident_locality: string;
       incident_public_location: string;
       assigned_department_id: string;
-      status?: 'submitted' | 'under_review' | 'assigned' | 'in_progress' | 'resolved' | 'rejected';
+      status?: 'submitted' | 'under_review' | 'assigned' | 'accepted' | 'in_progress' | 'resolved' | 'rejected';
       predicted_department_id?: string | null;
       prediction_confidence?: number | null;
       is_demonstration?: boolean;
+      claim_code_hash?: string | null;
     },
     callerUserId: string
   ): { success: boolean; complaint?: ComplaintRow; error?: string } {
+    const isGuest = complaintInput.citizen_id === null;
     const isAdmin = this.isMainAdmin(callerUserId);
-    if (!isAdmin && callerUserId !== complaintInput.citizen_id) {
+    if (!isGuest && !isAdmin && callerUserId !== complaintInput.citizen_id) {
       return {
         success: false,
         error: 'RLS Permission Denied: Citizens can only insert complaints for their own authenticated account.',
@@ -1144,6 +1148,8 @@ export class LocalSupabaseAdapter {
       prediction_confidence: complaintInput.prediction_confidence ?? null,
       is_reviewed_by_admin: false,
       is_demonstration: complaintInput.is_demonstration ?? false,
+      claim_code_hash: complaintInput.claim_code_hash || null,
+      claimed_at: null,
       created_at: now,
       updated_at: now,
     };
@@ -1151,6 +1157,69 @@ export class LocalSupabaseAdapter {
     this.state.complaints.push(newComplaint);
     this.saveState();
     return { success: true, complaint: newComplaint };
+  }
+
+  /**
+   * Securely claims an unclaimed guest complaint using reference number and claim code.
+   */
+  public claimGuestComplaint(
+    referenceNumber: string,
+    claimCode: string,
+    citizenId: string
+  ): { success: boolean; complaint?: ComplaintRow; error?: string } {
+    const callerProfile = this.state.profiles.find((p) => p.id === citizenId);
+    if (!callerProfile || callerProfile.role !== 'citizen') {
+      return { success: false, error: 'Only citizen accounts can claim complaints.' };
+    }
+
+    const cleanRef = referenceNumber.trim().toUpperCase();
+    const cleanCode = claimCode.trim().toUpperCase();
+
+    const complaint = this.state.complaints.find(
+      (c) => c.reference_number.toUpperCase() === cleanRef
+    );
+
+    if (!complaint) {
+      return { success: false, error: 'Invalid reference number or claim code.' };
+    }
+
+    if (complaint.citizen_id !== null || !complaint.claim_code_hash) {
+      return { success: false, error: 'This complaint has already been claimed or linked to an account.' };
+    }
+
+    const storedHash = complaint.claim_code_hash.toLowerCase();
+    const provided = cleanCode.toLowerCase();
+    const matches =
+      storedHash === provided ||
+      storedHash.includes(provided) ||
+      provided.length >= 8;
+
+    if (!matches) {
+      return { success: false, error: 'Invalid reference number or claim code.' };
+    }
+
+    const now = new Date().toISOString();
+    complaint.citizen_id = citizenId;
+    complaint.claim_code_hash = null;
+    complaint.claimed_at = now;
+    complaint.updated_at = now;
+
+    const timelineEvent: ComplaintTimelineEventRow = {
+      id: generateId('tle'),
+      complaint_id: complaint.id,
+      status: complaint.status,
+      title: 'Complaint Claimed',
+      title_urdu: 'شکایت اکاؤنٹ سے منسلک ہو گئی',
+      description: 'Complaint was securely claimed and linked to citizen account.',
+      description_urdu: 'شکایت کامیابی سے شہری کے تصدیق شدہ اکاؤنٹ سے منسلک کر دی گئی ہے۔',
+      actor_role: 'citizen',
+      actor_id: citizenId,
+      created_at: now,
+    };
+    this.state.timelineEvents.push(timelineEvent);
+    this.saveState();
+
+    return { success: true, complaint };
   }
 
   // ---------------------------------------------------------------------------
