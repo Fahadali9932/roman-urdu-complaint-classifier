@@ -74,6 +74,7 @@ Deno.serve(async (req) => {
     p_citizen_phone: input.citizenPhone, p_citizen_email: input.citizenEmail ?? "",
     p_residential_address: input.residentialAddress, p_predicted_department_id: result.departmentId,
     p_prediction_confidence: result.confidence, p_needs_review: result.needsReview,
+    p_is_demonstration: input.isDemonstration === true,
   });
   if (error) return json({ error: error.message }, 400);
   return json({ ...data, prediction: result });

@@ -129,6 +129,8 @@ export interface ComplaintSubmissionInput {
   publicLocation?: string;
   title: string;
   description: string;
+  /** Explicit opt-in for fictional, controlled test submissions only. */
+  isDemonstration?: boolean;
 }
 
 /**

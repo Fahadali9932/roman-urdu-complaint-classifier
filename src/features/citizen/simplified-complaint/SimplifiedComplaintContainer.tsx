@@ -46,6 +46,7 @@ export const SimplifiedComplaintContainer: React.FC = () => {
   const [formData, setFormData] = useState<FullComplaintFormState>(INITIAL_FORM);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDemonstration, setIsDemonstration] = useState(false);
   const [submission, setSubmission] = useState<SubmissionResult | null>(null);
 
   const words = useMemo(() => {
@@ -156,6 +157,7 @@ export const SimplifiedComplaintContainer: React.FC = () => {
         publicLocation: formData.location.publicLocation,
         title: formData.complaint.description.trim().slice(0, 50) || 'Public complaint',
         description: formData.complaint.description,
+        isDemonstration,
       });
       setSubmission(result);
     } catch (error) {
@@ -519,6 +521,15 @@ export const SimplifiedComplaintContainer: React.FC = () => {
                         {ur ? 'شکایت ۲۰۰ الفاظ سے زیادہ ہے۔' : 'Keep the complaint within 200 words.'}
                       </p>
                     )}
+                    <label className="mt-4 flex cursor-pointer items-start gap-3 rounded-xl border border-[#E6E3DF] bg-[#FAF9F7] p-3 text-xs leading-5 text-[#625D58]">
+                      <input
+                        type="checkbox"
+                        checked={isDemonstration}
+                        onChange={(event) => setIsDemonstration(event.target.checked)}
+                        className="mt-0.5 h-4 w-4 rounded border-[#BDB6AE] text-[#681822] focus:ring-[#681822]"
+                      />
+                      <span>{ur ? 'یہ صرف فرضی معلومات کے ساتھ ایک کنٹرول شدہ ڈیمونسٹریشن ٹیسٹ ہے۔' : 'This is a controlled demonstration test using fictional information only.'}</span>
+                    </label>
                   </div>
 
                   <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-between">
@@ -643,6 +654,11 @@ const SubmissionModal: React.FC<{
         </div>
 
         <div className="mt-5 rounded-xl border border-[#E6E3DF] bg-[#FAF9F7] p-4 text-sm leading-6">
+          {isSuccess && (
+            <p className="mb-3 font-mono text-xs font-bold tracking-wide text-[#681822]">
+              {ur ? 'حوالہ نمبر' : 'Case reference'}: {submission.referenceNumber}
+            </p>
+          )}
           <p className="font-semibold text-[#141414]">{formData.applicant.citizenName}</p>
           <p className="text-[#625D58]">
             {formData.location.locality}

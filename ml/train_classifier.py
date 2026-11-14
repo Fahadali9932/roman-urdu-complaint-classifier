@@ -1,4 +1,4 @@
-"""Reproducible development baseline: char TF-IDF + supervised LinearSVC.
+"""Reproducible development baseline: char TF-IDF + multinomial logistic regression.
 
 The bundled CSV is intentionally labelled as a small, hand-authored development
 dataset. It is not a claim of representative Karachi-wide production data.
@@ -12,7 +12,7 @@ from pathlib import Path
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics import classification_report, confusion_matrix, f1_score
 from sklearn.model_selection import train_test_split
-from sklearn.svm import LinearSVC
+from sklearn.linear_model import LogisticRegression
 
 ROOT = Path(__file__).resolve().parent
 rows = list(csv.DictReader((ROOT / "data" / "roman_urdu_civic_development.csv").open(encoding="utf-8")))
@@ -23,13 +23,16 @@ x_train, x_test, y_train, y_test = train_test_split(
 )
 vectorizer = TfidfVectorizer(analyzer="char_wb", ngram_range=(3, 4), max_features=500, lowercase=True)
 x_train_vector = vectorizer.fit_transform(x_train)
-classifier = LinearSVC(C=1.0)
+# Logistic regression exposes a real model probability for the routing threshold.
+# This is still a small development dataset, not a claim of calibrated production confidence.
+classifier = LogisticRegression(C=10.0, max_iter=1000)
 classifier.fit(x_train_vector, y_train)
 y_pred = classifier.predict(vectorizer.transform(x_test))
 
 metrics = {
     "dataset": "hand-authored development dataset (48 examples; 36 train / 12 held-out)",
-    "model": "TfidfVectorizer(analyzer=char_wb, ngram_range=(3,4), max_features=500) + LinearSVC(C=1.0)",
+    "model": "TfidfVectorizer(analyzer=char_wb, ngram_range=(3,4), max_features=500) + LogisticRegression(C=10.0)",
+    "confidence_note": "Multinomial model probability; not independently calibrated because the development set has only 48 hand-authored examples.",
     "random_state": 20261114,
     "macro_f1": f1_score(y_test, y_pred, average="macro"),
     "labels": list(classifier.classes_),
@@ -44,7 +47,7 @@ production_vectorizer = TfidfVectorizer(
     analyzer="char_wb", ngram_range=(3, 4), max_features=500, lowercase=True
 )
 production_matrix = production_vectorizer.fit_transform(texts)
-production_classifier = LinearSVC(C=1.0).fit(production_matrix, labels)
+production_classifier = LogisticRegression(C=10.0, max_iter=1000).fit(production_matrix, labels)
 
 artifact = {
     "classes": list(production_classifier.classes_),
@@ -54,6 +57,10 @@ artifact = {
     "intercept": production_classifier.intercept_.tolist(),
     "ngram_range": [3, 4],
     "analyzer": "char_wb",
+    "model_type": "multinomial_logistic_regression",
 }
 (ROOT / "model.json").write_text(json.dumps(artifact, separators=(",", ":")), encoding="utf-8")
+(ROOT.parent / "supabase" / "functions" / "submit-classified-complaint" / "model.json").write_text(
+    json.dumps(artifact, separators=(",", ":")), encoding="utf-8"
+)
 print(json.dumps(metrics, indent=2))
