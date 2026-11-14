@@ -35,7 +35,34 @@ CREATE POLICY "Department staff can select assigned or review complaints"
         )
     );
 
--- 2. Staff Classification Review & Department Assignment RPC
+-- 2. Audit Trail Table for Complaints Lifecycle & Reassignments
+CREATE TABLE IF NOT EXISTS public.complaint_audit_logs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    complaint_id UUID NOT NULL REFERENCES public.complaints(id) ON DELETE CASCADE,
+    actor_user_id UUID REFERENCES auth.users(id),
+    action TEXT NOT NULL,
+    previous_state JSONB NOT NULL DEFAULT '{}'::jsonb,
+    new_state JSONB NOT NULL DEFAULT '{}'::jsonb,
+    details JSONB NOT NULL DEFAULT '{}'::jsonb,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+ALTER TABLE public.complaint_audit_logs ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Admins and staff can select complaint audit logs" ON public.complaint_audit_logs;
+CREATE POLICY "Admins and staff can select complaint audit logs"
+    ON public.complaint_audit_logs
+    FOR SELECT
+    TO authenticated
+    USING (
+        public.is_main_admin(auth.uid())
+        OR EXISTS (
+            SELECT 1 FROM public.department_memberships m
+            WHERE m.user_id = auth.uid() AND m.status = 'active'
+        )
+    );
+
+-- 3. Staff Classification Review & Department Assignment RPC
 CREATE OR REPLACE FUNCTION public.staff_review_and_assign_complaint(
     p_complaint_id UUID,
     p_target_department_id TEXT,
