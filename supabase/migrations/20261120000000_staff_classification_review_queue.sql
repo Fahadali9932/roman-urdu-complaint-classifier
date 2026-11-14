@@ -30,7 +30,7 @@ CREATE POLICY "Department staff can select assigned or review complaints"
               AND m.status = 'active'
               AND (
                   m.department_id = complaints.assigned_department_id
-                  OR complaints.status = 'under_review'
+                  OR (complaints.status = 'under_review' AND (m.department_id = 'kmc' OR public.is_main_admin(auth.uid())))
               )
         )
     );
@@ -59,7 +59,7 @@ BEGIN
         RAISE EXCEPTION 'Authentication required.';
     END IF;
 
-    -- Verify caller is an active department staff member or administrator
+    -- Verify caller is an active KMC department staff member or administrator
     SELECT m.department_id, d.name
     INTO v_reviewer_dept_id, v_reviewer_dept_name
     FROM public.department_memberships m
@@ -68,8 +68,8 @@ BEGIN
       AND m.status = 'active'
     LIMIT 1;
 
-    IF v_reviewer_dept_id IS NULL AND NOT public.is_main_admin(v_caller_id) THEN
-        RAISE EXCEPTION 'Unauthorized: Active department staff credentials required.';
+    IF (v_reviewer_dept_id IS NULL OR v_reviewer_dept_id != 'kmc') AND NOT public.is_main_admin(v_caller_id) THEN
+        RAISE EXCEPTION 'Unauthorized: Only KMC clearinghouse staff or administrators are authorized to review and assign complaints.';
     END IF;
 
     -- Validate target department exists and is active

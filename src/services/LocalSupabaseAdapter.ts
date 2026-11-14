@@ -1615,13 +1615,14 @@ export class LocalSupabaseAdapter {
     callerUserId?: string
   ): { success: boolean; error?: string } {
     const callerId = callerUserId || this.state.memberships[0]?.user_id;
-    const isStaffOrAdmin = this.isMainAdmin(callerId) || this.state.memberships.some(
+    const callerMembership = this.state.memberships.find(
       (m) => m.user_id === callerId && m.status === 'active'
     );
-    if (!isStaffOrAdmin) {
+    const isAuthorized = this.isMainAdmin(callerId) || callerMembership?.department_id === 'kmc';
+    if (!isAuthorized) {
       return {
         success: false,
-        error: 'Unauthorized: Active department staff credentials required.',
+        error: 'Unauthorized: Only KMC clearinghouse staff or administrators are authorized to review and assign complaints.',
       };
     }
 
