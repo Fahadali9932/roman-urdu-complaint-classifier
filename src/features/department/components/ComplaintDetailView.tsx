@@ -4,12 +4,12 @@ import {
   type DepartmentComplaintView,
   type ComplaintStatus,
 } from '../../../types';
-import { LayoutGrid, ArrowLeft } from 'lucide-react';
+import { LayoutGrid, ArrowLeft, CheckCircle2, AlertCircle } from 'lucide-react';
 import { getDisplayStatusBadge } from './ComplaintInboxList';
 
 interface ComplaintDetailViewProps {
   complaint: DepartmentComplaintView | null;
-  onOpenStatusModal: () => void;
+  onOpenStatusModal: (actionStatus?: ComplaintStatus) => void;
   onQuickStatusUpdate?: (newStatus: ComplaintStatus) => void;
   onBackToList?: () => void;
 }
@@ -54,11 +54,24 @@ export const ComplaintDetailView: React.FC<ComplaintDetailViewProps> = ({
     }
   };
 
+  // Stepper milestones
   const isSubmittedOrHigher = true;
+  const isAcceptedOrHigher =
+    complaint.status === 'accepted' ||
+    complaint.status === 'in_progress' ||
+    complaint.status === 'resolved';
   const isInProgressOrHigher =
     complaint.status === 'in_progress' || complaint.status === 'resolved';
   const isWorkDone = complaint.status === 'resolved';
   const isRejected = complaint.status === 'rejected';
+
+  // Last timeline events for notes display
+  const lastResolvedEvent = isWorkDone
+    ? [...complaint.timeline].reverse().find((e) => e.status === 'resolved')
+    : null;
+  const lastRejectedEvent = isRejected
+    ? [...complaint.timeline].reverse().find((e) => e.status === 'rejected')
+    : null;
 
   return (
     <div className="flex-1 p-6 sm:p-7 flex flex-col justify-between overflow-y-auto min-h-0 dept-custom-scrollbar">
@@ -116,10 +129,10 @@ export const ComplaintDetailView: React.FC<ComplaintDetailViewProps> = ({
 
         <hr className="border-0 border-t border-white/[0.08]" />
 
-        {/* Progress Timeline Stepper */}
+        {/* 4-Step Progress Stepper */}
         <div>
           <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-3">
-            PROGRESS
+            PROGRESS WORKFLOW
           </div>
 
           <div className="relative pl-6 space-y-4 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-[1px] before:bg-white/15">
@@ -132,34 +145,57 @@ export const ComplaintDetailView: React.FC<ComplaintDetailViewProps> = ({
                     : 'bg-slate-600'
                 }`}
               />
-              <div className="text-xs font-semibold text-white">Submitted</div>
+              <div className="text-xs font-semibold text-white">1. Submitted</div>
               <div className="text-[11px] text-slate-400 mt-0.5">
                 {formatDate(complaint.submittedAt)}
               </div>
             </div>
 
-            {/* Step 2: Work Started / In Progress */}
+            {/* Step 2: Department Acceptance */}
             <div className="relative">
               <span
                 className={`absolute -left-6 top-1 w-2.5 h-2.5 rounded-full ring-2 ring-[#151417] ${
-                  isInProgressOrHigher
-                    ? 'bg-[var(--dept-accent)] ring-[var(--dept-accent)]/30'
+                  isAcceptedOrHigher
+                    ? 'bg-sky-400 ring-sky-400/30'
+                    : isRejected
+                    ? 'bg-red-400 ring-red-400/30'
                     : 'bg-[#242126] border border-slate-500'
                 }`}
               />
               <div className="text-xs font-semibold text-white">
-                {isRejected ? 'Rejected / Closed' : 'Work Started'}
+                {isRejected ? '2. Rejected / Closed' : '2. Accepted'}
               </div>
               <div className="text-[11px] text-slate-400 mt-0.5">
-                {isInProgressOrHigher
-                  ? 'Field operation active'
+                {isAcceptedOrHigher
+                  ? 'Formally accepted by department'
                   : isRejected
-                  ? 'Review completed - Not actionable'
+                  ? 'Review completed - Closed'
+                  : complaint.status === 'assigned'
+                  ? 'Pending department acceptance'
                   : 'Pending'}
               </div>
             </div>
 
-            {/* Step 3: Work Done / Resolved */}
+            {/* Step 3: Work In Progress */}
+            <div className="relative">
+              <span
+                className={`absolute -left-6 top-1 w-2.5 h-2.5 rounded-full ring-2 ring-[#151417] ${
+                  isInProgressOrHigher
+                    ? 'bg-indigo-400 ring-indigo-400/30'
+                    : 'bg-[#242126] border border-slate-500'
+                }`}
+              />
+              <div className="text-xs font-semibold text-white">
+                3. In Progress
+              </div>
+              <div className="text-[11px] text-slate-400 mt-0.5">
+                {isInProgressOrHigher
+                  ? 'Field operation active'
+                  : 'Pending'}
+              </div>
+            </div>
+
+            {/* Step 4: Work Done / Resolved */}
             <div className="relative">
               <span
                 className={`absolute -left-6 top-1 w-2.5 h-2.5 rounded-full ring-2 ring-[#151417] ${
@@ -168,7 +204,7 @@ export const ComplaintDetailView: React.FC<ComplaintDetailViewProps> = ({
                     : 'bg-[#242126] border border-slate-500'
                 }`}
               />
-              <div className="text-xs font-semibold text-white">Work Done</div>
+              <div className="text-xs font-semibold text-white">4. Work Done</div>
               <div className="text-[11px] text-slate-400 mt-0.5">
                 {isWorkDone ? 'Resolved and verified on-ground' : 'Pending'}
               </div>
@@ -177,19 +213,149 @@ export const ComplaintDetailView: React.FC<ComplaintDetailViewProps> = ({
         </div>
       </div>
 
-      {/* Bottom Action Bar */}
-      <div className="pt-6 mt-6 border-t border-white/[0.08] flex justify-end">
-        <button
-          type="button"
-          onClick={onOpenStatusModal}
-          className="px-5 py-2.5 rounded-xl font-bold text-xs tracking-tight transition-all cursor-pointer shadow-md hover:brightness-110 active:scale-[0.98]"
-          style={{
-            backgroundColor: 'var(--dept-accent)',
-            color: '#151417',
-          }}
-        >
-          Review complaint
-        </button>
+      {/* Bottom Action Area: Context-Aware Dynamic Buttons or Read-Only Terminal Banner */}
+      <div className="pt-6 mt-6 border-t border-white/[0.08]">
+        {/* State A: Pending Acceptance (assigned) */}
+        {complaint.status === 'assigned' && (
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div className="text-xs text-slate-400">
+              Complaint awaiting official department acceptance before work begins.
+            </div>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => onOpenStatusModal('rejected')}
+                className="px-4 py-2.5 rounded-xl font-bold text-xs tracking-tight transition-all cursor-pointer bg-red-500/15 hover:bg-red-500/25 text-red-300 border border-red-500/30"
+              >
+                Reject Complaint
+              </button>
+              <button
+                type="button"
+                onClick={() => onOpenStatusModal('accepted')}
+                className="px-5 py-2.5 rounded-xl font-bold text-xs tracking-tight transition-all cursor-pointer shadow-md hover:brightness-110 active:scale-[0.98]"
+                style={{
+                  backgroundColor: 'var(--dept-accent)',
+                  color: '#151417',
+                }}
+              >
+                Accept Complaint
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* State B: Accepted - Ready to start field work */}
+        {complaint.status === 'accepted' && (
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div className="text-xs text-slate-400">
+              Complaint accepted. Ready to deploy field team or begin remediation.
+            </div>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => onOpenStatusModal('rejected')}
+                className="px-4 py-2.5 rounded-xl font-bold text-xs tracking-tight transition-all cursor-pointer bg-red-500/15 hover:bg-red-500/25 text-red-300 border border-red-500/30"
+              >
+                Reject Complaint
+              </button>
+              <button
+                type="button"
+                onClick={() => onOpenStatusModal('in_progress')}
+                className="px-5 py-2.5 rounded-xl font-bold text-xs tracking-tight transition-all cursor-pointer shadow-md hover:brightness-110 active:scale-[0.98]"
+                style={{
+                  backgroundColor: 'var(--dept-accent)',
+                  color: '#151417',
+                }}
+              >
+                Start Work
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* State C: In Progress - Field work underway */}
+        {complaint.status === 'in_progress' && (
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div className="text-xs text-slate-400">
+              Remediation underway. Mark work completed when verified on-ground.
+            </div>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => onOpenStatusModal('rejected')}
+                className="px-4 py-2.5 rounded-xl font-bold text-xs tracking-tight transition-all cursor-pointer bg-red-500/15 hover:bg-red-500/25 text-red-300 border border-red-500/30"
+              >
+                Reject Complaint
+              </button>
+              <button
+                type="button"
+                onClick={() => onOpenStatusModal('resolved')}
+                className="px-5 py-2.5 rounded-xl font-bold text-xs tracking-tight transition-all cursor-pointer shadow-md hover:brightness-110 active:scale-[0.98] bg-emerald-500 text-black hover:bg-emerald-400"
+              >
+                Mark Work Done
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* State D: Terminal Resolved - Read-only summary banner */}
+        {complaint.status === 'resolved' && (
+          <div className="w-full p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 flex items-start gap-3">
+            <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
+            <div className="space-y-1 min-w-0 flex-1">
+              <div className="text-sm font-bold text-emerald-300">
+                Work Completed & Verified on Ground
+              </div>
+              <p className="text-xs text-slate-300">
+                This civic complaint has been successfully remediated and sealed under municipal protocol.
+              </p>
+              {lastResolvedEvent?.description && (
+                <div className="text-xs text-slate-400 pt-2 border-t border-emerald-500/20">
+                  <span className="font-semibold text-slate-300">Resolution Note:</span>{' '}
+                  <span className="italic">"{lastResolvedEvent.description}"</span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* State E: Terminal Rejected - Read-only rejection summary banner */}
+        {complaint.status === 'rejected' && (
+          <div className="w-full p-4 rounded-2xl bg-red-500/10 border border-red-500/25 flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
+            <div className="space-y-1 min-w-0 flex-1">
+              <div className="text-sm font-bold text-red-300">
+                Complaint Rejected / Closed
+              </div>
+              <p className="text-xs text-slate-300">
+                This complaint was reviewed and determined to be outside actionable jurisdiction.
+              </p>
+              {lastRejectedEvent?.description && (
+                <div className="text-xs text-slate-400 pt-2 border-t border-red-500/20">
+                  <span className="font-semibold text-slate-300">Rejection Reason:</span>{' '}
+                  <span className="italic">"{lastRejectedEvent.description}"</span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* State F: Initial submitted / under_review fallback */}
+        {(complaint.status === 'submitted' || complaint.status === 'under_review') && (
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={() => onOpenStatusModal()}
+              className="px-5 py-2.5 rounded-xl font-bold text-xs tracking-tight transition-all cursor-pointer shadow-md hover:brightness-110 active:scale-[0.98]"
+              style={{
+                backgroundColor: 'var(--dept-accent)',
+                color: '#151417',
+              }}
+            >
+              Review complaint
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

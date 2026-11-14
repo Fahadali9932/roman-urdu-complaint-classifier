@@ -15,7 +15,13 @@ import { useDepartmentAuth } from '../../../context/DepartmentAuthContext';
 import { useNavigate } from 'react-router-dom';
 
 export type WorkspaceSection = 'home' | 'dashboard' | 'notifications' | 'tasks' | 'settings';
-export type TaskFilterType = 'all' | 'accepted' | 'rejected' | 'in_progress' | 'resolved';
+export type TaskFilterType =
+  | 'all'
+  | 'assigned'
+  | 'accepted'
+  | 'in_progress'
+  | 'resolved'
+  | 'rejected';
 
 interface DepartmentSidebarProps {
   currentSection: WorkspaceSection;
@@ -26,10 +32,11 @@ interface DepartmentSidebarProps {
   onSearchChange: (query: string) => void;
   taskCounts?: {
     all: number;
+    assigned: number;
     accepted: number;
-    rejected: number;
     in_progress: number;
     resolved: number;
+    rejected: number;
   };
   onCloseMobileDrawer?: () => void;
 }
@@ -200,9 +207,52 @@ export const DepartmentSidebar: React.FC<DepartmentSidebarProps> = ({
               </div>
             </button>
 
-            {/* Indented Sub-items: Accepted, Rejected, In Progress, Work Done */}
+            {/* Indented Sub-items: Pending Acceptance, Accepted, In Progress, Work Done, Rejected */}
             {isTasksExpanded && (
               <div className="ml-5 mt-1.5 pl-4 border-l border-white/15 space-y-1">
+                {/* 1. All Complaints */}
+                <button
+                  type="button"
+                  onClick={(e) => handleTaskFilterClick('all', e)}
+                  className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors text-left cursor-pointer ${
+                    currentSection === 'tasks' && activeTaskFilter === 'all'
+                      ? 'text-white font-bold bg-white/10'
+                      : 'text-slate-400 hover:text-white hover:bg-white/[0.03]'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full border border-slate-300 bg-slate-300/40" />
+                    <span>All Complaints</span>
+                  </div>
+                  {taskCounts && (
+                    <span className="text-[10px] font-mono text-slate-400">
+                      {taskCounts.all}
+                    </span>
+                  )}
+                </button>
+
+                {/* 2. Pending Acceptance (assigned) */}
+                <button
+                  type="button"
+                  onClick={(e) => handleTaskFilterClick('assigned', e)}
+                  className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors text-left cursor-pointer ${
+                    currentSection === 'tasks' && activeTaskFilter === 'assigned'
+                      ? 'text-white font-bold bg-white/10'
+                      : 'text-slate-400 hover:text-white hover:bg-white/[0.03]'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full border border-amber-400 bg-amber-400/60" />
+                    <span>Pending Acceptance</span>
+                  </div>
+                  {taskCounts && (
+                    <span className="text-[10px] font-mono text-slate-400">
+                      {taskCounts.assigned}
+                    </span>
+                  )}
+                </button>
+
+                {/* 3. Accepted */}
                 <button
                   type="button"
                   onClick={(e) => handleTaskFilterClick('accepted', e)}
@@ -213,36 +263,17 @@ export const DepartmentSidebar: React.FC<DepartmentSidebarProps> = ({
                   }`}
                 >
                   <div className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full border border-slate-400" />
+                    <span className="w-1.5 h-1.5 rounded-full border border-sky-400 bg-sky-400/60" />
                     <span>Accepted</span>
                   </div>
-                  {taskCounts && taskCounts.accepted > 0 && (
+                  {taskCounts && (
                     <span className="text-[10px] font-mono text-slate-400">
                       {taskCounts.accepted}
                     </span>
                   )}
                 </button>
 
-                <button
-                  type="button"
-                  onClick={(e) => handleTaskFilterClick('rejected', e)}
-                  className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors text-left cursor-pointer ${
-                    currentSection === 'tasks' && activeTaskFilter === 'rejected'
-                      ? 'text-white font-bold bg-white/10'
-                      : 'text-slate-400 hover:text-white hover:bg-white/[0.03]'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full border border-slate-400" />
-                    <span>Rejected</span>
-                  </div>
-                  {taskCounts && taskCounts.rejected > 0 && (
-                    <span className="text-[10px] font-mono text-slate-400">
-                      {taskCounts.rejected}
-                    </span>
-                  )}
-                </button>
-
+                {/* 4. In Progress */}
                 <button
                   type="button"
                   onClick={(e) => handleTaskFilterClick('in_progress', e)}
@@ -253,16 +284,17 @@ export const DepartmentSidebar: React.FC<DepartmentSidebarProps> = ({
                   }`}
                 >
                   <div className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full border border-slate-400" />
+                    <span className="w-1.5 h-1.5 rounded-full border border-indigo-400 bg-indigo-400/60" />
                     <span>In Progress</span>
                   </div>
-                  {taskCounts && taskCounts.in_progress > 0 && (
+                  {taskCounts && (
                     <span className="text-[10px] font-mono text-slate-400">
                       {taskCounts.in_progress}
                     </span>
                   )}
                 </button>
 
+                {/* 5. Work Done */}
                 <button
                   type="button"
                   onClick={(e) => handleTaskFilterClick('resolved', e)}
@@ -273,12 +305,33 @@ export const DepartmentSidebar: React.FC<DepartmentSidebarProps> = ({
                   }`}
                 >
                   <div className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full border border-slate-400" />
+                    <span className="w-1.5 h-1.5 rounded-full border border-emerald-400 bg-emerald-400/60" />
                     <span>Work Done</span>
                   </div>
-                  {taskCounts && taskCounts.resolved > 0 && (
+                  {taskCounts && (
                     <span className="text-[10px] font-mono text-slate-400">
                       {taskCounts.resolved}
+                    </span>
+                  )}
+                </button>
+
+                {/* 6. Rejected */}
+                <button
+                  type="button"
+                  onClick={(e) => handleTaskFilterClick('rejected', e)}
+                  className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors text-left cursor-pointer ${
+                    currentSection === 'tasks' && activeTaskFilter === 'rejected'
+                      ? 'text-white font-bold bg-white/10'
+                      : 'text-slate-400 hover:text-white hover:bg-white/[0.03]'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full border border-red-400 bg-red-400/60" />
+                    <span>Rejected</span>
+                  </div>
+                  {taskCounts && (
+                    <span className="text-[10px] font-mono text-slate-400">
+                      {taskCounts.rejected}
                     </span>
                   )}
                 </button>

@@ -13,6 +13,7 @@ interface StatusUpdateModalProps {
   onClose: () => void;
   complaint: DepartmentComplaintView;
   onUpdated: (updated: DepartmentComplaintView) => void;
+  initialStatus?: ComplaintStatus;
 }
 
 export const getAllowedTransitions = (currentStatus: ComplaintStatus): ComplaintStatus[] => {
@@ -22,6 +23,8 @@ export const getAllowedTransitions = (currentStatus: ComplaintStatus): Complaint
     case 'under_review':
       return ['assigned', 'in_progress', 'rejected'];
     case 'assigned':
+      return ['accepted', 'rejected'];
+    case 'accepted':
       return ['in_progress', 'rejected'];
     case 'in_progress':
       return ['resolved', 'rejected'];
@@ -48,16 +51,23 @@ const STATUS_OPTIONS: {
   },
   {
     status: 'assigned',
-    labelEn: 'Department Assigned',
-    labelUr: 'محکمہ تفویض',
-    descEn: 'Formally acknowledged and routed to department operational queue',
-    descUr: 'متعلقہ محکمے کے ریکارڈ میں شامل کر دیا گیا ہے',
+    labelEn: 'Pending Acceptance',
+    labelUr: 'توثیق کے منتظر',
+    descEn: 'Routed to department queue, awaiting official staff acceptance',
+    descUr: 'متعلقہ محکمے کے ریکارڈ میں شامل، عملے کی توثیق کے منتظر',
+  },
+  {
+    status: 'accepted',
+    labelEn: 'Accept Complaint',
+    labelUr: 'شکایت منظور کریں',
+    descEn: 'Formally accept complaint and commit department to field remediation',
+    descUr: 'محکمہ کی جانب سے شکایت منظور کر لی گئی ہے',
   },
   {
     status: 'in_progress',
-    labelEn: 'In Progress',
-    labelUr: 'زیرِ کارروائی',
-    descEn: 'Field team or operational crew actively addressing issue',
+    labelEn: 'In Progress (Start Work)',
+    labelUr: 'زیرِ کارروائی (کام شروع کریں)',
+    descEn: 'Field team or operational crew actively addressing issue on-ground',
     descUr: 'فیلڈ عملہ مسئلے کے حل پر کام کر رہا ہے',
   },
   {
@@ -69,10 +79,10 @@ const STATUS_OPTIONS: {
   },
   {
     status: 'rejected',
-    labelEn: 'Closed / Not Actionable',
-    labelUr: 'شکایت بند',
-    descEn: 'Duplicate, insufficient location details, or outside jurisdiction',
-    descUr: 'دائرہ کار سے باہر یا ناکافی تفصیلات',
+    labelEn: 'Reject Complaint / Not Actionable',
+    labelUr: 'شکایت مسترد کریں',
+    descEn: 'Outside municipal jurisdiction, invalid location, or duplicate issue',
+    descUr: 'دائرہ کار سے باہر یا غلط تفصیلات',
   },
 ];
 
@@ -81,6 +91,7 @@ export const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({
   onClose,
   complaint,
   onUpdated,
+  initialStatus,
 }) => {
   const { departmentId } = useDepartmentAuth();
   const { language, t } = useLanguage();
@@ -98,7 +109,9 @@ export const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({
   const isTerminal = allowedNextStatuses.length === 0;
 
   const [selectedStatus, setSelectedStatus] = useState<ComplaintStatus>(
-    allowedNextStatuses[0] ?? complaint.status
+    (initialStatus && allowedNextStatuses.includes(initialStatus))
+      ? initialStatus
+      : (allowedNextStatuses[0] ?? complaint.status)
   );
   const [notes, setNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -106,11 +119,14 @@ export const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({
 
   useEffect(() => {
     if (isOpen) {
-      setSelectedStatus(allowedNextStatuses[0] ?? complaint.status);
+      const defaultStatus = (initialStatus && allowedNextStatuses.includes(initialStatus))
+        ? initialStatus
+        : (allowedNextStatuses[0] ?? complaint.status);
+      setSelectedStatus(defaultStatus);
       setNotes('');
       setError(null);
     }
-  }, [isOpen, complaint, allowedNextStatuses]);
+  }, [isOpen, complaint, allowedNextStatuses, initialStatus]);
 
   if (!isOpen) return null;
 
@@ -130,6 +146,11 @@ export const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({
 
     if (selectedStatus === 'resolved' && !notes.trim()) {
       setError('Resolution notes are required when marking a complaint as resolved.');
+      return;
+    }
+
+    if (selectedStatus === 'rejected' && !notes.trim()) {
+      setError('A rejection reason is required when rejecting or closing a complaint.');
       return;
     }
 
@@ -265,7 +286,7 @@ export const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({
             <div className="space-y-1.5">
               <label htmlFor="status-notes" className="block text-xs font-bold text-slate-400 uppercase tracking-wider">
                 {t('deptRemediationNote')}
-                {selectedStatus === 'resolved' && (
+                {(selectedStatus === 'resolved' || selectedStatus === 'rejected') && (
                   <span className="text-amber-400 ml-1">*</span>
                 )}
               </label>

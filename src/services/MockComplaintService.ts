@@ -213,7 +213,7 @@ export class MockComplaintService implements IComplaintService {
       (c) => c.status === 'submitted' || c.status === 'under_review'
     ).length;
     const inProgressComplaints = this.complaints.filter(
-      (c) => c.status === 'assigned' || c.status === 'in_progress'
+      (c) => c.status === 'assigned' || c.status === 'accepted' || c.status === 'in_progress'
     ).length;
     const resolvedComplaints = this.complaints.filter(
       (c) => c.status === 'resolved'
@@ -324,7 +324,8 @@ export class MockComplaintService implements IComplaintService {
     const statusTitles: Record<ComplaintStatus, { en: string; ur: string }> = {
       submitted: { en: 'Reopened', ur: 'شکایت دوبارہ کھولی گئی' },
       under_review: { en: 'Under Departmental Review', ur: 'محکمانہ جائزہ' },
-      assigned: { en: 'Work Assigned', ur: 'کام تفویض' },
+      assigned: { en: 'Pending Acceptance', ur: 'توثیق کے منتظر' },
+      accepted: { en: 'Complaint Accepted', ur: 'شکایت منظور کر لی گئی' },
       in_progress: { en: 'Remediation In Progress', ur: 'کارروائی جاری' },
       resolved: { en: 'Issue Resolved', ur: 'مسئلہ حل ہو گیا' },
       rejected: { en: 'Complaint Closed', ur: 'شکایت بند' },

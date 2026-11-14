@@ -18,6 +18,7 @@ export type ComplaintStatus =
   | 'submitted'
   | 'under_review'
   | 'assigned'
+  | 'accepted'
   | 'in_progress'
   | 'resolved'
   | 'rejected';

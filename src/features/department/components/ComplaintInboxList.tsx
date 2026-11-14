@@ -19,8 +19,13 @@ export const getDisplayStatusBadge = (status: ComplaintStatus) => {
       };
     case 'assigned':
       return {
+        label: 'Pending Acceptance',
+        className: 'bg-amber-500/15 text-amber-300 border border-amber-500/30',
+      };
+    case 'accepted':
+      return {
         label: 'Accepted',
-        className: 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30',
+        className: 'bg-sky-500/15 text-sky-300 border border-sky-500/30',
       };
     case 'in_progress':
       return {

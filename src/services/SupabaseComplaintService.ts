@@ -182,7 +182,8 @@ export class SupabaseComplaintService implements IComplaintService {
     const statusTitles: Record<ComplaintStatus, { en: string; ur: string }> = {
       submitted: { en: 'Complaint Reopened', ur: 'شکایت دوبارہ کھولی گئی' },
       under_review: { en: 'Under Departmental Review', ur: 'محکمانہ جائزہ شروع' },
-      assigned: { en: 'Assigned to Operational Unit', ur: 'آپریشنل یونٹ کو تفویض' },
+      assigned: { en: 'Pending Department Acceptance', ur: 'محکمانہ توثیق کے منتظر' },
+      accepted: { en: 'Complaint Accepted by Department', ur: 'محکمے کی جانب سے شکایت منظور کر لی گئی' },
       in_progress: { en: 'Remediation In Progress', ur: 'ازالے کی کارروائی جاری' },
       resolved: { en: 'Remediation Verified & Resolved', ur: 'مسئلہ حل کر دیا گیا ہے' },
       rejected: { en: 'Complaint Closed / Not Actionable', ur: 'شکایت بند کر دی گئی' },

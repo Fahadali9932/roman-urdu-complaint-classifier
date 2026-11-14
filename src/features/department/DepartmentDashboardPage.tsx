@@ -5,6 +5,7 @@ import { useLanguage } from '../../context/LanguageContext';
 import { complaintService } from '../../services';
 import {
   type DepartmentComplaintView,
+  type ComplaintStatus,
 } from '../../types';
 import {
   DepartmentSidebar,
@@ -48,6 +49,7 @@ export const DepartmentDashboardPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedReference, setSelectedReference] = useState<string | null>(null);
   const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
+  const [modalInitialStatus, setModalInitialStatus] = useState<ComplaintStatus | undefined>(undefined);
   const [unauthorizedRefError, setUnauthorizedRefError] = useState<string | null>(null);
 
   // Authentication & real-time revocation guard
@@ -126,12 +128,11 @@ export const DepartmentDashboardPage: React.FC = () => {
   const taskCounts = useMemo(() => {
     return {
       all: complaints.length,
-      accepted: complaints.filter(
-        (c) => c.status === 'assigned' || c.status === 'submitted' || c.status === 'under_review'
-      ).length,
-      rejected: complaints.filter((c) => c.status === 'rejected').length,
+      assigned: complaints.filter((c) => c.status === 'assigned').length,
+      accepted: complaints.filter((c) => c.status === 'accepted').length,
       in_progress: complaints.filter((c) => c.status === 'in_progress').length,
       resolved: complaints.filter((c) => c.status === 'resolved').length,
+      rejected: complaints.filter((c) => c.status === 'rejected').length,
     };
   }, [complaints]);
 
@@ -140,10 +141,10 @@ export const DepartmentDashboardPage: React.FC = () => {
     let result = [...complaints];
 
     // Status filter
-    if (activeTaskFilter === 'accepted') {
-      result = result.filter(
-        (c) => c.status === 'assigned' || c.status === 'submitted' || c.status === 'under_review'
-      );
+    if (activeTaskFilter === 'assigned') {
+      result = result.filter((c) => c.status === 'assigned');
+    } else if (activeTaskFilter === 'accepted') {
+      result = result.filter((c) => c.status === 'accepted');
     } else if (activeTaskFilter === 'rejected') {
       result = result.filter((c) => c.status === 'rejected');
     } else if (activeTaskFilter === 'in_progress') {
@@ -305,10 +306,11 @@ export const DepartmentDashboardPage: React.FC = () => {
                   {(
                     [
                       { id: 'all', label: 'All complaints' },
+                      { id: 'assigned', label: 'Pending Acceptance' },
                       { id: 'accepted', label: 'Accepted' },
-                      { id: 'rejected', label: 'Rejected' },
                       { id: 'in_progress', label: 'In Progress' },
                       { id: 'resolved', label: 'Work Done' },
+                      { id: 'rejected', label: 'Rejected' },
                     ] as const
                   ).map((filter) => {
                     const isActive = activeTaskFilter === filter.id;
@@ -384,7 +386,10 @@ export const DepartmentDashboardPage: React.FC = () => {
                   >
                     <ComplaintDetailView
                       complaint={selectedComplaint}
-                      onOpenStatusModal={() => setIsStatusModalOpen(true)}
+                      onOpenStatusModal={(actionStatus) => {
+                        setModalInitialStatus(actionStatus);
+                        setIsStatusModalOpen(true);
+                      }}
                       onBackToList={() => setSelectedReference(null)}
                     />
                   </div>
@@ -625,9 +630,13 @@ export const DepartmentDashboardPage: React.FC = () => {
       {selectedComplaint && (
         <StatusUpdateModal
           isOpen={isStatusModalOpen}
-          onClose={() => setIsStatusModalOpen(false)}
+          onClose={() => {
+            setIsStatusModalOpen(false);
+            setModalInitialStatus(undefined);
+          }}
           complaint={selectedComplaint}
           onUpdated={handleComplaintUpdated}
+          initialStatus={modalInitialStatus}
         />
       )}
     </div>

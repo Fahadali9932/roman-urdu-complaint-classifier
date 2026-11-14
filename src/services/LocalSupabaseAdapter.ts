@@ -86,7 +86,7 @@ export interface ComplaintRow {
   incident_district: string;
   incident_locality: string;
   incident_public_location: string;
-  status: 'submitted' | 'under_review' | 'assigned' | 'in_progress' | 'resolved' | 'rejected';
+  status: 'submitted' | 'under_review' | 'assigned' | 'accepted' | 'in_progress' | 'resolved' | 'rejected';
   assigned_department_id: string;
   predicted_department_id?: string | null;
   prediction_confidence?: number | null;
@@ -109,7 +109,7 @@ export interface ComplaintCitizenPrivateRow {
 export interface ComplaintTimelineEventRow {
   id: string;
   complaint_id: string;
-  status: 'submitted' | 'under_review' | 'assigned' | 'in_progress' | 'resolved' | 'rejected';
+  status: 'submitted' | 'under_review' | 'assigned' | 'accepted' | 'in_progress' | 'resolved' | 'rejected';
   title: string;
   title_urdu: string;
   description: string;
@@ -1293,10 +1293,18 @@ export class LocalSupabaseAdapter {
       const current = complaint.status;
       const next = params.new_status;
 
+      if (current === 'resolved' || current === 'rejected') {
+        return {
+          success: false,
+          error: `Invalid status transition: Cannot update complaint in terminal status: ${current}`,
+        };
+      }
+
       const validTransitions: Record<string, string[]> = {
         submitted: ['under_review', 'assigned', 'rejected'],
         under_review: ['assigned', 'in_progress', 'rejected'],
-        assigned: ['in_progress', 'rejected'],
+        assigned: ['accepted', 'rejected'],
+        accepted: ['in_progress', 'rejected'],
         in_progress: ['resolved', 'rejected'],
         resolved: [],
         rejected: [],
