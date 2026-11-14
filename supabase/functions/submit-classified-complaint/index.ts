@@ -7,6 +7,15 @@ type Model = {
   coef: number[][]; intercept: number[]; ngram_range: [number, number];
 };
 const classifier = model as Model;
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
+
+function json(body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+}
 
 function features(text: string): Map<number, number> {
   const counts = new Map<number, number>();
@@ -44,18 +53,19 @@ function classify(text: string) {
 }
 
 Deno.serve(async (req) => {
-  if (req.method !== "POST") return new Response("Method not allowed", { status: 405 });
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+  if (req.method !== "POST") return json({ error: "Method not allowed." }, 405);
   const authorization = req.headers.get("Authorization");
-  if (!authorization) return new Response(JSON.stringify({ error: "Authentication required." }), { status: 401 });
+  if (!authorization) return json({ error: "Authentication required." }, 401);
   const url = Deno.env.get("SUPABASE_URL")!;
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const admin = createClient(url, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
   const { data: identity, error: identityError } = await admin.auth.getUser(authorization.replace(/^Bearer\s+/i, ""));
-  if (identityError || !identity.user) return new Response(JSON.stringify({ error: "Invalid session." }), { status: 401 });
+  if (identityError || !identity.user) return json({ error: "Invalid session." }, 401);
   const input = await req.json();
-  if (!input || typeof input.description !== "string") return new Response(JSON.stringify({ error: "Invalid complaint payload." }), { status: 400 });
+  if (!input || typeof input.description !== "string") return json({ error: "Invalid complaint payload." }, 400);
   const words = input.description.trim().split(/\s+/).filter(Boolean);
-  if (words.length === 0 || words.length > 200) return new Response(JSON.stringify({ error: "Complaint must contain 1–200 words." }), { status: 400 });
+  if (words.length === 0 || words.length > 200) return json({ error: "Complaint must contain 1–200 words." }, 400);
   const result = classify(`${input.title ?? ""} ${input.description}`);
   const { data, error } = await admin.rpc("submit_citizen_complaint", {
     p_citizen_id: identity.user.id, p_title: input.title ?? "", p_description: input.description,
@@ -65,6 +75,6 @@ Deno.serve(async (req) => {
     p_residential_address: input.residentialAddress, p_predicted_department_id: result.departmentId,
     p_prediction_confidence: result.confidence, p_needs_review: result.needsReview,
   });
-  if (error) return new Response(JSON.stringify({ error: error.message }), { status: 400 });
-  return Response.json({ ...data, prediction: result });
+  if (error) return json({ error: error.message }, 400);
+  return json({ ...data, prediction: result });
 });
