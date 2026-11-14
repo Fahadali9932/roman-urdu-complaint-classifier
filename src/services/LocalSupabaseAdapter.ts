@@ -272,6 +272,10 @@ export class LocalSupabaseAdapter {
     this.saveState();
   }
 
+  public getState(): DatabaseState {
+    return this.state;
+  }
+
   private initializeDefaultState(): DatabaseState {
     const adminProfile: ProfileRow = {
       id: SEED_ADMIN_ID,
@@ -1289,7 +1293,7 @@ export class LocalSupabaseAdapter {
     );
     if (activeMembership) {
       return this.state.complaints.filter(
-        (c) => c.assigned_department_id === activeMembership.department_id
+        (c) => c.assigned_department_id === activeMembership.department_id || c.status === 'under_review'
       );
     }
 
@@ -1582,6 +1586,67 @@ export class LocalSupabaseAdapter {
       description_urdu: `شکایت دوسرے محکمے کو منتقل کر دی گئی۔ وجہ: ${reason}`,
       actor_role: 'main_admin',
       actor_id: callerAdminId,
+      created_at: now,
+    });
+
+    this.saveState();
+    return { success: true };
+  }
+
+  // ---------------------------------------------------------------------------
+  // RPC: staff_review_and_assign_complaint
+  // Allows authorized department staff to review ambiguous complaints and assign
+  // ---------------------------------------------------------------------------
+  public staffReviewAndAssignComplaint(
+    complaintId: string,
+    targetDepartmentId: string,
+    notes?: string,
+    callerUserId?: string
+  ): { success: boolean; error?: string } {
+    const callerId = callerUserId || this.state.memberships[0]?.user_id;
+    const isStaffOrAdmin = this.isMainAdmin(callerId) || this.state.memberships.some(
+      (m) => m.user_id === callerId && m.status === 'active'
+    );
+    if (!isStaffOrAdmin) {
+      return {
+        success: false,
+        error: 'Unauthorized: Active department staff credentials required.',
+      };
+    }
+
+    const complaint = this.state.complaints.find((c) => c.id === complaintId);
+    if (!complaint) {
+      return { success: false, error: `Complaint not found: ${complaintId}` };
+    }
+
+    if (complaint.status !== 'under_review') {
+      return {
+        success: false,
+        error: `Only complaints under review can be assigned via classification review (current status: ${complaint.status}).`,
+      };
+    }
+
+    const targetDept = this.state.departments.find((d) => d.id === targetDepartmentId && d.is_active);
+    if (!targetDept) {
+      return { success: false, error: `Invalid target department: ${targetDepartmentId}` };
+    }
+
+    const now = new Date().toISOString();
+    complaint.assigned_department_id = targetDepartmentId;
+    complaint.status = 'assigned';
+    complaint.is_reviewed_by_admin = true;
+    complaint.updated_at = now;
+
+    this.state.timelineEvents.push({
+      id: generateId('time'),
+      complaint_id: complaintId,
+      status: 'assigned',
+      title: 'Classification Reviewed & Department Assigned',
+      title_urdu: 'درجہ بندی کا جائزہ مکمل اور محکمہ تفویض',
+      description: `Complaint reviewed by staff officer and assigned to ${targetDept.name}.${notes ? ` Review note: ${notes}` : ''}`,
+      description_urdu: `محکمہ افسر نے شکایت کا جائزہ لے کر متعلقہ محکمے (${targetDept.name}) کے سپرد کر دیا۔`,
+      actor_role: 'department_staff',
+      actor_id: callerId,
       created_at: now,
     });
 

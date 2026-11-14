@@ -254,7 +254,7 @@ export class SupabaseComplaintService implements IComplaintService {
       const { data, error } = await supabase
         .from('complaints')
         .select(COMPLAINT_SELECT_QUERY)
-        .eq('assigned_department_id', departmentId)
+        .or(`assigned_department_id.eq.${departmentId},status.eq.under_review`)
         .order('created_at', { ascending: false });
       if (error) throw error;
       const remote = ((data ?? []).map(mapComplaintRow) as DepartmentComplaintView[]);
@@ -276,8 +276,7 @@ export class SupabaseComplaintService implements IComplaintService {
 
     let queryBuilder = supabase
       .from('complaints')
-      .select(COMPLAINT_SELECT_QUERY)
-      .eq('assigned_department_id', departmentId);
+      .select(COMPLAINT_SELECT_QUERY);
 
     if (isUuid) {
       queryBuilder = queryBuilder.or(`reference_number.eq.${cleaned.toUpperCase()},id.eq.${cleaned}`);
@@ -287,7 +286,11 @@ export class SupabaseComplaintService implements IComplaintService {
 
     const { data, error } = await queryBuilder.maybeSingle();
     if (error) throw error;
-    return data ? (mapComplaintRow(data) as DepartmentComplaintView) : null;
+    if (!data) return null;
+    if (data.assigned_department_id !== departmentId && data.status !== 'under_review') {
+      return null;
+    }
+    return mapComplaintRow(data) as DepartmentComplaintView;
   }
 
   async updateComplaintStatus(
@@ -358,6 +361,45 @@ export class SupabaseComplaintService implements IComplaintService {
     }
 
     return { success: true, complaint: updated };
+  }
+
+  async reviewAndAssignComplaint(
+    complaintId: string,
+    targetDepartmentId: DepartmentId,
+    reviewNotes?: string
+  ): Promise<{ success: boolean; complaint?: DepartmentComplaintView; error?: string }> {
+    if (!isSupabaseConfigured() || !supabase) {
+      return fallback.reviewAndAssignComplaint(complaintId, targetDepartmentId, reviewNotes);
+    }
+
+    const { error } = await supabase.rpc('staff_review_and_assign_complaint', {
+      p_complaint_id: complaintId,
+      p_target_department_id: targetDepartmentId,
+      p_notes: reviewNotes || null,
+    });
+
+    if (error) {
+      if (error.message?.includes('Could not find the function') || error.message?.includes('schema cache')) {
+        throw new Error(
+          'Database migration required: Please run migration 20261120000000_staff_classification_review_queue.sql in the Supabase Dashboard SQL Editor to enable staff classification review.'
+        );
+      }
+      return {
+        success: false,
+        error: error.message || 'Failed to review and assign complaint in database.',
+      };
+    }
+
+    const { data: updatedData } = await supabase
+      .from('complaints')
+      .select(COMPLAINT_SELECT_QUERY)
+      .eq('id', complaintId)
+      .maybeSingle();
+
+    return {
+      success: true,
+      complaint: updatedData ? (mapComplaintRow(updatedData) as DepartmentComplaintView) : undefined,
+    };
   }
 }
 

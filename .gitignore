@@ -56,3 +56,4 @@ ehthumbs.db
 screenshots/
 .credentials/
 credentials/
+supabase/.temp/

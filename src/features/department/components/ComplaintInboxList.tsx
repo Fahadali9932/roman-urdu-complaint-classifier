@@ -11,8 +11,12 @@ interface ComplaintInboxListProps {
 
 export const getDisplayStatusBadge = (status: ComplaintStatus) => {
   switch (status) {
-    case 'submitted':
     case 'under_review':
+      return {
+        label: 'Needs Review',
+        className: 'bg-purple-500/15 text-purple-300 border border-purple-500/30',
+      };
+    case 'submitted':
       return {
         label: 'New',
         className: 'bg-white/10 text-slate-300 border border-white/15',
@@ -94,6 +98,11 @@ export const ComplaintInboxList: React.FC<ComplaintInboxListProps> = ({
                 <span className="font-mono font-bold text-sm text-white tracking-tight">
                   {c.referenceNumber}
                 </span>
+                {c.status === 'under_review' && (
+                  <span className="text-[10px] font-mono text-purple-300 bg-purple-500/20 px-1.5 py-0.5 rounded border border-purple-500/30">
+                    Review Queue
+                  </span>
+                )}
               </div>
 
               <p className="text-xs sm:text-[13px] text-slate-300 line-clamp-2 leading-relaxed">

@@ -70,4 +70,14 @@ export interface IComplaintService {
     referenceNumber: string,
     claimCode: string
   ): Promise<{ success: boolean; complaintId?: string; referenceNumber?: string; error?: string }>;
+
+  /**
+   * Reviews an uncertain/ambiguous complaint and assigns it to a confirmed department.
+   * Accessible by authorized department staff.
+   */
+  reviewAndAssignComplaint(
+    complaintId: string,
+    targetDepartmentId: DepartmentId,
+    reviewNotes?: string
+  ): Promise<{ success: boolean; complaint?: DepartmentComplaintView; error?: string }>;
 }

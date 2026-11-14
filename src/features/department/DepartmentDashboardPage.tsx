@@ -16,6 +16,7 @@ import { supabase, isSupabaseConfigured } from '../../lib/supabase';
 import { ComplaintInboxList } from './components/ComplaintInboxList';
 import { ComplaintDetailView } from './components/ComplaintDetailView';
 import { StatusUpdateModal } from './components/StatusUpdateModal';
+import { ReviewAssignmentModal } from './components/ReviewAssignmentModal';
 import {
   Loader2,
   Menu,
@@ -50,6 +51,7 @@ export const DepartmentDashboardPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedReference, setSelectedReference] = useState<string | null>(null);
   const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [modalInitialStatus, setModalInitialStatus] = useState<ComplaintStatus | undefined>(undefined);
   const [unauthorizedRefError, setUnauthorizedRefError] = useState<string | null>(null);
 
@@ -115,7 +117,7 @@ export const DepartmentDashboardPage: React.FC = () => {
     // Initial load
     fetchComplaints();
 
-    // 1. Supabase Realtime Subscription for live updates
+    // 1. Supabase Realtime Subscription for live updates (including incoming complaints and review queue)
     let channel: any = null;
     if (isSupabaseConfigured() && supabase) {
       channel = supabase
@@ -126,7 +128,6 @@ export const DepartmentDashboardPage: React.FC = () => {
             event: '*',
             schema: 'public',
             table: 'complaints',
-            filter: `assigned_department_id=eq.${departmentId}`,
           },
           () => {
             fetchComplaints({ silent: true });
@@ -152,10 +153,10 @@ export const DepartmentDashboardPage: React.FC = () => {
     };
     window.addEventListener('focus', handleFocus);
 
-    // 3. 15-second polling fallback
+    // 3. 5-second live polling fallback
     const intervalId = setInterval(() => {
       fetchComplaints({ silent: true });
-    }, 15000);
+    }, 5000);
 
     return () => {
       isCancelled = true;
@@ -171,6 +172,7 @@ export const DepartmentDashboardPage: React.FC = () => {
   const taskCounts = useMemo(() => {
     return {
       all: complaints.length,
+      under_review: complaints.filter((c) => c.status === 'under_review').length,
       assigned: complaints.filter((c) => c.status === 'assigned').length,
       accepted: complaints.filter((c) => c.status === 'accepted').length,
       in_progress: complaints.filter((c) => c.status === 'in_progress').length,
@@ -184,7 +186,9 @@ export const DepartmentDashboardPage: React.FC = () => {
     let result = [...complaints];
 
     // Status filter
-    if (activeTaskFilter === 'assigned') {
+    if (activeTaskFilter === 'under_review') {
+      result = result.filter((c) => c.status === 'under_review');
+    } else if (activeTaskFilter === 'assigned') {
       result = result.filter((c) => c.status === 'assigned');
     } else if (activeTaskFilter === 'accepted') {
       result = result.filter((c) => c.status === 'accepted');
@@ -433,6 +437,7 @@ export const DepartmentDashboardPage: React.FC = () => {
                         setModalInitialStatus(actionStatus);
                         setIsStatusModalOpen(true);
                       }}
+                      onOpenReviewModal={() => setIsReviewModalOpen(true)}
                       onBackToList={() => setSelectedReference(null)}
                     />
                   </div>
@@ -680,6 +685,16 @@ export const DepartmentDashboardPage: React.FC = () => {
           complaint={selectedComplaint}
           onUpdated={handleComplaintUpdated}
           initialStatus={modalInitialStatus}
+        />
+      )}
+
+      {/* Classification Review & Assignment Modal */}
+      {selectedComplaint && (
+        <ReviewAssignmentModal
+          isOpen={isReviewModalOpen}
+          onClose={() => setIsReviewModalOpen(false)}
+          complaint={selectedComplaint}
+          onAssigned={handleComplaintUpdated}
         />
       )}
     </div>

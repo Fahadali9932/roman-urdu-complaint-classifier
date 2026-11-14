@@ -17,6 +17,7 @@ import { useNavigate } from 'react-router-dom';
 export type WorkspaceSection = 'home' | 'dashboard' | 'notifications' | 'tasks' | 'settings';
 export type TaskFilterType =
   | 'all'
+  | 'under_review'
   | 'assigned'
   | 'accepted'
   | 'in_progress'
@@ -32,6 +33,7 @@ interface DepartmentSidebarProps {
   onSearchChange: (query: string) => void;
   taskCounts?: {
     all: number;
+    under_review?: number;
     assigned: number;
     accepted: number;
     in_progress: number;
@@ -227,6 +229,31 @@ export const DepartmentSidebar: React.FC<DepartmentSidebarProps> = ({
                   {taskCounts && (
                     <span className="text-[10px] font-mono text-slate-400">
                       {taskCounts.all}
+                    </span>
+                  )}
+                </button>
+
+                {/* 2. Review Queue (under_review) */}
+                <button
+                  type="button"
+                  onClick={(e) => handleTaskFilterClick('under_review', e)}
+                  className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors text-left cursor-pointer ${
+                    currentSection === 'tasks' && activeTaskFilter === 'under_review'
+                      ? 'text-white font-bold bg-white/10'
+                      : 'text-slate-400 hover:text-white hover:bg-white/[0.03]'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full border border-purple-400 bg-purple-400/70 shadow-sm" />
+                    <span>Review Queue</span>
+                  </div>
+                  {taskCounts && taskCounts.under_review !== undefined && (
+                    <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded ${
+                      taskCounts.under_review > 0
+                        ? 'text-purple-300 bg-purple-500/20 font-bold border border-purple-500/30'
+                        : 'text-slate-400'
+                    }`}>
+                      {taskCounts.under_review}
                     </span>
                   )}
                 </button>

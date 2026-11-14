@@ -326,13 +326,13 @@ export class MockComplaintService implements IComplaintService {
   async getDepartmentComplaints(departmentId: DepartmentId): Promise<DepartmentComplaintView[]> {
     await this.delay(100);
     return this.complaints
-      .filter((c) => c.assignedDepartmentId === departmentId)
+      .filter((c) => c.assignedDepartmentId === departmentId || c.status === 'under_review')
       .map((c) => this.toDepartmentView(c));
   }
 
   /**
    * Scoped lookup for a specific complaint by reference number.
-   * Returns null if the complaint does not belong to the authorized department.
+   * Returns null if the complaint does not belong to the authorized department and is not under review.
    */
   async getDepartmentComplaintByReference(
     departmentId: DepartmentId,
@@ -345,7 +345,7 @@ export class MockComplaintService implements IComplaintService {
       (c) => c.referenceNumber.toUpperCase() === upperCleaned || c.id === cleaned
     );
 
-    if (!found || found.assignedDepartmentId !== departmentId) {
+    if (!found || (found.assignedDepartmentId !== departmentId && found.status !== 'under_review')) {
       return null;
     }
 
@@ -436,6 +436,56 @@ export class MockComplaintService implements IComplaintService {
   seedTestComplaints(fixtures: Complaint[]): void {
     this.complaints = [...fixtures];
     this.persistToStorage();
+  }
+
+  /**
+   * Reviews an uncertain complaint and assigns it to a confirmed department.
+   */
+  async reviewAndAssignComplaint(
+    complaintId: string,
+    targetDepartmentId: DepartmentId,
+    reviewNotes?: string
+  ): Promise<{ success: boolean; complaint?: DepartmentComplaintView; error?: string }> {
+    await this.delay(120);
+    const found = this.complaints.find(
+      (c) => c.id === complaintId || c.referenceNumber.toUpperCase() === complaintId.toUpperCase()
+    );
+
+    if (!found) {
+      return { success: false, error: `Complaint not found: ${complaintId}` };
+    }
+
+    if (found.status !== 'under_review') {
+      return {
+        success: false,
+        error: `Only complaints under review can be assigned via classification review (current status: ${found.status}).`,
+      };
+    }
+
+    const deptMeta = KARACHI_DEPARTMENTS[targetDepartmentId];
+    if (!deptMeta) {
+      return { success: false, error: `Invalid target department: ${targetDepartmentId}` };
+    }
+
+    const now = new Date().toISOString();
+    found.assignedDepartmentId = targetDepartmentId;
+    found.assignedDepartmentName = deptMeta.name;
+    found.status = 'assigned';
+    found.updatedAt = now;
+
+    found.timeline.push({
+      id: `t-${Date.now()}`,
+      status: 'assigned',
+      title: 'Classification Reviewed & Department Assigned',
+      titleUrdu: 'درجہ بندی کا جائزہ مکمل اور محکمہ تفویض',
+      description: `Complaint reviewed by staff officer and assigned to ${deptMeta.name}.${reviewNotes ? ` Review note: ${reviewNotes}` : ''}`,
+      descriptionUrdu: `محکمہ افسر نے شکایت کا جائزہ لے کر متعلقہ محکمے (${deptMeta.name}) کے سپرد کر دیا۔`,
+      timestamp: now,
+      actorRole: 'department_officer',
+    });
+
+    this.persistToStorage();
+    return { success: true, complaint: this.toDepartmentView(found) };
   }
 
   /**

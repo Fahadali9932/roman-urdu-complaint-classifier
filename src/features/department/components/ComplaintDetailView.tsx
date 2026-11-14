@@ -4,7 +4,7 @@ import {
   type DepartmentComplaintView,
   type ComplaintStatus,
 } from '../../../types';
-import { LayoutGrid, ArrowLeft, CheckCircle2, AlertCircle } from 'lucide-react';
+import { LayoutGrid, ArrowLeft, CheckCircle2, AlertCircle, ShieldCheck, AlertTriangle } from 'lucide-react';
 import { getDisplayStatusBadge } from './ComplaintInboxList';
 
 interface ComplaintDetailViewProps {
@@ -12,12 +12,14 @@ interface ComplaintDetailViewProps {
   onOpenStatusModal: (actionStatus?: ComplaintStatus) => void;
   onQuickStatusUpdate?: (newStatus: ComplaintStatus) => void;
   onBackToList?: () => void;
+  onOpenReviewModal?: () => void;
 }
 
 export const ComplaintDetailView: React.FC<ComplaintDetailViewProps> = ({
   complaint,
   onOpenStatusModal,
   onBackToList,
+  onOpenReviewModal,
 }) => {
   const { language } = useLanguage();
 
@@ -99,6 +101,24 @@ export const ComplaintDetailView: React.FC<ComplaintDetailViewProps> = ({
             {badge.label}
           </span>
         </div>
+
+        {/* Classifier Uncertainty Callout */}
+        {complaint.status === 'under_review' && (
+          <div className="p-4 rounded-2xl bg-purple-500/10 border border-purple-500/30 flex items-start gap-3">
+            <AlertTriangle className="w-5 h-5 text-purple-300 shrink-0 mt-0.5" />
+            <div className="text-xs space-y-1">
+              <div className="font-bold text-purple-200">
+                Staff Classification Review Required
+              </div>
+              <p className="text-slate-300 leading-relaxed">
+                The automated classifier held this complaint because confidence was ambiguous
+                {complaint.predictionConfidence != null ? ` (${Math.round(complaint.predictionConfidence * 100)}%)` : ''}.
+                {complaint.predictedDepartmentId ? ` Preliminary prediction suggested "${complaint.predictedDepartmentId}".` : ''}
+                {' '}Authorized staff must review and confirm or assign the responsible department before remediation work can begin.
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Public Incident Location Section (STRICTLY NO CITIZEN PRIVATE ADDRESS) */}
         <div>
@@ -340,8 +360,25 @@ export const ComplaintDetailView: React.FC<ComplaintDetailViewProps> = ({
           </div>
         )}
 
-        {/* State F: Initial submitted / under_review fallback */}
-        {(complaint.status === 'submitted' || complaint.status === 'under_review') && (
+        {/* State F: under_review — Explicit Classification Review Workflow */}
+        {complaint.status === 'under_review' && (
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div className="text-xs text-purple-300">
+              Uncertain classification held in review queue. Review and assign responsible department.
+            </div>
+            <button
+              type="button"
+              onClick={onOpenReviewModal || (() => onOpenStatusModal())}
+              className="px-5 py-2.5 rounded-xl font-bold text-xs tracking-tight transition-all cursor-pointer shadow-md bg-purple-600 hover:bg-purple-500 text-white flex items-center gap-2 hover:brightness-110 active:scale-[0.98]"
+            >
+              <ShieldCheck className="w-4 h-4" />
+              <span>Review & Assign Department</span>
+            </button>
+          </div>
+        )}
+
+        {/* State G: Initial submitted fallback */}
+        {complaint.status === 'submitted' && (
           <div className="flex justify-end">
             <button
               type="button"
