@@ -1,0 +1,314 @@
+{
+  "model_name": "TfidfVectorizer(analyzer=word, ngram_range=(1,2), max_features=3000) + LogisticRegression(C=5.0)",
+  "train_samples": 600,
+  "test_samples": 180,
+  "overall_accuracy": 0.9056,
+  "macro_f1": 0.9044,
+  "bootstrap_ci_95": {
+    "acc_mean": 0.9053000000000001,
+    "acc_ci": [
+      0.8611111111111112,
+      0.9444444444444444
+    ],
+    "f1_mean": 0.9028624011521064,
+    "f1_ci": [
+      0.8586149307944848,
+      0.9438315472063273
+    ]
+  },
+  "per_class_metrics": {
+    "kelectric": {
+      "precision": 0.9355,
+      "recall": 0.9667,
+      "f1_score": 0.9508,
+      "support": 30
+    },
+    "kmc": {
+      "precision": 0.8387,
+      "recall": 0.8667,
+      "f1_score": 0.8525,
+      "support": 30
+    },
+    "kwsc": {
+      "precision": 0.9062,
+      "recall": 0.9667,
+      "f1_score": 0.9355,
+      "support": 30
+    },
+    "sbca": {
+      "precision": 0.8889,
+      "recall": 0.8,
+      "f1_score": 0.8421,
+      "support": 30
+    },
+    "ssgc": {
+      "precision": 0.9677,
+      "recall": 1.0,
+      "f1_score": 0.9836,
+      "support": 30
+    },
+    "sswmb": {
+      "precision": 0.8929,
+      "recall": 0.8333,
+      "f1_score": 0.8621,
+      "support": 30
+    }
+  },
+  "confusion_matrix": [
+    [
+      29,
+      0,
+      0,
+      1,
+      0,
+      0
+    ],
+    [
+      2,
+      26,
+      0,
+      1,
+      0,
+      1
+    ],
+    [
+      0,
+      0,
+      29,
+      0,
+      0,
+      1
+    ],
+    [
+      0,
+      2,
+      2,
+      24,
+      1,
+      1
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      30,
+      0
+    ],
+    [
+      0,
+      3,
+      1,
+      1,
+      0,
+      25
+    ]
+  ],
+  "classes": [
+    "kelectric",
+    "kmc",
+    "kwsc",
+    "sbca",
+    "ssgc",
+    "sswmb"
+  ],
+  "source_type_metrics": {
+    "colloquial_variant": {
+      "count": 60,
+      "correct": 56,
+      "accuracy": 0.9333,
+      "macro_f1": 0.9323
+    },
+    "curated_genuine": {
+      "count": 60,
+      "correct": 56,
+      "accuracy": 0.9333,
+      "macro_f1": 0.9323
+    },
+    "edge_case": {
+      "count": 36,
+      "correct": 33,
+      "accuracy": 0.9167,
+      "macro_f1": 0.9182
+    },
+    "negation_contrast": {
+      "count": 24,
+      "correct": 18,
+      "accuracy": 0.75,
+      "macro_f1": 0.7533
+    }
+  },
+  "error_count": 17,
+  "errors": [
+    {
+      "index": 0,
+      "text": "speed breaker bohat ooncha aur ghair qanooni bana diya hai",
+      "true_department": "kmc",
+      "predicted_department": "sbca",
+      "confidence": 0.6449,
+      "margin": 1.8894,
+      "source_type": "curated_genuine",
+      "needs_review": false
+    },
+    {
+      "index": 16,
+      "text": "broken pavement and tiles in front of our house",
+      "true_department": "kmc",
+      "predicted_department": "sswmb",
+      "confidence": 0.4006,
+      "margin": 0.8561,
+      "source_type": "colloquial_variant",
+      "needs_review": true
+    },
+    {
+      "index": 17,
+      "text": "street light pole tilted falling danger kmc electricity wing",
+      "true_department": "kmc",
+      "predicted_department": "kelectric",
+      "confidence": 0.5524,
+      "margin": 1.0394,
+      "source_type": "colloquial_variant",
+      "needs_review": false
+    },
+    {
+      "index": 27,
+      "text": "bijli ki taar nahi hai street light ka municipal pole toota hai",
+      "true_department": "kmc",
+      "predicted_department": "kelectric",
+      "confidence": 0.734,
+      "margin": 1.4564,
+      "source_type": "negation_contrast",
+      "needs_review": false
+    },
+    {
+      "index": 57,
+      "text": "building construction ka issue nahi electricity line roof par touch ho rahi",
+      "true_department": "kelectric",
+      "predicted_department": "sbca",
+      "confidence": 0.2851,
+      "margin": 0.3696,
+      "source_type": "negation_contrast",
+      "needs_review": true
+    },
+    {
+      "index": 87,
+      "text": "kachra kundi nahi hai manhole se ganda sludge nikal kar sadak par aya",
+      "true_department": "kwsc",
+      "predicted_department": "sswmb",
+      "confidence": 0.4076,
+      "margin": 0.567,
+      "source_type": "negation_contrast",
+      "needs_review": true
+    },
+    {
+      "index": 124,
+      "text": "bazar k baad sabzi aur gosht ka kachra sadak par bikhra pada hai",
+      "true_department": "sswmb",
+      "predicted_department": "kmc",
+      "confidence": 0.4801,
+      "margin": 0.5511,
+      "source_type": "curated_genuine",
+      "needs_review": true
+    },
+    {
+      "index": 125,
+      "text": "kachra kundi ki deewar toot gai kachra main sadak par bikhar gaya",
+      "true_department": "sswmb",
+      "predicted_department": "kmc",
+      "confidence": 0.4657,
+      "margin": 0.3551,
+      "source_type": "curated_genuine",
+      "needs_review": true
+    },
+    {
+      "index": 128,
+      "text": "kachra road par phelne se traffic ka rasta block ho gaya hai",
+      "true_department": "sswmb",
+      "predicted_department": "kmc",
+      "confidence": 0.6057,
+      "margin": 1.3209,
+      "source_type": "curated_genuine",
+      "needs_review": false
+    },
+    {
+      "index": 144,
+      "text": "water supply clean hai magar kachra tap water k pas pada hai",
+      "true_department": "sswmb",
+      "predicted_department": "kwsc",
+      "confidence": 0.8438,
+      "margin": 2.3768,
+      "source_type": "edge_case",
+      "needs_review": false
+    },
+    {
+      "index": 146,
+      "text": "building issue nahi plot par ghair qanooni kachra phainka ja raha hai",
+      "true_department": "sswmb",
+      "predicted_department": "sbca",
+      "confidence": 0.5822,
+      "margin": 1.1531,
+      "source_type": "negation_contrast",
+      "needs_review": false
+    },
+    {
+      "index": 161,
+      "text": "balcony toot k road pe gir gai kismat se bachat hui",
+      "true_department": "sbca",
+      "predicted_department": "kmc",
+      "confidence": 0.5295,
+      "margin": 1.29,
+      "source_type": "colloquial_variant",
+      "needs_review": false
+    },
+    {
+      "index": 165,
+      "text": "underground excavation damaged road and our boundary",
+      "true_department": "sbca",
+      "predicted_department": "kmc",
+      "confidence": 0.3132,
+      "margin": 0.4246,
+      "source_type": "colloquial_variant",
+      "needs_review": true
+    },
+    {
+      "index": 171,
+      "text": "gutter leak nahi building basement se pump kia gaya paani hai",
+      "true_department": "sbca",
+      "predicted_department": "kwsc",
+      "confidence": 0.424,
+      "margin": 0.1606,
+      "source_type": "edge_case",
+      "needs_review": true
+    },
+    {
+      "index": 173,
+      "text": "water tank on roof leaking into walls structural concrete damage",
+      "true_department": "sbca",
+      "predicted_department": "kwsc",
+      "confidence": 0.4124,
+      "margin": 0.2975,
+      "source_type": "edge_case",
+      "needs_review": true
+    },
+    {
+      "index": 177,
+      "text": "gas pressure is fine but builder enclosed gas meter inside illegal shop",
+      "true_department": "sbca",
+      "predicted_department": "ssgc",
+      "confidence": 0.8827,
+      "margin": 2.5152,
+      "source_type": "negation_contrast",
+      "needs_review": false
+    },
+    {
+      "index": 179,
+      "text": "not domestic waste builder dumped construction debris blocking alley",
+      "true_department": "sbca",
+      "predicted_department": "sswmb",
+      "confidence": 0.5416,
+      "margin": 0.6197,
+      "source_type": "negation_contrast",
+      "needs_review": false
+    }
+  ]
+}

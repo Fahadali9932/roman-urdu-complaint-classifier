@@ -1,0 +1,181 @@
+text,department_id,source_type
+speed breaker bohat ooncha aur ghair qanooni bana diya hai,kmc,curated_genuine
+street light ka khamba toota hua hai andhera rehta hai,kmc,curated_genuine
+gulshan block 13-d main road carpet completely damaged,kmc,curated_genuine
+underpass ceiling plaster ukhad raha hai sadak par girta hai,kmc,curated_genuine
+sadak ka level theek nahi hai un-even surface causes damage to vehicles,kmc,curated_genuine
+main national highway par potholes ki bharmaar hai,kmc,curated_genuine
+footpath par encroachment hai paidal chalna mushkil hai,kmc,curated_genuine
+pechs block 2 road patchwork bohat kharab hua hai dubara karein,kmc,curated_genuine
+main road crossing par zebra crossing aur signal lights theek karein,kmc,curated_genuine
+footpath ki tiles ukhar gai hain ladies chal nahi sakti,kmc,curated_genuine
+road restoration required after trench digging work,kmc,colloquial_variant
+sarak tooti hui he road carpet karwao bhai,kmc,colloquial_variant
+gadday he gadday hain puri sarak par gari chalana azab,kmc,colloquial_variant
+chowk pe signal kharab he sab gaariyan takra rahi hain,kmc,colloquial_variant
+asphalt layer completely washed away stones hitting windscreens,kmc,colloquial_variant
+traffic signal controller board jal gaya signal off he,kmc,colloquial_variant
+broken pavement and tiles in front of our house,kmc,colloquial_variant
+street light pole tilted falling danger kmc electricity wing,kmc,colloquial_variant
+speed breaker bohat ooncha he gari k neechay lagta he,kmc,colloquial_variant
+main sarak tooti hui gaddi phans gai,kmc,colloquial_variant
+sadak dhasnay se gari phans gai underground pipeline intact hai,kmc,edge_case
+footpath par road divider toota hai building ka koi masla nahi,kmc,edge_case
+speed breaker road par gadday bana raha hai municipal redesign required,kmc,edge_case
+road divider gap dangerous vehicles crossing illegally close the cut,kmc,edge_case
+roundabout island divider broken by car accident rebuild curb,kmc,edge_case
+road par asphalt toot gaya koi kachra nahi road infrastructure fault hai,kmc,edge_case
+gutter nahi ubal raha sadak barish k baad toot chuki hai road maintenance,kmc,negation_contrast
+bijli ki taar nahi hai street light ka municipal pole toota hai,kmc,negation_contrast
+water leak nahi tha road khud hi dhas gai hai gadda bharwayen,kmc,negation_contrast
+area mein kachra nahi hai magar link road par gehra gadda hai,kmc,negation_contrast
+transformer oil dripping onto pavement hazardous chemicals,kelectric,curated_genuine
+barish ke baad bijli gayab ho gai 24 ghantay se nahi aayi,kelectric,curated_genuine
+low voltage issue our water pump cannot start due to 140v,kelectric,curated_genuine
+electric pole se spark nikal rahay hain aag lag sakti hai,kelectric,curated_genuine
+frequent tripping on our street transformer needs replacement,kelectric,curated_genuine
+digital meter screen dead ho gai hai light chali gai,kelectric,curated_genuine
+feeder trip ho gaya hai poora block blackout mein hai,kelectric,curated_genuine
+high voltage surge aya jis se ghar k AC aur TV jal gaye,kelectric,curated_genuine
+electricity meter mein aag lag gai hai emergency complaint,kelectric,curated_genuine
+current passing through rain water near electric pole disconnect power,kelectric,curated_genuine
+voltages bht down hen pankha b nhe chal rha,kelectric,colloquial_variant
+meter me spark ho rha he jalne ki boo arahi he,kelectric,colloquial_variant
+transformer se dhuan nikal raha he awaz bht tez he,kelectric,colloquial_variant
+light ki ankhol macholi jari he equipment jal jayega,kelectric,colloquial_variant
+transformer me aag lag gai he foran feeder off karo,kelectric,colloquial_variant
+bijli ka khamba jhuk gya he taar latak rahi he,kelectric,colloquial_variant
+light chali gai achanak loud blast k baad,kelectric,colloquial_variant
+high voltage passed and destroyed our UPS and refrigerator,kelectric,colloquial_variant
+bijli ni arahi subah se light bnd he garmi me,kelectric,colloquial_variant
+bijli band he load shedding time table se hat k,kelectric,colloquial_variant
+pole par tree branch girne se bijli ki taar tooti hai power company call,kelectric,edge_case
+phase out in entire street street lights off and homes partially dark,kelectric,edge_case
+street light pole is live with electricity leakage dangerous current,kelectric,edge_case
+PMT explosion damaged the street asphalt electric fault primary,kelectric,edge_case
+current gutter k paani me araha he bijli ki taar tooti hai KE cut power,kelectric,edge_case
+electric meter cabin me sparking ho rahi hai domestic wire problem nahi,kelectric,edge_case
+kachra nahi uthana bijli ka pole tedha hai usko theek karein,kelectric,negation_contrast
+building construction ka issue nahi electricity line roof par touch ho rahi,kelectric,negation_contrast
+line cutting issue nahi regular feeder breakdown ho raha hai,kelectric,negation_contrast
+pani aur gas theek araha hai lekin bijli kal se band hai KE solve,kelectric,negation_contrast
+gutter overflow causing foul smell throughout residential block,kwsc,curated_genuine
+sewer line collapsed road dhas gai gutter water flooding shops,kwsc,curated_genuine
+gutter lid broken by truck needs concrete cover installation,kwsc,curated_genuine
+hamare ilaqay mein water supply teen din se band hai tankers bula rahay,kwsc,curated_genuine
+underground sewerage pipe cracked sewage seeping into house foundations,kwsc,curated_genuine
+manhole ka dhakkan gayab hai khula gutter dangerous bachay gir saktay,kwsc,curated_genuine
+clean drinking water line breached near drainage ditch contaminated,kwsc,curated_genuine
+sewerage line jetting machine urgently needed block 14 gulberg,kwsc,curated_genuine
+choked sewer line opposite hospital entrance emergency clearance,kwsc,curated_genuine
+sewage accumulated in front of houses causing dengue mosquito outbreak,kwsc,curated_genuine
+line pressure drop tail end street getting zero water,kwsc,colloquial_variant
+tanker service booked through app but water not delivered,kwsc,colloquial_variant
+peenay ka paani black color ka araha he severe contamination,kwsc,colloquial_variant
+water line repair adhoori chor di gali me kichad he,kwsc,colloquial_variant
+drainage water entering our shop basement KW&SC help,kwsc,colloquial_variant
+sweet drinking water pipeline leaking on main road,kwsc,colloquial_variant
+sewerage ka pani gharo me ghus raha he foran aao,kwsc,colloquial_variant
+gutter open dangerous cover lagwao bhai,kwsc,colloquial_variant
+pani nahi aa raha tanki khali he pani bhejo,kwsc,colloquial_variant
+gutter choke hone ki wajah se footpath doob gaya,kwsc,colloquial_variant
+water motor electric wire is fine but water supply is dry,kwsc,edge_case
+manhole overflowing onto pedestrian walkway KWSC de-silt line,kwsc,edge_case
+pot hole filled with leaking drinking water fix the water line first,kwsc,edge_case
+sadak kharab paani ki wajah se hui hai paani ki line theek karein KWSC,kwsc,edge_case
+building ki foundation me gutter ka paani ja raha hai KWSC fix sewer,kwsc,edge_case
+sadak repair baad me karein pehle water line leak band karein,kwsc,edge_case
+barish ka paani nahi hai sewerage line leak hai gali mein,kwsc,negation_contrast
+kachra kundi nahi hai manhole se ganda sludge nikal kar sadak par aya,kwsc,negation_contrast
+no issue with electricity bill water supply line is completely dry,kwsc,negation_contrast
+water is not scarce due to power outage KWSC main valve is shut,kwsc,negation_contrast
+gas pipeline rupture ho gai hai hissing sound aag lagne ka khatra,ssgc,curated_genuine
+gas leakage near primary school gate children complaining of nausea,ssgc,curated_genuine
+sui gas pressure vanishing during meal preparation hours,ssgc,curated_genuine
+leak in main gas line feeding residential apartments urgent inspection,ssgc,curated_genuine
+zero gas pressure since morning cylinder buy karna pad raha hai,ssgc,curated_genuine
+rusted underground gas pipeline bubbling through puddles smell intense,ssgc,curated_genuine
+sui southern gas pipeline damaged during road digging smell everywhere,ssgc,curated_genuine
+ssgc emergency pipeline repair team urgently needed leak in street,ssgc,curated_genuine
+sui gas meter se gas leak ho rahi hai emergency team bhejein,ssgc,curated_genuine
+gas service pipe severed by excavator gas blowing with pressure,ssgc,curated_genuine
+chulah nahi jal raha gas bilkul gayab he,ssgc,colloquial_variant
+gas leak near electrical meter dangerous combination,ssgc,colloquial_variant
+low pressure gas problem in block 7 gulshan,ssgc,colloquial_variant
+dim pressure of gas cannot cook meal for family,ssgc,colloquial_variant
+gas leak in street pipe bubbles coming out of wet mud,ssgc,colloquial_variant
+sui gas pipeline hissing loudly outside house 14,ssgc,colloquial_variant
+gas ki badboo se sar dard ho raha he gali me leak,ssgc,colloquial_variant
+pipeline blast na ho jaye gas leak continuously,ssgc,colloquial_variant
+chulha nahi on hota gas match box se b aag nahi pakadti,ssgc,colloquial_variant
+gas nhe arahi khana kese pakayein chulha bnd he,ssgc,colloquial_variant
+commercial bakery sucked all gas pressure with illegal booster pump,ssgc,edge_case
+road cave in damaged gas service riser pipe ssgc emergency crew,ssgc,edge_case
+sewer manhole se gas nahi nikli underground gas pipe breached into duct,ssgc,edge_case
+stagnant puddle has gas bubbles rising up ignite test shows blue flame,ssgc,edge_case
+kachray ki badboo nahi gas ki tez smell hai fire hazard SSGC call,ssgc,edge_case
+building meter cabin mein sui gas meter leak ho raha hai SSGC team,ssgc,edge_case
+water pump runs fine but gas stove has zero flame SSGC solve,ssgc,negation_contrast
+electricity load shedding is not the issue kitchen has no gas,ssgc,negation_contrast
+no electrical short circuit smell is natural gas from meter union,ssgc,negation_contrast
+sanitation sweepers came but street gas leak remains unaddressed,ssgc,negation_contrast
+waste collection vehicle driver refusing to enter narrow lane,sswmb,curated_genuine
+plastic waste garbage bags clogging entire residential street lane,sswmb,curated_genuine
+kachray ka dher laga hua hai safai nahi ho rahi SSWMB kachra uthaye,sswmb,curated_genuine
+solid waste management board garbage lifting vehicle needed block 8,sswmb,curated_genuine
+bazar k baad sabzi aur gosht ka kachra sadak par bikhra pada hai,sswmb,curated_genuine
+kachra kundi ki deewar toot gai kachra main sadak par bikhar gaya,sswmb,curated_genuine
+plastic bags and solid waste blocking storm water drainage channel,sswmb,curated_genuine
+solid waste board sanitary inspector neglect of duty in liyari,sswmb,curated_genuine
+kachra road par phelne se traffic ka rasta block ho gaya hai,sswmb,curated_genuine
+sswmb mechanical sweeper truck required on main boulevard,sswmb,curated_genuine
+kachray ko aag lga di dhuan sans me ja rha he,sswmb,colloquial_variant
+garbage vehicle please send in block 11 nazimabad,sswmb,colloquial_variant
+garbage bags torn by stray dogs waste spread on street,sswmb,colloquial_variant
+dustbin overflow attracting stray dogs and rats hazard,sswmb,colloquial_variant
+bazar k baad kachra wese hi chor dia safai nahi hui,sswmb,colloquial_variant
+sweeper jhadu lagane nahi ata mahine se gali kharab,sswmb,colloquial_variant
+kachray ka dabba bhar gya he bahr gir rha he,sswmb,colloquial_variant
+dead animal disposal complaint urgent clifton block 2,sswmb,colloquial_variant
+garbage gari nhe aayi 2 haftay se gandagi he,sswmb,colloquial_variant
+dustbin toota hua he saray kachray k dabbe gir rahay,sswmb,colloquial_variant
+sadak par malba nahi ghar ka kachra aur garbage dher hai SSWMB,sswmb,edge_case
+gutter leak nahi hai kachra naali mein phansnay se nala band hua,sswmb,edge_case
+electric pole k neechay kachra jama hai pole theek hai kachra uthayein,sswmb,edge_case
+smell is from rotting garbage dump not gas pipeline leak SSWMB,sswmb,edge_case
+water supply clean hai magar kachra tap water k pas pada hai,sswmb,edge_case
+public park perimeter filled with plastic garbage bags sswmb clean,sswmb,edge_case
+building issue nahi plot par ghair qanooni kachra phainka ja raha hai,sswmb,negation_contrast
+electrical pole is safe but garbage dumped around its base smells,sswmb,negation_contrast
+sewerage theek chal rahi hai sirf solid waste garbage lifting required,sswmb,negation_contrast
+water supply is abundant but street hygiene is ruined by trash heaps,sswmb,negation_contrast
+residential street turning into commercial market illegal construction,sbca,curated_genuine
+building structure compromised due to removing ground floor support pillar,sbca,curated_genuine
+sbca building inspector colluding with illegal builder in liyari town,sbca,curated_genuine
+dangerous dilapidated building notices issued but occupants not evacuated,sbca,curated_genuine
+cracked columns in basement parking structural stability report required,sbca,curated_genuine
+illegal steel structure fabricated on rooftop without engineering NOC,sbca,curated_genuine
+building ki deewar mein barray cracks aa gaye hain collapse ka khatra,sbca,curated_genuine
+historic pre-partition heritage building being demolished illegally,sbca,curated_genuine
+water tank on top floor built without structural reinforcement leaking,sbca,curated_genuine
+cracks in main load-bearing pillars of apartment complex evacuation,sbca,curated_genuine
+building height limit violate kar di 60 feet se zyada,sbca,colloquial_variant
+balcony toot k road pe gir gai kismat se bachat hui,sbca,colloquial_variant
+building jhuk gai he aik taraf dangerous tilt,sbca,colloquial_variant
+compulsory open space cover kar k room bana lia,sbca,colloquial_variant
+chhat pe illegal floor bana lia he 4th manzil,sbca,colloquial_variant
+underground excavation damaged road and our boundary,sbca,colloquial_variant
+unauthorized floor seal karein sbca town office,sbca,colloquial_variant
+bina buniyaad k dosri manzil daal di kamzor makan,sbca,colloquial_variant
+unauthorized steel shade over public footpath by shopkeeper,sbca,colloquial_variant
+illegal construction chal rahi he raat k time pe,sbca,colloquial_variant
+neighbor cutting support beam affecting our shared wall integrity,sbca,edge_case
+gutter leak nahi building basement se pump kia gaya paani hai,sbca,edge_case
+building exterior tiles falling on parked cars structural defect,sbca,edge_case
+water tank on roof leaking into walls structural concrete damage,sbca,edge_case
+drainage blocked by builder pouring concrete wash into storm drain,sbca,edge_case
+road cave in caused by un-shored basement digging by commercial builder,sbca,edge_case
+sadak par koi masla nahi padosi ghair qanooni chothi manzil bana raha hai,sbca,negation_contrast
+gas pressure is fine but builder enclosed gas meter inside illegal shop,sbca,negation_contrast
+gas leak nahi hai building k pillar khasta ho chukay hain collapse danger,sbca,negation_contrast
+not domestic waste builder dumped construction debris blocking alley,sbca,negation_contrast

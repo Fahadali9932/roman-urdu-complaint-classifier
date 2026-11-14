@@ -3,8 +3,15 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 import model from "./model.json" with { type: "json" };
 
 type Model = {
-  classes: string[]; vocabulary: Record<string, number>; idf: number[];
-  coef: number[][]; intercept: number[]; ngram_range: [number, number];
+  classes: string[];
+  vocabulary: Record<string, number>;
+  idf: number[];
+  coef: number[][];
+  intercept: number[];
+  ngram_range: [number, number];
+  analyzer?: string;
+  confidence_threshold?: number;
+  margin_threshold?: number;
 };
 const classifier = model as Model;
 const corsHeaders = {
@@ -38,18 +45,35 @@ async function sha256Hex(text: string): Promise<string> {
 
 function features(text: string): Map<number, number> {
   const counts = new Map<number, number>();
-  const words = text.toLowerCase().normalize("NFKC").match(/[^\s]+/g) ?? [];
-  for (const word of words) {
-    const padded = ` ${word} `;
-    for (let n = classifier.ngram_range[0]; n <= classifier.ngram_range[1]; n++) {
-      for (let index = 0; index <= padded.length - n; index++) {
-        const column = classifier.vocabulary[padded.slice(index, index + n)];
-        if (column !== undefined) counts.set(column, (counts.get(column) ?? 0) + 1);
+  if (classifier.analyzer === "word") {
+    const words = text.toLowerCase().normalize("NFKC").match(/\b\w\w+\b/gu) ?? [];
+    for (let i = 0; i < words.length; i++) {
+      const col1 = classifier.vocabulary[words[i]];
+      if (col1 !== undefined) counts.set(col1, (counts.get(col1) ?? 0) + 1);
+      if (classifier.ngram_range[1] >= 2 && i < words.length - 1) {
+        const bigram = `${words[i]} ${words[i + 1]}`;
+        const col2 = classifier.vocabulary[bigram];
+        if (col2 !== undefined) counts.set(col2, (counts.get(col2) ?? 0) + 1);
+      }
+    }
+  } else {
+    const words = text.toLowerCase().normalize("NFKC").match(/[^\s]+/g) ?? [];
+    for (const word of words) {
+      const padded = ` ${word} `;
+      for (let n = classifier.ngram_range[0]; n <= classifier.ngram_range[1]; n++) {
+        for (let index = 0; index <= padded.length - n; index++) {
+          const column = classifier.vocabulary[padded.slice(index, index + n)];
+          if (column !== undefined) counts.set(column, (counts.get(column) ?? 0) + 1);
+        }
       }
     }
   }
   let norm = 0;
-  for (const [column, count] of counts) { const weighted = count * classifier.idf[column]; counts.set(column, weighted); norm += weighted * weighted; }
+  for (const [column, count] of counts) {
+    const weighted = count * classifier.idf[column];
+    counts.set(column, weighted);
+    norm += weighted * weighted;
+  }
   norm = Math.sqrt(norm) || 1;
   for (const [column, weighted] of counts) counts.set(column, weighted / norm);
   return counts;
@@ -68,7 +92,13 @@ function classify(text: string) {
   const total = probabilities.reduce((sum, value) => sum + value, 0);
   const confidence = probabilities[ordered[0].index] / total;
   const margin = ordered[0].score - ordered[1].score;
-  return { departmentId: classifier.classes[ordered[0].index], confidence, needsReview: confidence < 0.50 || margin < 0.10 };
+  const confThresh = classifier.confidence_threshold ?? 0.50;
+  const margThresh = classifier.margin_threshold ?? 0.15;
+  return {
+    departmentId: classifier.classes[ordered[0].index],
+    confidence,
+    needsReview: confidence < confThresh || margin < margThresh,
+  };
 }
 
 Deno.serve(async (req) => {

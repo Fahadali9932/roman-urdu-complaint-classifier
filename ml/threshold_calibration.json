@@ -1,0 +1,588 @@
+{
+  "optimal_point": {
+    "confidence_threshold": 0.55,
+    "margin_threshold": 0.1,
+    "coverage": 0.7517,
+    "precision": 0.9667,
+    "n_auto": 451,
+    "n_review": 149
+  },
+  "all_points": [
+    {
+      "confidence_threshold": 0.35,
+      "margin_threshold": 0.1,
+      "coverage": 0.9467,
+      "precision": 0.9437,
+      "n_auto": 568,
+      "n_review": 32
+    },
+    {
+      "confidence_threshold": 0.35,
+      "margin_threshold": 0.15,
+      "coverage": 0.9383,
+      "precision": 0.9485,
+      "n_auto": 563,
+      "n_review": 37
+    },
+    {
+      "confidence_threshold": 0.35,
+      "margin_threshold": 0.2,
+      "coverage": 0.9333,
+      "precision": 0.95,
+      "n_auto": 560,
+      "n_review": 40
+    },
+    {
+      "confidence_threshold": 0.35,
+      "margin_threshold": 0.25,
+      "coverage": 0.9317,
+      "precision": 0.9517,
+      "n_auto": 559,
+      "n_review": 41
+    },
+    {
+      "confidence_threshold": 0.35,
+      "margin_threshold": 0.3,
+      "coverage": 0.9283,
+      "precision": 0.9551,
+      "n_auto": 557,
+      "n_review": 43
+    },
+    {
+      "confidence_threshold": 0.35,
+      "margin_threshold": 0.35,
+      "coverage": 0.92,
+      "precision": 0.9547,
+      "n_auto": 552,
+      "n_review": 48
+    },
+    {
+      "confidence_threshold": 0.35,
+      "margin_threshold": 0.4,
+      "coverage": 0.915,
+      "precision": 0.9545,
+      "n_auto": 549,
+      "n_review": 51
+    },
+    {
+      "confidence_threshold": 0.35,
+      "margin_threshold": 0.45,
+      "coverage": 0.91,
+      "precision": 0.956,
+      "n_auto": 546,
+      "n_review": 54
+    },
+    {
+      "confidence_threshold": 0.35,
+      "margin_threshold": 0.5,
+      "coverage": 0.9033,
+      "precision": 0.9557,
+      "n_auto": 542,
+      "n_review": 58
+    },
+    {
+      "confidence_threshold": 0.4,
+      "margin_threshold": 0.1,
+      "coverage": 0.9167,
+      "precision": 0.9473,
+      "n_auto": 550,
+      "n_review": 50
+    },
+    {
+      "confidence_threshold": 0.4,
+      "margin_threshold": 0.15,
+      "coverage": 0.9117,
+      "precision": 0.9506,
+      "n_auto": 547,
+      "n_review": 53
+    },
+    {
+      "confidence_threshold": 0.4,
+      "margin_threshold": 0.2,
+      "coverage": 0.9083,
+      "precision": 0.9523,
+      "n_auto": 545,
+      "n_review": 55
+    },
+    {
+      "confidence_threshold": 0.4,
+      "margin_threshold": 0.25,
+      "coverage": 0.9067,
+      "precision": 0.954,
+      "n_auto": 544,
+      "n_review": 56
+    },
+    {
+      "confidence_threshold": 0.4,
+      "margin_threshold": 0.3,
+      "coverage": 0.905,
+      "precision": 0.9558,
+      "n_auto": 543,
+      "n_review": 57
+    },
+    {
+      "confidence_threshold": 0.4,
+      "margin_threshold": 0.35,
+      "coverage": 0.8967,
+      "precision": 0.9554,
+      "n_auto": 538,
+      "n_review": 62
+    },
+    {
+      "confidence_threshold": 0.4,
+      "margin_threshold": 0.4,
+      "coverage": 0.895,
+      "precision": 0.9553,
+      "n_auto": 537,
+      "n_review": 63
+    },
+    {
+      "confidence_threshold": 0.4,
+      "margin_threshold": 0.45,
+      "coverage": 0.8933,
+      "precision": 0.9571,
+      "n_auto": 536,
+      "n_review": 64
+    },
+    {
+      "confidence_threshold": 0.4,
+      "margin_threshold": 0.5,
+      "coverage": 0.8883,
+      "precision": 0.9568,
+      "n_auto": 533,
+      "n_review": 67
+    },
+    {
+      "confidence_threshold": 0.45,
+      "margin_threshold": 0.1,
+      "coverage": 0.8733,
+      "precision": 0.9523,
+      "n_auto": 524,
+      "n_review": 76
+    },
+    {
+      "confidence_threshold": 0.45,
+      "margin_threshold": 0.15,
+      "coverage": 0.8733,
+      "precision": 0.9523,
+      "n_auto": 524,
+      "n_review": 76
+    },
+    {
+      "confidence_threshold": 0.45,
+      "margin_threshold": 0.2,
+      "coverage": 0.87,
+      "precision": 0.954,
+      "n_auto": 522,
+      "n_review": 78
+    },
+    {
+      "confidence_threshold": 0.45,
+      "margin_threshold": 0.25,
+      "coverage": 0.8683,
+      "precision": 0.9559,
+      "n_auto": 521,
+      "n_review": 79
+    },
+    {
+      "confidence_threshold": 0.45,
+      "margin_threshold": 0.3,
+      "coverage": 0.8667,
+      "precision": 0.9577,
+      "n_auto": 520,
+      "n_review": 80
+    },
+    {
+      "confidence_threshold": 0.45,
+      "margin_threshold": 0.35,
+      "coverage": 0.8617,
+      "precision": 0.9574,
+      "n_auto": 517,
+      "n_review": 83
+    },
+    {
+      "confidence_threshold": 0.45,
+      "margin_threshold": 0.4,
+      "coverage": 0.86,
+      "precision": 0.9574,
+      "n_auto": 516,
+      "n_review": 84
+    },
+    {
+      "confidence_threshold": 0.45,
+      "margin_threshold": 0.45,
+      "coverage": 0.86,
+      "precision": 0.9574,
+      "n_auto": 516,
+      "n_review": 84
+    },
+    {
+      "confidence_threshold": 0.45,
+      "margin_threshold": 0.5,
+      "coverage": 0.8567,
+      "precision": 0.9572,
+      "n_auto": 514,
+      "n_review": 86
+    },
+    {
+      "confidence_threshold": 0.5,
+      "margin_threshold": 0.1,
+      "coverage": 0.8117,
+      "precision": 0.9589,
+      "n_auto": 487,
+      "n_review": 113
+    },
+    {
+      "confidence_threshold": 0.5,
+      "margin_threshold": 0.15,
+      "coverage": 0.8117,
+      "precision": 0.9589,
+      "n_auto": 487,
+      "n_review": 113
+    },
+    {
+      "confidence_threshold": 0.5,
+      "margin_threshold": 0.2,
+      "coverage": 0.8117,
+      "precision": 0.9589,
+      "n_auto": 487,
+      "n_review": 113
+    },
+    {
+      "confidence_threshold": 0.5,
+      "margin_threshold": 0.25,
+      "coverage": 0.8117,
+      "precision": 0.9589,
+      "n_auto": 487,
+      "n_review": 113
+    },
+    {
+      "confidence_threshold": 0.5,
+      "margin_threshold": 0.3,
+      "coverage": 0.8117,
+      "precision": 0.9589,
+      "n_auto": 487,
+      "n_review": 113
+    },
+    {
+      "confidence_threshold": 0.5,
+      "margin_threshold": 0.35,
+      "coverage": 0.81,
+      "precision": 0.9588,
+      "n_auto": 486,
+      "n_review": 114
+    },
+    {
+      "confidence_threshold": 0.5,
+      "margin_threshold": 0.4,
+      "coverage": 0.81,
+      "precision": 0.9588,
+      "n_auto": 486,
+      "n_review": 114
+    },
+    {
+      "confidence_threshold": 0.5,
+      "margin_threshold": 0.45,
+      "coverage": 0.81,
+      "precision": 0.9588,
+      "n_auto": 486,
+      "n_review": 114
+    },
+    {
+      "confidence_threshold": 0.5,
+      "margin_threshold": 0.5,
+      "coverage": 0.8083,
+      "precision": 0.9588,
+      "n_auto": 485,
+      "n_review": 115
+    },
+    {
+      "confidence_threshold": 0.55,
+      "margin_threshold": 0.1,
+      "coverage": 0.7517,
+      "precision": 0.9667,
+      "n_auto": 451,
+      "n_review": 149
+    },
+    {
+      "confidence_threshold": 0.55,
+      "margin_threshold": 0.15,
+      "coverage": 0.7517,
+      "precision": 0.9667,
+      "n_auto": 451,
+      "n_review": 149
+    },
+    {
+      "confidence_threshold": 0.55,
+      "margin_threshold": 0.2,
+      "coverage": 0.7517,
+      "precision": 0.9667,
+      "n_auto": 451,
+      "n_review": 149
+    },
+    {
+      "confidence_threshold": 0.55,
+      "margin_threshold": 0.25,
+      "coverage": 0.7517,
+      "precision": 0.9667,
+      "n_auto": 451,
+      "n_review": 149
+    },
+    {
+      "confidence_threshold": 0.55,
+      "margin_threshold": 0.3,
+      "coverage": 0.7517,
+      "precision": 0.9667,
+      "n_auto": 451,
+      "n_review": 149
+    },
+    {
+      "confidence_threshold": 0.55,
+      "margin_threshold": 0.35,
+      "coverage": 0.7517,
+      "precision": 0.9667,
+      "n_auto": 451,
+      "n_review": 149
+    },
+    {
+      "confidence_threshold": 0.55,
+      "margin_threshold": 0.4,
+      "coverage": 0.7517,
+      "precision": 0.9667,
+      "n_auto": 451,
+      "n_review": 149
+    },
+    {
+      "confidence_threshold": 0.55,
+      "margin_threshold": 0.45,
+      "coverage": 0.7517,
+      "precision": 0.9667,
+      "n_auto": 451,
+      "n_review": 149
+    },
+    {
+      "confidence_threshold": 0.55,
+      "margin_threshold": 0.5,
+      "coverage": 0.7517,
+      "precision": 0.9667,
+      "n_auto": 451,
+      "n_review": 149
+    },
+    {
+      "confidence_threshold": 0.6,
+      "margin_threshold": 0.1,
+      "coverage": 0.67,
+      "precision": 0.9701,
+      "n_auto": 402,
+      "n_review": 198
+    },
+    {
+      "confidence_threshold": 0.6,
+      "margin_threshold": 0.15,
+      "coverage": 0.67,
+      "precision": 0.9701,
+      "n_auto": 402,
+      "n_review": 198
+    },
+    {
+      "confidence_threshold": 0.6,
+      "margin_threshold": 0.2,
+      "coverage": 0.67,
+      "precision": 0.9701,
+      "n_auto": 402,
+      "n_review": 198
+    },
+    {
+      "confidence_threshold": 0.6,
+      "margin_threshold": 0.25,
+      "coverage": 0.67,
+      "precision": 0.9701,
+      "n_auto": 402,
+      "n_review": 198
+    },
+    {
+      "confidence_threshold": 0.6,
+      "margin_threshold": 0.3,
+      "coverage": 0.67,
+      "precision": 0.9701,
+      "n_auto": 402,
+      "n_review": 198
+    },
+    {
+      "confidence_threshold": 0.6,
+      "margin_threshold": 0.35,
+      "coverage": 0.67,
+      "precision": 0.9701,
+      "n_auto": 402,
+      "n_review": 198
+    },
+    {
+      "confidence_threshold": 0.6,
+      "margin_threshold": 0.4,
+      "coverage": 0.67,
+      "precision": 0.9701,
+      "n_auto": 402,
+      "n_review": 198
+    },
+    {
+      "confidence_threshold": 0.6,
+      "margin_threshold": 0.45,
+      "coverage": 0.67,
+      "precision": 0.9701,
+      "n_auto": 402,
+      "n_review": 198
+    },
+    {
+      "confidence_threshold": 0.6,
+      "margin_threshold": 0.5,
+      "coverage": 0.67,
+      "precision": 0.9701,
+      "n_auto": 402,
+      "n_review": 198
+    },
+    {
+      "confidence_threshold": 0.65,
+      "margin_threshold": 0.1,
+      "coverage": 0.58,
+      "precision": 0.9741,
+      "n_auto": 348,
+      "n_review": 252
+    },
+    {
+      "confidence_threshold": 0.65,
+      "margin_threshold": 0.15,
+      "coverage": 0.58,
+      "precision": 0.9741,
+      "n_auto": 348,
+      "n_review": 252
+    },
+    {
+      "confidence_threshold": 0.65,
+      "margin_threshold": 0.2,
+      "coverage": 0.58,
+      "precision": 0.9741,
+      "n_auto": 348,
+      "n_review": 252
+    },
+    {
+      "confidence_threshold": 0.65,
+      "margin_threshold": 0.25,
+      "coverage": 0.58,
+      "precision": 0.9741,
+      "n_auto": 348,
+      "n_review": 252
+    },
+    {
+      "confidence_threshold": 0.65,
+      "margin_threshold": 0.3,
+      "coverage": 0.58,
+      "precision": 0.9741,
+      "n_auto": 348,
+      "n_review": 252
+    },
+    {
+      "confidence_threshold": 0.65,
+      "margin_threshold": 0.35,
+      "coverage": 0.58,
+      "precision": 0.9741,
+      "n_auto": 348,
+      "n_review": 252
+    },
+    {
+      "confidence_threshold": 0.65,
+      "margin_threshold": 0.4,
+      "coverage": 0.58,
+      "precision": 0.9741,
+      "n_auto": 348,
+      "n_review": 252
+    },
+    {
+      "confidence_threshold": 0.65,
+      "margin_threshold": 0.45,
+      "coverage": 0.58,
+      "precision": 0.9741,
+      "n_auto": 348,
+      "n_review": 252
+    },
+    {
+      "confidence_threshold": 0.65,
+      "margin_threshold": 0.5,
+      "coverage": 0.58,
+      "precision": 0.9741,
+      "n_auto": 348,
+      "n_review": 252
+    },
+    {
+      "confidence_threshold": 0.7,
+      "margin_threshold": 0.1,
+      "coverage": 0.4833,
+      "precision": 0.9759,
+      "n_auto": 290,
+      "n_review": 310
+    },
+    {
+      "confidence_threshold": 0.7,
+      "margin_threshold": 0.15,
+      "coverage": 0.4833,
+      "precision": 0.9759,
+      "n_auto": 290,
+      "n_review": 310
+    },
+    {
+      "confidence_threshold": 0.7,
+      "margin_threshold": 0.2,
+      "coverage": 0.4833,
+      "precision": 0.9759,
+      "n_auto": 290,
+      "n_review": 310
+    },
+    {
+      "confidence_threshold": 0.7,
+      "margin_threshold": 0.25,
+      "coverage": 0.4833,
+      "precision": 0.9759,
+      "n_auto": 290,
+      "n_review": 310
+    },
+    {
+      "confidence_threshold": 0.7,
+      "margin_threshold": 0.3,
+      "coverage": 0.4833,
+      "precision": 0.9759,
+      "n_auto": 290,
+      "n_review": 310
+    },
+    {
+      "confidence_threshold": 0.7,
+      "margin_threshold": 0.35,
+      "coverage": 0.4833,
+      "precision": 0.9759,
+      "n_auto": 290,
+      "n_review": 310
+    },
+    {
+      "confidence_threshold": 0.7,
+      "margin_threshold": 0.4,
+      "coverage": 0.4833,
+      "precision": 0.9759,
+      "n_auto": 290,
+      "n_review": 310
+    },
+    {
+      "confidence_threshold": 0.7,
+      "margin_threshold": 0.45,
+      "coverage": 0.4833,
+      "precision": 0.9759,
+      "n_auto": 290,
+      "n_review": 310
+    },
+    {
+      "confidence_threshold": 0.7,
+      "margin_threshold": 0.5,
+      "coverage": 0.4833,
+      "precision": 0.9759,
+      "n_auto": 290,
+      "n_review": 310
+    }
+  ]
+}
