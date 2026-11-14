@@ -221,19 +221,9 @@ export class SupabaseComplaintService implements IComplaintService {
       throw new Error(error.message || 'Failed to update complaint status in database.');
     }
 
-    // Trigger server-side citizen email notification (Edge Function)
-    try {
-      await supabase.functions.invoke('send-status-notification', {
-        body: {
-          complaintId: item.id,
-          newStatus,
-          title: titleEn,
-          note: noteEn,
-        },
-      });
-    } catch (notifErr) {
-      console.warn('[SupabaseComplaintService] Status notification dispatch logged:', notifErr);
-    }
+    // The database transaction queues a notification in the private outbox.
+    // Do not invoke a client-visible function here: the delivery worker needs
+    // provider credentials and must be deployed/configured independently.
 
     const updated = await this.getDepartmentComplaintByReference(departmentId, item.id);
     if (!updated) {

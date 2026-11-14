@@ -5,6 +5,13 @@ import path from 'path';
 const CHROME_PATH = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
 const WORKTREE_DIR = 'D:/RomanUrdu_ComplaintClassifier_staff_auth/screenshots/critical_fixes_qa';
 const ARTIFACT_DIR = 'C:/Users/Annihilation/.gemini/antigravity/brain/a88fd076-ccfa-4971-8727-16417815432e/screenshots/critical_fixes_qa';
+const CREDENTIALS_PATH = 'D:/RomanUrdu_ComplaintClassifier_staff_auth/.credentials/department_staff_credentials.json';
+
+const credentials = JSON.parse(fs.readFileSync(CREDENTIALS_PATH, 'utf8'));
+const kmcStaff = credentials.departments?.find((staff) => staff.departmentId === 'kmc');
+if (!kmcStaff?.username || !kmcStaff?.accessKey) {
+  throw new Error('KMC staff QA credentials are missing from the ignored local credentials file.');
+}
 
 if (!fs.existsSync(WORKTREE_DIR)) fs.mkdirSync(WORKTREE_DIR, { recursive: true });
 if (!fs.existsSync(ARTIFACT_DIR)) fs.mkdirSync(ARTIFACT_DIR, { recursive: true });
@@ -182,8 +189,8 @@ async function run() {
         }
         const userInput = document.getElementById('username') || document.querySelector('input[type="text"]');
         const passInput = document.getElementById('accessKey') || document.querySelector('input[type="password"]');
-        if (userInput) setReactValue(userInput, 'roads-01');
-        if (passInput) setReactValue(passInput, 'Y5AcfXVDn9-rzqE!GY8bMyyenH4r');
+        if (userInput) setReactValue(userInput, ${JSON.stringify(kmcStaff.username)});
+        if (passInput) setReactValue(passInput, ${JSON.stringify(kmcStaff.accessKey)});
 
         const submitBtn = document.querySelector('button[type="submit"]') || Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('Sign in') || b.textContent.includes('Sign In'));
         if (submitBtn) submitBtn.click();

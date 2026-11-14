@@ -55,6 +55,8 @@ ALTER TABLE public.complaint_notification_outbox ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public.complaint_notification_outbox FROM anon, authenticated;
 
 -- Main admin can view notification audit log
+DROP POLICY IF EXISTS admin_manage_notifications ON public.complaint_notification_outbox;
+
 CREATE POLICY admin_manage_notifications
     ON public.complaint_notification_outbox
     FOR ALL
@@ -88,10 +90,12 @@ BEGIN
         RAISE EXCEPTION 'Authentication required.';
     END IF;
 
-    -- Fetch target complaint
+    -- Lock the row so simultaneous staff actions cannot create conflicting
+    -- transitions or timeline entries.
     SELECT * INTO v_complaint
     FROM public.complaints
-    WHERE id = p_complaint_id;
+    WHERE id = p_complaint_id
+    FOR UPDATE;
 
     IF NOT FOUND THEN
         RAISE EXCEPTION 'Complaint not found: %', p_complaint_id;
@@ -99,7 +103,8 @@ BEGIN
 
     v_is_admin := public.is_main_admin(v_caller_id);
 
-    -- If not admin, verify caller has an ACTIVE membership in the assigned department
+    -- An administrator may operate the workflow; all other callers must have an
+    -- active membership in the department to which this complaint is assigned.
     IF NOT v_is_admin THEN
         SELECT EXISTS (
             SELECT 1 FROM public.department_memberships m
@@ -112,21 +117,16 @@ BEGIN
             RAISE EXCEPTION 'Unauthorized: You do not have active staff credentials for this department.';
         END IF;
 
-        -- Terminal status check: cannot update resolved or rejected complaints
-        IF v_complaint.status IN ('resolved', 'rejected') THEN
-            RAISE EXCEPTION 'Cannot update complaint in terminal status: %', v_complaint.status;
-        -- Validate state transition workflow
-        ELSIF v_complaint.status = 'submitted' AND p_new_status NOT IN ('under_review', 'assigned', 'rejected') THEN
-            RAISE EXCEPTION 'Invalid status transition: % -> %', v_complaint.status, p_new_status;
-        ELSIF v_complaint.status = 'under_review' AND p_new_status NOT IN ('assigned', 'in_progress', 'rejected') THEN
-            RAISE EXCEPTION 'Invalid status transition: % -> %', v_complaint.status, p_new_status;
-        ELSIF v_complaint.status = 'assigned' AND p_new_status NOT IN ('accepted', 'rejected') THEN
-            RAISE EXCEPTION 'Invalid status transition: % -> %', v_complaint.status, p_new_status;
-        ELSIF v_complaint.status = 'accepted' AND p_new_status NOT IN ('in_progress', 'rejected') THEN
-            RAISE EXCEPTION 'Invalid status transition: % -> %', v_complaint.status, p_new_status;
-        ELSIF v_complaint.status = 'in_progress' AND p_new_status NOT IN ('resolved', 'rejected') THEN
-            RAISE EXCEPTION 'Invalid status transition: % -> %', v_complaint.status, p_new_status;
-        END IF;
+    END IF;
+
+    -- Never allow an arbitrary status change, including by an administrator.
+    -- Assignment itself is performed by the separately authorized reassignment
+    -- workflow; department staff may only perform the operational lifecycle.
+    IF (v_complaint.status = 'assigned' AND p_new_status NOT IN ('accepted', 'rejected'))
+       OR (v_complaint.status = 'accepted' AND p_new_status NOT IN ('in_progress', 'rejected'))
+       OR (v_complaint.status = 'in_progress' AND p_new_status NOT IN ('resolved', 'rejected'))
+       OR v_complaint.status IN ('submitted', 'under_review', 'resolved', 'rejected') THEN
+        RAISE EXCEPTION 'Invalid status transition: % -> %', v_complaint.status, p_new_status;
     END IF;
 
     -- Execute status transition

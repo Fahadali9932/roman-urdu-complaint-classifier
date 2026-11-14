@@ -660,8 +660,8 @@ const SubmissionModal: React.FC<{
         <div className="mt-5 rounded-xl border border-[#E6E3DF] p-4 text-sm leading-6 text-[#625D58]">
           {isSuccess
             ? ur
-              ? 'سرور نے آپ کی شکایت کی تصدیق کر دی ہے۔'
-              : 'The server confirmed your complaint.'
+              ? 'آپ کی شکایت موصول ہو گئی ہے۔ اگر محفوظ خودکار درجہ بندی مکمل نہ ہوئی تو اسے درست محکمے کو بھیجنے سے پہلے جائزے میں رکھا جائے گا۔'
+              : submission.message
             : ur
               ? 'یہ ڈیمو موڈ ہے: کوئی حقیقی شکایت کسی سرور یا ادارے کو نہیں بھیجی گئی، اور کوئی ٹریکنگ نمبر نہیں بنایا گیا۔'
               : 'This is demo mode: no real complaint was delivered to a server or authority, and no tracking number was created.'}
