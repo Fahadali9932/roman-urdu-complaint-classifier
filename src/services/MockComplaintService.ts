@@ -148,9 +148,10 @@ export class MockComplaintService implements IComplaintService {
 
   async getComplaintByReference(referenceNumber: string): Promise<Complaint | null> {
     await this.delay(100);
-    const cleaned = referenceNumber.trim().toUpperCase();
+    const cleaned = referenceNumber.trim();
+    const upperCleaned = cleaned.toUpperCase();
     const found = this.complaints.find(
-      (c) => c.referenceNumber.toUpperCase() === cleaned
+      (c) => c.referenceNumber.toUpperCase() === upperCleaned || c.id === cleaned
     );
     return found ? { ...found } : null;
   }
@@ -272,9 +273,10 @@ export class MockComplaintService implements IComplaintService {
     referenceNumber: string
   ): Promise<DepartmentComplaintView | null> {
     await this.delay(100);
-    const cleaned = referenceNumber.trim().toUpperCase();
+    const cleaned = referenceNumber.trim();
+    const upperCleaned = cleaned.toUpperCase();
     const found = this.complaints.find(
-      (c) => c.referenceNumber.toUpperCase() === cleaned
+      (c) => c.referenceNumber.toUpperCase() === upperCleaned || c.id === cleaned
     );
 
     if (!found || found.assignedDepartmentId !== departmentId) {
@@ -296,9 +298,10 @@ export class MockComplaintService implements IComplaintService {
     noteUrdu?: string
   ): Promise<{ success: boolean; complaint: DepartmentComplaintView }> {
     await this.delay(150);
-    const cleaned = referenceNumber.trim().toUpperCase();
+    const cleaned = referenceNumber.trim();
+    const upperCleaned = cleaned.toUpperCase();
     const found = this.complaints.find(
-      (c) => c.referenceNumber.toUpperCase() === cleaned
+      (c) => c.referenceNumber.toUpperCase() === upperCleaned || c.id === cleaned
     );
 
     if (!found) {

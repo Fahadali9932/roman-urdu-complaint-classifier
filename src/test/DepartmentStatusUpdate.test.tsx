@@ -1,0 +1,221 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import React from 'react';
+import { StatusUpdateModal, getAllowedTransitions } from '../features/department/components/StatusUpdateModal';
+import { DepartmentAuthProvider } from '../context/DepartmentAuthContext';
+import { LanguageProvider } from '../context/LanguageContext';
+import { complaintService } from '../services';
+import type { DepartmentComplaintView } from '../types';
+
+const mockComplaintAssigned: DepartmentComplaintView = {
+  id: '5bb13cd7-05f8-4575-922e-36487294d433',
+  referenceNumber: 'KHI-2026-42DEA6C7',
+  citizenId: '811b3236-2f93-4554-95ed-1daf94ffe200',
+  title: 'Road crack and cave-in on main artery',
+  description: 'University Road par gehra garha ban gaya hai gaari phans sakti hai',
+  detectedLanguage: 'roman_urdu',
+  status: 'assigned',
+  assignedDepartmentId: 'kmc',
+  predictedDepartmentId: 'kmc',
+  incidentDistrict: 'District East',
+  incidentLocality: 'Gulshan-e-Iqbal',
+  incidentPublicLocation: 'Near Civic Centre, Main University Road',
+  submittedAt: '2026-11-14T08:00:00Z',
+  updatedAt: '2026-11-14T08:00:00Z',
+  timeline: [
+    {
+      id: 'tl-1',
+      status: 'submitted',
+      title: 'Complaint Registered',
+      titleUrdu: 'شکایت درج ہو گئی',
+      description: 'Complaint registered',
+      descriptionUrdu: 'شکایت موصول ہو گئی',
+      timestamp: '2026-11-14T08:00:00Z',
+      actorRole: 'citizen',
+    },
+    {
+      id: 'tl-2',
+      status: 'assigned',
+      title: 'Department Assigned',
+      titleUrdu: 'محکمہ تفویض',
+      description: 'Routed to KMC',
+      descriptionUrdu: 'کے ایم سی کو تفویض',
+      timestamp: '2026-11-14T08:05:00Z',
+      actorRole: 'system',
+    },
+  ],
+  isDemonstration: true,
+};
+
+describe('Department Status Update Workflow & Modal', () => {
+  beforeEach(() => {
+    sessionStorage.setItem(
+      'awaaz_department_auth_session_v1',
+      JSON.stringify({
+        departmentId: 'kmc',
+        departmentName: 'Karachi Metropolitan Corporation',
+        departmentCode: 'KMC',
+        authenticatedAt: new Date().toISOString(),
+      })
+    );
+  });
+
+  describe('Transition Matrix (getAllowedTransitions)', () => {
+    it('allows valid transitions from "submitted"', () => {
+      expect(getAllowedTransitions('submitted')).toEqual(['under_review', 'assigned', 'rejected']);
+    });
+
+    it('allows valid transitions from "under_review"', () => {
+      expect(getAllowedTransitions('under_review')).toEqual(['assigned', 'in_progress', 'rejected']);
+    });
+
+    it('allows valid transitions from "assigned"', () => {
+      expect(getAllowedTransitions('assigned')).toEqual(['in_progress', 'rejected']);
+    });
+
+    it('allows valid transitions from "in_progress"', () => {
+      expect(getAllowedTransitions('in_progress')).toEqual(['resolved', 'rejected']);
+    });
+
+    it('blocks transitions from terminal statuses "resolved" and "rejected"', () => {
+      expect(getAllowedTransitions('resolved')).toEqual([]);
+      expect(getAllowedTransitions('rejected')).toEqual([]);
+    });
+  });
+
+  describe('StatusUpdateModal Component', () => {
+    it('renders modal with only valid next transitions for an "assigned" complaint', () => {
+      render(
+        <LanguageProvider>
+          <DepartmentAuthProvider>
+            <StatusUpdateModal
+              isOpen={true}
+              onClose={vi.fn()}
+              complaint={mockComplaintAssigned}
+              onUpdated={vi.fn()}
+            />
+          </DepartmentAuthProvider>
+        </LanguageProvider>
+      );
+
+      // Verify reference number is displayed
+      expect(screen.getByText('KHI-2026-42DEA6C7')).toBeInTheDocument();
+
+      // Only "in_progress" and "rejected" must be visible
+      expect(screen.getByText(/In Progress/i)).toBeInTheDocument();
+      expect(screen.getByText(/Closed \/ Not Actionable/i)).toBeInTheDocument();
+
+      // "resolved" and "under_review" must NOT be options for "assigned"
+      expect(screen.queryByText(/Work Done \/ Resolved/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/Under Review/i)).not.toBeInTheDocument();
+    });
+
+    it('submits status update through complaintService and notifies onUpdated', async () => {
+      const onUpdatedMock = vi.fn();
+      const onCloseMock = vi.fn();
+
+      const updateSpy = vi.spyOn(complaintService, 'updateComplaintStatus').mockResolvedValueOnce({
+        success: true,
+        complaint: {
+          ...mockComplaintAssigned,
+          status: 'in_progress',
+        },
+      });
+
+      render(
+        <LanguageProvider>
+          <DepartmentAuthProvider>
+            <StatusUpdateModal
+              isOpen={true}
+              onClose={onCloseMock}
+              complaint={mockComplaintAssigned}
+              onUpdated={onUpdatedMock}
+            />
+          </DepartmentAuthProvider>
+        </LanguageProvider>
+      );
+
+      const notesField = screen.getByPlaceholderText(/Describe actions taken/i);
+      fireEvent.change(notesField, { target: { value: 'Road asphalt patch team dispatched.' } });
+
+      const submitButton = screen.getByRole('button', { name: /Save Update/i });
+      fireEvent.click(submitButton);
+
+      await waitFor(() => {
+        expect(updateSpy).toHaveBeenCalledWith(
+          'kmc',
+          'KHI-2026-42DEA6C7',
+          'in_progress',
+          'Road asphalt patch team dispatched.'
+        );
+        expect(onUpdatedMock).toHaveBeenCalledWith(
+          expect.objectContaining({
+            status: 'in_progress',
+          })
+        );
+        expect(onCloseMock).toHaveBeenCalled();
+      });
+
+      updateSpy.mockRestore();
+    });
+
+    it('requires resolution notes when marking as resolved from in_progress', async () => {
+      const mockInProgress: DepartmentComplaintView = {
+        ...mockComplaintAssigned,
+        status: 'in_progress',
+      };
+
+      render(
+        <LanguageProvider>
+          <DepartmentAuthProvider>
+            <StatusUpdateModal
+              isOpen={true}
+              onClose={vi.fn()}
+              complaint={mockInProgress}
+              onUpdated={vi.fn()}
+            />
+          </DepartmentAuthProvider>
+        </LanguageProvider>
+      );
+
+      // Verify "Work Done / Resolved" is available
+      expect(screen.getByText(/Work Done \/ Resolved/i)).toBeInTheDocument();
+
+      // Click save without notes
+      const submitButton = screen.getByRole('button', { name: /Save Update/i });
+      fireEvent.click(submitButton);
+
+      await waitFor(() => {
+        expect(
+          screen.getByText(/Resolution notes are required when marking a complaint as resolved/i)
+        ).toBeInTheDocument();
+      });
+    });
+
+    it('displays terminal status state when complaint is already resolved', () => {
+      const mockResolved: DepartmentComplaintView = {
+        ...mockComplaintAssigned,
+        status: 'resolved',
+      };
+
+      render(
+        <LanguageProvider>
+          <DepartmentAuthProvider>
+            <StatusUpdateModal
+              isOpen={true}
+              onClose={vi.fn()}
+              complaint={mockResolved}
+              onUpdated={vi.fn()}
+            />
+          </DepartmentAuthProvider>
+        </LanguageProvider>
+      );
+
+      expect(screen.getByText(/Complaint Closed \(RESOLVED\)/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/This complaint has concluded its municipal workflow/i)
+      ).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /Save Status/i })).not.toBeInTheDocument();
+    });
+  });
+});

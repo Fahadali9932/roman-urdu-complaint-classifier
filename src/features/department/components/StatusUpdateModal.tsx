@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useDepartmentAuth } from '../../../context/DepartmentAuthContext';
 import { useLanguage } from '../../../context/LanguageContext';
-import { complaintService } from '../../../services/MockComplaintService';
+import { complaintService } from '../../../services';
 import {
   type DepartmentComplaintView,
   type ComplaintStatus,
 } from '../../../types';
-import { X, AlertCircle, Loader2, CheckCircle2 } from 'lucide-react';
+import { X, AlertCircle, Loader2, CheckCircle2, Lock } from 'lucide-react';
 
 interface StatusUpdateModalProps {
   isOpen: boolean;
@@ -14,6 +14,23 @@ interface StatusUpdateModalProps {
   complaint: DepartmentComplaintView;
   onUpdated: (updated: DepartmentComplaintView) => void;
 }
+
+export const getAllowedTransitions = (currentStatus: ComplaintStatus): ComplaintStatus[] => {
+  switch (currentStatus) {
+    case 'submitted':
+      return ['under_review', 'assigned', 'rejected'];
+    case 'under_review':
+      return ['assigned', 'in_progress', 'rejected'];
+    case 'assigned':
+      return ['in_progress', 'rejected'];
+    case 'in_progress':
+      return ['resolved', 'rejected'];
+    case 'resolved':
+    case 'rejected':
+    default:
+      return [];
+  }
+};
 
 const STATUS_OPTIONS: {
   status: ComplaintStatus;
@@ -28,6 +45,13 @@ const STATUS_OPTIONS: {
     labelUr: 'زیرِ جائزہ',
     descEn: 'Assigned engineering team is verifying details',
     descUr: 'متعلقہ ٹیم شکایت کی تصدیق کر رہی ہے',
+  },
+  {
+    status: 'assigned',
+    labelEn: 'Department Assigned',
+    labelUr: 'محکمہ تفویض',
+    descEn: 'Formally acknowledged and routed to department operational queue',
+    descUr: 'متعلقہ محکمے کے ریکارڈ میں شامل کر دیا گیا ہے',
   },
   {
     status: 'in_progress',
@@ -61,24 +85,48 @@ export const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({
   const { departmentId } = useDepartmentAuth();
   const { language, t } = useLanguage();
 
-  const [selectedStatus, setSelectedStatus] = useState<ComplaintStatus>(complaint.status);
+  const allowedNextStatuses = useMemo(
+    () => getAllowedTransitions(complaint.status),
+    [complaint.status]
+  );
+
+  const availableOptions = useMemo(
+    () => STATUS_OPTIONS.filter((opt) => allowedNextStatuses.includes(opt.status)),
+    [allowedNextStatuses]
+  );
+
+  const isTerminal = allowedNextStatuses.length === 0;
+
+  const [selectedStatus, setSelectedStatus] = useState<ComplaintStatus>(
+    allowedNextStatuses[0] ?? complaint.status
+  );
   const [notes, setNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen) {
-      setSelectedStatus(complaint.status);
+      setSelectedStatus(allowedNextStatuses[0] ?? complaint.status);
       setNotes('');
       setError(null);
     }
-  }, [isOpen, complaint]);
+  }, [isOpen, complaint, allowedNextStatuses]);
 
   if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!departmentId) return;
+
+    if (isTerminal) {
+      setError('Cannot update complaint in terminal status.');
+      return;
+    }
+
+    if (!allowedNextStatuses.includes(selectedStatus)) {
+      setError(`Invalid status transition from "${complaint.status}" to "${selectedStatus}".`);
+      return;
+    }
 
     if (selectedStatus === 'resolved' && !notes.trim()) {
       setError('Resolution notes are required when marking a complaint as resolved.');
@@ -149,97 +197,122 @@ export const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="mt-5 space-y-5">
-          {/* Status Radio List */}
-          <div className="space-y-2">
-            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider">
-              {t('deptStatusManagement')}
-            </label>
-            <div className="space-y-2">
-              {STATUS_OPTIONS.map((opt) => {
-                const isSelected = selectedStatus === opt.status;
-                return (
-                  <label
-                    key={opt.status}
-                    className={`flex items-start gap-3 p-3 rounded-xl border transition-all cursor-pointer ${
-                      isSelected
-                        ? 'border-[var(--dept-accent)] bg-white/[0.06] ring-1 ring-[var(--dept-accent)]'
-                        : 'border-white/[0.08] hover:border-white/20 bg-white/[0.02]'
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="complaintStatus"
-                      value={opt.status}
-                      checked={isSelected}
-                      onChange={() => setSelectedStatus(opt.status)}
-                      className="mt-1 text-[var(--dept-accent)] focus:ring-[var(--dept-accent)]"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className="text-xs sm:text-sm font-bold text-white">
-                        {language === 'ur' ? opt.labelUr : opt.labelEn}
-                      </div>
-                      <div className="text-[11px] text-slate-400">
-                        {language === 'ur' ? opt.descUr : opt.descEn}
-                      </div>
-                    </div>
-                  </label>
-                );
-              })}
+        {isTerminal ? (
+          <div className="mt-6 space-y-4">
+            <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 flex items-start gap-3">
+              <Lock className="w-5 h-5 text-slate-400 shrink-0 mt-0.5" />
+              <div className="space-y-1">
+                <div className="text-sm font-semibold text-white">
+                  Complaint Closed ({complaint.status.replace('_', ' ').toUpperCase()})
+                </div>
+                <p className="text-xs text-slate-400">
+                  This complaint has concluded its municipal workflow. Status and timeline are sealed under municipal audit protocol.
+                </p>
+              </div>
+            </div>
+            <div className="pt-2 flex justify-end">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold bg-white/10 hover:bg-white/15 text-white transition-colors cursor-pointer"
+              >
+                Close
+              </button>
             </div>
           </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="mt-5 space-y-5">
+            {/* Status Radio List */}
+            <div className="space-y-2">
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider">
+                {t('deptStatusManagement')}
+              </label>
+              <div className="space-y-2">
+                {availableOptions.map((opt) => {
+                  const isSelected = selectedStatus === opt.status;
+                  return (
+                    <label
+                      key={opt.status}
+                      className={`flex items-start gap-3 p-3 rounded-xl border transition-all cursor-pointer ${
+                        isSelected
+                          ? 'border-[var(--dept-accent)] bg-white/[0.06] ring-1 ring-[var(--dept-accent)]'
+                          : 'border-white/[0.08] hover:border-white/20 bg-white/[0.02]'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="complaintStatus"
+                        value={opt.status}
+                        checked={isSelected}
+                        onChange={() => setSelectedStatus(opt.status)}
+                        className="mt-1 text-[var(--dept-accent)] focus:ring-[var(--dept-accent)]"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="text-xs sm:text-sm font-bold text-white">
+                          {language === 'ur' ? opt.labelUr : opt.labelEn}
+                        </div>
+                        <div className="text-[11px] text-slate-400">
+                          {language === 'ur' ? opt.descUr : opt.descEn}
+                        </div>
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
 
-          {/* Operational Notes */}
-          <div className="space-y-1.5">
-            <label htmlFor="status-notes" className="block text-xs font-bold text-slate-400 uppercase tracking-wider">
-              {t('deptRemediationNote')}
-              {selectedStatus === 'resolved' && (
-                <span className="text-amber-400 ml-1">*</span>
-              )}
-            </label>
-            <textarea
-              id="status-notes"
-              rows={3}
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder={t('deptRemediationNotePlaceholder')}
-              className="w-full text-xs sm:text-sm rounded-xl p-3 bg-white/[0.04] border border-white/10 text-white placeholder:text-slate-500 focus:outline-none focus:border-white/30 focus:ring-1 focus:ring-white/20"
-            />
-          </div>
+            {/* Operational Notes */}
+            <div className="space-y-1.5">
+              <label htmlFor="status-notes" className="block text-xs font-bold text-slate-400 uppercase tracking-wider">
+                {t('deptRemediationNote')}
+                {selectedStatus === 'resolved' && (
+                  <span className="text-amber-400 ml-1">*</span>
+                )}
+              </label>
+              <textarea
+                id="status-notes"
+                rows={3}
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder={t('deptRemediationNotePlaceholder')}
+                className="w-full text-xs sm:text-sm rounded-xl p-3 bg-white/[0.04] border border-white/10 text-white placeholder:text-slate-500 focus:outline-none focus:border-white/30 focus:ring-1 focus:ring-white/20"
+              />
+            </div>
 
-          {/* Actions */}
-          <div className="pt-2 flex items-center justify-end gap-3 border-t border-white/[0.08]">
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={isSubmitting}
-              className="px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold text-slate-400 hover:text-white transition-colors cursor-pointer"
-            >
-              {t('deptCancel')}
-            </button>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm shadow-md transition-all cursor-pointer disabled:opacity-50"
-              style={{
-                backgroundColor: 'var(--dept-accent)',
-                color: '#151417',
-              }}
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>{t('deptSaving')}</span>
-                </>
-              ) : (
-                <>
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span>{t('deptSave')}</span>
-                </>
-              )}
-            </button>
-          </div>
-        </form>
+            {/* Actions */}
+            <div className="pt-2 flex items-center justify-end gap-3 border-t border-white/[0.08]">
+              <button
+                type="button"
+                onClick={onClose}
+                disabled={isSubmitting}
+                className="px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold text-slate-400 hover:text-white transition-colors cursor-pointer"
+              >
+                {t('deptCancel')}
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm shadow-md transition-all cursor-pointer disabled:opacity-50"
+                style={{
+                  backgroundColor: 'var(--dept-accent)',
+                  color: '#151417',
+                }}
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>{t('deptSaving')}</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>{t('deptSave')}</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </form>
+        )}
       </div>
     </div>
   );
