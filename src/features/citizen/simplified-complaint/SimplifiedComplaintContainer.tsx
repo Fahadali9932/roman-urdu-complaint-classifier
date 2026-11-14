@@ -148,6 +148,9 @@ export const SimplifiedComplaintContainer: React.FC = () => {
     try {
       const result = await complaintService.submitComplaint({
         citizenName: formData.applicant.citizenName,
+        citizenPhone: formData.applicant.citizenPhone,
+        citizenEmail: formData.applicant.citizenEmail,
+        residentialAddress: formData.applicant.applicantAddress,
         locality: formData.location.locality,
         district: formData.location.district as KarachiDistrict,
         publicLocation: formData.location.publicLocation,
@@ -155,6 +158,8 @@ export const SimplifiedComplaintContainer: React.FC = () => {
         description: formData.complaint.description,
       });
       setSubmission(result);
+    } catch (error) {
+      setErrors({ submit: error instanceof Error ? error.message : 'Unable to submit complaint.' });
     } finally {
       setIsSubmitting(false);
     }
@@ -265,6 +270,7 @@ export const SimplifiedComplaintContainer: React.FC = () => {
             </div>
 
             <div className="p-5 sm:p-9 lg:p-10">
+              {errors.submit && <p role="alert" className="mb-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">{errors.submit}</p>}
               {stage === 1 && (
                 <form
                   noValidate

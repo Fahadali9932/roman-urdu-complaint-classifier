@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useDepartmentAuth } from '../../context/DepartmentAuthContext';
 import { useLanguage } from '../../context/LanguageContext';
-import { complaintService } from '../../services/MockComplaintService';
+import { complaintService } from '../../services';
 import {
   type DepartmentComplaintView,
 } from '../../types';

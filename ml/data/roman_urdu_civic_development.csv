@@ -1,0 +1,49 @@
+text,department_id
+"pani ki line toot gai hai aur gali mein pani bhar gaya hai",kwsc
+"hamare ilaqay mein water supply teen din se band hai",kwsc
+"gutter overflow ho raha hai aur badboo phail rahi hai",kwsc
+"sewerage ka manhole khula hua hai",kwsc
+"tanker ka pani nahi mil raha",kwsc
+"pipe se pani leak ho raha hai",kwsc
+"naali band hai aur sewage sadak par aa raha hai",kwsc
+"pani ka pressure bohat kam hai",kwsc
+"bijli ka transformer jal gaya hai",kelectric
+"hamare block mein light nahi aa rahi",kelectric
+"electric pole se sparks nikal rahe hain",kelectric
+"bijli ki taar toot kar road par gir gai",kelectric
+"voltage bohat low hai fridge nahi chal raha",kelectric
+"meter ke pas current lag raha hai",kelectric
+"power outage do ghantay se hai",kelectric
+"khamba tedha hai aur wire latak rahi hai",kelectric
+"gali mein kachra kai din se pada hai",sswmb
+"dustbin bhar gaya hai safai wala nahi aya",sswmb
+"garbage dump se bohat badboo aa rahi hai",sswmb
+"kundi ke paas waste phela hua hai",sswmb
+"solid waste pickup nahi hua",sswmb
+"road par kachray ka dher laga hai",sswmb
+"safai ki gaari hamare area mein nahi ati",sswmb
+"gandagi aur litter naali ke bahar hai",sswmb
+"gas ki line se leak ki smell aa rahi hai",ssgc
+"chulhay mein gas nahi aa rahi",ssgc
+"gas pressure bohat kam hai",ssgc
+"ssgc meter ke pas gas leaking hai",ssgc
+"subah se gas band hai khana nahi ban raha",ssgc
+"pipeline se gas nikal rahi hai",ssgc
+"gas ka valve kharab hai",ssgc
+"cylinder ke bajaye supply wali gas chahiye",ssgc
+"road mein bada gadda hai accident ho sakta hai",kmc
+"sadak toot gai hai aur pothole ban gaya",kmc
+"footpath par encroachment hai",kmc
+"street light ka pole kharab hai",kmc
+"traffic signal kaam nahi kar raha",kmc
+"gali ki road par pani ke baad gadday ban gaye",kmc
+"park ki boundary wall toot rahi hai",kmc
+"municipal road repair ki zarurat hai",kmc
+"illegal building ban rahi hai",sbca
+"building ki construction bina approval chal rahi hai",sbca
+"plaza mein dangerous cracks hain",sbca
+"encroachment hataen commercial shop ban gai",sbca
+"old building girne ka khatra hai",sbca
+"tamir ke rules ki khilaf warzi ho rahi hai",sbca
+"flat mein extra floor illegal bana diya",sbca
+"demolition notice wali building par kaam ho raha hai",sbca

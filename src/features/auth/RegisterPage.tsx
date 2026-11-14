@@ -4,6 +4,7 @@ import { useLanguage } from '../../context/LanguageContext';
 import { CivicEmblem } from '../../components/common/CivicEmblem';
 import { RegistrationArtwork } from './components/RegistrationArtwork';
 import { Mail, Lock, User, Phone, Eye, EyeOff, Shield } from 'lucide-react';
+import { isSupabaseConfigured, supabase } from '../../lib/supabase';
 
 export const RegisterPage: React.FC = () => {
   const { t, isRTL } = useLanguage();
@@ -16,14 +17,20 @@ export const RegisterPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [showNotice, setShowNotice] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitted(true);
-    setShowNotice(true);
-    setTimeout(() => {
-      setSubmitted(false);
-    }, 600);
+    setError('');
+    try {
+      if (!isSupabaseConfigured() || !supabase) { setShowNotice(true); return; }
+      const { error: authError } = await supabase.auth.signUp({ email, password, options: { data: { full_name: fullName } } });
+      if (authError) throw authError;
+      setShowNotice(true);
+      navigate('/dashboard');
+    } catch (cause) { setError(cause instanceof Error ? cause.message : 'Unable to create your account.'); }
+    finally { setSubmitted(false); }
   };
 
   return (
@@ -51,6 +58,7 @@ export const RegisterPage: React.FC = () => {
 
             {/* Registration Form */}
             <form onSubmit={handleSubmit} className="space-y-3">
+              {error && <p role="alert" className="rounded-lg border border-red-200 bg-red-50 p-3 text-xs text-red-700">{error}</p>}
               {/* Full Name */}
               <div className="space-y-1">
                 <label
@@ -182,6 +190,7 @@ export const RegisterPage: React.FC = () => {
                   )}
                 </button>
               </div>
+              <button type="button" onClick={() => navigate('/dashboard')} className="w-full h-[40px] rounded-[9px] border border-[#E5E1DE] bg-[#FAF9F7] hover:bg-white hover:border-[#CDC8C0] text-[#171717] font-medium text-xs font-ui transition-colors cursor-pointer">View My Complaints</button>
 
               {/* Divider & Secondary Action */}
               <div className="relative my-2 pt-0.5">
@@ -194,14 +203,6 @@ export const RegisterPage: React.FC = () => {
                   </span>
                 </div>
               </div>
-
-              <button
-                type="button"
-                onClick={() => navigate('/dashboard')}
-                className="w-full h-[40px] rounded-[9px] border border-[#E5E1DE] bg-[#FAF9F7] hover:bg-white hover:border-[#CDC8C0] text-[#171717] font-medium text-xs font-ui transition-colors cursor-pointer"
-              >
-                {t('authExploreDemo')}
-              </button>
 
               {/* Bottom Login Link */}
               <div className="text-center pt-2">

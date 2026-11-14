@@ -6,6 +6,7 @@ import { Button } from '../../components/common/Button';
 import { CivicEmblem } from '../../components/common/CivicEmblem';
 import { useLanguage } from '../../context/LanguageContext';
 import { Mail, Lock, LogIn, ArrowRight, Eye, EyeOff, Shield } from 'lucide-react';
+import { isSupabaseConfigured, supabase } from '../../lib/supabase';
 
 export const LoginPage: React.FC = () => {
   const { t, isRTL } = useLanguage();
@@ -15,13 +16,19 @@ export const LoginPage: React.FC = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
     setSubmitted(true);
-    setTimeout(() => {
-      setSubmitted(false);
-    }, 500);
+    try {
+      if (!isSupabaseConfigured() || !supabase) throw new Error('Live sign-in is not configured.');
+      const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
+      if (authError) throw authError;
+      navigate('/dashboard');
+    } catch (cause) { setError(cause instanceof Error ? cause.message : 'Unable to sign in.'); }
+    finally { setSubmitted(false); }
   };
 
   return (
@@ -41,6 +48,7 @@ export const LoginPage: React.FC = () => {
 
         <div className="bg-white border border-[#E5E3E0] rounded-2xl p-5 sm:p-10 text-start space-y-5 shadow-[0_12px_36px_rgba(20,20,20,0.06)]">
           <form onSubmit={handleSubmit} className="space-y-4">
+            {error && <p role="alert" className="rounded-lg border border-red-200 bg-red-50 p-3 text-xs text-red-700">{error}</p>}
             <Input
               label={t('authEmail')}
               type="email"
@@ -109,26 +117,7 @@ export const LoginPage: React.FC = () => {
             >
               {t('authSignInButton')}
             </Button>
-
-            {/* Direct Demo Exploration Mode */}
-            <div className="relative my-3">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-[#E5E3E0]" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white px-2.5 text-[#323232] font-medium text-[11px]">{t('authOr')}</span>
-              </div>
-            </div>
-
-            <Button
-              type="button"
-              variant="outline"
-              size="md"
-              className="w-full font-medium text-xs"
-              onClick={() => navigate('/dashboard')}
-            >
-              {t('authExploreDemo')}
-            </Button>
+            <Button type="button" variant="outline" size="md" className="w-full font-medium text-xs" onClick={() => navigate('/dashboard')}>View My Complaints</Button>
 
             <div className="text-center pt-2 border-t border-[#E5E3E0]">
               <Link

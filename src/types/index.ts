@@ -121,6 +121,9 @@ export const DEMO_CITIZEN: CitizenProfile = {
 
 export interface ComplaintSubmissionInput {
   citizenName: string;
+  citizenPhone?: string;
+  citizenEmail?: string;
+  residentialAddress?: string;
   district: KarachiDistrict;
   locality: string;
   publicLocation?: string;
