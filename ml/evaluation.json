@@ -1,10 +1,6 @@
 {
-  "dataset": "hand-authored development dataset (48 examples; 36 train / 12 held-out)",
-  "model": "TfidfVectorizer(analyzer=char_wb, ngram_range=(3,4), max_features=500) + LogisticRegression(C=10.0)",
-  "confidence_note": "Multinomial model probability; not independently calibrated because the development set has only 48 hand-authored examples.",
-  "random_state": 20261114,
-  "macro_f1": 0.5499999999999999,
-  "labels": [
+  "dataset": "Curated Roman Urdu civic dataset (150 samples; 120 train / 30 held-out test)",
+  "classes": [
     "kelectric",
     "kmc",
     "kwsc",
@@ -12,105 +8,105 @@
     "ssgc",
     "sswmb"
   ],
-  "confusion_matrix": [
-    [
-      0,
-      1,
-      0,
-      0,
-      0,
-      1
-    ],
-    [
-      0,
-      1,
-      0,
-      0,
-      1,
-      0
-    ],
-    [
-      1,
-      0,
-      1,
-      0,
-      0,
-      0
-    ],
-    [
-      0,
-      0,
-      0,
-      2,
-      0,
-      0
-    ],
-    [
-      0,
-      0,
-      0,
-      0,
-      2,
-      0
-    ],
-    [
-      0,
-      0,
-      1,
-      0,
-      0,
-      1
-    ]
-  ],
-  "classification_report": {
+  "sample_counts_per_class": {
+    "kelectric": 25,
+    "kmc": 25,
+    "kwsc": 25,
+    "sbca": 25,
+    "ssgc": 25,
+    "sswmb": 25
+  },
+  "model": "TfidfVectorizer(analyzer=char_wb, ngram_range=(3,4), max_features=1200) + LogisticRegression(C=5.0)",
+  "random_state": 20261114,
+  "test_size": 0.2,
+  "accuracy": 0.8333333333333334,
+  "macro_f1": 0.8314814814814814,
+  "per_class_metrics": {
     "kelectric": {
-      "precision": 0.0,
-      "recall": 0.0,
-      "f1-score": 0.0,
-      "support": 2.0
+      "precision": 0.7142857142857143,
+      "recall": 1.0,
+      "f1-score": 0.8333333333333334,
+      "support": 5.0
     },
     "kmc": {
-      "precision": 0.5,
-      "recall": 0.5,
-      "f1-score": 0.5,
-      "support": 2.0
+      "precision": 0.8,
+      "recall": 0.8,
+      "f1-score": 0.8,
+      "support": 5.0
     },
     "kwsc": {
-      "precision": 0.5,
-      "recall": 0.5,
-      "f1-score": 0.5,
-      "support": 2.0
+      "precision": 1.0,
+      "recall": 0.8,
+      "f1-score": 0.8888888888888888,
+      "support": 5.0
     },
     "sbca": {
+      "precision": 0.75,
+      "recall": 0.6,
+      "f1-score": 0.6666666666666666,
+      "support": 5.0
+    },
+    "ssgc": {
       "precision": 1.0,
       "recall": 1.0,
       "f1-score": 1.0,
-      "support": 2.0
-    },
-    "ssgc": {
-      "precision": 0.6666666666666666,
-      "recall": 1.0,
-      "f1-score": 0.8,
-      "support": 2.0
+      "support": 5.0
     },
     "sswmb": {
-      "precision": 0.5,
-      "recall": 0.5,
-      "f1-score": 0.5,
-      "support": 2.0
-    },
-    "accuracy": 0.5833333333333334,
-    "macro avg": {
-      "precision": 0.5277777777777778,
-      "recall": 0.5833333333333334,
-      "f1-score": 0.5499999999999999,
-      "support": 12.0
-    },
-    "weighted avg": {
-      "precision": 0.5277777777777778,
-      "recall": 0.5833333333333334,
-      "f1-score": 0.5499999999999999,
-      "support": 12.0
+      "precision": 0.8,
+      "recall": 0.8,
+      "f1-score": 0.8,
+      "support": 5.0
     }
-  }
+  },
+  "confusion_matrix": [
+    [
+      5,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      1,
+      4,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      4,
+      0,
+      0,
+      1
+    ],
+    [
+      1,
+      1,
+      0,
+      3,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      5,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      1,
+      0,
+      4
+    ]
+  ]
 }

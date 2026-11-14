@@ -48,6 +48,7 @@ export const DepartmentDashboardPage: React.FC = () => {
 
   // Complaints state
   const [complaints, setComplaints] = useState<DepartmentComplaintView[]>([]);
+  const [reviewComplaints, setReviewComplaints] = useState<DepartmentComplaintView[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedReference, setSelectedReference] = useState<string | null>(null);
   const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
@@ -85,12 +86,25 @@ export const DepartmentDashboardPage: React.FC = () => {
         if (isCancelled) return;
         setComplaints(data);
 
+        let reviews: DepartmentComplaintView[] = [];
+        if (departmentId === 'kmc') {
+          try {
+            reviews = await complaintService.getReviewQueueComplaints();
+          } catch {
+            reviews = [];
+          }
+        }
+        if (isCancelled) return;
+        setReviewComplaints(reviews);
+
+        const allAvailable = [...data, ...reviews];
+
         // Deep-link reference handling or persistent selection
         setSelectedReference((prevRef) => {
           const targetRef = searchParams.get('ref') || urlRef;
           if (targetRef) {
             const cleaned = targetRef.trim().toUpperCase();
-            const match = data.find((c) => c.referenceNumber.toUpperCase() === cleaned);
+            const match = allAvailable.find((c) => c.referenceNumber.toUpperCase() === cleaned);
             if (match) return match.referenceNumber;
             // Check unauthorized
             complaintService.getComplaintByReference(cleaned).then((globalComp) => {
@@ -99,7 +113,7 @@ export const DepartmentDashboardPage: React.FC = () => {
               }
             });
           }
-          if (prevRef && data.some((c) => c.referenceNumber === prevRef)) {
+          if (prevRef && allAvailable.some((c) => c.referenceNumber === prevRef)) {
             return prevRef;
           }
           const isDesktop = typeof window !== 'undefined' && window.innerWidth >= 1024;
@@ -172,23 +186,21 @@ export const DepartmentDashboardPage: React.FC = () => {
   const taskCounts = useMemo(() => {
     return {
       all: complaints.length,
-      under_review: complaints.filter((c) => c.status === 'under_review').length,
+      under_review: departmentId === 'kmc' ? reviewComplaints.length : 0,
       assigned: complaints.filter((c) => c.status === 'assigned').length,
       accepted: complaints.filter((c) => c.status === 'accepted').length,
       in_progress: complaints.filter((c) => c.status === 'in_progress').length,
       resolved: complaints.filter((c) => c.status === 'resolved').length,
       rejected: complaints.filter((c) => c.status === 'rejected').length,
     };
-  }, [complaints]);
+  }, [complaints, reviewComplaints, departmentId]);
 
   // Filter complaints according to active filter and search query
   const filteredComplaints = useMemo(() => {
-    let result = [...complaints];
+    let result = activeTaskFilter === 'under_review' ? [...reviewComplaints] : [...complaints];
 
     // Status filter
-    if (activeTaskFilter === 'under_review') {
-      result = result.filter((c) => c.status === 'under_review');
-    } else if (activeTaskFilter === 'assigned') {
+    if (activeTaskFilter === 'assigned') {
       result = result.filter((c) => c.status === 'assigned');
     } else if (activeTaskFilter === 'accepted') {
       result = result.filter((c) => c.status === 'accepted');
@@ -222,18 +234,38 @@ export const DepartmentDashboardPage: React.FC = () => {
     });
 
     return result;
-  }, [complaints, activeTaskFilter, searchQuery, sortOrder]);
+  }, [complaints, reviewComplaints, activeTaskFilter, searchQuery, sortOrder]);
 
   // Selected complaint object
   const selectedComplaint = useMemo(() => {
     if (!selectedReference) return null;
-    return complaints.find((c) => c.referenceNumber === selectedReference) || null;
-  }, [complaints, selectedReference]);
+    return (
+      complaints.find((c) => c.referenceNumber === selectedReference) ||
+      reviewComplaints.find((c) => c.referenceNumber === selectedReference) ||
+      null
+    );
+  }, [complaints, reviewComplaints, selectedReference]);
 
   const handleComplaintUpdated = (updated: DepartmentComplaintView) => {
-    setComplaints((prev) =>
-      prev.map((c) => (c.id === updated.id ? updated : c))
+    setComplaints((prev) => {
+      const exists = prev.some((c) => c.id === updated.id);
+      if (exists) {
+        return prev.map((c) => (c.id === updated.id ? updated : c));
+      }
+      if (updated.assignedDepartmentId === departmentId) {
+        return [updated, ...prev];
+      }
+      return prev;
+    });
+    setReviewComplaints((prev) =>
+      prev.filter((c) => c.id !== updated.id)
     );
+    if (updated.assignedDepartmentId === departmentId) {
+      if (updated.status === 'assigned') {
+        setActiveTaskFilter('assigned');
+      }
+      setSelectedReference(updated.referenceNumber);
+    }
   };
 
   const username = session?.username || 'roads-01';

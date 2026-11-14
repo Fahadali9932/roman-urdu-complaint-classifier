@@ -254,13 +254,29 @@ export class SupabaseComplaintService implements IComplaintService {
       const { data, error } = await supabase
         .from('complaints')
         .select(COMPLAINT_SELECT_QUERY)
-        .or(`assigned_department_id.eq.${departmentId},status.eq.under_review`)
+        .eq('assigned_department_id', departmentId)
         .order('created_at', { ascending: false });
       if (error) throw error;
       const remote = ((data ?? []).map(mapComplaintRow) as DepartmentComplaintView[]);
       return remote;
     } catch {
       throw new Error('Assigned complaints could not be loaded from the live service. Please refresh and try again.');
+    }
+  }
+
+  async getReviewQueueComplaints(): Promise<DepartmentComplaintView[]> {
+    if (!isSupabaseConfigured() || !supabase) return fallback.getReviewQueueComplaints();
+    try {
+      const { data, error } = await supabase
+        .from('complaints')
+        .select(COMPLAINT_SELECT_QUERY)
+        .eq('status', 'under_review')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      const remote = ((data ?? []).map(mapComplaintRow) as DepartmentComplaintView[]);
+      return remote;
+    } catch {
+      throw new Error('Review queue complaints could not be loaded from the live service. Please refresh and try again.');
     }
   }
 
@@ -287,7 +303,7 @@ export class SupabaseComplaintService implements IComplaintService {
     const { data, error } = await queryBuilder.maybeSingle();
     if (error) throw error;
     if (!data) return null;
-    if (data.assigned_department_id !== departmentId && data.status !== 'under_review') {
+    if (data.assigned_department_id !== departmentId && !(departmentId === 'kmc' && data.status === 'under_review')) {
       return null;
     }
     return mapComplaintRow(data) as DepartmentComplaintView;

@@ -80,4 +80,10 @@ export interface IComplaintService {
     targetDepartmentId: DepartmentId,
     reviewNotes?: string
   ): Promise<{ success: boolean; complaint?: DepartmentComplaintView; error?: string }>;
+
+  /**
+   * Retrieves uncertain complaints awaiting classification review.
+   * STRICT SECURITY: Accessible only by authorized municipal clearinghouse reviewers.
+   */
+  getReviewQueueComplaints(): Promise<DepartmentComplaintView[]>;
 }

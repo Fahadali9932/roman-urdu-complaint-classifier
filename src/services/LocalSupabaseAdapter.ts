@@ -1293,11 +1293,22 @@ export class LocalSupabaseAdapter {
     );
     if (activeMembership) {
       return this.state.complaints.filter(
-        (c) => c.assigned_department_id === activeMembership.department_id || c.status === 'under_review'
+        (c) => c.assigned_department_id === activeMembership.department_id || (activeMembership.department_id === 'kmc' && c.status === 'under_review')
       );
     }
 
     return this.state.complaints.filter((c) => c.citizen_id === callerUserId);
+  }
+
+  public selectReviewQueueComplaints(callerUserId: string): ComplaintRow[] {
+    const isAdmin = this.isMainAdmin(callerUserId);
+    const activeMembership = this.state.memberships.find(
+      (m) => m.user_id === callerUserId && m.status === 'active'
+    );
+    if (!isAdmin && (!activeMembership || activeMembership.department_id !== 'kmc')) {
+      return [];
+    }
+    return this.state.complaints.filter((c) => c.status === 'under_review');
   }
 
   // ---------------------------------------------------------------------------

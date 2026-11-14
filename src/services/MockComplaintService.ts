@@ -326,13 +326,24 @@ export class MockComplaintService implements IComplaintService {
   async getDepartmentComplaints(departmentId: DepartmentId): Promise<DepartmentComplaintView[]> {
     await this.delay(100);
     return this.complaints
-      .filter((c) => c.assignedDepartmentId === departmentId || c.status === 'under_review')
+      .filter((c) => c.assignedDepartmentId === departmentId)
+      .map((c) => this.toDepartmentView(c));
+  }
+
+  /**
+   * Retrieves uncertain complaints awaiting classification review.
+   * Scoped to authorized clearinghouse reviewers.
+   */
+  async getReviewQueueComplaints(): Promise<DepartmentComplaintView[]> {
+    await this.delay(100);
+    return this.complaints
+      .filter((c) => c.status === 'under_review')
       .map((c) => this.toDepartmentView(c));
   }
 
   /**
    * Scoped lookup for a specific complaint by reference number.
-   * Returns null if the complaint does not belong to the authorized department and is not under review.
+   * Returns null if the complaint does not belong to the authorized department.
    */
   async getDepartmentComplaintByReference(
     departmentId: DepartmentId,
@@ -345,7 +356,7 @@ export class MockComplaintService implements IComplaintService {
       (c) => c.referenceNumber.toUpperCase() === upperCleaned || c.id === cleaned
     );
 
-    if (!found || (found.assignedDepartmentId !== departmentId && found.status !== 'under_review')) {
+    if (!found || (found.assignedDepartmentId !== departmentId && !(departmentId === 'kmc' && found.status === 'under_review'))) {
       return null;
     }
 

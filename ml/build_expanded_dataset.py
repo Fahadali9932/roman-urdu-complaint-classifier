@@ -1,0 +1,297 @@
+import csv
+import json
+import re
+from pathlib import Path
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import classification_report, confusion_matrix, f1_score, accuracy_score
+from sklearn.model_selection import train_test_split
+
+# Roman Urdu normalizer
+def normalize_roman_urdu(text: str) -> str:
+    if not text:
+        return ""
+    text = text.lower().strip()
+    # Collapse character repetitions beyond 2 (e.g. bohaaaat -> bohat, tooot -> toot)
+    text = re.sub(r'([a-z])\1{2,}', r'\1\1', text)
+    # Common Roman Urdu spelling normalizations
+    substitutions = [
+        (r'\bnhi\b', 'nahi'),
+        (r'\bnahin\b', 'nahi'),
+        (r'\bnahe\b', 'nahi'),
+        (r'\bpaani\b', 'pani'),
+        (r'\baarahe\b', 'aa rahe'),
+        (r'\baarahay\b', 'aa rahe'),
+        (r'\baarahey\b', 'aa rahe'),
+        (r'\baaraha\b', 'aa raha'),
+        (r'\baarahi\b', 'aa rahi'),
+        (r'\baraha\b', 'aa raha'),
+        (r'\barahi\b', 'aa rahi'),
+        (r'\bsarak\b', 'sadak'),
+        (r'\bkhadday\b', 'gadday'),
+        (r'\bkhadda\b', 'gadda'),
+        (r'\belectricity\b', 'bijli'),
+        (r'\blite\b', 'light'),
+    ]
+    for pattern, repl in substitutions:
+        text = re.sub(pattern, repl, text)
+    # Clean non-alphanumeric except basic spacing
+    text = re.sub(r'[^a-z0-9\s]', ' ', text)
+    text = re.sub(r'\s+', ' ', text).strip()
+    return text
+
+DATASET = [
+    # --- KMC: Roads & Infrastructure (25 samples) ---
+    ("kmc", "road mein bada gadda hai accident ho sakta hai"),
+    ("kmc", "sadak toot gai hai aur pothole ban gaya"),
+    ("kmc", "footpath par encroachment hai paidal chalna mushkil hai"),
+    ("kmc", "street light ka pole kharab hai andhera rehta hai"),
+    ("kmc", "traffic signal kaam nahi kar raha chowk par jam hai"),
+    ("kmc", "gali ki road par barish ke baad gadday ban gaye hain"),
+    ("kmc", "park ki boundary wall toot rahi hai municipal staff ko bhejein"),
+    ("kmc", "municipal road repair ki shadeed zarurat hai main road kharab hai"),
+    ("kmc", "shahrah e faisal par asphalt road toot chuki hai car slip hoti hai"),
+    ("kmc", "flyover ke expansion joint khul gaye hain bridge par jhatkay lagtay hain"),
+    ("kmc", "underpass ki sadak bohat kharab hai traffic block rehta hai"),
+    ("kmc", "main road par bada gadda hai bike walay gir rahay hain"),
+    ("kmc", "footpath ki tiles toot chuki hain paidal rastay par rukaawat hai"),
+    ("kmc", "service road par khadday ban gaye hain gari chalana dushwar hai"),
+    ("kmc", "sadak ki carpeting utar gai hai pathar nikal aaye hain"),
+    ("kmc", "khi street infrastructure repair required road damaged badly"),
+    ("kmc", "hamari gali ki road complete banwayen barish se toot gai hai"),
+    ("kmc", "roundabout par signal lights band hain aur divider toota hua hai"),
+    ("kmc", "sadak dhas gai hai deep depression in road dangerous for cars"),
+    ("kmc", "gali mein road kharab hai aur pathar phelay hue hain"),
+    ("kmc", "liaquatabad main sadak par road cut lagaya tha repair nahi hua"),
+    ("kmc", "speed breaker ghair qanooni aur bohat ooncha bana diya gaya hai"),
+    ("kmc", "pedestrian overhead bridge ki sidiyaan toot chuki hain dangerous"),
+    ("kmc", "potholes on university road creating severe traffic jam and accidents"),
+    ("kmc", "sadak par deep crater hai KMC ki road maintenance team bhejein"),
+
+    # --- K-ELECTRIC: Electricity & Power (25 samples) ---
+    ("kelectric", "bijli ka transformer jal gaya hai dhuan nikal raha hai"),
+    ("kelectric", "hamare block mein light nahi aa rahi bijli band hai"),
+    ("kelectric", "electric pole se sparks nikal rahe hain aag lag sakti hai"),
+    ("kelectric", "bijli ki taar toot kar road par gir gai current ka khatra hai"),
+    ("kelectric", "voltage bohat low hai fridge aur fans nahi chal rahe"),
+    ("kelectric", "meter ke pas current lag raha hai wire nangi hai"),
+    ("kelectric", "power outage do ghantay se hai bina ittila bijli band hai"),
+    ("kelectric", "khamba tedha hai aur wire latak rahi hai accident ho sakta hai"),
+    ("kelectric", "bijli nahi arahi subah se light band hai"),
+    ("kelectric", "bijli nhi aa rahi garmi mein bura haal hai KE complain"),
+    ("kelectric", "light nahi hai ilaqay mein blackout ho gaya hai"),
+    ("kelectric", "electricity band hai phase udd gaya hai aik phase par light nahi"),
+    ("kelectric", "transformer blast loud explosion happened power gone completely"),
+    ("kelectric", "PMT se oil leak ho raha hai aur sparks nikal rahe hain"),
+    ("kelectric", "high voltage surge aya aur ghar ke appliances jal gaye"),
+    ("kelectric", "street wire spark kar rahi hai tree branches ke sath"),
+    ("kelectric", "feeder trip ho gaya hai light teen ghantay se nahi aayi"),
+    ("kelectric", "meter box mein sparking ho rahi hai please lineman bhejein"),
+    ("kelectric", "load shedding schedule se zyada 8 ghantay bijli band rehti hai"),
+    ("kelectric", "transformer fuse udd gaya hai gali ki bijli gayab hai"),
+    ("kelectric", "electric pole tilted over our house wire tension very dangerous"),
+    ("kelectric", "kelectric ki taar main raste par latak rahi hai bachon ko khatra"),
+    ("kelectric", "zero voltage in phase 2 electricity department urgent complaint"),
+    ("kelectric", "light ka masla hai barish ke foran baad bijli chali gai"),
+    ("kelectric", "digital meter jal gaya hai smell aa rahi hai switch off"),
+
+    # --- KWSC: Water & Sewerage (25 samples) ---
+    ("kwsc", "pani ki line toot gai hai aur gali mein pani bhar gaya hai"),
+    ("kwsc", "hamare ilaqay mein water supply teen din se band hai"),
+    ("kwsc", "gutter overflow ho raha hai aur badboo phail rahi hai"),
+    ("kwsc", "sewerage ka manhole khula hua hai gutter ka dhakkan nahi hai"),
+    ("kwsc", "tanker ka pani nahi mil raha official water line dry hai"),
+    ("kwsc", "pipe se pani leak ho raha hai hazaron gallon pani zaya ho raha"),
+    ("kwsc", "naali band hai aur sewage sadak par aa raha hai gali block"),
+    ("kwsc", "pani ka pressure bohat kam hai motor chalane par bhi pani nahi ata"),
+    ("kwsc", "pani nahi araha hum pyasay mar rahay hain water line kholain"),
+    ("kwsc", "paani nahi aa raha do hafton se water supply band padi hai"),
+    ("kwsc", "water supply band hai KWSC line mein bilkul pani nahi hai"),
+    ("kwsc", "ganda pani drinking water line mein mix ho kar aa raha hai smell"),
+    ("kwsc", "main water trunk line burst on road huge water pond created"),
+    ("kwsc", "gutter line choke ho gai hai dirty water gharon mein dakhil"),
+    ("kwsc", "sewerage manhole lid cover missing open manhole child danger"),
+    ("kwsc", "valve operator line open nahi karta pani doosri gali ko de raha"),
+    ("kwsc", "subsoil sewerage line blocked KWSC sucker machine required"),
+    ("kwsc", "sweet drinking water line broken pipeline contaminated with drain"),
+    ("kwsc", "pani ki line mein hawa aa rahi hai meter ghoom raha pani zero"),
+    ("kwsc", "drainage system completely choked dirty sewage on street"),
+    ("kwsc", "water line leak under road soil sinking due to water pressure"),
+    ("kwsc", "gali ka gutter ubal raha hai namaziyon ka rasta napaak ho gaya"),
+    ("kwsc", "water supply tanker mafia issue official line supply band"),
+    ("kwsc", "sewer line replacement work incomplete left open pit"),
+    ("kwsc", "pipeline leaking near pump house KWSC maintenance urgent"),
+
+    # --- SSGC: Sui Southern Gas Company (25 samples) ---
+    ("ssgc", "gas ki line se leak ki smell aa rahi hai bohat khatarnak hai"),
+    ("ssgc", "chulhay mein gas nahi aa rahi roti nahi ban rahi"),
+    ("ssgc", "gas pressure bohat kam hai chulha nahi jal raha heater band"),
+    ("ssgc", "ssgc meter ke pas gas leaking hai sulfur smell everywhere"),
+    ("ssgc", "subah se gas band hai nashta aur khana nahi ban pa raha"),
+    ("ssgc", "pipeline se gas nikal rahi hai hansi aawaz aa rahi hai blast danger"),
+    ("ssgc", "gas ka valve kharab hai connection se hissing sound aa rahi"),
+    ("ssgc", "cylinder ke bajaye supply wali gas chahiye line mein gas nahi"),
+    ("ssgc", "gas leak in underground pipe bubbles coming in stagnant water"),
+    ("ssgc", "extremely low gas pressure winter cooking completely halted SSGC"),
+    ("ssgc", "gas supply cut off in whole lane without prior announcement"),
+    ("ssgc", "smell of sui gas inside apartment building main line leak"),
+    ("ssgc", "gas regulator leaking loudly need immediate emergency technician"),
+    ("ssgc", "roti pakane ke waqt gas pressure zero ho jata hai SSGC helpline"),
+    ("ssgc", "gas line damage during fiber cable digging gas gushing out"),
+    ("ssgc", "suigas supply unavailable for 5 days entire block suffering"),
+    ("ssgc", "gas meter rusty and leaking gas pungent smell near gate"),
+    ("ssgc", "main gas distribution pipe crack loud hissing in street"),
+    ("ssgc", "zero gas pressure cannot light burner or geyser in cold"),
+    ("ssgc", "illegal compressor usage by neighbours causing zero gas pressure"),
+    ("ssgc", "sui gas leak near school gate danger of fire hazard SSGC"),
+    ("ssgc", "gas service line disconnected accidentally by road laborers"),
+    ("ssgc", "meter bypass smell gas odor spreading in whole neighborhood"),
+    ("ssgc", "gas valve leaking in meter room emergency repair required"),
+    ("ssgc", "gas supply timing problem only comes at 2 am low pressure"),
+
+    # --- SSWMB: Sanitation & Waste Management (25 samples) ---
+    ("sswmb", "gali mein kachra kai din se pada hai koi uthane nahi aya"),
+    ("sswmb", "dustbin bhar gaya hai safai wala nahi aya kachra phel raha"),
+    ("sswmb", "garbage dump se bohat badboo aa rahi hai makhiyan machar"),
+    ("sswmb", "kundi ke paas waste phela hua hai road par gandagi hai"),
+    ("sswmb", "solid waste pickup nahi hua poori street kachra kundi ban gai"),
+    ("sswmb", "road par kachray ka dher laga hai janwar kachra bikher rahe"),
+    ("sswmb", "safai ki gaari hamare area mein nahi ati garbage truck missing"),
+    ("sswmb", "gandagi aur litter naali ke bahar hai street sweeping chahiye"),
+    ("sswmb", "kachra nahi uthaya gaya teen din se SSWMB sweeper absent"),
+    ("sswmb", "garbage pile overflowing on sidewalk foul smell spreading"),
+    ("sswmb", "dead animal carcass lying on street please remove immediately"),
+    ("sswmb", "commercial market waste dumped on road no trash collection"),
+    ("sswmb", "sweepers dumping collected trash in empty residential plot"),
+    ("sswmb", "municipal waste container broken trash scattered on pavement"),
+    ("sswmb", "kachra gari hafta bhar nahi aayi gali mein dher lag gaya"),
+    ("sswmb", "safai nisf reh gai litter left behind on main street"),
+    ("sswmb", "kachray ke dher se disease spreading dengue larvae danger"),
+    ("sswmb", "waste management team absent for two weeks severe hygiene risk"),
+    ("sswmb", "overflowing garbage bin block 7 Gulshan cleanliness urgent"),
+    ("sswmb", "plastic bags and waste clogging rain drain SSWMB clean up"),
+    ("sswmb", "street sweeping not done leaves and litter accumulated"),
+    ("sswmb", "garbage transfer station foul stench unhygienic conditions"),
+    ("sswmb", "kachra uthane walay paise mangte hain otherwise leave trash"),
+    ("sswmb", "dumpster full to brim people throwing garbage on main road"),
+    ("sswmb", "sanitation workers burnt garbage on road smoke and pollution"),
+
+    # --- SBCA: Sindh Building Control Authority (25 samples) ---
+    ("sbca", "illegal building ban rahi hai residential plot par plaza"),
+    ("sbca", "building ki construction bina approval chal rahi hai SBCA notice"),
+    ("sbca", "plaza mein dangerous cracks hain building collapse risk"),
+    ("sbca", "encroachment hataen commercial shop illegal ban gai residential area"),
+    ("sbca", "old dilapidated building girne ka khatra hai demolition needed"),
+    ("sbca", "tamir ke rules ki khilaf warzi ho rahi hai compulsory open space"),
+    ("sbca", "flat mein extra floor illegal bana diya unauthorized 5th floor"),
+    ("sbca", "demolition notice wali building par kaam dobara shuru ho gaya"),
+    ("sbca", "hazardous tilted residential building leaning towards road"),
+    ("sbca", "illegal commercial construction on amenity ground SBCA action"),
+    ("sbca", "builder constructing without approved architectural map plan"),
+    ("sbca", "foundation weak building shaking during heavy vehicle movement"),
+    ("sbca", "neighbor making illegal balcony extending over public street"),
+    ("sbca", "illegal 4th and 5th floor construction violating height limit"),
+    ("sbca", "unsafe construction site heavy bricks falling without safety net"),
+    ("sbca", "commercial marriage lawn constructed on residential plot illegal"),
+    ("sbca", "structural cracks in pillar of multi-story plaza urgent seal"),
+    ("sbca", "builder broke seal on unauthorized construction site SBCA"),
+    ("sbca", "illegal conversion of parking basement into commercial shops"),
+    ("sbca", "dangerous old facade crumbling concrete chunks falling on road"),
+    ("sbca", "unauthorized penthouse constructed on roof top without NOC"),
+    ("sbca", "heavy machinery digging foundation causing cracks in our house"),
+    ("sbca", "illegal demolition of heritage building in old city area"),
+    ("sbca", "encroached corridor in public apartment complex illegal rooms"),
+    ("sbca", "sub-standard material used in building structural audit needed"),
+]
+
+def main():
+    root = Path(__file__).resolve().parent
+    data_dir = root / "data"
+    data_dir.mkdir(exist_ok=True)
+    csv_path = data_dir / "roman_urdu_civic_development.csv"
+
+    # Write expanded CSV
+    with open(csv_path, "w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        writer.writerow(["department_id", "text"])
+        for dept_id, text in DATASET:
+            writer.writerow([dept_id, text])
+    print(f"Written {len(DATASET)} samples to {csv_path}")
+
+    # Prepare data
+    normalized_texts = [normalize_roman_urdu(text) for _, text in DATASET]
+    labels = [dept_id for dept_id, _ in DATASET]
+
+    # Stratified 80/20 train/test split
+    x_train, x_test, y_train, y_test = train_test_split(
+        normalized_texts, labels, test_size=0.20, stratify=labels, random_state=20261114
+    )
+
+    vectorizer = TfidfVectorizer(analyzer="char_wb", ngram_range=(3, 4), max_features=1200, lowercase=True)
+    x_train_vec = vectorizer.fit_transform(x_train)
+    x_test_vec = vectorizer.transform(x_test)
+
+    classifier = LogisticRegression(C=5.0, max_iter=1000)
+    classifier.fit(x_train_vec, y_train)
+    y_pred = classifier.predict(x_test_vec)
+
+    acc = accuracy_score(y_test, y_pred)
+    macro_f1 = f1_score(y_test, y_pred, average="macro")
+    cr = classification_report(y_test, y_pred, output_dict=True, zero_division=0)
+    cm = confusion_matrix(y_test, y_pred, labels=classifier.classes_).tolist()
+
+    eval_results = {
+        "dataset": f"Curated Roman Urdu civic dataset ({len(DATASET)} samples; {len(x_train)} train / {len(x_test)} held-out test)",
+        "classes": list(classifier.classes_),
+        "sample_counts_per_class": {dept: sum(1 for d, _ in DATASET if d == dept) for dept in classifier.classes_},
+        "model": "TfidfVectorizer(analyzer=char_wb, ngram_range=(3,4), max_features=1200) + LogisticRegression(C=5.0)",
+        "random_state": 20261114,
+        "test_size": 0.20,
+        "accuracy": acc,
+        "macro_f1": macro_f1,
+        "per_class_metrics": {
+            cls: {
+                "precision": cr[cls]["precision"],
+                "recall": cr[cls]["recall"],
+                "f1-score": cr[cls]["f1-score"],
+                "support": cr[cls]["support"],
+            }
+            for cls in classifier.classes_
+        },
+        "confusion_matrix": cm,
+    }
+
+    eval_path = root / "evaluation.json"
+    eval_path.write_text(json.dumps(eval_results, indent=2), encoding="utf-8")
+    print(f"Evaluation saved to {eval_path}")
+    print(f"Held-out Test Accuracy: {acc * 100:.2f}% | Macro-F1: {macro_f1:.4f}")
+
+    # Retrain on full dataset for deployed production artifact
+    full_vectorizer = TfidfVectorizer(analyzer="char_wb", ngram_range=(3, 4), max_features=1200, lowercase=True)
+    full_x = full_vectorizer.fit_transform(normalized_texts)
+    full_clf = LogisticRegression(C=5.0, max_iter=1000).fit(full_x, labels)
+
+    artifact = {
+        "classes": list(full_clf.classes_),
+        "vocabulary": {term: int(index) for term, index in full_vectorizer.vocabulary_.items()},
+        "idf": full_vectorizer.idf_.tolist(),
+        "coef": full_clf.coef_.tolist(),
+        "intercept": full_clf.intercept_.tolist(),
+        "ngram_range": [3, 4],
+        "analyzer": "char_wb",
+        "model_type": "multinomial_logistic_regression",
+        "normalizer_rules": "roman_urdu_v2",
+    }
+
+    model_path = root / "model.json"
+    model_path.write_text(json.dumps(artifact, separators=(",", ":")), encoding="utf-8")
+    print(f"Artifact saved to {model_path}")
+
+    # Also update edge function model.json
+    edge_model_path = root.parent / "supabase" / "functions" / "submit-classified-complaint" / "model.json"
+    if edge_model_path.parent.exists():
+        edge_model_path.write_text(json.dumps(artifact, separators=(",", ":")), encoding="utf-8")
+        print(f"Edge function model artifact updated at {edge_model_path}")
+
+if __name__ == "__main__":
+    main()
