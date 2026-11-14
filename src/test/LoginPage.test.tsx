@@ -15,15 +15,15 @@ const renderLogin = () => {
 };
 
 describe('LoginPage Component', () => {
-  it('renders login form with email, password, and prototype disclaimer', () => {
+  it('renders a live citizen sign-in form with password recovery', () => {
     renderLogin();
 
     expect(screen.getByRole('heading', { name: /Sign in to Citizen Portal/i })).toBeInTheDocument();
     expect(screen.getByPlaceholderText(/citizen@example.com/i)).toBeInTheDocument();
     expect(screen.getByPlaceholderText(/••••••••/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Account access unavailable/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /View My Complaints/i })).toBeInTheDocument();
-    expect(screen.getByText(/Account access is not available yet/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Sign in securely/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Forgot password/i })).toBeInTheDocument();
+    expect(screen.getByText(/Secure citizen access/i)).toBeInTheDocument();
   });
 
   it('toggles password visibility when the reveal button is clicked', () => {

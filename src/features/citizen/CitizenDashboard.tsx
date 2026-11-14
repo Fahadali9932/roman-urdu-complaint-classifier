@@ -171,8 +171,8 @@ export const CitizenDashboard: React.FC = () => {
                 ? 'آپ کی درج شدہ تمام بلدیاتی شکایات کی براہِ راست پیش رفت اور تفصیلات۔'
                 : 'Real-time record of your filed municipal complaints and field progress.'
               : ur
-              ? 'جب شکایات محفوظ ہوں گی تو آپ کی کیس فائلز یہاں نظر آئیں گی۔'
-              : 'Your digital correspondence and case files will appear here when complaint saving is available.'}
+              ? 'آپ کے اکاؤنٹ سے منسلک شکایات کی کیس فائلز یہاں نظر آئیں گی۔'
+              : 'Your claimed and submitted complaint case files will appear here.'}
           </p>
         </div>
 
@@ -278,8 +278,8 @@ export const CitizenDashboard: React.FC = () => {
             </h2>
             <p className="text-sm sm:text-base text-[#323232] max-w-md mx-auto leading-relaxed font-ui">
               {ur
-                ? 'یہ پیش منظر ابھی شکایات نہیں بھیجتا یا محفوظ کرتا، اس لیے یہاں کوئی کیس فائل موجود نہیں ہے۔'
-                : 'This academic preview does not send or save complaints yet, so there are no case files to show.'}
+                ? 'ابھی آپ کے اکاؤنٹ سے کوئی شکایت منسلک نہیں ہے۔'
+                : 'No complaint is linked to this account yet. You can submit a new complaint or claim a guest complaint.'}
             </p>
           </div>
           <div className="pt-2">

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../context/LanguageContext';
 import { CivicEmblem } from '../../components/common/CivicEmblem';
 import { RegistrationArtwork } from './components/RegistrationArtwork';
@@ -9,6 +9,8 @@ import { isSupabaseConfigured, supabase } from '../../lib/supabase';
 export const RegisterPage: React.FC = () => {
   const { t, isRTL } = useLanguage();
   const navigate = useNavigate();
+  const location = useLocation();
+  const returnTo = (location.state as { from?: string } | null)?.from || '/dashboard';
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -16,7 +18,7 @@ export const RegisterPage: React.FC = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [showNotice, setShowNotice] = useState(false);
+  const [notice, setNotice] = useState('');
   const [error, setError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -24,11 +26,18 @@ export const RegisterPage: React.FC = () => {
     setSubmitted(true);
     setError('');
     try {
-      if (!isSupabaseConfigured() || !supabase) { setShowNotice(true); return; }
-      const { error: authError } = await supabase.auth.signUp({ email, password, options: { data: { full_name: fullName } } });
+      if (!isSupabaseConfigured() || !supabase) throw new Error('Live registration is not configured.');
+      const { data, error: authError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: { full_name: fullName, phone }, emailRedirectTo: window.location.origin },
+      });
       if (authError) throw authError;
-      setShowNotice(true);
-      navigate('/dashboard');
+      if (data.session) {
+        navigate(returnTo, { replace: true });
+      } else {
+        setNotice('Check your email to confirm your account, then sign in to claim and track your complaint.');
+      }
     } catch (cause) { setError(cause instanceof Error ? cause.message : 'Unable to create your account.'); }
     finally { setSubmitted(false); }
   };
@@ -156,6 +165,7 @@ export const RegisterPage: React.FC = () => {
                     type={showPassword ? 'text' : 'password'}
                     dir="ltr"
                     required
+                    minLength={8}
                     placeholder={t('authPasswordPlaceholder')}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
@@ -190,7 +200,7 @@ export const RegisterPage: React.FC = () => {
                   )}
                 </button>
               </div>
-              <button type="button" onClick={() => navigate('/dashboard')} className="w-full h-[40px] rounded-[9px] border border-[#E5E1DE] bg-[#FAF9F7] hover:bg-white hover:border-[#CDC8C0] text-[#171717] font-medium text-xs font-ui transition-colors cursor-pointer">View My Complaints</button>
+              {notice && <p role="status" className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-700">{notice}</p>}
 
               {/* Divider & Secondary Action */}
               <div className="relative my-2 pt-0.5">
@@ -219,19 +229,14 @@ export const RegisterPage: React.FC = () => {
             </form>
           </div>
 
-          {/* Prototype Reassurance Notice */}
+          {/* Account security note */}
           <div className="max-w-[355px] w-full mx-auto lg:mx-0 mt-3.5 pt-2.5 border-t border-[#F4F3F0]">
             <div className="flex items-start gap-2 text-[11px] text-[#74706C] font-ui">
               <Shield className="w-3.5 h-3.5 text-[#681822] shrink-0 mt-0.5" />
               <span>
-                {t('authNoticeText') || 'This preview does not create live accounts or store sensitive credentials.'}
+                Create a secure citizen account to claim a guest complaint and view its private progress history.
               </span>
             </div>
-            {showNotice && (
-              <p className="mt-2 text-[11px] text-[#681822] font-semibold font-ui bg-[#681822]/5 p-2 rounded-lg border border-[#681822]/15">
-                {t('authNoticeTitle')}: {t('authNoticeText')}
-              </p>
-            )}
           </div>
         </div>
 

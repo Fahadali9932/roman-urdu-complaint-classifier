@@ -119,14 +119,10 @@ export class SupabaseComplaintService implements IComplaintService {
         .from('complaints')
         .select(COMPLAINT_SELECT_QUERY)
         .order('created_at', { ascending: false });
-      if (error) return fallback.getCitizenComplaints();
-      const remote = (data ?? []).map(mapComplaintRow);
-      const local = await fallback.getCitizenComplaints();
-      const remoteRefs = new Set(remote.map((c) => c.referenceNumber));
-      const uniqueLocal = local.filter((c) => !remoteRefs.has(c.referenceNumber));
-      return [...remote, ...uniqueLocal];
+      if (error) throw error;
+      return (data ?? []).map(mapComplaintRow);
     } catch {
-      return fallback.getCitizenComplaints();
+      throw new Error('Your complaint records could not be loaded from the live service. Please refresh and try again.');
     }
   }
 
@@ -166,15 +162,16 @@ export class SupabaseComplaintService implements IComplaintService {
     });
     if (error) {
       const subError = await safeSubmissionError(error);
-      if (subError.code === 'VALIDATION_FAILED') {
-        throw subError;
-      }
-      console.warn('Edge function returned error, falling back to local complaint service:', error);
-      return fallback.submitComplaint(input);
+      // A configured live backend must never turn a failed request into a
+      // browser-only ticket. That creates a reference which staff can neither
+      // see nor action, and falsely tells the citizen that the case was filed.
+      throw subError;
     }
     if (data?.error) {
-      console.warn('Edge function returned data error, falling back to local complaint service:', data.error);
-      return fallback.submitComplaint(input);
+      throw new ComplaintSubmissionError(
+        'We could not submit the complaint right now. Your entered details are still here; please try again shortly.',
+        'SUBMISSION_UNAVAILABLE'
+      );
     }
     return {
       referenceNumber: data.reference_number,
@@ -200,7 +197,10 @@ export class SupabaseComplaintService implements IComplaintService {
 
     const { data: sessionData } = await supabase.auth.getSession();
     if (!sessionData.session?.user) {
-      return fallback.claimComplaint(referenceNumber, claimCode);
+      return {
+        success: false,
+        error: 'Please sign in or create a citizen account before claiming a complaint.',
+      };
     }
 
     const cleanRef = referenceNumber.trim().toUpperCase();
@@ -225,8 +225,6 @@ export class SupabaseComplaintService implements IComplaintService {
     });
 
     if (error) {
-      const fallbackRes = await fallback.claimComplaint(referenceNumber, claimCode);
-      if (fallbackRes.success) return fallbackRes;
       return {
         success: false,
         error: error.message || 'Invalid reference number or claim code. Please check and try again.',
@@ -258,14 +256,11 @@ export class SupabaseComplaintService implements IComplaintService {
         .select(COMPLAINT_SELECT_QUERY)
         .eq('assigned_department_id', departmentId)
         .order('created_at', { ascending: false });
-      if (error) return fallback.getDepartmentComplaints(departmentId);
+      if (error) throw error;
       const remote = ((data ?? []).map(mapComplaintRow) as DepartmentComplaintView[]);
-      const local = await fallback.getDepartmentComplaints(departmentId);
-      const remoteRefs = new Set(remote.map((c) => c.referenceNumber));
-      const uniqueLocal = local.filter((c) => !remoteRefs.has(c.referenceNumber));
-      return [...remote, ...uniqueLocal];
+      return remote;
     } catch {
-      return fallback.getDepartmentComplaints(departmentId);
+      throw new Error('Assigned complaints could not be loaded from the live service. Please refresh and try again.');
     }
   }
 

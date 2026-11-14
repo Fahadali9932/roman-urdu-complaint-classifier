@@ -50,13 +50,11 @@ describe('RegisterPage Component (Two-Column Reference Redesign)', () => {
     expect(screen.getByLabelText(/Phone Number/i)).toBeInTheDocument();
     expect(screen.getByPlaceholderText(/••••••••/i)).toBeInTheDocument();
 
-    // Primary button & secondary buttons
+    // Primary button and sign-in link
     expect(screen.getByRole('button', { name: /Create Account/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /View My Complaints/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /Log in/i })).toBeInTheDocument();
 
-    // Prototype disclaimer
-    expect(screen.getByText(/This preview does not sign people in or create accounts/i)).toBeInTheDocument();
+    expect(screen.getByText(/Create a secure citizen account to claim a guest complaint/i)).toBeInTheDocument();
   });
 
   it('renders the atmospheric visual artwork panel with topic chips and value proposition', () => {
@@ -90,7 +88,7 @@ describe('RegisterPage Component (Two-Column Reference Redesign)', () => {
     expect(screen.getByRole('button', { name: /Show password/i })).toBeInTheDocument();
   });
 
-  it('handles user input and shows prototype reassurance feedback on submit', async () => {
+  it('handles user input and reports a truthful configuration error when auth is unavailable', async () => {
     renderRegister();
 
     const nameInput = screen.getByLabelText(/Full Name/i);
@@ -111,9 +109,8 @@ describe('RegisterPage Component (Two-Column Reference Redesign)', () => {
     const submitBtn = screen.getByRole('button', { name: /Create Account/i });
     fireEvent.click(submitBtn);
 
-    // Reassurance banner appears
     await waitFor(() => {
-      expect(screen.getByText(/Account access is not available yet/i)).toBeInTheDocument();
+      expect(screen.getByText(/Live registration is not configured/i)).toBeInTheDocument();
     });
   });
 

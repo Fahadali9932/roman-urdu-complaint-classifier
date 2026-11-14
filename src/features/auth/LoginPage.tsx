@@ -19,18 +19,55 @@ export const LoginPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
+  const [resetMessage, setResetMessage] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setResetMessage('');
     setSubmitted(true);
     try {
       if (!isSupabaseConfigured() || !supabase) throw new Error('Live sign-in is not configured.');
-      const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error: authError } = await supabase.auth.signInWithPassword({ email, password });
       if (authError) throw authError;
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', data.user.id)
+        .maybeSingle();
+      if (profileError || profile?.role !== 'citizen') {
+        await supabase.auth.signOut();
+        throw new Error('This sign-in is only for citizen accounts. Department staff should use the Department Portal.');
+      }
       navigate(returnTo, { replace: true });
-    } catch (cause) { setError(cause instanceof Error ? cause.message : 'Unable to sign in.'); }
+    } catch (cause) {
+      const message = cause instanceof Error ? cause.message : 'Unable to sign in.';
+      setError(message === 'Invalid login credentials'
+        ? 'Email or password is incorrect. Try again, reset your password, or create an account.'
+        : message);
+    }
     finally { setSubmitted(false); }
+  };
+
+  const handlePasswordReset = async () => {
+    setError('');
+    setResetMessage('');
+    if (!email.trim()) {
+      setError('Enter your email address first, then select “Forgot password?”.');
+      return;
+    }
+    if (!isSupabaseConfigured() || !supabase) {
+      setError('Live password recovery is not configured.');
+      return;
+    }
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    if (resetError) {
+      setError(resetError.message);
+      return;
+    }
+    setResetMessage('If that address has an account, a password-reset link has been sent.');
   };
 
   return (
@@ -70,9 +107,9 @@ export const LoginPage: React.FC = () => {
                 >
                   {t('authPassword')} <span className="text-[#681822]">*</span>
                 </label>
-                <span className="text-xs text-[#323232] hover:text-[#681822] hover:underline cursor-pointer">
+                <button type="button" onClick={handlePasswordReset} className="text-xs text-[#323232] hover:text-[#681822] hover:underline cursor-pointer">
                   {t('authForgotPassword')}
-                </span>
+                </button>
               </div>
               <Input
                 type={showPassword ? 'text' : 'password'}
@@ -117,9 +154,9 @@ export const LoginPage: React.FC = () => {
               isLoading={submitted}
               leftIcon={<LogIn className="w-4 h-4 text-[#FFFFFF]" />}
             >
-              {t('authSignInButton')}
+              Sign in securely
             </Button>
-            <Button type="button" variant="outline" size="md" className="w-full font-medium text-xs" onClick={() => navigate('/dashboard')}>View My Complaints</Button>
+            {resetMessage && <p role="status" className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-700">{resetMessage}</p>}
 
             <div className="text-center pt-2 border-t border-[#E5E3E0]">
               <Link
@@ -133,15 +170,15 @@ export const LoginPage: React.FC = () => {
           </form>
         </div>
 
-        {/* Prototype Transparency Notice */}
+        {/* Account security note */}
         <div className="mt-5 p-3.5 rounded-xl bg-[#FAF9F7] border border-[#E5E3E0] text-start flex items-start gap-2.5 text-xs text-[#323232]">
           <Shield className="w-4 h-4 text-[#681822] shrink-0 mt-0.5" />
           <div className="space-y-0.5">
             <span className="font-semibold text-[#141414] block">
-              {t('authNoticeTitle')}
+              Secure citizen access
             </span>
             <p className="text-[11px] leading-relaxed">
-              {t('authNoticeText')}
+              Sign in to view private complaint details or claim a guest complaint with its reference number and private claim code.
             </p>
           </div>
         </div>

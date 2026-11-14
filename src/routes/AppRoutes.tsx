@@ -12,6 +12,7 @@ import { ComplaintTracker } from '../features/citizen/ComplaintTracker';
 import { CitizenDashboard } from '../features/citizen/CitizenDashboard';
 import { LoginPage } from '../features/auth/LoginPage';
 import { RegisterPage } from '../features/auth/RegisterPage';
+import { ResetPasswordPage } from '../features/auth/ResetPasswordPage';
 import { CitizenRequiredRoute } from '../features/auth/CitizenRequiredRoute';
 import { DepartmentPortalLayout } from '../features/department/DepartmentPortalLayout';
 import { DepartmentDashboardPage } from '../features/department/DepartmentDashboardPage';
@@ -41,6 +42,7 @@ export const AppRoutes: React.FC = () => {
         {/* Citizen Auth routes */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
       </Route>
 
       {/* Staff & Administrator Management Routes */}

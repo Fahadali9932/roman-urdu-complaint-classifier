@@ -26,7 +26,7 @@ describe('CitizenDashboard Component', () => {
     await waitFor(() => {
       expect(screen.getByRole('heading', { name: /your complaints/i })).toBeInTheDocument();
       expect(screen.getByText(/no complaints yet/i)).toBeInTheDocument();
-      expect(screen.getByText(/does not send or save complaints yet/i)).toBeInTheDocument();
+      expect(screen.getByText(/no complaint is linked to this account yet/i)).toBeInTheDocument();
     });
 
     expect(screen.queryByText(/KHI-2026-/i)).not.toBeInTheDocument();
