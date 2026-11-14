@@ -6,7 +6,7 @@ import {
   processComplaintPrivacy,
 } from "../lib/privacy-engine";
 
-describe("AWAAZ-E-AWAM — Phase 3E: Privacy & Sanitization Engine", () => {
+describe("AWAAZ-E-AWAM — Phase 3E.2: Privacy & Presentation Engine", () => {
   describe("1. Pakistani Phone & Contact Number Redaction", () => {
     it("redacts standard dashed mobile numbers (0300-1234567)", () => {
       const res = sanitizeComplaint("Mera phone 0300-1234567 hai sadak par khadda hai");
@@ -96,21 +96,45 @@ describe("AWAAZ-E-AWAM — Phase 3E: Privacy & Sanitization Engine", () => {
     });
   });
 
-  describe("4. Private Address Redaction vs Public Incident Location Protection", () => {
-    it("redacts private house and flat addresses", () => {
+  describe("4. Complete Private Address Span Redaction vs Public Incident Location Protection", () => {
+    it("redacts full multi-segment private address span (KHI-2026-78C5238F exact fix)", () => {
       const res = sanitizeComplaint(
-        "Mera ghar House No. 42-B, Street 3 mein hai aur bijli band hai"
+        "Mera ghar House No. 42-B, Street 3, Block 13-D Gulshan mein hai.",
+        {
+          residentialAddress: "House No. 42-B, Street 3, Block 13-D, Gulshan-e-Iqbal",
+        }
       );
-      expect(res.sanitizedText).toContain("[PRIVATE ADDRESS REDACTED]");
-      expect(res.sanitizedText).not.toContain("House No. 42-B, Street 3");
+      expect(res.sanitizedText).toBe("Mera ghar [PRIVATE ADDRESS REDACTED] mein hai.");
+      expect(res.sanitizedText).not.toContain("House No. 42-B");
+      expect(res.sanitizedText).not.toContain("Street 3");
+      expect(res.sanitizedText).not.toContain("Block 13-D");
       expect(res.flags.hasPrivateAddress).toBe(true);
     });
 
-    it("redacts apartment and flat numbers (Flat 402, Al-Rehman Heights)", () => {
+    it("redacts house and street span without comma (KHI-2026-44797EAE exact fix)", () => {
       const res = sanitizeComplaint(
-        "Humara Flat 402, Building mein crack agaya hai"
+        "mein house 24 street 5 mein rehta hun. Kachra jama hai."
+      );
+      expect(res.sanitizedText).toContain("mein [PRIVATE ADDRESS REDACTED] mein rehta hun");
+      expect(res.sanitizedText).not.toContain("house 24");
+      expect(res.sanitizedText).not.toContain("street 5");
+      expect(res.flags.hasPrivateAddress).toBe(true);
+    });
+
+    it("redacts apartment and building names (Flat 402, Al-Rehman Heights)", () => {
+      const res = sanitizeComplaint(
+        "Humara Flat 402, Al-Rehman Heights mein crack agaya hai"
       );
       expect(res.sanitizedText).toContain("[PRIVATE ADDRESS REDACTED]");
+      expect(res.sanitizedText).not.toContain("Flat 402");
+      expect(res.sanitizedText).not.toContain("Al-Rehman Heights");
+      expect(res.flags.hasPrivateAddress).toBe(true);
+    });
+
+    it("redacts residential address starting with street after 'Mera ghar'", () => {
+      const res = sanitizeComplaint("Mera ghar Street 3 mein hai aur bijli band hai");
+      expect(res.sanitizedText).toContain("Mera ghar [PRIVATE ADDRESS REDACTED] mein hai");
+      expect(res.sanitizedText).not.toContain("Street 3");
       expect(res.flags.hasPrivateAddress).toBe(true);
     });
 
@@ -123,7 +147,6 @@ describe("AWAAZ-E-AWAM — Phase 3E: Privacy & Sanitization Engine", () => {
           incidentDistrict: "East",
         }
       );
-      // Public location MUST be preserved
       expect(res.sanitizedText).toContain("Main Shahrah-e-Faisal near Nursery");
       expect(res.sanitizedText).toContain("flyover");
       expect(res.sanitizedText).not.toContain("[PRIVATE ADDRESS REDACTED]");
@@ -153,7 +176,6 @@ describe("AWAAZ-E-AWAM — Phase 3E: Privacy & Sanitization Engine", () => {
       expect(res.sanitizedText).not.toContain("jahil");
       expect(res.sanitizedText).not.toContain("kameene");
       expect(res.sanitizedText).not.toContain("kutte");
-      // Civic grievance must remain intact
       expect(res.sanitizedText).toContain("foran sadak repair karo");
       expect(res.flags.hasAbusiveLanguage).toBe(true);
     });
@@ -177,51 +199,108 @@ describe("AWAAZ-E-AWAM — Phase 3E: Privacy & Sanitization Engine", () => {
     });
   });
 
-  describe("6. Automatic Heading Generation", () => {
-    it("generates factual heading for electricity outage with duration", () => {
-      const heading = generateHeading("Bijli teen din se band hai transformer blast hua", "kelectric", "Gulshan");
-      expect(heading).toContain("Transformer Explosion");
-      expect(heading).toContain("Gulshan");
+  describe("6. Phase 3E.2 Core Scenarios (A, B, C, D, E)", () => {
+    it("Scenario A: Electricity outage with water motor consequence", () => {
+      const raw = "Humare ghar 3 din se bijli nahi aa rahi jiski wajah se motor nahi chal rahi aur pani bhi nahi hai.";
+      const res = processComplaintPrivacy(raw, {
+        incidentLocality: "Gulshan-e-Iqbal",
+        departmentId: "kelectric",
+      });
+      expect(res.generatedHeading).toBe("Electricity Outage for Three Days");
+      expect(res.factualSummary).toContain("electricity has been unavailable for three days in Gulshan-e-Iqbal");
+      expect(res.factualSummary).toContain("The power outage is preventing their water pump from working");
     });
 
-    it("generates professional heading for road pothole repair", () => {
-      const heading = generateHeading("University road par gehra gadda hai asphalt toot gaya", "kmc", "Gulberg");
-      expect(heading).toContain("Deep Pothole and Damaged Road Repair Required");
-      expect(heading).toContain("Gulberg");
+    it("Scenario B: Garbage uncollected for 4 days", () => {
+      const raw = "Hamari gali mein 4 din se kachra nahi uthaya gaya aur bohat badboo aa rahi hai.";
+      const res = processComplaintPrivacy(raw, {
+        incidentLocality: "Gulshan-e-Iqbal",
+        departmentId: "sswmb",
+      });
+      expect(res.generatedHeading).toBe("Garbage Not Collected for Four Days");
+      expect(res.factualSummary).toContain("garbage has not been collected from their street for four days in Gulshan-e-Iqbal");
+      expect(res.factualSummary).toContain("The waste is causing a bad smell and inconvenience for nearby families");
     });
 
-    it("generates concise heading for sewage overflow", () => {
-      const heading = generateHeading("Gutter ka ganda pani ubal kar sadak par aagaya", "kwsc", "Clifton");
-      expect(heading).toContain("Severe Sewerage Overflow and Gutter Blockage");
-      expect(heading).toContain("Clifton");
+    it("Scenario C: Damaged road and potholes", () => {
+      const raw = "Hamare area ki road toot gayi hai aur bohat gadday hain.";
+      const res = processComplaintPrivacy(raw, {
+        incidentLocality: "Gulberg",
+        departmentId: "kmc",
+      });
+      expect(res.generatedHeading).toBe("Damaged Road and Potholes");
+      expect(res.factualSummary).toContain("severe road damage with deep potholes in Gulberg");
+      expect(res.factualSummary).toContain("hazardous driving conditions");
     });
 
-    it("generates heading for uncollected garbage", () => {
-      const heading = generateHeading("Gali mein kachra jama hai dustbin bhar gaya", "sswmb", "North Nazimabad");
-      expect(heading).toContain("Uncollected Garbage and Waste Accumulation");
+    it("Scenario D: Personal information protection with water pipe complaint", () => {
+      const raw = "Mera naam Ahmed hai, phone 03001234567 hai aur mein House 24 Street 5 mein rehta hun. Gali mein pani ki pipe toot gayi hai.";
+      const res = processComplaintPrivacy(raw, {
+        citizenName: "Ahmed",
+        citizenPhone: "03001234567",
+        residentialAddress: "House 24, Street 5",
+        incidentLocality: "North Nazimabad",
+        departmentId: "kwsc",
+      });
+      expect(res.generatedHeading).toBe("Broken Drinking Water Pipe in Street");
+      expect(res.sanitizedDescription).toContain("[NAME REDACTED]");
+      expect(res.sanitizedDescription).toContain("[PHONE REDACTED]");
+      expect(res.sanitizedDescription).toContain("[PRIVATE ADDRESS REDACTED]");
+      expect(res.sanitizedDescription).not.toContain("Ahmed");
+      expect(res.sanitizedDescription).not.toContain("03001234567");
+      expect(res.sanitizedDescription).not.toContain("House 24");
+      expect(res.sanitizedDescription).not.toContain("Street 5");
+      expect(res.sanitizedDescription).toContain("Gali mein pani ki pipe toot gayi hai");
+      expect(res.factualSummary).toContain("drinking water pipeline has broken in their street in North Nazimabad");
+      expect(res.factualSummary).not.toContain("Ahmed");
+      expect(res.factualSummary).not.toContain("03001234567");
     });
 
-    it("generates heading for illegal building construction", () => {
-      const heading = generateHeading("Padosi 4 manzil illegal plaza bana raha hai", "sbca", "Saddar");
-      expect(heading).toContain("Unauthorized Multi-Story Building Construction");
+    it("Scenario E: Mismatched / uncertain classification does NOT hallucinate wrong problem", () => {
+      // Classifier predicts KMC for a garbage complaint
+      const raw = "Hamari gali mein 4 din se kachra nahi uthaya gaya. Bohat badboo arahi hai aur bachay pareshan hain.";
+      const res = processComplaintPrivacy(raw, {
+        incidentLocality: "Gulshan-e-Iqbal",
+        incidentPublicLocation: "none",
+        departmentId: "kmc", // Low confidence predicted department
+      });
+      // Heading MUST represent garbage, NOT road damage
+      expect(res.generatedHeading).toBe("Garbage Not Collected for Four Days");
+      expect(res.generatedHeading).not.toContain("Road");
+      expect(res.generatedHeading).not.toContain("Civil Infrastructure");
+
+      // Summary MUST describe garbage, NEVER mention KMC or road repairs
+      expect(res.factualSummary).toContain("garbage has not been collected");
+      expect(res.factualSummary).not.toContain("road infrastructure");
+      expect(res.factualSummary).not.toContain("KMC");
+      // NEVER contain "at none"
+      expect(res.factualSummary).not.toContain("at none");
     });
   });
 
-  describe("7. Automatic Factual Summary Generation", () => {
-    it("generates factual 1-3 sentence summary explaining what, where, duration, and problem", () => {
-      const summary = generateSummary(
-        "Main manhole se ganda badboodar paani ubal kar sadak par aagaya hai teen din se paani khara hai",
-        {
-          departmentId: "kwsc",
-          incidentPublicLocation: "Block 12 near Central Market",
-          incidentLocality: "Gulberg",
-          incidentDistrict: "Central",
-        }
-      );
-      expect(summary).toContain("Raw sewage and blocked manhole runoff are overflowing");
-      expect(summary).toContain("Block 12 near Central Market, Gulberg");
-      expect(summary).toContain("three days");
-      expect(summary).toContain("KWSC");
+  describe("7. Natural Location Formatting (Zero 'at none' artifacts)", () => {
+    it("handles placeholder 'none' or 'n/a' gracefully", () => {
+      const summary = generateSummary("Pani ki pipe toot gayi hai", {
+        incidentPublicLocation: "none",
+        incidentLocality: "Gulshan-e-Iqbal",
+      });
+      expect(summary).not.toContain("at none");
+      expect(summary).toContain("in Gulshan-e-Iqbal");
+    });
+
+    it("handles both public location and locality cleanly", () => {
+      const summary = generateSummary("Pani ki pipe toot gayi hai", {
+        incidentPublicLocation: "Near Disco Bakery",
+        incidentLocality: "Gulshan-e-Iqbal",
+      });
+      expect(summary).toContain("at Near Disco Bakery, Gulshan-e-Iqbal");
+    });
+
+    it("handles empty or missing location without crashing or generating awkward artifacts", () => {
+      const summary = generateSummary("Pani ki pipe toot gayi hai", {});
+      expect(summary).not.toContain("at none");
+      expect(summary).not.toContain("undefined");
+      expect(summary).not.toContain("null");
     });
   });
 
@@ -254,15 +333,16 @@ describe("AWAAZ-E-AWAM — Phase 3E: Privacy & Sanitization Engine", () => {
       expect(processed.sanitizedDescription).not.toContain("Asif Raza");
       expect(processed.sanitizedDescription).not.toContain("0300-1234567");
       expect(processed.sanitizedDescription).not.toContain("asif@example.com");
-      expect(processed.sanitizedDescription).not.toContain("House 12, Street 4");
+      expect(processed.sanitizedDescription).not.toContain("House 12");
+      expect(processed.sanitizedDescription).not.toContain("Street 4");
       expect(processed.sanitizedDescription).not.toContain("kutte");
 
       // Public location preserved
       expect(processed.sanitizedDescription).toContain("University Road");
 
-      // Generated heading and summary present
-      expect(processed.generatedHeading).toContain("Deep Pothole");
-      expect(processed.factualSummary).toContain("University Road near Expo");
+      // Generated heading and summary present and factual
+      expect(processed.generatedHeading).toBe("Damaged Road and Potholes");
+      expect(processed.factualSummary).toContain("at University Road near Expo, Gulshan-e-Iqbal");
 
       // Flags populated
       expect(processed.flags.hasPhone).toBe(true);

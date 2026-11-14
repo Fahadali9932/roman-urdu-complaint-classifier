@@ -1,12 +1,13 @@
 /**
- * AWAAZ-E-AWAM — Phase 3E: Intelligent Privacy & Sanitization Engine
+ * AWAAZ-E-AWAM — Phase 3E.2: Intelligent Privacy & Presentation Engine
  *
  * Implements:
- * 1. Personal Information Detection and Redaction (Phones, Emails, CNICs, Names, Private Addresses).
- * 2. Abusive Language Filtering (Masking insults while retaining complaint allegations and audit evidence).
- * 3. Automatic Professional Heading Generation.
- * 4. Automatic Factual Summary Generation (1-3 sentences).
- * 5. Public Location Protection (Ensuring public incident locations are never redacted).
+ * 1. Complete Private Residential Address Span Redaction (Roman Urdu & English formats).
+ * 2. Personal Information Detection and Redaction (Phones, Emails, CNICs, Names).
+ * 3. Abusive Language Filtering (Masking insults while retaining complaint allegations and audit evidence).
+ * 4. Automatic Factual Heading Generation (Text-first, natural English, 5-10 words, zero hallucination).
+ * 5. Automatic Factual Summary Generation (Text-first, 1-2 concise sentences, zero department-template hallucination).
+ * 6. Public Location Protection (Ensuring public incident locations are never redacted).
  *
  * Works in both browser/Vite and Deno Edge Runtime with zero external dependencies ($0.00 cost).
  */
@@ -81,20 +82,39 @@ const ABUSIVE_PATTERNS = [
 
 // Safety / threat patterns
 const THREAT_PATTERNS = [
-  /\b(jaan\s+se\s+maar|qatal|bomb|dhamaka|hathyar|aslah)\b/gi,
+  /\b(jaan\s+se\s+maar|qatal|bomb|dhamaka\s+kar\s+doonga|hathyar|aslah)\b/gi,
   /\b(shoot|kill|burn\s+down)\b/gi,
 ];
 
 // Public location indicator terms that must NEVER be redacted
 const PUBLIC_LOCATION_KEYWORDS = [
-  "road", "sadak", "sarak", "street", "main", "service",
-  "shahrah", "flyover", "underpass", "bridge", "pul", "bridge",
+  "road", "sadak", "sarak", "main", "service road",
+  "shahrah", "shahrah-e-faisal", "shahrah-e-pakistan", "university road",
+  "rashid minhas", "m.a. jinnah", "karsaz", "nursery",
+  "flyover", "underpass", "bridge", "pul",
   "chowrangi", "roundabout", "chowk", "mor", "chauraha",
-  "market", "bazaar", "commercial", "plaza", "arcade", "supermarket",
+  "market", "bazaar", "commercial", "plaza", "supermarket",
   "park", "ground", "school", "college", "university", "ned", "ku",
-  "hospital", "masjid", "mosque", "station", "stop", "bus stop",
+  "hospital", "masjid", "mosque", "station", "bus stop",
   "signal", "drain", "kundi", "manhole", "pillar", "transformer",
 ];
+
+// Helper to check if a span is a legitimate public incident landmark
+function isPublicLocation(span: string, metadata?: ComplaintPrivacyMetadata): boolean {
+  const lower = span.toLowerCase().trim();
+  for (const kw of PUBLIC_LOCATION_KEYWORDS) {
+    if (lower === kw || lower.startsWith(`${kw} `) || lower.endsWith(` ${kw}`) || lower.includes(` ${kw} `)) {
+      return true;
+    }
+  }
+  if (metadata?.incidentPublicLocation) {
+    const pub = metadata.incidentPublicLocation.toLowerCase().trim();
+    if (pub && pub !== "none" && pub !== "null" && pub !== "n/a" && lower.includes(pub)) {
+      return true;
+    }
+  }
+  return false;
+}
 
 // ---------------------------------------------------------------------------
 // 2. SANITIZATION / REDACTION CORE
@@ -132,21 +152,6 @@ export function sanitizeComplaint(
     hasAbusiveLanguage: false,
     safetyHazard: false,
     uncertainRedaction: false,
-  };
-
-  // Helper to check if a span overlaps with public location
-  const isPublicIncidentLocation = (span: string): boolean => {
-    const lower = span.toLowerCase().trim();
-    for (const kw of PUBLIC_LOCATION_KEYWORDS) {
-      if (lower.includes(kw)) return true;
-    }
-    if (metadata?.incidentPublicLocation && lower.includes(metadata.incidentPublicLocation.toLowerCase().trim())) {
-      return true;
-    }
-    if (metadata?.incidentLocality && lower.includes(metadata.incidentLocality.toLowerCase().trim())) {
-      return true;
-    }
-    return false;
   };
 
   // A. Abusive Language Masking
@@ -189,9 +194,8 @@ export function sanitizeComplaint(
 
   // D. Pakistani Phone & Telephone Numbers
   // 1. Prefix-based contact patterns: "phone: 0300 1234567", "mobile: ...", "rabta no: ..."
-  const prefixPhoneRegex = /\b(?:phone|mobile|cell|contact|number|no|rabta|call|whatsapp)[^\w\n]{1,5}(?:\+?92|0092|0)?[0-9\s\-().]{7,15}\b/gi;
+  const prefixPhoneRegex = /\b(?:phone|mobile|cell|contact|number|no|rabta|call|whatsapp)[^\w\n]{1,5}(?:\+?92|0092|0)?[0-9][0-9\s\-().]{5,14}[0-9]\b/gi;
   text = text.replace(prefixPhoneRegex, (match) => {
-    // Keep the keyword prefix for context, redact the number digits
     flags.hasPhone = true;
     redactedSpansCount++;
     const prefix = match.match(/^[a-z]+/i)?.[0] ?? "Contact";
@@ -222,7 +226,7 @@ export function sanitizeComplaint(
   if (metadata?.citizenPhone) {
     const cleanPhone = metadata.citizenPhone.replace(/[^0-9]/g, "");
     if (cleanPhone.length >= 7) {
-      const escaped = cleanPhone.slice(-7); // Last 7 digits
+      const escaped = cleanPhone.slice(-7);
       const dynamicPhone = new RegExp(`[0-9\\s\\-.]{0,5}${escaped}\\b`, "g");
       if (dynamicPhone.test(text)) {
         flags.hasPhone = true;
@@ -235,36 +239,72 @@ export function sanitizeComplaint(
   }
 
   // E. Private Home Address & House Number Redaction
-  // 1. "House No. 42-B, Street 3", "Flat 402, Al-Rehman Heights", "H# 14", "Plot 12-B"
-  const privateAddressRegex = /\b(?:house|hno|h\.no|h#|makan|flat|apartment|apt|apt#|flat#|fl#|plot)[^\w\n]{0,3}(?:no|num|number|#)?[^\w\n]{0,3}[0-9a-zA-Z\-/]+(?:\s*,\s*(?:street|st|gali|lane|sector|block|phase)[^\w\n]{0,3}(?:no|num|number|#)?[^\w\n]{0,3}[0-9a-zA-Z\-/]+)?\b/gi;
-  text = text.replace(privateAddressRegex, (match) => {
-    if (isPublicIncidentLocation(match)) {
-      return match; // Protect public locations
+  // 1. Comprehensive multi-segment residential address span:
+  // e.g. "House No. 42-B, Street 3, Block 13-D Gulshan", "House 24 Street 5", "Flat 402, Al-Rehman Heights"
+  const multiSegmentAddressRegex = /\b(?:house|hno|h\.no|h#|makan|makaan|flat|flat#|fl#|apartment|apt|apt#|plot|plot#)\s*(?:(?:no|num|number|#)[.:]?)?\s*[0-9a-zA-Z\-/]+(?:\s*,\s*|\s+)?(?:(?:street|st|st\.|gali|lane|rasta|lane#|gali#)\s*(?:(?:no|num|number|#)[.:]?)?\s*[0-9a-zA-Z\-/]+(?:\s*,\s*|\s+)?)?(?:(?:[0-9]+(?:st|nd|rd|th)\s+)?(?:commercial\s+lane)[^\w\n]{0,3}[0-9a-zA-Z\-/]*(?:\s*,\s*|\s+)?)?(?:(?:sector|sec|sec\.|block|blk|blk\.|phase)\s*(?:(?:no|num|number|#)[.:]?)?\s*[0-9a-zA-Z\-/]+(?:\s*,\s*|\s+)?)?(?:(?:[A-Za-z0-9\-]+\s+)?(?:building|heights|plaza|apartments|terrace|tower)\s*(?:[A-Za-z0-9\-]+)?(?:\s*,\s*|\s+)?)?(?:(?:Gulshan(?:-e-Iqbal)?|Clifton|DHA|PECHS|Nazimabad|North Nazimabad|Korangi|Malir|Saddar|Gulberg|FB Area|F\.B\. Area|North Karachi|Baldia|Orangi|Lyari|SITE|Jamshed Town))?(?=\s+(?:mein|main|me|pe|par|rehta|rehti|rehte|located|situated|hai|hy|ka|ke|ki|\.|\n|,|$))/gi;
+
+  text = text.replace(multiSegmentAddressRegex, (match) => {
+    if (isPublicLocation(match, metadata)) return match;
+    flags.hasPrivateAddress = true;
+    redactedSpansCount++;
+    return "[PRIVATE ADDRESS REDACTED]";
+  });
+
+  // 2. Chained address without ending postposition (e.g. standalone "House No. 42-B, Street 3, Block 13-D")
+  const chainedAddressRegex = /\b(?:house|hno|h\.no|h#|makan|makaan|flat|flat#|fl#|apartment|apt|apt#|plot|plot#)\s*(?:(?:no|num|number|#)[.:]?)?\s*[0-9a-zA-Z\-/]+(?:\s*,\s*|\s+)(?:street|st|st\.|gali|lane|rasta)\s*(?:(?:no|num|number|#)[.:]?)?\s*[0-9a-zA-Z\-/]+(?:\s*,\s*|\s+)?(?:(?:sector|sec|sec\.|block|blk|blk\.|phase)\s*(?:(?:no|num|number|#)[.:]?)?\s*[0-9a-zA-Z\-/]+)?\b/gi;
+
+  text = text.replace(chainedAddressRegex, (match) => {
+    if (isPublicLocation(match, metadata)) return match;
+    flags.hasPrivateAddress = true;
+    redactedSpansCount++;
+    return "[PRIVATE ADDRESS REDACTED]";
+  });
+
+  // 3. Simple house / flat identifier: "House 24", "Flat 402", "H# 14", "Plot 12-B"
+  const simpleHouseRegex = /\b(?:house|hno|h\.no|h#|makan|makaan|flat|flat#|fl#|apartment|apt|plot)\s*(?:(?:no|num|number|#)[.:]?)?\s*[0-9a-zA-Z\-/]+\b/gi;
+  text = text.replace(simpleHouseRegex, (match) => {
+    if (isPublicLocation(match, metadata)) return match;
+    flags.hasPrivateAddress = true;
+    redactedSpansCount++;
+    return "[PRIVATE ADDRESS REDACTED]";
+  });
+
+  // 4. Introductory residential phrase: "Mera ghar Street 3 mein hai", "Humara makan...", "My house is..."
+  const introAddressRegex = /\b(?:mera|humara|humaara|hamara|my|our)\s+(?:ghar|makan|makaan|house|flat|home)\s+(?:(?:street|gali|lane|lane#|block|sector|phase|house|flat)[^\w\n]{0,3}(?:(?:no|num|number|#)[.:]?)?\s*[0-9a-zA-Z\-/]+(?:\s*,\s*|\s+)?)+(?=\s+(?:mein|main|me|pe|par|rehta|rehti|rehte|located|situated|hai|hy|\.|\n|$))/gi;
+  text = text.replace(introAddressRegex, (match) => {
+    if (isPublicLocation(match, metadata)) return match;
+    flags.hasPrivateAddress = true;
+    redactedSpansCount++;
+    const introMatch = match.match(/^(?:mera|humara|humaara|hamara|my|our)\s+(?:ghar|makan|makaan|house|flat|home)\s+/i);
+    const prefix = introMatch ? introMatch[0] : "";
+    return `${prefix}[PRIVATE ADDRESS REDACTED]`;
+  });
+
+  // 5. Explicit metadata residentialAddress token matching
+  if (metadata?.residentialAddress && metadata.residentialAddress.length >= 5) {
+    const rawAddr = metadata.residentialAddress.trim();
+    // Match entire address if it appears verbatim
+    const escapedFull = rawAddr.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&");
+    const fullRegex = new RegExp(`\\b${escapedFull}\\b`, "gi");
+    if (fullRegex.test(text)) {
+      flags.hasPrivateAddress = true;
+      text = text.replace(fullRegex, () => {
+        redactedSpansCount++;
+        return "[PRIVATE ADDRESS REDACTED]";
+      });
     }
-    flags.hasPrivateAddress = true;
-    redactedSpansCount++;
-    return "[PRIVATE ADDRESS REDACTED]";
-  });
 
-  // 2. Private introduction: "Mera ghar...", "Humara makan...", "My house is..."
-  const myHouseRegex = /\b(?:mera|humaara|humara|my|our)\s+(?:ghar|makan|house|flat|home)\s+(?:no|num|number|#)?[^\w\n]{0,3}[0-9a-zA-Z\-/]+(?:\s*,\s*[^\n,.]+)?\b/gi;
-  text = text.replace(myHouseRegex, (match) => {
-    if (isPublicIncidentLocation(match)) return match;
-    flags.hasPrivateAddress = true;
-    redactedSpansCount++;
-    return "[PRIVATE ADDRESS REDACTED]";
-  });
-
-  // 3. Submitter residential address matching if provided
-  if (metadata?.residentialAddress && metadata.residentialAddress.length >= 6) {
-    // If the citizen explicitly typed their full residential address in the description
-    const cleanAddr = metadata.residentialAddress.toLowerCase().trim();
-    const houseTokens = cleanAddr.match(/\b(?:house|flat|makan|plot|h#|apt)[^,]+/i);
-    if (houseTokens && houseTokens[0]) {
-      const houseRegex = new RegExp(houseTokens[0].replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&"), "gi");
-      if (houseRegex.test(text)) {
+    // Match individual segments (e.g. "House No. 42-B", "Street 3", "Block 13-D")
+    const segments = rawAddr.split(/[,;\n]+/).map((s) => s.trim()).filter((s) => s.length >= 4);
+    for (const seg of segments) {
+      if (isPublicLocation(seg, metadata)) continue;
+      // Skip generic single words like "Karachi" or "Gulshan"
+      if (!/\d/.test(seg) && !/(?:house|flat|makan|plot|street|gali|lane|sector|block)/i.test(seg)) continue;
+      const escapedSeg = seg.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&");
+      const segRegex = new RegExp(`\\b${escapedSeg}\\b`, "gi");
+      if (segRegex.test(text)) {
         flags.hasPrivateAddress = true;
-        text = text.replace(houseRegex, () => {
+        text = text.replace(segRegex, () => {
           redactedSpansCount++;
           return "[PRIVATE ADDRESS REDACTED]";
         });
@@ -272,18 +312,35 @@ export function sanitizeComplaint(
     }
   }
 
+  // 6. Cleanup trailing dangling street tokens when in close proximity to a redacted address
+  const danglingStreetRegex = /(\[PRIVATE ADDRESS REDACTED\][,\s]+)(?:street|st|st\.|gali|lane|rasta)\s*(?:(?:no|num|number|#)[.:]?)?\s*[0-9a-zA-Z\-/]+/gi;
+  text = text.replace(danglingStreetRegex, () => {
+    flags.hasPrivateAddress = true;
+    return "[PRIVATE ADDRESS REDACTED]";
+  });
+
   // F. Citizen Name Redaction
   // 1. Natural self-introduction: "Mera naam Muhammad Tariq Khan hai", "My name is Ali Raza"
-  const nameIntroRegex = /\b(?:mera\s+na+m|my\s+name\s+is|mein|main|i\s+am)\s+([A-Za-z]+(?:\s+[A-Za-z]+){1,3})\s+(?:hai|hy|bol\s+raha|bol\s+rahi|baat\s+kar\s+raha|here)\b/gi;
-  text = text.replace(nameIntroRegex, (match, capturedName) => {
+  const myNameRegex = /\b(?:mera\s+na+m|my\s+name\s+is)\s+([A-Za-z]+(?:\s+[A-Za-z]+){0,2})(?=\s+(?:hai|hy|and|\.|\n|,|$))/gi;
+  text = text.replace(myNameRegex, (match, capturedName) => {
     flags.hasName = true;
     redactedSpansCount++;
     return match.replace(capturedName, "[NAME REDACTED]");
   });
 
-  // 2. "Mera naam [Name] hai" / "Mera naam [Name]"
-  const directNameRegex = /\b(?:mera\s+na+m|my\s+name\s+is)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,2})\b/gi;
-  text = text.replace(directNameRegex, (match, capturedName) => {
+  // 2. First-person speaking intro: "Main Zahid Ahmed baat kar raha hoon", "Main Ali Raza bol raha hoon", "I am Tariq speaking"
+  const COMMON_NON_NAMES = new Set([
+    "rehta", "rehti", "rehte", "gali", "ghar", "area", "shikayat",
+    "baat", "bol", "yahan", "wahan", "paas", "saath", "andar", "bahar",
+    "pareshan", "theek"
+  ]);
+
+  const iAmRegex = /\b(?:main|mein|i\s+am)\s+([A-Za-z]+(?:\s+[A-Za-z]+){0,2})\s+(?:hoon|hun|bol\s+raha|bol\s+rahi|baat\s+kar\s+raha|speaking|here)\b/gi;
+  text = text.replace(iAmRegex, (match, capturedName) => {
+    const words = capturedName.toLowerCase().trim().split(/\s+/);
+    if (words.some((w: string) => COMMON_NON_NAMES.has(w))) {
+      return match;
+    }
     flags.hasName = true;
     redactedSpansCount++;
     return match.replace(capturedName, "[NAME REDACTED]");
@@ -300,7 +357,6 @@ export function sanitizeComplaint(
   // 4. Submitter citizenName matching if provided
   if (metadata?.citizenName && metadata.citizenName.trim().length >= 3) {
     const cleanName = metadata.citizenName.trim();
-    // Match full name
     const fullNameRegex = new RegExp(`\\b${cleanName.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&")}\\b`, "gi");
     if (fullNameRegex.test(text)) {
       flags.hasName = true;
@@ -312,8 +368,8 @@ export function sanitizeComplaint(
   }
 
   // G. Flag uncertain redactions
-  // If text contains isolated 7-8 digit sequences or unparsed "house/flat" references
-  if (/\b\d{7,8}\b/.test(text) || /\b(?:ghar|makan|house|flat)\b/i.test(text)) {
+  // If text contains unredacted 7-8 digit sequences or unparsed "house/flat" references
+  if (/\b\d{7,8}\b/.test(text) || /\b(?:house\s*no|flat\s*no|makan\s*no)\b/i.test(text)) {
     flags.uncertainRedaction = true;
   }
 
@@ -333,224 +389,422 @@ export function sanitizeComplaint(
 }
 
 // ---------------------------------------------------------------------------
-// 3. AUTOMATIC PROFESSIONAL HEADING GENERATION
+// 3. TEXT-FIRST TOPIC & FACTUAL SEMANTIC EXTRACTION
+// ---------------------------------------------------------------------------
+export type ComplaintTopic =
+  | "garbage"
+  | "electricity"
+  | "water_supply"
+  | "sewerage"
+  | "gas"
+  | "road"
+  | "building"
+  | "neutral";
+
+interface ExtractedFacts {
+  topic: ComplaintTopic;
+  durationLabel: string | null; // e.g. "for Four Days"
+  durationPlain: string | null; // e.g. "four days"
+  subType: string;
+  hasWaterPumpConsequence: boolean;
+  hasBadSmellConsequence: boolean;
+  hasHazardConsequence: boolean;
+  hasLowGasCookingConsequence: boolean;
+}
+
+export function extractComplaintFacts(text: string): ExtractedFacts {
+  const lower = text.toLowerCase();
+
+  // 1. Duration extraction
+  let durationLabel: string | null = null;
+  let durationPlain: string | null = null;
+
+  if (/chaar\s+din|4\s+din|four\s+days|4\s+days/i.test(lower)) {
+    durationLabel = "for Four Days";
+    durationPlain = "four days";
+  } else if (/teen\s+din|3\s+din|three\s+days|3\s+days/i.test(lower)) {
+    durationLabel = "for Three Days";
+    durationPlain = "three days";
+  } else if (/do\s+din|2\s+din|two\s+days|2\s+days/i.test(lower)) {
+    durationLabel = "for Two Days";
+    durationPlain = "two days";
+  } else if (/ek\s+din|1\s+din|one\s+day|1\s+day|24\s+ghant[ae]|24\s+hours/i.test(lower)) {
+    durationLabel = "for Past 24 Hours";
+    durationPlain = "past 24 hours";
+  } else if (/paanch\s+din|5\s+din|five\s+days|5\s+days/i.test(lower)) {
+    durationLabel = "for Five Days";
+    durationPlain = "five days";
+  } else if (/chhe\s+din|che\s+din|6\s+din|six\s+days|6\s+days/i.test(lower)) {
+    durationLabel = "for Six Days";
+    durationPlain = "six days";
+  } else if (/do\s+haft[ae]|2\s+haft[ae]|two\s+weeks|2\s+weeks/i.test(lower)) {
+    durationLabel = "for Two Weeks";
+    durationPlain = "two weeks";
+  } else if (/ek\s+hafta|aik\s+hafta|hafta|hafte|one\s+week|1\s+week/i.test(lower)) {
+    durationLabel = "for Past Week";
+    durationPlain = "approximately one week";
+  } else if (/mahina|mahine|one\s+month|1\s+month/i.test(lower)) {
+    durationLabel = "for Past Month";
+    durationPlain = "over a month";
+  } else if (/aaj\s+subah|subah\s+se|since\s+morning/i.test(lower)) {
+    durationLabel = "Since Morning";
+    durationPlain = "since morning";
+  } else if (/kal\s+raat|kal\s+se|since\s+yesterday/i.test(lower)) {
+    durationLabel = "Since Yesterday";
+    durationPlain = "since yesterday";
+  }
+
+  // 2. Specific consequences extraction
+  const hasWaterPumpConsequence =
+    /(?:motor|pump)\s+(?:nahi|nai)\s+(?:chal|chalti|chalta)|pani\s+bhi\s+nahi|water\s+pump/i.test(lower);
+  const hasBadSmellConsequence =
+    /badboo|badbu|smell|stink|taffun/i.test(lower);
+  const hasHazardConsequence =
+    /spark|current|aag|blast|dhamaka|hanging\s+wire|open\s+manhole|khula\s+gutter/i.test(lower);
+  const hasLowGasCookingConsequence =
+    /chulha|chula|stove|khana|cooking/i.test(lower);
+
+  // 3. Topic classification strictly from text keywords
+  // Check Garbage: kachra, safai, sweeper, dumpster, kundi, trash, waste, dher
+  const isGarbage =
+    /\b(kachra|kachre|garbage|trash|waste|safai|sweeper|jhadoo|dumpster|kundi|dher|kura|koora)\b/i.test(lower);
+
+  // Check Electricity: bijli, light, power, current, loadshedding, voltage, transformer, taar, wire
+  const isElectricity =
+    /\b(bijli|light|power|loadshedding|voltage|transformer|taar|wire|k-electric|kelectric)\b/i.test(lower) ||
+    (/\bcurrent\b/i.test(lower) && !/water|pani/i.test(lower));
+
+  // Check Sewerage: gutter, gutters, sewerage, sewage, manhole, ubal, ganda pani, sludge, nalla
+  const isSewerage =
+    /\b(gutter|gutters|sewerage|sewage|manhole|ubal|ganda\s+pani|sludge|nalla)\b/i.test(lower);
+
+  // Check Water Supply: pani, paani, water, drinking water, meetha pani, pipeline, pipe leak, line burst
+  const isWaterSupply =
+    !isSewerage &&
+    (/\b(paani|pani|water)\b/i.test(lower) ||
+      /\b(line\s+leak|pipeline|pipe\s+toot|pipe\s+leak|line\s+burst|line\s+phat)\b/i.test(lower));
+
+  // Check Gas: gas, sui gas, gas leak, gas smell, chulha, stove, ssgc
+  const isGas =
+    /\b(gas|sui\s+gas|ssgc)\b/i.test(lower) ||
+    (/\b(chulha|stove)\b/i.test(lower) && /pressure|nahi/i.test(lower));
+
+  // Check Road: road, sadak, sarak, khadda, gadda, pothole, asphalt, flyover, underpass, bridge, footpath
+  const isRoad =
+    /\b(road|sadak|sarak|khadda|khadde|gadda|gadday|pothole|potholes|asphalt|crater|flyover|underpass|pul|expansion\s+joint|footpath)\b/i.test(lower);
+
+  // Check Building: illegal construction, manzil, floor, plaza, sbca, crack, darar
+  const isBuilding =
+    /\b(illegal\s+construction|ghair\s+qanooni|manzil|floor|plaza|sbca|darar|bina\s+ijazat)\b/i.test(lower) ||
+    (/\bcrack\b/i.test(lower) && /building|pillar|wall|chhat/i.test(lower));
+
+  let topic: ComplaintTopic = "neutral";
+  let subType = "general";
+
+  if (isGarbage) {
+    topic = "garbage";
+    if (/dumpster|kundi|dabba/i.test(lower)) subType = "dumpster_overflow";
+    else if (/sweeper|jhadoo|safai\s+wal/i.test(lower)) subType = "sweeper_absent";
+    else subType = "uncollected_waste";
+  } else if (isElectricity) {
+    topic = "electricity";
+    if (/spark|taar\s+toot|wire|current|hanging|aag/i.test(lower)) subType = "sparking_wire";
+    else if (/transformer|blast|dhamaka/i.test(lower)) subType = "transformer_blast";
+    else if (/voltage|dim/i.test(lower)) subType = "low_voltage";
+    else subType = "power_outage";
+  } else if (isWaterSupply) {
+    topic = "water_supply";
+    if (/pipe\s+toot|pipeline\s+burst|pipe\s+leak|line\s+phat|line\s+leak/i.test(lower)) subType = "pipe_burst";
+    else if (/shortage|nahi\s+aa\s+raha|supply\s+band|dry/i.test(lower)) subType = "water_shortage";
+    else if (/badboo|ganda/i.test(lower)) subType = "contaminated_water";
+    else subType = "supply_issue";
+  } else if (isSewerage) {
+    topic = "sewerage";
+    if (/dhakkan|open\s+manhole|khula/i.test(lower)) subType = "open_manhole";
+    else subType = "overflow";
+  } else if (isGas) {
+    topic = "gas";
+    if (/leak|badboo|smell|hissing/i.test(lower)) subType = "gas_leak";
+    else subType = "low_pressure";
+  } else if (isRoad) {
+    topic = "road";
+    if (/flyover|bridge|joint/i.test(lower)) subType = "flyover_joint";
+    else if (/footpath/i.test(lower)) subType = "footpath_damaged";
+    else subType = "potholes";
+  } else if (isBuilding) {
+    topic = "building";
+    if (/crack|darar|pillar/i.test(lower)) subType = "structural_cracks";
+    else subType = "illegal_construction";
+  }
+
+  return {
+    topic,
+    durationLabel,
+    durationPlain,
+    subType,
+    hasWaterPumpConsequence,
+    hasBadSmellConsequence,
+    hasHazardConsequence,
+    hasLowGasCookingConsequence,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// 4. CLEAN LOCATION FORMATTER (ELIMINATES "AT NONE")
+// ---------------------------------------------------------------------------
+function formatCleanLocation(metadata?: ComplaintPrivacyMetadata): string {
+  const isInvalid = (val?: string | null) => {
+    if (!val) return true;
+    const clean = val.trim().toLowerCase();
+    return (
+      clean === "" ||
+      clean === "none" ||
+      clean === "n/a" ||
+      clean === "na" ||
+      clean === "null" ||
+      clean === "undefined" ||
+      clean === "-"
+    );
+  };
+
+  const pubLoc = !isInvalid(metadata?.incidentPublicLocation)
+    ? metadata!.incidentPublicLocation!.trim()
+    : null;
+  const locality = !isInvalid(metadata?.incidentLocality)
+    ? metadata!.incidentLocality!.trim()
+    : null;
+
+  if (pubLoc && locality) {
+    if (pubLoc.toLowerCase().includes(locality.toLowerCase())) {
+      return `at ${pubLoc}`;
+    }
+    return `at ${pubLoc}, ${locality}`;
+  }
+  if (pubLoc) return `at ${pubLoc}`;
+  if (locality) return `in ${locality}`;
+  return "";
+}
+
+// ---------------------------------------------------------------------------
+// 5. AUTOMATIC NATURAL HEADING GENERATION (5-10 WORDS, FACTUAL)
 // ---------------------------------------------------------------------------
 export function generateHeading(
   text: string,
-  departmentId?: string | null,
+  _departmentId?: string | null,
   locality?: string | null
 ): string {
-  const lower = text.toLowerCase();
-  const locPrefix = locality ? ` in ${locality.trim()}` : "";
+  const facts = extractComplaintFacts(text);
+  const dur = facts.durationLabel ? ` ${facts.durationLabel}` : "";
+  const cleanLoc = locality && locality.trim() && !/^(none|null|n\/a|-)$/i.test(locality)
+    ? locality.trim()
+    : null;
 
-  // Duration extraction
-  let durationStr = "";
-  if (/teen\s+din|3\s+din|three\s+days|3\s+days/i.test(lower)) {
-    durationStr = " for Three Days";
-  } else if (/do\s+din|2\s+din|two\s+days|2\s+days/i.test(lower)) {
-    durationStr = " for Two Days";
-  } else if (/chaar\s+din|4\s+din|four\s+days|4\s+days/i.test(lower)) {
-    durationStr = " for Four Days";
-  } else if (/paanch\s+din|5\s+din|five\s+days|5\s+days/i.test(lower)) {
-    durationStr = " for Five Days";
-  } else if (/hafta|hafte|one\s+week|1\s+week/i.test(lower)) {
-    durationStr = " for Past Week";
-  } else if (/mahina|mahine|one\s+month|1\s+month/i.test(lower)) {
-    durationStr = " for Past Month";
-  } else if (/aaj\s+subah|since\s+morning/i.test(lower)) {
-    durationStr = " Since Morning";
-  }
+  switch (facts.topic) {
+    case "garbage":
+      if (facts.durationLabel) {
+        return `Garbage Not Collected ${facts.durationLabel}`;
+      }
+      if (facts.subType === "dumpster_overflow") {
+        return cleanLoc ? `Overflowing Garbage Dumpster in ${cleanLoc}` : "Overflowing Garbage Dumpster in Street";
+      }
+      return cleanLoc ? `Uncollected Garbage in ${cleanLoc}` : "Uncollected Garbage in Street";
 
-  switch (departmentId) {
-    case "kelectric":
-      if (/spark|taar\s+toot|wire|current|aag|falling/i.test(lower)) {
-        return `Dangerous Fallen Wire and Sparking Emergency${locPrefix}`;
+    case "electricity":
+      if (facts.subType === "sparking_wire") {
+        return cleanLoc ? `Dangerous Sparking Wire in ${cleanLoc}` : "Dangerous Sparking Wire in Street";
       }
-      if (/transformer|blast|dhamaka/i.test(lower)) {
-        return `Transformer Explosion and Power Failure${locPrefix}`;
+      if (facts.subType === "transformer_blast") {
+        return cleanLoc ? `Transformer Explosion in ${cleanLoc}` : "Transformer Explosion and Power Outage";
       }
-      if (/meter|digital\s+meter|screen|reading/i.test(lower)) {
-        return `Faulty Electric Meter and Supply Fault${locPrefix}`;
+      if (facts.durationLabel) {
+        return `Electricity Outage ${facts.durationLabel}`;
       }
-      return `Electricity Outage and Grid Failure${locPrefix}${durationStr}`;
+      return cleanLoc ? `Electricity Outage in ${cleanLoc}` : "Electricity Outage in Area";
 
-    case "kmc":
-      if (/gadda|khadda|pothole|crater|asphalt|carpet/i.test(lower)) {
-        return `Deep Pothole and Damaged Road Repair Required${locPrefix}`;
+    case "road":
+      if (facts.subType === "flyover_joint") {
+        return cleanLoc ? `Damaged Expansion Joint on ${cleanLoc} Flyover` : "Damaged Expansion Joint on Flyover";
       }
-      if (/flyover|bridge|pul|joint|expansion/i.test(lower)) {
-        return `Flyover Structural Joint and Road Hazard${locPrefix}`;
+      if (facts.subType === "potholes") {
+        return "Damaged Road and Potholes";
       }
-      if (/footpath|pedestrian|encroachment|thela/i.test(lower)) {
-        return `Pedestrian Footpath Obstruction and Encroachment${locPrefix}`;
-      }
-      if (/signal|street\s*light|light\s+pole|khamba/i.test(lower)) {
-        return `Traffic Signal and Streetlight Infrastructure Fault${locPrefix}`;
-      }
-      return `Municipal Road and Civil Infrastructure Damage${locPrefix}`;
+      return cleanLoc ? `Damaged Road in ${cleanLoc}` : "Damaged Road in Area";
 
-    case "kwsc":
-      if (/gutter|sewerage|sewage|ubal|sludge|ganda\s+pani/i.test(lower)) {
-        return `Severe Sewerage Overflow and Gutter Blockage${locPrefix}${durationStr}`;
+    case "water_supply":
+      if (facts.subType === "pipe_burst") {
+        return "Broken Drinking Water Pipe in Street";
       }
-      if (/line\s+leak|burst|pipeline\s+phat|peep/i.test(lower)) {
-        return `Main Drinking Water Pipeline Leakage${locPrefix}`;
+      if (facts.durationLabel) {
+        return `Drinking Water Shortage ${facts.durationLabel}`;
       }
-      if (/paani\s+nahi|pani\s+nahi|water\s+shortage|dry/i.test(lower)) {
-        return `Drinking Water Supply Shortage${locPrefix}${durationStr}`;
-      }
-      if (/mix|contamination|badboo/i.test(lower)) {
-        return `Sewage Contamination in Tap Water Supply${locPrefix}`;
-      }
-      return `Water and Sanitation Infrastructure Complaint${locPrefix}`;
+      return cleanLoc ? `Drinking Water Shortage in ${cleanLoc}` : "Drinking Water Supply Disruption";
 
-    case "ssgc":
-      if (/leak|badboo|smell|hissing/i.test(lower)) {
-        return `Urgent Sui Gas Pipeline Leakage and Fire Hazard${locPrefix}`;
+    case "sewerage":
+      if (facts.subType === "open_manhole") {
+        return cleanLoc ? `Open Manhole Hazard in ${cleanLoc}` : "Open Manhole Hazard in Street";
       }
-      if (/pressure|kam\s+gas|chulha|stove/i.test(lower)) {
-        return `Severe Low Gas Pressure and Supply Stoppage${locPrefix}${durationStr}`;
+      if (facts.durationLabel) {
+        return `Sewerage Overflow ${facts.durationLabel}`;
       }
-      if (/meter|meter\s+leak/i.test(lower)) {
-        return `Damaged Sui Gas Meter and Network Pipeline Issue${locPrefix}`;
-      }
-      return `Sui Gas Network Pipeline Emergency${locPrefix}`;
+      return cleanLoc ? `Sewerage Overflow in ${cleanLoc}` : "Severe Sewerage Overflow in Street";
 
-    case "sswmb":
-      if (/kundi|dumpster|kachra\s+dabba/i.test(lower)) {
-        return `Overflowing Municipal Garbage Dumpster${locPrefix}${durationStr}`;
+    case "gas":
+      if (facts.subType === "gas_leak") {
+        return cleanLoc ? `Sui Gas Pipeline Leak in ${cleanLoc}` : "Sui Gas Pipeline Leak in Street";
       }
-      if (/sweeper|safai|jhadoo/i.test(lower)) {
-        return `Absence of Municipal Sweepers and Waste Cleanup${locPrefix}`;
+      if (facts.durationLabel) {
+        return `Low Gas Pressure ${facts.durationLabel}`;
       }
-      return `Uncollected Garbage and Waste Accumulation${locPrefix}${durationStr}`;
+      return cleanLoc ? `Low Gas Pressure in ${cleanLoc}` : "Low Gas Pressure in Area";
 
-    case "sbca":
-      if (/manzil|floor|commercial|plaza|illegal\s+construction/i.test(lower)) {
-        return `Unauthorized Multi-Story Building Construction${locPrefix}`;
+    case "building":
+      if (facts.subType === "structural_cracks") {
+        return cleanLoc ? `Dangerous Structural Cracks in ${cleanLoc}` : "Dangerous Structural Cracks in Building";
       }
-      if (/crack|pillar|foundation|jhuk|tilt/i.test(lower)) {
-        return `Dangerous Structural Cracks in Residential Building${locPrefix}`;
-      }
-      if (/noc|plan|open\s+space/i.test(lower)) {
-        return `Building Code Violation and Encroachment on Open Space${locPrefix}`;
-      }
-      return `Unauthorized Construction and Building Code Violation${locPrefix}`;
+      return "Unauthorized Multi-Story Building Construction";
 
     default:
-      if (/kachra|garbage/i.test(lower)) return `Uncollected Garbage in Residential Street${locPrefix}`;
-      if (/bijli|power|light/i.test(lower)) return `Electricity Outage Reported${locPrefix}${durationStr}`;
-      if (/paani|pani|water/i.test(lower)) return `Water Supply Issue Reported${locPrefix}`;
-      if (/sadak|road/i.test(lower)) return `Damaged Road Infrastructure${locPrefix}`;
-      return `Municipal Service Complaint${locPrefix}`;
+      // Neutral fallback: NEVER assume road damage
+      return cleanLoc ? `Municipal Grievance in ${cleanLoc}${dur}` : `Municipal Service Grievance${dur}`;
   }
 }
 
 // ---------------------------------------------------------------------------
-// 4. AUTOMATIC FACTUAL SUMMARY GENERATION (1-3 SENTENCES)
+// 6. AUTOMATIC FACTUAL SUMMARY GENERATION (1-2 SENTENCES, NATURAL ENGLISH)
 // ---------------------------------------------------------------------------
 export function generateSummary(
   sanitizedText: string,
   metadata: ComplaintPrivacyMetadata
 ): string {
-  const loc = metadata.incidentPublicLocation
-    ? `${metadata.incidentPublicLocation}${metadata.incidentLocality ? `, ${metadata.incidentLocality}` : ""}`
-    : metadata.incidentLocality || "the municipal area";
+  const facts = extractComplaintFacts(sanitizedText);
+  const locPhrase = formatCleanLocation(metadata);
+  const durPlain = facts.durationPlain;
 
-  const lower = sanitizedText.toLowerCase();
+  let sentence1 = "";
+  let sentence2 = "";
 
-  // Sentence 1: The Essential Public Service Problem
-  let problemDesc = "A civic service infrastructure disruption has been reported by local residents.";
-  let impactDesc = "Immediate site inspection and technical remediation are required.";
-
-  switch (metadata.departmentId) {
-    case "kmc":
-      if (/pothole|khadda|gadda|crater|asphalt/i.test(lower)) {
-        problemDesc = `Severe road surface damage and deep potholes have formed on the main thoroughfare at ${loc}.`;
-        impactDesc = "Vehicle movement is hazardous with reported damage to commuter traffic, requiring urgent asphalt resurfacing by KMC.";
-      } else if (/flyover|bridge|joint/i.test(lower)) {
-        problemDesc = `Expansion joint damage and structural road hazards are reported on the overhead crossing at ${loc}.`;
-        impactDesc = "The road defect poses an immediate accident risk to moving vehicles, requiring civil engineering inspection by KMC.";
+  switch (facts.topic) {
+    case "garbage": {
+      if (durPlain) {
+        sentence1 = `The resident reports that garbage has not been collected from their street for ${durPlain}${locPhrase ? ` ${locPhrase}` : ""}.`;
       } else {
-        problemDesc = `Damaged municipal road infrastructure and pedestrian footpath obstructions are reported at ${loc}.`;
-        impactDesc = "Prompt engineering remediation and road restoration by KMC are requested.";
+        sentence1 = `The resident reports uncollected garbage accumulated in their street${locPhrase ? ` ${locPhrase}` : ""}.`;
+      }
+
+      if (facts.hasBadSmellConsequence) {
+        sentence2 = "The waste is causing a bad smell and inconvenience for nearby families.";
+      } else {
+        sentence2 = "The accumulated trash requires municipal sanitation sweepers and waste collection.";
       }
       break;
+    }
 
-    case "kelectric":
-      if (/spark|taar|wire|current/i.test(lower)) {
-        problemDesc = `High-voltage electrical wiring or transmission cables are sparking and hanging precariously at ${loc}.`;
-        impactDesc = "The situation presents an acute electrocution and public safety hazard, requiring immediate power shutdown and line securing by K-Electric.";
-      } else if (/transformer|blast/i.test(lower)) {
-        problemDesc = `A localized distribution transformer has malfunctioned or experienced a flashover at ${loc}.`;
-        impactDesc = "Surrounding consumers are disconnected without power, requiring emergency transformer inspection and restoration by K-Electric.";
+    case "electricity": {
+      if (facts.subType === "sparking_wire") {
+        sentence1 = `The resident reports dangerous electrical wiring or transmission cables sparking${locPhrase ? ` ${locPhrase}` : ""}.`;
+        sentence2 = "The situation presents an immediate electrocution hazard and requires line securing.";
+      } else if (facts.subType === "transformer_blast") {
+        sentence1 = `The resident reports a transformer explosion resulting in a localized blackout${locPhrase ? ` ${locPhrase}` : ""}.`;
+        sentence2 = "Power supply is disconnected, and emergency technical inspection is requested.";
       } else {
-        problemDesc = `An unscheduled power outage and electrical distribution failure has been reported at ${loc}.`;
-        impactDesc = "Residents request grid verification and prompt power supply restoration by K-Electric.";
+        if (durPlain) {
+          sentence1 = `The resident reports that electricity has been unavailable for ${durPlain}${locPhrase ? ` ${locPhrase}` : ""}.`;
+        } else {
+          sentence1 = `The resident reports an unscheduled power outage${locPhrase ? ` ${locPhrase}` : ""}.`;
+        }
+
+        if (facts.hasWaterPumpConsequence) {
+          sentence2 = "The power outage is preventing their water pump from working.";
+        } else {
+          sentence2 = "Residents request grid verification and power supply restoration.";
+        }
       }
       break;
+    }
 
-    case "kwsc":
-      if (/gutter|sewerage|sewage|ubal|sludge/i.test(lower)) {
-        problemDesc = `Raw sewage and blocked manhole runoff are overflowing onto the public street at ${loc}.`;
-        impactDesc = "The wastewater accumulation causes intense odor, hygiene hazards, and pedestrian blockage, requiring desilting and suction machinery by KWSC.";
-      } else if (/line|leak|burst/i.test(lower)) {
-        problemDesc = `A municipal drinking water pipeline has burst or developed significant pressurized leakage at ${loc}.`;
-        impactDesc = "Potable water is being wasted while undermining the road sub-base, requiring urgent pipeline isolation and welding by KWSC.";
+    case "road": {
+      if (facts.subType === "flyover_joint") {
+        sentence1 = `The resident reports damaged expansion joints on the overhead bridge${locPhrase ? ` ${locPhrase}` : ""}.`;
+        sentence2 = "The defect creates a hazard for moving vehicles and requires engineering inspection.";
       } else {
-        problemDesc = `Drinking water supply has been completely interrupted or severely depleted for residents at ${loc}.`;
-        impactDesc = "Citizens request verification of bulk distribution valves and resumption of scheduled water supply by KWSC.";
+        sentence1 = `The resident reports severe road damage with deep potholes${locPhrase ? ` ${locPhrase}` : ""}.`;
+        sentence2 = "The poor road condition is creating hazardous driving conditions for vehicles.";
       }
       break;
+    }
 
-    case "ssgc":
-      if (/leak|badboo|smell/i.test(lower)) {
-        problemDesc = `A natural gas pipeline leak with intense odor has been reported in the vicinity of ${loc}.`;
-        impactDesc = "The escaping gas poses an imminent combustible fire and explosion hazard, necessitating urgent emergency line isolation by SSGC.";
+    case "water_supply": {
+      if (facts.subType === "pipe_burst") {
+        sentence1 = `The resident reports that a drinking water pipeline has broken in their street${locPhrase ? ` ${locPhrase}` : ""}.`;
+        sentence2 = "Clean water is leaking continuously, and prompt repairs are requested.";
       } else {
-        problemDesc = `Severely degraded or zero natural gas pressure is preventing normal domestic kitchen use at ${loc}.`;
-        impactDesc = "Consumers request gas pressure regulation and pipeline blockage clearance by SSGC.";
+        if (durPlain) {
+          sentence1 = `The resident reports that drinking water supply has been disrupted for ${durPlain}${locPhrase ? ` ${locPhrase}` : ""}.`;
+        } else {
+          sentence1 = `The resident reports an interruption in the regular drinking water supply${locPhrase ? ` ${locPhrase}` : ""}.`;
+        }
+        sentence2 = "Residents are facing water shortages and request supply restoration.";
       }
       break;
+    }
 
-    case "sswmb":
-      if (/kundi|dabba|dumpster/i.test(lower)) {
-        problemDesc = `An overflowing municipal waste container and open garbage collection point are unmaintained at ${loc}.`;
-        impactDesc = "Decomposing refuse has spilled onto the road causing sanitary and environmental risks, requiring compactors and waste removal by SSWMB.";
+    case "sewerage": {
+      if (facts.subType === "open_manhole") {
+        sentence1 = `The resident reports an uncovered open manhole in the street${locPhrase ? ` ${locPhrase}` : ""}.`;
+        sentence2 = "The open drain poses a severe safety hazard to pedestrians and vehicles.";
       } else {
-        problemDesc = `Solid municipal waste and street refuse have accumulated uncollected in the neighborhood around ${loc}.`;
-        impactDesc = "Residents request deployment of sanitation sweepers and complete trash evacuation by SSWMB.";
+        if (durPlain) {
+          sentence1 = `The resident reports raw sewage overflowing onto the street for ${durPlain}${locPhrase ? ` ${locPhrase}` : ""}.`;
+        } else {
+          sentence1 = `The resident reports blocked gutters overflowing into the street${locPhrase ? ` ${locPhrase}` : ""}.`;
+        }
+        sentence2 = "The wastewater accumulation causes foul odor and sanitary risks for nearby residents.";
       }
       break;
+    }
 
-    case "sbca":
-      if (/manzil|floor|illegal|plaza/i.test(lower)) {
-        problemDesc = `Unauthorized multi-story construction exceeding approved layout plans is actively progressing at ${loc}.`;
-        impactDesc = "The developer has allegedly encroached on mandatory open space without SBCA clearance, requiring on-site sealing and inspection.";
+    case "gas": {
+      if (facts.subType === "gas_leak") {
+        sentence1 = `The resident reports a natural gas pipeline leak with a strong odor${locPhrase ? ` ${locPhrase}` : ""}.`;
+        sentence2 = "The escaping gas poses a fire hazard and requires urgent pipeline isolation.";
       } else {
-        problemDesc = `Critical structural cracks or unsafe construction practices are reported on building premises at ${loc}.`;
-        impactDesc = "Neighbors request structural safety evaluation and enforcement of Karachi Building Regulations by SBCA.";
+        if (durPlain) {
+          sentence1 = `The resident reports low gas pressure persisting for ${durPlain}${locPhrase ? ` ${locPhrase}` : ""}.`;
+        } else {
+          sentence1 = `The resident reports severely low natural gas pressure${locPhrase ? ` ${locPhrase}` : ""}.`;
+        }
+        if (facts.hasLowGasCookingConsequence) {
+          sentence2 = "The low pressure is preventing households from cooking meals.";
+        } else {
+          sentence2 = "Consumers request pressure regulation and line clearance.";
+        }
       }
       break;
+    }
+
+    case "building": {
+      if (facts.subType === "structural_cracks") {
+        sentence1 = `The resident reports critical structural cracks in the building${locPhrase ? ` ${locPhrase}` : ""}.`;
+        sentence2 = "Neighbors request an urgent structural safety evaluation to prevent harm.";
+      } else {
+        sentence1 = `The resident reports unauthorized multi-story construction underway${locPhrase ? ` ${locPhrase}` : ""}.`;
+        sentence2 = "The construction reportedly violates building regulations and lacks required permits.";
+      }
+      break;
+    }
+
+    default: {
+      sentence1 = `The resident has filed a municipal service grievance${locPhrase ? ` ${locPhrase}` : ""}.`;
+      sentence2 = "Staff inspection is requested to review the issue and initiate appropriate action.";
+      break;
+    }
   }
 
-  // Sentence 2: Duration / Persistence
-  let durationSentence = "";
-  if (/teen\s+din|3\s+din|three\s+days|3\s+days/i.test(lower)) {
-    durationSentence = " The problem has reportedly persisted continuously for three days.";
-  } else if (/do\s+din|2\s+din|two\s+days/i.test(lower)) {
-    durationSentence = " The grievance has persisted unaddressed for two days.";
-  } else if (/hafta|week/i.test(lower)) {
-    durationSentence = " The disruption has affected the locality for approximately one week.";
-  } else if (/mahina|month/i.test(lower)) {
-    durationSentence = " Residents report that this condition has remained unresolved for over a month.";
-  }
-
-  return `${problemDesc}${durationSentence} ${impactDesc}`.trim();
+  return `${sentence1} ${sentence2}`.trim();
 }
 
 // ---------------------------------------------------------------------------
-// 5. UNIFIED PROCESSING PIPELINE
+// 7. UNIFIED PROCESSING PIPELINE
 // ---------------------------------------------------------------------------
 export function processComplaintPrivacy(
   rawText: string,
