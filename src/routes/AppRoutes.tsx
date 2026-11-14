@@ -12,6 +12,7 @@ import { ComplaintTracker } from '../features/citizen/ComplaintTracker';
 import { CitizenDashboard } from '../features/citizen/CitizenDashboard';
 import { LoginPage } from '../features/auth/LoginPage';
 import { RegisterPage } from '../features/auth/RegisterPage';
+import { CitizenRequiredRoute } from '../features/auth/CitizenRequiredRoute';
 import { DepartmentPortalLayout } from '../features/department/DepartmentPortalLayout';
 import { DepartmentDashboardPage } from '../features/department/DepartmentDashboardPage';
 import { DepartmentLoginPage } from '../features/department/DepartmentLoginPage';
@@ -31,6 +32,8 @@ export const AppRoutes: React.FC = () => {
         <Route path="/terms-of-use" element={<TermsOfUsePage />} />
         <Route path="/terms" element={<Navigate to="/terms-of-use" replace />} />
         <Route path="/contact" element={<ContactPage />} />
+        {/* Keep the in-progress form available so a failed or expired session never
+            discards entered details. Submission itself checks for a live session. */}
         <Route path="/submit" element={<ComplaintForm />} />
         <Route path="/write-complaint" element={<Navigate to="/submit" replace />} />
         <Route path="/track" element={<ComplaintTracker />} />
@@ -56,7 +59,7 @@ export const AppRoutes: React.FC = () => {
 
       {/* Authenticated Citizen Workspace layout */}
       <Route element={<CitizenLayout />}>
-        <Route path="/dashboard" element={<CitizenDashboard />} />
+        <Route path="/dashboard" element={<CitizenRequiredRoute><CitizenDashboard /></CitizenRequiredRoute>} />
       </Route>
 
       {/* Fallback route */}

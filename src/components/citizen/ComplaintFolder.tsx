@@ -53,7 +53,7 @@ export const ComplaintFolder: React.FC<ComplaintFolderProps> = ({
       case 'under_review':
         return (
           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[11px] font-mono font-bold uppercase bg-[#FAFAF9] text-[#5B5B5B] border border-[#D5D5D3]">
-            Under Review
+            {language === 'ur' ? 'بلدیاتی جائزہ' : 'Awaiting Review'}
           </span>
         );
       default:

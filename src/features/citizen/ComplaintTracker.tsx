@@ -84,7 +84,7 @@ export const ComplaintTracker: React.FC = () => {
       case 'submitted':
         return lang === 'ur' ? 'شکایت درج ہو گئی' : 'Submitted';
       case 'under_review':
-        return lang === 'ur' ? 'زیرِ جائزہ' : 'Under Review';
+        return lang === 'ur' ? 'بلدیاتی درجہ بندی کا جائزہ جاری ہے' : 'Awaiting Municipal Classification Review';
       case 'assigned':
         return lang === 'ur' ? 'محکمانہ توثیق کے منتظر' : 'Pending Department Acceptance';
       case 'accepted':

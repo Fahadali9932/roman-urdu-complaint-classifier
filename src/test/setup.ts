@@ -1,4 +1,12 @@
 import '@testing-library/jest-dom/vitest';
+import { beforeEach } from 'vitest';
+
+beforeEach(() => {
+  if (typeof window !== 'undefined') {
+    window.sessionStorage?.clear();
+    window.localStorage?.clear();
+  }
+});
 
 if (typeof window !== 'undefined' && !window.IntersectionObserver) {
   class MockIntersectionObserver {

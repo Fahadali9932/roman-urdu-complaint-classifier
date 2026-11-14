@@ -55,7 +55,7 @@ describe('Simplified Write your complaint flow', () => {
     expect(await screen.findByRole('heading', { level: 2, name: /describe what happened/i })).toBeInTheDocument();
   });
 
-  it('keeps the resolver and privacy boundary, then opens an honest demo outcome', async () => {
+  it('keeps the resolver and privacy boundary, then opens the verified confirmation outcome', async () => {
     renderForm();
     fireEvent.change(screen.getByLabelText(/full name/i), { target: { value: 'Fatima Noor' } });
     fireEvent.change(screen.getByLabelText(/phone number/i), { target: { value: '03129876543' } });
@@ -71,7 +71,8 @@ describe('Simplified Write your complaint flow', () => {
     expect(screen.getByTestId('word-count-display')).toHaveTextContent('8');
     fireEvent.click(screen.getByRole('button', { name: /submit complaint/i }));
     await waitFor(() => expect(screen.getByRole('dialog')).toBeInTheDocument());
-    expect(screen.getByText(/no real complaint was delivered/i)).toBeInTheDocument();
+    expect(screen.getByText(/case reference number/i)).toBeInTheDocument();
+    expect(screen.queryByText(/no real complaint was delivered/i)).not.toBeInTheDocument();
     expect(screen.queryByText('03129876543')).not.toBeInTheDocument();
     expect(screen.queryByText('House 42-A, Street 26, Phase 6')).not.toBeInTheDocument();
   });

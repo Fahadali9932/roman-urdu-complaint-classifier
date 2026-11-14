@@ -56,6 +56,57 @@ const mapComplaintRow = (r: any): Complaint => ({
 
 const COMPLAINT_SELECT_QUERY = '*, complaint_timeline_events(*)';
 
+export class ComplaintSubmissionError extends Error {
+  constructor(
+    message: string,
+    public readonly code: 'AUTHENTICATION_REQUIRED' | 'CITIZEN_ACCOUNT_REQUIRED' | 'VALIDATION_FAILED' | 'SUBMISSION_UNAVAILABLE'
+  ) {
+    super(message);
+    this.name = 'ComplaintSubmissionError';
+  }
+}
+
+type FunctionErrorPayload = { error?: unknown; code?: unknown };
+
+const safeSubmissionError = async (cause: unknown): Promise<ComplaintSubmissionError> => {
+  const response = (cause as { context?: unknown } | null)?.context as
+    | { status?: unknown; clone?: () => { json: () => Promise<unknown> } }
+    | undefined;
+  const status = typeof response?.status === 'number' ? response.status : undefined;
+  let payload: FunctionErrorPayload | undefined;
+
+  try {
+    const body = await response?.clone?.().json();
+    if (body && typeof body === 'object') payload = body as FunctionErrorPayload;
+  } catch {
+    // A gateway response can be empty or non-JSON. The status remains enough
+    // to provide a safe action without exposing transport or database details.
+  }
+
+  if (status === 401) {
+    return new ComplaintSubmissionError(
+      'Your sign-in session has expired or is missing. Sign in again, then submit this form; your entered details are still here.',
+      'AUTHENTICATION_REQUIRED'
+    );
+  }
+  if (status === 403 || payload?.code === 'CITIZEN_ACCOUNT_REQUIRED') {
+    return new ComplaintSubmissionError(
+      'Please use a citizen account to submit a complaint.',
+      'CITIZEN_ACCOUNT_REQUIRED'
+    );
+  }
+  if (status === 400 || payload?.code === 'INVALID_COMPLAINT_PAYLOAD') {
+    return new ComplaintSubmissionError(
+      'Please review the complaint details and try again. Your entered details have not been cleared.',
+      'VALIDATION_FAILED'
+    );
+  }
+  return new ComplaintSubmissionError(
+    'We could not submit the complaint right now. Your entered details are still here; please try again shortly.',
+    'SUBMISSION_UNAVAILABLE'
+  );
+};
+
 export class SupabaseComplaintService implements IComplaintService {
   async getComplaints(): Promise<Complaint[]> {
     return this.getCitizenComplaints();
@@ -90,6 +141,14 @@ export class SupabaseComplaintService implements IComplaintService {
 
   async submitComplaint(input: ComplaintSubmissionInput): Promise<SubmissionResult> {
     if (!isSupabaseConfigured() || !supabase) return fallback.submitComplaint(input);
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError || !sessionData.session?.access_token) {
+      throw new ComplaintSubmissionError(
+        'Please sign in before submitting a complaint. Your entered details have not been cleared.',
+        'AUTHENTICATION_REQUIRED'
+      );
+    }
+
     const { data, error } = await supabase.functions.invoke('submit-classified-complaint', {
       body: {
         title: input.title,
@@ -101,11 +160,16 @@ export class SupabaseComplaintService implements IComplaintService {
         citizenPhone: input.citizenPhone,
         citizenEmail: input.citizenEmail,
         residentialAddress: input.residentialAddress,
-        isDemonstration: input.isDemonstration === true,
+        isDemonstration: false,
       },
     });
-    if (error) throw error;
-    if (data?.error) throw new Error(data.error);
+    if (error) throw await safeSubmissionError(error);
+    if (data?.error) {
+      throw new ComplaintSubmissionError(
+        'We could not submit the complaint right now. Your entered details are still here; please try again shortly.',
+        'SUBMISSION_UNAVAILABLE'
+      );
+    }
     return {
       referenceNumber: data.reference_number,
       isSimulated: false,
@@ -113,6 +177,9 @@ export class SupabaseComplaintService implements IComplaintService {
       message: data.needs_review
         ? 'Your complaint was received and is awaiting safe routing review.'
         : 'Your complaint was securely routed to the responsible department.',
+      departmentId: data.prediction?.departmentId || data.assigned_department_id || data.predicted_department_id,
+      status: data.status,
+      needsReview: Boolean(data.needs_review),
     };
   }
 

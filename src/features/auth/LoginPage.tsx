@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Container } from '../../components/layout/Container';
 import { Input } from '../../components/common/Input';
 import { Button } from '../../components/common/Button';
@@ -11,6 +11,8 @@ import { isSupabaseConfigured, supabase } from '../../lib/supabase';
 export const LoginPage: React.FC = () => {
   const { t, isRTL } = useLanguage();
   const navigate = useNavigate();
+  const location = useLocation();
+  const returnTo = (location.state as { from?: string } | null)?.from || '/dashboard';
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -26,7 +28,7 @@ export const LoginPage: React.FC = () => {
       if (!isSupabaseConfigured() || !supabase) throw new Error('Live sign-in is not configured.');
       const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
       if (authError) throw authError;
-      navigate('/dashboard');
+      navigate(returnTo, { replace: true });
     } catch (cause) { setError(cause instanceof Error ? cause.message : 'Unable to sign in.'); }
     finally { setSubmitted(false); }
   };

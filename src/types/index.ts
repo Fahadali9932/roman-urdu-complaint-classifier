@@ -203,6 +203,9 @@ export interface SubmissionResult {
   isSimulated: boolean;
   timestamp: string;
   message: string;
+  departmentId?: string;
+  status?: string;
+  needsReview?: boolean;
 }
 
 /**

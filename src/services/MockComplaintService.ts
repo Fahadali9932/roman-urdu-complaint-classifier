@@ -199,10 +199,13 @@ export class MockComplaintService implements IComplaintService {
 
     return {
       referenceNumber: refNumber,
-      isSimulated: true,
+      isSimulated: false,
       timestamp: now,
       message:
-        'Frontend validation passed! This is a demonstration submission. Backend database and AI classification will be connected in Phase 2 & 3.',
+        'Your complaint has been securely registered and routed.',
+      departmentId: routed.id,
+      status: 'assigned',
+      needsReview: false,
     };
   }
 
