@@ -1,13 +1,20 @@
 /**
- * AWAAZ-E-AWAM — Phase 3E.2: Intelligent Privacy & Presentation Engine
+ * AWAAZ-E-AWAM — Phase 3E.3: Intelligent Privacy & Presentation Engine
  *
  * Implements:
- * 1. Complete Private Residential Address Span Redaction (Roman Urdu & English formats).
+ * 1. Comprehensive Roman Urdu & English Natural Residential Address Redaction:
+ *    - Context-aware living phrases ("main xyz colony mein rehta hoon", "hum log xyz society mein rehte hain").
+ *    - Intro phrases ("mera ghar abc apartments mein hai", "hamara pata xyz colony hai", "mera address xyz area hai").
+ *    - English phrases ("i live in xyz residential complex").
+ *    - Dwelling anchors with house/street/block/sector/apartment numbers.
+ *    - Metadata residentialAddress token cross-matching (including area names without house numbers).
+ *    - Preservation of genuine public incident landmarks (University Road, Main Shahrah-e-Faisal, etc.).
  * 2. Personal Information Detection and Redaction (Phones, Emails, CNICs, Names).
  * 3. Abusive Language Filtering (Masking insults while retaining complaint allegations and audit evidence).
  * 4. Automatic Factual Heading Generation (Text-first, natural English, 5-10 words, zero hallucination).
- * 5. Automatic Factual Summary Generation (Text-first, 1-2 concise sentences, zero department-template hallucination).
- * 6. Public Location Protection (Ensuring public incident locations are never redacted).
+ * 5. Automatic Factual Summary Generation (Text-first, 1-2 concise human sentences, zero government/AI jargon).
+ * 6. Public Location Protection & Clean Location Formatting (Zero "at none" artifacts).
+ * 7. Privacy Review Flags (Setting uncertainRedaction = true when private phrases cannot be safely classified).
  *
  * Works in both browser/Vite and Deno Edge Runtime with zero external dependencies ($0.00 cost).
  */
@@ -238,88 +245,7 @@ export function sanitizeComplaint(
     }
   }
 
-  // E. Private Home Address & House Number Redaction
-  // 1. Comprehensive multi-segment residential address span:
-  // e.g. "House No. 42-B, Street 3, Block 13-D Gulshan", "House 24 Street 5", "Flat 402, Al-Rehman Heights"
-  const multiSegmentAddressRegex = /\b(?:house|hno|h\.no|h#|makan|makaan|flat|flat#|fl#|apartment|apt|apt#|plot|plot#)\s*(?:(?:no|num|number|#)[.:]?)?\s*[0-9a-zA-Z\-/]+(?:\s*,\s*|\s+)?(?:(?:street|st|st\.|gali|lane|rasta|lane#|gali#)\s*(?:(?:no|num|number|#)[.:]?)?\s*[0-9a-zA-Z\-/]+(?:\s*,\s*|\s+)?)?(?:(?:[0-9]+(?:st|nd|rd|th)\s+)?(?:commercial\s+lane)[^\w\n]{0,3}[0-9a-zA-Z\-/]*(?:\s*,\s*|\s+)?)?(?:(?:sector|sec|sec\.|block|blk|blk\.|phase)\s*(?:(?:no|num|number|#)[.:]?)?\s*[0-9a-zA-Z\-/]+(?:\s*,\s*|\s+)?)?(?:(?:[A-Za-z0-9\-]+\s+)?(?:building|heights|plaza|apartments|terrace|tower)\s*(?:[A-Za-z0-9\-]+)?(?:\s*,\s*|\s+)?)?(?:(?:Gulshan(?:-e-Iqbal)?|Clifton|DHA|PECHS|Nazimabad|North Nazimabad|Korangi|Malir|Saddar|Gulberg|FB Area|F\.B\. Area|North Karachi|Baldia|Orangi|Lyari|SITE|Jamshed Town))?(?=\s+(?:mein|main|me|pe|par|rehta|rehti|rehte|located|situated|hai|hy|ka|ke|ki|\.|\n|,|$))/gi;
-
-  text = text.replace(multiSegmentAddressRegex, (match) => {
-    if (isPublicLocation(match, metadata)) return match;
-    flags.hasPrivateAddress = true;
-    redactedSpansCount++;
-    return "[PRIVATE ADDRESS REDACTED]";
-  });
-
-  // 2. Chained address without ending postposition (e.g. standalone "House No. 42-B, Street 3, Block 13-D")
-  const chainedAddressRegex = /\b(?:house|hno|h\.no|h#|makan|makaan|flat|flat#|fl#|apartment|apt|apt#|plot|plot#)\s*(?:(?:no|num|number|#)[.:]?)?\s*[0-9a-zA-Z\-/]+(?:\s*,\s*|\s+)(?:street|st|st\.|gali|lane|rasta)\s*(?:(?:no|num|number|#)[.:]?)?\s*[0-9a-zA-Z\-/]+(?:\s*,\s*|\s+)?(?:(?:sector|sec|sec\.|block|blk|blk\.|phase)\s*(?:(?:no|num|number|#)[.:]?)?\s*[0-9a-zA-Z\-/]+)?\b/gi;
-
-  text = text.replace(chainedAddressRegex, (match) => {
-    if (isPublicLocation(match, metadata)) return match;
-    flags.hasPrivateAddress = true;
-    redactedSpansCount++;
-    return "[PRIVATE ADDRESS REDACTED]";
-  });
-
-  // 3. Simple house / flat identifier: "House 24", "Flat 402", "H# 14", "Plot 12-B"
-  const simpleHouseRegex = /\b(?:house|hno|h\.no|h#|makan|makaan|flat|flat#|fl#|apartment|apt|plot)\s*(?:(?:no|num|number|#)[.:]?)?\s*[0-9a-zA-Z\-/]+\b/gi;
-  text = text.replace(simpleHouseRegex, (match) => {
-    if (isPublicLocation(match, metadata)) return match;
-    flags.hasPrivateAddress = true;
-    redactedSpansCount++;
-    return "[PRIVATE ADDRESS REDACTED]";
-  });
-
-  // 4. Introductory residential phrase: "Mera ghar Street 3 mein hai", "Humara makan...", "My house is..."
-  const introAddressRegex = /\b(?:mera|humara|humaara|hamara|my|our)\s+(?:ghar|makan|makaan|house|flat|home)\s+(?:(?:street|gali|lane|lane#|block|sector|phase|house|flat)[^\w\n]{0,3}(?:(?:no|num|number|#)[.:]?)?\s*[0-9a-zA-Z\-/]+(?:\s*,\s*|\s+)?)+(?=\s+(?:mein|main|me|pe|par|rehta|rehti|rehte|located|situated|hai|hy|\.|\n|$))/gi;
-  text = text.replace(introAddressRegex, (match) => {
-    if (isPublicLocation(match, metadata)) return match;
-    flags.hasPrivateAddress = true;
-    redactedSpansCount++;
-    const introMatch = match.match(/^(?:mera|humara|humaara|hamara|my|our)\s+(?:ghar|makan|makaan|house|flat|home)\s+/i);
-    const prefix = introMatch ? introMatch[0] : "";
-    return `${prefix}[PRIVATE ADDRESS REDACTED]`;
-  });
-
-  // 5. Explicit metadata residentialAddress token matching
-  if (metadata?.residentialAddress && metadata.residentialAddress.length >= 5) {
-    const rawAddr = metadata.residentialAddress.trim();
-    // Match entire address if it appears verbatim
-    const escapedFull = rawAddr.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&");
-    const fullRegex = new RegExp(`\\b${escapedFull}\\b`, "gi");
-    if (fullRegex.test(text)) {
-      flags.hasPrivateAddress = true;
-      text = text.replace(fullRegex, () => {
-        redactedSpansCount++;
-        return "[PRIVATE ADDRESS REDACTED]";
-      });
-    }
-
-    // Match individual segments (e.g. "House No. 42-B", "Street 3", "Block 13-D")
-    const segments = rawAddr.split(/[,;\n]+/).map((s) => s.trim()).filter((s) => s.length >= 4);
-    for (const seg of segments) {
-      if (isPublicLocation(seg, metadata)) continue;
-      // Skip generic single words like "Karachi" or "Gulshan"
-      if (!/\d/.test(seg) && !/(?:house|flat|makan|plot|street|gali|lane|sector|block)/i.test(seg)) continue;
-      const escapedSeg = seg.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&");
-      const segRegex = new RegExp(`\\b${escapedSeg}\\b`, "gi");
-      if (segRegex.test(text)) {
-        flags.hasPrivateAddress = true;
-        text = text.replace(segRegex, () => {
-          redactedSpansCount++;
-          return "[PRIVATE ADDRESS REDACTED]";
-        });
-      }
-    }
-  }
-
-  // 6. Cleanup trailing dangling street tokens when in close proximity to a redacted address
-  const danglingStreetRegex = /(\[PRIVATE ADDRESS REDACTED\][,\s]+)(?:street|st|st\.|gali|lane|rasta)\s*(?:(?:no|num|number|#)[.:]?)?\s*[0-9a-zA-Z\-/]+/gi;
-  text = text.replace(danglingStreetRegex, () => {
-    flags.hasPrivateAddress = true;
-    return "[PRIVATE ADDRESS REDACTED]";
-  });
-
-  // F. Citizen Name Redaction
+  // E. Citizen Name Redaction
   // 1. Natural self-introduction: "Mera naam Muhammad Tariq Khan hai", "My name is Ali Raza"
   const myNameRegex = /\b(?:mera\s+na+m|my\s+name\s+is)\s+([A-Za-z]+(?:\s+[A-Za-z]+){0,2})(?=\s+(?:hai|hy|and|\.|\n|,|$))/gi;
   text = text.replace(myNameRegex, (match, capturedName) => {
@@ -332,7 +258,7 @@ export function sanitizeComplaint(
   const COMMON_NON_NAMES = new Set([
     "rehta", "rehti", "rehte", "gali", "ghar", "area", "shikayat",
     "baat", "bol", "yahan", "wahan", "paas", "saath", "andar", "bahar",
-    "pareshan", "theek"
+    "pareshan", "theek", "xyz", "abc"
   ]);
 
   const iAmRegex = /\b(?:main|mein|i\s+am)\s+([A-Za-z]+(?:\s+[A-Za-z]+){0,2})\s+(?:hoon|hun|bol\s+raha|bol\s+rahi|baat\s+kar\s+raha|speaking|here)\b/gi;
@@ -367,9 +293,132 @@ export function sanitizeComplaint(
     }
   }
 
+  // F. Private Home Address & Residential Span Redaction
+
+  // 1. Context phrase: Roman Urdu "main xyz colony mein rehta hoon", "hum log xyz society mein rehte hain"
+  const livingContextRegex = /\b(main|mein|ham|hum|hum\s+log)\s+([A-Za-z0-9\s,.'/-]+?)\s+(?:mein|main|me|ke\s+paas|k\s+paas|near)\s+(?:rehta|rehti|rehte|rahay|rahe)\s+(?:hoon|hun|hain|hen|hu|hon)\b/gi;
+  text = text.replace(livingContextRegex, (match, prefix, span) => {
+    if (isPublicLocation(span, metadata)) return match;
+    flags.hasPrivateAddress = true;
+    redactedSpansCount++;
+    return `${prefix} [PRIVATE ADDRESS REDACTED]`;
+  });
+
+  // 2. English "i live in xyz residential complex", "we live in abc apartments"
+  const englishLiveInRegex = /\b(i|we)\s+live\s+(?:in|at|near)\s+([A-Za-z0-9\s,.'/-]+?)(?=\s+(?:and|where|with|\.|\n|,|$)|$)/gi;
+  text = text.replace(englishLiveInRegex, (match, prefix, span) => {
+    if (isPublicLocation(span, metadata)) return match;
+    flags.hasPrivateAddress = true;
+    redactedSpansCount++;
+    return `${prefix} live in [PRIVATE ADDRESS REDACTED]`;
+  });
+
+  // 3. "mera ghar abc apartments mein hai", "hamara ghar xyz colony mein hai"
+  const myHouseSpanRegex = /\b((?:mera|hamara|humaara|humara|my|our)\s+(?:ghar|makan|makaan|house|flat|home|apartment|residence))\s+([A-Za-z0-9\s,.'/-]+?)\s+(?:mein|main|me|par|pe)\s+(?:hai|hy|located|situated)\b/gi;
+  text = text.replace(myHouseSpanRegex, (match, prefix, span) => {
+    if (isPublicLocation(span, metadata)) return match;
+    flags.hasPrivateAddress = true;
+    redactedSpansCount++;
+    return `${prefix} [PRIVATE ADDRESS REDACTED] mein hai`;
+  });
+
+  // 4. "hamara pata xyz colony hai", "mera address xyz area hai"
+  const myAddressSpanRegex = /\b((?:hamara|mera|my|our)\s+(?:pata|address|residence))\s+(?:ye\s+hai|yeh\s+hai|is|hai|hy)?\s*:?\s*([A-Za-z0-9\s,.'/-]+?)(?=\s+(?:hai|hy|aur|and|\.|\n|,|$)|$)/gi;
+  text = text.replace(myAddressSpanRegex, (match, prefix, span) => {
+    if (isPublicLocation(span, metadata)) return match;
+    flags.hasPrivateAddress = true;
+    redactedSpansCount++;
+    return `${prefix} [PRIVATE ADDRESS REDACTED]`;
+  });
+
+  // 5. Comprehensive multi-segment residential address span:
+  // e.g. "House No. 42-B, Street 3, Block 13-D Gulshan", "House 24 Street 5", "Flat 402, Al-Rehman Heights"
+  const multiSegmentAddressRegex = /\b(?:house|hno|h\.no|h#|makan|makaan|flat|flat#|fl#|apartment|apt|apt#|plot|plot#)\s*(?:(?:no|num|number|#)[.:]?)?\s*[0-9a-zA-Z\-/]+(?:\s*,\s*|\s+)?(?:(?:street|st|st\.|gali|lane|rasta|lane#|gali#)\s*(?:(?:no|num|number|#)[.:]?)?\s*[0-9a-zA-Z\-/]+(?:\s*,\s*|\s+)?)?(?:(?:[0-9]+(?:st|nd|rd|th)\s+)?(?:commercial\s+lane)[^\w\n]{0,3}[0-9a-zA-Z\-/]*(?:\s*,\s*|\s+)?)?(?:(?:sector|sec|sec\.|block|blk|blk\.|phase)\s*(?:(?:no|num|number|#)[.:]?)?\s*[0-9a-zA-Z\-/]+(?:\s*,\s*|\s+)?)?(?:(?:[A-Za-z0-9\-]+\s+)?(?:building|heights|plaza|apartments|terrace|tower)\s*(?:[A-Za-z0-9\-]+)?(?:\s*,\s*|\s+)?)?(?:(?:Gulshan(?:-e-Iqbal)?|Clifton|DHA|PECHS|Nazimabad|North Nazimabad|Korangi|Malir|Saddar|Gulberg|FB Area|F\.B\. Area|North Karachi|Baldia|Orangi|Lyari|SITE|Jamshed Town))?(?=\s+(?:mein|main|me|pe|par|rehta|rehti|rehte|located|situated|hai|hy|ka|ke|ki|\.|\n|,|$)|$)/gi;
+
+  text = text.replace(multiSegmentAddressRegex, (match) => {
+    if (isPublicLocation(match, metadata)) return match;
+    flags.hasPrivateAddress = true;
+    redactedSpansCount++;
+    return "[PRIVATE ADDRESS REDACTED]";
+  });
+
+  // 6. Chained address without ending postposition (e.g. standalone "House No. 42-B, Street 3, Block 13-D")
+  const chainedAddressRegex = /\b(?:house|hno|h\.no|h#|makan|makaan|flat|flat#|fl#|apartment|apt|apt#|plot|plot#)\s*(?:(?:no|num|number|#)[.:]?)?\s*[0-9a-zA-Z\-/]+(?:\s*,\s*|\s+)(?:street|st|st\.|gali|lane|rasta)\s*(?:(?:no|num|number|#)[.:]?)?\s*[0-9a-zA-Z\-/]+(?:\s*,\s*|\s+)?(?:(?:sector|sec|sec\.|block|blk|blk\.|phase)\s*(?:(?:no|num|number|#)[.:]?)?\s*[0-9a-zA-Z\-/]+)?\b/gi;
+
+  text = text.replace(chainedAddressRegex, (match) => {
+    if (isPublicLocation(match, metadata)) return match;
+    flags.hasPrivateAddress = true;
+    redactedSpansCount++;
+    return "[PRIVATE ADDRESS REDACTED]";
+  });
+
+  // 7. Simple house / flat identifier: "House 24", "Flat 402", "H# 14", "Plot 12-B"
+  const simpleHouseRegex = /\b(?:house|hno|h\.no|h#|makan|makaan|flat|flat#|fl#|apartment|apt|plot)\s*(?:(?:no|num|number|#)[.:]?)?\s*[0-9a-zA-Z\-/]+\b/gi;
+  text = text.replace(simpleHouseRegex, (match) => {
+    if (isPublicLocation(match, metadata)) return match;
+    flags.hasPrivateAddress = true;
+    redactedSpansCount++;
+    return "[PRIVATE ADDRESS REDACTED]";
+  });
+
+  // 8. Named Residential Units / Complex without numbers: e.g. "xyz colony", "abc society", "abc apartments", "xyz residential complex"
+  const namedComplexRegex = /\b([A-Za-z0-9-]+\s+(?:colony|society|apartments?|heights|enclave|cottages?|villas?|residency|complex|basti|goth|nagar|mohallah|residential\s+complex))\b/gi;
+  text = text.replace(namedComplexRegex, (match, complex) => {
+    if (isPublicLocation(complex, metadata)) return match;
+    flags.hasPrivateAddress = true;
+    redactedSpansCount++;
+    return "[PRIVATE ADDRESS REDACTED]";
+  });
+
+  // 9. Submitter residentialAddress token matching (including area names without numbers)
+  if (metadata?.residentialAddress && metadata.residentialAddress.length >= 3) {
+    const rawAddr = metadata.residentialAddress.trim();
+    const broadRegions = new Set(["karachi", "east", "west", "south", "central", "malir", "korangi", "keamari"]);
+
+    // If whole address matches
+    if (!broadRegions.has(rawAddr.toLowerCase()) && !isPublicLocation(rawAddr, metadata)) {
+      const escapedFull = rawAddr.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&");
+      const fullRegex = new RegExp(`\\b${escapedFull}\\b`, "gi");
+      if (fullRegex.test(text)) {
+        flags.hasPrivateAddress = true;
+        text = text.replace(fullRegex, () => {
+          redactedSpansCount++;
+          return "[PRIVATE ADDRESS REDACTED]";
+        });
+      }
+    }
+
+    // Match individual segments (e.g. "xyz colony", "House 42", "Block 13-D")
+    const segments = rawAddr.split(/[,;\n/]+/).map((s) => s.trim()).filter((s) => s.length >= 3);
+    for (const seg of segments) {
+      if (broadRegions.has(seg.toLowerCase())) continue;
+      if (isPublicLocation(seg, metadata)) continue;
+      const escapedSeg = seg.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&");
+      const segRegex = new RegExp(`\\b${escapedSeg}\\b`, "gi");
+      if (segRegex.test(text)) {
+        flags.hasPrivateAddress = true;
+        text = text.replace(segRegex, () => {
+          redactedSpansCount++;
+          return "[PRIVATE ADDRESS REDACTED]";
+        });
+      }
+    }
+  }
+
+  // 10. Cleanup trailing dangling street tokens when in close proximity to a redacted address
+  const danglingStreetRegex = /(\[PRIVATE ADDRESS REDACTED\][,\s]+)(?:street|st|st\.|gali|lane|rasta)\s*(?:(?:no|num|number|#)[.:]?)?\s*[0-9a-zA-Z\-/]+/gi;
+  text = text.replace(danglingStreetRegex, () => {
+    flags.hasPrivateAddress = true;
+    return "[PRIVATE ADDRESS REDACTED]";
+  });
+
   // G. Flag uncertain redactions
-  // If text contains unredacted 7-8 digit sequences or unparsed "house/flat" references
-  if (/\b\d{7,8}\b/.test(text) || /\b(?:house\s*no|flat\s*no|makan\s*no)\b/i.test(text)) {
+  // If text contains unparsed house/flat references or remaining living indicators
+  if (
+    /\b\d{7,8}\b/.test(text) ||
+    /\b(?:house\s*no|flat\s*no|makan\s*no|plot\s*no)\b/i.test(text) ||
+    (/\b(?:rehta|rehti|rehte)\b/i.test(text) && !text.includes("[PRIVATE ADDRESS REDACTED]"))
+  ) {
     flags.uncertainRedaction = true;
   }
 
@@ -403,10 +452,11 @@ export type ComplaintTopic =
 
 interface ExtractedFacts {
   topic: ComplaintTopic;
-  durationLabel: string | null; // e.g. "for Four Days"
-  durationPlain: string | null; // e.g. "four days"
+  durationLabel: string | null; // e.g. "for Five Days"
+  durationPlain: string | null; // e.g. "five days"
   subType: string;
   hasWaterPumpConsequence: boolean;
+  hasDrinkingWaterConsequence: boolean;
   hasBadSmellConsequence: boolean;
   hasHazardConsequence: boolean;
   hasLowGasCookingConsequence: boolean;
@@ -456,7 +506,9 @@ export function extractComplaintFacts(text: string): ExtractedFacts {
 
   // 2. Specific consequences extraction
   const hasWaterPumpConsequence =
-    /(?:motor|pump)\s+(?:nahi|nai)\s+(?:chal|chalti|chalta)|pani\s+bhi\s+nahi|water\s+pump/i.test(lower);
+    /(?:motor|pump)\s+(?:nahi|nai)\s+(?:chal|chalti|chalta)/i.test(lower);
+  const hasDrinkingWaterConsequence =
+    /p[ee]{1,2}ne\s*k[aey]{1,3}(?:\s*liye)?\s*pa?ni|drinking\s+water|pa?ni\s+bhi\s+n[ah]i|na\s+hi\s+(?:p[ee]{1,2}ne(?:\s*keliye|\s*ke\s*liye)?\s*)?pa?ni|p[ee]{1,2}ne\s+k[ao]\s+pa?ni/i.test(lower);
   const hasBadSmellConsequence =
     /badboo|badbu|smell|stink|taffun/i.test(lower);
   const hasHazardConsequence =
@@ -465,35 +517,28 @@ export function extractComplaintFacts(text: string): ExtractedFacts {
     /chulha|chula|stove|khana|cooking/i.test(lower);
 
   // 3. Topic classification strictly from text keywords
-  // Check Garbage: kachra, safai, sweeper, dumpster, kundi, trash, waste, dher
   const isGarbage =
     /\b(kachra|kachre|garbage|trash|waste|safai|sweeper|jhadoo|dumpster|kundi|dher|kura|koora)\b/i.test(lower);
 
-  // Check Electricity: bijli, light, power, current, loadshedding, voltage, transformer, taar, wire
   const isElectricity =
     /\b(bijli|light|power|loadshedding|voltage|transformer|taar|wire|k-electric|kelectric)\b/i.test(lower) ||
     (/\bcurrent\b/i.test(lower) && !/water|pani/i.test(lower));
 
-  // Check Sewerage: gutter, gutters, sewerage, sewage, manhole, ubal, ganda pani, sludge, nalla
   const isSewerage =
     /\b(gutter|gutters|sewerage|sewage|manhole|ubal|ganda\s+pani|sludge|nalla)\b/i.test(lower);
 
-  // Check Water Supply: pani, paani, water, drinking water, meetha pani, pipeline, pipe leak, line burst
   const isWaterSupply =
     !isSewerage &&
     (/\b(paani|pani|water)\b/i.test(lower) ||
       /\b(line\s+leak|pipeline|pipe\s+toot|pipe\s+leak|line\s+burst|line\s+phat)\b/i.test(lower));
 
-  // Check Gas: gas, sui gas, gas leak, gas smell, chulha, stove, ssgc
   const isGas =
     /\b(gas|sui\s+gas|ssgc)\b/i.test(lower) ||
     (/\b(chulha|stove)\b/i.test(lower) && /pressure|nahi/i.test(lower));
 
-  // Check Road: road, sadak, sarak, khadda, gadda, pothole, asphalt, flyover, underpass, bridge, footpath
   const isRoad =
     /\b(road|sadak|sarak|khadda|khadde|gadda|gadday|pothole|potholes|asphalt|crater|flyover|underpass|pul|expansion\s+joint|footpath)\b/i.test(lower);
 
-  // Check Building: illegal construction, manzil, floor, plaza, sbca, crack, darar
   const isBuilding =
     /\b(illegal\s+construction|ghair\s+qanooni|manzil|floor|plaza|sbca|darar|bina\s+ijazat)\b/i.test(lower) ||
     (/\bcrack\b/i.test(lower) && /building|pillar|wall|chhat/i.test(lower));
@@ -514,7 +559,7 @@ export function extractComplaintFacts(text: string): ExtractedFacts {
     else subType = "power_outage";
   } else if (isWaterSupply) {
     topic = "water_supply";
-    if (/pipe\s+toot|pipeline\s+burst|pipe\s+leak|line\s+phat|line\s+leak/i.test(lower)) subType = "pipe_burst";
+    if (/pipe\s+(?:toot|phat|leak|burst)|pipeline\s+(?:burst|leak|phat|toot)|line\s+(?:phat|leak|burst|toot)|pani\s+zaya/i.test(lower)) subType = "pipe_burst";
     else if (/shortage|nahi\s+aa\s+raha|supply\s+band|dry/i.test(lower)) subType = "water_shortage";
     else if (/badboo|ganda/i.test(lower)) subType = "contaminated_water";
     else subType = "supply_issue";
@@ -543,6 +588,7 @@ export function extractComplaintFacts(text: string): ExtractedFacts {
     durationPlain,
     subType,
     hasWaterPumpConsequence,
+    hasDrinkingWaterConsequence,
     hasBadSmellConsequence,
     hasHazardConsequence,
     hasLowGasCookingConsequence,
@@ -559,11 +605,12 @@ function formatCleanLocation(metadata?: ComplaintPrivacyMetadata): string {
     return (
       clean === "" ||
       clean === "none" ||
-      clean === "n/a" ||
-      clean === "na" ||
       clean === "null" ||
       clean === "undefined" ||
-      clean === "-"
+      clean === "n/a" ||
+      clean === "na" ||
+      clean === "-" ||
+      clean === "nan"
     );
   };
 
@@ -595,7 +642,7 @@ export function generateHeading(
 ): string {
   const facts = extractComplaintFacts(text);
   const dur = facts.durationLabel ? ` ${facts.durationLabel}` : "";
-  const cleanLoc = locality && locality.trim() && !/^(none|null|n\/a|-)$/i.test(locality)
+  const cleanLoc = locality && locality.trim() && !/^(none|null|n\/a|-|nan|undefined)$/i.test(locality)
     ? locality.trim()
     : null;
 
@@ -664,13 +711,12 @@ export function generateHeading(
       return "Unauthorized Multi-Story Building Construction";
 
     default:
-      // Neutral fallback: NEVER assume road damage
       return cleanLoc ? `Municipal Grievance in ${cleanLoc}${dur}` : `Municipal Service Grievance${dur}`;
   }
 }
 
 // ---------------------------------------------------------------------------
-// 6. AUTOMATIC FACTUAL SUMMARY GENERATION (1-2 SENTENCES, NATURAL ENGLISH)
+// 6. AUTOMATIC FACTUAL SUMMARY GENERATION (1-2 SENTENCES, NATURAL HUMAN ENGLISH)
 // ---------------------------------------------------------------------------
 export function generateSummary(
   sanitizedText: string,
@@ -694,29 +740,31 @@ export function generateSummary(
       if (facts.hasBadSmellConsequence) {
         sentence2 = "The waste is causing a bad smell and inconvenience for nearby families.";
       } else {
-        sentence2 = "The accumulated trash requires municipal sanitation sweepers and waste collection.";
+        sentence2 = "The waste has piled up and requires collection by local sanitation workers.";
       }
       break;
     }
 
     case "electricity": {
       if (facts.subType === "sparking_wire") {
-        sentence1 = `The resident reports dangerous electrical wiring or transmission cables sparking${locPhrase ? ` ${locPhrase}` : ""}.`;
-        sentence2 = "The situation presents an immediate electrocution hazard and requires line securing.";
+        sentence1 = `The resident reports dangerous electrical wiring or cables sparking${locPhrase ? ` ${locPhrase}` : ""}.`;
+        sentence2 = "The loose wiring creates a public safety hazard that needs immediate attention.";
       } else if (facts.subType === "transformer_blast") {
-        sentence1 = `The resident reports a transformer explosion resulting in a localized blackout${locPhrase ? ` ${locPhrase}` : ""}.`;
-        sentence2 = "Power supply is disconnected, and emergency technical inspection is requested.";
+        sentence1 = `The resident reports a transformer explosion causing a power blackout${locPhrase ? ` ${locPhrase}` : ""}.`;
+        sentence2 = "Emergency technical repair is needed to restore electricity.";
       } else {
         if (durPlain) {
-          sentence1 = `The resident reports that electricity has been unavailable for ${durPlain}${locPhrase ? ` ${locPhrase}` : ""}.`;
+          sentence1 = `The resident says their home has been without electricity for ${durPlain}${locPhrase ? ` ${locPhrase}` : ""}.`;
         } else {
           sentence1 = `The resident reports an unscheduled power outage${locPhrase ? ` ${locPhrase}` : ""}.`;
         }
 
         if (facts.hasWaterPumpConsequence) {
           sentence2 = "The power outage is preventing their water pump from working.";
+        } else if (facts.hasDrinkingWaterConsequence) {
+          sentence2 = "They also report having no drinking water.";
         } else {
-          sentence2 = "Residents request grid verification and power supply restoration.";
+          sentence2 = "The prolonged outage is causing significant difficulties for the household.";
         }
       }
       break;
@@ -725,7 +773,7 @@ export function generateSummary(
     case "road": {
       if (facts.subType === "flyover_joint") {
         sentence1 = `The resident reports damaged expansion joints on the overhead bridge${locPhrase ? ` ${locPhrase}` : ""}.`;
-        sentence2 = "The defect creates a hazard for moving vehicles and requires engineering inspection.";
+        sentence2 = "The road defect poses an accident risk for moving vehicles and requires inspection.";
       } else {
         sentence1 = `The resident reports severe road damage with deep potholes${locPhrase ? ` ${locPhrase}` : ""}.`;
         sentence2 = "The poor road condition is creating hazardous driving conditions for vehicles.";
@@ -736,14 +784,14 @@ export function generateSummary(
     case "water_supply": {
       if (facts.subType === "pipe_burst") {
         sentence1 = `The resident reports that a drinking water pipeline has broken in their street${locPhrase ? ` ${locPhrase}` : ""}.`;
-        sentence2 = "Clean water is leaking continuously, and prompt repairs are requested.";
+        sentence2 = "Clean water is leaking continuously and needs prompt repair.";
       } else {
         if (durPlain) {
           sentence1 = `The resident reports that drinking water supply has been disrupted for ${durPlain}${locPhrase ? ` ${locPhrase}` : ""}.`;
         } else {
           sentence1 = `The resident reports an interruption in the regular drinking water supply${locPhrase ? ` ${locPhrase}` : ""}.`;
         }
-        sentence2 = "Residents are facing water shortages and request supply restoration.";
+        sentence2 = "Residents are facing water shortages in the area.";
       }
       break;
     }
@@ -766,7 +814,7 @@ export function generateSummary(
     case "gas": {
       if (facts.subType === "gas_leak") {
         sentence1 = `The resident reports a natural gas pipeline leak with a strong odor${locPhrase ? ` ${locPhrase}` : ""}.`;
-        sentence2 = "The escaping gas poses a fire hazard and requires urgent pipeline isolation.";
+        sentence2 = "The escaping gas creates a serious fire hazard and needs urgent repair.";
       } else {
         if (durPlain) {
           sentence1 = `The resident reports low gas pressure persisting for ${durPlain}${locPhrase ? ` ${locPhrase}` : ""}.`;
@@ -776,7 +824,7 @@ export function generateSummary(
         if (facts.hasLowGasCookingConsequence) {
           sentence2 = "The low pressure is preventing households from cooking meals.";
         } else {
-          sentence2 = "Consumers request pressure regulation and line clearance.";
+          sentence2 = "The weak supply is affecting domestic cooking in the area.";
         }
       }
       break;
@@ -785,17 +833,17 @@ export function generateSummary(
     case "building": {
       if (facts.subType === "structural_cracks") {
         sentence1 = `The resident reports critical structural cracks in the building${locPhrase ? ` ${locPhrase}` : ""}.`;
-        sentence2 = "Neighbors request an urgent structural safety evaluation to prevent harm.";
+        sentence2 = "Occupants request an urgent structural safety evaluation to prevent harm.";
       } else {
         sentence1 = `The resident reports unauthorized multi-story construction underway${locPhrase ? ` ${locPhrase}` : ""}.`;
-        sentence2 = "The construction reportedly violates building regulations and lacks required permits.";
+        sentence2 = "The construction reportedly violates local building bylaws and lacks required permits.";
       }
       break;
     }
 
     default: {
       sentence1 = `The resident has filed a municipal service grievance${locPhrase ? ` ${locPhrase}` : ""}.`;
-      sentence2 = "Staff inspection is requested to review the issue and initiate appropriate action.";
+      sentence2 = "The complaint requires staff review to clarify the issue and determine the required action.";
       break;
     }
   }

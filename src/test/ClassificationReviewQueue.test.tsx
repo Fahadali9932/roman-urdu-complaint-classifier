@@ -127,16 +127,17 @@ describe('AWAAZ-E-AWAM — Staff Classification Review Queue & Routing', () => {
       fireEvent.click(refItems[0]);
     });
 
-    // Verify "Review & Assign Department" button is visible
+    // Verify "Assign Department" button is visible
     await waitFor(() => {
-      expect(screen.getByText('Review & Assign Department')).toBeInTheDocument();
+      const assignBtns = screen.getAllByRole('button', { name: /Assign Department/i });
+      expect(assignBtns.length).toBeGreaterThan(0);
     });
 
     // Open review modal
-    fireEvent.click(screen.getByText('Review & Assign Department'));
+    const openModalBtn = screen.getAllByRole('button', { name: /Assign Department/i })[0];
+    fireEvent.click(openModalBtn);
 
     await waitFor(() => {
-      expect(screen.getByText('Classification Review & Assignment')).toBeInTheDocument();
       expect(screen.getByText('Karachi Metropolitan Corporation')).toBeInTheDocument();
     });
 

@@ -68,10 +68,6 @@ export const ReviewAssignmentModal: React.FC<ReviewAssignmentModalProps> = ({
 
   if (!isOpen) return null;
 
-  const confidencePct = complaint.predictionConfidence != null
-    ? Math.round(complaint.predictionConfidence * 100)
-    : undefined;
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -110,7 +106,7 @@ export const ReviewAssignmentModal: React.FC<ReviewAssignmentModalProps> = ({
             </div>
             <div>
               <h3 className="text-base sm:text-lg font-bold text-white tracking-tight">
-                Classification Review & Assignment
+                Assign Department
               </h3>
               <p className="text-xs text-slate-400 font-mono">
                 {complaint.referenceNumber}
@@ -130,16 +126,14 @@ export const ReviewAssignmentModal: React.FC<ReviewAssignmentModalProps> = ({
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="p-5 sm:p-6 space-y-4 overflow-y-auto dept-custom-scrollbar">
           {/* Classifier Ambiguity Notice */}
-          <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-start gap-3">
-            <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+          <div className="p-3.5 rounded-2xl bg-purple-500/10 border border-purple-500/30 flex items-start gap-3">
+            <AlertTriangle className="w-4 h-4 text-purple-300 shrink-0 mt-0.5" />
             <div className="text-xs space-y-1">
-              <div className="font-semibold text-amber-200">
-                Automated Classifier Uncertainty
+              <div className="font-semibold text-purple-200">
+                Department Review Needed
               </div>
               <p className="text-slate-300 leading-relaxed">
-                This complaint was held for review because automated confidence was low
-                {confidencePct !== undefined ? ` (${confidencePct}%)` : ''}.
-                Select the confirmed municipal authority responsible for resolving this issue.
+                The system could not confidently identify the correct department. Please review the complaint and select the department responsible for this issue.
               </p>
             </div>
           </div>
@@ -148,7 +142,7 @@ export const ReviewAssignmentModal: React.FC<ReviewAssignmentModalProps> = ({
           <div className="p-3 rounded-xl bg-white/[0.03] border border-white/10">
             <div className="text-[11px] font-semibold text-slate-400 mb-1">Citizen Complaint:</div>
             <p className="text-xs text-slate-200 italic line-clamp-3">
-              "{complaint.description}"
+              "{complaint.sanitizedDescription || complaint.description}"
             </p>
           </div>
 

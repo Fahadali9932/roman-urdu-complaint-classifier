@@ -115,9 +115,10 @@ describe("AWAAZ-E-AWAM — Phase 3E.2: Privacy & Presentation Engine", () => {
       const res = sanitizeComplaint(
         "mein house 24 street 5 mein rehta hun. Kachra jama hai."
       );
-      expect(res.sanitizedText).toContain("mein [PRIVATE ADDRESS REDACTED] mein rehta hun");
+      expect(res.sanitizedText).toContain("[PRIVATE ADDRESS REDACTED]");
       expect(res.sanitizedText).not.toContain("house 24");
       expect(res.sanitizedText).not.toContain("street 5");
+      expect(res.sanitizedText).toContain("Kachra jama hai");
       expect(res.flags.hasPrivateAddress).toBe(true);
     });
 
@@ -135,6 +136,60 @@ describe("AWAAZ-E-AWAM — Phase 3E.2: Privacy & Presentation Engine", () => {
       const res = sanitizeComplaint("Mera ghar Street 3 mein hai aur bijli band hai");
       expect(res.sanitizedText).toContain("Mera ghar [PRIVATE ADDRESS REDACTED] mein hai");
       expect(res.sanitizedText).not.toContain("Street 3");
+      expect(res.flags.hasPrivateAddress).toBe(true);
+    });
+
+    it("redacts natural living context ('main xyz colony mein rehta hoon')", () => {
+      const res = sanitizeComplaint(
+        "mera naam Ahmed hai main xyz colony mein rehta hoon aur hamare ghar 5 din se bijli nahi aa rahi",
+        { citizenName: "Ahmed", residentialAddress: "xyz colony" }
+      );
+      expect(res.sanitizedText).toContain("main [PRIVATE ADDRESS REDACTED]");
+      expect(res.sanitizedText).toContain("[NAME REDACTED]");
+      expect(res.sanitizedText).not.toContain("Ahmed");
+      expect(res.sanitizedText).not.toContain("xyz colony");
+      expect(res.flags.hasPrivateAddress).toBe(true);
+    });
+
+    it("redacts natural living context ('mein abc block mein rehta hoon')", () => {
+      const res = sanitizeComplaint("mein abc block mein rehta hoon aur gali mein kachra jama hai");
+      expect(res.sanitizedText).toContain("mein [PRIVATE ADDRESS REDACTED]");
+      expect(res.sanitizedText).not.toContain("abc block");
+      expect(res.flags.hasPrivateAddress).toBe(true);
+    });
+
+    it("redacts society statement ('hum log xyz society mein rehte hain')", () => {
+      const res = sanitizeComplaint("hum log xyz society mein rehte hain 4 din se pani nahi aa raha");
+      expect(res.sanitizedText).toContain("[PRIVATE ADDRESS REDACTED]");
+      expect(res.sanitizedText).not.toContain("xyz society");
+      expect(res.flags.hasPrivateAddress).toBe(true);
+    });
+
+    it("redacts apartment intro ('mera ghar abc apartments mein hai')", () => {
+      const res = sanitizeComplaint("mera ghar abc apartments mein hai building mein crack agaya");
+      expect(res.sanitizedText).toContain("mera ghar [PRIVATE ADDRESS REDACTED] mein hai");
+      expect(res.sanitizedText).not.toContain("abc apartments");
+      expect(res.flags.hasPrivateAddress).toBe(true);
+    });
+
+    it("redacts near street statement ('main abc gali ke paas rehti hun')", () => {
+      const res = sanitizeComplaint("main abc gali ke paas rehti hun sadak par gehra khadda hai");
+      expect(res.sanitizedText).toContain("main [PRIVATE ADDRESS REDACTED]");
+      expect(res.sanitizedText).not.toContain("abc gali");
+      expect(res.flags.hasPrivateAddress).toBe(true);
+    });
+
+    it("redacts address intro ('hamara pata xyz colony hai')", () => {
+      const res = sanitizeComplaint("hamara pata xyz colony hai gutter ubal raha hai");
+      expect(res.sanitizedText).toContain("hamara pata [PRIVATE ADDRESS REDACTED]");
+      expect(res.sanitizedText).not.toContain("xyz colony");
+      expect(res.flags.hasPrivateAddress).toBe(true);
+    });
+
+    it("redacts English living statement ('i live in xyz residential complex')", () => {
+      const res = sanitizeComplaint("i live in xyz residential complex and there is no water for 2 days");
+      expect(res.sanitizedText).toContain("i live in [PRIVATE ADDRESS REDACTED]");
+      expect(res.sanitizedText).not.toContain("xyz residential complex");
       expect(res.flags.hasPrivateAddress).toBe(true);
     });
 
@@ -207,8 +262,21 @@ describe("AWAAZ-E-AWAM — Phase 3E.2: Privacy & Presentation Engine", () => {
         departmentId: "kelectric",
       });
       expect(res.generatedHeading).toBe("Electricity Outage for Three Days");
-      expect(res.factualSummary).toContain("electricity has been unavailable for three days in Gulshan-e-Iqbal");
+      expect(res.factualSummary).toContain("without electricity for three days in Gulshan-e-Iqbal");
       expect(res.factualSummary).toContain("The power outage is preventing their water pump from working");
+    });
+
+    it("Scenario A2: Five-day power outage with no drinking water (KHI-2026-8FE7C3CA exact case)", () => {
+      const raw = "humare ghar 5 din se light nahi hai aur peene ke liye pani bhi nahi hai";
+      const res = processComplaintPrivacy(raw, {
+        incidentLocality: "Korangi",
+        departmentId: "kelectric",
+      });
+      expect(res.generatedHeading).toBe("Electricity Outage for Five Days");
+      expect(res.factualSummary).toContain("without electricity for five days in Korangi");
+      expect(res.factualSummary).toContain("They also report having no drinking water");
+      expect(res.factualSummary).not.toContain("water pump");
+      expect(res.factualSummary).not.toContain("grid verification");
     });
 
     it("Scenario B: Garbage uncollected for 4 days", () => {
