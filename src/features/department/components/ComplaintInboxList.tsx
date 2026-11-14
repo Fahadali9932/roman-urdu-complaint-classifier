@@ -52,7 +52,7 @@ export const ComplaintInboxList: React.FC<ComplaintInboxListProps> = ({
 }) => {
   if (complaints.length === 0) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-8 text-center min-h-[460px]">
+      <div className="flex-1 flex flex-col items-center justify-center p-8 text-center min-h-0">
         <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mb-4 text-slate-400">
           <FileText className="w-6 h-6 text-amber-200/70" />
         </div>
@@ -65,7 +65,7 @@ export const ComplaintInboxList: React.FC<ComplaintInboxListProps> = ({
   }
 
   return (
-    <div className="divide-y divide-white/[0.07] overflow-y-auto max-h-[620px] dept-custom-scrollbar">
+    <div className="flex-1 divide-y divide-white/[0.07] overflow-y-auto min-h-0 dept-custom-scrollbar">
       {complaints.map((c) => {
         const isSelected = selectedReference === c.referenceNumber;
         const badge = getDisplayStatusBadge(c.status);

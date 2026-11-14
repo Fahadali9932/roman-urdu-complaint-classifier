@@ -37,7 +37,7 @@ export const DepartmentPortalLayout: React.FC = () => {
   }, []);
 
   return (
-    <div className="min-h-screen w-full bg-[#FAF8F5] text-[#111827] selection:bg-[#111827] selection:text-white">
+    <div className="min-h-screen w-full text-[#111827] selection:bg-[#111827] selection:text-white">
       {!isOnline && (
         <div
           role="status"

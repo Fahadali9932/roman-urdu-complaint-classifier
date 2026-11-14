@@ -200,10 +200,10 @@ export const DepartmentDashboardPage: React.FC = () => {
     <div
       data-testid="department-workspace"
       data-dept-theme={departmentId}
-      className="dept-dark-wrap min-h-screen w-full flex flex-col justify-center items-center p-0 sm:p-5 lg:p-8 selection:bg-[var(--dept-accent)] selection:text-black font-sans"
+      className="dept-dark-wrap w-full h-screen h-[100dvh] flex flex-col overflow-hidden selection:bg-[var(--dept-accent)] selection:text-black font-sans m-0 p-0"
     >
       {/* Mobile Header Bar */}
-      <div className="md:hidden w-full flex items-center justify-between px-5 py-4 bg-[#151417] border-b border-white/10 sticky top-0 z-30">
+      <header className="md:hidden w-full flex items-center justify-between px-5 py-4 bg-[#151417] border-b border-white/10 shrink-0 z-30">
         <div className="flex items-center gap-2.5">
           <div className="w-7 h-7 rounded-lg bg-white/10 border border-white/15 flex items-center justify-center font-serif font-black text-white text-sm">
             a.
@@ -222,12 +222,12 @@ export const DepartmentDashboardPage: React.FC = () => {
         >
           {isMobileDrawerOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </button>
-      </div>
+      </header>
 
-      {/* Main Operational Glass Shell (Reference 01 / 05) */}
-      <div className="dept-shell w-full max-w-[1410px] min-h-[820px] flex flex-col md:flex-row relative z-10 sm:rounded-[26px] overflow-hidden">
+      {/* Main Operational Glass Shell - Edge-to-Edge Desktop Application */}
+      <div className="dept-shell w-full flex-1 flex flex-col md:flex-row min-h-0 overflow-hidden relative z-10">
         {/* Left Vertical Dark Sidebar (Desktop) */}
-        <div className="hidden md:flex w-[285px] min-w-[285px] dept-sidebar shrink-0">
+        <aside className="hidden md:flex w-[272px] min-w-[272px] h-full dept-sidebar shrink-0 overflow-y-auto">
           <DepartmentSidebar
             currentSection={currentSection}
             onSelectSection={(sec) => setCurrentSection(sec)}
@@ -237,7 +237,7 @@ export const DepartmentDashboardPage: React.FC = () => {
             onSearchChange={(q) => setSearchQuery(q)}
             taskCounts={taskCounts}
           />
-        </div>
+        </aside>
 
         {/* Mobile Slide-Out Navigation Drawer */}
         {isMobileDrawerOpen && (
@@ -247,7 +247,7 @@ export const DepartmentDashboardPage: React.FC = () => {
               if (e.target === e.currentTarget) setIsMobileDrawerOpen(false);
             }}
           >
-            <div className="w-[285px] h-full bg-[#151417] border-r border-white/10 shadow-2xl p-0">
+            <div className="w-[272px] h-full bg-[#151417] border-r border-white/10 shadow-2xl p-0">
               <DepartmentSidebar
                 currentSection={currentSection}
                 onSelectSection={(sec) => setCurrentSection(sec)}
@@ -263,7 +263,7 @@ export const DepartmentDashboardPage: React.FC = () => {
         )}
 
         {/* Right Content Canvas */}
-        <div className="flex-1 flex flex-col min-w-0 p-5 sm:p-8 lg:p-10 overflow-y-auto">
+        <main className="dept-main flex-1 flex flex-col min-w-0 h-full overflow-y-auto p-5 sm:p-7 lg:p-8 xl:p-10">
           {/* Unauthorized Reference Tampering Warning */}
           {unauthorizedRefError && (
             <div
@@ -288,9 +288,9 @@ export const DepartmentDashboardPage: React.FC = () => {
 
           {/* Section 1: TASKS (Primary Workspace) */}
           {currentSection === 'tasks' && (
-            <div className="flex-1 flex flex-col">
+            <div className="flex-1 flex flex-col min-h-0">
               {/* Header: Title & Subtitle */}
-              <div className="mb-6">
+              <div className="mb-6 shrink-0">
                 <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-white">
                   Tasks
                 </h1>
@@ -300,7 +300,7 @@ export const DepartmentDashboardPage: React.FC = () => {
               </div>
 
               {/* Toolbar: Filter Pills & Sorting */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 shrink-0">
                 <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
                   {(
                     [
@@ -355,14 +355,14 @@ export const DepartmentDashboardPage: React.FC = () => {
                   </p>
                 </div>
               ) : (
-                <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-5 min-h-[580px]">
+                <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-5 min-h-0">
                   {/* Left Column: Assigned Complaints List */}
                   <div
-                    className={`dept-panel lg:col-span-7 flex flex-col overflow-hidden ${
+                    className={`dept-panel lg:col-span-7 flex flex-col overflow-hidden min-h-0 ${
                       selectedReference ? 'hidden lg:flex' : 'flex'
                     }`}
                   >
-                    <div className="px-5 py-3.5 border-b border-white/[0.08] flex items-center justify-between text-xs font-semibold tracking-wider text-slate-400 uppercase">
+                    <div className="px-5 py-3.5 border-b border-white/[0.08] flex items-center justify-between text-xs font-semibold tracking-wider text-slate-400 uppercase shrink-0">
                       <span>ASSIGNED COMPLAINTS</span>
                       <span className="font-mono text-[11px] text-slate-500">
                         {filteredComplaints.length} complaints
@@ -378,7 +378,7 @@ export const DepartmentDashboardPage: React.FC = () => {
 
                   {/* Right Column: Complaint Detail View */}
                   <div
-                    className={`dept-panel lg:col-span-5 flex flex-col overflow-hidden ${
+                    className={`dept-panel lg:col-span-5 flex flex-col overflow-hidden min-h-0 ${
                       !selectedReference ? 'hidden lg:flex' : 'flex'
                     }`}
                   >
@@ -618,7 +618,7 @@ export const DepartmentDashboardPage: React.FC = () => {
               </div>
             </div>
           )}
-        </div>
+        </main>
       </div>
 
       {/* Status Update Modal */}

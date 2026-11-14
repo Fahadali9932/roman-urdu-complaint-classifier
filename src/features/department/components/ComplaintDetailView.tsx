@@ -23,7 +23,7 @@ export const ComplaintDetailView: React.FC<ComplaintDetailViewProps> = ({
 
   if (!complaint) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-8 text-center min-h-[460px]">
+      <div className="flex-1 flex flex-col items-center justify-center p-8 text-center min-h-0">
         <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mb-4 text-slate-400">
           <LayoutGrid className="w-6 h-6 text-amber-200/70" />
         </div>
@@ -61,7 +61,7 @@ export const ComplaintDetailView: React.FC<ComplaintDetailViewProps> = ({
   const isRejected = complaint.status === 'rejected';
 
   return (
-    <div className="flex-1 p-6 sm:p-7 flex flex-col justify-between overflow-y-auto max-h-[620px] dept-custom-scrollbar">
+    <div className="flex-1 p-6 sm:p-7 flex flex-col justify-between overflow-y-auto min-h-0 dept-custom-scrollbar">
       <div className="space-y-5">
         {/* Mobile Back Button */}
         {onBackToList && (
