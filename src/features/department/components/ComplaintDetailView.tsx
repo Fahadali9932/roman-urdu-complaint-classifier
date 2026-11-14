@@ -137,14 +137,48 @@ export const ComplaintDetailView: React.FC<ComplaintDetailViewProps> = ({
 
         <hr className="border-0 border-t border-white/[0.08]" />
 
-        {/* Sanitized Complaint Text (STRICTLY NO CITIZEN PII) */}
+        {/* Section: Professional Heading */}
+        <div>
+          <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+            HEADING
+          </div>
+          <div className="text-base font-bold text-white tracking-tight">
+            {complaint.generatedHeading || complaint.title || 'Municipal Complaint'}
+          </div>
+        </div>
+
+        {/* Section: Short Factual Summary */}
         <div>
           <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">
-            COMPLAINT
+            SUMMARY
           </div>
-          <p className="text-sm text-slate-200 leading-relaxed font-normal">
-            {complaint.description}
-          </p>
+          <div className="p-3.5 rounded-xl bg-white/[0.04] border border-white/10 text-xs text-slate-300 leading-relaxed font-normal">
+            {complaint.factualSummary || complaint.description}
+          </div>
+        </div>
+
+        {/* Section: Full Complaint — Sanitized (STRICTLY NO CITIZEN PII) */}
+        <div>
+          <div className="flex items-center justify-between gap-2 mb-1.5">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+              FULL COMPLAINT — SANITIZED
+            </span>
+            <span className="inline-flex items-center gap-1 text-[10px] font-medium text-emerald-400/90 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-md">
+              <ShieldCheck className="w-3 h-3 text-emerald-400" />
+              PII Protected
+            </span>
+          </div>
+          <div className="p-3.5 rounded-xl bg-white/[0.02] border border-white/[0.06] space-y-2">
+            <p className="text-sm text-slate-200 leading-relaxed font-normal">
+              {complaint.sanitizedDescription || complaint.description}
+            </p>
+            {complaint.redactionNeedsReview && (
+              <div className="pt-2 border-t border-white/[0.06] flex items-center gap-1.5 text-[11px] text-amber-300">
+                <AlertCircle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                <span>Notice: Uncertain redactions flagged for verification.</span>
+              </div>
+            )}
+          </div>
         </div>
 
         <hr className="border-0 border-t border-white/[0.08]" />

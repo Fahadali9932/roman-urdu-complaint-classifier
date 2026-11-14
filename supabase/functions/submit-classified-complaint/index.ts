@@ -1,6 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import model from "./model.json" with { type: "json" };
+import { processComplaintPrivacy } from "./privacy-engine.ts";
 
 type Model = {
   classes: string[];
@@ -151,10 +152,26 @@ Deno.serve(async (req) => {
     }
 
     const result = classify(`${input.title ?? ""} ${input.description}`);
+    const privacy = processComplaintPrivacy(input.description, {
+      citizenName: input.citizenName,
+      citizenPhone: input.citizenPhone,
+      citizenEmail: input.citizenEmail,
+      residentialAddress: input.residentialAddress,
+      incidentDistrict: input.incidentDistrict,
+      incidentLocality: input.incidentLocality,
+      incidentPublicLocation: input.incidentPublicLocation,
+      departmentId: result.departmentId,
+    });
+
     const { data, error } = await admin.rpc("submit_citizen_complaint", {
       p_citizen_id: citizenId,
       p_title: input.title ?? "",
-      p_description: input.description,
+      p_description: input.description, // Raw description stored in private table only
+      p_sanitized_description: privacy.sanitizedDescription, // Sanitized description stored in complaints
+      p_generated_heading: privacy.generatedHeading,
+      p_factual_summary: privacy.factualSummary,
+      p_redaction_flags: privacy.flags,
+      p_redaction_needs_review: privacy.flags.uncertainRedaction || privacy.flags.safetyHazard,
       p_incident_district: input.incidentDistrict,
       p_incident_locality: input.incidentLocality,
       p_incident_public_location: input.incidentPublicLocation,
@@ -172,7 +189,17 @@ Deno.serve(async (req) => {
       console.error("Complaint submission RPC failed", error);
       return json({ error: "Submission service is temporarily unavailable.", code: "SUBMISSION_UNAVAILABLE" }, 500);
     }
-    return json({ ...data, prediction: result, claim_code: claimCode });
+    return json({
+      ...data,
+      prediction: result,
+      privacy: {
+        heading: privacy.generatedHeading,
+        summary: privacy.factualSummary,
+        sanitizedDescription: privacy.sanitizedDescription,
+        flags: privacy.flags,
+      },
+      claim_code: claimCode,
+    });
   } catch (error) {
     console.error("Unexpected complaint submission failure", error);
     return json({ error: "Submission service is temporarily unavailable.", code: "SUBMISSION_UNAVAILABLE" }, 500);

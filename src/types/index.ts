@@ -54,6 +54,11 @@ export interface DepartmentComplaintView {
   publicLocation?: string;
   title: string;
   description: string;
+  sanitizedDescription?: string;
+  generatedHeading?: string;
+  factualSummary?: string;
+  redactionFlags?: Record<string, boolean>;
+  redactionNeedsReview?: boolean;
   detectedLanguage: DetectedLanguage;
   status: ComplaintStatus;
   assignedDepartmentId: DepartmentId;
@@ -90,6 +95,11 @@ export interface Complaint {
   publicLocation?: string;
   title: string;
   description: string;
+  sanitizedDescription?: string;
+  generatedHeading?: string;
+  factualSummary?: string;
+  redactionFlags?: Record<string, boolean>;
+  redactionNeedsReview?: boolean;
   detectedLanguage: DetectedLanguage;
   status: ComplaintStatus;
   assignedDepartmentId: DepartmentId;
@@ -220,6 +230,11 @@ export interface DbComplaint {
   citizen_id: string | null;
   title?: string | null;
   description: string;
+  sanitized_description?: string | null;
+  generated_heading?: string | null;
+  factual_summary?: string | null;
+  redaction_flags?: Record<string, boolean> | null;
+  redaction_needs_review?: boolean;
   detected_language: DetectedLanguage;
   incident_district: KarachiDistrict;
   incident_locality: string;

@@ -105,8 +105,12 @@ export const ComplaintInboxList: React.FC<ComplaintInboxListProps> = ({
                 )}
               </div>
 
-              <p className="text-xs sm:text-[13px] text-slate-300 line-clamp-2 leading-relaxed">
-                {c.description}
+              <div className="text-xs sm:text-[13px] font-semibold text-slate-100 truncate">
+                {c.generatedHeading || c.title || 'Municipal Complaint'}
+              </div>
+
+              <p className="text-xs text-slate-300 line-clamp-2 leading-relaxed font-normal">
+                {c.factualSummary || c.sanitizedDescription || c.description}
               </p>
 
               <div className="text-[11px] text-slate-400 flex items-center gap-1.5 pt-0.5">
