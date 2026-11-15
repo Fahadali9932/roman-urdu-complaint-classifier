@@ -20,6 +20,9 @@ import {
 } from './components/ComplaintInboxList';
 import { ComplaintDetailView } from './components/ComplaintDetailView';
 import { PriorityQueuePage } from './components/PriorityQueuePage';
+import { WorkQueuePage } from './components/WorkQueuePage';
+import { CaseDetailPage } from './components/CaseDetailPage';
+import { AreasPage } from './components/AreasPage';
 import { StatusUpdateModal } from './components/StatusUpdateModal';
 import { ReviewAssignmentModal } from './components/ReviewAssignmentModal';
 import {
@@ -98,19 +101,27 @@ export const DepartmentDashboardPage: React.FC = () => {
     const v = searchParams.get('view');
     if (v === 'dashboard' || v === 'overview') return 'dashboard';
     if (v === 'tasks' || v === 'complaints') return 'tasks';
+    if (v === 'queue' || v === 'cases') return 'queue';
+    if (v === 'areas') return 'areas';
     if (v === 'priority') return 'priority_queue';
     if (v === 'settings') return 'settings';
     // For unit tests that mount directly at '/department' expecting complaints list
     if (import.meta.env.MODE === 'test') {
       return 'tasks';
     }
-    return 'dashboard';
+    return 'queue';
   });
   const [activeTaskFilter, setActiveTaskFilter] = useState<TaskFilterType>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
   const [isSortMenuOpen, setIsSortMenuOpen] = useState(false);
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
+
+  // V5 Case Operations Desk State
+  const [selectedCaseId, setSelectedCaseId] = useState<string | null>(() => {
+    return searchParams.get('case') || searchParams.get('caseId') || null;
+  });
+  const [selectedAreaFilter, setSelectedAreaFilter] = useState<string>('All areas');
 
   // Complaints State
   const [complaints, setComplaints] = useState<DepartmentComplaintView[]>([]);
@@ -489,12 +500,14 @@ export const DepartmentDashboardPage: React.FC = () => {
         onSelectSection={(sec) => {
           setCurrentSection(sec);
           setSelectedReference(null);
+          setSelectedCaseId(null);
         }}
         activeTaskFilter={activeTaskFilter}
         onSelectTaskFilter={(filter) => {
           setCurrentSection('tasks');
           setActiveTaskFilter(filter);
           setSelectedReference(null);
+          setSelectedCaseId(null);
         }}
         complaintsCount={taskCounts.all}
         priorityCount={priorityQueueCounts.total}
@@ -520,6 +533,7 @@ export const DepartmentDashboardPage: React.FC = () => {
           currentSection={currentSection}
           activeTaskFilter={activeTaskFilter}
           selectedReference={selectedReference}
+          selectedCaseId={selectedCaseId}
           onOpenMobileDrawer={() => setIsMobileDrawerOpen(true)}
           themeMode={themeMode}
           onToggleTheme={() => handleSetTheme(themeMode === 'light' ? 'dark' : 'light')}
@@ -753,11 +767,23 @@ export const DepartmentDashboardPage: React.FC = () => {
           )}
 
           {/* =========================================================================
-              VIEW 2: COMPLAINTS / REVIEW QUEUE (FULL-WIDTH OR DETAIL)
+              VIEW 2: WORK QUEUE / COMPLAINTS (CASE OPERATIONS DESK V5)
               ========================================================================= */}
-          {currentSection === 'tasks' && (
+          {(currentSection === 'queue' || currentSection === 'tasks') && (
             <div>
-              {selectedReference && selectedComplaint ? (
+              {selectedCaseId ? (
+                /* CASE DETAIL VIEW (4 REAL TABS, INCIDENT CORROBORATION, BULK ACCEPT) */
+                <CaseDetailPage
+                  caseId={selectedCaseId}
+                  onBack={() => {
+                    setSelectedCaseId(null);
+                    setSelectedReference(null);
+                  }}
+                  onOpenReport={(ref) => {
+                    setSelectedReference(ref);
+                  }}
+                />
+              ) : selectedReference && selectedComplaint ? (
                 /* DETAIL VIEW */
                 <ComplaintDetailView
                   complaint={selectedComplaint}
@@ -769,8 +795,8 @@ export const DepartmentDashboardPage: React.FC = () => {
                   onOpenReviewModal={() => setIsReviewModalOpen(true)}
                   onOverridePriority={handleOverridePriority}
                 />
-              ) : (
-                /* FULL-WIDTH COMPLAINTS LIST */
+              ) : currentSection === 'tasks' && (import.meta.env.MODE === 'test' || activeTaskFilter === 'under_review') ? (
+                /* FULL-WIDTH COMPLAINTS / REVIEW QUEUE LIST */
                 <div>
                   {/* Page Heading */}
                   <div className="page-heading">
@@ -906,14 +932,49 @@ export const DepartmentDashboardPage: React.FC = () => {
                     />
                   )}
                 </div>
+              ) : (
+                /* CASE OPERATIONS WORK QUEUE */
+                <WorkQueuePage
+                  departmentId={departmentId!}
+                  initialArea={selectedAreaFilter}
+                  onOpenCase={(caseId) => {
+                    setSelectedCaseId(caseId);
+                    setSelectedReference(null);
+                  }}
+                  onOpenReport={(ref) => {
+                    setSelectedReference(ref);
+                    setSelectedCaseId(null);
+                  }}
+                />
               )}
             </div>
           )}
 
           {/* =========================================================================
-              VIEW 3: PRIORITY QUEUE (SELECTIVE EVIDENCE-BASED TRIAGE)
+              VIEW 3: AREAS WORKLOAD (CASE OPERATIONS DESK V5)
               ========================================================================= */}
-          {currentSection === 'priority_queue' && (
+          {currentSection === 'areas' && (
+            <AreasPage
+              departmentId={departmentId!}
+              onSelectArea={(area) => {
+                setSelectedAreaFilter(area);
+                setCurrentSection('queue');
+                setSelectedCaseId(null);
+                setSelectedReference(null);
+              }}
+              onViewWorkQueue={() => {
+                setSelectedAreaFilter('All areas');
+                setCurrentSection('queue');
+                setSelectedCaseId(null);
+                setSelectedReference(null);
+              }}
+            />
+          )}
+
+          {/* =========================================================================
+              VIEW 4: PRIORITY QUEUE (SELECTIVE EVIDENCE-BASED TRIAGE)
+              ========================================================================= */}
+          {(currentSection === 'priority' || currentSection === 'priority_queue') && (
             <div>
               {selectedReference && selectedComplaint ? (
                 <ComplaintDetailView
@@ -933,9 +994,10 @@ export const DepartmentDashboardPage: React.FC = () => {
                   selectedReference={selectedReference}
                   onSelectComplaint={(ref) => setSelectedReference(ref)}
                   onViewAllComplaints={() => {
-                    setCurrentSection('tasks');
+                    setCurrentSection('queue');
                     setActiveTaskFilter('all');
                     setSelectedReference(null);
+                    setSelectedCaseId(null);
                   }}
                 />
               )}

@@ -1,11 +1,13 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Menu } from 'lucide-react';
 import { useDepartmentAuth } from '../../../context/DepartmentAuthContext';
+import type { WorkspaceSection } from './DepartmentSidebar';
 
 interface DepartmentTopbarProps {
-  currentSection: 'dashboard' | 'tasks' | 'priority_queue' | 'settings' | 'home';
+  currentSection: WorkspaceSection;
   activeTaskFilter?: string;
   selectedReference?: string | null;
+  selectedCaseId?: string | null;
   onOpenMobileDrawer?: () => void;
   themeMode?: 'light' | 'dark';
   onToggleTheme?: () => void;
@@ -16,6 +18,7 @@ export const DepartmentTopbar: React.FC<DepartmentTopbarProps> = ({
   currentSection,
   activeTaskFilter,
   selectedReference,
+  selectedCaseId,
   onOpenMobileDrawer,
 }) => {
   const { departmentId, departmentMeta } = useDepartmentAuth();
@@ -24,30 +27,45 @@ export const DepartmentTopbar: React.FC<DepartmentTopbarProps> = ({
     if (selectedReference) {
       return `Complaint ${selectedReference}`;
     }
+    if (selectedCaseId) {
+      return `Case ${selectedCaseId}`;
+    }
     switch (currentSection) {
       case 'dashboard':
+      case 'overview':
         return 'Overview';
+      case 'areas':
+        return 'Areas';
+      case 'priority':
       case 'priority_queue':
-        return 'Priority queue';
+        return 'Priority';
+      case 'review':
+        return 'Review queue';
       case 'settings':
         return 'Settings';
+      case 'queue':
       case 'tasks':
       default:
         if (activeTaskFilter === 'under_review') return 'Review queue';
-        return 'Complaints';
+        return 'Work queue';
     }
   };
 
-  const departmentName = departmentMeta?.name || 'Municipal Agency';
-  const departmentCode = departmentMeta?.code || (departmentId ? departmentId.toUpperCase() : 'DEPT');
+  const departmentName = departmentMeta?.name || 'Karachi Metropolitan Corporation';
+  const departmentCode =
+    departmentMeta?.code || (departmentId ? departmentId.toUpperCase() : 'KMC');
 
   // Today's date formatted in PKT (e.g. 15 Nov 2026)
-  const todayPkt = new Intl.DateTimeFormat('en-GB', {
-    timeZone: 'Asia/Karachi',
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  }).format(new Date());
+  const todayPkt = useMemo(
+    () =>
+      new Intl.DateTimeFormat('en-GB', {
+        timeZone: 'Asia/Karachi',
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+      }).format(new Date()),
+    []
+  );
 
   return (
     <header className="topbar" aria-label="Department Top Navigation">
@@ -56,23 +74,24 @@ export const DepartmentTopbar: React.FC<DepartmentTopbarProps> = ({
           <button
             type="button"
             onClick={onOpenMobileDrawer}
-            className="icon-button mobile-menu"
+            className="icon-btn mobile-menu"
             aria-label="Open navigation menu"
           >
-            <Menu className="w-5 h-5" />
+            <Menu className="ico" style={{ width: 18, height: 18 }} />
           </button>
         )}
-        <span className="breadcrumb-root">{departmentCode} workspace</span>
-        <span className="crumb-sep">/</span>
-        <span className="breadcrumb-current" id="breadcrumb">{getSectionLabel()}</span>
+        <span className="crumb">{departmentCode} workspace</span>
+        <span className="crumb-divider">/</span>
+        <strong className="crumb-current" id="crumbCurrent">
+          {getSectionLabel()}
+        </strong>
       </div>
 
       <div className="topbar-right">
         <span className="demo-note">{todayPkt}</span>
         <div className="topbar-divider" />
-        <div className="department-tag" title={`${departmentCode} · ${departmentName}`}>
-          {departmentCode} <span>· {departmentName}</span>
-        </div>
+        <strong>{departmentCode}</strong>
+        <span className="org-name">{departmentName}</span>
       </div>
     </header>
   );
