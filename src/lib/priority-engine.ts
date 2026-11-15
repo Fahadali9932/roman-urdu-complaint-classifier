@@ -77,7 +77,12 @@ function normalizeText(text: string): string {
  * Checks if a specific pattern in the text is preceded or succeeded by a negation token.
  * Negation tokens in Roman Urdu/English: nahi, nhi, na, mat, no, not, without, koi ... nahi
  */
-function isNegated(text: string, matchIndex: number, matchLength: number): boolean {
+function isNegated(text: string, matchIndex: number, matchLength: number, matchText?: string): boolean {
+  // If the matched string itself contains a negation word (e.g. "current nahi aa raha")
+  if (matchText && /\b(nahi|nhi|na|mat|no|not|without|koi)\b/i.test(matchText)) {
+    return true;
+  }
+
   // Check 35 characters before the match
   const before = text.slice(Math.max(0, matchIndex - 35), matchIndex);
   // Check 30 characters after the match
@@ -96,7 +101,7 @@ function findNonNegatedMatch(text: string, regex: RegExp): RegExpExecArray | nul
   const globalRegex = new RegExp(regex.source, regex.flags.includes('g') ? regex.flags : regex.flags + 'g');
   let match: RegExpExecArray | null;
   while ((match = globalRegex.exec(text)) !== null) {
-    if (!isNegated(text, match.index, match[0].length)) {
+    if (!isNegated(text, match.index, match[0].length, match[0])) {
       return match;
     }
   }
@@ -112,7 +117,7 @@ export function evaluateBaseSeverity(text: string): { baseSeverity: PriorityLeve
   // 1. CRITICAL: Immediate danger to human life or physical safety
   // A. Gas leak or cylinder explosion risk (SSGC)
   // Ensure "gas nahi aa rahi" is NOT detected as leak
-  const gasLeakPattern = /\b(gas(\s+(pipe|pipeline|line))?(\s+ki)?\s*(leak|leakage|boo|badboo|smell)|(gas\s*)?pipeline\s*(phat|blast|leak|burst)|cylinder\s*(phat|blast|leek))\b/i;
+  const gasLeakPattern = /\b(gas(\s+(pipe|pipeline|line))?(\s+ki)?\s*(leak|leakage|boo|badboo|smell)|(gas\s*)?pipeline\s*(phat|blast|leak|burst)|cylinder\s*(phat|blast|leek)|tez\s*gas\s*(nikal|aa|leak)|hissing\s*(sound|awaaz)|aag\s*lagne\s*ka\s*khatra.*gas|gas.*(blast|aag|shole|shigaf)|pipeline.*(tod|phat).*tez\s*gas)\b/i;
   if (findNonNegatedMatch(norm, gasLeakPattern)) {
     return {
       baseSeverity: 'critical',
@@ -122,7 +127,7 @@ export function evaluateBaseSeverity(text: string): { baseSeverity: PriorityLeve
 
   // B. Exposed live electrical wires / electrocution hazard (K-Electric)
   // Note: "current nahi aa raha" is outage, not shock hazard.
-  const liveWirePattern = /\b(live\s*wire|khula\s*taar|khulay\s*taar|taar\s*toot|khamb(a|e|ay)\s*se\s*current|current\s*lag\s*raha|current\s*aa\s*raha|transformer\s*(blast|aag|sparking)|bijli\s*ka\s*shola)\b/i;
+  const liveWirePattern = /\b(live\s*wire|khul(a|ay|e)\s*(wire|taar|cable)|nang(a|ay|e)\s*(wire|taar|cable)|taar\s*toot|khamb(a|e|ay)\s*se\s*current|current\s*lag\s*raha|current.*(aa\s*raha|dhor\s*raha|dhoor\s*raha|deewar|pani|wire|switch)|transformer.*(blast|aag|sparking|tail\s*leak|dhuan|shole)|(cable|wire|taar|pole).*(aag|spark|shole|toot.*gira|gira)|(aag|shole).*(cable|wire|taar)|short\s*circuit.*hazard|dhamake.*spark)\b/i;
   if (findNonNegatedMatch(norm, liveWirePattern)) {
     return {
       baseSeverity: 'critical',
@@ -131,7 +136,7 @@ export function evaluateBaseSeverity(text: string): { baseSeverity: PriorityLeve
   }
 
   // C. Structural collapse or deep collapse on active transit routes (SBCA / KMC)
-  const collapsePattern = /\b(bridge\s*toot|pul\s*toot|road\s*dhans|building\s*gir|chhat\s*(gir|toot)|deewar\s*girne|deep\s*sinkhole|gehra\s*gaddha\s*hadsa)\b/i;
+  const collapsePattern = /\b(bridge\s*toot|pul\s*toot|pedestrian\s*bridge.*toot|road.*(dhans|baith|dhas)|dhans\s*chuki|building.*(gir\w*|teedi|collapse)|chhat.*(gir\w*|toot|crack)|(deewar|wall|boundary\s*wall).*(gir\w*|jhuk\w*|buniyaad|neev)|deep\s*sinkhole|gehra\s*gaddha\s*hadsa|pillar\s*crack|beam\s*crack|cement\s*gir|shuttering\s*gir|imminent\s*collapse|collapse\s*(hazard|danger|risk)|barrier\s*crash.*toota|drain\s*ki\s*deewar\s*toot|expansion\s*joint.*shigaf|balcony.*(toot|gir\w*)|crater.*(hadsa|accident|dhans)|water\s*tank.*(phat|gir\w*)|neev\s*baith)\b/i;
   if (findNonNegatedMatch(norm, collapsePattern)) {
     return {
       baseSeverity: 'critical',
@@ -140,7 +145,7 @@ export function evaluateBaseSeverity(text: string): { baseSeverity: PriorityLeve
   }
 
   // D. Dangerous open manhole on active roadways / pedestrian routes (KWSC / KMC)
-  const openManholeHazard = /\b(open\s*manhole|khula\s*gutter|gutter\s*ka\s*dhakkan\s*(nahi|gayab|toot)|drain\s*me\s*(bachha|bacha|koi)\s*gir)\b/i;
+  const openManholeHazard = /\b(open\s*manhole|khula\s*gutter|gutter\s*ka\s*dhakkan\s*(nahi|gayab|toot)|drain\s*me\s*(bachha|bacha|koi)\s*gir|khula\s*manhole|manhole\s*khula)\b/i;
   if (findNonNegatedMatch(norm, openManholeHazard)) {
     return {
       baseSeverity: 'critical',
@@ -156,9 +161,11 @@ export function evaluateBaseSeverity(text: string): { baseSeverity: PriorityLeve
   const hasNoPower = /\b(bijli|light|electricity|power|current)\s*(bhi\s*)?(nahi|nhi|band|ghayab|chali)\b/i.test(norm) ||
                      /\b(no|without)\s*(power|electricity|light)\b/i.test(norm);
 
-  const hasNoWater = /\b(pani|paani|water)\s*(bhi\s*)?(nahi|nhi|band|khatam|killat|naddarat)\b/i.test(norm) ||
-                     /\b(peene|peenay)\s*(ka|ke|keliye)?\s*pani\s*(bhi\s*)?(nahi|nhi)\b/i.test(norm) ||
+  const hasNoWater = /\b(pani|paani|water)\s*(ki\s*)?(shadeed\s*)?(bhi\s*)?(nahi|nhi|band|khatam|killat|qillat|naddarat)\b/i.test(norm) ||
+                     /\b(peene|peenay)\s*(ko|ka|ke|keliye)?\s*(pani\s*)?(bhi\s*)?(nahi|nhi|boond\s*nahi)\b/i.test(norm) ||
                      /\bno\s*(drinking\s*)?water\b/i.test(norm);
+
+  const hasNoGas = /\b(gas)\s*(bhi\s*)?(nahi|nhi|band|khatam|mutasir|zero)\b/i.test(norm);
 
   if (hasMultiDay && hasNoPower && hasNoWater) {
     return {
@@ -167,27 +174,30 @@ export function evaluateBaseSeverity(text: string): { baseSeverity: PriorityLeve
     };
   }
 
-  if (hasMultiDay && (hasNoPower || hasNoWater)) {
+  if (hasMultiDay && (hasNoPower || hasNoWater || hasNoGas)) {
     return {
       baseSeverity: 'high',
       reason: hasNoWater
         ? 'Prolonged deprivation of essential drinking water supply.'
-        : 'Prolonged electricity outage continuing over multiple days.',
+        : hasNoPower
+        ? 'Prolonged electricity outage continuing over multiple days.'
+        : 'Prolonged gas supply outage continuing over multiple days.',
     };
   }
 
-  // B. Major sewage overflow creating severe health hazard / entering homes (KWSC)
-  const sewageHealthPattern = /\b(sewage|gutter|ganda\s*pani)\s*(ghar|gharon|dakhil|ghus|flooding|bimari|infection|overflow)\b/i;
-  if (findNonNegatedMatch(norm, sewageHealthPattern)) {
+  // B. Major sewage overflow creating severe health hazard / entering homes / clinics (KWSC)
+  const sewageHealthPattern = /\b(sewerage|sewage|gutter|ganda\s*pani).*(ghar|gharon|hospital|clinic|ward|dakhil|ghus|flooding|bimari|infection|overflow|rasta\s*band)\b/i;
+  const mainWaterBurstPattern = /\b(underground\s*(drinking\s*)?tank\s*me\s*(leak|ganda)|(main\s*line|pipeline).*(phat|burst))\b/i;
+  if (findNonNegatedMatch(norm, sewageHealthPattern) || findNonNegatedMatch(norm, mainWaterBurstPattern)) {
     return {
       baseSeverity: 'high',
-      reason: 'Major sewage overflow entering residential properties or causing health risk.',
+      reason: 'Major sewage overflow entering residential/clinical properties or pipeline burst causing acute risk.',
     };
   }
 
   // C. Dangerous road damage with high accident risk (KMC)
-  const dangerousRoadPattern = /\b(dangerous|khatarnak|shadeed\s*khadday|hadsa|accident|gaari\s*gir)\b/i;
-  const isRoadIssue = /\b(road|sarak|sadak|pothole|khadda|khadday|pathor)\b/i.test(norm);
+  const dangerousRoadPattern = /\b(dangerous|khatarnak|shadeed\s*khadday|hadsa|accident|gaari\s*gir|crater)\b/i;
+  const isRoadIssue = /\b(road|sarak|sadak|pothole|khadda|khadday|pathor|crater)\b/i.test(norm);
   if (isRoadIssue && findNonNegatedMatch(norm, dangerousRoadPattern)) {
     return {
       baseSeverity: 'high',
@@ -196,8 +206,8 @@ export function evaluateBaseSeverity(text: string): { baseSeverity: PriorityLeve
   }
 
   // D. Severe solid waste accumulation creating acute disease or contamination risk (SSWMB)
-  const isWasteIssue = /\b(kachr(a|e)|garbage|waste|trash|kuda|kuday)\b/i.test(norm);
-  const wasteHazardPattern = /\b(hospital|clinic|school|bimari|infection|toxic|shadeed\s*badboo|dead\s*animal)\b/i;
+  const isWasteIssue = /\b(kachr(a|e)|garbage|waste|trash|kuda|kuday|dead\s*(cattle|animals|body)|animal\s*carcasses|toxic\s*smoke|poisonous\s*gas)\b/i;
+  const wasteHazardPattern = /\b(hospital|clinic|school|bimari|infection|toxic|shadeed\s*badboo|dead\s*(animal|cattle|animals)|syringes|biomedical|poisonous|carcasses|aag)\b/i;
   if (isWasteIssue && findNonNegatedMatch(norm, wasteHazardPattern)) {
     return {
       baseSeverity: 'high',
@@ -379,15 +389,17 @@ export function calculateComplaintPriority(
   }
 
   // Queue Urgency Classification (Part 3 & 4)
-  const isUrgent = baseSeverity === 'critical' || baseSeverity === 'high';
+  const isUrgent = !isClosed && (baseSeverity === 'critical' || baseSeverity === 'high');
   const isOverdue = !isClosed && agingHours >= 72;
   const needsAssessment =
-    complaint.status === 'under_review' ||
-    complaint.redactionNeedsReview === true ||
-    (complaint.predictionConfidence !== undefined && complaint.predictionConfidence < 0.50);
+    !isClosed && (
+      complaint.status === 'under_review' ||
+      complaint.redactionNeedsReview === true ||
+      (complaint.predictionConfidence !== undefined && complaint.predictionConfidence < 0.50)
+    );
 
   const isRoutine = !isUrgent && !isOverdue && !needsAssessment;
-  const qualifiesForPriorityQueue = !isRoutine;
+  const qualifiesForPriorityQueue = !isRoutine && !isClosed;
 
   const queueTabs: QueueTabType[] = [];
   if (isUrgent) queueTabs.push('urgent');

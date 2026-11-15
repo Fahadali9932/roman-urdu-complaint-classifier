@@ -225,6 +225,7 @@ export const ComplaintDetailView: React.FC<ComplaintDetailViewProps> = ({
           className="flex items-center gap-2 border-b border-[var(--dept-border)] pb-1 overflow-x-auto dept-scrollbar"
         >
           <Tabs.Trigger
+            id="tab-overview"
             value="overview"
             className={`px-4 py-2.5 rounded-t-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer border-b-2 -mb-[2px] ${
               selectedTab === 'overview'
@@ -237,6 +238,7 @@ export const ComplaintDetailView: React.FC<ComplaintDetailViewProps> = ({
           </Tabs.Trigger>
 
           <Tabs.Trigger
+            id="tab-full_complaint"
             value="full_complaint"
             className={`px-4 py-2.5 rounded-t-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer border-b-2 -mb-[2px] ${
               selectedTab === 'full_complaint'
@@ -249,6 +251,7 @@ export const ComplaintDetailView: React.FC<ComplaintDetailViewProps> = ({
           </Tabs.Trigger>
 
           <Tabs.Trigger
+            id="tab-progress"
             value="progress"
             className={`px-4 py-2.5 rounded-t-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer border-b-2 -mb-[2px] ${
               selectedTab === 'progress'
@@ -261,6 +264,7 @@ export const ComplaintDetailView: React.FC<ComplaintDetailViewProps> = ({
           </Tabs.Trigger>
 
           <Tabs.Trigger
+            id="tab-priority"
             value="priority"
             className={`px-4 py-2.5 rounded-t-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer border-b-2 -mb-[2px] ${
               selectedTab === 'priority'

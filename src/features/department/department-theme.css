@@ -1,56 +1,122 @@
 /* ==============================================================================
-   AWAAZ-E-AWAM — DEPARTMENT PORTAL DESIGN SYSTEM (PHASE 3F.1)
-   Light-First Professional Civic Workspace with WCAG AA Accessible Tokens
+   AWAAZ-E-AWAM — DEPARTMENT PORTAL DESIGN SYSTEM (PHASE 3F.3)
+   Modern, Restrained Civic Workspace with WCAG AA Accessible Design Tokens
    ============================================================================== */
 
 :root {
-  /* LIGHT MODE (DEFAULT CIVIC PALETTE) */
-  --dept-bg: #f8fafc;
-  --dept-sidebar-bg: #ffffff;
-  --dept-surface: #ffffff;
-  --dept-surface-subtle: #f1f5f9;
-  --dept-surface-hover: #eef2f7;
-  --dept-surface-selected: #eff6ff;
-  --dept-border: #e2e8f0;
-  --dept-border-strong: #cbd5e1;
+  /* LIGHT MODE (DEFAULT CIVIC PALETTE - SPEC 5.1) */
+  --dept-bg: #F6F7F8;
+  --dept-sidebar-bg: #FFFFFF;
+  --dept-topbar-bg: #FFFFFF;
+  --dept-surface: #FFFFFF;
+  --dept-surface-subtle: #F1F4F7;
+  --dept-surface-hover: #EBF0F4;
+  --dept-surface-selected: #E9F1F4;
+  --dept-border: #DCE2E8;
+  --dept-border-strong: #CBD5E1;
+  --dept-separator: #EBEFF2;
 
-  /* Typography: High-Contrast Neutral & Charcoal (WCAG AA Compliant >= 4.5:1) */
-  --dept-text-primary: #0f172a;       /* Deep navy/charcoal for headings & titles */
-  --dept-text-secondary: #334155;     /* Dark neutral for body & secondary labels */
-  --dept-text-muted: #475569;         /* Readable slate for timestamps & metadata (5.8:1 ratio) */
+  /* Typography: Precise Neutral & Slate Hierarchy (SPEC 5.1 & 6) */
+  --dept-text-primary: #1A2530;       /* Primary heading / high contrast (13.8:1) */
+  --dept-text-body: #283746;          /* Standard body text (9.5:1) */
+  --dept-text-secondary: #5A6877;     /* Secondary descriptions & metadata (5.1:1) */
+  --dept-text-muted: #647383;         /* Subtle labels & captions (4.6:1 WCAG AA) */
 
-  /* Primary Restrained Civic Blue Accent (Zero Excessive Orange) */
-  --dept-accent: #2563eb;
-  --dept-accent-rgb: 37, 99, 235;
-  --dept-accent-subtle: rgba(37, 99, 235, 0.08);
-  --dept-accent-border: rgba(37, 99, 235, 0.28);
-  --dept-accent-contrast: #ffffff;
+  /* Primary Restrained Civic Accent (SPEC 5.1) */
+  --dept-accent: #264E65;             /* Deep muted slate blue */
+  --dept-accent-rgb: 38, 78, 101;
+  --dept-accent-hover: #1E3F52;
+  --dept-accent-subtle: #E9F1F4;       /* Active navigation background */
+  --dept-accent-text: #163B50;         /* Active navigation text */
+  --dept-accent-contrast: #FFFFFF;
+
+  /* Semantic Status Tokens (SPEC 5.2) */
+  --status-pending-text: #77551C;
+  --status-pending-bg: #FBF4E7;
+  --status-pending-border: #EADFC8;
+
+  --status-accepted-text: #163B50;
+  --status-accepted-bg: #E9F1F4;
+  --status-accepted-border: #CFE0E8;
+
+  --status-progress-text: #1E40AF;
+  --status-progress-bg: #EFF6FF;
+  --status-progress-border: #DBEAFE;
+
+  --status-done-text: #176448;
+  --status-done-bg: #EAF5EE;
+  --status-done-border: #C6E7D2;
+
+  --status-rejected-text: #475569;
+  --status-rejected-bg: #F1F5F9;
+  --status-rejected-border: #E2E8F0;
+
+  --status-urgent-text: #8D2F36;
+  --status-urgent-bg: #F9EBEC;
+  --status-urgent-border: #EFCFD2;
+
+  --status-overdue-text: #8A4B08;
+  --status-overdue-bg: #FEF7ED;
+  --status-overdue-border: #FCDDC2;
 
   /* Subtle Civic Elevations (Zero loud decorative shadows) */
-  --dept-shadow-sm: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
-  --dept-shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.08), 0 2px 4px -2px rgba(15, 23, 42, 0.04);
+  --dept-shadow-sm: 0 1px 2px 0 rgba(26, 37, 48, 0.04);
+  --dept-shadow-md: 0 4px 6px -1px rgba(26, 37, 48, 0.06), 0 2px 4px -2px rgba(26, 37, 48, 0.03);
 }
 
-/* DARK MODE OVERRIDES (SELECTABLE FROM SETTINGS) */
+/* DARK MODE OVERRIDES (SELECTABLE FROM SETTINGS - SPEC 5.3) */
 [data-dept-mode='dark'] {
-  --dept-bg: #0b0f17;
-  --dept-sidebar-bg: #111622;
-  --dept-surface: #161d2d;
-  --dept-surface-subtle: #1d263b;
-  --dept-surface-hover: #243048;
-  --dept-surface-selected: #1e3a5f;
-  --dept-border: #28354d;
-  --dept-border-strong: #3b4c6b;
+  --dept-bg: #11161D;
+  --dept-sidebar-bg: #161D26;
+  --dept-topbar-bg: #161D26;
+  --dept-surface: #1B222B;
+  --dept-surface-subtle: #242E38;
+  --dept-surface-hover: #293440;
+  --dept-surface-selected: #243844;
+  --dept-border: #37424D;
+  --dept-border-strong: #475563;
+  --dept-separator: #2A343F;
 
-  --dept-text-primary: #f8fafc;
-  --dept-text-secondary: #cbd5e1;
-  --dept-text-muted: #94a3b8;
+  --dept-text-primary: #F4F7FA;
+  --dept-text-body: #E8EDF2;
+  --dept-text-secondary: #B5C1CD;
+  --dept-text-muted: #8A99A8;
 
-  --dept-accent: #3b82f6;
-  --dept-accent-rgb: 59, 130, 246;
-  --dept-accent-subtle: rgba(59, 130, 246, 0.14);
-  --dept-accent-border: rgba(59, 130, 246, 0.35);
-  --dept-accent-contrast: #ffffff;
+  --dept-accent: #4B82A0;
+  --dept-accent-rgb: 75, 130, 160;
+  --dept-accent-hover: #5B95B6;
+  --dept-accent-subtle: #243844;
+  --dept-accent-text: #E2F1F8;
+  --dept-accent-contrast: #FFFFFF;
+
+  /* Dark Semantic Status Tokens */
+  --status-pending-text: #FAD59A;
+  --status-pending-bg: #2A2215;
+  --status-pending-border: #4E3E26;
+
+  --status-accepted-text: #BAE2F2;
+  --status-accepted-bg: #172935;
+  --status-accepted-border: #284A5F;
+
+  --status-progress-text: #BFDBFE;
+  --status-progress-bg: #172554;
+  --status-progress-border: #1E3A8A;
+
+  --status-done-text: #A3E5C5;
+  --status-done-bg: #132B20;
+  --status-done-border: #204E39;
+
+  --status-rejected-text: #CBD5E1;
+  --status-rejected-bg: #1E293B;
+  --status-rejected-border: #334155;
+
+  --status-urgent-text: #F8B4B8;
+  --status-urgent-bg: #341517;
+  --status-urgent-border: #5A2328;
+
+  --status-overdue-text: #FCD34D;
+  --status-overdue-bg: #33200B;
+  --status-overdue-border: #5E3A14;
 
   --dept-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.4);
   --dept-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -2px rgba(0, 0, 0, 0.4);
@@ -59,7 +125,7 @@
 /* Base Body Styles within the Department Shell */
 .dept-shell-container {
   background-color: var(--dept-bg);
-  color: var(--dept-text-primary);
+  color: var(--dept-text-body);
   font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
 }
 
@@ -70,17 +136,26 @@
   transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* Topbar Styles */
+.dept-topbar {
+  background-color: var(--dept-topbar-bg);
+  border-bottom: 1px solid var(--dept-border);
+}
+
 /* Active Navigation Indicators */
 .dept-nav-active {
   position: relative;
+  background-color: var(--dept-accent-subtle) !important;
+  color: var(--dept-accent-text) !important;
+  font-weight: 600;
 }
 
 .dept-nav-active::before {
   content: '';
   position: absolute;
   left: 0;
-  top: 15%;
-  bottom: 15%;
+  top: 18%;
+  bottom: 18%;
   width: 3px;
   background-color: var(--dept-accent);
   border-radius: 0 2px 2px 0;

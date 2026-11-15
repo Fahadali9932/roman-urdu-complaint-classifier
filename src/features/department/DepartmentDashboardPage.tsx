@@ -11,6 +11,7 @@ import {
   type WorkspaceSection,
   type TaskFilterType,
 } from './components/DepartmentSidebar';
+import { DepartmentTopbar } from './components/DepartmentTopbar';
 import { supabase, isSupabaseConfigured } from '../../lib/supabase';
 import { ComplaintInboxList } from './components/ComplaintInboxList';
 import { ComplaintDetailView } from './components/ComplaintDetailView';
@@ -26,7 +27,6 @@ import {
 } from '../../lib/priority-engine';
 import {
   Loader2,
-  Menu,
   X,
   CheckCircle2,
   AlertCircle,
@@ -39,9 +39,8 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   ArrowRight,
-  Inbox,
+  ChevronRight,
   Flame,
-  Clock,
 } from 'lucide-react';
 import './department-theme.css';
 
@@ -100,13 +99,17 @@ export const DepartmentDashboardPage: React.FC = () => {
   const [complaints, setComplaints] = useState<DepartmentComplaintView[]>([]);
   const [reviewComplaints, setReviewComplaints] = useState<DepartmentComplaintView[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Active complaint detail selection
   const [selectedReference, setSelectedReference] = useState<string | null>(null);
+
+  // Modal states
   const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [modalInitialStatus, setModalInitialStatus] = useState<ComplaintStatus | undefined>(undefined);
   const [unauthorizedRefError, setUnauthorizedRefError] = useState<string | null>(null);
 
-  // In-memory manual priority overrides storage (supports immediate reactivity)
+  // Priority overrides state
   const [priorityOverrides, setPriorityOverrides] = useState<
     Record<
       string,
@@ -237,36 +240,73 @@ export const DepartmentDashboardPage: React.FC = () => {
         .subscribe();
     }
 
-    const interval = setInterval(() => {
+    // Polling fallback
+    const pollInterval = window.setInterval(() => {
       fetchComplaints({ silent: true });
-    }, 15000);
+    }, 12000);
 
     return () => {
       isCancelled = true;
-      clearInterval(interval);
+      window.clearInterval(pollInterval);
       if (channel && supabase) {
         supabase.removeChannel(channel);
       }
     };
   }, [departmentId]);
 
-  // Sync reference from URL parameters if provided
+  // Deep-linking: Load requested complaint by reference number
   useEffect(() => {
-    if (urlRef) {
-      setSelectedReference(urlRef);
-      setCurrentSection('tasks');
-    }
-  }, [urlRef]);
+    const targetRef = urlRef || searchParams.get('ref');
+    if (!targetRef || !departmentId) return;
 
-  // Handle URL query parameters (e.g. ?view=review)
-  useEffect(() => {
-    const viewParam = searchParams.get('view');
-    if (viewParam === 'review' && departmentId === 'kmc') {
-      setCurrentSection('tasks');
-      setActiveTaskFilter('under_review');
-      setSelectedReference(null);
-    }
-  }, [searchParams, departmentId]);
+    const findAndSelect = async () => {
+      const match = complaints.find(
+        (c) => c.referenceNumber.toLowerCase() === targetRef.toLowerCase()
+      );
+      if (match) {
+        setSelectedReference(match.referenceNumber);
+        setCurrentSection('tasks');
+        setUnauthorizedRefError(null);
+        return;
+      }
+
+      if (departmentId === 'kmc') {
+        const reviewMatch = reviewComplaints.find(
+          (c) => c.referenceNumber.toLowerCase() === targetRef.toLowerCase()
+        );
+        if (reviewMatch) {
+          setActiveTaskFilter('under_review');
+          setSelectedReference(reviewMatch.referenceNumber);
+          setCurrentSection('tasks');
+          setUnauthorizedRefError(null);
+          return;
+        }
+      }
+
+      try {
+        const fetched = await complaintService.getDepartmentComplaintByReference(
+          departmentId,
+          targetRef
+        );
+        if (fetched) {
+          if (fetched.status === 'under_review' && departmentId === 'kmc') {
+            setActiveTaskFilter('under_review');
+          }
+          setSelectedReference(fetched.referenceNumber);
+          setCurrentSection('tasks');
+          setUnauthorizedRefError(null);
+        } else {
+          setUnauthorizedRefError(targetRef);
+          setSelectedReference(null);
+        }
+      } catch {
+        setUnauthorizedRefError(targetRef);
+        setSelectedReference(null);
+      }
+    };
+
+    findAndSelect();
+  }, [urlRef, searchParams, complaints, reviewComplaints, departmentId]);
 
   // Merge manual priority overrides with complaints data
   const augmentedComplaints = useMemo(() => {
@@ -305,20 +345,6 @@ export const DepartmentDashboardPage: React.FC = () => {
     const rejected = augmentedComplaints.filter((c) => c.status === 'rejected').length;
     const under_review = augmentedReviewComplaints.length;
 
-    // Critical & High priority active complaints count
-    const criticalHigh = augmentedComplaints.filter((c) => {
-      if (c.status === 'resolved' || c.status === 'rejected') return false;
-      const p = calculateComplaintPriority(c).priority;
-      return p === 'critical' || p === 'high';
-    }).length;
-
-    // Overdue complaints waiting > 72 hours
-    const overdue72h = augmentedComplaints.filter((c) => {
-      if (c.status === 'resolved' || c.status === 'rejected') return false;
-      const p = calculateComplaintPriority(c);
-      return p.agingHours >= 72;
-    }).length;
-
     return {
       all,
       assigned,
@@ -327,8 +353,6 @@ export const DepartmentDashboardPage: React.FC = () => {
       resolved,
       rejected,
       under_review,
-      criticalHigh,
-      overdue72h,
     };
   }, [augmentedComplaints, augmentedReviewComplaints]);
 
@@ -358,19 +382,24 @@ export const DepartmentDashboardPage: React.FC = () => {
         const q = searchQuery.toLowerCase();
         const refMatch = c.referenceNumber.toLowerCase().includes(q);
         const locMatch = `${c.district} ${c.locality} ${c.publicLocation || ''}`.toLowerCase().includes(q);
-        const titleMatch = (c.generatedHeading || c.title || '').toLowerCase().includes(q);
-        const descMatch = (c.factualSummary || c.sanitizedDescription || c.description || '').toLowerCase().includes(q);
-        if (!refMatch && !locMatch && !titleMatch && !descMatch) return false;
+        const textMatch = (c.description || '').toLowerCase().includes(q) || (c.generatedHeading || '').toLowerCase().includes(q);
+        return refMatch || locMatch || textMatch;
       }
 
       return true;
     });
 
-    // 4. Sort with Priority Awareness
     return sortComplaints(filtered, sortOrder);
-  }, [augmentedComplaints, augmentedReviewComplaints, activeTaskFilter, priorityFilter, searchQuery, sortOrder]);
+  }, [
+    augmentedComplaints,
+    augmentedReviewComplaints,
+    activeTaskFilter,
+    priorityFilter,
+    searchQuery,
+    sortOrder,
+  ]);
 
-  // Selected complaint object
+  // Selected complaint view
   const selectedComplaint = useMemo(() => {
     if (!selectedReference) return null;
     return (
@@ -403,20 +432,7 @@ export const DepartmentDashboardPage: React.FC = () => {
 
   const getCategoryTitle = () => {
     if (activeTaskFilter === 'under_review') return 'Classification Review Queue';
-    switch (activeTaskFilter) {
-      case 'assigned':
-        return 'Pending Acceptance';
-      case 'accepted':
-        return 'Accepted Complaints';
-      case 'in_progress':
-        return 'In Progress Complaints';
-      case 'resolved':
-        return 'Work Done / Resolved';
-      case 'rejected':
-        return 'Rejected Complaints';
-      default:
-        return 'All Complaints';
-    }
+    return 'Complaints';
   };
 
   // Radix select options
@@ -428,6 +444,16 @@ export const DepartmentDashboardPage: React.FC = () => {
     { value: 'waiting_longest', label: 'Longest waiting first' },
   ];
 
+  // Horizontal status tabs
+  const statusTabs = [
+    { id: 'all' as TaskFilterType, label: 'All Complaints', count: taskCounts.all },
+    { id: 'assigned' as TaskFilterType, label: 'Pending Acceptance', count: taskCounts.assigned },
+    { id: 'accepted' as TaskFilterType, label: 'Accepted', count: taskCounts.accepted },
+    { id: 'in_progress' as TaskFilterType, label: 'In Progress', count: taskCounts.in_progress },
+    { id: 'resolved' as TaskFilterType, label: 'Work Done', count: taskCounts.resolved },
+    { id: 'rejected' as TaskFilterType, label: 'Rejected', count: taskCounts.rejected },
+  ];
+
   return (
     <div
       data-testid="department-workspace"
@@ -435,35 +461,26 @@ export const DepartmentDashboardPage: React.FC = () => {
       data-dept-mode={themeMode}
       className="dept-workspace-wrap w-full h-screen h-[100dvh] flex flex-col overflow-hidden font-sans m-0 p-0 select-text"
     >
-      {/* Mobile Top Navigation Header */}
-      <header className="md:hidden w-full flex items-center justify-between px-4 py-3 bg-[var(--dept-sidebar-bg)] border-b border-[var(--dept-border)] shrink-0 z-30">
-        <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-lg bg-[var(--dept-accent)] text-white flex items-center justify-center font-serif font-black text-sm">
-            a.
-          </div>
-          <span className="font-bold text-sm text-[var(--dept-text-primary)]">
-            Awaaz-e-Awam
-          </span>
-          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[var(--dept-surface-subtle)] text-[var(--dept-text-primary)] border border-[var(--dept-border)] font-semibold">
-            {departmentMeta?.code || (departmentId ? departmentId.toUpperCase() : 'DEPT')}
-          </span>
-        </div>
-        <button
-          type="button"
-          onClick={() => setIsMobileDrawerOpen((prev) => !prev)}
-          className="p-2 rounded-lg bg-[var(--dept-surface-subtle)] text-[var(--dept-text-primary)] border border-[var(--dept-border)] cursor-pointer"
-          aria-label="Toggle navigation menu"
-        >
-          <Menu className="w-5 h-5" />
-        </button>
-      </header>
+      {/* Top Navigation Bar (Consistent across desktop, tablet, mobile) */}
+      <DepartmentTopbar
+        currentSection={currentSection}
+        activeTaskFilter={activeTaskFilter}
+        selectedReference={selectedReference}
+        onOpenMobileDrawer={() => setIsMobileDrawerOpen(true)}
+        themeMode={themeMode}
+        onToggleTheme={() => handleSetTheme(themeMode === 'light' ? 'dark' : 'light')}
+        onSignOut={() => {
+          signOut();
+          navigate('/department/login');
+        }}
+      />
 
       {/* Main Operational Shell */}
       <div className="dept-shell w-full flex-1 flex flex-col md:flex-row min-h-0 overflow-hidden relative z-10">
         {/* Left Collapsible Sidebar (Desktop) */}
         <aside
           className={`hidden md:flex ${
-            isSidebarCollapsed ? 'w-[72px] min-w-[72px]' : 'w-[240px] min-w-[240px]'
+            isSidebarCollapsed ? 'w-[72px] min-w-[72px]' : 'w-[248px] min-w-[248px]'
           } h-full dept-sidebar shrink-0 overflow-y-auto`}
         >
           <DepartmentSidebar
@@ -478,8 +495,9 @@ export const DepartmentDashboardPage: React.FC = () => {
               setActiveTaskFilter(filter);
               setSelectedReference(null);
             }}
-            taskCounts={taskCounts}
+            complaintsCount={taskCounts.all}
             priorityCount={priorityQueueCounts.total}
+            reviewCount={taskCounts.under_review}
             isCollapsed={isSidebarCollapsed}
             onToggleCollapse={handleToggleSidebarCollapse}
           />
@@ -508,8 +526,9 @@ export const DepartmentDashboardPage: React.FC = () => {
                   setSelectedReference(null);
                   setIsMobileDrawerOpen(false);
                 }}
-                taskCounts={taskCounts}
+                complaintsCount={taskCounts.all}
                 priorityCount={priorityQueueCounts.total}
+                reviewCount={taskCounts.under_review}
                 onCloseMobileDrawer={() => setIsMobileDrawerOpen(false)}
               />
             </div>
@@ -569,7 +588,7 @@ export const DepartmentDashboardPage: React.FC = () => {
                       <p className="text-xs sm:text-sm text-[var(--dept-text-secondary)] mt-1">
                         {activeTaskFilter === 'under_review'
                           ? `${filteredComplaints.length} complaints awaiting clearinghouse classification review.`
-                          : `${filteredComplaints.length} complaints assigned to your department.`}
+                          : 'Manage and track complaints assigned to your department.'}
                       </p>
                     </div>
 
@@ -578,6 +597,38 @@ export const DepartmentDashboardPage: React.FC = () => {
                       <span>{filteredComplaints.length} complaints</span>
                     </div>
                   </div>
+
+                  {/* Horizontal Status Tabs (Section 11.2) - Shown for standard complaints view */}
+                  {activeTaskFilter !== 'under_review' && (
+                    <div className="flex items-center gap-1.5 border-b border-[var(--dept-border)] pb-2 overflow-x-auto dept-scrollbar">
+                      {statusTabs.map((tab) => {
+                        const isSelected = activeTaskFilter === tab.id;
+                        return (
+                          <button
+                            key={tab.id}
+                            type="button"
+                            onClick={() => setActiveTaskFilter(tab.id)}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+                              isSelected
+                                ? 'bg-[var(--dept-accent)] text-white shadow-xs'
+                                : 'text-[var(--dept-text-secondary)] hover:bg-[var(--dept-surface-subtle)] hover:text-[var(--dept-text-primary)]'
+                            }`}
+                          >
+                            <span>{tab.label}</span>
+                            <span
+                              className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full font-bold ${
+                                isSelected
+                                  ? 'bg-white/20 text-white'
+                                  : 'bg-[var(--dept-surface-subtle)] text-[var(--dept-text-muted)] border border-[var(--dept-border)]'
+                              }`}
+                            >
+                              {tab.count}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
 
                   {/* Search & Accessible Filter Controls Bar */}
                   <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
@@ -705,7 +756,7 @@ export const DepartmentDashboardPage: React.FC = () => {
                   </div>
                 </button>
 
-                {/* 2. Critical & High Priority */}
+                {/* 2. Priority Escalations */}
                 <button
                   type="button"
                   onClick={() => {
@@ -715,11 +766,11 @@ export const DepartmentDashboardPage: React.FC = () => {
                   className="p-5 rounded-xl bg-[var(--dept-surface)] border border-rose-200 dark:border-rose-900/50 shadow-xs hover:border-rose-400 transition-all text-left cursor-pointer group"
                 >
                   <div className="flex items-center justify-between text-xs font-semibold text-rose-800 dark:text-rose-300 mb-2">
-                    <span>Critical & High Priority</span>
+                    <span>Priority Escalations</span>
                     <Flame className="w-4 h-4 text-rose-600 dark:text-rose-400" />
                   </div>
                   <div className="text-3xl font-bold font-mono text-[var(--dept-text-primary)] group-hover:text-rose-600 transition-colors">
-                    {priorityQueueCounts.urgent}
+                    {priorityQueueCounts.total}
                   </div>
                   <div className="text-[11px] text-[var(--dept-text-secondary)] mt-1 flex items-center gap-1">
                     <span>Open in Priority Queue</span>
@@ -750,32 +801,7 @@ export const DepartmentDashboardPage: React.FC = () => {
                   </div>
                 </button>
 
-                {/* 4. Overdue (>72 Hours Waiting) */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setCurrentSection('priority_queue');
-                    setSelectedReference(null);
-                  }}
-                  className="p-5 rounded-xl bg-[var(--dept-surface)] border border-amber-200 dark:border-amber-900/50 shadow-xs hover:border-amber-400 transition-all text-left cursor-pointer group"
-                >
-                  <div className="flex items-center justify-between text-xs font-semibold text-amber-800 dark:text-amber-300 mb-2">
-                    <span>Overdue (&gt;72h Waiting)</span>
-                    <Clock className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-                  </div>
-                  <div className="text-3xl font-bold font-mono text-[var(--dept-text-primary)] group-hover:text-amber-600 transition-colors">
-                    {priorityQueueCounts.overdue}
-                  </div>
-                  <div className="text-[11px] text-[var(--dept-text-secondary)] mt-1 flex items-center gap-1">
-                    <span>Open in Priority Queue</span>
-                    <ArrowRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </div>
-                </button>
-              </div>
-
-              {/* Work Completed & Review Queue Secondary Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* Work Done Card */}
+                {/* 4. Work Done */}
                 <button
                   type="button"
                   onClick={() => {
@@ -784,64 +810,106 @@ export const DepartmentDashboardPage: React.FC = () => {
                     setPriorityFilter('all');
                     setSelectedReference(null);
                   }}
-                  className="p-5 rounded-xl bg-[var(--dept-surface)] border border-[var(--dept-border)] shadow-xs hover:border-emerald-500 transition-all text-left cursor-pointer group flex items-center justify-between"
+                  className="p-5 rounded-xl bg-[var(--dept-surface)] border border-[var(--dept-border)] shadow-xs hover:border-emerald-500 transition-all text-left cursor-pointer group"
+                >
+                  <div className="flex items-center justify-between text-xs font-medium text-[var(--dept-text-muted)] mb-2">
+                    <span>Work Completed</span>
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                  </div>
+                  <div className="text-3xl font-bold font-mono text-[var(--dept-text-primary)] group-hover:text-emerald-600 transition-colors">
+                    {taskCounts.resolved}
+                  </div>
+                  <div className="text-[11px] text-[var(--dept-text-secondary)] mt-1 flex items-center gap-1">
+                    <span>Remediated complaints</span>
+                    <ArrowRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </div>
+                </button>
+              </div>
+
+              {/* Review Queue (KMC Only) */}
+              {departmentId === 'kmc' && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCurrentSection('tasks');
+                    setActiveTaskFilter('under_review');
+                    setSelectedReference(null);
+                  }}
+                  className="w-full p-5 rounded-xl bg-[var(--dept-surface)] border border-purple-200 dark:border-purple-800 shadow-xs hover:border-purple-400 transition-all text-left cursor-pointer group flex items-center justify-between"
                 >
                   <div>
-                    <div className="text-xs font-semibold text-emerald-800 dark:text-emerald-300 mb-1 flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                      <span>Work Completed / Resolved</span>
+                    <div className="text-xs font-semibold text-purple-800 dark:text-purple-300 mb-1 flex items-center gap-2">
+                      <ShieldAlert className="w-4 h-4 text-purple-600" />
+                      <span>Classification Review Queue</span>
                     </div>
                     <div className="text-2xl font-bold font-mono text-[var(--dept-text-primary)]">
-                      {taskCounts.resolved} complaints
+                      {taskCounts.under_review} complaints
                     </div>
                     <p className="text-xs text-[var(--dept-text-secondary)] mt-0.5">
-                      Verified and remediated on-site.
+                      Unassigned municipal complaints awaiting clearinghouse departmental routing.
                     </p>
                   </div>
-                  <ArrowRight className="w-5 h-5 text-[var(--dept-text-muted)] group-hover:text-emerald-600 transition-colors" />
+                  <ArrowRight className="w-5 h-5 text-[var(--dept-text-muted)] group-hover:text-purple-600 transition-colors" />
                 </button>
+              )}
 
-                {/* Review Queue (KMC) or Backlog */}
-                {departmentId === 'kmc' ? (
+              {/* Recently Assigned Complaints Section */}
+              <div className="bg-[var(--dept-surface)] border border-[var(--dept-border)] rounded-xl shadow-xs overflow-hidden">
+                <div className="px-5 py-4 border-b border-[var(--dept-border)] flex items-center justify-between">
+                  <div>
+                    <h2 className="text-sm font-bold text-[var(--dept-text-primary)]">
+                      Recently Assigned Complaints
+                    </h2>
+                    <p className="text-xs text-[var(--dept-text-secondary)] mt-0.5">
+                      Latest complaints assigned under your department's jurisdiction.
+                    </p>
+                  </div>
                   <button
                     type="button"
                     onClick={() => {
                       setCurrentSection('tasks');
-                      setActiveTaskFilter('under_review');
+                      setActiveTaskFilter('all');
                       setSelectedReference(null);
                     }}
-                    className="p-5 rounded-xl bg-[var(--dept-surface)] border border-purple-200 dark:border-purple-800 shadow-xs hover:border-purple-400 transition-all text-left cursor-pointer group flex items-center justify-between"
+                    className="text-xs font-semibold text-[var(--dept-accent)] hover:underline cursor-pointer flex items-center gap-1"
                   >
-                    <div>
-                      <div className="text-xs font-semibold text-purple-800 dark:text-purple-300 mb-1 flex items-center gap-2">
-                        <ShieldAlert className="w-4 h-4 text-purple-600" />
-                        <span>Classification Review Queue</span>
-                      </div>
-                      <div className="text-2xl font-bold font-mono text-[var(--dept-text-primary)]">
-                        {taskCounts.under_review} complaints
-                      </div>
-                      <p className="text-xs text-[var(--dept-text-secondary)] mt-0.5">
-                        Awaiting clearinghouse departmental routing.
-                      </p>
-                    </div>
-                    <ArrowRight className="w-5 h-5 text-[var(--dept-text-muted)] group-hover:text-purple-600 transition-colors" />
+                    <span>View all complaints</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
                   </button>
-                ) : (
-                  <div className="p-5 rounded-xl bg-[var(--dept-surface)] border border-[var(--dept-border)] shadow-xs flex items-center justify-between">
-                    <div>
-                      <div className="text-xs font-medium text-[var(--dept-text-muted)] mb-1 flex items-center gap-2">
-                        <Inbox className="w-4 h-4 text-[var(--dept-text-muted)]" />
-                        <span>Total Assigned Backlog</span>
+                </div>
+
+                <div className="divide-y divide-[var(--dept-separator)]">
+                  {augmentedComplaints.slice(0, 5).map((c) => (
+                    <div
+                      key={c.id}
+                      onClick={() => {
+                        setSelectedReference(c.referenceNumber);
+                        setCurrentSection('tasks');
+                      }}
+                      className="px-5 py-3 hover:bg-[var(--dept-surface-hover)] transition-colors cursor-pointer flex items-center justify-between gap-4"
+                    >
+                      <div className="min-w-0">
+                        <div className="text-xs font-semibold text-[var(--dept-text-primary)] truncate">
+                          {c.generatedHeading || c.title || 'Municipal Complaint'}
+                        </div>
+                        <div className="text-[11px] text-[var(--dept-text-secondary)] truncate">
+                          {c.locality ? `${c.locality}, ${c.district}` : c.district || 'Karachi'}
+                        </div>
                       </div>
-                      <div className="text-2xl font-bold font-mono text-[var(--dept-text-primary)]">
-                        {taskCounts.all} records
+                      <div className="flex items-center gap-3 shrink-0">
+                        <span className="font-mono text-xs font-semibold px-2 py-0.5 rounded bg-[var(--dept-surface-subtle)] border border-[var(--dept-border)] text-[var(--dept-text-primary)]">
+                          {c.referenceNumber}
+                        </span>
+                        <ChevronRight className="w-4 h-4 text-[var(--dept-text-muted)]" />
                       </div>
-                      <p className="text-xs text-[var(--dept-text-secondary)] mt-0.5">
-                        Assigned under municipal jurisdiction.
-                      </p>
                     </div>
-                  </div>
-                )}
+                  ))}
+                  {augmentedComplaints.length === 0 && (
+                    <div className="p-8 text-center text-xs text-[var(--dept-text-muted)]">
+                      No complaints currently assigned to this department.
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Department Workload Integrity Card */}
@@ -887,7 +955,7 @@ export const DepartmentDashboardPage: React.FC = () => {
                     onClick={() => handleSetTheme('light')}
                     className={`p-4 rounded-xl border text-left transition-all cursor-pointer flex items-center justify-between ${
                       themeMode === 'light'
-                        ? 'border-[var(--dept-accent)] bg-blue-50/50 dark:bg-blue-950/20 ring-1 ring-[var(--dept-accent)]'
+                        ? 'border-[var(--dept-accent)] bg-[var(--dept-surface-selected)] ring-1 ring-[var(--dept-accent)]'
                         : 'border-[var(--dept-border)] bg-[var(--dept-surface-subtle)] hover:border-[var(--dept-border-strong)]'
                     }`}
                   >
@@ -915,7 +983,7 @@ export const DepartmentDashboardPage: React.FC = () => {
                     onClick={() => handleSetTheme('dark')}
                     className={`p-4 rounded-xl border text-left transition-all cursor-pointer flex items-center justify-between ${
                       themeMode === 'dark'
-                        ? 'border-[var(--dept-accent)] bg-blue-50/50 dark:bg-blue-950/20 ring-1 ring-[var(--dept-accent)]'
+                        ? 'border-[var(--dept-accent)] bg-[var(--dept-surface-selected)] ring-1 ring-[var(--dept-accent)]'
                         : 'border-[var(--dept-border)] bg-[var(--dept-surface-subtle)] hover:border-[var(--dept-border-strong)]'
                     }`}
                   >
@@ -959,7 +1027,7 @@ export const DepartmentDashboardPage: React.FC = () => {
                     {isSidebarCollapsed ? (
                       <>
                         <PanelLeftOpen className="w-4 h-4 text-[var(--dept-accent)]" />
-                        <span>Expand Sidebar (240px)</span>
+                        <span>Expand Sidebar (248px)</span>
                       </>
                     ) : (
                       <>
