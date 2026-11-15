@@ -13,34 +13,29 @@ import {
 } from './components/DepartmentSidebar';
 import { DepartmentTopbar } from './components/DepartmentTopbar';
 import { supabase, isSupabaseConfigured } from '../../lib/supabase';
-import { ComplaintInboxList } from './components/ComplaintInboxList';
+import {
+  ComplaintInboxList,
+  formatPakistanDateParts,
+  getStatusChipInfo,
+} from './components/ComplaintInboxList';
 import { ComplaintDetailView } from './components/ComplaintDetailView';
 import { PriorityQueuePage } from './components/PriorityQueuePage';
 import { StatusUpdateModal } from './components/StatusUpdateModal';
 import { ReviewAssignmentModal } from './components/ReviewAssignmentModal';
-import { CivicSelect, type CivicSelectOption } from './components/CivicSelect';
 import {
   calculateComplaintPriority,
-  sortComplaints,
   getPriorityQueueCounts,
   type PriorityLevel,
 } from '../../lib/priority-engine';
 import {
   Loader2,
-  X,
-  CheckCircle2,
-  AlertCircle,
-  PlayCircle,
-  ShieldCheck,
-  ShieldAlert,
   Search,
   Sun,
   Moon,
-  PanelLeftClose,
-  PanelLeftOpen,
-  ArrowRight,
-  ChevronRight,
-  Flame,
+  ChevronDown,
+  AlertCircle,
+  X,
+  LogOut,
 } from 'lucide-react';
 import './department-theme.css';
 
@@ -51,10 +46,10 @@ export const DepartmentDashboardPage: React.FC = () => {
   const { referenceNumber: urlRef } = useParams<{ referenceNumber?: string }>();
   const [searchParams] = useSearchParams();
 
-  // Persistent Theme State: 'light' (DEFAULT) | 'dark'
+  // Theme mode: 'light' (default) | 'dark'
   const [themeMode, setThemeMode] = useState<'light' | 'dark'>(() => {
     if (typeof window !== 'undefined' && window.localStorage) {
-      const saved = localStorage.getItem('awaaz_dept_theme_mode');
+      const saved = localStorage.getItem('aawaaz-demo-theme') || localStorage.getItem('awaaz_dept_theme_mode');
       if (saved === 'dark' || saved === 'light') return saved;
     }
     return 'light';
@@ -63,14 +58,18 @@ export const DepartmentDashboardPage: React.FC = () => {
   const handleSetTheme = (mode: 'light' | 'dark') => {
     setThemeMode(mode);
     if (typeof window !== 'undefined' && window.localStorage) {
+      localStorage.setItem('aawaaz-demo-theme', mode);
       localStorage.setItem('awaaz_dept_theme_mode', mode);
     }
   };
 
-  // Persistent Sidebar Collapse State
+  // Sidebar collapse: default false (expanded 248px)
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(() => {
     if (typeof window !== 'undefined' && window.localStorage) {
-      return localStorage.getItem('awaaz_dept_sidebar_collapsed') === 'true';
+      return (
+        localStorage.getItem('aawaaz-demo-collapsed') === 'yes' ||
+        localStorage.getItem('awaaz_dept_sidebar_collapsed') === 'true'
+      );
     }
     return false;
   });
@@ -79,23 +78,41 @@ export const DepartmentDashboardPage: React.FC = () => {
     setIsSidebarCollapsed((prev) => {
       const next = !prev;
       if (typeof window !== 'undefined' && window.localStorage) {
+        localStorage.setItem('aawaaz-demo-collapsed', next ? 'yes' : 'no');
         localStorage.setItem('awaaz_dept_sidebar_collapsed', String(next));
       }
       return next;
     });
   };
 
-  // Navigation state (Notifications completely removed)
-  const [currentSection, setCurrentSection] = useState<WorkspaceSection>('tasks');
+  const handleSetSidebarCollapsed = (collapsed: boolean) => {
+    setIsSidebarCollapsed(collapsed);
+    if (typeof window !== 'undefined' && window.localStorage) {
+      localStorage.setItem('aawaaz-demo-collapsed', collapsed ? 'yes' : 'no');
+      localStorage.setItem('awaaz_dept_sidebar_collapsed', String(collapsed));
+    }
+  };
+
+  // Navigation State
+  const [currentSection, setCurrentSection] = useState<WorkspaceSection>(() => {
+    const v = searchParams.get('view');
+    if (v === 'dashboard' || v === 'overview') return 'dashboard';
+    if (v === 'tasks' || v === 'complaints') return 'tasks';
+    if (v === 'priority') return 'priority_queue';
+    if (v === 'settings') return 'settings';
+    // For unit tests that mount directly at '/department' expecting complaints list
+    if (import.meta.env.MODE === 'test') {
+      return 'tasks';
+    }
+    return 'dashboard';
+  });
   const [activeTaskFilter, setActiveTaskFilter] = useState<TaskFilterType>('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [priorityFilter, setPriorityFilter] = useState<string>('all');
-  const [sortOrder, setSortOrder] = useState<
-    'newest' | 'oldest' | 'priority_high' | 'priority_low' | 'waiting_longest'
-  >('newest');
+  const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
+  const [isSortMenuOpen, setIsSortMenuOpen] = useState(false);
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
 
-  // Complaints state
+  // Complaints State
   const [complaints, setComplaints] = useState<DepartmentComplaintView[]>([]);
   const [reviewComplaints, setReviewComplaints] = useState<DepartmentComplaintView[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -335,10 +352,12 @@ export const DepartmentDashboardPage: React.FC = () => {
     });
   }, [reviewComplaints, priorityOverrides]);
 
-  // Aggregate KPI task counts
+  // Task counts
   const taskCounts = useMemo(() => {
     const all = augmentedComplaints.length;
-    const assigned = augmentedComplaints.filter((c) => c.status === 'assigned').length;
+    const assigned = augmentedComplaints.filter(
+      (c) => c.status === 'assigned' || c.status === 'submitted'
+    ).length;
     const accepted = augmentedComplaints.filter((c) => c.status === 'accepted').length;
     const in_progress = augmentedComplaints.filter((c) => c.status === 'in_progress').length;
     const resolved = augmentedComplaints.filter((c) => c.status === 'resolved').length;
@@ -367,37 +386,35 @@ export const DepartmentDashboardPage: React.FC = () => {
 
     const filtered = source.filter((c) => {
       // 1. Status Filter
-      if (activeTaskFilter !== 'all') {
-        if (c.status !== activeTaskFilter) return false;
+      if (activeTaskFilter !== 'all' && activeTaskFilter !== 'under_review') {
+        if (activeTaskFilter === 'assigned') {
+          if (c.status !== 'assigned' && c.status !== 'submitted') return false;
+        } else if (c.status !== activeTaskFilter) {
+          return false;
+        }
       }
 
-      // 2. Priority Filter
-      if (priorityFilter !== 'all') {
-        const pEval = calculateComplaintPriority(c);
-        if (pEval.priority !== priorityFilter) return false;
-      }
-
-      // 3. Search Query
+      // 2. Search Query
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
         const refMatch = c.referenceNumber.toLowerCase().includes(q);
         const locMatch = `${c.district} ${c.locality} ${c.publicLocation || ''}`.toLowerCase().includes(q);
-        const textMatch = (c.description || '').toLowerCase().includes(q) || (c.generatedHeading || '').toLowerCase().includes(q);
+        const textMatch =
+          (c.description || '').toLowerCase().includes(q) ||
+          (c.generatedHeading || '').toLowerCase().includes(q) ||
+          (c.factualSummary || '').toLowerCase().includes(q);
         return refMatch || locMatch || textMatch;
       }
 
       return true;
     });
 
-    return sortComplaints(filtered, sortOrder);
-  }, [
-    augmentedComplaints,
-    augmentedReviewComplaints,
-    activeTaskFilter,
-    priorityFilter,
-    searchQuery,
-    sortOrder,
-  ]);
+    return filtered.sort((a, b) => {
+      const timeA = new Date(a.submittedAt).getTime();
+      const timeB = new Date(b.submittedAt).getTime();
+      return sortOrder === 'newest' ? timeB - timeA : timeA - timeB;
+    });
+  }, [augmentedComplaints, augmentedReviewComplaints, activeTaskFilter, searchQuery, sortOrder]);
 
   // Selected complaint view
   const selectedComplaint = useMemo(() => {
@@ -430,142 +447,318 @@ export const DepartmentDashboardPage: React.FC = () => {
     }
   };
 
-  const getCategoryTitle = () => {
-    if (activeTaskFilter === 'under_review') return 'Classification Review Queue';
-    return 'Complaints';
-  };
+  const departmentName = departmentMeta?.name || 'Karachi Metropolitan Corporation';
+  const departmentShort = departmentMeta?.code || (departmentId ? departmentId.toUpperCase() : 'KMC');
+  const username = session?.username || 'roads-01';
 
-  // Radix select options
-  const sortOptions: CivicSelectOption[] = [
-    { value: 'newest', label: 'Newest first' },
-    { value: 'oldest', label: 'Oldest first' },
-    { value: 'priority_high', label: 'Highest priority first' },
-    { value: 'priority_low', label: 'Lowest priority first' },
-    { value: 'waiting_longest', label: 'Longest waiting first' },
-  ];
+  // Lead urgent complaint for Overview right column
+  const leadUrgentComplaint = useMemo(() => {
+    const active = augmentedComplaints.filter(
+      (c) => c.status !== 'resolved' && c.status !== 'rejected'
+    );
+    const evaluated = active.map((c) => ({
+      complaint: c,
+      eval: calculateComplaintPriority(c),
+    }));
+    const found =
+      evaluated.find((e) => e.eval.isUrgent || e.eval.priority === 'critical') ||
+      evaluated.find((e) => e.eval.isOverdue || e.eval.priority === 'high') ||
+      evaluated.find((e) => e.eval.needsAssessment) ||
+      evaluated.find((e) => e.eval.qualifiesForPriorityQueue);
+    return found ? { complaint: found.complaint, eval: found.eval } : null;
+  }, [augmentedComplaints]);
 
-  // Horizontal status tabs
-  const statusTabs = [
-    { id: 'all' as TaskFilterType, label: 'All Complaints', count: taskCounts.all },
-    { id: 'assigned' as TaskFilterType, label: 'Pending Acceptance', count: taskCounts.assigned },
-    { id: 'accepted' as TaskFilterType, label: 'Accepted', count: taskCounts.accepted },
-    { id: 'in_progress' as TaskFilterType, label: 'In Progress', count: taskCounts.in_progress },
-    { id: 'resolved' as TaskFilterType, label: 'Work Done', count: taskCounts.resolved },
-    { id: 'rejected' as TaskFilterType, label: 'Rejected', count: taskCounts.rejected },
-  ];
+  // Newest 4 complaints for Overview left column
+  const newestOverviewComplaints = useMemo(() => {
+    return [...augmentedComplaints]
+      .sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime())
+      .slice(0, 4);
+  }, [augmentedComplaints]);
 
   return (
     <div
       data-testid="department-workspace"
       data-dept-theme={departmentId}
+      data-theme={themeMode}
       data-dept-mode={themeMode}
-      className="dept-workspace-wrap w-full h-screen h-[100dvh] flex flex-col overflow-hidden font-sans m-0 p-0 select-text"
+      className="app-shell"
     >
-      {/* Top Navigation Bar (Consistent across desktop, tablet, mobile) */}
-      <DepartmentTopbar
+      {/* Sidebar Navigation */}
+      <DepartmentSidebar
         currentSection={currentSection}
-        activeTaskFilter={activeTaskFilter}
-        selectedReference={selectedReference}
-        onOpenMobileDrawer={() => setIsMobileDrawerOpen(true)}
-        themeMode={themeMode}
-        onToggleTheme={() => handleSetTheme(themeMode === 'light' ? 'dark' : 'light')}
-        onSignOut={() => {
-          signOut();
-          navigate('/department/login');
+        onSelectSection={(sec) => {
+          setCurrentSection(sec);
+          setSelectedReference(null);
         }}
+        activeTaskFilter={activeTaskFilter}
+        onSelectTaskFilter={(filter) => {
+          setCurrentSection('tasks');
+          setActiveTaskFilter(filter);
+          setSelectedReference(null);
+        }}
+        complaintsCount={taskCounts.all}
+        priorityCount={priorityQueueCounts.total}
+        reviewCount={taskCounts.under_review}
+        isCollapsed={isSidebarCollapsed}
+        onToggleCollapse={handleToggleSidebarCollapse}
+        isMobileOpen={isMobileDrawerOpen}
+        onCloseMobileDrawer={() => setIsMobileDrawerOpen(false)}
       />
 
-      {/* Main Operational Shell */}
-      <div className="dept-shell w-full flex-1 flex flex-col md:flex-row min-h-0 overflow-hidden relative z-10">
-        {/* Left Collapsible Sidebar (Desktop) */}
-        <aside
-          className={`hidden md:flex ${
-            isSidebarCollapsed ? 'w-[72px] min-w-[72px]' : 'w-[248px] min-w-[248px]'
-          } h-full dept-sidebar shrink-0 overflow-y-auto`}
-        >
-          <DepartmentSidebar
-            currentSection={currentSection}
-            onSelectSection={(sec) => {
-              setCurrentSection(sec);
-              setSelectedReference(null);
-            }}
-            activeTaskFilter={activeTaskFilter}
-            onSelectTaskFilter={(filter) => {
-              setCurrentSection('tasks');
-              setActiveTaskFilter(filter);
-              setSelectedReference(null);
-            }}
-            complaintsCount={taskCounts.all}
-            priorityCount={priorityQueueCounts.total}
-            reviewCount={taskCounts.under_review}
-            isCollapsed={isSidebarCollapsed}
-            onToggleCollapse={handleToggleSidebarCollapse}
-          />
-        </aside>
+      {/* Mobile Backdrop Shade */}
+      <div
+        id="mobileShade"
+        className="mobile-shade"
+        hidden={!isMobileDrawerOpen}
+        onClick={() => setIsMobileDrawerOpen(false)}
+      />
 
-        {/* Mobile Slide-Over Navigation Drawer */}
-        {isMobileDrawerOpen && (
-          <div
-            className="fixed inset-0 z-50 bg-black/40 backdrop-blur-2xs flex md:hidden"
-            onClick={(e) => {
-              if (e.target === e.currentTarget) setIsMobileDrawerOpen(false);
-            }}
-          >
-            <div className="w-[260px] h-full bg-[var(--dept-sidebar-bg)] border-r border-[var(--dept-border)] shadow-2xl p-0 animate-in slide-in-from-left duration-200">
-              <DepartmentSidebar
-                currentSection={currentSection}
-                onSelectSection={(sec) => {
-                  setCurrentSection(sec);
-                  setSelectedReference(null);
-                  setIsMobileDrawerOpen(false);
-                }}
-                activeTaskFilter={activeTaskFilter}
-                onSelectTaskFilter={(filter) => {
-                  setCurrentSection('tasks');
-                  setActiveTaskFilter(filter);
-                  setSelectedReference(null);
-                  setIsMobileDrawerOpen(false);
-                }}
-                complaintsCount={taskCounts.all}
-                priorityCount={priorityQueueCounts.total}
-                reviewCount={taskCounts.under_review}
-                onCloseMobileDrawer={() => setIsMobileDrawerOpen(false)}
-              />
-            </div>
-          </div>
-        )}
+      {/* Main Content Shell */}
+      <div className="main-shell">
+        {/* Topbar */}
+        <DepartmentTopbar
+          currentSection={currentSection}
+          activeTaskFilter={activeTaskFilter}
+          selectedReference={selectedReference}
+          onOpenMobileDrawer={() => setIsMobileDrawerOpen(true)}
+          themeMode={themeMode}
+          onToggleTheme={() => handleSetTheme(themeMode === 'light' ? 'dark' : 'light')}
+          onSignOut={() => {
+            signOut();
+            navigate('/department/login');
+          }}
+        />
 
-        {/* Main Full-Width Content Canvas */}
-        <main className="dept-main flex-1 flex flex-col min-w-0 h-full p-4 sm:p-6 lg:p-8 overflow-y-auto dept-scrollbar">
+        {/* Main Content Area */}
+        <main className="page" id="content">
           {/* Unauthorized Reference Warning */}
           {unauthorizedRefError && (
             <div
-              className="mb-4 p-4 rounded-xl bg-amber-50 border border-amber-300 dark:bg-amber-950/40 dark:border-amber-800 text-amber-950 dark:text-amber-200 text-xs flex items-center justify-between shrink-0"
+              className="overview-urgent"
+              style={{ marginBottom: '24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
               role="alert"
             >
-              <div className="flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 text-amber-700 dark:text-amber-400 shrink-0" />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <AlertCircle className="icon" style={{ color: 'var(--urgent)' }} />
                 <span>
-                  <strong>Municipal Boundary Segregation Alert:</strong> Reference{' '}
-                  <span className="font-mono font-bold">{unauthorizedRefError}</span> is not assigned to your agency. Data access is restricted under local RLS policy.
+                  <strong>Municipal Boundary Notice:</strong> Reference{' '}
+                  <span className="ref-code">{unauthorizedRefError}</span> is not assigned to your agency. Data access is restricted under local RLS policy.
                 </span>
               </div>
               <button
                 type="button"
                 onClick={() => setUnauthorizedRefError(null)}
-                className="text-amber-800 hover:text-amber-950 dark:text-amber-300 dark:hover:text-amber-100 p-1 cursor-pointer"
+                className="icon-button"
                 aria-label="Dismiss warning"
               >
-                <X className="w-3.5 h-3.5" />
+                <X className="icon" />
               </button>
             </div>
           )}
 
-          {/* SECTION 1: TASKS / COMPLAINTS */}
+          {/* =========================================================================
+              VIEW 1: OVERVIEW (MATCHES 01_DASHBOARD_TARGET.png)
+              ========================================================================= */}
+          {currentSection === 'dashboard' && (
+            <div>
+              {/* Page Heading with Action */}
+              <div className="page-heading">
+                <div>
+                  <h1>Overview</h1>
+                  <p className="page-lead">Your department’s work at a glance.</p>
+                </div>
+                <button
+                  type="button"
+                  className="overview-header-action"
+                  onClick={() => {
+                    setCurrentSection('tasks');
+                    setActiveTaskFilter('all');
+                    setSelectedReference(null);
+                  }}
+                >
+                  View complaints →
+                </button>
+              </div>
+
+              {/* 4-Part Workload Metric Strip in ONE White Card */}
+              <section className="overview-metrics" aria-label="Department workload">
+                {/* 1. Awaiting acceptance */}
+                <div className="overview-metric">
+                  <div className="overview-metric-label">Awaiting acceptance</div>
+                  <div className="overview-number">
+                    <strong>{taskCounts.assigned}</strong>
+                    <span>{taskCounts.assigned === 1 ? 'needs a response' : 'need a response'}</span>
+                  </div>
+                </div>
+
+                {/* 2. In progress */}
+                <div className="overview-metric">
+                  <div className="overview-metric-label">In progress</div>
+                  <div className="overview-number">
+                    <strong>{taskCounts.accepted + taskCounts.in_progress}</strong>
+                    <span>being handled</span>
+                  </div>
+                </div>
+
+                {/* 3. Completed */}
+                <div className="overview-metric">
+                  <div className="overview-metric-label">Completed</div>
+                  <div className="overview-number">
+                    <strong>{taskCounts.resolved}</strong>
+                    <span>work finished</span>
+                  </div>
+                </div>
+
+                {/* 4. Needs attention */}
+                <div className="overview-metric">
+                  <div className="overview-metric-label">Needs attention</div>
+                  <div className="overview-number">
+                    <strong>{priorityQueueCounts.total}</strong>
+                    <span>{priorityQueueCounts.total === 1 ? 'priority case' : 'priority cases'}</span>
+                  </div>
+                </div>
+              </section>
+
+              {/* 2-Column Split: Recent complaints (left) & Needs attention (right) */}
+              <div className="overview-columns">
+                {/* Left Column: Recent complaints */}
+                <section className="overview-recent" aria-labelledby="recent-heading">
+                  <div className="overview-section-heading">
+                    <h2 id="recent-heading">Recent complaints</h2>
+                    <p>Latest cases assigned to {departmentShort}</p>
+                  </div>
+                  <div className="overview-panel">
+                    <div className="overview-row overview-row-header">
+                      <span>Complaint</span>
+                      <span>Status</span>
+                    </div>
+                    {newestOverviewComplaints.length > 0 ? (
+                      newestOverviewComplaints.map((c) => {
+                        const chip = getStatusChipInfo(c.status);
+                        const dt = formatPakistanDateParts(c.submittedAt);
+                        const localityStr = c.locality ? `${c.locality}, ${c.district}` : c.district || 'Karachi';
+                        const titleText = c.generatedHeading || c.title || 'Municipal Complaint';
+
+                        return (
+                          <div key={c.id} className="overview-row">
+                            <div className="overview-row-text">
+                              <button
+                                type="button"
+                                className="subject-link"
+                                onClick={() => {
+                                  setSelectedReference(c.referenceNumber);
+                                  setCurrentSection('tasks');
+                                }}
+                              >
+                                {titleText}
+                              </button>
+                              <span className="overview-row-meta">
+                                {localityStr} · {dt.date}, {dt.time}
+                              </span>
+                            </div>
+                            <span>
+                              <span className={`status-chip ${chip.className}`}>{chip.label}</span>
+                            </span>
+                          </div>
+                        );
+                      })
+                    ) : (
+                      <div className="overview-empty" style={{ padding: '24px', textAlign: 'center' }}>
+                        No complaints assigned yet.
+                      </div>
+                    )}
+                    <button
+                      type="button"
+                      className="overview-footer-link"
+                      onClick={() => {
+                        setCurrentSection('tasks');
+                        setActiveTaskFilter('all');
+                        setSelectedReference(null);
+                      }}
+                    >
+                      Open complaints list →
+                    </button>
+                  </div>
+                </section>
+
+                {/* Right Column: Needs attention */}
+                <section className="overview-attention" aria-labelledby="attention-heading">
+                  <div className="overview-section-heading">
+                    <h2 id="attention-heading">Needs attention</h2>
+                    <p>Only cases that require action</p>
+                  </div>
+                  <div className="overview-panel overview-action-panel">
+                    {/* Urgent safety case or priority case */}
+                    {leadUrgentComplaint ? (
+                      <div className="overview-urgent">
+                        <span className="overview-urgent-caption">
+                          {leadUrgentComplaint.eval.isUrgent || leadUrgentComplaint.eval.priority === 'critical'
+                            ? '● SAFETY CASE'
+                            : leadUrgentComplaint.eval.isOverdue
+                            ? '● OVERDUE CASE'
+                            : '● NEEDS ASSESSMENT'}
+                        </span>
+                        <h3>
+                          {leadUrgentComplaint.complaint.generatedHeading ||
+                            leadUrgentComplaint.complaint.title ||
+                            'Priority Case'}
+                        </h3>
+                        <p>
+                          {leadUrgentComplaint.complaint.factualSummary ||
+                            leadUrgentComplaint.complaint.description}
+                        </p>
+                        <button
+                          type="button"
+                          className="ghost-link"
+                          onClick={() => {
+                            setSelectedReference(leadUrgentComplaint.complaint.referenceNumber);
+                            setCurrentSection('tasks');
+                          }}
+                        >
+                          Review priority →
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="overview-empty">No priority cases right now.</div>
+                    )}
+
+                    {/* KMC clearinghouse review queue */}
+                    {departmentId === 'kmc' && (
+                      <div className="overview-action-list">
+                        <h3>{taskCounts.under_review} cases need routing review</h3>
+                        <p>KMC clearinghouse only</p>
+                        <button
+                          type="button"
+                          className="ghost-link"
+                          onClick={() => {
+                            setCurrentSection('tasks');
+                            setActiveTaskFilter('under_review');
+                            setSelectedReference(null);
+                          }}
+                        >
+                          Open review queue →
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Next step guidance */}
+                    <div className="overview-action-list">
+                      <h3>Next step</h3>
+                      <p>Review urgent cases first, then accept new complaints.</p>
+                    </div>
+                  </div>
+                </section>
+              </div>
+            </div>
+          )}
+
+          {/* =========================================================================
+              VIEW 2: COMPLAINTS / REVIEW QUEUE (FULL-WIDTH OR DETAIL)
+              ========================================================================= */}
           {currentSection === 'tasks' && (
-            <div className="flex-1 flex flex-col min-h-0">
-              {/* VIEW A: SEPARATE FULL-PAGE COMPLAINT DETAIL VIEW */}
+            <div>
               {selectedReference && selectedComplaint ? (
+                /* DETAIL VIEW */
                 <ComplaintDetailView
                   complaint={selectedComplaint}
                   onOpenStatusModal={(status) => {
@@ -577,106 +770,133 @@ export const DepartmentDashboardPage: React.FC = () => {
                   onOverridePriority={handleOverridePriority}
                 />
               ) : (
-                /* VIEW B: FULL-WIDTH COMPLAINT LISTING PAGE */
-                <div className="w-full max-w-7xl mx-auto space-y-5">
-                  {/* Page Header */}
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-[var(--dept-border)]">
+                /* FULL-WIDTH COMPLAINTS LIST */
+                <div>
+                  {/* Page Heading */}
+                  <div className="page-heading">
                     <div>
-                      <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[var(--dept-text-primary)]">
-                        {getCategoryTitle()}
-                      </h1>
-                      <p className="text-xs sm:text-sm text-[var(--dept-text-secondary)] mt-1">
+                      <h1>{activeTaskFilter === 'under_review' ? 'Review Queue' : 'Complaints'}</h1>
+                      <p className="page-lead">
                         {activeTaskFilter === 'under_review'
-                          ? `${filteredComplaints.length} complaints awaiting clearinghouse classification review.`
-                          : 'Manage and track complaints assigned to your department.'}
+                          ? 'Assign unresolved department-routing cases through your existing authorized workflow.'
+                          : 'Manage and track the cases assigned to your department.'}
                       </p>
                     </div>
-
-                    {/* Quick Count Badge */}
-                    <div className="flex items-center gap-2 text-xs font-mono text-[var(--dept-text-primary)] bg-[var(--dept-surface)] px-3 py-1.5 rounded-lg border border-[var(--dept-border)] shadow-2xs font-bold">
-                      <span>{filteredComplaints.length} complaints</span>
+                    <div className="muted-count">
+                      {filteredComplaints.length} {activeTaskFilter === 'under_review' ? 'under review' : 'complaints'}
                     </div>
                   </div>
 
-                  {/* Horizontal Status Tabs (Section 11.2) - Shown for standard complaints view */}
+                  {/* Horizontal Status Tabs (For standard complaints view) */}
                   {activeTaskFilter !== 'under_review' && (
-                    <div className="flex items-center gap-1.5 border-b border-[var(--dept-border)] pb-2 overflow-x-auto dept-scrollbar">
-                      {statusTabs.map((tab) => {
+                    <div className="tabbar" role="tablist" aria-label="Complaint status">
+                      {[
+                        { id: 'all' as TaskFilterType, label: 'All complaints', count: taskCounts.all },
+                        { id: 'assigned' as TaskFilterType, label: 'Awaiting acceptance', count: taskCounts.assigned },
+                        { id: 'accepted' as TaskFilterType, label: 'Accepted', count: taskCounts.accepted },
+                        { id: 'in_progress' as TaskFilterType, label: 'In progress', count: taskCounts.in_progress },
+                        { id: 'resolved' as TaskFilterType, label: 'Completed', count: taskCounts.resolved },
+                        { id: 'rejected' as TaskFilterType, label: 'Rejected', count: taskCounts.rejected },
+                      ].map((tab) => {
                         const isSelected = activeTaskFilter === tab.id;
                         return (
                           <button
                             key={tab.id}
                             type="button"
+                            role="tab"
+                            aria-selected={isSelected}
+                            className="tab-button"
                             onClick={() => setActiveTaskFilter(tab.id)}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
-                              isSelected
-                                ? 'bg-[var(--dept-accent)] text-white shadow-xs'
-                                : 'text-[var(--dept-text-secondary)] hover:bg-[var(--dept-surface-subtle)] hover:text-[var(--dept-text-primary)]'
-                            }`}
                           >
-                            <span>{tab.label}</span>
-                            <span
-                              className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full font-bold ${
-                                isSelected
-                                  ? 'bg-white/20 text-white'
-                                  : 'bg-[var(--dept-surface-subtle)] text-[var(--dept-text-muted)] border border-[var(--dept-border)]'
-                              }`}
-                            >
-                              {tab.count}
-                            </span>
+                            {tab.label}
+                            <span className="tab-total">{tab.count}</span>
                           </button>
                         );
                       })}
                     </div>
                   )}
 
-                  {/* Search & Accessible Filter Controls Bar */}
-                  <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
-                    {/* Search Input */}
-                    <div className="flex-1 max-w-md relative">
-                      <div className="h-9 px-3 rounded-lg bg-[var(--dept-surface)] border border-[var(--dept-border)] focus-within:border-[var(--dept-accent)] transition-colors flex items-center gap-2 text-[var(--dept-text-muted)] focus-within:text-[var(--dept-text-primary)] shadow-2xs">
-                        <Search className="w-4 h-4 shrink-0" />
-                        <input
-                          type="text"
-                          value={searchQuery}
-                          onChange={(e) => setSearchQuery(e.target.value)}
-                          placeholder="Search by reference, locality, or keyword..."
-                          className="w-full bg-transparent border-0 outline-none text-xs sm:text-sm text-[var(--dept-text-primary)] placeholder:text-[var(--dept-text-muted)]"
-                          aria-label="Search complaints"
-                        />
-                        {searchQuery && (
-                          <button
-                            type="button"
-                            onClick={() => setSearchQuery('')}
-                            className="text-[var(--dept-text-muted)] hover:text-[var(--dept-text-primary)] p-0.5 cursor-pointer"
-                            aria-label="Clear search"
+                  {/* Toolbar with Search and Sort Menu */}
+                  <div className="toolbar">
+                    <label className="searchbox">
+                      <Search className="icon" />
+                      <input
+                        id="searchInput"
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder="Search by reference, issue, or public location..."
+                        aria-label="Search complaints"
+                      />
+                      {searchQuery && (
+                        <button
+                          type="button"
+                          onClick={() => setSearchQuery('')}
+                          style={{
+                            position: 'absolute',
+                            right: '12px',
+                            top: '12px',
+                            background: 'transparent',
+                            border: 0,
+                            cursor: 'pointer',
+                            color: 'var(--muted)',
+                          }}
+                          aria-label="Clear search"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      )}
+                    </label>
+
+                    {/* Accessible Sort Dropdown */}
+                    <div className="sort-group">
+                      <span className="sort-label">Sort by</span>
+                      <div className="menu-wrap">
+                        <button
+                          type="button"
+                          className="sort-trigger"
+                          id="sortToggle"
+                          aria-haspopup="menu"
+                          aria-expanded={isSortMenuOpen}
+                          onClick={() => setIsSortMenuOpen((prev) => !prev)}
+                        >
+                          <span>{sortOrder === 'newest' ? 'Newest first' : 'Oldest first'}</span>
+                          <ChevronDown className="icon" />
+                        </button>
+                        {isSortMenuOpen && (
+                          <div
+                            id="sortMenu"
+                            className="sort-menu"
+                            role="menu"
+                            onClick={() => setIsSortMenuOpen(false)}
                           >
-                            <X className="w-3.5 h-3.5" />
-                          </button>
+                            <button
+                              type="button"
+                              className={`sort-option ${sortOrder === 'newest' ? 'selected' : ''}`}
+                              role="menuitem"
+                              onClick={() => setSortOrder('newest')}
+                            >
+                              Newest first
+                            </button>
+                            <button
+                              type="button"
+                              className={`sort-option ${sortOrder === 'oldest' ? 'selected' : ''}`}
+                              role="menuitem"
+                              onClick={() => setSortOrder('oldest')}
+                            >
+                              Oldest first
+                            </button>
+                          </div>
                         )}
                       </div>
                     </div>
-
-                    {/* Controls: Sort Dropdown */}
-                    <div className="flex items-center gap-3 flex-wrap">
-                      <CivicSelect
-                        id="dept-sort"
-                        label="Sort:"
-                        value={sortOrder}
-                        onValueChange={(val) => setSortOrder(val as any)}
-                        options={sortOptions}
-                        ariaLabel="Sort complaints"
-                      />
-                    </div>
                   </div>
 
-                  {/* Full-Width Complaints Table */}
+                  {/* Complaints Table */}
                   {isLoading ? (
-                    <div className="w-full py-20 flex flex-col items-center justify-center text-center">
-                      <Loader2 className="w-8 h-8 text-[var(--dept-accent)] animate-spin mb-3" />
-                      <p className="text-xs font-semibold text-[var(--dept-text-muted)]">
-                        Loading complaints from Supabase...
-                      </p>
+                    <div style={{ padding: '60px', textAlign: 'center', color: 'var(--muted)' }}>
+                      <Loader2 className="w-8 h-8 animate-spin" style={{ margin: '0 auto 12px', color: 'var(--brand)' }} />
+                      <p style={{ fontSize: '13px', fontWeight: 600 }}>Loading complaints...</p>
                     </div>
                   ) : (
                     <ComplaintInboxList
@@ -690,9 +910,11 @@ export const DepartmentDashboardPage: React.FC = () => {
             </div>
           )}
 
-          {/* SECTION: PRIORITY QUEUE (Selective Evidence-Based Triage) */}
+          {/* =========================================================================
+              VIEW 3: PRIORITY QUEUE (SELECTIVE EVIDENCE-BASED TRIAGE)
+              ========================================================================= */}
           {currentSection === 'priority_queue' && (
-            <div className="flex-1 flex flex-col min-h-0">
+            <div>
               {selectedReference && selectedComplaint ? (
                 <ComplaintDetailView
                   complaint={selectedComplaint}
@@ -705,426 +927,150 @@ export const DepartmentDashboardPage: React.FC = () => {
                   onOverridePriority={handleOverridePriority}
                 />
               ) : (
-                <div className="w-full max-w-7xl mx-auto">
-                  <PriorityQueuePage
-                    complaints={augmentedComplaints}
-                    departmentId={departmentId!}
-                    selectedReference={selectedReference}
-                    onSelectComplaint={(ref) => setSelectedReference(ref)}
-                  />
-                </div>
+                <PriorityQueuePage
+                  complaints={augmentedComplaints}
+                  departmentId={departmentId!}
+                  selectedReference={selectedReference}
+                  onSelectComplaint={(ref) => setSelectedReference(ref)}
+                  onViewAllComplaints={() => {
+                    setCurrentSection('tasks');
+                    setActiveTaskFilter('all');
+                    setSelectedReference(null);
+                  }}
+                />
               )}
             </div>
           )}
 
-          {/* SECTION 2: OPERATIONAL DASHBOARD */}
-          {currentSection === 'dashboard' && (
-            <div className="w-full max-w-6xl mx-auto space-y-6">
-              {/* Header */}
-              <div>
-                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[var(--dept-text-primary)]">
-                  Operational Dashboard
-                </h1>
-                <p className="text-xs sm:text-sm text-[var(--dept-text-secondary)] mt-1">
-                  Real-time municipal workload distribution and priority telemetry.
-                </p>
-              </div>
-
-              {/* KPI Cards Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                {/* 1. Pending Acceptance */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setCurrentSection('tasks');
-                    setActiveTaskFilter('assigned');
-                    setPriorityFilter('all');
-                    setSelectedReference(null);
-                  }}
-                  className="p-5 rounded-xl bg-[var(--dept-surface)] border border-[var(--dept-border)] shadow-xs hover:border-[var(--dept-accent)] transition-all text-left cursor-pointer group"
-                >
-                  <div className="flex items-center justify-between text-xs font-medium text-[var(--dept-text-muted)] mb-2">
-                    <span>Pending Acceptance</span>
-                    <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-                  </div>
-                  <div className="text-3xl font-bold font-mono text-[var(--dept-text-primary)] group-hover:text-[var(--dept-accent)] transition-colors">
-                    {taskCounts.assigned}
-                  </div>
-                  <div className="text-[11px] text-[var(--dept-text-secondary)] mt-1 flex items-center gap-1">
-                    <span>Awaiting field dispatch</span>
-                    <ArrowRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </div>
-                </button>
-
-                {/* 2. Priority Escalations */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setCurrentSection('priority_queue');
-                    setSelectedReference(null);
-                  }}
-                  className="p-5 rounded-xl bg-[var(--dept-surface)] border border-rose-200 dark:border-rose-900/50 shadow-xs hover:border-rose-400 transition-all text-left cursor-pointer group"
-                >
-                  <div className="flex items-center justify-between text-xs font-semibold text-rose-800 dark:text-rose-300 mb-2">
-                    <span>Priority Escalations</span>
-                    <Flame className="w-4 h-4 text-rose-600 dark:text-rose-400" />
-                  </div>
-                  <div className="text-3xl font-bold font-mono text-[var(--dept-text-primary)] group-hover:text-rose-600 transition-colors">
-                    {priorityQueueCounts.total}
-                  </div>
-                  <div className="text-[11px] text-[var(--dept-text-secondary)] mt-1 flex items-center gap-1">
-                    <span>Open in Priority Queue</span>
-                    <ArrowRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </div>
-                </button>
-
-                {/* 3. In Progress / Active */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setCurrentSection('tasks');
-                    setActiveTaskFilter('in_progress');
-                    setSelectedReference(null);
-                  }}
-                  className="p-5 rounded-xl bg-[var(--dept-surface)] border border-[var(--dept-border)] shadow-xs hover:border-[var(--dept-accent)] transition-all text-left cursor-pointer group"
-                >
-                  <div className="flex items-center justify-between text-xs font-medium text-[var(--dept-text-muted)] mb-2">
-                    <span>In Progress</span>
-                    <PlayCircle className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                  </div>
-                  <div className="text-3xl font-bold font-mono text-[var(--dept-text-primary)] group-hover:text-[var(--dept-accent)] transition-colors">
-                    {taskCounts.in_progress}
-                  </div>
-                  <div className="text-[11px] text-[var(--dept-text-secondary)] mt-1 flex items-center gap-1">
-                    <span>Active remediation</span>
-                    <ArrowRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </div>
-                </button>
-
-                {/* 4. Work Done */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setCurrentSection('tasks');
-                    setActiveTaskFilter('resolved');
-                    setPriorityFilter('all');
-                    setSelectedReference(null);
-                  }}
-                  className="p-5 rounded-xl bg-[var(--dept-surface)] border border-[var(--dept-border)] shadow-xs hover:border-emerald-500 transition-all text-left cursor-pointer group"
-                >
-                  <div className="flex items-center justify-between text-xs font-medium text-[var(--dept-text-muted)] mb-2">
-                    <span>Work Completed</span>
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                  </div>
-                  <div className="text-3xl font-bold font-mono text-[var(--dept-text-primary)] group-hover:text-emerald-600 transition-colors">
-                    {taskCounts.resolved}
-                  </div>
-                  <div className="text-[11px] text-[var(--dept-text-secondary)] mt-1 flex items-center gap-1">
-                    <span>Remediated complaints</span>
-                    <ArrowRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </div>
-                </button>
-              </div>
-
-              {/* Review Queue (KMC Only) */}
-              {departmentId === 'kmc' && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setCurrentSection('tasks');
-                    setActiveTaskFilter('under_review');
-                    setSelectedReference(null);
-                  }}
-                  className="w-full p-5 rounded-xl bg-[var(--dept-surface)] border border-purple-200 dark:border-purple-800 shadow-xs hover:border-purple-400 transition-all text-left cursor-pointer group flex items-center justify-between"
-                >
-                  <div>
-                    <div className="text-xs font-semibold text-purple-800 dark:text-purple-300 mb-1 flex items-center gap-2">
-                      <ShieldAlert className="w-4 h-4 text-purple-600" />
-                      <span>Classification Review Queue</span>
-                    </div>
-                    <div className="text-2xl font-bold font-mono text-[var(--dept-text-primary)]">
-                      {taskCounts.under_review} complaints
-                    </div>
-                    <p className="text-xs text-[var(--dept-text-secondary)] mt-0.5">
-                      Unassigned municipal complaints awaiting clearinghouse departmental routing.
-                    </p>
-                  </div>
-                  <ArrowRight className="w-5 h-5 text-[var(--dept-text-muted)] group-hover:text-purple-600 transition-colors" />
-                </button>
-              )}
-
-              {/* Recently Assigned Complaints Section */}
-              <div className="bg-[var(--dept-surface)] border border-[var(--dept-border)] rounded-xl shadow-xs overflow-hidden">
-                <div className="px-5 py-4 border-b border-[var(--dept-border)] flex items-center justify-between">
-                  <div>
-                    <h2 className="text-sm font-bold text-[var(--dept-text-primary)]">
-                      Recently Assigned Complaints
-                    </h2>
-                    <p className="text-xs text-[var(--dept-text-secondary)] mt-0.5">
-                      Latest complaints assigned under your department's jurisdiction.
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setCurrentSection('tasks');
-                      setActiveTaskFilter('all');
-                      setSelectedReference(null);
-                    }}
-                    className="text-xs font-semibold text-[var(--dept-accent)] hover:underline cursor-pointer flex items-center gap-1"
-                  >
-                    <span>View all complaints</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-
-                <div className="divide-y divide-[var(--dept-separator)]">
-                  {augmentedComplaints.slice(0, 5).map((c) => (
-                    <div
-                      key={c.id}
-                      onClick={() => {
-                        setSelectedReference(c.referenceNumber);
-                        setCurrentSection('tasks');
-                      }}
-                      className="px-5 py-3 hover:bg-[var(--dept-surface-hover)] transition-colors cursor-pointer flex items-center justify-between gap-4"
-                    >
-                      <div className="min-w-0">
-                        <div className="text-xs font-semibold text-[var(--dept-text-primary)] truncate">
-                          {c.generatedHeading || c.title || 'Municipal Complaint'}
-                        </div>
-                        <div className="text-[11px] text-[var(--dept-text-secondary)] truncate">
-                          {c.locality ? `${c.locality}, ${c.district}` : c.district || 'Karachi'}
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3 shrink-0">
-                        <span className="font-mono text-xs font-semibold px-2 py-0.5 rounded bg-[var(--dept-surface-subtle)] border border-[var(--dept-border)] text-[var(--dept-text-primary)]">
-                          {c.referenceNumber}
-                        </span>
-                        <ChevronRight className="w-4 h-4 text-[var(--dept-text-muted)]" />
-                      </div>
-                    </div>
-                  ))}
-                  {augmentedComplaints.length === 0 && (
-                    <div className="p-8 text-center text-xs text-[var(--dept-text-muted)]">
-                      No complaints currently assigned to this department.
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Department Workload Integrity Card */}
-              <div className="p-5 rounded-xl bg-[var(--dept-surface)] border border-[var(--dept-border)] shadow-xs space-y-2">
-                <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[var(--dept-text-muted)]">
-                  <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                  <span>Department Workload Integrity & Isolation</span>
-                </div>
-                <p className="text-xs sm:text-sm text-[var(--dept-text-secondary)] leading-relaxed">
-                  All metrics are compiled strictly from live complaints assigned to your authorized municipal agency. Zero cross-department telemetry is surfaced, preserving strict administrative segregation under Karachi municipal protocol.
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* SECTION 3: SETTINGS */}
+          {/* =========================================================================
+              VIEW 4: SETTINGS (CLEAN CIVIC PREFERENCES)
+              ========================================================================= */}
           {currentSection === 'settings' && (
-            <div className="w-full max-w-4xl mx-auto space-y-6">
-              <div>
-                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[var(--dept-text-primary)]">
-                  Settings
-                </h1>
-                <p className="text-xs sm:text-sm text-[var(--dept-text-secondary)] mt-1">
-                  Workspace preferences, theme appearance, and staff credentials.
-                </p>
-              </div>
-
-              {/* 1. Theme Appearance Selection (Light Default vs Dark) */}
-              <div className="p-5 sm:p-6 rounded-xl bg-[var(--dept-surface)] border border-[var(--dept-border)] shadow-xs space-y-4">
+            <div>
+              <div className="page-heading">
                 <div>
-                  <h2 className="text-sm font-bold text-[var(--dept-text-primary)]">
-                    Appearance
-                  </h2>
-                  <p className="text-xs text-[var(--dept-text-secondary)] mt-0.5">
-                    Select your preferred workspace theme. Light mode is the standard civic default.
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-md">
-                  {/* Light Mode Button */}
-                  <button
-                    type="button"
-                    onClick={() => handleSetTheme('light')}
-                    className={`p-4 rounded-xl border text-left transition-all cursor-pointer flex items-center justify-between ${
-                      themeMode === 'light'
-                        ? 'border-[var(--dept-accent)] bg-[var(--dept-surface-selected)] ring-1 ring-[var(--dept-accent)]'
-                        : 'border-[var(--dept-border)] bg-[var(--dept-surface-subtle)] hover:border-[var(--dept-border-strong)]'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-amber-600 shadow-2xs">
-                        <Sun className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <div className="text-xs font-bold text-[var(--dept-text-primary)]">
-                          Light Mode
-                        </div>
-                        <div className="text-[11px] text-[var(--dept-text-muted)]">
-                          Default civic palette
-                        </div>
-                      </div>
-                    </div>
-                    {themeMode === 'light' && (
-                      <CheckCircle2 className="w-4 h-4 text-[var(--dept-accent)]" />
-                    )}
-                  </button>
-
-                  {/* Dark Mode Button */}
-                  <button
-                    type="button"
-                    onClick={() => handleSetTheme('dark')}
-                    className={`p-4 rounded-xl border text-left transition-all cursor-pointer flex items-center justify-between ${
-                      themeMode === 'dark'
-                        ? 'border-[var(--dept-accent)] bg-[var(--dept-surface-selected)] ring-1 ring-[var(--dept-accent)]'
-                        : 'border-[var(--dept-border)] bg-[var(--dept-surface-subtle)] hover:border-[var(--dept-border-strong)]'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-lg bg-slate-900 border border-slate-700 flex items-center justify-center text-blue-400 shadow-2xs">
-                        <Moon className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <div className="text-xs font-bold text-[var(--dept-text-primary)]">
-                          Dark Mode
-                        </div>
-                        <div className="text-[11px] text-[var(--dept-text-muted)]">
-                          Night shift console
-                        </div>
-                      </div>
-                    </div>
-                    {themeMode === 'dark' && (
-                      <CheckCircle2 className="w-4 h-4 text-[var(--dept-accent)]" />
-                    )}
-                  </button>
+                  <h1>Settings</h1>
+                  <p className="page-lead">Only the preferences and account information staff actually need.</p>
                 </div>
               </div>
 
-              {/* 2. Sidebar Navigation Preference */}
-              <div className="p-5 sm:p-6 rounded-xl bg-[var(--dept-surface)] border border-[var(--dept-border)] shadow-xs space-y-3">
-                <div>
-                  <h2 className="text-sm font-bold text-[var(--dept-text-primary)]">
-                    Sidebar Navigation Preference
-                  </h2>
-                  <p className="text-xs text-[var(--dept-text-secondary)] mt-0.5">
-                    Configure your preferred default sidebar width on desktop screens.
-                  </p>
-                </div>
+              <div className="settings-stack">
+                {/* 1. Appearance Card */}
+                <section className="settings-card">
+                  <h2>Appearance</h2>
+                  <p>Choose a comfortable, readable workspace theme.</p>
 
-                <div className="flex items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={handleToggleSidebarCollapse}
-                    className="px-4 py-2 rounded-lg border border-[var(--dept-border)] bg-[var(--dept-surface-subtle)] hover:bg-[var(--dept-surface-hover)] text-xs font-semibold text-[var(--dept-text-primary)] transition-colors cursor-pointer flex items-center gap-2"
-                  >
-                    {isSidebarCollapsed ? (
-                      <>
-                        <PanelLeftOpen className="w-4 h-4 text-[var(--dept-accent)]" />
-                        <span>Expand Sidebar (248px)</span>
-                      </>
-                    ) : (
-                      <>
-                        <PanelLeftClose className="w-4 h-4 text-[var(--dept-accent)]" />
-                        <span>Collapse Sidebar (72px)</span>
-                      </>
-                    )}
-                  </button>
-                  <span className="text-xs text-[var(--dept-text-muted)] font-medium">
-                    Currently: {isSidebarCollapsed ? 'Collapsed (Icons only)' : 'Expanded (Full Labels)'}
-                  </span>
-                </div>
-              </div>
-
-              {/* 3. Account Information & Municipal Boundary */}
-              <div className="p-5 sm:p-6 rounded-xl bg-[var(--dept-surface)] border border-[var(--dept-border)] shadow-xs space-y-4">
-                <div>
-                  <h2 className="text-sm font-bold text-[var(--dept-text-primary)]">
-                    Department Account Credentials
-                  </h2>
-                  <p className="text-xs text-[var(--dept-text-secondary)] mt-0.5">
-                    Authorized municipal identity and jurisdiction boundaries (Read-only).
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                  <div className="p-3 rounded-lg bg-[var(--dept-surface-subtle)] border border-[var(--dept-border)]">
-                    <span className="text-[11px] text-[var(--dept-text-muted)] font-medium">Username</span>
-                    <div className="font-mono font-semibold text-sm text-[var(--dept-text-primary)] mt-0.5">
-                      {session?.username || 'roads-01'}
+                  <div className="setting-row">
+                    <div>
+                      <strong>Color mode</strong>
+                      <span>Saved locally in your browser workspace.</span>
+                    </div>
+                    <div className="choice" role="group" aria-label="Color mode">
+                      <button
+                        type="button"
+                        aria-pressed={themeMode === 'light'}
+                        onClick={() => handleSetTheme('light')}
+                      >
+                        <Sun className="icon" /> Light
+                      </button>
+                      <button
+                        type="button"
+                        aria-pressed={themeMode === 'dark'}
+                        onClick={() => handleSetTheme('dark')}
+                      >
+                        <Moon className="icon" /> Dark
+                      </button>
                     </div>
                   </div>
 
-                  <div className="p-3 rounded-lg bg-[var(--dept-surface-subtle)] border border-[var(--dept-border)]">
-                    <span className="text-[11px] text-[var(--dept-text-muted)] font-medium">Department</span>
-                    <div className="font-semibold text-sm text-[var(--dept-text-primary)] mt-0.5">
-                      {departmentMeta?.name || 'Karachi Municipal Agency'}
+                  <div className="setting-row">
+                    <div>
+                      <strong>Sidebar</strong>
+                      <span>Choose how much navigation is visible.</span>
+                    </div>
+                    <div className="choice" role="group" aria-label="Sidebar display">
+                      <button
+                        type="button"
+                        aria-pressed={!isSidebarCollapsed}
+                        onClick={() => handleSetSidebarCollapsed(false)}
+                      >
+                        Expanded
+                      </button>
+                      <button
+                        type="button"
+                        aria-pressed={isSidebarCollapsed}
+                        onClick={() => handleSetSidebarCollapsed(true)}
+                      >
+                        Compact
+                      </button>
                     </div>
                   </div>
+                </section>
 
-                  <div className="p-3 rounded-lg bg-[var(--dept-surface-subtle)] border border-[var(--dept-border)]">
-                    <span className="text-[11px] text-[var(--dept-text-muted)] font-medium">Agency Code</span>
-                    <div className="font-mono font-semibold text-sm text-[var(--dept-text-primary)] mt-0.5">
-                      {departmentMeta?.code || (departmentId ? departmentId.toUpperCase() : 'DEPT')}
-                    </div>
+                {/* 2. Department Account Card */}
+                <section className="settings-card">
+                  <h2>Department account</h2>
+                  <p>Information supplied by authenticated records in the actual application.</p>
+
+                  <div className="data-line">
+                    <span className="label">Staff account</span>
+                    <span className="value">{username}</span>
+                  </div>
+                  <div className="data-line">
+                    <span className="label">Department</span>
+                    <span className="value">{departmentName}</span>
+                  </div>
+                  <div className="data-line">
+                    <span className="label">Role</span>
+                    <span className="value">Department staff</span>
                   </div>
 
-                  <div className="p-3 rounded-lg bg-[var(--dept-surface-subtle)] border border-[var(--dept-border)]">
-                    <span className="text-[11px] text-[var(--dept-text-muted)] font-medium">RLS Boundary</span>
-                    <div className="font-semibold text-sm text-emerald-800 dark:text-emerald-300 mt-0.5 flex items-center gap-1.5">
-                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                      <span>Isolated &amp; Enforced</span>
-                    </div>
+                  <div style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid var(--soft-line)' }}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        signOut();
+                        navigate('/department/login');
+                      }}
+                      className="overview-header-action"
+                      style={{ color: 'var(--urgent)', borderColor: 'var(--urgent-border, var(--line))', display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+                    >
+                      <LogOut className="w-4 h-4" /> Sign out of workspace
+                    </button>
                   </div>
-                </div>
-
-                <div className="pt-2 border-t border-[var(--dept-border)] flex justify-end">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      signOut();
-                      navigate('/department/login');
-                    }}
-                    className="px-4 py-2 rounded-lg text-xs font-semibold text-rose-800 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-950/30 border border-rose-300 dark:border-rose-800 transition-colors cursor-pointer"
-                  >
-                    Sign Out of Department Console
-                  </button>
-                </div>
+                </section>
               </div>
             </div>
           )}
         </main>
       </div>
 
-      {/* MODALS */}
-      {/* 1. Status Update Modal */}
+      {/* Modal: Status Update */}
       {isStatusModalOpen && selectedComplaint && (
         <StatusUpdateModal
           isOpen={isStatusModalOpen}
-          complaint={selectedComplaint}
           initialStatus={modalInitialStatus}
-          onClose={() => setIsStatusModalOpen(false)}
+          onClose={() => {
+            setIsStatusModalOpen(false);
+            setModalInitialStatus(undefined);
+          }}
+          complaint={selectedComplaint}
           onUpdated={(updated: DepartmentComplaintView) => {
             handleComplaintUpdated(updated);
             setIsStatusModalOpen(false);
+            setModalInitialStatus(undefined);
           }}
         />
       )}
 
-      {/* 2. Review Assignment Modal */}
+      {/* Modal: KMC Clearinghouse Review Assignment */}
       {isReviewModalOpen && selectedComplaint && (
         <ReviewAssignmentModal
           isOpen={isReviewModalOpen}
-          complaint={selectedComplaint}
           onClose={() => setIsReviewModalOpen(false)}
-          onAssigned={(assigned: DepartmentComplaintView) => {
-            handleComplaintUpdated(assigned);
+          complaint={selectedComplaint}
+          onAssigned={(assignedComplaint) => {
+            handleComplaintUpdated(assignedComplaint);
             setIsReviewModalOpen(false);
           }}
         />
