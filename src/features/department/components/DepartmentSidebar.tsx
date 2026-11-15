@@ -1,17 +1,25 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
-  BarChart3,
+  LayoutDashboard,
+  Inbox,
+  CheckCircle2,
+  PlayCircle,
+  AlertCircle,
+  XCircle,
+  ShieldAlert,
   Bell,
-  CheckSquare2,
   Settings,
   LogOut,
-  ShieldAlert,
+  ChevronDown,
+  ChevronRight,
+  PanelLeftClose,
+  PanelLeftOpen,
   X,
 } from 'lucide-react';
 import { useDepartmentAuth } from '../../../context/DepartmentAuthContext';
 import { useNavigate } from 'react-router-dom';
 
-export type WorkspaceSection = 'home' | 'dashboard' | 'notifications' | 'tasks' | 'settings';
+export type WorkspaceSection = 'dashboard' | 'tasks' | 'notifications' | 'settings' | 'home';
 export type TaskFilterType =
   | 'all'
   | 'under_review'
@@ -26,8 +34,6 @@ interface DepartmentSidebarProps {
   onSelectSection: (section: WorkspaceSection) => void;
   activeTaskFilter: TaskFilterType;
   onSelectTaskFilter: (filter: TaskFilterType) => void;
-  searchQuery?: string;
-  onSearchChange?: (query: string) => void;
   taskCounts?: {
     all: number;
     under_review?: number;
@@ -38,6 +44,8 @@ interface DepartmentSidebarProps {
     rejected: number;
   };
   onCloseMobileDrawer?: () => void;
+  isCollapsed?: boolean;
+  onToggleCollapse?: () => void;
 }
 
 export const DepartmentSidebar: React.FC<DepartmentSidebarProps> = ({
@@ -47,9 +55,14 @@ export const DepartmentSidebar: React.FC<DepartmentSidebarProps> = ({
   onSelectTaskFilter,
   taskCounts,
   onCloseMobileDrawer,
+  isCollapsed = false,
+  onToggleCollapse,
 }) => {
   const { session, departmentMeta, departmentId, signOut } = useDepartmentAuth();
   const navigate = useNavigate();
+
+  // Local state for expandable Complaints category
+  const [isComplaintsOpen, setIsComplaintsOpen] = useState(true);
 
   const handleSignOut = () => {
     signOut();
@@ -63,24 +76,15 @@ export const DepartmentSidebar: React.FC<DepartmentSidebarProps> = ({
     }
   };
 
-  const handleTasksClick = () => {
+  const handleTaskFilterClick = (filter: TaskFilterType) => {
     onSelectSection('tasks');
-    if (activeTaskFilter === 'under_review') {
-      onSelectTaskFilter('all');
-    }
+    onSelectTaskFilter(filter);
     if (onCloseMobileDrawer) {
       onCloseMobileDrawer();
     }
   };
 
-  const handleReviewQueueClick = () => {
-    onSelectSection('tasks');
-    onSelectTaskFilter('under_review');
-    if (onCloseMobileDrawer) {
-      onCloseMobileDrawer();
-    }
-  };
-
+  const isKmc = departmentId === 'kmc';
   const username = session?.username || 'roads-01';
   const initialLetter = username.charAt(0).toUpperCase() || 'R';
   const departmentShort = departmentMeta?.code || (departmentId ? departmentId.toUpperCase() : 'DEPT');
@@ -89,171 +93,322 @@ export const DepartmentSidebar: React.FC<DepartmentSidebarProps> = ({
   const isReviewActive = currentSection === 'tasks' && activeTaskFilter === 'under_review';
 
   return (
-    <aside className="w-full h-full flex flex-col justify-between p-3.5 sm:p-4 text-slate-300 select-none bg-[var(--dept-dark-shell)]">
-      {/* Top Segment: Brand & Primary Navigation */}
+    <aside
+      aria-label="Department Navigation"
+      className="w-full h-full flex flex-col justify-between p-3 select-none text-[var(--dept-text-secondary)]"
+    >
+      {/* Top Segment: Brand & Header */}
       <div className="space-y-4">
-        {/* Brand Bar */}
-        <div className="flex items-center justify-between pb-3 border-b border-white/[0.06]">
-          <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg bg-white/10 border border-white/10 flex items-center justify-center font-serif font-black text-white text-sm shadow-inner">
+        {/* Brand Bar & Collapse Toggle */}
+        <div className="flex items-center justify-between pb-3 border-b border-[var(--dept-border)]">
+          <div className="flex items-center gap-2.5 overflow-hidden">
+            <div className="w-8 h-8 rounded-lg bg-[var(--dept-accent)] text-white flex items-center justify-center font-serif font-black text-sm shrink-0 shadow-xs">
               a.
             </div>
-            <div className="flex flex-col">
-              <span className="font-semibold text-sm tracking-tight text-white leading-tight">
-                Awaaz-e-Awam
-              </span>
-              <span className="text-[10px] text-slate-400 font-medium tracking-wide">
-                {departmentShort} Workspace
-              </span>
-            </div>
+            {!isCollapsed && (
+              <div className="flex flex-col min-w-0">
+                <span className="font-bold text-sm tracking-tight text-[var(--dept-text-primary)] truncate leading-tight">
+                  Awaaz-e-Awam
+                </span>
+                <span className="text-[11px] text-[var(--dept-text-muted)] font-medium truncate">
+                  {departmentShort} Workspace
+                </span>
+              </div>
+            )}
           </div>
 
-          {onCloseMobileDrawer && (
-            <button
-              type="button"
-              onClick={onCloseMobileDrawer}
-              className="lg:hidden p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 cursor-pointer"
-              aria-label="Close navigation drawer"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          )}
+          <div className="flex items-center gap-1">
+            {onToggleCollapse && (
+              <button
+                type="button"
+                onClick={onToggleCollapse}
+                title={isCollapsed ? 'Expand navigation' : 'Collapse navigation'}
+                aria-label={isCollapsed ? 'Expand navigation' : 'Collapse navigation'}
+                className="hidden md:flex p-1.5 rounded-md hover:bg-[var(--dept-surface-subtle)] text-[var(--dept-text-muted)] hover:text-[var(--dept-text-primary)] transition-colors cursor-pointer"
+              >
+                {isCollapsed ? (
+                  <PanelLeftOpen className="w-4 h-4" />
+                ) : (
+                  <PanelLeftClose className="w-4 h-4" />
+                )}
+              </button>
+            )}
+
+            {onCloseMobileDrawer && (
+              <button
+                type="button"
+                onClick={onCloseMobileDrawer}
+                aria-label="Close menu"
+                className="md:hidden p-1.5 rounded-md hover:bg-[var(--dept-surface-subtle)] text-[var(--dept-text-muted)] hover:text-[var(--dept-text-primary)] transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
         </div>
 
-        {/* Primary Navigation */}
-        <nav className="space-y-1" aria-label="Main Navigation">
-          {/* 1. Tasks / Department Complaints */}
-          <button
-            type="button"
-            onClick={handleTasksClick}
-            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
-              isTasksActive
-                ? 'dept-nav-active font-semibold text-white'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
-            }`}
-          >
-            <div className="flex items-center gap-2.5">
-              <CheckSquare2 className="w-4 h-4 shrink-0 text-slate-400" />
-              <span>Tasks</span>
-            </div>
-            {taskCounts && (
-              <span className="text-[11px] font-mono text-slate-400 tabular-nums">
-                {taskCounts.all}
-              </span>
+        {/* Hierarchical Navigation */}
+        <nav className="space-y-4">
+          {/* Group 1: OVERVIEW */}
+          <div>
+            {!isCollapsed && (
+              <div className="px-2.5 mb-1.5 text-[10px] font-bold uppercase tracking-wider text-[var(--dept-text-muted)]">
+                Overview
+              </div>
             )}
-          </button>
-
-          {/* 2. Review Queue (Restricted to KMC Clearinghouse) */}
-          {departmentId === 'kmc' && (
             <button
               type="button"
-              onClick={handleReviewQueueClick}
-              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
-                isReviewActive
-                  ? 'bg-purple-500/15 text-purple-200 border-l-[3px] border-purple-400 font-semibold'
-                  : 'text-slate-400 hover:text-purple-200 hover:bg-purple-500/10'
+              onClick={() => handleNavClick('dashboard')}
+              title={isCollapsed ? 'Dashboard' : undefined}
+              className={`w-full flex items-center ${
+                isCollapsed ? 'justify-center px-0 py-2' : 'justify-between px-2.5 py-1.5'
+              } rounded-lg text-xs font-medium transition-colors cursor-pointer ${
+                currentSection === 'dashboard'
+                  ? 'dept-nav-active font-semibold text-[var(--dept-accent)] bg-[var(--dept-accent-subtle)]'
+                  : 'hover:bg-[var(--dept-surface-subtle)] text-[var(--dept-text-secondary)] hover:text-[var(--dept-text-primary)]'
               }`}
             >
               <div className="flex items-center gap-2.5">
-                <ShieldAlert className="w-4 h-4 shrink-0 text-purple-400" />
-                <span>Review Queue</span>
+                <LayoutDashboard className="w-4 h-4 shrink-0" />
+                {!isCollapsed && <span>Dashboard</span>}
               </div>
-              {taskCounts?.under_review !== undefined && (
-                <span
-                  className={`text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded ${
-                    taskCounts.under_review > 0
-                      ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
-                      : 'text-slate-500'
+            </button>
+          </div>
+
+          {/* Group 2: COMPLAINTS */}
+          <div>
+            {!isCollapsed && (
+              <div className="flex items-center justify-between px-2.5 mb-1">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--dept-text-muted)]">
+                  Complaints
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setIsComplaintsOpen((prev) => !prev)}
+                  className="text-[var(--dept-text-muted)] hover:text-[var(--dept-text-primary)] p-0.5 cursor-pointer"
+                  aria-label={isComplaintsOpen ? 'Collapse complaints group' : 'Expand complaints group'}
+                >
+                  {isComplaintsOpen ? (
+                    <ChevronDown className="w-3 h-3" />
+                  ) : (
+                    <ChevronRight className="w-3 h-3" />
+                  )}
+                </button>
+              </div>
+            )}
+
+            {isCollapsed ? (
+              <div className="space-y-1">
+                <button
+                  type="button"
+                  onClick={() => handleTaskFilterClick('all')}
+                  title="All Complaints"
+                  className={`w-full flex justify-center py-2 rounded-lg text-xs transition-colors cursor-pointer ${
+                    isTasksActive && activeTaskFilter === 'all'
+                      ? 'dept-nav-active text-[var(--dept-accent)] bg-[var(--dept-accent-subtle)]'
+                      : 'hover:bg-[var(--dept-surface-subtle)] text-[var(--dept-text-secondary)] hover:text-[var(--dept-text-primary)]'
                   }`}
                 >
-                  {taskCounts.under_review}
-                </span>
+                  <Inbox className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
+              isComplaintsOpen && (
+                <div className="space-y-0.5">
+                  {[
+                    { id: 'all', label: 'All Complaints', icon: Inbox, count: taskCounts?.all ?? 0 },
+                    {
+                      id: 'assigned',
+                      label: 'Pending Acceptance',
+                      icon: AlertCircle,
+                      count: taskCounts?.assigned ?? 0,
+                    },
+                    {
+                      id: 'accepted',
+                      label: 'Accepted',
+                      icon: CheckCircle2,
+                      count: taskCounts?.accepted ?? 0,
+                    },
+                    {
+                      id: 'in_progress',
+                      label: 'In Progress',
+                      icon: PlayCircle,
+                      count: taskCounts?.in_progress ?? 0,
+                    },
+                    {
+                      id: 'resolved',
+                      label: 'Work Done',
+                      icon: CheckCircle2,
+                      count: taskCounts?.resolved ?? 0,
+                    },
+                    {
+                      id: 'rejected',
+                      label: 'Rejected',
+                      icon: XCircle,
+                      count: taskCounts?.rejected ?? 0,
+                    },
+                  ].map((sub) => {
+                    const isSubActive = isTasksActive && activeTaskFilter === sub.id;
+                    const SubIcon = sub.icon;
+                    return (
+                      <button
+                        key={sub.id}
+                        type="button"
+                        onClick={() => handleTaskFilterClick(sub.id as TaskFilterType)}
+                        className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs transition-colors cursor-pointer ${
+                          isSubActive
+                            ? 'dept-nav-active font-semibold text-[var(--dept-accent)] bg-[var(--dept-accent-subtle)]'
+                            : 'hover:bg-[var(--dept-surface-subtle)] text-[var(--dept-text-secondary)] hover:text-[var(--dept-text-primary)]'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <SubIcon className="w-3.5 h-3.5 shrink-0 opacity-70" />
+                          <span className="truncate">{sub.label}</span>
+                        </div>
+                        <span
+                          className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full font-medium ${
+                            isSubActive
+                              ? 'bg-[var(--dept-accent)] text-white'
+                              : 'bg-[var(--dept-surface-subtle)] text-[var(--dept-text-muted)]'
+                          }`}
+                        >
+                          {sub.count}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )
+            )}
+          </div>
+
+          {/* Group 3: REVIEW QUEUE (Role-Based: KMC Clearinghouse Only) */}
+          {isKmc && (
+            <div>
+              {!isCollapsed && (
+                <div className="px-2.5 mb-1.5 text-[10px] font-bold uppercase tracking-wider text-[var(--dept-text-muted)]">
+                  Review
+                </div>
               )}
-            </button>
+              <button
+                type="button"
+                onClick={() => handleTaskFilterClick('under_review')}
+                title={isCollapsed ? 'Review Queue' : undefined}
+                className={`w-full flex items-center ${
+                  isCollapsed ? 'justify-center px-0 py-2' : 'justify-between px-2.5 py-1.5'
+                } rounded-lg text-xs font-medium transition-colors cursor-pointer ${
+                  isReviewActive
+                    ? 'dept-nav-active font-semibold text-purple-600 dark:text-purple-400 bg-purple-500/10'
+                    : 'hover:bg-[var(--dept-surface-subtle)] text-[var(--dept-text-secondary)] hover:text-[var(--dept-text-primary)]'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <ShieldAlert className="w-4 h-4 shrink-0 text-purple-500" />
+                  {!isCollapsed && <span>Review Queue</span>}
+                </div>
+                {!isCollapsed && (
+                  <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-purple-500/15 text-purple-700 dark:text-purple-300 font-semibold">
+                    {taskCounts?.under_review ?? 0}
+                  </span>
+                )}
+              </button>
+            </div>
           )}
 
-          {/* 3. Dashboard */}
-          <button
-            type="button"
-            onClick={() => handleNavClick('dashboard')}
-            className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
-              currentSection === 'dashboard'
-                ? 'dept-nav-active font-semibold text-white'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
-            }`}
-          >
-            <BarChart3 className="w-4 h-4 shrink-0 text-slate-400" />
-            <span>Dashboard</span>
-          </button>
+          {/* Group 4: SYSTEM */}
+          <div>
+            {!isCollapsed && (
+              <div className="px-2.5 mb-1.5 text-[10px] font-bold uppercase tracking-wider text-[var(--dept-text-muted)]">
+                Other
+              </div>
+            )}
+            <div className="space-y-0.5">
+              <button
+                type="button"
+                onClick={() => handleNavClick('notifications')}
+                title={isCollapsed ? 'Notifications' : undefined}
+                className={`w-full flex items-center ${
+                  isCollapsed ? 'justify-center px-0 py-2' : 'justify-between px-2.5 py-1.5'
+                } rounded-lg text-xs font-medium transition-colors cursor-pointer ${
+                  currentSection === 'notifications'
+                    ? 'dept-nav-active font-semibold text-[var(--dept-accent)] bg-[var(--dept-accent-subtle)]'
+                    : 'hover:bg-[var(--dept-surface-subtle)] text-[var(--dept-text-secondary)] hover:text-[var(--dept-text-primary)]'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <Bell className="w-4 h-4 shrink-0" />
+                  {!isCollapsed && <span>Notifications</span>}
+                </div>
+              </button>
 
-          {/* 4. Notifications */}
-          <button
-            type="button"
-            onClick={() => handleNavClick('notifications')}
-            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
-              currentSection === 'notifications'
-                ? 'dept-nav-active font-semibold text-white'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
-            }`}
-          >
-            <div className="flex items-center gap-2.5">
-              <Bell className="w-4 h-4 shrink-0 text-slate-400" />
-              <span>Notifications</span>
+              <button
+                type="button"
+                onClick={() => handleNavClick('settings')}
+                title={isCollapsed ? 'Settings' : undefined}
+                className={`w-full flex items-center ${
+                  isCollapsed ? 'justify-center px-0 py-2' : 'justify-between px-2.5 py-1.5'
+                } rounded-lg text-xs font-medium transition-colors cursor-pointer ${
+                  currentSection === 'settings'
+                    ? 'dept-nav-active font-semibold text-[var(--dept-accent)] bg-[var(--dept-accent-subtle)]'
+                    : 'hover:bg-[var(--dept-surface-subtle)] text-[var(--dept-text-secondary)] hover:text-[var(--dept-text-primary)]'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <Settings className="w-4 h-4 shrink-0" />
+                  {!isCollapsed && <span>Settings</span>}
+                </div>
+              </button>
             </div>
-            <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-white/5 text-slate-500">
-              0
-            </span>
-          </button>
-
-          {/* 5. Settings */}
-          <button
-            type="button"
-            onClick={() => handleNavClick('settings')}
-            className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
-              currentSection === 'settings'
-                ? 'dept-nav-active font-semibold text-white'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
-            }`}
-          >
-            <Settings className="w-4 h-4 shrink-0 text-slate-400" />
-            <span>Settings</span>
-          </button>
+          </div>
         </nav>
       </div>
 
-      {/* Bottom Segment: Compact Staff Account & Sign Out */}
-      <div className="pt-3 border-t border-white/[0.06]">
-        <div className="flex items-center justify-between gap-2 p-2 rounded-lg bg-white/[0.03] border border-white/[0.06]">
-          <div className="flex items-center gap-2.5 min-w-0">
+      {/* Bottom Segment: Staff Profile & Sign Out */}
+      <div className="pt-3 border-t border-[var(--dept-border)]">
+        {isCollapsed ? (
+          <div className="flex flex-col items-center gap-2">
             <div
-              className="w-7 h-7 rounded-md flex items-center justify-center font-bold text-xs shrink-0"
-              style={{
-                backgroundColor: 'var(--dept-accent-muted)',
-                color: 'var(--dept-accent)',
-              }}
+              title={`${username} (${departmentShort})`}
+              className="w-8 h-8 rounded-full bg-[var(--dept-accent)] text-white flex items-center justify-center font-bold text-xs"
             >
               {initialLetter}
             </div>
-            <div className="min-w-0 flex-1">
-              <div className="font-semibold text-xs text-white truncate">
-                {username}
+            <button
+              type="button"
+              onClick={handleSignOut}
+              title="Sign Out"
+              aria-label="Sign Out"
+              className="p-1.5 rounded-md text-[var(--dept-text-muted)] hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors cursor-pointer"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+          </div>
+        ) : (
+          <div className="flex items-center justify-between gap-2 p-2 rounded-lg bg-[var(--dept-surface-subtle)] border border-[var(--dept-border)]">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="w-7 h-7 rounded-full bg-[var(--dept-accent)] text-white flex items-center justify-center font-bold text-xs shrink-0">
+                {initialLetter}
               </div>
-              <div className="text-[10px] text-slate-400 truncate">
-                {departmentShort} Staff
+              <div className="min-w-0 flex flex-col">
+                <span className="text-xs font-semibold text-[var(--dept-text-primary)] truncate leading-tight">
+                  {username}
+                </span>
+                <span className="text-[10px] text-[var(--dept-text-muted)] truncate">
+                  {departmentShort} Staff
+                </span>
               </div>
             </div>
+            <button
+              type="button"
+              onClick={handleSignOut}
+              title="Sign Out"
+              aria-label="Sign Out"
+              className="p-1.5 rounded-md text-[var(--dept-text-muted)] hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors cursor-pointer shrink-0"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
           </div>
-
-          <button
-            type="button"
-            onClick={handleSignOut}
-            className="p-1.5 rounded-md text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer shrink-0"
-            title="Sign out"
-            aria-label="Sign out"
-          >
-            <LogOut className="w-3.5 h-3.5" />
-          </button>
-        </div>
+        )}
       </div>
     </aside>
   );

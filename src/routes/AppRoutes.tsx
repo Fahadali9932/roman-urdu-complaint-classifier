@@ -56,6 +56,7 @@ export const AppRoutes: React.FC = () => {
       <Route element={<DepartmentPortalLayout />}>
         <Route path="/department" element={<DepartmentDashboardPage />} />
         <Route path="/department/login" element={<DepartmentLoginPage />} />
+        <Route path="/department/complaints/:referenceNumber" element={<DepartmentDashboardPage />} />
         <Route path="/department/:referenceNumber" element={<DepartmentDashboardPage />} />
       </Route>
 

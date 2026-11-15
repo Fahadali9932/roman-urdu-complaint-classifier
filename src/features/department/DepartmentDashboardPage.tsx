@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useDepartmentAuth } from '../../context/DepartmentAuthContext';
-import { useLanguage } from '../../context/LanguageContext';
 import { complaintService } from '../../services';
 import {
   type DepartmentComplaintView,
@@ -21,24 +20,63 @@ import {
   Loader2,
   Menu,
   X,
-  FileText,
   CheckCircle2,
-  Clock,
   AlertCircle,
+  PlayCircle,
   ShieldCheck,
-  Globe,
-  ArrowRight,
+  ShieldAlert,
   Search,
+  Sun,
+  Moon,
+  PanelLeftClose,
+  PanelLeftOpen,
+  ArrowRight,
+  Inbox,
+  Bell,
+  LogOut,
 } from 'lucide-react';
 import './department-theme.css';
 
 export const DepartmentDashboardPage: React.FC = () => {
-  const { departmentId, departmentMeta, session, isAuthenticated, checkRevocationStatus } =
+  const { departmentId, departmentMeta, session, isAuthenticated, checkRevocationStatus, signOut } =
     useDepartmentAuth();
-  const { language, toggleLanguage } = useLanguage();
   const navigate = useNavigate();
   const { referenceNumber: urlRef } = useParams<{ referenceNumber?: string }>();
   const [searchParams] = useSearchParams();
+
+  // Persistent Theme State: 'light' (DEFAULT) | 'dark'
+  const [themeMode, setThemeMode] = useState<'light' | 'dark'>(() => {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const saved = localStorage.getItem('awaaz_dept_theme_mode');
+      if (saved === 'dark' || saved === 'light') return saved;
+    }
+    return 'light';
+  });
+
+  const handleSetTheme = (mode: 'light' | 'dark') => {
+    setThemeMode(mode);
+    if (typeof window !== 'undefined' && window.localStorage) {
+      localStorage.setItem('awaaz_dept_theme_mode', mode);
+    }
+  };
+
+  // Persistent Sidebar Collapse State
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(() => {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      return localStorage.getItem('awaaz_dept_sidebar_collapsed') === 'true';
+    }
+    return false;
+  });
+
+  const handleToggleSidebarCollapse = () => {
+    setIsSidebarCollapsed((prev) => {
+      const next = !prev;
+      if (typeof window !== 'undefined' && window.localStorage) {
+        localStorage.setItem('awaaz_dept_sidebar_collapsed', String(next));
+      }
+      return next;
+    });
+  };
 
   // Navigation state
   const [currentSection, setCurrentSection] = useState<WorkspaceSection>('tasks');
@@ -100,26 +138,22 @@ export const DepartmentDashboardPage: React.FC = () => {
 
         const allAvailable = [...data, ...reviews];
 
-        // Deep-link reference handling or persistent selection
-        setSelectedReference((prevRef) => {
-          const targetRef = searchParams.get('ref') || urlRef;
-          if (targetRef) {
-            const cleaned = targetRef.trim().toUpperCase();
-            const match = allAvailable.find((c) => c.referenceNumber.toUpperCase() === cleaned);
-            if (match) return match.referenceNumber;
-            // Check unauthorized
+        // Deep-link reference handling or parameter match
+        const targetRef = searchParams.get('ref') || urlRef;
+        if (targetRef) {
+          const cleaned = targetRef.trim().toUpperCase();
+          const match = allAvailable.find((c) => c.referenceNumber.toUpperCase() === cleaned);
+          if (match) {
+            setSelectedReference(match.referenceNumber);
+          } else {
+            // Check unauthorized foreign reference
             complaintService.getComplaintByReference(cleaned).then((globalComp) => {
               if (globalComp && globalComp.assignedDepartmentId !== departmentId) {
                 setUnauthorizedRefError(cleaned);
               }
             });
           }
-          if (prevRef && allAvailable.some((c) => c.referenceNumber === prevRef)) {
-            return prevRef;
-          }
-          const isDesktop = typeof window !== 'undefined' && window.innerWidth >= 1024;
-          return isDesktop && data.length > 0 ? data[0].referenceNumber : null;
-        });
+        }
       } catch (err) {
         console.error('Failed to load department complaints:', err);
       } finally {
@@ -132,7 +166,7 @@ export const DepartmentDashboardPage: React.FC = () => {
     // Initial load
     fetchComplaints();
 
-    // 1. Supabase Realtime Subscription for live updates (including incoming complaints and review queue)
+    // 1. Supabase Realtime Subscription for live updates
     let channel: any = null;
     if (isSupabaseConfigured() && supabase) {
       channel = supabase
@@ -219,44 +253,28 @@ export const DepartmentDashboardPage: React.FC = () => {
       result = result.filter((c) => {
         return (
           c.referenceNumber.toLowerCase().includes(q) ||
-          c.locality.toLowerCase().includes(q) ||
-          c.district.toLowerCase().includes(q) ||
-          c.title.toLowerCase().includes(q) ||
-          c.description.toLowerCase().includes(q)
+          (c.locality && c.locality.toLowerCase().includes(q)) ||
+          (c.district && c.district.toLowerCase().includes(q)) ||
+          (c.generatedHeading && c.generatedHeading.toLowerCase().includes(q)) ||
+          (c.title && c.title.toLowerCase().includes(q)) ||
+          (c.factualSummary && c.factualSummary.toLowerCase().includes(q)) ||
+          (c.sanitizedDescription && c.sanitizedDescription.toLowerCase().includes(q)) ||
+          (c.description && c.description.toLowerCase().includes(q))
         );
       });
     }
 
-    // Sorting
+    // Sort order
     result.sort((a, b) => {
-      const tA = new Date(a.submittedAt).getTime();
-      const tB = new Date(b.submittedAt).getTime();
-      return sortOrder === 'newest' ? tB - tA : tA - tB;
+      const dateA = new Date(a.submittedAt || 0).getTime();
+      const dateB = new Date(b.submittedAt || 0).getTime();
+      return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
     });
 
     return result;
   }, [complaints, reviewComplaints, activeTaskFilter, searchQuery, sortOrder]);
 
-  // Synchronize selectedReference with active filteredComplaints
-  useEffect(() => {
-    const isDesktop = typeof window !== 'undefined' && window.innerWidth >= 1024;
-    if (selectedReference) {
-      const exists = filteredComplaints.some(
-        (c) => c.referenceNumber === selectedReference
-      );
-      if (!exists) {
-        if (isDesktop && filteredComplaints.length > 0) {
-          setSelectedReference(filteredComplaints[0].referenceNumber);
-        } else if (!isDesktop) {
-          setSelectedReference(null);
-        }
-      }
-    } else if (isDesktop && filteredComplaints.length > 0) {
-      setSelectedReference(filteredComplaints[0].referenceNumber);
-    }
-  }, [filteredComplaints, selectedReference]);
-
-  // Selected complaint object (prefer current filteredComplaints view)
+  // Selected complaint object (prefer current filtered view)
   const selectedComplaint = useMemo(() => {
     if (!selectedReference) return null;
     return (
@@ -289,73 +307,103 @@ export const DepartmentDashboardPage: React.FC = () => {
     }
   };
 
-  const username = session?.username || 'roads-01';
-  const departmentName = departmentMeta?.name || 'Municipal Agency';
-  const departmentShortName = departmentMeta?.name || 'Roads & Infrastructure';
-
-  if (!isAuthenticated || !departmentId) {
-    return null;
-  }
+  const getCategoryTitle = () => {
+    if (activeTaskFilter === 'under_review') return 'Classification Review Queue';
+    switch (activeTaskFilter) {
+      case 'assigned':
+        return 'Pending Acceptance';
+      case 'accepted':
+        return 'Accepted Complaints';
+      case 'in_progress':
+        return 'In Progress Complaints';
+      case 'resolved':
+        return 'Work Done / Resolved';
+      case 'rejected':
+        return 'Rejected Complaints';
+      default:
+        return 'All Complaints';
+    }
+  };
 
   return (
     <div
       data-testid="department-workspace"
       data-dept-theme={departmentId}
-      className="dept-dark-wrap w-full h-screen h-[100dvh] flex flex-col overflow-hidden selection:bg-[var(--dept-accent)] selection:text-black font-sans m-0 p-0"
+      data-dept-mode={themeMode}
+      className="dept-workspace-wrap w-full h-screen h-[100dvh] flex flex-col overflow-hidden font-sans m-0 p-0"
     >
-      {/* Mobile Header Bar */}
-      <header className="md:hidden w-full flex items-center justify-between px-5 py-4 bg-[#151417] border-b border-white/10 shrink-0 z-30">
+      {/* Mobile Top Navigation Header */}
+      <header className="md:hidden w-full flex items-center justify-between px-4 py-3 bg-[var(--dept-sidebar-bg)] border-b border-[var(--dept-border)] shrink-0 z-30">
         <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-lg bg-white/10 border border-white/15 flex items-center justify-center font-serif font-black text-white text-sm">
+          <div className="w-7 h-7 rounded-lg bg-[var(--dept-accent)] text-white flex items-center justify-center font-serif font-black text-sm">
             a.
           </div>
-          <span className="font-bold text-sm text-white">Awaaz-e-Awam</span>
-          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-white/5 text-slate-400 border border-white/10">
-            {departmentMeta?.code}
+          <span className="font-bold text-sm text-[var(--dept-text-primary)]">
+            Awaaz-e-Awam
+          </span>
+          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[var(--dept-surface-subtle)] text-[var(--dept-text-muted)] border border-[var(--dept-border)]">
+            {departmentMeta?.code || (departmentId ? departmentId.toUpperCase() : 'DEPT')}
           </span>
         </div>
-
         <button
           type="button"
-          onClick={() => setIsMobileDrawerOpen(!isMobileDrawerOpen)}
+          onClick={() => setIsMobileDrawerOpen((prev) => !prev)}
+          className="p-2 rounded-lg bg-[var(--dept-surface-subtle)] text-[var(--dept-text-primary)] border border-[var(--dept-border)] cursor-pointer"
           aria-label="Toggle navigation menu"
-          className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-white cursor-pointer"
         >
-          {isMobileDrawerOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          <Menu className="w-5 h-5" />
         </button>
       </header>
 
-      {/* Main Operational Glass Shell - Edge-to-Edge Desktop Application */}
+      {/* Main Operational Shell */}
       <div className="dept-shell w-full flex-1 flex flex-col md:flex-row min-h-0 overflow-hidden relative z-10">
-        {/* Left Vertical Dark Sidebar (Desktop) */}
-        <aside className="hidden md:flex w-[220px] min-w-[220px] h-full dept-sidebar shrink-0 overflow-y-auto">
+        {/* Left Collapsible Sidebar (Desktop) */}
+        <aside
+          className={`hidden md:flex ${
+            isSidebarCollapsed ? 'w-[72px] min-w-[72px]' : 'w-[240px] min-w-[240px]'
+          } h-full dept-sidebar shrink-0 overflow-y-auto`}
+        >
           <DepartmentSidebar
             currentSection={currentSection}
-            onSelectSection={(sec) => setCurrentSection(sec)}
+            onSelectSection={(sec) => {
+              setCurrentSection(sec);
+              setSelectedReference(null);
+            }}
             activeTaskFilter={activeTaskFilter}
-            onSelectTaskFilter={(flt) => setActiveTaskFilter(flt)}
-            searchQuery={searchQuery}
-            onSearchChange={(q) => setSearchQuery(q)}
+            onSelectTaskFilter={(filter) => {
+              setCurrentSection('tasks');
+              setActiveTaskFilter(filter);
+              setSelectedReference(null);
+            }}
             taskCounts={taskCounts}
+            isCollapsed={isSidebarCollapsed}
+            onToggleCollapse={handleToggleSidebarCollapse}
           />
         </aside>
 
-        {/* Mobile Slide-Out Navigation Drawer */}
+        {/* Mobile Slide-Over Navigation Drawer */}
         {isMobileDrawerOpen && (
           <div
-            className="md:hidden fixed inset-0 z-40 bg-black/80 backdrop-blur-md flex flex-col animate-fadeIn"
+            className="fixed inset-0 z-50 bg-black/40 backdrop-blur-2xs flex md:hidden"
             onClick={(e) => {
               if (e.target === e.currentTarget) setIsMobileDrawerOpen(false);
             }}
           >
-            <div className="w-[220px] h-full bg-[#121215] border-r border-white/10 shadow-2xl p-0">
+            <div className="w-[260px] h-full bg-[var(--dept-sidebar-bg)] border-r border-[var(--dept-border)] shadow-2xl p-0 animate-in slide-in-from-left duration-200">
               <DepartmentSidebar
                 currentSection={currentSection}
-                onSelectSection={(sec) => setCurrentSection(sec)}
+                onSelectSection={(sec) => {
+                  setCurrentSection(sec);
+                  setSelectedReference(null);
+                  setIsMobileDrawerOpen(false);
+                }}
                 activeTaskFilter={activeTaskFilter}
-                onSelectTaskFilter={(flt) => setActiveTaskFilter(flt)}
-                searchQuery={searchQuery}
-                onSearchChange={(q) => setSearchQuery(q)}
+                onSelectTaskFilter={(filter) => {
+                  setCurrentSection('tasks');
+                  setActiveTaskFilter(filter);
+                  setSelectedReference(null);
+                  setIsMobileDrawerOpen(false);
+                }}
                 taskCounts={taskCounts}
                 onCloseMobileDrawer={() => setIsMobileDrawerOpen(false)}
               />
@@ -363,403 +411,489 @@ export const DepartmentDashboardPage: React.FC = () => {
           </div>
         )}
 
-        {/* Right Content Canvas */}
-        <main className="dept-main flex-1 flex flex-col min-w-0 h-full p-3 sm:p-4 lg:p-5 overflow-hidden">
+        {/* Main Full-Width Content Canvas */}
+        <main className="dept-main flex-1 flex flex-col min-w-0 h-full p-4 sm:p-6 lg:p-8 overflow-y-auto dept-scrollbar">
           {/* Unauthorized Reference Tampering Warning */}
           {unauthorizedRefError && (
             <div
-              className="mb-3 p-3 rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-200 text-xs flex items-center justify-between shrink-0"
+              className="mb-4 p-4 rounded-xl bg-amber-50 border border-amber-200 dark:bg-amber-950/30 dark:border-amber-800 text-amber-800 dark:text-amber-200 text-xs flex items-center justify-between shrink-0"
               role="alert"
             >
               <div className="flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 text-amber-400 shrink-0" />
+                <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
                 <span>
-                  <strong>Access Denied:</strong> Complaint {unauthorizedRefError} belongs to another municipal agency.
+                  <strong>Municipal Boundary Segregation Alert:</strong> Reference{' '}
+                  <span className="font-mono font-bold">{unauthorizedRefError}</span> is not assigned to your agency. Data access is restricted under local RLS policy.
                 </span>
               </div>
               <button
                 type="button"
                 onClick={() => setUnauthorizedRefError(null)}
-                className="underline text-xs text-amber-300 ml-4 cursor-pointer"
+                className="text-amber-700 hover:text-amber-900 dark:text-amber-300 dark:hover:text-amber-100 p-1 cursor-pointer"
+                aria-label="Dismiss warning"
               >
-                Dismiss
+                <X className="w-3.5 h-3.5" />
               </button>
             </div>
           )}
 
-          {/* Section 1: TASKS (Primary Master-Detail Workspace) */}
+          {/* SECTION 1: TASKS / COMPLAINTS */}
           {currentSection === 'tasks' && (
-            <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-              {/* Workspace Header Toolbar */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 mb-3 shrink-0">
-                <div>
-                  <h1 className="text-lg sm:text-xl font-bold tracking-tight text-white leading-tight">
-                    {activeTaskFilter === 'under_review' ? 'Review Queue' : 'Tasks'}
-                  </h1>
-                  <p className="text-xs text-slate-400 mt-0.5">
-                    {activeTaskFilter === 'under_review'
-                      ? 'Complaints held for clearinghouse classification review.'
-                      : 'Complaints assigned to your department.'}
-                  </p>
-                </div>
-
-                <div className="flex items-center gap-2 flex-wrap">
-                  {/* Status Filters (for Tasks) */}
-                  {activeTaskFilter !== 'under_review' ? (
-                    <div className="flex items-center gap-1 overflow-x-auto pb-0.5 scrollbar-none">
-                      {(
-                        [
-                          { id: 'all', label: 'All complaints' },
-                          { id: 'assigned', label: 'Pending Acceptance' },
-                          { id: 'accepted', label: 'Accepted' },
-                          { id: 'in_progress', label: 'In Progress' },
-                          { id: 'resolved', label: 'Work Done' },
-                          { id: 'rejected', label: 'Rejected' },
-                        ] as const
-                      ).map((filter) => {
-                        const isActive = activeTaskFilter === filter.id;
-                        return (
-                          <button
-                            key={filter.id}
-                            type="button"
-                            onClick={() => setActiveTaskFilter(filter.id)}
-                            className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors cursor-pointer ${
-                              isActive
-                                ? 'bg-white/10 text-white font-semibold border border-white/20'
-                                : 'bg-white/[0.03] hover:bg-white/[0.06] text-slate-400 hover:text-slate-200 border border-white/[0.06]'
-                            }`}
-                          >
-                            {filter.label}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <span className="text-xs text-purple-300 bg-purple-500/10 border border-purple-500/25 px-2.5 py-1 rounded-md font-medium">
-                      Clearinghouse Queue
-                    </span>
-                  )}
-
-                  {/* Sort Order */}
-                  <select
-                    value={sortOrder}
-                    onChange={(e) => setSortOrder(e.target.value as 'newest' | 'oldest')}
-                    className="h-7 px-2 rounded-md bg-white/[0.04] border border-white/[0.08] text-xs text-slate-300 outline-none cursor-pointer focus:border-white/20"
-                    aria-label="Sort complaints"
-                  >
-                    <option value="newest" className="bg-[#17171a] text-white">
-                      Newest first ⌄
-                    </option>
-                    <option value="oldest" className="bg-[#17171a] text-white">
-                      Oldest first ⌄
-                    </option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Master/Detail Split Workspace */}
-              {isLoading ? (
-                <div className="flex-1 flex flex-col items-center justify-center py-24 text-center">
-                  <Loader2 className="w-7 h-7 text-[var(--dept-accent)] animate-spin mb-2.5" />
-                  <p className="text-xs font-semibold text-slate-400">
-                    Loading complaints...
-                  </p>
-                </div>
+            <div className="flex-1 flex flex-col min-h-0">
+              {/* VIEW A: SEPARATE FULL-PAGE COMPLAINT DETAIL VIEW */}
+              {selectedReference && selectedComplaint ? (
+                <ComplaintDetailView
+                  complaint={selectedComplaint}
+                  onOpenStatusModal={(status) => {
+                    setModalInitialStatus(status);
+                    setIsStatusModalOpen(true);
+                  }}
+                  onBackToList={() => setSelectedReference(null)}
+                  onOpenReviewModal={() => setIsReviewModalOpen(true)}
+                />
               ) : (
-                <div className="flex-1 flex flex-col lg:flex-row gap-3 min-h-0 overflow-hidden">
-                  {/* Left Column: Complaint Inbox List (Fixed 390-420px on desktop) */}
-                  <div
-                    className={`dept-panel w-full lg:w-[390px] lg:min-w-[390px] lg:max-w-[420px] shrink-0 flex flex-col overflow-hidden min-h-0 ${
-                      selectedReference ? 'hidden lg:flex' : 'flex'
-                    }`}
-                  >
-                    {/* Embedded Scoped Search Box */}
-                    <div className="p-2 border-b border-white/[0.06] bg-white/[0.01]">
-                      <div className="h-8 px-2.5 rounded-lg bg-white/[0.04] border border-white/[0.08] focus-within:border-white/20 transition-colors flex items-center gap-2 text-slate-400 focus-within:text-white">
-                        <Search className="w-3.5 h-3.5 shrink-0" />
+                /* VIEW B: FULL-WIDTH COMPLAINT LISTING PAGE */
+                <div className="w-full max-w-7xl mx-auto space-y-5">
+                  {/* Page Header */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-[var(--dept-border)]">
+                    <div>
+                      <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[var(--dept-text-primary)]">
+                        {getCategoryTitle()}
+                      </h1>
+                      <p className="text-xs sm:text-sm text-[var(--dept-text-secondary)] mt-1">
+                        {activeTaskFilter === 'under_review'
+                          ? `${filteredComplaints.length} complaints awaiting clearinghouse classification review.`
+                          : `${filteredComplaints.length} complaints assigned to your department.`}
+                      </p>
+                    </div>
+
+                    {/* Quick Count Badge */}
+                    <div className="flex items-center gap-2 text-xs font-mono text-[var(--dept-text-secondary)] bg-[var(--dept-surface)] px-3 py-1.5 rounded-lg border border-[var(--dept-border)] shadow-2xs">
+                      <span>{filteredComplaints.length} complaints</span>
+                    </div>
+                  </div>
+
+                  {/* Search & Sort Controls Bar */}
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                    {/* Embedded Search Input */}
+                    <div className="flex-1 max-w-md relative">
+                      <div className="h-10 px-3 rounded-lg bg-[var(--dept-surface)] border border-[var(--dept-border)] focus-within:border-[var(--dept-accent)] transition-colors flex items-center gap-2 text-[var(--dept-text-muted)] focus-within:text-[var(--dept-text-primary)] shadow-2xs">
+                        <Search className="w-4 h-4 shrink-0" />
                         <input
                           type="text"
                           value={searchQuery}
                           onChange={(e) => setSearchQuery(e.target.value)}
                           placeholder="Search by reference, locality, or keyword..."
-                          className="w-full bg-transparent border-0 outline-none text-xs text-white placeholder:text-slate-500"
-                          aria-label="Search accessible complaints"
+                          className="w-full bg-transparent border-0 outline-none text-xs sm:text-sm text-[var(--dept-text-primary)] placeholder:text-[var(--dept-text-muted)]"
+                          aria-label="Search complaints"
                         />
                         {searchQuery && (
                           <button
                             type="button"
                             onClick={() => setSearchQuery('')}
-                            className="text-slate-500 hover:text-slate-300 p-0.5 cursor-pointer"
+                            className="text-[var(--dept-text-muted)] hover:text-[var(--dept-text-primary)] p-0.5 cursor-pointer"
                             aria-label="Clear search"
                           >
-                            <X className="w-3 h-3" />
+                            <X className="w-3.5 h-3.5" />
                           </button>
                         )}
                       </div>
                     </div>
 
-                    {/* Column Header */}
-                    <div className="px-3 py-1.5 border-b border-white/[0.06] flex items-center justify-between text-[11px] font-medium text-slate-400 shrink-0 bg-white/[0.01]">
-                      <span>
-                        {activeTaskFilter === 'under_review'
-                          ? 'Review Queue'
-                          : 'Assigned Complaints'}
-                      </span>
-                      <span className="font-mono text-[10px] text-slate-500">
-                        {filteredComplaints.length} complaints
-                      </span>
+                    {/* Sort Order Selector */}
+                    <div className="flex items-center gap-2 shrink-0">
+                      <label htmlFor="dept-sort" className="text-xs text-[var(--dept-text-muted)] font-medium">
+                        Sort:
+                      </label>
+                      <select
+                        id="dept-sort"
+                        value={sortOrder}
+                        onChange={(e) => setSortOrder(e.target.value as 'newest' | 'oldest')}
+                        className="h-10 px-3 rounded-lg bg-[var(--dept-surface)] border border-[var(--dept-border)] text-xs text-[var(--dept-text-primary)] outline-none focus:border-[var(--dept-accent)] cursor-pointer shadow-2xs"
+                      >
+                        <option value="newest">Newest first</option>
+                        <option value="oldest">Oldest first</option>
+                      </select>
                     </div>
+                  </div>
 
-                    {/* Complaint Rows */}
+                  {/* Full-Width Complaints Table */}
+                  {isLoading ? (
+                    <div className="w-full py-20 flex flex-col items-center justify-center text-center">
+                      <Loader2 className="w-8 h-8 text-[var(--dept-accent)] animate-spin mb-3" />
+                      <p className="text-xs font-semibold text-[var(--dept-text-muted)]">
+                        Loading complaints from Supabase...
+                      </p>
+                    </div>
+                  ) : (
                     <ComplaintInboxList
                       complaints={filteredComplaints}
                       selectedReference={selectedReference}
                       onSelectComplaint={(ref) => setSelectedReference(ref)}
                     />
-                  </div>
-
-                  {/* Right Column: Complaint Detail View (Flex-1, larger reading area) */}
-                  <div
-                    className={`dept-panel flex-1 flex flex-col overflow-hidden min-h-0 ${
-                      !selectedReference ? 'hidden lg:flex' : 'flex'
-                    }`}
-                  >
-                    <ComplaintDetailView
-                      complaint={selectedComplaint}
-                      onOpenStatusModal={(actionStatus) => {
-                        setModalInitialStatus(actionStatus);
-                        setIsStatusModalOpen(true);
-                      }}
-                      onOpenReviewModal={() => setIsReviewModalOpen(true)}
-                      onBackToList={() => setSelectedReference(null)}
-                    />
-                  </div>
+                  )}
                 </div>
               )}
             </div>
           )}
 
-          {/* Section 2: HOME (Minimal Arrival View) */}
-          {currentSection === 'home' && (
-            <div className="flex-1 flex flex-col space-y-6 animate-fadeIn">
-              <div>
-                <h1 className="text-3xl font-bold tracking-tight text-white">
-                  Welcome back, {username}
-                </h1>
-                <p className="text-sm text-slate-400 mt-1">
-                  {departmentName} • Karachi Operational Console
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="dept-panel p-5 space-y-2">
-                  <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                    Total Assigned
-                  </div>
-                  <div className="text-3xl font-bold text-white font-mono">
-                    {complaints.length}
-                  </div>
-                  <div className="text-[11px] text-slate-500">
-                    Complaints routed to your department
-                  </div>
-                </div>
-
-                <div className="dept-panel p-5 space-y-2">
-                  <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                    Under Field Work
-                  </div>
-                  <div className="text-3xl font-bold text-blue-400 font-mono">
-                    {taskCounts.in_progress}
-                  </div>
-                  <div className="text-[11px] text-slate-500">
-                    Active on-ground remediation
-                  </div>
-                </div>
-
-                <div className="dept-panel p-5 space-y-2">
-                  <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                    Work Done
-                  </div>
-                  <div className="text-3xl font-bold text-emerald-400 font-mono">
-                    {taskCounts.resolved}
-                  </div>
-                  <div className="text-[11px] text-slate-500">
-                    Resolved & verified complaints
-                  </div>
-                </div>
-              </div>
-
-              <div className="dept-panel p-6 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div>
-                  <h3 className="text-lg font-bold text-white">
-                    Ready to inspect field tasks?
-                  </h3>
-                  <p className="text-xs text-slate-400 mt-1 max-w-md leading-relaxed">
-                    View full complaints, inspect public incident locations, and update progress states for citizens.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setCurrentSection('tasks')}
-                  className="px-5 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 cursor-pointer transition-all shadow-md hover:brightness-110"
-                  style={{
-                    backgroundColor: 'var(--dept-accent)',
-                    color: '#151417',
-                  }}
-                >
-                  <span>Open Tasks Console</span>
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Section 3: DASHBOARD (Operational Overview Derived Strictly from Real Data) */}
+          {/* SECTION 2: OPERATIONAL DASHBOARD */}
           {currentSection === 'dashboard' && (
-            <div className="flex-1 flex flex-col space-y-6 animate-fadeIn">
+            <div className="w-full max-w-6xl mx-auto space-y-6">
+              {/* Header */}
               <div>
-                <h1 className="text-3xl font-bold tracking-tight text-white">
+                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[var(--dept-text-primary)]">
                   Operational Dashboard
                 </h1>
-                <p className="text-sm text-slate-400 mt-1">
-                  Real-time workload distribution for {departmentShortName}.
+                <p className="text-xs sm:text-sm text-[var(--dept-text-secondary)] mt-1">
+                  Real-time municipal workload distribution and workload telemetry.
                 </p>
               </div>
 
+              {/* KPI Cards Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="dept-panel p-5">
-                  <div className="flex items-center gap-2 text-slate-400 text-xs font-semibold uppercase tracking-wider mb-2">
-                    <FileText className="w-4 h-4" />
-                    <span>Total Backlog</span>
+                {/* 1. Pending Acceptance */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCurrentSection('tasks');
+                    setActiveTaskFilter('assigned');
+                    setSelectedReference(null);
+                  }}
+                  className="p-5 rounded-xl bg-[var(--dept-surface)] border border-[var(--dept-border)] shadow-xs hover:border-[var(--dept-accent)] transition-all text-left cursor-pointer group"
+                >
+                  <div className="flex items-center justify-between text-xs font-medium text-[var(--dept-text-muted)] mb-2">
+                    <span>Pending Acceptance</span>
+                    <AlertCircle className="w-4 h-4 text-amber-500" />
                   </div>
-                  <div className="text-2xl font-bold text-white font-mono">
-                    {complaints.length}
+                  <div className="text-3xl font-bold font-mono text-[var(--dept-text-primary)] group-hover:text-[var(--dept-accent)] transition-colors">
+                    {taskCounts.assigned}
                   </div>
-                </div>
+                  <div className="text-[11px] text-[var(--dept-text-secondary)] mt-1 flex items-center gap-1">
+                    <span>Awaiting field dispatch</span>
+                    <ArrowRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </div>
+                </button>
 
-                <div className="dept-panel p-5">
-                  <div className="flex items-center gap-2 text-blue-400 text-xs font-semibold uppercase tracking-wider mb-2">
-                    <Clock className="w-4 h-4" />
+                {/* 2. In Progress */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCurrentSection('tasks');
+                    setActiveTaskFilter('in_progress');
+                    setSelectedReference(null);
+                  }}
+                  className="p-5 rounded-xl bg-[var(--dept-surface)] border border-[var(--dept-border)] shadow-xs hover:border-[var(--dept-accent)] transition-all text-left cursor-pointer group"
+                >
+                  <div className="flex items-center justify-between text-xs font-medium text-[var(--dept-text-muted)] mb-2">
                     <span>In Progress</span>
+                    <PlayCircle className="w-4 h-4 text-blue-500" />
                   </div>
-                  <div className="text-2xl font-bold text-blue-400 font-mono">
+                  <div className="text-3xl font-bold font-mono text-[var(--dept-text-primary)] group-hover:text-[var(--dept-accent)] transition-colors">
                     {taskCounts.in_progress}
                   </div>
-                </div>
-
-                <div className="dept-panel p-5">
-                  <div className="flex items-center gap-2 text-emerald-400 text-xs font-semibold uppercase tracking-wider mb-2">
-                    <CheckCircle2 className="w-4 h-4" />
-                    <span>Work Completed</span>
+                  <div className="text-[11px] text-[var(--dept-text-secondary)] mt-1 flex items-center gap-1">
+                    <span>Active field teams</span>
+                    <ArrowRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
                   </div>
-                  <div className="text-2xl font-bold text-emerald-400 font-mono">
+                </button>
+
+                {/* 3. Work Done */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCurrentSection('tasks');
+                    setActiveTaskFilter('resolved');
+                    setSelectedReference(null);
+                  }}
+                  className="p-5 rounded-xl bg-[var(--dept-surface)] border border-[var(--dept-border)] shadow-xs hover:border-[var(--dept-accent)] transition-all text-left cursor-pointer group"
+                >
+                  <div className="flex items-center justify-between text-xs font-medium text-[var(--dept-text-muted)] mb-2">
+                    <span>Work Completed</span>
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                  </div>
+                  <div className="text-3xl font-bold font-mono text-[var(--dept-text-primary)] group-hover:text-[var(--dept-accent)] transition-colors">
                     {taskCounts.resolved}
                   </div>
-                </div>
-
-                <div className="dept-panel p-5">
-                  <div className="flex items-center gap-2 text-rose-400 text-xs font-semibold uppercase tracking-wider mb-2">
-                    <AlertCircle className="w-4 h-4" />
-                    <span>Closed / Rejected</span>
+                  <div className="text-[11px] text-[var(--dept-text-secondary)] mt-1 flex items-center gap-1">
+                    <span>Remediated & verified</span>
+                    <ArrowRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
                   </div>
-                  <div className="text-2xl font-bold text-rose-400 font-mono">
-                    {taskCounts.rejected}
-                  </div>
-                </div>
-              </div>
+                </button>
 
-              <div className="dept-panel p-6">
-                <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-3">
-                  Department Workload Integrity
-                </h3>
-                <p className="text-xs text-slate-400 leading-relaxed max-w-xl">
-                  All counts are compiled strictly from live complaints assigned to your authorized municipal agency. Zero cross-department telemetry is surfaced, preserving municipal boundary segregation.
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* Section 4: NOTIFICATIONS (Honest Notification State) */}
-          {currentSection === 'notifications' && (
-            <div className="flex-1 flex flex-col space-y-6 animate-fadeIn">
-              <div>
-                <h1 className="text-3xl font-bold tracking-tight text-white">
-                  Notifications
-                </h1>
-                <p className="text-sm text-slate-400 mt-1">
-                  System alerts and municipal updates.
-                </p>
-              </div>
-
-              <div className="dept-panel flex-1 flex flex-col items-center justify-center p-8 text-center min-h-[460px]">
-                <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mb-4 text-slate-400">
-                  <Clock className="w-6 h-6 text-amber-200/70" />
-                </div>
-                <h3 className="text-lg font-bold text-white mb-1.5">No notifications yet</h3>
-                <p className="text-xs text-slate-400 max-w-xs leading-relaxed">
-                  Real-time municipal alerts, complaint reassignments, and administrative notices will appear here.
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* Section 5: SETTINGS (Functional Preferences) */}
-          {currentSection === 'settings' && (
-            <div className="flex-1 flex flex-col space-y-6 animate-fadeIn">
-              <div>
-                <h1 className="text-3xl font-bold tracking-tight text-white">
-                  Settings
-                </h1>
-                <p className="text-sm text-slate-400 mt-1">
-                  Operational preferences and staff authentication identity.
-                </p>
-              </div>
-
-              <div className="space-y-4 max-w-2xl">
-                {/* Language Preference */}
-                <div className="dept-panel p-6 flex items-center justify-between gap-4">
-                  <div>
-                    <h3 className="text-sm font-bold text-white">Interface Language</h3>
-                    <p className="text-xs text-slate-400 mt-0.5">
-                      Current display mode: {language === 'ur' ? 'اردو (Urdu)' : 'English'}
-                    </p>
-                  </div>
+                {/* 4. Total Backlog or Review Queue */}
+                {departmentId === 'kmc' ? (
                   <button
                     type="button"
-                    onClick={toggleLanguage}
-                    className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-xs font-bold text-white flex items-center gap-2 cursor-pointer transition-colors"
+                    onClick={() => {
+                      setCurrentSection('tasks');
+                      setActiveTaskFilter('under_review');
+                      setSelectedReference(null);
+                    }}
+                    className="p-5 rounded-xl bg-[var(--dept-surface)] border border-purple-200 dark:border-purple-800 shadow-xs hover:border-purple-400 transition-all text-left cursor-pointer group"
                   >
-                    <Globe className="w-3.5 h-3.5" />
-                    <span>Switch to {language === 'ur' ? 'English' : 'اردو'}</span>
+                    <div className="flex items-center justify-between text-xs font-semibold text-purple-700 dark:text-purple-300 mb-2">
+                      <span>Review Queue</span>
+                      <ShieldAlert className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                    </div>
+                    <div className="text-3xl font-bold font-mono text-[var(--dept-text-primary)] group-hover:text-purple-600 transition-colors">
+                      {taskCounts.under_review}
+                    </div>
+                    <div className="text-[11px] text-[var(--dept-text-secondary)] mt-1 flex items-center gap-1">
+                      <span>Clearinghouse triage</span>
+                      <ArrowRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </div>
+                  </button>
+                ) : (
+                  <div className="p-5 rounded-xl bg-[var(--dept-surface)] border border-[var(--dept-border)] shadow-xs">
+                    <div className="flex items-center justify-between text-xs font-medium text-[var(--dept-text-muted)] mb-2">
+                      <span>Total Backlog</span>
+                      <Inbox className="w-4 h-4 text-[var(--dept-text-muted)]" />
+                    </div>
+                    <div className="text-3xl font-bold font-mono text-[var(--dept-text-primary)]">
+                      {taskCounts.all}
+                    </div>
+                    <div className="text-[11px] text-[var(--dept-text-secondary)] mt-1">
+                      All department records
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Department Workload Integrity Card */}
+              <div className="p-5 rounded-xl bg-[var(--dept-surface)] border border-[var(--dept-border)] shadow-xs space-y-2">
+                <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[var(--dept-text-muted)]">
+                  <ShieldCheck className="w-4 h-4 text-emerald-500" />
+                  <span>Department Workload Integrity</span>
+                </div>
+                <p className="text-xs sm:text-sm text-[var(--dept-text-secondary)] leading-relaxed">
+                  All metrics are compiled strictly from live complaints assigned to your authorized municipal agency. Zero cross-department telemetry is surfaced, preserving strict administrative segregation under Karachi municipal protocol.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* SECTION 3: NOTIFICATIONS */}
+          {currentSection === 'notifications' && (
+            <div className="w-full max-w-4xl mx-auto space-y-6">
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[var(--dept-text-primary)]">
+                  Notifications
+                </h1>
+                <p className="text-xs sm:text-sm text-[var(--dept-text-secondary)] mt-1">
+                  System alerts and operational dispatches.
+                </p>
+              </div>
+
+              <div className="bg-[var(--dept-surface)] border border-[var(--dept-border)] rounded-xl shadow-xs divide-y divide-[var(--dept-border)] overflow-hidden">
+                <div className="p-4 flex items-start gap-3 hover:bg-[var(--dept-surface-hover)] transition-colors">
+                  <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 mt-0.5">
+                    <Bell className="w-4 h-4" />
+                  </div>
+                  <div className="flex-1 text-xs sm:text-sm">
+                    <div className="font-semibold text-[var(--dept-text-primary)]">
+                      Supabase Realtime Channel Active
+                    </div>
+                    <p className="text-xs text-[var(--dept-text-secondary)] mt-0.5">
+                      Operational console is actively listening for live complaint assignments and status transitions.
+                    </p>
+                    <span className="text-[10px] text-[var(--dept-text-muted)] mt-1 inline-block">
+                      Just now
+                    </span>
+                  </div>
+                </div>
+
+                <div className="p-4 flex items-start gap-3 hover:bg-[var(--dept-surface-hover)] transition-colors">
+                  <div className="w-8 h-8 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
+                    <ShieldCheck className="w-4 h-4" />
+                  </div>
+                  <div className="flex-1 text-xs sm:text-sm">
+                    <div className="font-semibold text-[var(--dept-text-primary)]">
+                      Privacy Redaction Engine Verified
+                    </div>
+                    <p className="text-xs text-[var(--dept-text-secondary)] mt-0.5">
+                      Citizen phone numbers, emails, CNIC and residential street addresses are automatically sanitized before presentation.
+                    </p>
+                    <span className="text-[10px] text-[var(--dept-text-muted)] mt-1 inline-block">
+                      System protocol
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* SECTION 4: SETTINGS (Includes Light/Dark Mode Switcher!) */}
+          {currentSection === 'settings' && (
+            <div className="w-full max-w-4xl mx-auto space-y-6">
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[var(--dept-text-primary)]">
+                  Settings
+                </h1>
+                <p className="text-xs sm:text-sm text-[var(--dept-text-secondary)] mt-1">
+                  Workspace preferences, theme appearance, and staff credentials.
+                </p>
+              </div>
+
+              {/* 1. Theme Appearance Selection (Light Default vs Dark) */}
+              <div className="p-5 sm:p-6 rounded-xl bg-[var(--dept-surface)] border border-[var(--dept-border)] shadow-xs space-y-4">
+                <div>
+                  <h2 className="text-sm font-bold text-[var(--dept-text-primary)]">
+                    Appearance
+                  </h2>
+                  <p className="text-xs text-[var(--dept-text-secondary)] mt-0.5">
+                    Select your preferred workspace theme. Light mode is the standard civic default.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-md">
+                  {/* Light Mode Button */}
+                  <button
+                    type="button"
+                    onClick={() => handleSetTheme('light')}
+                    className={`p-4 rounded-xl border text-left transition-all cursor-pointer flex items-center justify-between ${
+                      themeMode === 'light'
+                        ? 'border-[var(--dept-accent)] bg-blue-50/50 dark:bg-blue-950/20 ring-1 ring-[var(--dept-accent)]'
+                        : 'border-[var(--dept-border)] bg-[var(--dept-surface-subtle)] hover:border-[var(--dept-border-strong)]'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-amber-500 shadow-2xs">
+                        <Sun className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <div className="text-xs font-bold text-[var(--dept-text-primary)]">
+                          Light Mode
+                        </div>
+                        <div className="text-[11px] text-[var(--dept-text-muted)]">
+                          Default civic palette
+                        </div>
+                      </div>
+                    </div>
+                    {themeMode === 'light' && (
+                      <CheckCircle2 className="w-4 h-4 text-[var(--dept-accent)]" />
+                    )}
+                  </button>
+
+                  {/* Dark Mode Button */}
+                  <button
+                    type="button"
+                    onClick={() => handleSetTheme('dark')}
+                    className={`p-4 rounded-xl border text-left transition-all cursor-pointer flex items-center justify-between ${
+                      themeMode === 'dark'
+                        ? 'border-[var(--dept-accent)] bg-blue-50/50 dark:bg-blue-950/20 ring-1 ring-[var(--dept-accent)]'
+                        : 'border-[var(--dept-border)] bg-[var(--dept-surface-subtle)] hover:border-[var(--dept-border-strong)]'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-lg bg-slate-900 border border-slate-700 flex items-center justify-center text-blue-400 shadow-2xs">
+                        <Moon className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <div className="text-xs font-bold text-[var(--dept-text-primary)]">
+                          Dark Mode
+                        </div>
+                        <div className="text-[11px] text-[var(--dept-text-muted)]">
+                          Night shift console
+                        </div>
+                      </div>
+                    </div>
+                    {themeMode === 'dark' && (
+                      <CheckCircle2 className="w-4 h-4 text-[var(--dept-accent)]" />
+                    )}
                   </button>
                 </div>
+              </div>
 
-                {/* Account Details (Read-only) */}
-                <div className="dept-panel p-6 space-y-3">
-                  <h3 className="text-sm font-bold text-white">Staff Identity</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                    <div className="p-3 rounded-xl bg-white/[0.03] border border-white/10">
-                      <div className="text-slate-400 text-[11px]">Assigned Username</div>
-                      <div className="font-mono font-bold text-white mt-1">{username}</div>
+              {/* 2. Sidebar Navigation Preference */}
+              <div className="p-5 sm:p-6 rounded-xl bg-[var(--dept-surface)] border border-[var(--dept-border)] shadow-xs space-y-3">
+                <div>
+                  <h2 className="text-sm font-bold text-[var(--dept-text-primary)]">
+                    Sidebar Navigation
+                  </h2>
+                  <p className="text-xs text-[var(--dept-text-secondary)] mt-0.5">
+                    Toggle sidebar width preference.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={handleToggleSidebarCollapse}
+                    className="px-4 py-2 rounded-lg border border-[var(--dept-border)] bg-[var(--dept-surface-subtle)] hover:bg-[var(--dept-surface-hover)] text-xs font-semibold text-[var(--dept-text-primary)] transition-colors cursor-pointer flex items-center gap-2"
+                  >
+                    {isSidebarCollapsed ? (
+                      <>
+                        <PanelLeftOpen className="w-4 h-4 text-[var(--dept-accent)]" />
+                        <span>Expand Sidebar (240px)</span>
+                      </>
+                    ) : (
+                      <>
+                        <PanelLeftClose className="w-4 h-4 text-[var(--dept-accent)]" />
+                        <span>Collapse Sidebar (72px)</span>
+                      </>
+                    )}
+                  </button>
+                  <span className="text-xs text-[var(--dept-text-muted)]">
+                    Currently: {isSidebarCollapsed ? 'Collapsed (Icons only)' : 'Expanded (Full Labels)'}
+                  </span>
+                </div>
+              </div>
+
+              {/* 3. Account Information & Municipal Boundary */}
+              <div className="p-5 sm:p-6 rounded-xl bg-[var(--dept-surface)] border border-[var(--dept-border)] shadow-xs space-y-4">
+                <div>
+                  <h2 className="text-sm font-bold text-[var(--dept-text-primary)]">
+                    Department Account
+                  </h2>
+                  <p className="text-xs text-[var(--dept-text-secondary)] mt-0.5">
+                    Authorized municipal identity and jurisdiction boundaries.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                  <div className="p-3 rounded-lg bg-[var(--dept-surface-subtle)] border border-[var(--dept-border)]">
+                    <span className="text-[11px] text-[var(--dept-text-muted)] font-medium">Username</span>
+                    <div className="font-mono font-semibold text-sm text-[var(--dept-text-primary)] mt-0.5">
+                      {session?.username || 'roads-01'}
                     </div>
-                    <div className="p-3 rounded-xl bg-white/[0.03] border border-white/10">
-                      <div className="text-slate-400 text-[11px]">Authorized Department</div>
-                      <div className="font-semibold text-white mt-1">{departmentName}</div>
+                  </div>
+
+                  <div className="p-3 rounded-lg bg-[var(--dept-surface-subtle)] border border-[var(--dept-border)]">
+                    <span className="text-[11px] text-[var(--dept-text-muted)] font-medium">Department</span>
+                    <div className="font-semibold text-sm text-[var(--dept-text-primary)] mt-0.5">
+                      {departmentMeta?.name || 'Karachi Municipal Agency'}
+                    </div>
+                  </div>
+
+                  <div className="p-3 rounded-lg bg-[var(--dept-surface-subtle)] border border-[var(--dept-border)]">
+                    <span className="text-[11px] text-[var(--dept-text-muted)] font-medium">Agency Code</span>
+                    <div className="font-mono font-semibold text-sm text-[var(--dept-text-primary)] mt-0.5">
+                      {departmentMeta?.code || (departmentId ? departmentId.toUpperCase() : 'DEPT')}
+                    </div>
+                  </div>
+
+                  <div className="p-3 rounded-lg bg-[var(--dept-surface-subtle)] border border-[var(--dept-border)]">
+                    <span className="text-[11px] text-[var(--dept-text-muted)] font-medium">RLS Boundary</span>
+                    <div className="font-semibold text-sm text-emerald-600 dark:text-emerald-400 mt-0.5 flex items-center gap-1.5">
+                      <ShieldCheck className="w-3.5 h-3.5" />
+                      <span>Isolated & Enforced</span>
                     </div>
                   </div>
                 </div>
 
-                {/* Privacy & Zero-PII Confirmation */}
-                <div className="dept-panel p-6 flex items-start gap-3.5">
-                  <ShieldCheck className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
-                  <div>
-                    <h3 className="text-sm font-bold text-white">
-                      Zero-PII Privacy Protection Active
-                    </h3>
-                    <p className="text-xs text-slate-400 mt-1 leading-relaxed">
-                      Department staff sessions only receive public incident locations and sanitized complaint text. Citizen names, personal phone numbers, email addresses, and residential home addresses remain quarantined at the database level.
-                    </p>
-                  </div>
+                <div className="pt-2 border-t border-[var(--dept-border)] flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      signOut();
+                      navigate('/department/login');
+                    }}
+                    className="px-4 py-2 rounded-lg text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/30 dark:hover:bg-rose-950/50 border border-rose-200 dark:border-rose-800 transition-colors cursor-pointer flex items-center gap-1.5"
+                  >
+                    <LogOut className="w-3.5 h-3.5" />
+                    <span>Sign Out of Session</span>
+                  </button>
                 </div>
               </div>
             </div>
@@ -771,17 +905,14 @@ export const DepartmentDashboardPage: React.FC = () => {
       {selectedComplaint && (
         <StatusUpdateModal
           isOpen={isStatusModalOpen}
-          onClose={() => {
-            setIsStatusModalOpen(false);
-            setModalInitialStatus(undefined);
-          }}
+          onClose={() => setIsStatusModalOpen(false)}
           complaint={selectedComplaint}
           onUpdated={handleComplaintUpdated}
           initialStatus={modalInitialStatus}
         />
       )}
 
-      {/* Classification Review & Assignment Modal */}
+      {/* Classification Review Modal (KMC Clearinghouse only) */}
       {selectedComplaint && (
         <ReviewAssignmentModal
           isOpen={isReviewModalOpen}

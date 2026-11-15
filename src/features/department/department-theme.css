@@ -1,155 +1,202 @@
 /* ==============================================================================
-   AWAAZ-E-AWAM — QUIET CIVIC WORKSPACE DESIGN SYSTEM
-   Standardized Dark Theme for Karachi Municipal Operational Consoles
+   AWAAZ-E-AWAM — DEPARTMENT PORTAL DESIGN SYSTEM
+   Light-First Professional Civic Workspace with Selectable Dark Mode
    ============================================================================== */
 
 :root {
-  --dept-dark-bg: #0f0f12;
-  --dept-dark-shell: #121215;
-  --dept-dark-surface: #17171a;
-  --dept-dark-surface-elevated: #1c1c20;
-  --dept-dark-surface-hover: rgba(255, 255, 255, 0.04);
-  --dept-dark-border: rgba(255, 255, 255, 0.07);
-  --dept-dark-border-strong: rgba(255, 255, 255, 0.12);
-  --dept-dark-ink: #f4f4f5;
-  --dept-dark-muted: #9ca3af;
-  --dept-dark-faint: #6b7280;
+  /* LIGHT MODE (DEFAULT) */
+  --dept-bg: #f8fafc;
+  --dept-sidebar-bg: #ffffff;
+  --dept-surface: #ffffff;
+  --dept-surface-subtle: #f1f5f9;
+  --dept-surface-hover: #f8fafc;
+  --dept-surface-selected: #eff6ff;
+  --dept-border: #e2e8f0;
+  --dept-border-strong: #cbd5e1;
+  --dept-text-primary: #0f172a;
+  --dept-text-secondary: #475569;
+  --dept-text-muted: #64748b;
+  --dept-shadow-sm: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
+  --dept-shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.08), 0 2px 4px -2px rgba(15, 23, 42, 0.04);
+  --dept-shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.03);
 
-  /* Default theme: Roads & Infrastructure (KMC) - Muted Amber */
-  --dept-accent: #d8b457;
-  --dept-accent-rgb: 216, 180, 87;
-  --dept-accent-muted: rgba(216, 180, 87, 0.12);
-  --dept-accent-glow: rgba(216, 180, 87, 0.04);
-  --dept-accent-border: rgba(216, 180, 87, 0.3);
+  /* Primary Restrained Civic Blue Accent */
+  --dept-accent: #2563eb;
+  --dept-accent-rgb: 37, 99, 235;
+  --dept-accent-subtle: rgba(37, 99, 235, 0.08);
+  --dept-accent-glow: rgba(37, 99, 235, 0.04);
+  --dept-accent-border: rgba(37, 99, 235, 0.25);
+  --dept-accent-contrast: #ffffff;
 }
 
-/* Department-Specific Restrained Accent Overrides */
+/* DARK MODE OVERRIDES (SELECTABLE FROM SETTINGS) */
+[data-dept-mode='dark'] {
+  --dept-bg: #090d16;
+  --dept-sidebar-bg: #0f1523;
+  --dept-surface: #141c2e;
+  --dept-surface-subtle: #1a243b;
+  --dept-surface-hover: #1e2942;
+  --dept-surface-selected: #1e3a5f;
+  --dept-border: #1e293b;
+  --dept-border-strong: #334155;
+  --dept-text-primary: #f8fafc;
+  --dept-text-secondary: #94a3b8;
+  --dept-text-muted: #64748b;
+  --dept-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.4);
+  --dept-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -2px rgba(0, 0, 0, 0.4);
+  --dept-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.6), 0 4px 6px -4px rgba(0, 0, 0, 0.4);
+
+  --dept-accent: #3b82f6;
+  --dept-accent-rgb: 59, 130, 246;
+  --dept-accent-subtle: rgba(59, 130, 246, 0.14);
+  --dept-accent-glow: rgba(59, 130, 246, 0.06);
+  --dept-accent-border: rgba(59, 130, 246, 0.35);
+  --dept-accent-contrast: #ffffff;
+}
+
+/* Department Specific Accent Overrides */
 [data-dept-theme='kmc'] {
-  --dept-accent: #d8b457;
-  --dept-accent-rgb: 216, 180, 87;
-  --dept-accent-muted: rgba(216, 180, 87, 0.12);
-  --dept-accent-glow: rgba(216, 180, 87, 0.04);
-  --dept-accent-border: rgba(216, 180, 87, 0.3);
+  --dept-accent: #d97706;
+  --dept-accent-rgb: 217, 119, 6;
+  --dept-accent-subtle: rgba(217, 119, 6, 0.09);
+  --dept-accent-border: rgba(217, 119, 6, 0.3);
+}
+
+[data-dept-mode='dark'][data-dept-theme='kmc'] {
+  --dept-accent: #f59e0b;
+  --dept-accent-rgb: 245, 158, 11;
+  --dept-accent-subtle: rgba(245, 158, 11, 0.14);
+  --dept-accent-border: rgba(245, 158, 11, 0.35);
 }
 
 [data-dept-theme='kelectric'] {
-  --dept-accent: #3b82f6;
-  --dept-accent-rgb: 59, 130, 246;
-  --dept-accent-muted: rgba(59, 130, 246, 0.12);
-  --dept-accent-glow: rgba(59, 130, 246, 0.04);
-  --dept-accent-border: rgba(59, 130, 246, 0.3);
+  --dept-accent: #2563eb;
+  --dept-accent-rgb: 37, 99, 235;
+  --dept-accent-subtle: rgba(37, 99, 235, 0.08);
+  --dept-accent-border: rgba(37, 99, 235, 0.25);
 }
 
 [data-dept-theme='kwsc'] {
-  --dept-accent: #06b6d4;
-  --dept-accent-rgb: 6, 182, 212;
-  --dept-accent-muted: rgba(6, 182, 212, 0.12);
-  --dept-accent-glow: rgba(6, 182, 212, 0.04);
-  --dept-accent-border: rgba(6, 182, 212, 0.3);
+  --dept-accent: #0891b2;
+  --dept-accent-rgb: 8, 145, 178;
+  --dept-accent-subtle: rgba(8, 145, 178, 0.08);
+  --dept-accent-border: rgba(8, 145, 178, 0.25);
 }
 
 [data-dept-theme='ssgc'] {
-  --dept-accent: #f97316;
-  --dept-accent-rgb: 249, 115, 22;
-  --dept-accent-muted: rgba(249, 115, 22, 0.12);
-  --dept-accent-glow: rgba(249, 115, 22, 0.04);
-  --dept-accent-border: rgba(249, 115, 22, 0.3);
+  --dept-accent: #ea580c;
+  --dept-accent-rgb: 234, 88, 12;
+  --dept-accent-subtle: rgba(234, 88, 12, 0.08);
+  --dept-accent-border: rgba(234, 88, 12, 0.25);
 }
 
 [data-dept-theme='sswmb'] {
-  --dept-accent: #10b981;
-  --dept-accent-rgb: 16, 185, 129;
-  --dept-accent-muted: rgba(16, 185, 129, 0.12);
-  --dept-accent-glow: rgba(16, 185, 129, 0.04);
-  --dept-accent-border: rgba(16, 185, 129, 0.3);
+  --dept-accent: #059669;
+  --dept-accent-rgb: 5, 150, 105;
+  --dept-accent-subtle: rgba(5, 150, 105, 0.08);
+  --dept-accent-border: rgba(5, 150, 105, 0.25);
 }
 
 [data-dept-theme='sbca'] {
-  --dept-accent: #a855f7;
-  --dept-accent-rgb: 168, 85, 247;
-  --dept-accent-muted: rgba(168, 85, 247, 0.12);
-  --dept-accent-glow: rgba(168, 85, 247, 0.04);
-  --dept-accent-border: rgba(168, 85, 247, 0.3);
+  --dept-accent: #7c3aed;
+  --dept-accent-rgb: 124, 58, 237;
+  --dept-accent-subtle: rgba(124, 58, 237, 0.08);
+  --dept-accent-border: rgba(124, 58, 237, 0.25);
 }
 
-.dept-dark-wrap {
-  background: var(--dept-dark-bg);
+/* Global Application Shell Wrappers */
+.dept-workspace-wrap {
+  background-color: var(--dept-bg);
+  color: var(--dept-text-primary);
   width: 100%;
   height: 100vh;
   height: 100dvh;
   min-height: 0;
   max-width: none;
-  max-height: none;
   margin: 0;
   padding: 0;
   overflow: hidden;
-  border-radius: 0;
-  border: none;
-  box-shadow: none;
-  color: var(--dept-dark-ink);
-  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  font-sans: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .dept-shell {
   width: 100%;
   height: 100%;
   min-height: 0;
-  max-width: none;
-  max-height: none;
   margin: 0;
   padding: 0;
-  border: none;
-  border-radius: 0;
-  box-shadow: none;
 }
 
+/* Sidebar Styling */
 .dept-sidebar {
-  background: var(--dept-dark-shell);
-  border-right: 1px solid var(--dept-dark-border);
-  min-height: 0;
-  overflow-y: auto;
+  background-color: var(--dept-sidebar-bg);
+  border-right: 1px solid var(--dept-border);
+  transition: width 0.2s ease-in-out, background-color 0.2s ease, border-color 0.2s ease;
 }
 
+/* Main Workspace Canvas */
 .dept-main {
+  background-color: var(--dept-bg);
   min-width: 0;
   min-height: 0;
   overflow-y: auto;
+  transition: background-color 0.2s ease;
 }
 
-.dept-panel {
-  background: var(--dept-dark-surface);
-  border: 1px solid var(--dept-dark-border);
-  border-radius: 12px;
+/* Structured Card / Panel */
+.dept-card {
+  background-color: var(--dept-surface);
+  border: 1px solid var(--dept-border);
+  border-radius: 10px;
+  box-shadow: var(--dept-shadow-sm);
+  transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-/* Nav Item Selected State */
+/* Navigation Item Selected State */
 .dept-nav-active {
+  color: var(--dept-accent);
+  background-color: var(--dept-accent-subtle);
+  font-weight: 600;
+}
+
+[data-dept-mode='dark'] .dept-nav-active {
   color: #ffffff;
-  background: rgba(255, 255, 255, 0.07);
+  background-color: var(--dept-accent-subtle);
   border-left: 3px solid var(--dept-accent);
 }
 
-/* Task Row Active State */
+/* Row Hover & Focus */
+.dept-row {
+  background-color: var(--dept-surface);
+  border-bottom: 1px solid var(--dept-border);
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.dept-row:hover {
+  background-color: var(--dept-surface-hover);
+}
+
 .dept-row-active {
-  background: rgba(255, 255, 255, 0.05);
+  background-color: var(--dept-surface-selected);
   border-left: 3px solid var(--dept-accent);
 }
 
-/* Custom Scrollbar for Dark Workspace */
-.dept-custom-scrollbar::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+/* Custom Clean Scrollbar */
+.dept-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
 }
 
-.dept-custom-scrollbar::-webkit-scrollbar-track {
+.dept-scrollbar::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.dept-custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.12);
-  border-radius: 3px;
+.dept-scrollbar::-webkit-scrollbar-thumb {
+  background-color: var(--dept-border-strong);
+  border-radius: 4px;
 }
 
-.dept-custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.2);
+.dept-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: var(--dept-text-muted);
 }
