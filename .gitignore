@@ -49,6 +49,8 @@ ehthumbs.db
 [Dd]esktop.ini
 
 # Temporary files & caches
+__pycache__/
+*.pyc
 .eslintcache
 .stylelintcache
 *.tsbuildinfo

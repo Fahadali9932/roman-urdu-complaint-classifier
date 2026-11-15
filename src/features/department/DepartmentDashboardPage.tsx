@@ -28,6 +28,7 @@ import {
   ShieldCheck,
   Globe,
   ArrowRight,
+  Search,
 } from 'lucide-react';
 import './department-theme.css';
 
@@ -236,15 +237,35 @@ export const DepartmentDashboardPage: React.FC = () => {
     return result;
   }, [complaints, reviewComplaints, activeTaskFilter, searchQuery, sortOrder]);
 
-  // Selected complaint object
+  // Synchronize selectedReference with active filteredComplaints
+  useEffect(() => {
+    const isDesktop = typeof window !== 'undefined' && window.innerWidth >= 1024;
+    if (selectedReference) {
+      const exists = filteredComplaints.some(
+        (c) => c.referenceNumber === selectedReference
+      );
+      if (!exists) {
+        if (isDesktop && filteredComplaints.length > 0) {
+          setSelectedReference(filteredComplaints[0].referenceNumber);
+        } else if (!isDesktop) {
+          setSelectedReference(null);
+        }
+      }
+    } else if (isDesktop && filteredComplaints.length > 0) {
+      setSelectedReference(filteredComplaints[0].referenceNumber);
+    }
+  }, [filteredComplaints, selectedReference]);
+
+  // Selected complaint object (prefer current filteredComplaints view)
   const selectedComplaint = useMemo(() => {
     if (!selectedReference) return null;
     return (
+      filteredComplaints.find((c) => c.referenceNumber === selectedReference) ||
       complaints.find((c) => c.referenceNumber === selectedReference) ||
       reviewComplaints.find((c) => c.referenceNumber === selectedReference) ||
       null
     );
-  }, [complaints, reviewComplaints, selectedReference]);
+  }, [filteredComplaints, complaints, reviewComplaints, selectedReference]);
 
   const handleComplaintUpdated = (updated: DepartmentComplaintView) => {
     setComplaints((prev) => {
@@ -307,7 +328,7 @@ export const DepartmentDashboardPage: React.FC = () => {
       {/* Main Operational Glass Shell - Edge-to-Edge Desktop Application */}
       <div className="dept-shell w-full flex-1 flex flex-col md:flex-row min-h-0 overflow-hidden relative z-10">
         {/* Left Vertical Dark Sidebar (Desktop) */}
-        <aside className="hidden md:flex w-[272px] min-w-[272px] h-full dept-sidebar shrink-0 overflow-y-auto">
+        <aside className="hidden md:flex w-[220px] min-w-[220px] h-full dept-sidebar shrink-0 overflow-y-auto">
           <DepartmentSidebar
             currentSection={currentSection}
             onSelectSection={(sec) => setCurrentSection(sec)}
@@ -327,7 +348,7 @@ export const DepartmentDashboardPage: React.FC = () => {
               if (e.target === e.currentTarget) setIsMobileDrawerOpen(false);
             }}
           >
-            <div className="w-[272px] h-full bg-[#151417] border-r border-white/10 shadow-2xl p-0">
+            <div className="w-[220px] h-full bg-[#121215] border-r border-white/10 shadow-2xl p-0">
               <DepartmentSidebar
                 currentSection={currentSection}
                 onSelectSection={(sec) => setCurrentSection(sec)}
@@ -343,11 +364,11 @@ export const DepartmentDashboardPage: React.FC = () => {
         )}
 
         {/* Right Content Canvas */}
-        <main className="dept-main flex-1 flex flex-col min-w-0 h-full overflow-y-auto p-5 sm:p-7 lg:p-8 xl:p-10">
+        <main className="dept-main flex-1 flex flex-col min-w-0 h-full p-3 sm:p-4 lg:p-5 overflow-hidden">
           {/* Unauthorized Reference Tampering Warning */}
           {unauthorizedRefError && (
             <div
-              className="mb-6 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-200 text-xs flex items-center justify-between"
+              className="mb-3 p-3 rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-200 text-xs flex items-center justify-between shrink-0"
               role="alert"
             >
               <div className="flex items-center gap-2">
@@ -366,90 +387,130 @@ export const DepartmentDashboardPage: React.FC = () => {
             </div>
           )}
 
-          {/* Section 1: TASKS (Primary Workspace) */}
+          {/* Section 1: TASKS (Primary Master-Detail Workspace) */}
           {currentSection === 'tasks' && (
-            <div className="flex-1 flex flex-col min-h-0">
-              {/* Header: Title & Subtitle */}
-              <div className="mb-6 shrink-0">
-                <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-white">
-                  Tasks
-                </h1>
-                <p className="text-xs sm:text-sm text-slate-400 mt-1">
-                  Complaints assigned to your department.
-                </p>
-              </div>
-
-              {/* Toolbar: Filter Pills & Sorting */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 shrink-0">
-                <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-                  {(
-                    [
-                      { id: 'all', label: 'All complaints' },
-                      { id: 'assigned', label: 'Pending Acceptance' },
-                      { id: 'accepted', label: 'Accepted' },
-                      { id: 'in_progress', label: 'In Progress' },
-                      { id: 'resolved', label: 'Work Done' },
-                      { id: 'rejected', label: 'Rejected' },
-                    ] as const
-                  ).map((filter) => {
-                    const isActive = activeTaskFilter === filter.id;
-                    return (
-                      <button
-                        key={filter.id}
-                        type="button"
-                        onClick={() => setActiveTaskFilter(filter.id)}
-                        className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
-                          isActive
-                            ? 'bg-[var(--dept-accent-muted)] text-white border border-[var(--dept-accent-border)] shadow-xs'
-                            : 'bg-white/[0.04] hover:bg-white/[0.08] text-slate-300 border border-white/10'
-                        }`}
-                      >
-                        {filter.label}
-                      </button>
-                    );
-                  })}
+            <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+              {/* Workspace Header Toolbar */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 mb-3 shrink-0">
+                <div>
+                  <h1 className="text-lg sm:text-xl font-bold tracking-tight text-white leading-tight">
+                    {activeTaskFilter === 'under_review' ? 'Review Queue' : 'Tasks'}
+                  </h1>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    {activeTaskFilter === 'under_review'
+                      ? 'Complaints held for clearinghouse classification review.'
+                      : 'Complaints assigned to your department.'}
+                  </p>
                 </div>
 
-                <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  {/* Status Filters (for Tasks) */}
+                  {activeTaskFilter !== 'under_review' ? (
+                    <div className="flex items-center gap-1 overflow-x-auto pb-0.5 scrollbar-none">
+                      {(
+                        [
+                          { id: 'all', label: 'All complaints' },
+                          { id: 'assigned', label: 'Pending Acceptance' },
+                          { id: 'accepted', label: 'Accepted' },
+                          { id: 'in_progress', label: 'In Progress' },
+                          { id: 'resolved', label: 'Work Done' },
+                          { id: 'rejected', label: 'Rejected' },
+                        ] as const
+                      ).map((filter) => {
+                        const isActive = activeTaskFilter === filter.id;
+                        return (
+                          <button
+                            key={filter.id}
+                            type="button"
+                            onClick={() => setActiveTaskFilter(filter.id)}
+                            className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors cursor-pointer ${
+                              isActive
+                                ? 'bg-white/10 text-white font-semibold border border-white/20'
+                                : 'bg-white/[0.03] hover:bg-white/[0.06] text-slate-400 hover:text-slate-200 border border-white/[0.06]'
+                            }`}
+                          >
+                            {filter.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <span className="text-xs text-purple-300 bg-purple-500/10 border border-purple-500/25 px-2.5 py-1 rounded-md font-medium">
+                      Clearinghouse Queue
+                    </span>
+                  )}
+
+                  {/* Sort Order */}
                   <select
                     value={sortOrder}
                     onChange={(e) => setSortOrder(e.target.value as 'newest' | 'oldest')}
-                    className="h-8 px-3 rounded-xl bg-white/[0.04] border border-white/10 text-xs text-slate-300 outline-none cursor-pointer focus:border-white/30"
+                    className="h-7 px-2 rounded-md bg-white/[0.04] border border-white/[0.08] text-xs text-slate-300 outline-none cursor-pointer focus:border-white/20"
                     aria-label="Sort complaints"
                   >
-                    <option value="newest" className="bg-[#1b1a1e] text-white">
+                    <option value="newest" className="bg-[#17171a] text-white">
                       Newest first ⌄
                     </option>
-                    <option value="oldest" className="bg-[#1b1a1e] text-white">
+                    <option value="oldest" className="bg-[#17171a] text-white">
                       Oldest first ⌄
                     </option>
                   </select>
                 </div>
               </div>
 
-              {/* Master/Detail Workspace Grid */}
+              {/* Master/Detail Split Workspace */}
               {isLoading ? (
                 <div className="flex-1 flex flex-col items-center justify-center py-24 text-center">
-                  <Loader2 className="w-8 h-8 text-[var(--dept-accent)] animate-spin mb-3" />
+                  <Loader2 className="w-7 h-7 text-[var(--dept-accent)] animate-spin mb-2.5" />
                   <p className="text-xs font-semibold text-slate-400">
-                    Loading assigned complaints...
+                    Loading complaints...
                   </p>
                 </div>
               ) : (
-                <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-5 min-h-0">
-                  {/* Left Column: Assigned Complaints List */}
+                <div className="flex-1 flex flex-col lg:flex-row gap-3 min-h-0 overflow-hidden">
+                  {/* Left Column: Complaint Inbox List (Fixed 390-420px on desktop) */}
                   <div
-                    className={`dept-panel lg:col-span-7 flex flex-col overflow-hidden min-h-0 ${
+                    className={`dept-panel w-full lg:w-[390px] lg:min-w-[390px] lg:max-w-[420px] shrink-0 flex flex-col overflow-hidden min-h-0 ${
                       selectedReference ? 'hidden lg:flex' : 'flex'
                     }`}
                   >
-                    <div className="px-5 py-3.5 border-b border-white/[0.08] flex items-center justify-between text-xs font-semibold tracking-wider text-slate-400 uppercase shrink-0">
-                      <span>ASSIGNED COMPLAINTS</span>
-                      <span className="font-mono text-[11px] text-slate-500">
+                    {/* Embedded Scoped Search Box */}
+                    <div className="p-2 border-b border-white/[0.06] bg-white/[0.01]">
+                      <div className="h-8 px-2.5 rounded-lg bg-white/[0.04] border border-white/[0.08] focus-within:border-white/20 transition-colors flex items-center gap-2 text-slate-400 focus-within:text-white">
+                        <Search className="w-3.5 h-3.5 shrink-0" />
+                        <input
+                          type="text"
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          placeholder="Search by reference, locality, or keyword..."
+                          className="w-full bg-transparent border-0 outline-none text-xs text-white placeholder:text-slate-500"
+                          aria-label="Search accessible complaints"
+                        />
+                        {searchQuery && (
+                          <button
+                            type="button"
+                            onClick={() => setSearchQuery('')}
+                            className="text-slate-500 hover:text-slate-300 p-0.5 cursor-pointer"
+                            aria-label="Clear search"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Column Header */}
+                    <div className="px-3 py-1.5 border-b border-white/[0.06] flex items-center justify-between text-[11px] font-medium text-slate-400 shrink-0 bg-white/[0.01]">
+                      <span>
+                        {activeTaskFilter === 'under_review'
+                          ? 'Review Queue'
+                          : 'Assigned Complaints'}
+                      </span>
+                      <span className="font-mono text-[10px] text-slate-500">
                         {filteredComplaints.length} complaints
                       </span>
                     </div>
 
+                    {/* Complaint Rows */}
                     <ComplaintInboxList
                       complaints={filteredComplaints}
                       selectedReference={selectedReference}
@@ -457,9 +518,9 @@ export const DepartmentDashboardPage: React.FC = () => {
                     />
                   </div>
 
-                  {/* Right Column: Complaint Detail View */}
+                  {/* Right Column: Complaint Detail View (Flex-1, larger reading area) */}
                   <div
-                    className={`dept-panel lg:col-span-5 flex flex-col overflow-hidden min-h-0 ${
+                    className={`dept-panel flex-1 flex flex-col overflow-hidden min-h-0 ${
                       !selectedReference ? 'hidden lg:flex' : 'flex'
                     }`}
                   >

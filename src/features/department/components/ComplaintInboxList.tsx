@@ -1,6 +1,6 @@
 import React from 'react';
 import { type DepartmentComplaintView, type ComplaintStatus } from '../../../types';
-import { FileText } from 'lucide-react';
+import { Inbox } from 'lucide-react';
 
 interface ComplaintInboxListProps {
   complaints: DepartmentComplaintView[];
@@ -19,7 +19,7 @@ export const getDisplayStatusBadge = (status: ComplaintStatus) => {
     case 'submitted':
       return {
         label: 'New',
-        className: 'bg-white/10 text-slate-300 border border-white/15',
+        className: 'bg-white/5 text-slate-400 border border-white/10',
       };
     case 'assigned':
       return {
@@ -39,17 +39,17 @@ export const getDisplayStatusBadge = (status: ComplaintStatus) => {
     case 'resolved':
       return {
         label: 'Work Done',
-        className: 'bg-emerald-500/20 text-emerald-200 border border-emerald-500/40',
+        className: 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30',
       };
     case 'rejected':
       return {
         label: 'Rejected',
-        className: 'bg-red-500/15 text-red-300 border border-red-500/30',
+        className: 'bg-rose-500/15 text-rose-300 border border-rose-500/30',
       };
     default:
       return {
         label: status,
-        className: 'bg-white/10 text-slate-300 border border-white/15',
+        className: 'bg-white/5 text-slate-400 border border-white/10',
       };
   }
 };
@@ -61,11 +61,11 @@ export const ComplaintInboxList: React.FC<ComplaintInboxListProps> = ({
 }) => {
   if (complaints.length === 0) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-8 text-center min-h-0">
-        <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mb-4 text-slate-400">
-          <FileText className="w-6 h-6 text-amber-200/70" />
+      <div className="flex-1 flex flex-col items-center justify-center p-8 text-center min-h-0 select-none">
+        <div className="w-10 h-10 rounded-xl bg-white/[0.03] border border-white/[0.08] flex items-center justify-center mb-3 text-slate-400">
+          <Inbox className="w-5 h-5 text-slate-400" />
         </div>
-        <h3 className="text-lg font-bold text-white mb-1.5">No complaints yet</h3>
+        <h3 className="text-sm font-semibold text-white mb-1">No complaints yet</h3>
         <p className="text-xs text-slate-400 max-w-xs leading-relaxed">
           New complaints assigned to your department will appear here.
         </p>
@@ -74,7 +74,11 @@ export const ComplaintInboxList: React.FC<ComplaintInboxListProps> = ({
   }
 
   return (
-    <div className="flex-1 divide-y divide-white/[0.07] overflow-y-auto min-h-0 dept-custom-scrollbar">
+    <div
+      role="listbox"
+      aria-label="Complaints List"
+      className="flex-1 divide-y divide-white/[0.05] overflow-y-auto min-h-0 dept-custom-scrollbar"
+    >
       {complaints.map((c) => {
         const isSelected = selectedReference === c.referenceNumber;
         const badge = getDisplayStatusBadge(c.status);
@@ -82,48 +86,43 @@ export const ComplaintInboxList: React.FC<ComplaintInboxListProps> = ({
           ? `${c.locality} · ${c.district}`
           : c.district || 'Karachi';
 
+        const summaryPreview = c.factualSummary || c.sanitizedDescription || c.description;
+
         return (
           <button
             key={c.id}
             type="button"
+            role="option"
+            aria-selected={isSelected}
             onClick={() => onSelectComplaint(c.referenceNumber)}
-            className={`w-full p-4 sm:p-5 flex items-start justify-between gap-3 text-left transition-all cursor-pointer ${
+            className={`w-full px-3.5 py-3 text-left transition-colors cursor-pointer group flex flex-col gap-1 border-l-[3px] ${
               isSelected
-                ? 'dept-row-active bg-white/[0.04]'
-                : 'hover:bg-white/[0.03]'
+                ? 'bg-white/[0.06] border-[var(--dept-accent)]'
+                : 'border-transparent hover:bg-white/[0.03] focus-visible:bg-white/[0.04] focus-visible:outline-none'
             }`}
           >
-            <div className="min-w-0 flex-1 space-y-1.5">
-              <div className="flex items-center gap-2">
-                <span className="font-mono font-bold text-sm text-white tracking-tight">
-                  {c.referenceNumber}
-                </span>
-                {c.status === 'under_review' && (
-                  <span className="text-[10px] font-mono text-purple-300 bg-purple-500/20 px-1.5 py-0.5 rounded border border-purple-500/30">
-                    Review Queue
-                  </span>
-                )}
-              </div>
-
-              <div className="text-xs sm:text-[13px] font-semibold text-slate-100 truncate">
+            {/* Top Line: Heading + Status Pill */}
+            <div className="flex items-center justify-between gap-2">
+              <span className="font-semibold text-xs sm:text-[13px] text-white tracking-tight truncate flex-1">
                 {c.generatedHeading || c.title || 'Municipal Complaint'}
-              </div>
-
-              <p className="text-xs text-slate-300 line-clamp-2 leading-relaxed font-normal">
-                {c.factualSummary || c.sanitizedDescription || c.description}
-              </p>
-
-              <div className="text-[11px] text-slate-400 flex items-center gap-1.5 pt-0.5">
-                <span>{locationText}</span>
-              </div>
-            </div>
-
-            <div className="shrink-0 pt-0.5">
+              </span>
               <span
-                className={`inline-block text-[11px] font-semibold px-2.5 py-0.5 rounded-full ${badge.className}`}
+                className={`shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-full leading-none ${badge.className}`}
               >
                 {badge.label}
               </span>
+            </div>
+
+            {/* Middle Line: Short 1-line Summary Preview */}
+            <p className="text-xs text-slate-400 truncate leading-snug">
+              {summaryPreview}
+            </p>
+
+            {/* Bottom Line: Quiet Reference + Location */}
+            <div className="flex items-center gap-1.5 text-[11px] text-slate-400 font-mono mt-0.5">
+              <span className="text-slate-400 tracking-tight">{c.referenceNumber}</span>
+              <span className="text-slate-500">·</span>
+              <span className="font-sans text-slate-400 truncate">{locationText}</span>
             </div>
           </button>
         );
