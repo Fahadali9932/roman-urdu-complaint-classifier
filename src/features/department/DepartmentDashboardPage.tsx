@@ -16,6 +16,12 @@ import { ComplaintInboxList } from './components/ComplaintInboxList';
 import { ComplaintDetailView } from './components/ComplaintDetailView';
 import { StatusUpdateModal } from './components/StatusUpdateModal';
 import { ReviewAssignmentModal } from './components/ReviewAssignmentModal';
+import { CivicSelect, type CivicSelectOption } from './components/CivicSelect';
+import {
+  calculateComplaintPriority,
+  sortComplaints,
+  type PriorityLevel,
+} from '../../lib/priority-engine';
 import {
   Loader2,
   Menu,
@@ -32,8 +38,8 @@ import {
   PanelLeftOpen,
   ArrowRight,
   Inbox,
-  Bell,
-  LogOut,
+  Flame,
+  Clock,
 } from 'lucide-react';
 import './department-theme.css';
 
@@ -78,11 +84,14 @@ export const DepartmentDashboardPage: React.FC = () => {
     });
   };
 
-  // Navigation state
+  // Navigation state (Notifications completely removed)
   const [currentSection, setCurrentSection] = useState<WorkspaceSection>('tasks');
   const [activeTaskFilter, setActiveTaskFilter] = useState<TaskFilterType>('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
+  const [priorityFilter, setPriorityFilter] = useState<string>('all');
+  const [sortOrder, setSortOrder] = useState<
+    'newest' | 'oldest' | 'priority_high' | 'priority_low' | 'waiting_longest'
+  >('newest');
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
 
   // Complaints state
@@ -94,6 +103,50 @@ export const DepartmentDashboardPage: React.FC = () => {
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [modalInitialStatus, setModalInitialStatus] = useState<ComplaintStatus | undefined>(undefined);
   const [unauthorizedRefError, setUnauthorizedRefError] = useState<string | null>(null);
+
+  // In-memory manual priority overrides storage (supports immediate reactivity)
+  const [priorityOverrides, setPriorityOverrides] = useState<
+    Record<
+      string,
+      {
+        manualPriority: PriorityLevel;
+        manualPriorityReason: string;
+        manualPriorityBy: string;
+        manualPriorityAt: string;
+      }
+    >
+  >(() => {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const raw = localStorage.getItem('awaaz_dept_priority_overrides');
+        if (raw) return JSON.parse(raw);
+      }
+    } catch {
+      // Ignore
+    }
+    return {};
+  });
+
+  const handleOverridePriority = (refNumber: string, newPriority: PriorityLevel, reason: string) => {
+    const updatedRecord = {
+      manualPriority: newPriority,
+      manualPriorityReason: reason,
+      manualPriorityBy: session?.username || 'Staff Officer',
+      manualPriorityAt: new Date().toISOString(),
+    };
+
+    setPriorityOverrides((prev) => {
+      const next = { ...prev, [refNumber]: updatedRecord };
+      try {
+        if (typeof window !== 'undefined' && window.localStorage) {
+          localStorage.setItem('awaaz_dept_priority_overrides', JSON.stringify(next));
+        }
+      } catch {
+        // Ignore
+      }
+      return next;
+    });
+  };
 
   // Authentication & real-time revocation guard
   useEffect(() => {
@@ -119,43 +172,24 @@ export const DepartmentDashboardPage: React.FC = () => {
       if (!options?.silent) {
         setIsLoading(true);
       }
-      setUnauthorizedRefError(null);
       try {
-        const data = await complaintService.getDepartmentComplaints(departmentId);
-        if (isCancelled) return;
-        setComplaints(data);
+        const assignedRows = await complaintService.getDepartmentComplaints(departmentId);
+        if (!isCancelled) {
+          setComplaints(assignedRows);
+        }
 
-        let reviews: DepartmentComplaintView[] = [];
         if (departmentId === 'kmc') {
           try {
-            reviews = await complaintService.getReviewQueueComplaints();
+            const reviewRows = await complaintService.getReviewQueueComplaints();
+            if (!isCancelled) {
+              setReviewComplaints(reviewRows);
+            }
           } catch {
-            reviews = [];
+            // Ignore review queue failures for non-clearinghouse
           }
         }
-        if (isCancelled) return;
-        setReviewComplaints(reviews);
-
-        const allAvailable = [...data, ...reviews];
-
-        // Deep-link reference handling or parameter match
-        const targetRef = searchParams.get('ref') || urlRef;
-        if (targetRef) {
-          const cleaned = targetRef.trim().toUpperCase();
-          const match = allAvailable.find((c) => c.referenceNumber.toUpperCase() === cleaned);
-          if (match) {
-            setSelectedReference(match.referenceNumber);
-          } else {
-            // Check unauthorized foreign reference
-            complaintService.getComplaintByReference(cleaned).then((globalComp) => {
-              if (globalComp && globalComp.assignedDepartmentId !== departmentId) {
-                setUnauthorizedRefError(cleaned);
-              }
-            });
-          }
-        }
-      } catch (err) {
-        console.error('Failed to load department complaints:', err);
+      } catch {
+        // Handled silently for polling
       } finally {
         if (!isCancelled && !options?.silent) {
           setIsLoading(false);
@@ -163,14 +197,13 @@ export const DepartmentDashboardPage: React.FC = () => {
       }
     };
 
-    // Initial load
     fetchComplaints();
 
-    // 1. Supabase Realtime Subscription for live updates
+    // Supabase Realtime channel subscription
     let channel: any = null;
     if (isSupabaseConfigured() && supabase) {
       channel = supabase
-        .channel(`dept-complaints-live-${departmentId}`)
+        .channel(`dept-complaints-${departmentId}`)
         .on(
           'postgres_changes',
           {
@@ -182,108 +215,147 @@ export const DepartmentDashboardPage: React.FC = () => {
             fetchComplaints({ silent: true });
           }
         )
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'complaint_timeline_events',
-          },
-          () => {
-            fetchComplaints({ silent: true });
-          }
-        )
         .subscribe();
     }
 
-    // 2. Window focus refresh
-    const handleFocus = () => {
+    const interval = setInterval(() => {
       fetchComplaints({ silent: true });
-    };
-    window.addEventListener('focus', handleFocus);
-
-    // 3. 5-second live polling fallback
-    const intervalId = setInterval(() => {
-      fetchComplaints({ silent: true });
-    }, 5000);
+    }, 15000);
 
     return () => {
       isCancelled = true;
+      clearInterval(interval);
       if (channel && supabase) {
         supabase.removeChannel(channel);
       }
-      window.removeEventListener('focus', handleFocus);
-      clearInterval(intervalId);
     };
-  }, [departmentId, urlRef, searchParams]);
+  }, [departmentId]);
 
-  // Status counts mapped to sidebar sub-items
+  // Sync reference from URL parameters if provided
+  useEffect(() => {
+    if (urlRef) {
+      setSelectedReference(urlRef);
+      setCurrentSection('tasks');
+    }
+  }, [urlRef]);
+
+  // Handle URL query parameters (e.g. ?view=review)
+  useEffect(() => {
+    const viewParam = searchParams.get('view');
+    if (viewParam === 'review' && departmentId === 'kmc') {
+      setCurrentSection('tasks');
+      setActiveTaskFilter('under_review');
+      setSelectedReference(null);
+    }
+  }, [searchParams, departmentId]);
+
+  // Merge manual priority overrides with complaints data
+  const augmentedComplaints = useMemo(() => {
+    return complaints.map((c) => {
+      const override = priorityOverrides[c.referenceNumber];
+      if (override) {
+        return {
+          ...c,
+          ...override,
+        };
+      }
+      return c;
+    });
+  }, [complaints, priorityOverrides]);
+
+  const augmentedReviewComplaints = useMemo(() => {
+    return reviewComplaints.map((c) => {
+      const override = priorityOverrides[c.referenceNumber];
+      if (override) {
+        return {
+          ...c,
+          ...override,
+        };
+      }
+      return c;
+    });
+  }, [reviewComplaints, priorityOverrides]);
+
+  // Aggregate KPI task counts
   const taskCounts = useMemo(() => {
+    const all = augmentedComplaints.length;
+    const assigned = augmentedComplaints.filter((c) => c.status === 'assigned').length;
+    const accepted = augmentedComplaints.filter((c) => c.status === 'accepted').length;
+    const in_progress = augmentedComplaints.filter((c) => c.status === 'in_progress').length;
+    const resolved = augmentedComplaints.filter((c) => c.status === 'resolved').length;
+    const rejected = augmentedComplaints.filter((c) => c.status === 'rejected').length;
+    const under_review = augmentedReviewComplaints.length;
+
+    // Critical & High priority active complaints count
+    const criticalHigh = augmentedComplaints.filter((c) => {
+      if (c.status === 'resolved' || c.status === 'rejected') return false;
+      const p = calculateComplaintPriority(c).priority;
+      return p === 'critical' || p === 'high';
+    }).length;
+
+    // Overdue complaints waiting > 72 hours
+    const overdue72h = augmentedComplaints.filter((c) => {
+      if (c.status === 'resolved' || c.status === 'rejected') return false;
+      const p = calculateComplaintPriority(c);
+      return p.agingHours >= 72;
+    }).length;
+
     return {
-      all: complaints.length,
-      under_review: departmentId === 'kmc' ? reviewComplaints.length : 0,
-      assigned: complaints.filter((c) => c.status === 'assigned').length,
-      accepted: complaints.filter((c) => c.status === 'accepted').length,
-      in_progress: complaints.filter((c) => c.status === 'in_progress').length,
-      resolved: complaints.filter((c) => c.status === 'resolved').length,
-      rejected: complaints.filter((c) => c.status === 'rejected').length,
+      all,
+      assigned,
+      accepted,
+      in_progress,
+      resolved,
+      rejected,
+      under_review,
+      criticalHigh,
+      overdue72h,
     };
-  }, [complaints, reviewComplaints, departmentId]);
+  }, [augmentedComplaints, augmentedReviewComplaints]);
 
-  // Filter complaints according to active filter and search query
+  // Filter and sort complaints
   const filteredComplaints = useMemo(() => {
-    let result = activeTaskFilter === 'under_review' ? [...reviewComplaints] : [...complaints];
+    const source = activeTaskFilter === 'under_review' ? augmentedReviewComplaints : augmentedComplaints;
 
-    // Status filter
-    if (activeTaskFilter === 'assigned') {
-      result = result.filter((c) => c.status === 'assigned');
-    } else if (activeTaskFilter === 'accepted') {
-      result = result.filter((c) => c.status === 'accepted');
-    } else if (activeTaskFilter === 'rejected') {
-      result = result.filter((c) => c.status === 'rejected');
-    } else if (activeTaskFilter === 'in_progress') {
-      result = result.filter((c) => c.status === 'in_progress');
-    } else if (activeTaskFilter === 'resolved') {
-      result = result.filter((c) => c.status === 'resolved');
-    }
+    const filtered = source.filter((c) => {
+      // 1. Status Filter
+      if (activeTaskFilter !== 'all') {
+        if (c.status !== activeTaskFilter) return false;
+      }
 
-    // Scoped search filter (searches reference, locality, district, title, description)
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase().trim();
-      result = result.filter((c) => {
-        return (
-          c.referenceNumber.toLowerCase().includes(q) ||
-          (c.locality && c.locality.toLowerCase().includes(q)) ||
-          (c.district && c.district.toLowerCase().includes(q)) ||
-          (c.generatedHeading && c.generatedHeading.toLowerCase().includes(q)) ||
-          (c.title && c.title.toLowerCase().includes(q)) ||
-          (c.factualSummary && c.factualSummary.toLowerCase().includes(q)) ||
-          (c.sanitizedDescription && c.sanitizedDescription.toLowerCase().includes(q)) ||
-          (c.description && c.description.toLowerCase().includes(q))
-        );
-      });
-    }
+      // 2. Priority Filter
+      if (priorityFilter !== 'all') {
+        const pEval = calculateComplaintPriority(c);
+        if (pEval.priority !== priorityFilter) return false;
+      }
 
-    // Sort order
-    result.sort((a, b) => {
-      const dateA = new Date(a.submittedAt || 0).getTime();
-      const dateB = new Date(b.submittedAt || 0).getTime();
-      return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
+      // 3. Search Query
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        const refMatch = c.referenceNumber.toLowerCase().includes(q);
+        const locMatch = `${c.district} ${c.locality} ${c.publicLocation || ''}`.toLowerCase().includes(q);
+        const titleMatch = (c.generatedHeading || c.title || '').toLowerCase().includes(q);
+        const descMatch = (c.factualSummary || c.sanitizedDescription || c.description || '').toLowerCase().includes(q);
+        if (!refMatch && !locMatch && !titleMatch && !descMatch) return false;
+      }
+
+      return true;
     });
 
-    return result;
-  }, [complaints, reviewComplaints, activeTaskFilter, searchQuery, sortOrder]);
+    // 4. Sort with Priority Awareness
+    return sortComplaints(filtered, sortOrder);
+  }, [augmentedComplaints, augmentedReviewComplaints, activeTaskFilter, priorityFilter, searchQuery, sortOrder]);
 
-  // Selected complaint object (prefer current filtered view)
+  // Selected complaint object
   const selectedComplaint = useMemo(() => {
     if (!selectedReference) return null;
     return (
       filteredComplaints.find((c) => c.referenceNumber === selectedReference) ||
-      complaints.find((c) => c.referenceNumber === selectedReference) ||
-      reviewComplaints.find((c) => c.referenceNumber === selectedReference) ||
+      augmentedComplaints.find((c) => c.referenceNumber === selectedReference) ||
+      augmentedReviewComplaints.find((c) => c.referenceNumber === selectedReference) ||
       null
     );
-  }, [filteredComplaints, complaints, reviewComplaints, selectedReference]);
+  }, [filteredComplaints, augmentedComplaints, augmentedReviewComplaints, selectedReference]);
 
   const handleComplaintUpdated = (updated: DepartmentComplaintView) => {
     setComplaints((prev) => {
@@ -296,9 +368,7 @@ export const DepartmentDashboardPage: React.FC = () => {
       }
       return prev;
     });
-    setReviewComplaints((prev) =>
-      prev.filter((c) => c.id !== updated.id)
-    );
+    setReviewComplaints((prev) => prev.filter((c) => c.id !== updated.id));
     if (updated.assignedDepartmentId === departmentId) {
       if (updated.status === 'assigned') {
         setActiveTaskFilter('assigned');
@@ -325,12 +395,29 @@ export const DepartmentDashboardPage: React.FC = () => {
     }
   };
 
+  // Radix select options
+  const sortOptions: CivicSelectOption[] = [
+    { value: 'newest', label: 'Newest first' },
+    { value: 'oldest', label: 'Oldest first' },
+    { value: 'priority_high', label: 'Highest priority first' },
+    { value: 'priority_low', label: 'Lowest priority first' },
+    { value: 'waiting_longest', label: 'Longest waiting first' },
+  ];
+
+  const priorityOptions: CivicSelectOption[] = [
+    { value: 'all', label: 'All Priorities' },
+    { value: 'critical', label: 'Critical' },
+    { value: 'high', label: 'High' },
+    { value: 'normal', label: 'Normal' },
+    { value: 'low', label: 'Low' },
+  ];
+
   return (
     <div
       data-testid="department-workspace"
       data-dept-theme={departmentId}
       data-dept-mode={themeMode}
-      className="dept-workspace-wrap w-full h-screen h-[100dvh] flex flex-col overflow-hidden font-sans m-0 p-0"
+      className="dept-workspace-wrap w-full h-screen h-[100dvh] flex flex-col overflow-hidden font-sans m-0 p-0 select-text"
     >
       {/* Mobile Top Navigation Header */}
       <header className="md:hidden w-full flex items-center justify-between px-4 py-3 bg-[var(--dept-sidebar-bg)] border-b border-[var(--dept-border)] shrink-0 z-30">
@@ -341,7 +428,7 @@ export const DepartmentDashboardPage: React.FC = () => {
           <span className="font-bold text-sm text-[var(--dept-text-primary)]">
             Awaaz-e-Awam
           </span>
-          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[var(--dept-surface-subtle)] text-[var(--dept-text-muted)] border border-[var(--dept-border)]">
+          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[var(--dept-surface-subtle)] text-[var(--dept-text-primary)] border border-[var(--dept-border)] font-semibold">
             {departmentMeta?.code || (departmentId ? departmentId.toUpperCase() : 'DEPT')}
           </span>
         </div>
@@ -413,14 +500,14 @@ export const DepartmentDashboardPage: React.FC = () => {
 
         {/* Main Full-Width Content Canvas */}
         <main className="dept-main flex-1 flex flex-col min-w-0 h-full p-4 sm:p-6 lg:p-8 overflow-y-auto dept-scrollbar">
-          {/* Unauthorized Reference Tampering Warning */}
+          {/* Unauthorized Reference Warning */}
           {unauthorizedRefError && (
             <div
-              className="mb-4 p-4 rounded-xl bg-amber-50 border border-amber-200 dark:bg-amber-950/30 dark:border-amber-800 text-amber-800 dark:text-amber-200 text-xs flex items-center justify-between shrink-0"
+              className="mb-4 p-4 rounded-xl bg-amber-50 border border-amber-300 dark:bg-amber-950/40 dark:border-amber-800 text-amber-950 dark:text-amber-200 text-xs flex items-center justify-between shrink-0"
               role="alert"
             >
               <div className="flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+                <AlertCircle className="w-4 h-4 text-amber-700 dark:text-amber-400 shrink-0" />
                 <span>
                   <strong>Municipal Boundary Segregation Alert:</strong> Reference{' '}
                   <span className="font-mono font-bold">{unauthorizedRefError}</span> is not assigned to your agency. Data access is restricted under local RLS policy.
@@ -429,7 +516,7 @@ export const DepartmentDashboardPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setUnauthorizedRefError(null)}
-                className="text-amber-700 hover:text-amber-900 dark:text-amber-300 dark:hover:text-amber-100 p-1 cursor-pointer"
+                className="text-amber-800 hover:text-amber-950 dark:text-amber-300 dark:hover:text-amber-100 p-1 cursor-pointer"
                 aria-label="Dismiss warning"
               >
                 <X className="w-3.5 h-3.5" />
@@ -450,6 +537,7 @@ export const DepartmentDashboardPage: React.FC = () => {
                   }}
                   onBackToList={() => setSelectedReference(null)}
                   onOpenReviewModal={() => setIsReviewModalOpen(true)}
+                  onOverridePriority={handleOverridePriority}
                 />
               ) : (
                 /* VIEW B: FULL-WIDTH COMPLAINT LISTING PAGE */
@@ -468,16 +556,16 @@ export const DepartmentDashboardPage: React.FC = () => {
                     </div>
 
                     {/* Quick Count Badge */}
-                    <div className="flex items-center gap-2 text-xs font-mono text-[var(--dept-text-secondary)] bg-[var(--dept-surface)] px-3 py-1.5 rounded-lg border border-[var(--dept-border)] shadow-2xs">
+                    <div className="flex items-center gap-2 text-xs font-mono text-[var(--dept-text-primary)] bg-[var(--dept-surface)] px-3 py-1.5 rounded-lg border border-[var(--dept-border)] shadow-2xs font-bold">
                       <span>{filteredComplaints.length} complaints</span>
                     </div>
                   </div>
 
-                  {/* Search & Sort Controls Bar */}
-                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-                    {/* Embedded Search Input */}
+                  {/* Search & Accessible Filter Controls Bar */}
+                  <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+                    {/* Search Input */}
                     <div className="flex-1 max-w-md relative">
-                      <div className="h-10 px-3 rounded-lg bg-[var(--dept-surface)] border border-[var(--dept-border)] focus-within:border-[var(--dept-accent)] transition-colors flex items-center gap-2 text-[var(--dept-text-muted)] focus-within:text-[var(--dept-text-primary)] shadow-2xs">
+                      <div className="h-9 px-3 rounded-lg bg-[var(--dept-surface)] border border-[var(--dept-border)] focus-within:border-[var(--dept-accent)] transition-colors flex items-center gap-2 text-[var(--dept-text-muted)] focus-within:text-[var(--dept-text-primary)] shadow-2xs">
                         <Search className="w-4 h-4 shrink-0" />
                         <input
                           type="text"
@@ -500,20 +588,27 @@ export const DepartmentDashboardPage: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* Sort Order Selector */}
-                    <div className="flex items-center gap-2 shrink-0">
-                      <label htmlFor="dept-sort" className="text-xs text-[var(--dept-text-muted)] font-medium">
-                        Sort:
-                      </label>
-                      <select
+                    {/* Controls: Priority Filter & Sort Dropdown */}
+                    <div className="flex items-center gap-3 flex-wrap">
+                      {/* Priority Filter */}
+                      <CivicSelect
+                        id="dept-priority-filter"
+                        label="Priority:"
+                        value={priorityFilter}
+                        onValueChange={(val) => setPriorityFilter(val)}
+                        options={priorityOptions}
+                        ariaLabel="Filter by Priority"
+                      />
+
+                      {/* Sort Order Selector */}
+                      <CivicSelect
                         id="dept-sort"
+                        label="Sort:"
                         value={sortOrder}
-                        onChange={(e) => setSortOrder(e.target.value as 'newest' | 'oldest')}
-                        className="h-10 px-3 rounded-lg bg-[var(--dept-surface)] border border-[var(--dept-border)] text-xs text-[var(--dept-text-primary)] outline-none focus:border-[var(--dept-accent)] cursor-pointer shadow-2xs"
-                      >
-                        <option value="newest">Newest first</option>
-                        <option value="oldest">Oldest first</option>
-                      </select>
+                        onValueChange={(val) => setSortOrder(val as any)}
+                        options={sortOptions}
+                        ariaLabel="Sort complaints"
+                      />
                     </div>
                   </div>
 
@@ -546,7 +641,7 @@ export const DepartmentDashboardPage: React.FC = () => {
                   Operational Dashboard
                 </h1>
                 <p className="text-xs sm:text-sm text-[var(--dept-text-secondary)] mt-1">
-                  Real-time municipal workload distribution and workload telemetry.
+                  Real-time municipal workload distribution and priority telemetry.
                 </p>
               </div>
 
@@ -558,13 +653,14 @@ export const DepartmentDashboardPage: React.FC = () => {
                   onClick={() => {
                     setCurrentSection('tasks');
                     setActiveTaskFilter('assigned');
+                    setPriorityFilter('all');
                     setSelectedReference(null);
                   }}
                   className="p-5 rounded-xl bg-[var(--dept-surface)] border border-[var(--dept-border)] shadow-xs hover:border-[var(--dept-accent)] transition-all text-left cursor-pointer group"
                 >
                   <div className="flex items-center justify-between text-xs font-medium text-[var(--dept-text-muted)] mb-2">
                     <span>Pending Acceptance</span>
-                    <AlertCircle className="w-4 h-4 text-amber-500" />
+                    <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400" />
                   </div>
                   <div className="text-3xl font-bold font-mono text-[var(--dept-text-primary)] group-hover:text-[var(--dept-accent)] transition-colors">
                     {taskCounts.assigned}
@@ -575,53 +671,108 @@ export const DepartmentDashboardPage: React.FC = () => {
                   </div>
                 </button>
 
-                {/* 2. In Progress */}
+                {/* 2. Critical & High Priority */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCurrentSection('tasks');
+                    setActiveTaskFilter('all');
+                    setPriorityFilter('critical');
+                    setSelectedReference(null);
+                  }}
+                  className="p-5 rounded-xl bg-[var(--dept-surface)] border border-rose-200 dark:border-rose-900/50 shadow-xs hover:border-rose-400 transition-all text-left cursor-pointer group"
+                >
+                  <div className="flex items-center justify-between text-xs font-semibold text-rose-800 dark:text-rose-300 mb-2">
+                    <span>Critical & High Priority</span>
+                    <Flame className="w-4 h-4 text-rose-600 dark:text-rose-400" />
+                  </div>
+                  <div className="text-3xl font-bold font-mono text-[var(--dept-text-primary)] group-hover:text-rose-600 transition-colors">
+                    {taskCounts.criticalHigh}
+                  </div>
+                  <div className="text-[11px] text-[var(--dept-text-secondary)] mt-1 flex items-center gap-1">
+                    <span>Urgent civic hazards</span>
+                    <ArrowRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </div>
+                </button>
+
+                {/* 3. In Progress / Active */}
                 <button
                   type="button"
                   onClick={() => {
                     setCurrentSection('tasks');
                     setActiveTaskFilter('in_progress');
+                    setPriorityFilter('all');
                     setSelectedReference(null);
                   }}
                   className="p-5 rounded-xl bg-[var(--dept-surface)] border border-[var(--dept-border)] shadow-xs hover:border-[var(--dept-accent)] transition-all text-left cursor-pointer group"
                 >
                   <div className="flex items-center justify-between text-xs font-medium text-[var(--dept-text-muted)] mb-2">
                     <span>In Progress</span>
-                    <PlayCircle className="w-4 h-4 text-blue-500" />
+                    <PlayCircle className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                   </div>
                   <div className="text-3xl font-bold font-mono text-[var(--dept-text-primary)] group-hover:text-[var(--dept-accent)] transition-colors">
                     {taskCounts.in_progress}
                   </div>
                   <div className="text-[11px] text-[var(--dept-text-secondary)] mt-1 flex items-center gap-1">
-                    <span>Active field teams</span>
+                    <span>Active remediation</span>
                     <ArrowRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
                   </div>
                 </button>
 
-                {/* 3. Work Done */}
+                {/* 4. Overdue (>72 Hours Waiting) */}
                 <button
                   type="button"
                   onClick={() => {
                     setCurrentSection('tasks');
-                    setActiveTaskFilter('resolved');
+                    setActiveTaskFilter('all');
+                    setSortOrder('waiting_longest');
                     setSelectedReference(null);
                   }}
                   className="p-5 rounded-xl bg-[var(--dept-surface)] border border-[var(--dept-border)] shadow-xs hover:border-[var(--dept-accent)] transition-all text-left cursor-pointer group"
                 >
                   <div className="flex items-center justify-between text-xs font-medium text-[var(--dept-text-muted)] mb-2">
-                    <span>Work Completed</span>
-                    <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                    <span>Overdue (&gt;72h Waiting)</span>
+                    <Clock className="w-4 h-4 text-amber-600 dark:text-amber-400" />
                   </div>
                   <div className="text-3xl font-bold font-mono text-[var(--dept-text-primary)] group-hover:text-[var(--dept-accent)] transition-colors">
-                    {taskCounts.resolved}
+                    {taskCounts.overdue72h}
                   </div>
                   <div className="text-[11px] text-[var(--dept-text-secondary)] mt-1 flex items-center gap-1">
-                    <span>Remediated & verified</span>
+                    <span>Aged beyond SLA</span>
                     <ArrowRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
                   </div>
                 </button>
+              </div>
 
-                {/* 4. Total Backlog or Review Queue */}
+              {/* Work Completed & Review Queue Secondary Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Work Done Card */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCurrentSection('tasks');
+                    setActiveTaskFilter('resolved');
+                    setPriorityFilter('all');
+                    setSelectedReference(null);
+                  }}
+                  className="p-5 rounded-xl bg-[var(--dept-surface)] border border-[var(--dept-border)] shadow-xs hover:border-emerald-500 transition-all text-left cursor-pointer group flex items-center justify-between"
+                >
+                  <div>
+                    <div className="text-xs font-semibold text-emerald-800 dark:text-emerald-300 mb-1 flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                      <span>Work Completed / Resolved</span>
+                    </div>
+                    <div className="text-2xl font-bold font-mono text-[var(--dept-text-primary)]">
+                      {taskCounts.resolved} complaints
+                    </div>
+                    <p className="text-xs text-[var(--dept-text-secondary)] mt-0.5">
+                      Verified and remediated on-site.
+                    </p>
+                  </div>
+                  <ArrowRight className="w-5 h-5 text-[var(--dept-text-muted)] group-hover:text-emerald-600 transition-colors" />
+                </button>
+
+                {/* Review Queue (KMC) or Backlog */}
                 {departmentId === 'kmc' ? (
                   <button
                     type="button"
@@ -630,31 +781,35 @@ export const DepartmentDashboardPage: React.FC = () => {
                       setActiveTaskFilter('under_review');
                       setSelectedReference(null);
                     }}
-                    className="p-5 rounded-xl bg-[var(--dept-surface)] border border-purple-200 dark:border-purple-800 shadow-xs hover:border-purple-400 transition-all text-left cursor-pointer group"
+                    className="p-5 rounded-xl bg-[var(--dept-surface)] border border-purple-200 dark:border-purple-800 shadow-xs hover:border-purple-400 transition-all text-left cursor-pointer group flex items-center justify-between"
                   >
-                    <div className="flex items-center justify-between text-xs font-semibold text-purple-700 dark:text-purple-300 mb-2">
-                      <span>Review Queue</span>
-                      <ShieldAlert className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                    <div>
+                      <div className="text-xs font-semibold text-purple-800 dark:text-purple-300 mb-1 flex items-center gap-2">
+                        <ShieldAlert className="w-4 h-4 text-purple-600" />
+                        <span>Classification Review Queue</span>
+                      </div>
+                      <div className="text-2xl font-bold font-mono text-[var(--dept-text-primary)]">
+                        {taskCounts.under_review} complaints
+                      </div>
+                      <p className="text-xs text-[var(--dept-text-secondary)] mt-0.5">
+                        Awaiting clearinghouse departmental routing.
+                      </p>
                     </div>
-                    <div className="text-3xl font-bold font-mono text-[var(--dept-text-primary)] group-hover:text-purple-600 transition-colors">
-                      {taskCounts.under_review}
-                    </div>
-                    <div className="text-[11px] text-[var(--dept-text-secondary)] mt-1 flex items-center gap-1">
-                      <span>Clearinghouse triage</span>
-                      <ArrowRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-                    </div>
+                    <ArrowRight className="w-5 h-5 text-[var(--dept-text-muted)] group-hover:text-purple-600 transition-colors" />
                   </button>
                 ) : (
-                  <div className="p-5 rounded-xl bg-[var(--dept-surface)] border border-[var(--dept-border)] shadow-xs">
-                    <div className="flex items-center justify-between text-xs font-medium text-[var(--dept-text-muted)] mb-2">
-                      <span>Total Backlog</span>
-                      <Inbox className="w-4 h-4 text-[var(--dept-text-muted)]" />
-                    </div>
-                    <div className="text-3xl font-bold font-mono text-[var(--dept-text-primary)]">
-                      {taskCounts.all}
-                    </div>
-                    <div className="text-[11px] text-[var(--dept-text-secondary)] mt-1">
-                      All department records
+                  <div className="p-5 rounded-xl bg-[var(--dept-surface)] border border-[var(--dept-border)] shadow-xs flex items-center justify-between">
+                    <div>
+                      <div className="text-xs font-medium text-[var(--dept-text-muted)] mb-1 flex items-center gap-2">
+                        <Inbox className="w-4 h-4 text-[var(--dept-text-muted)]" />
+                        <span>Total Assigned Backlog</span>
+                      </div>
+                      <div className="text-2xl font-bold font-mono text-[var(--dept-text-primary)]">
+                        {taskCounts.all} records
+                      </div>
+                      <p className="text-xs text-[var(--dept-text-secondary)] mt-0.5">
+                        Assigned under municipal jurisdiction.
+                      </p>
                     </div>
                   </div>
                 )}
@@ -663,8 +818,8 @@ export const DepartmentDashboardPage: React.FC = () => {
               {/* Department Workload Integrity Card */}
               <div className="p-5 rounded-xl bg-[var(--dept-surface)] border border-[var(--dept-border)] shadow-xs space-y-2">
                 <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[var(--dept-text-muted)]">
-                  <ShieldCheck className="w-4 h-4 text-emerald-500" />
-                  <span>Department Workload Integrity</span>
+                  <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                  <span>Department Workload Integrity & Isolation</span>
                 </div>
                 <p className="text-xs sm:text-sm text-[var(--dept-text-secondary)] leading-relaxed">
                   All metrics are compiled strictly from live complaints assigned to your authorized municipal agency. Zero cross-department telemetry is surfaced, preserving strict administrative segregation under Karachi municipal protocol.
@@ -673,57 +828,7 @@ export const DepartmentDashboardPage: React.FC = () => {
             </div>
           )}
 
-          {/* SECTION 3: NOTIFICATIONS */}
-          {currentSection === 'notifications' && (
-            <div className="w-full max-w-4xl mx-auto space-y-6">
-              <div>
-                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[var(--dept-text-primary)]">
-                  Notifications
-                </h1>
-                <p className="text-xs sm:text-sm text-[var(--dept-text-secondary)] mt-1">
-                  System alerts and operational dispatches.
-                </p>
-              </div>
-
-              <div className="bg-[var(--dept-surface)] border border-[var(--dept-border)] rounded-xl shadow-xs divide-y divide-[var(--dept-border)] overflow-hidden">
-                <div className="p-4 flex items-start gap-3 hover:bg-[var(--dept-surface-hover)] transition-colors">
-                  <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 mt-0.5">
-                    <Bell className="w-4 h-4" />
-                  </div>
-                  <div className="flex-1 text-xs sm:text-sm">
-                    <div className="font-semibold text-[var(--dept-text-primary)]">
-                      Supabase Realtime Channel Active
-                    </div>
-                    <p className="text-xs text-[var(--dept-text-secondary)] mt-0.5">
-                      Operational console is actively listening for live complaint assignments and status transitions.
-                    </p>
-                    <span className="text-[10px] text-[var(--dept-text-muted)] mt-1 inline-block">
-                      Just now
-                    </span>
-                  </div>
-                </div>
-
-                <div className="p-4 flex items-start gap-3 hover:bg-[var(--dept-surface-hover)] transition-colors">
-                  <div className="w-8 h-8 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
-                    <ShieldCheck className="w-4 h-4" />
-                  </div>
-                  <div className="flex-1 text-xs sm:text-sm">
-                    <div className="font-semibold text-[var(--dept-text-primary)]">
-                      Privacy Redaction Engine Verified
-                    </div>
-                    <p className="text-xs text-[var(--dept-text-secondary)] mt-0.5">
-                      Citizen phone numbers, emails, CNIC and residential street addresses are automatically sanitized before presentation.
-                    </p>
-                    <span className="text-[10px] text-[var(--dept-text-muted)] mt-1 inline-block">
-                      System protocol
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* SECTION 4: SETTINGS (Includes Light/Dark Mode Switcher!) */}
+          {/* SECTION 3: SETTINGS */}
           {currentSection === 'settings' && (
             <div className="w-full max-w-4xl mx-auto space-y-6">
               <div>
@@ -758,7 +863,7 @@ export const DepartmentDashboardPage: React.FC = () => {
                     }`}
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-amber-500 shadow-2xs">
+                      <div className="w-9 h-9 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-amber-600 shadow-2xs">
                         <Sun className="w-5 h-5" />
                       </div>
                       <div>
@@ -809,10 +914,10 @@ export const DepartmentDashboardPage: React.FC = () => {
               <div className="p-5 sm:p-6 rounded-xl bg-[var(--dept-surface)] border border-[var(--dept-border)] shadow-xs space-y-3">
                 <div>
                   <h2 className="text-sm font-bold text-[var(--dept-text-primary)]">
-                    Sidebar Navigation
+                    Sidebar Navigation Preference
                   </h2>
                   <p className="text-xs text-[var(--dept-text-secondary)] mt-0.5">
-                    Toggle sidebar width preference.
+                    Configure your preferred default sidebar width on desktop screens.
                   </p>
                 </div>
 
@@ -834,7 +939,7 @@ export const DepartmentDashboardPage: React.FC = () => {
                       </>
                     )}
                   </button>
-                  <span className="text-xs text-[var(--dept-text-muted)]">
+                  <span className="text-xs text-[var(--dept-text-muted)] font-medium">
                     Currently: {isSidebarCollapsed ? 'Collapsed (Icons only)' : 'Expanded (Full Labels)'}
                   </span>
                 </div>
@@ -844,10 +949,10 @@ export const DepartmentDashboardPage: React.FC = () => {
               <div className="p-5 sm:p-6 rounded-xl bg-[var(--dept-surface)] border border-[var(--dept-border)] shadow-xs space-y-4">
                 <div>
                   <h2 className="text-sm font-bold text-[var(--dept-text-primary)]">
-                    Department Account
+                    Department Account Credentials
                   </h2>
                   <p className="text-xs text-[var(--dept-text-secondary)] mt-0.5">
-                    Authorized municipal identity and jurisdiction boundaries.
+                    Authorized municipal identity and jurisdiction boundaries (Read-only).
                   </p>
                 </div>
 
@@ -875,9 +980,9 @@ export const DepartmentDashboardPage: React.FC = () => {
 
                   <div className="p-3 rounded-lg bg-[var(--dept-surface-subtle)] border border-[var(--dept-border)]">
                     <span className="text-[11px] text-[var(--dept-text-muted)] font-medium">RLS Boundary</span>
-                    <div className="font-semibold text-sm text-emerald-600 dark:text-emerald-400 mt-0.5 flex items-center gap-1.5">
-                      <ShieldCheck className="w-3.5 h-3.5" />
-                      <span>Isolated & Enforced</span>
+                    <div className="font-semibold text-sm text-emerald-800 dark:text-emerald-300 mt-0.5 flex items-center gap-1.5">
+                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>Isolated &amp; Enforced</span>
                     </div>
                   </div>
                 </div>
@@ -889,10 +994,9 @@ export const DepartmentDashboardPage: React.FC = () => {
                       signOut();
                       navigate('/department/login');
                     }}
-                    className="px-4 py-2 rounded-lg text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/30 dark:hover:bg-rose-950/50 border border-rose-200 dark:border-rose-800 transition-colors cursor-pointer flex items-center gap-1.5"
+                    className="px-4 py-2 rounded-lg text-xs font-semibold text-rose-800 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-950/30 border border-rose-300 dark:border-rose-800 transition-colors cursor-pointer"
                   >
-                    <LogOut className="w-3.5 h-3.5" />
-                    <span>Sign Out of Session</span>
+                    Sign Out of Department Console
                   </button>
                 </div>
               </div>
@@ -901,24 +1005,31 @@ export const DepartmentDashboardPage: React.FC = () => {
         </main>
       </div>
 
-      {/* Status Update Modal */}
-      {selectedComplaint && (
+      {/* MODALS */}
+      {/* 1. Status Update Modal */}
+      {isStatusModalOpen && selectedComplaint && (
         <StatusUpdateModal
           isOpen={isStatusModalOpen}
-          onClose={() => setIsStatusModalOpen(false)}
           complaint={selectedComplaint}
-          onUpdated={handleComplaintUpdated}
           initialStatus={modalInitialStatus}
+          onClose={() => setIsStatusModalOpen(false)}
+          onUpdated={(updated: DepartmentComplaintView) => {
+            handleComplaintUpdated(updated);
+            setIsStatusModalOpen(false);
+          }}
         />
       )}
 
-      {/* Classification Review Modal (KMC Clearinghouse only) */}
-      {selectedComplaint && (
+      {/* 2. Review Assignment Modal */}
+      {isReviewModalOpen && selectedComplaint && (
         <ReviewAssignmentModal
           isOpen={isReviewModalOpen}
-          onClose={() => setIsReviewModalOpen(false)}
           complaint={selectedComplaint}
-          onAssigned={handleComplaintUpdated}
+          onClose={() => setIsReviewModalOpen(false)}
+          onAssigned={(assigned: DepartmentComplaintView) => {
+            handleComplaintUpdated(assigned);
+            setIsReviewModalOpen(false);
+          }}
         />
       )}
     </div>

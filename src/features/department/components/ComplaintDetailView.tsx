@@ -1,9 +1,13 @@
-import React from 'react';
-import { useLanguage } from '../../../context/LanguageContext';
+import React, { useState } from 'react';
 import {
   type DepartmentComplaintView,
   type ComplaintStatus,
 } from '../../../types';
+import {
+  calculateComplaintPriority,
+  formatPakistanDateTime,
+  type PriorityLevel,
+} from '../../../lib/priority-engine';
 import {
   ArrowLeft,
   CheckCircle2,
@@ -11,9 +15,12 @@ import {
   ShieldCheck,
   AlertTriangle,
   MapPin,
-  Calendar,
+  Clock,
+  Sparkles,
+  SlidersHorizontal,
 } from 'lucide-react';
-import { getDisplayStatusBadge } from './ComplaintInboxList';
+import { getDisplayStatusBadge, getPriorityBadge } from './ComplaintInboxList';
+import { PriorityOverrideModal } from './PriorityOverrideModal';
 
 interface ComplaintDetailViewProps {
   complaint: DepartmentComplaintView | null;
@@ -21,6 +28,7 @@ interface ComplaintDetailViewProps {
   onQuickStatusUpdate?: (newStatus: ComplaintStatus) => void;
   onBackToList?: () => void;
   onOpenReviewModal?: () => void;
+  onOverridePriority?: (refNumber: string, newPriority: PriorityLevel, reason: string) => void;
 }
 
 export const ComplaintDetailView: React.FC<ComplaintDetailViewProps> = ({
@@ -28,8 +36,9 @@ export const ComplaintDetailView: React.FC<ComplaintDetailViewProps> = ({
   onOpenStatusModal,
   onBackToList,
   onOpenReviewModal,
+  onOverridePriority,
 }) => {
-  const { language } = useLanguage();
+  const [isOverrideModalOpen, setIsOverrideModalOpen] = useState(false);
 
   if (!complaint) {
     return (
@@ -56,7 +65,11 @@ export const ComplaintDetailView: React.FC<ComplaintDetailViewProps> = ({
     );
   }
 
-  const badge = getDisplayStatusBadge(complaint.status);
+  const statusBadge = getDisplayStatusBadge(complaint.status);
+  const priorityEval = calculateComplaintPriority(complaint);
+  const priorityBadge = getPriorityBadge(priorityEval.priority);
+  const exactSubmissionTime = formatPakistanDateTime(complaint.submittedAt);
+
   const locationText = complaint.locality
     ? `${complaint.locality}, ${complaint.district}`
     : complaint.district || 'Karachi Municipal Jurisdiction';
@@ -64,20 +77,6 @@ export const ComplaintDetailView: React.FC<ComplaintDetailViewProps> = ({
   const hasValidLandmark =
     complaint.publicLocation &&
     !/^(none|null|n\/a|-|undefined|nan)$/i.test(complaint.publicLocation.trim());
-
-  // Format date cleanly
-  const formatDate = (isoStr: string) => {
-    try {
-      const d = new Date(isoStr);
-      return d.toLocaleDateString(language === 'ur' ? 'ur-PK' : 'en-US', {
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric',
-      });
-    } catch {
-      return isoStr;
-    }
-  };
 
   // Stepper milestones
   const isAcceptedOrHigher =
@@ -108,7 +107,7 @@ export const ComplaintDetailView: React.FC<ComplaintDetailViewProps> = ({
             className="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold text-[var(--dept-accent)] hover:underline cursor-pointer group"
           >
             <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-0.5" />
-            <span>Back to Complaints</span>
+            <span>Back to All Complaints</span>
           </button>
         </div>
       )}
@@ -126,15 +125,15 @@ export const ComplaintDetailView: React.FC<ComplaintDetailViewProps> = ({
               </span>
               <span className="text-[var(--dept-border-strong)]">·</span>
               <div className="flex items-center gap-1.5 text-[var(--dept-text-secondary)]">
-                <Calendar className="w-3.5 h-3.5 text-[var(--dept-text-muted)]" />
-                <span>Submitted {formatDate(complaint.submittedAt)}</span>
+                <Clock className="w-3.5 h-3.5 text-[var(--dept-text-muted)]" />
+                <span className="font-medium">{exactSubmissionTime}</span>
               </div>
               <span className="text-[var(--dept-border-strong)]">·</span>
               <div className="flex items-center gap-1.5 text-[var(--dept-text-secondary)]">
                 <MapPin className="w-3.5 h-3.5 text-[var(--dept-text-muted)]" />
-                <span>{locationText}</span>
+                <span className="font-medium">{locationText}</span>
                 {hasValidLandmark && (
-                  <span className="text-[var(--dept-text-muted)]">
+                  <span className="text-[var(--dept-text-muted)] font-normal">
                     ({complaint.publicLocation})
                   </span>
                 )}
@@ -142,16 +141,56 @@ export const ComplaintDetailView: React.FC<ComplaintDetailViewProps> = ({
             </div>
           </div>
 
-          <div className="shrink-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* Priority Badge */}
             <span
-              className={`inline-block text-xs font-semibold px-3 py-1 rounded-full border shadow-2xs ${badge.className}`}
+              className={`inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full border shadow-2xs ${priorityBadge.className}`}
             >
-              {badge.label}
+              <span className={`w-2 h-2 rounded-full ${priorityBadge.dotColor}`} />
+              <span>{priorityBadge.label} Priority</span>
+            </span>
+
+            {/* Status Badge */}
+            <span
+              className={`inline-block text-xs font-semibold px-3 py-1 rounded-full border shadow-2xs ${statusBadge.className}`}
+            >
+              {statusBadge.label}
             </span>
           </div>
         </div>
 
-        {/* 2. Review Queue Notice (if under_review) */}
+        {/* Priority Explanation Card */}
+        <div className="p-4 rounded-xl bg-[var(--dept-surface-subtle)] border border-[var(--dept-border)] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="flex items-start gap-3">
+            <Sparkles className="w-4 h-4 text-[var(--dept-accent)] shrink-0 mt-0.5" />
+            <div className="text-xs space-y-0.5">
+              <div className="font-bold text-[var(--dept-text-primary)]">
+                Civic Triage & Priority Evaluation
+              </div>
+              <p className="text-[var(--dept-text-secondary)] leading-relaxed">
+                {priorityEval.explanation}
+              </p>
+              {priorityEval.agingHours > 0 && !priorityEval.isManualOverride && (
+                <p className="text-[11px] text-[var(--dept-text-muted)]">
+                  Waiting duration: {priorityEval.agingHours} hours in queue.
+                </p>
+              )}
+            </div>
+          </div>
+
+          {onOverridePriority && (
+            <button
+              type="button"
+              onClick={() => setIsOverrideModalOpen(true)}
+              className="px-3 py-1.5 rounded-lg border border-[var(--dept-border)] bg-[var(--dept-surface)] hover:bg-[var(--dept-surface-hover)] text-xs font-semibold text-[var(--dept-text-primary)] transition-colors cursor-pointer flex items-center gap-1.5 shrink-0 shadow-2xs"
+            >
+              <SlidersHorizontal className="w-3.5 h-3.5 text-[var(--dept-text-muted)]" />
+              <span>Adjust Priority</span>
+            </button>
+          )}
+        </div>
+
+        {/* Review Queue Notice (if under_review) */}
         {complaint.status === 'under_review' && (
           <div className="p-4 rounded-xl bg-purple-50 border border-purple-200 dark:bg-purple-950/30 dark:border-purple-800 flex items-center justify-between gap-4 flex-wrap">
             <div className="flex items-start gap-3 min-w-[220px] flex-1">
@@ -179,7 +218,7 @@ export const ComplaintDetailView: React.FC<ComplaintDetailViewProps> = ({
         )}
       </div>
 
-      {/* 3. Summary & Original Sanitized Complaint Grid */}
+      {/* 2. Summary & Original Sanitized Complaint Grid */}
       <div className="grid grid-cols-1 gap-6">
         {/* Section A: Factual Summary */}
         {complaint.factualSummary && (
@@ -199,7 +238,7 @@ export const ComplaintDetailView: React.FC<ComplaintDetailViewProps> = ({
             <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--dept-text-muted)]">
               Complaint — Personal Details Removed
             </h2>
-            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 px-2 py-0.5 rounded-full">
+            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-800 bg-emerald-50 dark:bg-emerald-950/60 dark:text-emerald-200 border border-emerald-300 dark:border-emerald-800 px-2 py-0.5 rounded-full">
               <ShieldCheck className="w-3.5 h-3.5" />
               <span>PII Protected</span>
             </span>
@@ -207,7 +246,7 @@ export const ComplaintDetailView: React.FC<ComplaintDetailViewProps> = ({
 
           <div className="p-4 rounded-lg bg-[var(--dept-surface-subtle)] border border-[var(--dept-border)] space-y-2">
             <p className="text-sm sm:text-base text-[var(--dept-text-primary)] leading-relaxed font-sans">
-              {complaint.sanitizedDescription || complaint.description}
+              "{complaint.sanitizedDescription || complaint.description}"
             </p>
             {complaint.redactionNeedsReview && (
               <div className="pt-2 border-t border-[var(--dept-border)] flex items-center gap-2 text-xs text-amber-700 dark:text-amber-300">
@@ -219,7 +258,7 @@ export const ComplaintDetailView: React.FC<ComplaintDetailViewProps> = ({
         </div>
       </div>
 
-      {/* 4. Progress & Timeline Card */}
+      {/* 3. Progress & Timeline Card */}
       <div className="bg-[var(--dept-surface)] border border-[var(--dept-border)] rounded-xl p-5 sm:p-6 shadow-xs space-y-4">
         <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--dept-text-muted)]">
           Progress Workflow
@@ -233,8 +272,8 @@ export const ComplaintDetailView: React.FC<ComplaintDetailViewProps> = ({
               <span className="w-2.5 h-2.5 rounded-full bg-[var(--dept-accent)]" />
               <span className="text-xs font-bold text-[var(--dept-text-primary)]">Submitted</span>
             </div>
-            <div className="text-[11px] text-[var(--dept-text-muted)]">
-              {formatDate(complaint.submittedAt)}
+            <div className="text-[11px] text-[var(--dept-text-muted)] font-medium">
+              {exactSubmissionTime}
             </div>
           </div>
 
@@ -242,9 +281,9 @@ export const ComplaintDetailView: React.FC<ComplaintDetailViewProps> = ({
           <div
             className={`p-3 rounded-lg border ${
               isAcceptedOrHigher
-                ? 'bg-sky-50 border-sky-200 dark:bg-sky-950/30 dark:border-sky-800'
+                ? 'bg-sky-50 border-sky-300 dark:bg-sky-950/40 dark:border-sky-800'
                 : isRejected
-                ? 'bg-rose-50 border-rose-200 dark:bg-rose-950/30 dark:border-rose-800'
+                ? 'bg-rose-50 border-rose-300 dark:bg-rose-950/40 dark:border-rose-800'
                 : 'bg-[var(--dept-surface-subtle)] border-[var(--dept-border)]'
             }`}
           >
@@ -262,13 +301,13 @@ export const ComplaintDetailView: React.FC<ComplaintDetailViewProps> = ({
                 {isRejected ? 'Rejected' : 'Accepted'}
               </span>
             </div>
-            <div className="text-[11px] text-[var(--dept-text-muted)]">
+            <div className="text-[11px] text-[var(--dept-text-muted)] font-medium">
               {isAcceptedOrHigher
                 ? 'Department accepted'
                 : isRejected
                 ? 'Complaint closed'
                 : complaint.status === 'assigned'
-                ? 'Pending review'
+                ? 'Pending acceptance'
                 : 'Pending'}
             </div>
           </div>
@@ -277,7 +316,7 @@ export const ComplaintDetailView: React.FC<ComplaintDetailViewProps> = ({
           <div
             className={`p-3 rounded-lg border ${
               isInProgressOrHigher
-                ? 'bg-blue-50 border-blue-200 dark:bg-blue-950/30 dark:border-blue-800'
+                ? 'bg-blue-50 border-blue-300 dark:bg-blue-950/40 dark:border-blue-800'
                 : 'bg-[var(--dept-surface-subtle)] border-[var(--dept-border)]'
             }`}
           >
@@ -291,7 +330,7 @@ export const ComplaintDetailView: React.FC<ComplaintDetailViewProps> = ({
                 In Progress
               </span>
             </div>
-            <div className="text-[11px] text-[var(--dept-text-muted)]">
+            <div className="text-[11px] text-[var(--dept-text-muted)] font-medium">
               {isInProgressOrHigher ? 'Field work active' : 'Pending'}
             </div>
           </div>
@@ -300,7 +339,7 @@ export const ComplaintDetailView: React.FC<ComplaintDetailViewProps> = ({
           <div
             className={`p-3 rounded-lg border ${
               isWorkDone
-                ? 'bg-emerald-50 border-emerald-200 dark:bg-emerald-950/30 dark:border-emerald-800'
+                ? 'bg-emerald-50 border-emerald-300 dark:bg-emerald-950/40 dark:border-emerald-800'
                 : 'bg-[var(--dept-surface-subtle)] border-[var(--dept-border)]'
             }`}
           >
@@ -314,177 +353,128 @@ export const ComplaintDetailView: React.FC<ComplaintDetailViewProps> = ({
                 Work Done
               </span>
             </div>
-            <div className="text-[11px] text-[var(--dept-text-muted)]">
-              {isWorkDone ? 'Resolved on ground' : 'Pending'}
+            <div className="text-[11px] text-[var(--dept-text-muted)] font-medium">
+              {isWorkDone ? 'Verified & resolved' : 'Pending'}
             </div>
           </div>
         </div>
+
+        {/* Resolution Notes if available */}
+        {lastResolvedEvent?.description && (
+          <div className="p-3.5 rounded-lg bg-emerald-50 border border-emerald-300 dark:bg-emerald-950/50 dark:border-emerald-800 text-xs">
+            <div className="font-bold text-emerald-950 dark:text-emerald-100 mb-0.5">Resolution Notes:</div>
+            <p className="text-emerald-900 dark:text-emerald-200 font-medium leading-relaxed">{lastResolvedEvent.description}</p>
+          </div>
+        )}
+
+        {/* Rejection Notes if available */}
+        {lastRejectedEvent?.description && (
+          <div className="p-3.5 rounded-lg bg-rose-50 border border-rose-300 dark:bg-rose-950/50 dark:border-rose-800 text-xs">
+            <div className="font-bold text-rose-950 dark:text-rose-100 mb-0.5">Rejection Reason:</div>
+            <p className="text-rose-900 dark:text-rose-200 font-medium leading-relaxed">{lastRejectedEvent.description}</p>
+          </div>
+        )}
       </div>
 
-      {/* 5. Contextual Actions Card / Banner */}
-      <div className="bg-[var(--dept-surface)] border border-[var(--dept-border)] rounded-xl p-5 sm:p-6 shadow-xs">
-        {/* State A: Pending Acceptance (assigned) */}
+      {/* 4. Action Card — Contextual Actions based on Current Status */}
+      <div className="bg-[var(--dept-surface)] border border-[var(--dept-border)] rounded-xl p-5 sm:p-6 shadow-xs space-y-3">
+        <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--dept-text-muted)]">
+          Available Operations
+        </h2>
+
+        {/* A. If status === 'assigned' (Pending Acceptance) */}
         {complaint.status === 'assigned' && (
-          <div className="flex items-center justify-between gap-4 flex-wrap">
-            <div className="space-y-0.5">
-              <div className="text-sm font-semibold text-[var(--dept-text-primary)]">
-                Awaiting Department Acceptance
-              </div>
-              <div className="text-xs text-[var(--dept-text-secondary)]">
-                Review jurisdiction and accept to assign field workers, or reject if non-actionable.
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={() => onOpenStatusModal('rejected')}
-                className="px-4 py-2 rounded-lg font-medium text-xs transition-colors cursor-pointer bg-[var(--dept-surface-subtle)] hover:bg-rose-50 text-[var(--dept-text-secondary)] hover:text-rose-700 border border-[var(--dept-border)] dark:hover:bg-rose-950/40"
-              >
-                Reject Complaint
-              </button>
-              <button
-                type="button"
-                onClick={() => onOpenStatusModal('accepted')}
-                className="px-5 py-2 rounded-lg font-semibold text-xs tracking-tight transition-all cursor-pointer shadow-sm bg-[var(--dept-accent)] hover:opacity-90 text-white"
-              >
-                Accept Complaint
-              </button>
-            </div>
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+            <button
+              type="button"
+              onClick={() => onOpenStatusModal('accepted')}
+              className="flex-1 px-4 py-2.5 rounded-lg font-semibold text-xs transition-all cursor-pointer bg-[var(--dept-accent)] hover:opacity-90 text-white flex items-center justify-center gap-2 shadow-xs"
+            >
+              <CheckCircle2 className="w-4 h-4" />
+              <span>Accept Complaint</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => onOpenStatusModal('rejected')}
+              className="px-4 py-2.5 rounded-lg font-semibold text-xs transition-all cursor-pointer border border-rose-300 dark:border-rose-800 text-rose-700 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-950/30"
+            >
+              Reject Complaint
+            </button>
           </div>
         )}
 
-        {/* State B: Accepted */}
+        {/* B. If status === 'accepted' */}
         {complaint.status === 'accepted' && (
-          <div className="flex items-center justify-between gap-4 flex-wrap">
-            <div className="space-y-0.5">
-              <div className="text-sm font-semibold text-[var(--dept-text-primary)]">
-                Complaint Accepted
-              </div>
-              <div className="text-xs text-[var(--dept-text-secondary)]">
-                Ready to deploy team. Mark in-progress when field crew begins work.
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={() => onOpenStatusModal('rejected')}
-                className="px-4 py-2 rounded-lg font-medium text-xs transition-colors cursor-pointer bg-[var(--dept-surface-subtle)] hover:bg-rose-50 text-[var(--dept-text-secondary)] hover:text-rose-700 border border-[var(--dept-border)] dark:hover:bg-rose-950/40"
-              >
-                Reject Complaint
-              </button>
-              <button
-                type="button"
-                onClick={() => onOpenStatusModal('in_progress')}
-                className="px-5 py-2 rounded-lg font-semibold text-xs tracking-tight transition-all cursor-pointer shadow-sm bg-[var(--dept-accent)] hover:opacity-90 text-white"
-              >
-                Start Work
-              </button>
-            </div>
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+            <button
+              type="button"
+              onClick={() => onOpenStatusModal('in_progress')}
+              className="flex-1 px-4 py-2.5 rounded-lg font-semibold text-xs transition-all cursor-pointer bg-[var(--dept-accent)] hover:opacity-90 text-white flex items-center justify-center gap-2 shadow-xs"
+            >
+              <CheckCircle2 className="w-4 h-4" />
+              <span>Start Work</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => onOpenStatusModal('rejected')}
+              className="px-4 py-2.5 rounded-lg font-semibold text-xs transition-all cursor-pointer border border-rose-300 dark:border-rose-800 text-rose-700 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-950/30"
+            >
+              Reject Complaint
+            </button>
           </div>
         )}
 
-        {/* State C: In Progress */}
+        {/* C. If status === 'in_progress' */}
         {complaint.status === 'in_progress' && (
-          <div className="flex items-center justify-between gap-4 flex-wrap">
-            <div className="space-y-0.5">
-              <div className="text-sm font-semibold text-[var(--dept-text-primary)]">
-                Field Operations In Progress
-              </div>
-              <div className="text-xs text-[var(--dept-text-secondary)]">
-                Crew is currently actively remediating this incident. Mark resolved upon verification.
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={() => onOpenStatusModal('rejected')}
-                className="px-4 py-2 rounded-lg font-medium text-xs transition-colors cursor-pointer bg-[var(--dept-surface-subtle)] hover:bg-rose-50 text-[var(--dept-text-secondary)] hover:text-rose-700 border border-[var(--dept-border)] dark:hover:bg-rose-950/40"
-              >
-                Reject Complaint
-              </button>
-              <button
-                type="button"
-                onClick={() => onOpenStatusModal('resolved')}
-                className="px-5 py-2 rounded-lg font-semibold text-xs tracking-tight transition-all cursor-pointer shadow-sm bg-emerald-600 hover:bg-emerald-700 text-white"
-              >
-                Mark Work Done
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* State D: Terminal Resolved */}
-        {complaint.status === 'resolved' && (
-          <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 dark:bg-emerald-950/30 dark:border-emerald-800 flex items-start gap-3">
-            <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
-            <div className="space-y-1 min-w-0 flex-1 text-xs sm:text-sm">
-              <div className="font-bold text-emerald-900 dark:text-emerald-200">
-                Work Completed & Verified on Ground
-              </div>
-              <p className="text-emerald-800 dark:text-emerald-300 leading-relaxed">
-                This civic complaint has been successfully remediated and verified under municipal protocol.
-              </p>
-              {lastResolvedEvent?.description && (
-                <div className="text-xs text-emerald-900 dark:text-emerald-200 pt-2 border-t border-emerald-200 dark:border-emerald-800/50 mt-2">
-                  <span className="font-semibold">Resolution Note:</span>{' '}
-                  <span className="italic">"{lastResolvedEvent.description}"</span>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* State E: Terminal Rejected */}
-        {complaint.status === 'rejected' && (
-          <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 dark:bg-rose-950/30 dark:border-rose-800 flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
-            <div className="space-y-1 min-w-0 flex-1 text-xs sm:text-sm">
-              <div className="font-bold text-rose-900 dark:text-rose-200">
-                Complaint Rejected / Closed
-              </div>
-              <p className="text-rose-800 dark:text-rose-300 leading-relaxed">
-                This complaint was reviewed and determined to be outside actionable jurisdiction.
-              </p>
-              {lastRejectedEvent?.description && (
-                <div className="text-xs text-rose-900 dark:text-rose-200 pt-2 border-t border-rose-200 dark:border-rose-800/50 mt-2">
-                  <span className="font-semibold">Rejection Reason:</span>{' '}
-                  <span className="italic">"{lastRejectedEvent.description}"</span>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* State F: under_review */}
-        {complaint.status === 'under_review' && (
-          <div className="flex items-center justify-between gap-4 flex-wrap">
-            <div className="text-xs sm:text-sm text-purple-900 dark:text-purple-200">
-              The correct department needs confirmation. Please review this complaint and assign it to the appropriate department.
-            </div>
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
             <button
               type="button"
-              onClick={onOpenReviewModal || (() => onOpenStatusModal())}
-              className="px-5 py-2 rounded-lg font-semibold text-xs tracking-tight transition-all cursor-pointer shadow-sm bg-purple-600 hover:bg-purple-700 text-white flex items-center gap-2"
+              onClick={() => onOpenStatusModal('resolved')}
+              className="flex-1 px-4 py-2.5 rounded-lg font-semibold text-xs transition-all cursor-pointer bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center gap-2 shadow-xs"
             >
-              <ShieldCheck className="w-4 h-4" />
-              <span>Assign Department</span>
+              <CheckCircle2 className="w-4 h-4" />
+              <span>Mark Work Done</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => onOpenStatusModal('rejected')}
+              className="px-4 py-2.5 rounded-lg font-semibold text-xs transition-all cursor-pointer border border-rose-300 dark:border-rose-800 text-rose-700 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-950/30"
+            >
+              Reject Complaint
             </button>
           </div>
         )}
 
-        {/* State G: Initial submitted fallback */}
-        {complaint.status === 'submitted' && (
-          <div className="flex justify-end">
-            <button
-              type="button"
-              onClick={() => onOpenStatusModal()}
-              className="px-5 py-2 rounded-lg font-semibold text-xs tracking-tight transition-all cursor-pointer shadow-sm bg-[var(--dept-accent)] text-white hover:opacity-90"
-            >
-              Review complaint
-            </button>
+        {/* D. If status === 'resolved' */}
+        {isWorkDone && (
+          <div className="flex items-center gap-2 text-xs font-semibold text-emerald-800 dark:text-emerald-300 p-3 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-300 dark:border-emerald-800">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+            <span>Work Completed & Verified on Ground</span>
+          </div>
+        )}
+
+        {/* E. If status === 'rejected' */}
+        {isRejected && (
+          <div className="flex items-center gap-2 text-xs font-semibold text-rose-800 dark:text-rose-300 p-3 rounded-lg bg-rose-50 dark:bg-rose-950/30 border border-rose-300 dark:border-rose-800">
+            <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0" />
+            <span>Complaint is rejected and closed for departmental action.</span>
           </div>
         )}
       </div>
+
+      {/* Priority Override Modal */}
+      {isOverrideModalOpen && (
+        <PriorityOverrideModal
+          referenceNumber={complaint.referenceNumber}
+          currentEval={priorityEval}
+          onSaveOverride={(newPriority, reason) => {
+            if (onOverridePriority) {
+              onOverridePriority(complaint.referenceNumber, newPriority, reason);
+            }
+          }}
+          onClose={() => setIsOverrideModalOpen(false)}
+        />
+      )}
     </div>
   );
 };
