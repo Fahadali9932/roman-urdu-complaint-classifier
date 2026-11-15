@@ -26,6 +26,7 @@ import { defaultLocalityResolver } from '../../../data/karachi/locationResolver'
 import { KARACHI_DISTRICTS_DATA } from '../../../data/karachi/districts';
 import { KARACHI_DEPARTMENTS } from '../../../mocks/complaints';
 import { complaintService } from '../../../services';
+import { supabase, isSupabaseConfigured } from '../../../lib/supabase';
 import {
   ApplicantFormData,
   KarachiDistrict,
@@ -37,7 +38,23 @@ import { MAX_COMPLAINT_WORDS } from '../../../utils/wordCounter';
 
 type Stage = 1 | 2 | 3;
 
-const DRAFT_STORAGE_KEY = 'awaaz_complaint_draft_v1';
+const LEGACY_DRAFT_KEY = 'awaaz_complaint_draft_v1';
+const GUEST_SESSION_KEY = 'awaaz_guest_draft_token_v2';
+
+const getGuestToken = (): string => {
+  if (typeof window === 'undefined' || !window.sessionStorage) return 'ephemeral';
+  let token = sessionStorage.getItem(GUEST_SESSION_KEY);
+  if (!token) {
+    token = Math.random().toString(36).substring(2, 15);
+    sessionStorage.setItem(GUEST_SESSION_KEY, token);
+  }
+  return token;
+};
+
+const getDraftKey = (userId?: string | null): string => {
+  if (userId) return `awaaz:draft:v2:citizen:${userId}`;
+  return `awaaz:draft:v2:guest:${getGuestToken()}`;
+};
 
 const INITIAL_FORM: FullComplaintFormState = {
   applicant: { citizenName: '', citizenPhone: '', citizenEmail: '', applicantAddress: '' },
@@ -56,35 +73,88 @@ export const SimplifiedComplaintContainer: React.FC = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submission, setSubmission] = useState<SubmissionResult | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
-  // Restore draft from sessionStorage on mount
+  // One-time startup purge of legacy unnamespaced draft key
   useEffect(() => {
     try {
       if (typeof window !== 'undefined' && window.sessionStorage) {
-        const saved = sessionStorage.getItem(DRAFT_STORAGE_KEY);
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          if (parsed && typeof parsed === 'object') {
-            setFormData((prev) => ({
-              applicant: { ...prev.applicant, ...(parsed.applicant || {}) },
-              location: { ...prev.location, ...(parsed.location || {}) },
-              complaint: { ...prev.complaint, ...(parsed.complaint || {}) },
-            }));
-          }
-        }
+        sessionStorage.removeItem(LEGACY_DRAFT_KEY);
       }
     } catch {
-      // Ignore sessionStorage parsing errors
+      // Ignore
     }
   }, []);
 
+  // Restore draft safely scoped to active authenticated user or guest token
+  useEffect(() => {
+    let active = true;
+
+    const hydrateSafeDraft = (userId: string | null) => {
+      try {
+        if (typeof window !== 'undefined' && window.sessionStorage) {
+          const key = getDraftKey(userId);
+          const saved = sessionStorage.getItem(key);
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            if (parsed && typeof parsed === 'object') {
+              // PII DEFENSE: Only restore non-sensitive public location and complaint text.
+              // Applicant PII is strictly kept in React memory for the active user session!
+              setFormData((prev) => ({
+                ...prev,
+                location: { ...prev.location, ...(parsed.location || {}) },
+                complaint: { ...prev.complaint, ...(parsed.complaint || {}) },
+              }));
+            }
+          }
+        }
+      } catch {
+        // Ignore parsing errors
+      }
+    };
+
+    if (isSupabaseConfigured() && supabase) {
+      void supabase.auth.getSession().then(({ data }) => {
+        if (!active) return;
+        const uid = data.session?.user?.id || null;
+        setCurrentUserId(uid);
+        hydrateSafeDraft(uid);
+      });
+
+      const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+        if (!active) return;
+        const nextUid = session?.user?.id || null;
+        if (nextUid !== currentUserId) {
+          // Cross-identity switch: Blank out all previous form data immediately
+          setFormData(INITIAL_FORM);
+          setErrors({});
+          setCurrentUserId(nextUid);
+          hydrateSafeDraft(nextUid);
+        }
+      });
+
+      return () => {
+        active = false;
+        listener.subscription.unsubscribe();
+      };
+    } else {
+      hydrateSafeDraft(null);
+    }
+  }, [currentUserId]);
+
+  // Save non-sensitive draft only (narrative + incident location)
   const saveDraft = (nextForm: FullComplaintFormState) => {
     try {
       if (typeof window !== 'undefined' && window.sessionStorage) {
-        sessionStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(nextForm));
+        const key = getDraftKey(currentUserId);
+        const safePayload = {
+          location: nextForm.location,
+          complaint: nextForm.complaint,
+        };
+        sessionStorage.setItem(key, JSON.stringify(safePayload));
       }
     } catch {
-      // Ignore sessionStorage write errors
+      // Ignore write errors
     }
   };
 
@@ -116,9 +186,9 @@ export const SimplifiedComplaintContainer: React.FC = () => {
     complaintLead: 'اپنے الفاظ میں بتائیں کہ کیا ہوا۔',
     name: 'پورا نام', phone: 'پاکستانی موبائل نمبر', email: 'ای میل (اختیاری)',
     locationLabel: 'علاقہ / محلہ', district: 'کراچی کا ضلع', landmark: 'گلی، بلاک یا قریبی نشانی',
-    address: 'رہائشی پتہ', addressHelp: 'یہ فارم مکمل کرنے کے لیے ضروری ہے، مگر صرف اسی براؤزر میں عارضی طور پر رکھا جاتا ہے؛ عوامی یا محکمانہ ریکارڈ میں نہیں بھیجا یا محفوظ کیا جاتا۔',
+    address: 'رہائشی پتہ', addressHelp: 'یہ شکایت مکمل کرنے کے لیے ضروری ہے؛ نجی ریکارڈ میں محفوظ کی جاتی ہے اور محکمانہ عملے سے شیئر نہیں کی جاتی۔',
     description: 'شکایت کی تفصیل', continue: 'آگے بڑھیں', back: 'واپس', submit: 'شکایت جمع کروائیں',
-    privacy: 'آپ کا فون نمبر اور رہائشی پتہ صرف اس فارم میں عارضی طور پر رہتا ہے؛ عوامی یا محکمانہ ریکارڈ میں شامل نہیں ہوتا۔',
+    privacy: 'آپ کے رابطے کی تفصیلات صرف شکایت کے انتظام کے لیے استعمال ہوتی ہیں اور محکمانہ عملے کو نہیں دکھائی جاتیں۔',
     emailNote: 'ای میل صرف رابطے کے لیے لی جاتی ہے؛ اطلاعات کا وعدہ تبھی ہوگا جب ای میل سروس فعال ہو۔',
     streetHelp: 'سڑک، بلاک یا قریبی نشانی مسئلے کی جگہ سمجھنے میں مدد دیتی ہے۔',
     success: 'شکایت درج ہو گئی', close: 'بند کریں',
@@ -130,9 +200,9 @@ export const SimplifiedComplaintContainer: React.FC = () => {
     complaintLead: 'Describe what happened in your own words.',
     name: 'Full name', phone: 'Pakistani mobile number', email: 'Email (optional)',
     locationLabel: 'Area / Locality', district: 'Karachi district', landmark: 'Street, block or nearby landmark',
-    address: 'Home address', addressHelp: 'Required to complete this form, but kept only in this browser preview and never sent to or saved in public or departmental records.',
+    address: 'Home address', addressHelp: 'Required to complete your report. Stored in private records and never shared with department staff.',
     description: 'Complaint description', continue: 'Continue', back: 'Back', submit: 'Submit Complaint',
-    privacy: 'Your phone number and home address stay only in this form and are never sent to or saved in public or departmental records.',
+    privacy: 'We use your contact details to manage your complaint. They are kept private and never shown to department staff.',
     emailNote: 'Email is optional. We only promise notifications when a real email service is available.',
     streetHelp: 'A street, block or nearby landmark helps identify the incident location.',
     success: 'Complaint submitted', close: 'Close',
@@ -215,7 +285,8 @@ export const SimplifiedComplaintContainer: React.FC = () => {
         isDemonstration: false,
       });
       if (typeof window !== 'undefined' && window.sessionStorage) {
-        sessionStorage.removeItem(DRAFT_STORAGE_KEY);
+        sessionStorage.removeItem(getDraftKey(currentUserId));
+        sessionStorage.removeItem(LEGACY_DRAFT_KEY);
       }
       setSubmission(result);
     } catch (error) {
@@ -742,12 +813,24 @@ const SubmissionModal: React.FC<{
   const navigate = useNavigate();
   const [copiedRef, setCopiedRef] = useState(false);
   const [copiedClaim, setCopiedClaim] = useState(false);
+  const [copiedTracking, setCopiedTracking] = useState(false);
 
   const handleCopyRef = async () => {
     try {
       await navigator.clipboard.writeText(submission.referenceNumber);
       setCopiedRef(true);
       setTimeout(() => setCopiedRef(false), 2000);
+    } catch {
+      // Ignore clipboard restrictions
+    }
+  };
+
+  const handleCopyTracking = async () => {
+    if (!submission.guestTrackingNumber) return;
+    try {
+      await navigator.clipboard.writeText(submission.guestTrackingNumber);
+      setCopiedTracking(true);
+      setTimeout(() => setCopiedTracking(false), 2000);
     } catch {
       // Ignore clipboard restrictions
     }
@@ -821,6 +904,52 @@ const SubmissionModal: React.FC<{
             </button>
           </div>
         </div>
+
+        {/* Guest 24-Digit Tracking Secret Card (One-number Status Lookup) */}
+        {submission.guestTrackingNumber && (
+          <div className="mt-4 rounded-2xl border-2 border-[#681822] bg-[#FAF6F6] p-4 sm:p-5">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#681822] flex items-center gap-1.5">
+                <Lock className="h-3.5 w-3.5 text-[#681822]" />
+                {ur ? 'پرائیویٹ ٹریکنگ نمبر (بغیر اکاؤنٹ اسٹیٹس)' : 'Private Tracking Number'}
+              </span>
+              <span className="text-[10px] font-bold uppercase bg-[#681822] text-white px-2 py-0.5 rounded-full">
+                {ur ? 'محفوظ رکھیں' : 'Keep Private'}
+              </span>
+            </div>
+            <div className="mt-2 flex items-center justify-between gap-3">
+              <span className="font-mono text-lg sm:text-xl font-black tracking-wider text-[#141414] select-all">
+                {submission.guestTrackingNumber}
+              </span>
+              <button
+                type="button"
+                onClick={handleCopyTracking}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-[#681822] bg-white px-3 py-1.5 text-xs font-bold text-[#681822] hover:bg-[#F7EFF0] transition cursor-pointer"
+                aria-label="Copy tracking number"
+              >
+                {copiedTracking ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5 text-[#681822]" />}
+                <span>{copiedTracking ? (ur ? 'کاپی ہو گیا' : 'Copied!') : (ur ? 'نمبر کاپی کریں' : 'Copy Number')}</span>
+              </button>
+            </div>
+            <p className="mt-2 text-xs leading-relaxed text-[#5A554E]">
+              {ur
+                ? 'یہ نمبر نجی رکھیں۔ اس 24 ہندسی نمبر سے آپ کسی بھی براؤزر پر بغیر لاگ ان کیے اپنی شکایت کی تازہ ترین صورتحال جانچ سکتے ہیں۔'
+                : 'Anyone with this number can check the status. Keep this number private. You can check status on any device without signing in.'}
+            </p>
+            <div className="mt-3">
+              <button
+                type="button"
+                onClick={() => {
+                  onClose();
+                  navigate(`/track?code=${encodeURIComponent(submission.guestTrackingNumber || '')}`);
+                }}
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-[#681822] hover:underline cursor-pointer"
+              >
+                <span>{ur ? 'اسٹیٹس چیک کریں →' : 'Check status now →'}</span>
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Private Claim Code Display Card (For Guest Submissions) */}
         {submission.claimCode && (

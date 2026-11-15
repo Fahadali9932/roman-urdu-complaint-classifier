@@ -16,7 +16,9 @@ export const RegisterPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [notice, setNotice] = useState('');
   const [error, setError] = useState('');
@@ -25,18 +27,39 @@ export const RegisterPage: React.FC = () => {
     e.preventDefault();
     setSubmitted(true);
     setError('');
+
+    const normalizedEmail = email.trim().toLowerCase();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(normalizedEmail)) {
+      setError('Please enter a valid email address.');
+      setSubmitted(false);
+      return;
+    }
+
+    if (password.length < 15) {
+      setError('Passphrase must be at least 15 characters long (spaces and symbols allowed).');
+      setSubmitted(false);
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError('Passwords do not match.');
+      setSubmitted(false);
+      return;
+    }
+
     try {
       if (!isSupabaseConfigured() || !supabase) throw new Error('Live registration is not configured.');
       const { data, error: authError } = await supabase.auth.signUp({
-        email,
+        email: normalizedEmail,
         password,
-        options: { data: { full_name: fullName, phone }, emailRedirectTo: window.location.origin },
+        options: { data: { full_name: fullName.trim(), phone: phone.trim() }, emailRedirectTo: window.location.origin },
       });
       if (authError) throw authError;
       if (data.session) {
         navigate(returnTo, { replace: true });
       } else {
-        setNotice('Check your email to confirm your account, then sign in to claim and track your complaint.');
+        setNotice('If this address can be registered, a confirmation email has been sent. (Supabase free-tier rate limits email delivery to 2/hour).');
       }
     } catch (cause) { setError(cause instanceof Error ? cause.message : 'Unable to create your account.'); }
     finally { setSubmitted(false); }
@@ -165,7 +188,7 @@ export const RegisterPage: React.FC = () => {
                     type={showPassword ? 'text' : 'password'}
                     dir="ltr"
                     required
-                    minLength={8}
+                    minLength={15}
                     placeholder={t('authPasswordPlaceholder')}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
@@ -182,6 +205,49 @@ export const RegisterPage: React.FC = () => {
                     } p-1 text-[#74706C] hover:text-[#171717] transition-colors cursor-pointer`}
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+                <p className="text-[11px] text-[#817A73]">
+                  {isRTL
+                    ? 'کم از کم 15 حروف، عام الفاظ اور خالی جگہیں قابل قبول ہیں۔'
+                    : '15+ characters passphrase (spaces and phrases allowed).'}
+                </p>
+              </div>
+
+              {/* Confirm Password */}
+              <div className="space-y-1">
+                <label
+                  htmlFor="confirmPassword"
+                  className="block text-xs font-semibold text-[#282424] select-none font-ui"
+                >
+                  {t('authConfirmPassword')} <span className="text-[#681822]">*</span>
+                </label>
+                <div className="relative">
+                  <div className={`absolute top-1/2 -translate-y-1/2 ${isRTL ? 'right-3' : 'left-3'} pointer-events-none text-[#74706C]`}>
+                    <Lock className="w-4 h-4" />
+                  </div>
+                  <input
+                    id="confirmPassword"
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    dir="ltr"
+                    required
+                    minLength={15}
+                    placeholder={t('authConfirmPasswordPlaceholder')}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className={`w-full h-[44px] rounded-[9px] border border-[#E5E1DE] bg-white text-[13px] text-[#171717] placeholder:text-[#A8A39F] transition-all outline-none focus:border-[#681822] focus:ring-2 focus:ring-[#681822]/15 hover:border-[#CDC8C0] text-start ${
+                      isRTL ? 'pe-10 ps-9' : 'ps-9 pe-10'
+                    }`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    aria-label={showConfirmPassword ? t('passwordHide') : t('passwordShow')}
+                    className={`absolute top-1/2 -translate-y-1/2 ${
+                      isRTL ? 'left-2.5' : 'right-2.5'
+                    } p-1 text-[#74706C] hover:text-[#171717] transition-colors cursor-pointer`}
+                  >
+                    {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
               </div>

@@ -36,6 +36,28 @@ function generateClaimCode(): string {
   return `CLM-${str.slice(0, 4)}-${str.slice(4, 8)}-${str.slice(8, 12)}`;
 }
 
+function generateGuestTrackingNumber(): { raw: string; formatted: string } {
+  const bytes = new Uint8Array(48);
+  crypto.getRandomValues(bytes);
+  let digits = "";
+  for (let i = 0; i < bytes.length && digits.length < 24; i++) {
+    if (bytes[i] < 250) {
+      digits += (bytes[i] % 10).toString();
+    }
+  }
+  while (digits.length < 24) {
+    const extra = new Uint8Array(16);
+    crypto.getRandomValues(extra);
+    for (let i = 0; i < extra.length && digits.length < 24; i++) {
+      if (extra[i] < 250) {
+        digits += (extra[i] % 10).toString();
+      }
+    }
+  }
+  const formatted = `${digits.slice(0, 4)} ${digits.slice(4, 8)} ${digits.slice(8, 12)} ${digits.slice(12, 16)} ${digits.slice(16, 20)} ${digits.slice(20, 24)}`;
+  return { raw: digits, formatted };
+}
+
 async function sha256Hex(text: string): Promise<string> {
   const data = new TextEncoder().encode(text);
   const hashBuffer = await crypto.subtle.digest("SHA-256", data);
@@ -143,12 +165,18 @@ Deno.serve(async (req) => {
       return json({ error: "Please complete all required complaint fields.", code: "INVALID_COMPLAINT_PAYLOAD" }, 400);
     }
 
-    // Generate cryptographic private claim code for guest submissions
+    // Generate cryptographic private claim code and 24-digit tracking number for guest submissions
     let claimCode: string | undefined;
     let claimCodeHash: string | null = null;
+    let guestTrackingNumber: string | undefined;
+    let guestTrackingHash: string | null = null;
     if (!citizenId) {
       claimCode = generateClaimCode();
       claimCodeHash = await sha256Hex(claimCode);
+
+      const tracking = generateGuestTrackingNumber();
+      guestTrackingNumber = tracking.formatted;
+      guestTrackingHash = await sha256Hex(tracking.raw);
     }
 
     const result = classify(`${input.title ?? ""} ${input.description}`);
@@ -184,6 +212,7 @@ Deno.serve(async (req) => {
       p_needs_review: result.needsReview,
       p_is_demonstration: input.isDemonstration === true,
       p_claim_code_hash: claimCodeHash,
+      p_guest_tracking_hash: guestTrackingHash,
     });
     if (error) {
       console.error("Complaint submission RPC failed", error);
@@ -199,6 +228,7 @@ Deno.serve(async (req) => {
         flags: privacy.flags,
       },
       claim_code: claimCode,
+      guest_tracking_number: guestTrackingNumber,
     });
   } catch (error) {
     console.error("Unexpected complaint submission failure", error);

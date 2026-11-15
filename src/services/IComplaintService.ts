@@ -88,6 +88,21 @@ export interface IComplaintService {
   getReviewQueueComplaints(): Promise<DepartmentComplaintView[]>;
 
   /**
+   * Looks up minimal public-safe complaint status for a guest tracking number (24 decimal digits).
+   * ZERO PII returned. Rate-limited and privacy-safe.
+   */
+  trackGuestComplaint(trackingNumber: string): Promise<{
+    found: boolean;
+    public_status?: string;
+    display_status?: string;
+    public_category?: string;
+    submitted_at?: string;
+    updated_at?: string;
+    public_updates?: Array<{ status: string; at: string; message: string }>;
+    error?: string;
+  }>;
+
+  /**
    * Adjusts priority of a complaint by authorized department staff.
    * STRICT SECURITY: Enforces department ownership and audits modification.
    */

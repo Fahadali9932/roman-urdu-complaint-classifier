@@ -13,12 +13,13 @@ export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const returnTo = (location.state as { from?: string } | null)?.from || '/dashboard';
+  const initialError = (location.state as { error?: string } | null)?.error || '';
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState(initialError);
   const [resetMessage, setResetMessage] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -37,7 +38,7 @@ export const LoginPage: React.FC = () => {
         .maybeSingle();
       if (profileError || profile?.role !== 'citizen') {
         await supabase.auth.signOut();
-        throw new Error('This sign-in is only for citizen accounts. Department staff should use the Department Portal.');
+        throw new Error('This is a department account. Please use the department sign-in page.');
       }
       navigate(returnTo, { replace: true });
     } catch (cause) {

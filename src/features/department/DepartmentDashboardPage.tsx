@@ -15,18 +15,16 @@ import { DepartmentTopbar } from './components/DepartmentTopbar';
 import { supabase, isSupabaseConfigured } from '../../lib/supabase';
 import {
   ComplaintInboxList,
-  formatPakistanDateParts,
-  getStatusChipInfo,
 } from './components/ComplaintInboxList';
 import { ComplaintDetailView } from './components/ComplaintDetailView';
 import { PriorityQueuePage } from './components/PriorityQueuePage';
 import { WorkQueuePage } from './components/WorkQueuePage';
 import { CaseDetailPage } from './components/CaseDetailPage';
 import { AreasPage } from './components/AreasPage';
+import { OverviewPage } from './components/OverviewPage';
 import { StatusUpdateModal } from './components/StatusUpdateModal';
 import { ReviewAssignmentModal } from './components/ReviewAssignmentModal';
 import {
-  calculateComplaintPriority,
   getPriorityQueueCounts,
   type PriorityLevel,
 } from '../../lib/priority-engine';
@@ -459,32 +457,7 @@ export const DepartmentDashboardPage: React.FC = () => {
   };
 
   const departmentName = departmentMeta?.name || 'Karachi Metropolitan Corporation';
-  const departmentShort = departmentMeta?.code || (departmentId ? departmentId.toUpperCase() : 'KMC');
   const username = session?.username || 'roads-01';
-
-  // Lead urgent complaint for Overview right column
-  const leadUrgentComplaint = useMemo(() => {
-    const active = augmentedComplaints.filter(
-      (c) => c.status !== 'resolved' && c.status !== 'rejected'
-    );
-    const evaluated = active.map((c) => ({
-      complaint: c,
-      eval: calculateComplaintPriority(c),
-    }));
-    const found =
-      evaluated.find((e) => e.eval.isUrgent || e.eval.priority === 'critical') ||
-      evaluated.find((e) => e.eval.isOverdue || e.eval.priority === 'high') ||
-      evaluated.find((e) => e.eval.needsAssessment) ||
-      evaluated.find((e) => e.eval.qualifiesForPriorityQueue);
-    return found ? { complaint: found.complaint, eval: found.eval } : null;
-  }, [augmentedComplaints]);
-
-  // Newest 4 complaints for Overview left column
-  const newestOverviewComplaints = useMemo(() => {
-    return [...augmentedComplaints]
-      .sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime())
-      .slice(0, 4);
-  }, [augmentedComplaints]);
 
   return (
     <div
@@ -535,6 +508,11 @@ export const DepartmentDashboardPage: React.FC = () => {
           selectedReference={selectedReference}
           selectedCaseId={selectedCaseId}
           onOpenMobileDrawer={() => setIsMobileDrawerOpen(true)}
+          onSelectSection={(sec) => {
+            setCurrentSection(sec);
+            setSelectedCaseId(null);
+            setSelectedReference(null);
+          }}
           themeMode={themeMode}
           onToggleTheme={() => handleSetTheme(themeMode === 'light' ? 'dark' : 'light')}
           onSignOut={() => {
@@ -571,199 +549,22 @@ export const DepartmentDashboardPage: React.FC = () => {
           )}
 
           {/* =========================================================================
-              VIEW 1: OVERVIEW (MATCHES 01_DASHBOARD_TARGET.png)
+              VIEW 1: OVERVIEW (ANIMATED CIVIC SERVICE NETWORK V6)
               ========================================================================= */}
-          {currentSection === 'dashboard' && (
-            <div>
-              {/* Page Heading with Action */}
-              <div className="page-heading">
-                <div>
-                  <h1>Overview</h1>
-                  <p className="page-lead">Your department’s work at a glance.</p>
-                </div>
-                <button
-                  type="button"
-                  className="overview-header-action"
-                  onClick={() => {
-                    setCurrentSection('tasks');
-                    setActiveTaskFilter('all');
-                    setSelectedReference(null);
-                  }}
-                >
-                  View complaints →
-                </button>
-              </div>
-
-              {/* 4-Part Workload Metric Strip in ONE White Card */}
-              <section className="overview-metrics" aria-label="Department workload">
-                {/* 1. Awaiting acceptance */}
-                <div className="overview-metric">
-                  <div className="overview-metric-label">Awaiting acceptance</div>
-                  <div className="overview-number">
-                    <strong>{taskCounts.assigned}</strong>
-                    <span>{taskCounts.assigned === 1 ? 'needs a response' : 'need a response'}</span>
-                  </div>
-                </div>
-
-                {/* 2. In progress */}
-                <div className="overview-metric">
-                  <div className="overview-metric-label">In progress</div>
-                  <div className="overview-number">
-                    <strong>{taskCounts.accepted + taskCounts.in_progress}</strong>
-                    <span>being handled</span>
-                  </div>
-                </div>
-
-                {/* 3. Completed */}
-                <div className="overview-metric">
-                  <div className="overview-metric-label">Completed</div>
-                  <div className="overview-number">
-                    <strong>{taskCounts.resolved}</strong>
-                    <span>work finished</span>
-                  </div>
-                </div>
-
-                {/* 4. Needs attention */}
-                <div className="overview-metric">
-                  <div className="overview-metric-label">Needs attention</div>
-                  <div className="overview-number">
-                    <strong>{priorityQueueCounts.total}</strong>
-                    <span>{priorityQueueCounts.total === 1 ? 'priority case' : 'priority cases'}</span>
-                  </div>
-                </div>
-              </section>
-
-              {/* 2-Column Split: Recent complaints (left) & Needs attention (right) */}
-              <div className="overview-columns">
-                {/* Left Column: Recent complaints */}
-                <section className="overview-recent" aria-labelledby="recent-heading">
-                  <div className="overview-section-heading">
-                    <h2 id="recent-heading">Recent complaints</h2>
-                    <p>Latest cases assigned to {departmentShort}</p>
-                  </div>
-                  <div className="overview-panel">
-                    <div className="overview-row overview-row-header">
-                      <span>Complaint</span>
-                      <span>Status</span>
-                    </div>
-                    {newestOverviewComplaints.length > 0 ? (
-                      newestOverviewComplaints.map((c) => {
-                        const chip = getStatusChipInfo(c.status);
-                        const dt = formatPakistanDateParts(c.submittedAt);
-                        const localityStr = c.locality ? `${c.locality}, ${c.district}` : c.district || 'Karachi';
-                        const titleText = c.generatedHeading || c.title || 'Municipal Complaint';
-
-                        return (
-                          <div key={c.id} className="overview-row">
-                            <div className="overview-row-text">
-                              <button
-                                type="button"
-                                className="subject-link"
-                                onClick={() => {
-                                  setSelectedReference(c.referenceNumber);
-                                  setCurrentSection('tasks');
-                                }}
-                              >
-                                {titleText}
-                              </button>
-                              <span className="overview-row-meta">
-                                {localityStr} · {dt.date}, {dt.time}
-                              </span>
-                            </div>
-                            <span>
-                              <span className={`status-chip ${chip.className}`}>{chip.label}</span>
-                            </span>
-                          </div>
-                        );
-                      })
-                    ) : (
-                      <div className="overview-empty" style={{ padding: '24px', textAlign: 'center' }}>
-                        No complaints assigned yet.
-                      </div>
-                    )}
-                    <button
-                      type="button"
-                      className="overview-footer-link"
-                      onClick={() => {
-                        setCurrentSection('tasks');
-                        setActiveTaskFilter('all');
-                        setSelectedReference(null);
-                      }}
-                    >
-                      Open complaints list →
-                    </button>
-                  </div>
-                </section>
-
-                {/* Right Column: Needs attention */}
-                <section className="overview-attention" aria-labelledby="attention-heading">
-                  <div className="overview-section-heading">
-                    <h2 id="attention-heading">Needs attention</h2>
-                    <p>Only cases that require action</p>
-                  </div>
-                  <div className="overview-panel overview-action-panel">
-                    {/* Urgent safety case or priority case */}
-                    {leadUrgentComplaint ? (
-                      <div className="overview-urgent">
-                        <span className="overview-urgent-caption">
-                          {leadUrgentComplaint.eval.isUrgent || leadUrgentComplaint.eval.priority === 'critical'
-                            ? '● SAFETY CASE'
-                            : leadUrgentComplaint.eval.isOverdue
-                            ? '● OVERDUE CASE'
-                            : '● NEEDS ASSESSMENT'}
-                        </span>
-                        <h3>
-                          {leadUrgentComplaint.complaint.generatedHeading ||
-                            leadUrgentComplaint.complaint.title ||
-                            'Priority Case'}
-                        </h3>
-                        <p>
-                          {leadUrgentComplaint.complaint.factualSummary ||
-                            leadUrgentComplaint.complaint.description}
-                        </p>
-                        <button
-                          type="button"
-                          className="ghost-link"
-                          onClick={() => {
-                            setSelectedReference(leadUrgentComplaint.complaint.referenceNumber);
-                            setCurrentSection('tasks');
-                          }}
-                        >
-                          Review priority →
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="overview-empty">No priority cases right now.</div>
-                    )}
-
-                    {/* KMC clearinghouse review queue */}
-                    {departmentId === 'kmc' && (
-                      <div className="overview-action-list">
-                        <h3>{taskCounts.under_review} cases need routing review</h3>
-                        <p>KMC clearinghouse only</p>
-                        <button
-                          type="button"
-                          className="ghost-link"
-                          onClick={() => {
-                            setCurrentSection('tasks');
-                            setActiveTaskFilter('under_review');
-                            setSelectedReference(null);
-                          }}
-                        >
-                          Open review queue →
-                        </button>
-                      </div>
-                    )}
-
-                    {/* Next step guidance */}
-                    <div className="overview-action-list">
-                      <h3>Next step</h3>
-                      <p>Review urgent cases first, then accept new complaints.</p>
-                    </div>
-                  </div>
-                </section>
-              </div>
-            </div>
+          {(currentSection === 'dashboard' || currentSection === 'overview') && (
+            <OverviewPage
+              departmentId={departmentId || 'kmc'}
+              departmentName={departmentMeta?.name || 'Roads & Infrastructure'}
+              onNavigate={(sec) => {
+                setCurrentSection(sec);
+                setSelectedCaseId(null);
+                setSelectedReference(null);
+              }}
+              onSelectCase={(caseId) => {
+                setSelectedCaseId(caseId);
+                setCurrentSection('queue');
+              }}
+            />
           )}
 
           {/* =========================================================================
@@ -1012,7 +813,7 @@ export const DepartmentDashboardPage: React.FC = () => {
               <div className="page-heading">
                 <div>
                   <h1>Settings</h1>
-                  <p className="page-lead">Only the preferences and account information staff actually need.</p>
+                  <p className="page-lead">Manage your preferences and account.</p>
                 </div>
               </div>
 
@@ -1020,12 +821,12 @@ export const DepartmentDashboardPage: React.FC = () => {
                 {/* 1. Appearance Card */}
                 <section className="settings-card">
                   <h2>Appearance</h2>
-                  <p>Choose a comfortable, readable workspace theme.</p>
+                  <p>Choose how the portal looks.</p>
 
                   <div className="setting-row">
                     <div>
                       <strong>Color mode</strong>
-                      <span>Saved locally in your browser workspace.</span>
+                      <span>Saved on this device.</span>
                     </div>
                     <div className="choice" role="group" aria-label="Color mode">
                       <button
@@ -1048,7 +849,7 @@ export const DepartmentDashboardPage: React.FC = () => {
                   <div className="setting-row">
                     <div>
                       <strong>Sidebar</strong>
-                      <span>Choose how much navigation is visible.</span>
+                      <span>Show full menu or icons only.</span>
                     </div>
                     <div className="choice" role="group" aria-label="Sidebar display">
                       <button
@@ -1072,7 +873,6 @@ export const DepartmentDashboardPage: React.FC = () => {
                 {/* 2. Department Account Card */}
                 <section className="settings-card">
                   <h2>Department account</h2>
-                  <p>Information supplied by authenticated records in the actual application.</p>
 
                   <div className="data-line">
                     <span className="label">Staff account</span>
@@ -1097,7 +897,7 @@ export const DepartmentDashboardPage: React.FC = () => {
                       className="overview-header-action"
                       style={{ color: 'var(--urgent)', borderColor: 'var(--urgent-border, var(--line))', display: 'inline-flex', alignItems: 'center', gap: '8px' }}
                     >
-                      <LogOut className="w-4 h-4" /> Sign out of workspace
+                      <LogOut className="w-4 h-4" /> Sign out
                     </button>
                   </div>
                 </section>

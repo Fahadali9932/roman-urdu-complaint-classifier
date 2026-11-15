@@ -18,6 +18,7 @@ import type {
   PriorityBand,
 } from '../types';
 import type { ICaseOperationsService } from './ICaseOperationsService';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
 interface StoredCase extends IncidentCaseSummary {
   reports: CaseReportRow[];
@@ -681,13 +682,11 @@ export class CaseOperationsService implements ICaseOperationsService {
             id: `act-${dept}-${seed.id}-01`,
             caseId: seed.id,
             eventType: 'created',
-            label: 'Case Created',
+            label: 'Case opened',
             detail: `Case created with ${seed.vol} linked reports.`,
-            actorLabel: 'Intake Pipeline',
-            createdAt: new Date(
-              Date.UTC(2026, 10, 15 - seed.age, 10, 0)
-            ).toISOString(),
-            formattedWhen: `${15 - seed.age} Nov 2026 · 10:00 AM PKT`,
+            actorLabel: 'Citizen Intake',
+            createdAt: new Date(Date.UTC(2026, 10, Math.max(1, 15 - seed.age), 10, 0)).toISOString(),
+            formattedWhen: `${Math.max(1, 15 - seed.age)} Nov 2026 · 10:00 AM PKT`,
           },
         ],
       });
@@ -779,7 +778,7 @@ export class CaseOperationsService implements ICaseOperationsService {
         ageDays: age,
         assignedStaffId: null,
         assignedStaffLabel: 'Unassigned',
-        summary: `Synthetic demonstration case for ${issue.toLowerCase()} at ${place}, ${area}. Each case represents a distinct physical defect location.`,
+        summary: `People have reported ${issue.toLowerCase()} near ${place}, ${area}.`,
         version: 1,
         reports: syntheticReports,
         activity: [
@@ -787,13 +786,11 @@ export class CaseOperationsService implements ICaseOperationsService {
             id: `act-${dept}-${id}-01`,
             caseId: id,
             eventType: 'created',
-            label: 'Case Created',
-            detail: `Incident case initialized.`,
-            actorLabel: 'Intake Pipeline',
-            createdAt: new Date(
-              Date.UTC(2026, 10, 15 - age, 9, 0)
-            ).toISOString(),
-            formattedWhen: `${15 - age} Nov 2026 · 9:00 AM PKT`,
+            label: 'Case opened',
+            detail: 'Case opened from citizen report.',
+            actorLabel: 'Citizen Intake',
+            createdAt: new Date(Date.UTC(2026, 10, Math.max(1, 15 - age), 9, 0)).toISOString(),
+            formattedWhen: `${Math.max(1, 15 - age)} Nov 2026 · 9:00 AM PKT`,
           },
         ],
       });
@@ -802,12 +799,110 @@ export class CaseOperationsService implements ICaseOperationsService {
     return result;
   }
 
+  private async syncWithSupabase(deptId: DepartmentId): Promise<void> {
+    if (!isSupabaseConfigured() || !supabase) return;
+    try {
+      const { data, error } = await supabase
+        .from('complaints')
+        .select('*')
+        .or(`assigned_department_id.eq.${deptId},predicted_department_id.eq.${deptId}`);
+
+      if (error || !data || !Array.isArray(data)) return;
+
+      const list = this.casesByDept.get(deptId) || [];
+      const existingRefMap = new Map<string, { caseItem: StoredCase; report: CaseReportRow }>();
+      for (const c of list) {
+        for (const r of c.reports) {
+          existingRefMap.set(r.referenceNumber, { caseItem: c, report: r });
+          existingRefMap.set(r.complaintId, { caseItem: c, report: r });
+        }
+      }
+
+      for (const row of data) {
+        const ref = row.reference_number || row.id;
+        const mapped = existingRefMap.get(ref);
+        if (mapped) {
+          mapped.report.status = row.status || mapped.report.status;
+          mapped.report.updatedAt = row.updated_at || mapped.report.updatedAt;
+        } else {
+          const newReport: CaseReportRow = {
+            complaintId: row.id,
+            referenceNumber: row.reference_number || `KHI-2026-${row.id.slice(0, 8).toUpperCase()}`,
+            submittedAt: row.created_at || new Date().toISOString(),
+            updatedAt: row.updated_at || new Date().toISOString(),
+            status: row.status || 'assigned',
+            sanitizedNarrativePreview:
+              row.sanitized_description || row.description || 'Public complaint',
+            publicLocation: row.incident_public_location || row.incident_locality || 'Karachi',
+            linkState: 'linked',
+            linkMethod: 'auto_asset',
+            uniquePersonId: row.citizen_id ? `citizen-${row.citizen_id.slice(0, 8)}` : `guest-${row.id.slice(0, 8)}`,
+          };
+
+          const locality = row.incident_locality || 'General';
+          const targetCase = list.find((c) => c.locality.toLowerCase() === locality.toLowerCase());
+          if (targetCase) {
+            targetCase.reports.unshift(newReport);
+            targetCase.linkedReportCount += 1;
+            if (newReport.status === 'assigned' || newReport.status === 'submitted') {
+              targetCase.pendingAcceptanceCount += 1;
+            }
+          } else {
+            const caseNum = `C-${(row.reference_number || row.id).slice(-4).toUpperCase()}`;
+            const newCase: StoredCase = {
+              id: caseNum,
+              caseNumber: caseNum,
+              departmentId: deptId,
+              title: row.generated_heading || row.title || 'Citizen Public Report',
+              issueFamily: 'Municipal Infrastructure',
+              issueSubtype: row.predicted_department_id || 'General',
+              publicPlace: row.incident_public_location || locality,
+              district: row.incident_district || 'District East',
+              locality: locality,
+              workStatus: newReport.status === 'assigned' ? 'needs_acceptance' : 'in_progress',
+              linkedReportCount: 1,
+              uniqueReporterCount: 1,
+              pendingAcceptanceCount: newReport.status === 'assigned' ? 1 : 0,
+              priority: 'normal',
+              priorityReason: 'Live submission received from citizen portal.',
+              firstReportedAt: row.created_at || new Date().toISOString(),
+              lastReportedAt: row.created_at || new Date().toISOString(),
+              oldestPendingAt: row.created_at || new Date().toISOString(),
+              ageDays: 0,
+              assignedStaffId: null,
+              assignedStaffLabel: 'Unassigned',
+              summary: row.factual_summary || row.description || 'Live citizen complaint',
+              version: 1,
+              reports: [newReport],
+              activity: [
+                {
+                  id: `act-live-${Date.now()}`,
+                  caseId: caseNum,
+                  eventType: 'created',
+                  label: 'Complaint submitted',
+                  detail: `Citizen submitted live complaint ${newReport.referenceNumber}.`,
+                  actorLabel: 'Citizen Portal',
+                  createdAt: row.created_at || new Date().toISOString(),
+                  formattedWhen: 'Just now',
+                },
+              ],
+            };
+            list.unshift(newCase);
+          }
+        }
+      }
+    } catch {
+      // Non-blocking sync failure
+    }
+  }
+
   // --- API IMPLEMENTATION ---
 
   async listDepartmentCases(
     deptId: DepartmentId,
     filter: WorkQueueFilter
   ): Promise<CursorPage<IncidentCaseSummary>> {
+    await this.syncWithSupabase(deptId);
     const list = this.casesByDept.get(deptId) || [];
     const query = (filter.searchQuery || '').trim().toLowerCase();
 
@@ -1008,6 +1103,7 @@ export class CaseOperationsService implements ICaseOperationsService {
   }
 
   async listAreaWorkload(deptId: DepartmentId): Promise<AreaWorkloadSummary[]> {
+    await this.syncWithSupabase(deptId);
     const list = this.casesByDept.get(deptId) || [];
     const areas = [
       'Gulshan-e-Iqbal',
@@ -1174,6 +1270,20 @@ export class CaseOperationsService implements ICaseOperationsService {
     };
 
     this.batchOperations.set(opKey, result);
+
+    // Persist status updates to Supabase complaints if configured
+    if (isSupabaseConfigured() && supabase) {
+      const acceptedRefs = found.reports
+        .filter((r) => r.status === 'accepted')
+        .map((r) => r.referenceNumber);
+      if (acceptedRefs.length > 0) {
+        void supabase
+          .from('complaints')
+          .update({ status: 'in_progress', updated_at: new Date().toISOString() })
+          .in('reference_number', acceptedRefs);
+      }
+    }
+
     return result;
   }
 

@@ -331,9 +331,6 @@ export const PublicFooter: React.FC<PublicFooterProps> = ({ isHomePage, showMonu
                   <Link to="/terms-of-use" className="footer-link">
                     {t('footerNavTerms')}
                   </Link>
-                  <Link to="/department" className="footer-link text-[#999999] hover:text-[#FFFFFF]">
-                    {ur ? 'محکمہ ورک اسپیس' : 'Department Portal'}
-                  </Link>
                 </nav>
               </div>
 

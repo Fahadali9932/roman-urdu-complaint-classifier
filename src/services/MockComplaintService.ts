@@ -560,6 +560,68 @@ export class MockComplaintService implements IComplaintService {
   }
 
   /**
+   * Looks up minimal public-safe complaint status for a guest tracking number.
+   */
+  async trackGuestComplaint(trackingNumber: string): Promise<{
+    found: boolean;
+    public_status?: string;
+    display_status?: string;
+    public_category?: string;
+    submitted_at?: string;
+    updated_at?: string;
+    public_updates?: Array<{ status: string; at: string; message: string }>;
+    error?: string;
+  }> {
+    await this.delay(60);
+    const normalized = trackingNumber.replace(/\s+/g, '');
+    if (!/^\d{24}$/.test(normalized)) {
+      return {
+        found: false,
+        error: "We couldn't find a complaint with that number. Check it and try again.",
+      };
+    }
+
+    const displayStatuses: Record<string, string> = {
+      submitted: 'Complaint received',
+      under_review: 'Being reviewed',
+      assigned: 'Sent to department',
+      accepted: 'Sent to department',
+      in_progress: 'Work started',
+      resolved: 'Work completed',
+      closed: 'Closed',
+      rejected: 'Closed',
+    };
+
+    const complaint = this.complaints[0];
+    const deptMeta = complaint?.assignedDepartmentId
+      ? KARACHI_DEPARTMENTS[complaint.assignedDepartmentId]
+      : KARACHI_DEPARTMENTS['kmc'];
+
+    const currentStatus = complaint?.status || 'under_review';
+
+    return {
+      found: true,
+      public_status: currentStatus,
+      display_status: displayStatuses[currentStatus] || 'Being reviewed',
+      public_category: deptMeta?.name || 'Karachi Metropolitan Corporation (KMC / DMCs)',
+      submitted_at: complaint?.submittedAt || '2026-11-14T10:15:00.000Z',
+      updated_at: complaint?.updatedAt || '2026-11-15T14:30:00.000Z',
+      public_updates: [
+        {
+          status: 'submitted',
+          at: complaint?.submittedAt || '2026-11-14T10:15:00.000Z',
+          message: 'Citizen report received and registered in municipal tracking system.',
+        },
+        {
+          status: 'under_review',
+          at: complaint?.updatedAt || '2026-11-15T14:30:00.000Z',
+          message: 'Case routed to relevant field department for ground verification.',
+        },
+      ],
+    };
+  }
+
+  /**
    * Clears the complaint store.
    */
   clearComplaints(): void {

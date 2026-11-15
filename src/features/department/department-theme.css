@@ -3097,3 +3097,56 @@
     padding: 19px;
   }
 }
+
+/* ==============================================================================
+   OVERVIEW PAGE RESPONSIVE BEHAVIOR
+   ============================================================================== */
+.overview-page {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 32px 36px 64px;
+}
+.overview-hero {
+  display: grid;
+  grid-template-columns: minmax(340px, 1.1fr) minmax(320px, 0.9fr);
+  gap: 32px;
+  align-items: center;
+  padding-bottom: 36px;
+  border-bottom: 1px solid var(--border-subtle, #E6E3DF);
+}
+.overview-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border-bottom: 1px solid var(--border-subtle, #E6E3DF);
+  padding: 24px 0;
+  gap: 16px;
+}
+.overview-lower {
+  display: grid;
+  grid-template-columns: 1.6fr 0.9fr;
+  gap: 32px;
+  padding-top: 28px;
+}
+
+@media (max-width: 860px) {
+  .overview-page {
+    padding: 16px 16px 40px !important;
+  }
+  .overview-hero {
+    grid-template-columns: 1fr !important;
+    gap: 20px !important;
+  }
+  .overview-metrics {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 16px !important;
+  }
+  .overview-metrics > div {
+    padding: 8px !important;
+    border-right: none !important;
+    border-bottom: 1px solid var(--border-subtle, #E6E3DF) !important;
+  }
+  .overview-lower {
+    grid-template-columns: 1fr !important;
+    gap: 24px !important;
+  }
+}

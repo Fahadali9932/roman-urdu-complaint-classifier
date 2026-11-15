@@ -191,6 +191,22 @@ class StaffAuthService {
           };
         }
 
+        // Two-way role guard: Check if user is a citizen account
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .maybeSingle();
+
+        if (profile?.role === 'citizen') {
+          await supabase.auth.signOut();
+          return {
+            success: false,
+            status: 'not_found',
+            error: 'This is a citizen account. Please use the citizen sign-in page.',
+          };
+        }
+
         // Check requests
         const { data: reqs } = await supabase
           .from('department_access_requests')
@@ -381,6 +397,22 @@ class StaffAuthService {
             success: true,
             status: 'approved',
             session: staffSession,
+          };
+        }
+
+        // Two-way role guard: Check if user is a citizen account
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .maybeSingle();
+
+        if (profile?.role === 'citizen') {
+          await supabase.auth.signOut();
+          return {
+            success: false,
+            status: 'not_found',
+            error: 'This is a citizen account. Please use the citizen sign-in page.',
           };
         }
 

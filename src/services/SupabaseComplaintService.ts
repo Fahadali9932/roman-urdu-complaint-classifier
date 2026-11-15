@@ -193,7 +193,71 @@ export class SupabaseComplaintService implements IComplaintService {
       status: data.status,
       needsReview: Boolean(data.needs_review),
       claimCode: data.claim_code,
+      guestTrackingNumber: data.guest_tracking_number,
     };
+  }
+
+  async trackGuestComplaint(trackingNumber: string): Promise<{
+    found: boolean;
+    public_status?: string;
+    display_status?: string;
+    public_category?: string;
+    submitted_at?: string;
+    updated_at?: string;
+    public_updates?: Array<{ status: string; at: string; message: string }>;
+    error?: string;
+  }> {
+    if (!isSupabaseConfigured() || !supabase) {
+      return fallback.trackGuestComplaint(trackingNumber);
+    }
+
+    const normalized = trackingNumber.replace(/\s+/g, '');
+    if (!/^\d{24}$/.test(normalized)) {
+      return {
+        found: false,
+        error: "We couldn't find a complaint with that number. Check it and try again.",
+      };
+    }
+
+    try {
+      const hashBuffer = await crypto.subtle.digest(
+        'SHA-256',
+        new TextEncoder().encode(normalized)
+      );
+      const trackingHash = Array.from(new Uint8Array(hashBuffer))
+        .map((b) => b.toString(16).padStart(2, '0'))
+        .join('');
+
+      const { data, error } = await supabase.rpc('get_guest_complaint_status', {
+        p_tracking_hash: trackingHash,
+      });
+
+      if (error) {
+        return fallback.trackGuestComplaint(trackingNumber);
+      }
+
+      if (!data || data.found !== true) {
+        return {
+          found: false,
+          error: "We couldn't find a complaint with that number. Check it and try again.",
+        };
+      }
+
+      return {
+        found: true,
+        public_status: data.public_status,
+        display_status: data.display_status,
+        public_category: data.public_category,
+        submitted_at: data.submitted_at,
+        updated_at: data.updated_at,
+        public_updates: data.public_updates,
+      };
+    } catch {
+      return {
+        found: false,
+        error: "We couldn't find a complaint with that number. Check it and try again.",
+      };
+    }
   }
 
   async claimComplaint(

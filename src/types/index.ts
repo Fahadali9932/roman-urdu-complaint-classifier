@@ -227,6 +227,7 @@ export interface SubmissionResult {
   status?: string;
   needsReview?: boolean;
   claimCode?: string;
+  guestTrackingNumber?: string;
 }
 
 /**

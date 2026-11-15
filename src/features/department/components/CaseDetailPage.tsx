@@ -294,58 +294,49 @@ export const CaseDetailPage: React.FC<CaseDetailPageProps> = ({
 
               <h3>Public incident location</h3>
               <p className="value">{caseItem.publicPlace}</p>
-              <p>
-                {caseItem.locality} · Verified public-place description from citizen submissions.
-                No citizen residential or private address details are ever displayed.
-              </p>
+              <p>{caseItem.locality}.</p>
 
               <div className="quiet-divider" />
 
               <h2>What&apos;s needed</h2>
               <p>
                 {eligibleCount > 0
-                  ? `Review linked reports and accept the ${eligibleCount} still awaiting department acknowledgement. This single action updates each citizen's tracking record; it does not confirm that physical field work is completed.`
-                  : 'There are no linked reports awaiting acknowledgement in this case. Work coordination and progress updates can be logged in the Work tab.'}
+                  ? `${eligibleCount} reports are waiting for a response.`
+                  : 'There are no reports waiting for a reply in this case.'}
               </p>
             </section>
 
             <aside className="section">
-              <h2>At a glance</h2>
+              <h2>Case details</h2>
               <div className="statline">
                 <div>
-                  <strong>Original reports</strong>
-                  <br />
-                  <span>Independently trackable</span>
+                  <strong>Reports received</strong>
                 </div>
                 <b>{caseItem.linkedReportCount}</b>
               </div>
 
               <div className="statline">
                 <div>
-                  <strong>Awaiting acceptance</strong>
-                  <br />
-                  <span>Eligible for one action</span>
+                  <strong>Waiting for a reply</strong>
                 </div>
                 <b>{eligibleCount}</b>
               </div>
 
               <div className="statline">
                 <div>
-                  <strong>Staff owner</strong>
-                  <br />
-                  <span>Work assignment</span>
+                  <strong>Assigned to</strong>
                 </div>
-                <b>{caseItem.assignedStaffLabel}</b>
+                <b>{caseItem.assignedStaffLabel === 'Unassigned' ? 'Not assigned' : caseItem.assignedStaffLabel}</b>
               </div>
 
               <div className="quiet-divider" />
 
-              <h2>Priority context</h2>
+              <h2>Why it matters</h2>
               <p>
                 {caseItem.priority === 'critical'
                   ? 'Safety hazard: this case must be considered quickly even if only one person reports it.'
                   : caseItem.priority === 'high'
-                  ? 'Age and service disruption make this case worth immediate operational attention.'
+                  ? `Reported ${caseItem.ageDays} days ago. People are still affected.`
                   : `Standard priority. ${caseItem.linkedReportCount} reports inform scale but do not automatically make a life safety hazard.`}
               </p>
             </aside>
@@ -357,9 +348,9 @@ export const CaseDetailPage: React.FC<CaseDetailPageProps> = ({
           <div className="section">
             <div className="report-head">
               <div>
-                <h2 style={{ marginBottom: 6 }}>Linked original complaints</h2>
+                <h2 style={{ marginBottom: 6 }}>Reports on this issue</h2>
                 <span className="hint">
-                  {caseItem.linkedReportCount} independent reports · {eligibleCount} awaiting acceptance
+                  {caseItem.linkedReportCount} reports · {eligibleCount} waiting for a reply
                 </span>
               </div>
               <label className="searchbox" htmlFor="caseReportSearch">
@@ -462,10 +453,7 @@ export const CaseDetailPage: React.FC<CaseDetailPageProps> = ({
         {/* ACTIVITY TAB */}
         {activeTab === 'activity' && (
           <div className="section">
-            <h2>Case activity</h2>
-            <p className="hint">
-              These are case-level events. Every citizen&apos;s original complaint maintains an independent timeline history.
-            </p>
+            <h2>Updates</h2>
 
             {activityEvents.map((a) => (
               <div key={a.id} className="activity-line">
@@ -486,24 +474,22 @@ export const CaseDetailPage: React.FC<CaseDetailPageProps> = ({
         {activeTab === 'work' && (
           <div className="two-cols">
             <section className="section">
-              <h2>Work coordination</h2>
+              <h2>Work</h2>
               <p>
-                Work assignment and field crew dispatch. Real updates reflect authorized
-                department actions on the ground.
+                {caseItem.assignedStaffLabel === 'Unassigned'
+                  ? 'No one is assigned yet.'
+                  : `Assigned to ${caseItem.assignedStaffLabel}.`}
               </p>
               <div className="notice">
                 {eligibleCount > 0
-                  ? `${eligibleCount} incoming reports can be acknowledged in one confirmed action. Acceptance is distinct from starting work or recording proof of completion.`
-                  : 'All linked reports in this case have already been acknowledged or completed.'}
+                  ? `Accept ${eligibleCount} reports to mark them as received. Physical work can then be tracked here.`
+                  : 'All linked reports in this case have already been acknowledged.'}
               </div>
             </section>
 
             <aside className="section">
               <h2>Assignment</h2>
-              <p className="value">{caseItem.assignedStaffLabel}</p>
-              <p className="hint">
-                Municipal operations maintain an audited staff assignment log.
-              </p>
+              <p className="value">{caseItem.assignedStaffLabel === 'Unassigned' ? 'Not assigned' : caseItem.assignedStaffLabel}</p>
             </aside>
           </div>
         )}

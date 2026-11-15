@@ -59,3 +59,6 @@ screenshots/
 .credentials/
 credentials/
 supabase/.temp/
+
+.chrome_verify_profile/
+chrome_*
