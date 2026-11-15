@@ -14,12 +14,14 @@ import {
 import { supabase, isSupabaseConfigured } from '../../lib/supabase';
 import { ComplaintInboxList } from './components/ComplaintInboxList';
 import { ComplaintDetailView } from './components/ComplaintDetailView';
+import { PriorityQueuePage } from './components/PriorityQueuePage';
 import { StatusUpdateModal } from './components/StatusUpdateModal';
 import { ReviewAssignmentModal } from './components/ReviewAssignmentModal';
 import { CivicSelect, type CivicSelectOption } from './components/CivicSelect';
 import {
   calculateComplaintPriority,
   sortComplaints,
+  getPriorityQueueCounts,
   type PriorityLevel,
 } from '../../lib/priority-engine';
 import {
@@ -127,7 +129,15 @@ export const DepartmentDashboardPage: React.FC = () => {
     return {};
   });
 
-  const handleOverridePriority = (refNumber: string, newPriority: PriorityLevel, reason: string) => {
+  const handleOverridePriority = async (refNumber: string, newPriority: PriorityLevel, reason: string) => {
+    if (departmentId) {
+      try {
+        await complaintService.overrideComplaintPriority(departmentId, refNumber, newPriority, reason);
+      } catch (err: any) {
+        console.warn('Backend override call failed, storing locally:', err?.message);
+      }
+    }
+
     const updatedRecord = {
       manualPriority: newPriority,
       manualPriorityReason: reason,
@@ -146,6 +156,15 @@ export const DepartmentDashboardPage: React.FC = () => {
       }
       return next;
     });
+
+    if (departmentId) {
+      try {
+        const refreshed = await complaintService.getDepartmentComplaints(departmentId);
+        setComplaints(refreshed);
+      } catch {
+        // Ignore
+      }
+    }
   };
 
   // Authentication & real-time revocation guard
@@ -313,6 +332,11 @@ export const DepartmentDashboardPage: React.FC = () => {
     };
   }, [augmentedComplaints, augmentedReviewComplaints]);
 
+  // Priority Queue counts
+  const priorityQueueCounts = useMemo(() => {
+    return getPriorityQueueCounts(augmentedComplaints);
+  }, [augmentedComplaints]);
+
   // Filter and sort complaints
   const filteredComplaints = useMemo(() => {
     const source = activeTaskFilter === 'under_review' ? augmentedReviewComplaints : augmentedComplaints;
@@ -404,14 +428,6 @@ export const DepartmentDashboardPage: React.FC = () => {
     { value: 'waiting_longest', label: 'Longest waiting first' },
   ];
 
-  const priorityOptions: CivicSelectOption[] = [
-    { value: 'all', label: 'All Priorities' },
-    { value: 'critical', label: 'Critical' },
-    { value: 'high', label: 'High' },
-    { value: 'normal', label: 'Normal' },
-    { value: 'low', label: 'Low' },
-  ];
-
   return (
     <div
       data-testid="department-workspace"
@@ -463,6 +479,7 @@ export const DepartmentDashboardPage: React.FC = () => {
               setSelectedReference(null);
             }}
             taskCounts={taskCounts}
+            priorityCount={priorityQueueCounts.total}
             isCollapsed={isSidebarCollapsed}
             onToggleCollapse={handleToggleSidebarCollapse}
           />
@@ -492,6 +509,7 @@ export const DepartmentDashboardPage: React.FC = () => {
                   setIsMobileDrawerOpen(false);
                 }}
                 taskCounts={taskCounts}
+                priorityCount={priorityQueueCounts.total}
                 onCloseMobileDrawer={() => setIsMobileDrawerOpen(false)}
               />
             </div>
@@ -588,19 +606,8 @@ export const DepartmentDashboardPage: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* Controls: Priority Filter & Sort Dropdown */}
+                    {/* Controls: Sort Dropdown */}
                     <div className="flex items-center gap-3 flex-wrap">
-                      {/* Priority Filter */}
-                      <CivicSelect
-                        id="dept-priority-filter"
-                        label="Priority:"
-                        value={priorityFilter}
-                        onValueChange={(val) => setPriorityFilter(val)}
-                        options={priorityOptions}
-                        ariaLabel="Filter by Priority"
-                      />
-
-                      {/* Sort Order Selector */}
                       <CivicSelect
                         id="dept-sort"
                         label="Sort:"
@@ -627,6 +634,33 @@ export const DepartmentDashboardPage: React.FC = () => {
                       onSelectComplaint={(ref) => setSelectedReference(ref)}
                     />
                   )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* SECTION: PRIORITY QUEUE (Selective Evidence-Based Triage) */}
+          {currentSection === 'priority_queue' && (
+            <div className="flex-1 flex flex-col min-h-0">
+              {selectedReference && selectedComplaint ? (
+                <ComplaintDetailView
+                  complaint={selectedComplaint}
+                  onOpenStatusModal={(status) => {
+                    setModalInitialStatus(status);
+                    setIsStatusModalOpen(true);
+                  }}
+                  onBackToList={() => setSelectedReference(null)}
+                  onOpenReviewModal={() => setIsReviewModalOpen(true)}
+                  onOverridePriority={handleOverridePriority}
+                />
+              ) : (
+                <div className="w-full max-w-7xl mx-auto">
+                  <PriorityQueuePage
+                    complaints={augmentedComplaints}
+                    departmentId={departmentId!}
+                    selectedReference={selectedReference}
+                    onSelectComplaint={(ref) => setSelectedReference(ref)}
+                  />
                 </div>
               )}
             </div>
@@ -675,9 +709,7 @@ export const DepartmentDashboardPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => {
-                    setCurrentSection('tasks');
-                    setActiveTaskFilter('all');
-                    setPriorityFilter('critical');
+                    setCurrentSection('priority_queue');
                     setSelectedReference(null);
                   }}
                   className="p-5 rounded-xl bg-[var(--dept-surface)] border border-rose-200 dark:border-rose-900/50 shadow-xs hover:border-rose-400 transition-all text-left cursor-pointer group"
@@ -687,10 +719,10 @@ export const DepartmentDashboardPage: React.FC = () => {
                     <Flame className="w-4 h-4 text-rose-600 dark:text-rose-400" />
                   </div>
                   <div className="text-3xl font-bold font-mono text-[var(--dept-text-primary)] group-hover:text-rose-600 transition-colors">
-                    {taskCounts.criticalHigh}
+                    {priorityQueueCounts.urgent}
                   </div>
                   <div className="text-[11px] text-[var(--dept-text-secondary)] mt-1 flex items-center gap-1">
-                    <span>Urgent civic hazards</span>
+                    <span>Open in Priority Queue</span>
                     <ArrowRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
                   </div>
                 </button>
@@ -701,7 +733,6 @@ export const DepartmentDashboardPage: React.FC = () => {
                   onClick={() => {
                     setCurrentSection('tasks');
                     setActiveTaskFilter('in_progress');
-                    setPriorityFilter('all');
                     setSelectedReference(null);
                   }}
                   className="p-5 rounded-xl bg-[var(--dept-surface)] border border-[var(--dept-border)] shadow-xs hover:border-[var(--dept-accent)] transition-all text-left cursor-pointer group"
@@ -723,22 +754,20 @@ export const DepartmentDashboardPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => {
-                    setCurrentSection('tasks');
-                    setActiveTaskFilter('all');
-                    setSortOrder('waiting_longest');
+                    setCurrentSection('priority_queue');
                     setSelectedReference(null);
                   }}
-                  className="p-5 rounded-xl bg-[var(--dept-surface)] border border-[var(--dept-border)] shadow-xs hover:border-[var(--dept-accent)] transition-all text-left cursor-pointer group"
+                  className="p-5 rounded-xl bg-[var(--dept-surface)] border border-amber-200 dark:border-amber-900/50 shadow-xs hover:border-amber-400 transition-all text-left cursor-pointer group"
                 >
-                  <div className="flex items-center justify-between text-xs font-medium text-[var(--dept-text-muted)] mb-2">
+                  <div className="flex items-center justify-between text-xs font-semibold text-amber-800 dark:text-amber-300 mb-2">
                     <span>Overdue (&gt;72h Waiting)</span>
                     <Clock className="w-4 h-4 text-amber-600 dark:text-amber-400" />
                   </div>
-                  <div className="text-3xl font-bold font-mono text-[var(--dept-text-primary)] group-hover:text-[var(--dept-accent)] transition-colors">
-                    {taskCounts.overdue72h}
+                  <div className="text-3xl font-bold font-mono text-[var(--dept-text-primary)] group-hover:text-amber-600 transition-colors">
+                    {priorityQueueCounts.overdue}
                   </div>
                   <div className="text-[11px] text-[var(--dept-text-secondary)] mt-1 flex items-center gap-1">
-                    <span>Aged beyond SLA</span>
+                    <span>Open in Priority Queue</span>
                     <ArrowRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
                   </div>
                 </button>

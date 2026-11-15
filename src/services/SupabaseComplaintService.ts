@@ -57,6 +57,10 @@ const mapComplaintRow = (r: any): Complaint => ({
   updatedAt: r.updated_at,
   timeline: formatTimelineEvents(r.complaint_timeline_events),
   isDemonstration: r.is_demonstration,
+  manualPriority: r.manual_priority ?? undefined,
+  manualPriorityReason: r.manual_priority_reason ?? undefined,
+  manualPriorityBy: r.manual_priority_by ?? undefined,
+  manualPriorityAt: r.manual_priority_at ?? undefined,
 });
 
 const COMPLAINT_SELECT_QUERY = '*, complaint_timeline_events(*)';
@@ -421,6 +425,40 @@ export class SupabaseComplaintService implements IComplaintService {
       success: true,
       complaint: updatedData ? (mapComplaintRow(updatedData) as DepartmentComplaintView) : undefined,
     };
+  }
+
+  async overrideComplaintPriority(
+    departmentId: DepartmentId,
+    referenceNumber: string,
+    newPriority: 'critical' | 'high' | 'normal' | 'low',
+    reason: string
+  ): Promise<{ success: boolean; complaint?: DepartmentComplaintView; error?: string }> {
+    if (!isSupabaseConfigured() || !supabase) {
+      return fallback.overrideComplaintPriority(departmentId, referenceNumber, newPriority, reason);
+    }
+
+    const item = await this.getDepartmentComplaintByReference(departmentId, referenceNumber);
+    if (!item) {
+      throw new Error(`Complaint ${referenceNumber} is not assigned to your department.`);
+    }
+
+    try {
+      const { error } = await supabase.rpc('staff_override_complaint_priority', {
+        p_complaint_id: item.id,
+        p_new_priority: newPriority,
+        p_reason: reason.trim(),
+      });
+      if (error) {
+        console.warn('Supabase RPC staff_override_complaint_priority error, falling back:', error.message);
+        return fallback.overrideComplaintPriority(departmentId, referenceNumber, newPriority, reason);
+      }
+
+      const refreshed = await this.getDepartmentComplaintByReference(departmentId, referenceNumber);
+      return { success: true, complaint: refreshed ?? item };
+    } catch (err: any) {
+      console.warn('RPC invocation failed, using fallback:', err?.message);
+      return fallback.overrideComplaintPriority(departmentId, referenceNumber, newPriority, reason);
+    }
   }
 }
 

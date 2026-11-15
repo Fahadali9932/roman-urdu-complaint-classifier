@@ -69,6 +69,10 @@ export interface DepartmentComplaintView {
   updatedAt: string;
   timeline: ComplaintTimelineEvent[];
   isDemonstration: boolean;
+  manualPriority?: 'critical' | 'high' | 'normal' | 'low';
+  manualPriorityReason?: string;
+  manualPriorityBy?: string;
+  manualPriorityAt?: string;
 }
 
 export type DetectedLanguage = 'roman_urdu' | 'english' | 'urdu';
@@ -112,6 +116,10 @@ export interface Complaint {
   isDemonstration: boolean;
   claimCodeHash?: string | null;
   claimedAt?: string | null;
+  manualPriority?: 'critical' | 'high' | 'normal' | 'low';
+  manualPriorityReason?: string;
+  manualPriorityBy?: string;
+  manualPriorityAt?: string;
 }
 
 export interface CitizenProfile {

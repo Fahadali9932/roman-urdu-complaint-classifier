@@ -86,4 +86,15 @@ export interface IComplaintService {
    * STRICT SECURITY: Accessible only by authorized municipal clearinghouse reviewers.
    */
   getReviewQueueComplaints(): Promise<DepartmentComplaintView[]>;
+
+  /**
+   * Adjusts priority of a complaint by authorized department staff.
+   * STRICT SECURITY: Enforces department ownership and audits modification.
+   */
+  overrideComplaintPriority(
+    departmentId: DepartmentId,
+    referenceNumber: string,
+    newPriority: 'critical' | 'high' | 'normal' | 'low',
+    reason: string
+  ): Promise<{ success: boolean; complaint?: DepartmentComplaintView; error?: string }>;
 }

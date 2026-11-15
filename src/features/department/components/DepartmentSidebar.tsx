@@ -7,6 +7,7 @@ import {
   AlertCircle,
   XCircle,
   ShieldAlert,
+  AlertOctagon,
   Settings,
   LogOut,
   ChevronDown,
@@ -19,7 +20,7 @@ import { useDepartmentAuth } from '../../../context/DepartmentAuthContext';
 import { useNavigate } from 'react-router-dom';
 import { CivicTooltip, CivicTooltipProvider } from './CivicTooltip';
 
-export type WorkspaceSection = 'dashboard' | 'tasks' | 'settings' | 'home';
+export type WorkspaceSection = 'dashboard' | 'tasks' | 'priority_queue' | 'settings' | 'home';
 export type TaskFilterType =
   | 'all'
   | 'under_review'
@@ -43,6 +44,7 @@ interface DepartmentSidebarProps {
     resolved: number;
     rejected: number;
   };
+  priorityCount?: number;
   onCloseMobileDrawer?: () => void;
   isCollapsed?: boolean;
   onToggleCollapse?: () => void;
@@ -54,6 +56,7 @@ export const DepartmentSidebar: React.FC<DepartmentSidebarProps> = ({
   activeTaskFilter,
   onSelectTaskFilter,
   taskCounts,
+  priorityCount = 0,
   onCloseMobileDrawer,
   isCollapsed = false,
   onToggleCollapse,
@@ -297,6 +300,51 @@ export const DepartmentSidebar: React.FC<DepartmentSidebarProps> = ({
                     })}
                   </div>
                 )
+              )}
+            </div>
+
+            {/* Group: PRIORITY QUEUE (Dedicated Selective Queue) */}
+            <div>
+              {!isCollapsed && (
+                <div className="px-2.5 mb-1.5 text-[10px] font-bold uppercase tracking-wider text-[var(--dept-text-muted)]">
+                  Triage
+                </div>
+              )}
+              {isCollapsed ? (
+                <CivicTooltip content={priorityCount > 0 ? `Priority Queue (${priorityCount})` : 'Priority Queue'} side="right">
+                  <button
+                    type="button"
+                    onClick={() => handleNavClick('priority_queue')}
+                    aria-label={priorityCount > 0 ? `Priority Queue (${priorityCount})` : 'Priority Queue'}
+                    className={`w-full flex justify-center py-2.5 rounded-lg text-xs transition-colors cursor-pointer ${
+                      currentSection === 'priority_queue'
+                        ? 'dept-nav-active font-semibold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800'
+                        : 'hover:bg-[var(--dept-surface-subtle)] text-[var(--dept-text-secondary)] hover:text-[var(--dept-text-primary)]'
+                    }`}
+                  >
+                    <AlertOctagon className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                  </button>
+                </CivicTooltip>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => handleNavClick('priority_queue')}
+                  className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
+                    currentSection === 'priority_queue'
+                      ? 'dept-nav-active font-semibold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800'
+                      : 'hover:bg-[var(--dept-surface-subtle)] text-[var(--dept-text-secondary)] hover:text-[var(--dept-text-primary)]'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <AlertOctagon className="w-4 h-4 shrink-0 text-amber-600 dark:text-amber-400" />
+                    <span>Priority Queue</span>
+                  </div>
+                  {priorityCount > 0 && (
+                    <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-900 dark:text-amber-200 border border-amber-200 dark:border-amber-800 font-bold">
+                      {priorityCount}
+                    </span>
+                  )}
+                </button>
               )}
             </div>
 

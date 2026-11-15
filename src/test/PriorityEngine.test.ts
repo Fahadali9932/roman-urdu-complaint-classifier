@@ -281,4 +281,85 @@ describe('AWAAZ-E-AWAM — Priority Engine & Civic Triage (Phase 3F.1)', () => {
     expect(formatPakistanDateTime(undefined)).toBe('Time unavailable');
     expect(formatPakistanDateTime('invalid-date')).toBe('Time unavailable');
   });
+
+  // 20. Routine complaints stay completely OUT of Priority Queue (Phase 3F.2)
+  it('20. marks standard complaints as routine and excludes them from Priority Queue', () => {
+    const routineComplaint: ComplaintPriorityInput = {
+      description: 'Gali me sadak par chota khadda hai repair karwa dein.',
+      status: 'assigned',
+      submittedAt: new Date(baseDate.getTime() - 10 * 3600 * 1000).toISOString(), // 10h ago
+    };
+    const res = calculateComplaintPriority(routineComplaint, baseDate);
+    expect(res.isRoutine).toBe(true);
+    expect(res.qualifiesForPriorityQueue).toBe(false);
+    expect(res.queueTabs).toHaveLength(0);
+    expect(res.isUrgent).toBe(false);
+    expect(res.isOverdue).toBe(false);
+  });
+
+  // 21. Urgent hazard qualifies for Priority Queue under Urgent tab
+  it('21. places active emergency hazard into Priority Queue Urgent tab', () => {
+    const hazardComplaint: ComplaintPriorityInput = {
+      description: 'Khula taar latak raha hai khambay se current aa raha hai log bach ke guzar rahe hain.',
+      status: 'assigned',
+      submittedAt: new Date(baseDate.getTime() - 2 * 3600 * 1000).toISOString(), // 2h ago
+    };
+    const res = calculateComplaintPriority(hazardComplaint, baseDate);
+    expect(res.isUrgent).toBe(true);
+    expect(res.qualifiesForPriorityQueue).toBe(true);
+    expect(res.queueTabs).toContain('urgent');
+    expect(res.priorityReason).toMatch(/electrocution|hazard/i);
+  });
+
+  // 22. Unresolved complaint waiting >= 72h qualifies for Overdue tab
+  it('22. places unresolved complaint waiting >= 72h into Priority Queue Overdue tab', () => {
+    const overdueComplaint: ComplaintPriorityInput = {
+      description: 'Street light kharab hai gali me andhera hai.',
+      status: 'assigned',
+      submittedAt: new Date(baseDate.getTime() - 80 * 3600 * 1000).toISOString(), // 80h ago
+    };
+    const res = calculateComplaintPriority(overdueComplaint, baseDate);
+    expect(res.isOverdue).toBe(true);
+    expect(res.qualifiesForPriorityQueue).toBe(true);
+    expect(res.queueTabs).toContain('overdue');
+    expect(res.priorityReason).toMatch(/overdue/i);
+  });
+
+  // 23. Resolved or rejected complaints do NOT enter Overdue tab
+  it('23. ensures resolved or rejected complaints never enter the Overdue tab even after 100h', () => {
+    const resolvedComplaint: ComplaintPriorityInput = {
+      description: 'Pothole repair request',
+      status: 'resolved',
+      submittedAt: new Date(baseDate.getTime() - 120 * 3600 * 1000).toISOString(), // 120h ago
+    };
+    const res = calculateComplaintPriority(resolvedComplaint, baseDate);
+    expect(res.isOverdue).toBe(false);
+    expect(res.queueTabs).not.toContain('overdue');
+  });
+
+  // 24. Flagged or ambiguous complaint qualifies for Needs Assessment tab
+  it('24. routes ambiguous or flagged complaints to Needs Assessment tab', () => {
+    const flaggedComplaint: ComplaintPriorityInput = {
+      description: 'Municipal issue in area',
+      status: 'assigned',
+      redactionNeedsReview: true,
+      submittedAt: baseDate.toISOString(),
+    };
+    const res = calculateComplaintPriority(flaggedComplaint, baseDate);
+    expect(res.needsAssessment).toBe(true);
+    expect(res.queueTabs).toContain('needs_assessment');
+  });
+
+  // 25. Open manhole on street triggers immediate danger
+  it('25. classifies open manhole or uncovered drain as Critical hazard', () => {
+    const manholeComplaint: ComplaintPriorityInput = {
+      description: 'Main road par open manhole hai khula gutter kisi hadsay ka sabab ban sakta hai.',
+      status: 'assigned',
+      submittedAt: baseDate.toISOString(),
+    };
+    const res = calculateComplaintPriority(manholeComplaint, baseDate);
+    expect(res.priority).toBe('critical');
+    expect(res.isUrgent).toBe(true);
+    expect(res.queueTabs).toContain('urgent');
+  });
 });

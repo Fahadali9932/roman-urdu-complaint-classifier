@@ -308,6 +308,11 @@ export class MockComplaintService implements IComplaintService {
       publicLocation: c.publicLocation,
       title: c.title,
       description: c.description,
+      sanitizedDescription: c.sanitizedDescription ?? c.description,
+      generatedHeading: c.generatedHeading ?? c.title,
+      factualSummary: c.factualSummary ?? c.description,
+      redactionFlags: c.redactionFlags,
+      redactionNeedsReview: c.redactionNeedsReview,
       detectedLanguage: c.detectedLanguage,
       status: c.status,
       assignedDepartmentId: c.assignedDepartmentId,
@@ -316,6 +321,10 @@ export class MockComplaintService implements IComplaintService {
       updatedAt: c.updatedAt,
       timeline: [...c.timeline],
       isDemonstration: c.isDemonstration,
+      manualPriority: c.manualPriority,
+      manualPriorityReason: c.manualPriorityReason,
+      manualPriorityBy: c.manualPriorityBy,
+      manualPriorityAt: c.manualPriorityAt,
     };
   }
 
@@ -493,6 +502,57 @@ export class MockComplaintService implements IComplaintService {
       descriptionUrdu: `محکمہ افسر نے شکایت کا جائزہ لے کر متعلقہ محکمے (${deptMeta.name}) کے سپرد کر دیا۔`,
       timestamp: now,
       actorRole: 'department_officer',
+    });
+
+    this.persistToStorage();
+    return { success: true, complaint: this.toDepartmentView(found) };
+  }
+
+  /**
+   * Adjusts priority of a complaint by authorized department staff.
+   * STRICT SECURITY: Enforces department ownership and audits modification.
+   */
+  async overrideComplaintPriority(
+    departmentId: DepartmentId,
+    referenceNumber: string,
+    newPriority: 'critical' | 'high' | 'normal' | 'low',
+    reason: string
+  ): Promise<{ success: boolean; complaint?: DepartmentComplaintView; error?: string }> {
+    await this.delay(100);
+    const cleaned = referenceNumber.trim();
+    const upperCleaned = cleaned.toUpperCase();
+    const found = this.complaints.find(
+      (c) => c.referenceNumber.toUpperCase() === upperCleaned || c.id === cleaned
+    );
+
+    if (!found) {
+      return { success: false, error: `Complaint ${referenceNumber} not found.` };
+    }
+
+    if (found.assignedDepartmentId !== departmentId && !(departmentId === 'kmc' && found.status === 'under_review')) {
+      return { success: false, error: `Unauthorized: Complaint ${referenceNumber} does not belong to department ${departmentId}.` };
+    }
+
+    const now = new Date().toISOString();
+    found.manualPriority = newPriority;
+    found.manualPriorityReason = reason.trim();
+    found.manualPriorityBy = 'Authorized Staff Officer';
+    found.manualPriorityAt = now;
+    found.updatedAt = now;
+
+    const deptMeta = KARACHI_DEPARTMENTS[departmentId];
+    const deptCode = deptMeta?.code || departmentId.toUpperCase();
+
+    found.timeline.push({
+      id: `t-prio-${Date.now()}`,
+      status: found.status,
+      title: `Priority Adjusted to ${newPriority.toUpperCase()}`,
+      titleUrdu: `ترجیح کو تبدیل کر کے ${newPriority.toUpperCase()} کیا گیا`,
+      description: `Priority overridden by Authorized Staff Officer. Reason: ${reason.trim()}`,
+      descriptionUrdu: `محکمانہ افسر کی جانب سے ترجیح تبدیل کی گئی۔ وجہ: ${reason.trim()}`,
+      timestamp: now,
+      actorRole: 'department_officer',
+      departmentCode: deptCode,
     });
 
     this.persistToStorage();

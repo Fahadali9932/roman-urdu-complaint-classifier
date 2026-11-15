@@ -1,11 +1,7 @@
 import React from 'react';
 import { type DepartmentComplaintView, type ComplaintStatus } from '../../../types';
-import {
-  calculateComplaintPriority,
-  formatPakistanDateTime,
-  type PriorityLevel,
-} from '../../../lib/priority-engine';
-import { Inbox, MapPin, Clock, ChevronRight, AlertTriangle } from 'lucide-react';
+import { formatPakistanDateTime, type PriorityLevel } from '../../../lib/priority-engine';
+import { Inbox, MapPin, Clock, ChevronRight } from 'lucide-react';
 
 interface ComplaintInboxListProps {
   complaints: DepartmentComplaintView[];
@@ -15,7 +11,8 @@ interface ComplaintInboxListProps {
 }
 
 /**
- * High-contrast semantic status badges (WCAG AA compliant: >= 4.5:1 contrast)
+ * Restrained, high-contrast civic status badges (WCAG AA compliant: >= 4.5:1 contrast)
+ * Avoids oversaturated pills or competing bright backgrounds.
  */
 export const getDisplayStatusBadge = (status: ComplaintStatus) => {
   switch (status) {
@@ -23,55 +20,55 @@ export const getDisplayStatusBadge = (status: ComplaintStatus) => {
       return {
         label: 'Needs Review',
         className:
-          'bg-purple-50 text-purple-950 border-purple-300 dark:bg-purple-950/70 dark:text-purple-200 dark:border-purple-700',
+          'bg-amber-50 text-amber-900 border-amber-200 dark:bg-amber-950/40 dark:text-amber-200 dark:border-amber-800/60',
       };
     case 'submitted':
       return {
         label: 'New',
         className:
-          'bg-slate-100 text-slate-900 border-slate-300 dark:bg-slate-800 dark:text-slate-100 dark:border-slate-700',
+          'bg-slate-100 text-slate-800 border-slate-200 dark:bg-slate-800/80 dark:text-slate-200 dark:border-slate-700',
       };
     case 'assigned':
       return {
         label: 'Pending Acceptance',
         className:
-          'bg-amber-50 text-amber-950 border-amber-300 dark:bg-amber-950/70 dark:text-amber-200 dark:border-amber-700',
+          'bg-sky-50 text-sky-900 border-sky-200 dark:bg-sky-950/40 dark:text-sky-200 dark:border-sky-800/60',
       };
     case 'accepted':
       return {
         label: 'Accepted',
         className:
-          'bg-sky-50 text-sky-950 border-sky-300 dark:bg-sky-950/70 dark:text-sky-200 dark:border-sky-700',
+          'bg-blue-50 text-blue-900 border-blue-200 dark:bg-blue-950/40 dark:text-blue-200 dark:border-blue-800/60',
       };
     case 'in_progress':
       return {
         label: 'In Progress',
         className:
-          'bg-blue-50 text-blue-950 border-blue-300 dark:bg-blue-950/70 dark:text-blue-200 dark:border-blue-700',
+          'bg-indigo-50 text-indigo-900 border-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-200 dark:border-indigo-800/60',
       };
     case 'resolved':
       return {
         label: 'Work Done',
         className:
-          'bg-emerald-50 text-emerald-950 border-emerald-300 dark:bg-emerald-950/70 dark:text-emerald-200 dark:border-emerald-700',
+          'bg-emerald-50 text-emerald-900 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-200 dark:border-emerald-800/60',
       };
     case 'rejected':
       return {
-        label: 'Rejected',
+        label: 'Closed / Rejected',
         className:
-          'bg-rose-50 text-rose-950 border-rose-300 dark:bg-rose-950/70 dark:text-rose-200 dark:border-rose-700',
+          'bg-zinc-100 text-zinc-800 border-zinc-200 dark:bg-zinc-800 dark:text-zinc-200 dark:border-zinc-700',
       };
     default:
       return {
         label: status,
         className:
-          'bg-slate-100 text-slate-900 border-slate-300 dark:bg-slate-800 dark:text-slate-100 dark:border-slate-700',
+          'bg-slate-100 text-slate-800 border-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700',
       };
   }
 };
 
 /**
- * High-contrast priority badge styling
+ * High-contrast priority badge styling (used in Priority Queue & Detail view only)
  */
 export const getPriorityBadge = (priority: PriorityLevel) => {
   switch (priority) {
@@ -133,22 +130,19 @@ export const ComplaintInboxList: React.FC<ComplaintInboxListProps> = ({
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="border-b border-[var(--dept-border)] bg-[var(--dept-surface-subtle)]/80 text-[11px] font-bold uppercase tracking-wider text-[var(--dept-text-muted)] select-none">
-              <th scope="col" className="py-3 px-4 w-[36%] min-w-[200px]">
+              <th scope="col" className="py-3 px-4 w-[42%] min-w-[240px]">
                 Complaint / Subject
               </th>
-              <th scope="col" className="py-3 px-3 w-[14%] min-w-[110px]">
+              <th scope="col" className="py-3 px-3 w-[15%] min-w-[120px]">
                 Reference
               </th>
-              <th scope="col" className="py-3 px-3 w-[11%] min-w-[95px]">
-                Priority
+              <th scope="col" className="py-3 px-3 w-[18%] min-w-[140px] hidden sm:table-cell">
+                Public Location
               </th>
-              <th scope="col" className="py-3 px-3 w-[15%] min-w-[120px] hidden sm:table-cell">
-                Location
-              </th>
-              <th scope="col" className="py-3 px-3 w-[13%] min-w-[130px] hidden md:table-cell">
+              <th scope="col" className="py-3 px-3 w-[15%] min-w-[140px] hidden md:table-cell">
                 Submitted
               </th>
-              <th scope="col" className="py-3 px-4 w-[11%] text-right min-w-[105px]">
+              <th scope="col" className="py-3 px-4 w-[10%] text-right min-w-[110px]">
                 Status
               </th>
             </tr>
@@ -157,8 +151,6 @@ export const ComplaintInboxList: React.FC<ComplaintInboxListProps> = ({
             {complaints.map((c) => {
               const isSelected = selectedReference === c.referenceNumber;
               const statusBadge = getDisplayStatusBadge(c.status);
-              const priorityEval = calculateComplaintPriority(c);
-              const priorityBadge = getPriorityBadge(priorityEval.priority);
               const exactSubmittedText = formatPakistanDateTime(c.submittedAt);
 
               const locationText = c.locality
@@ -195,16 +187,9 @@ export const ComplaintInboxList: React.FC<ComplaintInboxListProps> = ({
                       {summarySnippet}
                     </div>
 
-                    {/* Mobile Only: Priority, Location & Timestamp summary */}
+                    {/* Mobile Only: Location & Timestamp summary */}
                     <div className="sm:hidden flex flex-wrap items-center gap-1.5 text-[11px] text-[var(--dept-text-muted)] mt-1.5">
-                      <span
-                        className={`inline-flex items-center gap-1 px-1.5 py-0.2 rounded border font-semibold ${priorityBadge.className}`}
-                      >
-                        <span className={`w-1.5 h-1.5 rounded-full ${priorityBadge.dotColor}`} />
-                        <span>{priorityBadge.label}</span>
-                      </span>
-                      <span>·</span>
-                      <span className="truncate max-w-[120px]">{locationText}</span>
+                      <span className="truncate max-w-[140px]">{locationText}</span>
                       <span>·</span>
                       <span>{exactSubmittedText}</span>
                     </div>
@@ -217,26 +202,17 @@ export const ComplaintInboxList: React.FC<ComplaintInboxListProps> = ({
                     </span>
                   </td>
 
-                  {/* Priority Column */}
-                  <td className="py-3.5 px-3 align-top whitespace-nowrap">
-                    <span
-                      title={priorityEval.explanation}
-                      className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md border text-[11px] font-bold ${priorityBadge.className}`}
-                    >
-                      <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${priorityBadge.dotColor}`} />
-                      <span>{priorityBadge.label}</span>
-                      {priorityEval.escalatedByAging && (
-                        <AlertTriangle className="w-3 h-3 text-amber-700 dark:text-amber-400 shrink-0" />
-                      )}
-                    </span>
-                  </td>
-
-                  {/* Incident Location (sm+) */}
+                  {/* Public Location (sm+) */}
                   <td className="py-3.5 px-3 align-top text-xs text-[var(--dept-text-secondary)] hidden sm:table-cell">
-                    <div className="flex items-center gap-1.5 truncate max-w-[180px]">
+                    <div className="flex items-center gap-1.5 truncate max-w-[200px]">
                       <MapPin className="w-3.5 h-3.5 shrink-0 text-[var(--dept-text-muted)]" />
                       <span className="truncate font-medium">{locationText}</span>
                     </div>
+                    {c.publicLocation && (
+                      <div className="text-[11px] text-[var(--dept-text-muted)] truncate max-w-[200px] mt-0.5 pl-5">
+                        {c.publicLocation}
+                      </div>
+                    )}
                   </td>
 
                   {/* Submitted Date & Time (md+) */}
@@ -249,13 +225,13 @@ export const ComplaintInboxList: React.FC<ComplaintInboxListProps> = ({
 
                   {/* Status Badge & Action */}
                   <td className="py-3.5 px-4 align-top text-right whitespace-nowrap">
-                    <div className="flex items-center justify-end gap-1.5">
+                    <div className="flex items-center justify-end gap-2">
                       <span
-                        className={`inline-block text-[11px] font-semibold px-2.5 py-0.5 rounded-full border leading-tight ${statusBadge.className}`}
+                        className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold border ${statusBadge.className}`}
                       >
                         {statusBadge.label}
                       </span>
-                      <ChevronRight className="w-4 h-4 text-[var(--dept-text-muted)] opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <ChevronRight className="w-4 h-4 text-[var(--dept-text-muted)] opacity-0 group-hover:opacity-100 transition-opacity hidden sm:block shrink-0" />
                     </div>
                   </td>
                 </tr>
@@ -263,6 +239,16 @@ export const ComplaintInboxList: React.FC<ComplaintInboxListProps> = ({
             })}
           </tbody>
         </table>
+      </div>
+
+      {/* Footer Count Bar */}
+      <div className="px-4 py-2.5 bg-[var(--dept-surface-subtle)] border-t border-[var(--dept-border)] flex items-center justify-between text-xs text-[var(--dept-text-muted)]">
+        <span>
+          Showing <strong className="text-[var(--dept-text-primary)]">{complaints.length}</strong> {complaints.length === 1 ? 'complaint' : 'complaints'}
+        </span>
+        <span className="text-[11px]">
+          Pakistan Standard Time (PKT)
+        </span>
       </div>
     </div>
   );

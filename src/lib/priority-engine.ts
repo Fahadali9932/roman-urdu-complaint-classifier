@@ -1,25 +1,36 @@
 /**
- * Roman Urdu Complaint Priority & Aging Escalation Engine
+ * Roman Urdu Complaint Priority, Selective Triage & Queue Urgency Engine
  * Greenwich University, Karachi, Pakistan
  *
- * Deterministic civic triage based on:
- * 1. Intrinsic severity of the reported municipal grievance (Roman Urdu & English analysis).
- * 2. Queue waiting duration (aging escalation after 72h and 7 days for unresolved complaints).
- * 3. Authorized staff manual override with auditability.
+ * Deterministic civic triage separating:
+ * 1. Department classification (handled by existing classifier).
+ * 2. Intrinsic severity of municipal grievance (Roman Urdu & English analysis).
+ * 3. Queue urgency (Urgent, Overdue, Needs Assessment, or Routine).
  *
  * PRIVACY GUARANTEE: Never logs or exposes citizen PII.
  */
 
 export type PriorityLevel = 'critical' | 'high' | 'normal' | 'low';
+export type QueueTabType = 'urgent' | 'overdue' | 'needs_assessment';
+export type QueueCategory = 'urgent' | 'overdue' | 'needs_assessment' | 'routine';
 
 export interface PriorityEvaluation {
   priority: PriorityLevel;
   baseSeverity: PriorityLevel;
   agingHours: number;
+  timeWaitingFormatted: string;
   escalatedByAging: boolean;
   isManualOverride: boolean;
+  isUrgent: boolean;
+  isOverdue: boolean;
+  needsAssessment: boolean;
+  isRoutine: boolean;
+  qualifiesForPriorityQueue: boolean;
+  queueTabs: QueueTabType[];
+  primaryQueueTab?: QueueTabType;
   severityReason: string;
   explanation: string;
+  priorityReason: string;
   overriddenBy?: string;
   overriddenAt?: string;
   overrideReason?: string;
@@ -27,6 +38,7 @@ export interface PriorityEvaluation {
 
 export interface ComplaintPriorityInput {
   id?: string;
+  referenceNumber?: string;
   description: string;
   sanitizedDescription?: string | null;
   generatedHeading?: string | null;
@@ -34,6 +46,9 @@ export interface ComplaintPriorityInput {
   status: string;
   submittedAt?: string;
   created_at?: string;
+  redactionNeedsReview?: boolean;
+  predictionConfidence?: number;
+  assignedDepartmentId?: string;
   manualPriority?: PriorityLevel | null;
   manualPriorityReason?: string | null;
   manualPriorityBy?: string | null;
@@ -94,8 +109,8 @@ function findNonNegatedMatch(text: string, regex: RegExp): RegExpExecArray | nul
 export function evaluateBaseSeverity(text: string): { baseSeverity: PriorityLevel; reason: string } {
   const norm = normalizeText(text);
 
-  // 1. CRITICAL: Immediate danger to human life or safety
-  // A. Gas leak or cylinder explosion risk
+  // 1. CRITICAL: Immediate danger to human life or physical safety
+  // A. Gas leak or cylinder explosion risk (SSGC)
   // Ensure "gas nahi aa rahi" is NOT detected as leak
   const gasLeakPattern = /\b(gas(\s+(pipe|pipeline|line))?(\s+ki)?\s*(leak|leakage|boo|badboo|smell)|(gas\s*)?pipeline\s*(phat|blast|leak|burst)|cylinder\s*(phat|blast|leek))\b/i;
   if (findNonNegatedMatch(norm, gasLeakPattern)) {
@@ -105,8 +120,8 @@ export function evaluateBaseSeverity(text: string): { baseSeverity: PriorityLeve
     };
   }
 
-  // B. Exposed live electrical wires / electrocution hazard
-  // Note: "current nahi aa rahi" is outage, not shock hazard.
+  // B. Exposed live electrical wires / electrocution hazard (K-Electric)
+  // Note: "current nahi aa raha" is outage, not shock hazard.
   const liveWirePattern = /\b(live\s*wire|khula\s*taar|khulay\s*taar|taar\s*toot|khamb(a|e|ay)\s*se\s*current|current\s*lag\s*raha|current\s*aa\s*raha|transformer\s*(blast|aag|sparking)|bijli\s*ka\s*shola)\b/i;
   if (findNonNegatedMatch(norm, liveWirePattern)) {
     return {
@@ -115,12 +130,21 @@ export function evaluateBaseSeverity(text: string): { baseSeverity: PriorityLeve
     };
   }
 
-  // C. Structural collapse or deep collapse on active transit routes
-  const collapsePattern = /\b(bridge\s*toot|pul\s*toot|road\s*dhans|building\s*gir|deewar\s*girne|deep\s*sinkhole|gehra\s*gaddha\s*hadsa)\b/i;
+  // C. Structural collapse or deep collapse on active transit routes (SBCA / KMC)
+  const collapsePattern = /\b(bridge\s*toot|pul\s*toot|road\s*dhans|building\s*gir|chhat\s*(gir|toot)|deewar\s*girne|deep\s*sinkhole|gehra\s*gaddha\s*hadsa)\b/i;
   if (findNonNegatedMatch(norm, collapsePattern)) {
     return {
       baseSeverity: 'critical',
       reason: 'Imminent structural collapse or severe road subsidence creating active life hazard.',
+    };
+  }
+
+  // D. Dangerous open manhole on active roadways / pedestrian routes (KWSC / KMC)
+  const openManholeHazard = /\b(open\s*manhole|khula\s*gutter|gutter\s*ka\s*dhakkan\s*(nahi|gayab|toot)|drain\s*me\s*(bachha|bacha|koi)\s*gir)\b/i;
+  if (findNonNegatedMatch(norm, openManholeHazard)) {
+    return {
+      baseSeverity: 'critical',
+      reason: 'Dangerous uncovered manhole or storm drain posing acute fall hazard.',
     };
   }
 
@@ -152,7 +176,7 @@ export function evaluateBaseSeverity(text: string): { baseSeverity: PriorityLeve
     };
   }
 
-  // B. Major sewage overflow creating severe health hazard / entering homes
+  // B. Major sewage overflow creating severe health hazard / entering homes (KWSC)
   const sewageHealthPattern = /\b(sewage|gutter|ganda\s*pani)\s*(ghar|gharon|dakhil|ghus|flooding|bimari|infection|overflow)\b/i;
   if (findNonNegatedMatch(norm, sewageHealthPattern)) {
     return {
@@ -161,13 +185,23 @@ export function evaluateBaseSeverity(text: string): { baseSeverity: PriorityLeve
     };
   }
 
-  // C. Dangerous road damage with high accident risk
+  // C. Dangerous road damage with high accident risk (KMC)
   const dangerousRoadPattern = /\b(dangerous|khatarnak|shadeed\s*khadday|hadsa|accident|gaari\s*gir)\b/i;
   const isRoadIssue = /\b(road|sarak|sadak|pothole|khadda|khadday|pathor)\b/i.test(norm);
   if (isRoadIssue && findNonNegatedMatch(norm, dangerousRoadPattern)) {
     return {
       baseSeverity: 'high',
       reason: 'Dangerous road condition posing immediate vehicular or pedestrian accident hazard.',
+    };
+  }
+
+  // D. Severe solid waste accumulation creating acute disease or contamination risk (SSWMB)
+  const isWasteIssue = /\b(kachr(a|e)|garbage|waste|trash|kuda|kuday)\b/i.test(norm);
+  const wasteHazardPattern = /\b(hospital|clinic|school|bimari|infection|toxic|shadeed\s*badboo|dead\s*animal)\b/i;
+  if (isWasteIssue && findNonNegatedMatch(norm, wasteHazardPattern)) {
+    return {
+      baseSeverity: 'high',
+      reason: 'Severe solid waste accumulation creating acute public health or contamination risk.',
     };
   }
 
@@ -180,8 +214,7 @@ export function evaluateBaseSeverity(text: string): { baseSeverity: PriorityLeve
     };
   }
 
-  // 4. NORMAL: Standard civic maintenance
-  // Default routine road damage, standard water pressure issues, routine waste pickup
+  // 4. NORMAL: Standard civic maintenance (Routine)
   if (isRoadIssue) {
     return {
       baseSeverity: 'normal',
@@ -225,13 +258,34 @@ export function evaluateBaseSeverity(text: string): { baseSeverity: PriorityLeve
 }
 
 /**
- * Calculates priority with aging escalation and manual overrides.
+ * Formats waiting duration into human-readable string.
+ */
+export function formatTimeWaiting(hours: number): string {
+  if (hours < 1) return 'Just now';
+  if (hours < 24) return `${hours}h waiting`;
+  const days = Math.floor(hours / 24);
+  const remHours = hours % 24;
+  if (days === 1) return remHours > 0 ? `1 day, ${remHours}h` : '1 day waiting';
+  return `${days} days waiting (${hours}h)`;
+}
+
+/**
+ * Calculates priority, aging escalation, queue urgency, and explainable reasons.
  *
- * Aging rules:
- * - Unresolved complaints waiting >= 72 hours escalate by 1 level (Low -> Normal, Normal -> High, High -> Critical).
- * - Unresolved complaints waiting >= 168 hours (7 days) escalate by 2 levels (Low -> High, Normal -> Critical, High -> Critical).
- * - Resolved or Rejected complaints NEVER escalate.
- * - Manual overrides take precedence and are not silently overwritten by aging.
+ * Urgent criteria:
+ * - Base severity is Critical (hazard) or High (multi-day outage/overflow), OR
+ * - Manually overridden to Critical or High.
+ *
+ * Overdue criteria:
+ * - Unresolved complaint waiting >= 72 hours.
+ * - Resolved / rejected complaints NEVER enter Overdue.
+ *
+ * Needs Assessment criteria:
+ * - redactionNeedsReview === true, or status === 'under_review', or low confidence.
+ *
+ * Routine criteria:
+ * - Not Urgent, Not Overdue, Not Needs Assessment.
+ * - Routine complaints do NOT qualify for the Priority Queue.
  */
 export function calculateComplaintPriority(
   complaint: ComplaintPriorityInput,
@@ -248,7 +302,7 @@ export function calculateComplaintPriority(
 
   const { baseSeverity, reason: severityReason } = evaluateBaseSeverity(narrative);
 
-  // Timestamp calculation
+  // Timestamp & aging calculation
   const rawTimestamp = complaint.submittedAt || complaint.created_at;
   let agingHours = 0;
   if (rawTimestamp) {
@@ -259,62 +313,169 @@ export function calculateComplaintPriority(
     }
   }
 
-  // Check if complaint is closed (no aging for resolved/rejected)
-  const isClosed = complaint.status === 'resolved' || complaint.status === 'rejected';
+  const timeWaitingFormatted = formatTimeWaiting(agingHours);
+  const isClosed = complaint.status === 'resolved' || complaint.status === 'rejected' || complaint.status === 'closed';
 
-  // Check manual override
+  // Manual override resolution
   if (complaint.manualPriority) {
     const p = complaint.manualPriority;
     const author = complaint.manualPriorityBy || 'Authorized Officer';
     const reason = complaint.manualPriorityReason || 'Operational staff review';
+
+    const isUrgent = p === 'critical' || p === 'high';
+    const isOverdue = !isClosed && agingHours >= 72;
+    const needsAssessment = complaint.status === 'under_review' || !!complaint.redactionNeedsReview;
+    const isRoutine = !isUrgent && !isOverdue && !needsAssessment;
+    const qualifiesForPriorityQueue = !isRoutine;
+
+    const queueTabs: QueueTabType[] = [];
+    if (isUrgent) queueTabs.push('urgent');
+    if (isOverdue) queueTabs.push('overdue');
+    if (needsAssessment) queueTabs.push('needs_assessment');
+
+    const primaryQueueTab = isUrgent ? 'urgent' : isOverdue ? 'overdue' : needsAssessment ? 'needs_assessment' : undefined;
+
     return {
       priority: p,
       baseSeverity,
       agingHours,
+      timeWaitingFormatted,
       escalatedByAging: false,
       isManualOverride: true,
+      isUrgent,
+      isOverdue,
+      needsAssessment,
+      isRoutine,
+      qualifiesForPriorityQueue,
+      queueTabs,
+      primaryQueueTab,
       severityReason,
       explanation: `${p.toUpperCase()} priority — Manually adjusted by ${author}: "${reason}".`,
+      priorityReason: `Staff Escalation: ${reason}`,
       overriddenBy: author,
       overriddenAt: complaint.manualPriorityAt || undefined,
       overrideReason: reason,
     };
   }
 
-  // Aging Escalation logic
+  // Aging calculation & priority determination
   let priority = baseSeverity;
   let escalatedByAging = false;
   let agingNote = '';
 
   if (!isClosed && agingHours >= 72) {
     if (agingHours >= 168) {
-      // 7 days or more: bump 2 levels
       if (baseSeverity === 'low') priority = 'high';
       else if (baseSeverity === 'normal' || baseSeverity === 'high') priority = 'critical';
       escalatedByAging = priority !== baseSeverity;
-      agingNote = `Escalated to ${priority.toUpperCase()} — Overdue by ${Math.floor(agingHours / 24)} days (${agingHours} hours) without departmental resolution.`;
+      agingNote = `Overdue by ${Math.floor(agingHours / 24)} days (${agingHours} hours) without resolution`;
     } else {
-      // 72 hours to 6.99 days: bump 1 level
       if (baseSeverity === 'low') priority = 'normal';
       else if (baseSeverity === 'normal') priority = 'high';
       else if (baseSeverity === 'high') priority = 'critical';
       escalatedByAging = priority !== baseSeverity;
-      agingNote = `Escalated to ${priority.toUpperCase()} — Unresolved after ${agingHours} hours waiting for department action.`;
+      agingNote = `Unresolved after ${agingHours} hours waiting`;
     }
   }
 
+  // Queue Urgency Classification (Part 3 & 4)
+  const isUrgent = baseSeverity === 'critical' || baseSeverity === 'high';
+  const isOverdue = !isClosed && agingHours >= 72;
+  const needsAssessment =
+    complaint.status === 'under_review' ||
+    complaint.redactionNeedsReview === true ||
+    (complaint.predictionConfidence !== undefined && complaint.predictionConfidence < 0.50);
+
+  const isRoutine = !isUrgent && !isOverdue && !needsAssessment;
+  const qualifiesForPriorityQueue = !isRoutine;
+
+  const queueTabs: QueueTabType[] = [];
+  if (isUrgent) queueTabs.push('urgent');
+  if (isOverdue) queueTabs.push('overdue');
+  if (needsAssessment) queueTabs.push('needs_assessment');
+
+  const primaryQueueTab = isUrgent ? 'urgent' : isOverdue ? 'overdue' : needsAssessment ? 'needs_assessment' : undefined;
+
+  let priorityReason = severityReason;
+  if (isUrgent) {
+    priorityReason = baseSeverity === 'critical' ? `Urgent Hazard: ${severityReason}` : `Service Disruption: ${severityReason}`;
+  } else if (isOverdue) {
+    priorityReason = `Overdue: Unresolved for ${agingHours}h (${Math.floor(agingHours / 24)}d) · ${severityReason}`;
+  } else if (needsAssessment) {
+    priorityReason = 'Needs Assessment: Verification required by municipal staff.';
+  } else {
+    priorityReason = 'Routine: Handled under standard municipal service schedule.';
+  }
+
   const explanation = escalatedByAging
-    ? `${agingNote} (Initial severity basis: ${severityReason})`
+    ? `${priority.toUpperCase()} priority — ${agingNote}. (Initial severity basis: ${severityReason})`
     : `${priority.toUpperCase()} priority — ${severityReason}`;
 
   return {
     priority,
     baseSeverity,
     agingHours,
+    timeWaitingFormatted,
     escalatedByAging,
     isManualOverride: false,
+    isUrgent,
+    isOverdue,
+    needsAssessment,
+    isRoutine,
+    qualifiesForPriorityQueue,
+    queueTabs,
+    primaryQueueTab,
     severityReason,
     explanation,
+    priorityReason,
+  };
+}
+
+/**
+ * Filters complaints for the dedicated Priority Queue tabs.
+ * Tab options:
+ * - 'urgent': Complaints with elevated priority / active hazards.
+ * - 'overdue': Unresolved complaints waiting >= 72 hours.
+ * - 'needs_assessment': Complaints requiring staff review or ambiguity check.
+ */
+export function filterPriorityQueueComplaints<T extends ComplaintPriorityInput>(
+  complaints: T[],
+  tab: QueueTabType,
+  evaluationTime?: Date
+): T[] {
+  return complaints.filter((c) => {
+    const evaluation = calculateComplaintPriority(c, evaluationTime);
+    return evaluation.queueTabs.includes(tab);
+  });
+}
+
+/**
+ * Computes counts for each Priority Queue tab and total qualifying priority items.
+ */
+export function getPriorityQueueCounts<T extends ComplaintPriorityInput>(
+  complaints: T[],
+  evaluationTime?: Date
+): { urgent: number; overdue: number; needsAssessment: number; total: number } {
+  let urgent = 0;
+  let overdue = 0;
+  let needsAssessment = 0;
+  let totalQualifying = 0;
+
+  for (const c of complaints) {
+    const evaluation = calculateComplaintPriority(c, evaluationTime);
+    if (evaluation.qualifiesForPriorityQueue) {
+      totalQualifying++;
+    }
+    if (evaluation.isUrgent) urgent++;
+    if (evaluation.isOverdue) overdue++;
+    if (evaluation.needsAssessment) needsAssessment++;
+  }
+
+  return {
+    urgent,
+    overdue,
+    needsAssessment,
+    total: totalQualifying,
   };
 }
 
@@ -378,13 +539,11 @@ export function sortComplaints<T extends ComplaintPriorityInput>(
         return timeA - timeB;
 
       case 'waiting_longest':
-        // Oldest unresolved first
         return timeA - timeB;
 
       case 'priority_high': {
         const rankDiff = PRIORITY_RANKS[evalB.priority] - PRIORITY_RANKS[evalA.priority];
         if (rankDiff !== 0) return rankDiff;
-        // Tiebreak: oldest waiting first
         return timeA - timeB;
       }
 
