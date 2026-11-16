@@ -79,9 +79,11 @@ export const DOMAIN_EVIDENCE: Record<AgencyId, DomainLexicon> = {
   kmc: {
     assets: [
       /\bsarak\b/i, /\bsadak\b/i, /\broad\b/i, /\bfootpath\b/i, /\bfoot\s*path\b/i,
-      /\bstreet\s*light\b/i, /\bbatti\b/i, /\bbattiyan\b/i, /\bchauraha\b/i,
+      /\bstreet\s*lights?\b/i, /\bbatti\b/i, /\bbattiyan\b/i, /\bchauraha\b/i,
       /\bchowk\b/i, /\bbridge\b/i, /\bpul\b/i, /\bunderpass\b/i, /\btiles\b/i,
-      /\basphalt\b/i, /\bpavement\b/i,
+      /\basphalt\b/i, /\bpavement\b/i, /\bnaali\b/i, /\bnaala\b/i, /\bnullah\b/i,
+      /\bstormwater(?:\s*drain)?\b/i, /\bdrainage\s*nala\b/i, /\bdrainage\b/i,
+      /\bbarish\s*ka\s*paani\b/i,
     ],
     defects: [
       /\btoot\b/i, /\btooti\b/i, /\btoota\b/i, /\bgaddha\b/i, /\bgaddhay\b/i,
@@ -90,11 +92,17 @@ export const DOMAIN_EVIDENCE: Record<AgencyId, DomainLexicon> = {
       /\bkharab\b/i, /\bdamage\b/i, /\bdamaged\b/i, /\brepair\b/i,
       /\brebuild\b/i, /\bbana(?:o|ein)\b/i, /\bandhera\b/i,
       /\bencroachment\b/i, /\bgaariyan\s*lagti\b/i, /\bgehra\b/i,
+      /\bdarya\b/i, /\bubal\s*kar\s*road\b/i, /\bandhera\s*rehta\b/i,
+      /\bbattiyan\s*kharab\b/i, /\bband\s*pari\b/i, /\bband\s*hain\b/i,
+      /\bpaani\s*khara\b/i, /\bdo\s*foot\s*paani\b/i,
+      /\bdrainage\s*nala\s*kaam\s*n[ah]?[iy]\s*kar\s*raha\b/i,
+      /\bkaam\s*n[ah]?[iy]\s*kar\s*raha\b/i,
     ],
     denials: [
-      /\bsarak\s+bilkul\s+theek\b/i,
-      /\broad\s+tooti\s+nahi\b/i,
-      /\bfootpath\s+kharab\s+nahi\b/i,
+      /\bsarak\s+(?:bilkul\s+)?theek\b/i,
+      /\broad\s+tooti\s+(?:hui\s+)?na?h?i\b/i,
+      /\bsarak\s+tooti\s+(?:hui\s+)?na?h?i\b/i,
+      /\bfootpath\s+kharab\s+(?:hua\s+)?na?h?i\b/i,
     ],
   },
   kwsc: {
@@ -103,15 +111,18 @@ export const DOMAIN_EVIDENCE: Record<AgencyId, DomainLexicon> = {
       /\bgutter\b/i, /\bmanhole\b/i, /\bwater\s*main\b/i, /\bwater\s*(?:pipe|pipeline|supply)\b/i,
       /\bsarkari\s*pani\b/i, /\bpublic\s*(?:water|pani|pipe|pipeline)\b/i,
       /\bpipe\b/i, /\bpipeline\b/i, /\bwater\s*board\b/i, /\bkwsc\b/i, /\bkw&sc\b/i,
-      /\bdrinking\s*water\b/i, /\btap\b/i, /\bsewage\b/i,
+      /\bdrinking\s*water\b/i, /\btap\b/i, /\bsewage\b/i, /\btanki\b/i, /\btankee\b/i,
+      /\bsewer\s*line\b/i, /\bwater\s*supply\s*line\b/i,
     ],
     defects: [
       /\bleak\b/i, /\bleakage\b/i, /\bphat\b/i, /\bphati\b/i, /\bphatne\b/i,
       /\bburst\b/i, /\boverflow\b/i, /\bubalta\b/i, /\bubal\b/i, /\btalaab\b/i,
-      /\bcover\s*missing\b/i, /\blid\b/i, /\bsookhi\b/i, /\bpressure\s*(?:intihai\s*)?kam\b/i,
-      /\bpressure\s*zero\b/i, /\bpaani\s*nahi\s*aa\s*raha\b/i, /\bwater\s*nahi\s*aa\s*raha\b/i,
-      /\bsupply\s*(?:bilkul\s*)?band\b/i, /\bshortage\b/i, /\bchori\b/i, /\bband\s*hai\b/i,
+      /\bcover\s*missing\b/i, /\blid\b/i, /\bsookhi\b/i, /\bpressure\s*(?:intihai|bohot|bht|nihayat|bohat)?\s*kam\b/i,
+      /\bpressure\s*(?:na\s*hone|zero)\b/i, /\bpaani\s*nahi\s*aa\s*raha\b/i, /\bwater\s*nahi\s*aa\s*raha\b/i,
+      /\bsupply\s*(?:mukammal|bilkul|poori)?\s*band\b/i, /\bshortage\b/i, /\bchori\b/i, /\bband\s*hai\b/i,
       /\breplace\s*lid\b/i, /\bcovers?\s*missing\b/i, /\bcontaminated\b/i, /\btoxic\s*smell\b/i,
+      /\btanki\s*nahi\s*bhar\b/i, /\bsewer\s*line\s*choke\b/i, /\bchoke\b/i,
+      /\bsirf\s*hawa\s*aa\s*rahi\b/i, /\bganda\s*pani\b/i, /\bsewage\s*mix\b/i,
     ],
     denials: [
       /\bye\s+pani\s+ka\s+masla\s+na?h?i\b/i,
@@ -124,17 +135,22 @@ export const DOMAIN_EVIDENCE: Record<AgencyId, DomainLexicon> = {
       /\bbijli\b/i, /\blight\b/i, /\bcurrent\b/i, /\bfeeder\b/i, /\btransformer\b/i,
       /\btaar\b/i, /\bwire\b/i, /\bpole\b/i, /\bkhamba\b/i, /\bvoltage\b/i, /\bpower\b/i,
       /\bk-?electric\b/i, /\b11kv\b/i, /\bjumper\b/i, /\bcutout\b/i, /\bfuse\b/i,
-      /\belectricity\s*pole\b/i,
+      /\belectricity\s*pole\b/i, /\bphase\b/i, /\bphases\b/i,
     ],
     defects: [
       /\bload\s*shedding\b/i, /\bspark\b/i, /\bsparking\b/i, /\bblast\b/i,
       /\bshort\s*circuit\b/i, /\btrip\b/i, /\blatak\b/i, /\bhanging\b/i,
       /\bjhatkay\b/i, /\bbijli\s*nahi\s*aa\s*rahi\b/i, /\blight\s*gayi\b/i,
       /\bbijli\s*gayi\b/i, /\bfeeder\s*band\b/i, /\bfeeder\s*fault\b/i,
-      /\bfeeder\s*down\b/i, /\bbar\s*bar\s*ja\s*ra?h?i\b/i, /\btransformer\s*kharab\b/i,
-      /\btransformer\s*ka\s*fault\b/i, /\bpower\s*outage\b/i, /\bband\s*hai\b/i,
-      /\bpower\s*supply\s*cut\s*off\b/i, /\bzero\s*voltage\b/i, /\bsingle\s*phase\b/i,
-      /\bburnt\b/i, /\bsnapping\b/i, /\bcorroded\b/i, /\bmight\s*collapse\b/i,
+      /\bfeeder\s*down\b/i, /\bbar\s*bar\s*(?:light|bijli)?\s*ja\s*ra?h?i\b/i,
+      /\btransformer\s*(?:ka\s*)?(?:blast|jal\s*gaya|phat\s*gaya|kharab|fault)\b/i,
+      /\bfeeder\s*(?:ka\s*)?(?:fault|band)\b/i,
+      /\bpower\s*outage\b/i, /\bband\s*hai\b/i, /\bpower\s*supply\s*cut\s*off\b/i,
+      /\bzero\s*voltage\b/i, /\bsingle\s*phase\b/i, /\bburnt\b/i, /\bsnapping\b/i,
+      /\bcorroded\b/i, /\bmight\s*collapse\b/i, /\b(?:2|do)?\s*phase\s*gayab\b/i,
+      /\bdim\s*light\b/i, /\bvoltage\s*(?:drop|fluctuation|low|kam|up\s*down|bohat\s*zyada\s*low)\b/i,
+      /\bfeeder\s*trip\b/i, /\btoot\s*(?:kar\s*)?(?:zameen\s*par\s*)?(?:gir|giri)\b/i,
+      /\bnangi\s*taar\b/i, /\bappliances\s*jalne\b/i,
     ],
     denials: [
       /\bpole\s+kharab\s+nahi\b/i,
@@ -146,14 +162,16 @@ export const DOMAIN_EVIDENCE: Record<AgencyId, DomainLexicon> = {
     assets: [
       /\bgas\b/i, /\bsui\s*gas\b/i, /\bgas\s*pipe\b/i, /\bgas\s*pipeline\b/i,
       /\bgas\s*line\b/i, /\bgas\s*mains\b/i, /\bgas\s*meter\b/i, /\bchulha\b/i,
-      /\bssgc\b/i, /\bregulator\b/i, /\bdiaphragm\b/i,
+      /\bssgc\b/i, /\bregulator\b/i, /\bdiaphragm\b/i, /\bnatural\s*gas\b/i,
     ],
     defects: [
       /\bboo\b/i, /\bsmell\b/i, /\bhiss\b/i, /\bleak\b/i, /\bleakage\b/i,
       /\bpressure\b/i, /\bchulha\s*nahi\s*jal\b/i, /\bflame\s*nahi\b/i,
       /\baag\s*lagne\b/i, /\bdhamaka\b/i, /\bburst\b/i, /\bkam\s*aa\s*raha\b/i,
       /\bruptured\b/i, /\bwhistling\b/i, /\bblowing\s*out\b/i, /\bchulha\s*band\b/i,
-      /\bnahi\s*aa\s*rahi\b/i,
+      /\bnahi\s*aa\s*rahi\b/i, /\bsupply\s*(?:mukammal|bilkul|poori)?\s*band\b/i,
+      /\bgas\s*(?:na\s*hone|gayab)\b/i, /\bkhana\s*banana\s*namumkin\b/i,
+      /\btez\s*boo\b/i, /\bcylinder\s*lana\s*parh\b/i,
     ],
     denials: [
       /\bgas\s+ka\s+koi\s+issue\s+nahi\b/i,
@@ -167,19 +185,23 @@ export const DOMAIN_EVIDENCE: Record<AgencyId, DomainLexicon> = {
       /\bkachra\b/i, /\bkachray\b/i, /\bkura\b/i, /\btrash\b/i, /\bgarbage\b/i,
       /\bdustbin\b/i, /\bdustbins\b/i, /\bbin\b/i, /\bbins\b/i, /\bdhabay\b/i,
       /\bdead\s*animal\b/i, /\bkachra\s*kundi\b/i, /\bsswmb\b/i,
-      /\bwaste\b/i, /\bdumpster\b/i,
+      /\bwaste\b/i, /\bdumpster\b/i, /\bmurda\s*janwar\b/i, /\blaash\b/i,
+      /\bcarcass\b/i, /\billegal\s*(?:garbage\s*)?dump\b/i, /\bdump\b/i,
     ],
     defects: [
       /\bnahi\s*utha\b/i, /\bnahi\s*uth\b/i, /\bnahi\s*uthta\b/i,
       /\buthta\s*nahi\b/i, /\buthaya\s*nahi\b/i, /\bpara\s*hai\b/i, /\bpara\s*hua\b/i,
-      /\bdher\b/i, /\boverflow\b/i, /\bbikhra\b/i, /\bgir\s*raha\b/i,
-      /\bbadbu\b/i, /\bmachar\b/i, /\bstolen\b/i, /\bmissing\b/i,
+      /\bpari\s*hai\b/i, /\bparay\s*hain\b/i, /\bpare\s*hain\b/i, /\bparha\s*hai\b/i,
+      /\bparhi\s*hai\b/i, /\bdher\b/i, /\boverflow\b/i, /\bbikhra\b/i, /\bgir\s*raha\b/i,
+      /\bbadbu\b/i, /\bbadboo\b/i, /\bbad-?boo\b/i, /\bmachar\b/i, /\bstolen\b/i, /\bmissing\b/i,
       /\bdisinfect\b/i, /\baccumulation\b/i, /\bjama\b/i,
       /\brefusing\s*to\s*enter\b/i, /\bclogging\b/i, /\brotting\s*odor\b/i,
-      /\bclean\s*bin\b/i,
+      /\bclean\s*bin\b/i, /\bgari\s*nahi\s*aa?i\b/i, /\bgaari\s*nahi\s*aa?i\b/i,
+      /\bdump\s*ban\s*chuka\b/i, /\bkutte\s*nooch\b/i, /\bsaans\s*lena\s*mushkil\b/i,
+      /\baag\s*laga\b/i, /\bdhuwan\b/i, /\btaffun\b/i,
     ],
     denials: [
-      /\bkachra\s+theek\s+se\s+uth\s+gaya\b/i,
+      /\bkachra\s+(?:bilkul\s+)?theek\s+se\s+uth\s+gaya\b/i,
       /\bkachray\s+ka\s+masla\s+nahi\b/i,
     ],
   },
@@ -190,16 +212,19 @@ export const DOMAIN_EVIDENCE: Record<AgencyId, DomainLexicon> = {
       /\bfoundation\b/i, /\bfoundations\b/i, /\bbasement\b/i, /\bexcavation\b/i,
       /\bplot\b/i, /\bdukan\b/i, /\bcommercial\b/i, /\bcos\b/i,
       /\bcompulsory\s*open\s*space\b/i, /\bsbca\b/i, /\bconstruction\b/i,
-      /\bpremises\b/i, /\bbungalow\b/i,
+      /\bpremises\b/i, /\bbungalow\b/i, /\bopen\s*space\b/i, /\bcos\s*par\b/i,
+      /\bunsafe\s*building\b/i,
     ],
     defects: [
       /\billegal\b/i, /\bgheir\s*qanooni\b/i, /\bbina\s*permit\b/i, /\bbina\s*noc\b/i,
-      /\bextra\s*floor\b/i, /\bcrack\b/i, /\bcracks\b/i, /\bdarar\b/i,
+      /\bextra\s*floor\b/i, /\bcrack\b/i, /\bcracks\b/i, /\bdarar\b/i, /\bdaraar\b/i,
       /\bcollapse\b/i, /\bgirne\s*ka\s*khatra\b/i, /\bbowing\b/i, /\bdilapidated\b/i,
       /\bwithout\s*shoring\b/i, /\bseal\s*shuda\b/i, /\bcode\s*violation\b/i,
       /\bviolation\b/i, /\bevacuation\b/i, /\baccess\s*block\b/i,
       /\bstop-work\b/i, /\bseal\s*the\s*premises\b/i, /\bschool\b/i, /\bhospital\b/i,
-      /\bkhasta\s*haal\b/i, /\bgirne\s*wali\b/i,
+      /\bkhasta\s*haal\b/i, /\bgirne\s*wali\b/i, /\bsealing\s*order\b/i,
+      /\bdobara\s*illegal\s*kaam\b/i, /\bdemolition\s*vibration\b/i,
+      /\bkhatarnak\s*dara?ar\b/i, /\bunsafe\b/i,
     ],
     denials: [
       /\bbuilding\s+theek\s+hai\b/i,
@@ -251,15 +276,18 @@ const LOCATION_INDICATORS = [
 export function normalizeRomanUrduText(text: string): string {
   let t = (text || '').toLowerCase();
   t = t.replace(/\bsadak\b/g, 'sarak');
-  t = t.replace(/\b(nhi|nai)\b/g, 'nahi');
-  t = t.replace(/\b(boht|bht|bohat)\b/g, 'bohot');
-  t = t.replace(/\b(choolha)\b/g, 'chulha');
-  t = t.replace(/\bgadda\b/g, 'gaddha');
+  t = t.replace(/\b(nhi|nai|naheen)\b/g, 'nahi');
+  t = t.replace(/\b(boht|bht|bohat|bhat)\b/g, 'bohot');
+  t = t.replace(/\b(choolha|chula)\b/g, 'chulha');
+  t = t.replace(/\b(gadda|gadha)\b/g, 'gaddha');
+  t = t.replace(/\b(khrab|xrab)\b/g, 'kharab');
   t = t.replace(/\b(hy)\b/g, 'hai');
-  t = t.replace(/\b(rhi)\b/g, 'rahi');
-  t = t.replace(/\b(zada)\b/g, 'zyada');
+  t = t.replace(/\b(rhi|rhin)\b/g, 'rahi');
+  t = t.replace(/\b(rha|rhe|rhay)\b/g, 'rahe');
+  t = t.replace(/\b(zada|zyadh)\b/g, 'zyada');
   t = t.replace(/\b(hoi\s*v|hoi\s*hai)\b/g, 'hui hai');
   t = t.replace(/\bkrdo\b/g, 'karo');
+  t = t.replace(/\b(badbu|bad-?boo)\b/g, 'badboo');
   return t;
 }
 
@@ -268,7 +296,7 @@ export function segmentSpansWithOffsets(text: string): Array<[number, number, st
   if (!raw) return [];
 
   const splitterRegex =
-    /(?:,\s*(?:aur\s+alag\s+se|alag\s+se|is\s+ke\s+ilawa|is\s+ke\s+sath\s+sath|saath\s+mein|doosra\s+masla|doosri\s+taraf)\b|\b(?:aur\s+alag\s+se|alag\s+se|is\s+ke\s+ilawa|is\s+ke\s+sath\s+sath|saath\s+mein|doosra\s+masla|doosri\s+taraf)\b|(?<!\w[A-Za-z])\.\s+|;\s*)/gi;
+    /(?:,\s*(?:aur\s+alag\s+se|alag\s+se|is\s+ke\s+ilawa|is\s+ke\s+sath\s+sath|saath\s+mein|doosra\s+masla|doosri\s+taraf)\b|\b(?:aur\s+alag\s+se|alag\s+se|is\s+ke\s+ilawa|is\s+ke\s+sath\s+sath|saath\s+mein|doosra\s+masla|doosri\s+taraf|aur\s+saath\s+wali)\b|(?<!\w[A-Za-z])\.\s+|;\s*)/gi;
 
   const spans: Array<[number, number, string]> = [];
   let lastEnd = 0;
@@ -340,7 +368,7 @@ export function segmentSpansWithOffsets(text: string): Array<[number, number, st
 function quickDeptCheck(clause: string): Set<DepartmentId> {
   const found = new Set<DepartmentId>();
   const cNorm = normalizeRomanUrduText(clause);
-  if (/\b(gas|sui\s*gas)\b/i.test(cNorm)) {
+  if (/\b(gas|sui\s*gas|natural\s*gas)\b/i.test(cNorm)) {
     found.add('ssgc');
   }
   for (const [dept, lex] of Object.entries(DOMAIN_EVIDENCE) as Array<[AgencyId, DomainLexicon]>) {
@@ -585,8 +613,31 @@ export function analyzeComplaintRelationAware(
       }
 
       // Road surface water ponding consequence without road damage
-      if (dept === 'kmc' && /\broad\s*tooti\s*nahi\b/i.test(normFull)) continue;
-      if (dept === 'kmc' && /\bfootpath\s*kharab\s*nahi\b/i.test(normFull)) continue;
+      if (dept === 'kmc' && DOMAIN_EVIDENCE.kmc.denials.some((den) => den.test(normFull))) {
+        if (!/\b(drainage\s*nala|drainage|street\s*lights?|naali|naala|nullah)\b/i.test(sNorm)) {
+          continue;
+        }
+      }
+
+      // Pedestrian access blocked by construction without footpath broken
+      if (dept === 'kmc' && /\bfootpath\s+kharab\s+(?:hua\s+)?na?h?i\b/i.test(normFull)) {
+        if (!/\b(drainage\s*nala|drainage|street\s*lights?|naali|naala|nullah)\b/i.test(sNorm)) {
+          continue;
+        }
+      }
+
+      // Spatial preamble for KMC: "footpath aur road par [Location] ... [other dept issue]"
+      if (dept === 'kmc' && /^(?:footpath\s+aur\s+road\s+par|sarak\s+par|road\s+par)\b/i.test(sNorm)) {
+        const dHits = lex.defects.filter((pat) => pat.test(sNorm));
+        if (dHits.length === 0) {
+          continue;
+        }
+      }
+
+      // Location: "water pump chowrangi" is location, not kwsc asset
+      if (dept === 'kwsc' && /\bwater\s*pump\s*chowrangi\b/i.test(sNorm) && !/\b(pani|paani|sewer|gutter|supply|manhole|leak|leakage|burst|choke)\b/i.test(sNorm)) {
+        continue;
+      }
 
       // Gas pipe check for KWSC
       if (dept === 'kwsc' && /\b(gas|sui\s*gas)\b/i.test(sNorm) && !/\b(pani|water|sewer|gutter)\b/i.test(sNorm)) {
@@ -594,7 +645,12 @@ export function analyzeComplaintRelationAware(
       }
 
       // SSGC must have gas tokens
-      if (dept === 'ssgc' && !/\b(gas|chulha|sui\s*gas)\b/i.test(normFull)) {
+      if (dept === 'ssgc' && !/\b(gas|chulha|sui\s*gas|natural\s*gas)\b/i.test(normFull)) {
+        continue;
+      }
+
+      // If taar/wire is present in K-Electric, don't confuse KMC road toot with taar toot
+      if (dept === 'kmc' && /\b(taar|wire|bijli)\b/i.test(sNorm) && !/\b(sarak|sadak|road|footpath|street\s*lights?|naali|naala|drainage)\b/i.test(sNorm)) {
         continue;
       }
 
@@ -602,7 +658,7 @@ export function analyzeComplaintRelationAware(
       const assetHits = lex.assets.filter((pat) => pat.test(sNorm));
       let defectHits = lex.defects.filter((pat) => pat.test(sNorm));
 
-      if (dept === 'ssgc' && /\bgas\b/i.test(sNorm) && defectHits.length === 0) {
+      if (dept === 'ssgc' && /\b(?:gas|natural\s*gas)\b/i.test(sNorm) && defectHits.length === 0) {
         defectHits = lex.defects.filter((pat) => pat.test(normFull));
       }
 
@@ -649,13 +705,18 @@ export function analyzeComplaintRelationAware(
       ) {
         continue;
       }
-      if (dept === 'kmc' && (/\broad\s*tooti\s*nahi\b/i.test(normFull) || /\bfootpath\s*kharab\s*nahi\b/i.test(normFull))) {
+      if (dept === 'kmc' && DOMAIN_EVIDENCE.kmc.denials.some((den) => den.test(normFull))) {
+        if (!/\b(drainage\s*nala|drainage|street\s*lights?|naali|naala|nullah)\b/i.test(normFull)) {
+          continue;
+        }
+      }
+      if (dept === 'kmc' && /\b(wire|taar)\b/i.test(normFull) && !/\b(gaddha|khadda|toot|dhans|pothole|sarak|sadak|road|footpath|street\s*lights?|naali|naala|drainage)\b/i.test(normFull)) {
         continue;
       }
-      if (dept === 'kmc' && /\b(wire|taar)\b/i.test(normFull) && !/\b(gaddha|khadda|toot|dhans|pothole)\b/i.test(normFull)) {
+      if (dept === 'kwsc' && /\bwater\s*pump\s*chowrangi\b/i.test(normFull) && !/\b(pani|paani|sewer|gutter|supply|manhole|leak|leakage|burst|choke)\b/i.test(normFull)) {
         continue;
       }
-      if (dept === 'ssgc' && !/\b(gas|chulha|sui\s*gas)\b/i.test(normFull)) continue;
+      if (dept === 'ssgc' && !/\b(gas|chulha|sui\s*gas|natural\s*gas)\b/i.test(normFull)) continue;
 
       const aHits = lex.assets.filter((pat) => pat.test(normFull));
       const dHits = lex.defects.filter((pat) => pat.test(normFull));
@@ -766,9 +827,46 @@ export function analyzeComplaintRelationAware(
     );
   }
 
-  // 12. Review Gate
-  const needsReview = actionableDepts.length === 0;
-  const reviewReason = needsReview ? 'UNCERTAIN_DEFECT' : null;
+  // 12. Review Gate & Secondary Issue Completeness Check
+  let needsReview = actionableDepts.length === 0;
+  let reviewReason = needsReview ? 'UNCERTAIN_DEFECT' : null;
+
+  if (actionableDepts.length >= 1 && spanTuples.length > 1) {
+    for (let sIdx = 0; sIdx < spanTuples.length; sIdx++) {
+      const [, , stRaw] = spanTuples[sIdx];
+      const stNorm = normalizeRomanUrduText(stRaw);
+      const spanGrounded = candidates.some(
+        (c) =>
+          c.span_id.startsWith(`iss_${sIdx}_`) &&
+          c.is_actionable &&
+          c.department &&
+          actionableDepts.includes(c.department)
+      );
+      if (!spanGrounded) {
+        const isBenign = candidates.some(
+          (c) =>
+            c.span_id.startsWith(`iss_${sIdx}_`) &&
+            ['consequence', 'recipient_mention', 'spatial_landmark', 'negated_mention'].includes(
+              c.mention_type
+            )
+        );
+        if (!isBenign) {
+          const hasGrievanceToken =
+            /\b(masla|kharab|problem|issue|choke|dara?ar|khatra|khatarnak|dher|kachra|dump|illegal|unsafe|band|toot|current|shikayat|pareshan|dhuwan|aag|gari\s*nahi)\b/i.test(
+              stNorm
+            );
+          if (hasGrievanceToken) {
+            needsReview = true;
+            reviewReason = 'POSSIBLE_UNROUTED_SECONDARY_ISSUE';
+            reasonTrace.push(
+              'Secondary clause contains unrouted civic defect indicators; flagged for human triage (POSSIBLE_UNROUTED_SECONDARY_ISSUE)'
+            );
+            break;
+          }
+        }
+      }
+    }
+  }
 
   return {
     complaint_id: complaintId,
