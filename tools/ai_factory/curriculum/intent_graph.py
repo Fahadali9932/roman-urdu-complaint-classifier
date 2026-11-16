@@ -48,6 +48,7 @@ class IssueNode:
     urgency: str = "medium"
     is_primary: bool = True
     actionable: bool = True
+    metadata: Dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
         return dataclasses.asdict(self)

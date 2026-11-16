@@ -1,0 +1,32 @@
+{"id":"R01","text":"hamari gali ki sarak toot gai hai, isko repair karo","expected_departments":["kmc"],"relation":"SINGLE","review":false}
+{"id":"R02","text":"public pani ki pipeline se leakage ho rahi hai","expected_departments":["kwsc"],"relation":"SINGLE","review":false}
+{"id":"R03","text":"feeder se bijli nahi aa rahi, roz load shedding hai","expected_departments":["kelectric"],"relation":"SINGLE","review":false}
+{"id":"R04","text":"gas pipe se leak ki boo aa rahi hai public line par","expected_departments":["ssgc"],"relation":"SINGLE","review":false}
+{"id":"R05","text":"garbage truck kachra nahi utha raha public street se","expected_departments":["sswmb"],"relation":"SINGLE","review":false}
+{"id":"R06","text":"bina permit building mein illegal floor ban raha hai","expected_departments":["sbca"],"relation":"SINGLE","review":false}
+{"id":"R07","text":"bijli gayi hui hai jis ki wajah se ghar ki pani ki motor band hai","expected_departments":["kelectric"],"relation":"CAUSES_CONTEXT_ONLY","review":false}
+{"id":"R08","text":"public water main leak hone se road par pani jama hai magar road tooti nahi","expected_departments":["kwsc"],"relation":"CAUSES_CONTEXT_ONLY","review":false}
+{"id":"R09","text":"gas ka pressure bilkul nahi aur is liye chulha nahi jal raha","expected_departments":["ssgc"],"relation":"CAUSES_CONTEXT_ONLY","review":false}
+{"id":"R10","text":"kachra uthta nahi, uski wajah se badbu aur machar ho gaye","expected_departments":["sswmb"],"relation":"CAUSES_CONTEXT_ONLY","review":false}
+{"id":"R11","text":"road mein gaddha hai aur uski wajah se traffic ruk raha hai","expected_departments":["kmc"],"relation":"CAUSES_CONTEXT_ONLY","review":false}
+{"id":"R12","text":"illegal construction ne pedestrian access block kiya hai, footpath kharab nahi hua","expected_departments":["sbca"],"relation":"CAUSES_CONTEXT_ONLY","review":false}
+{"id":"R13","text":"sarak mein gaddha hai aur alag se public water pipeline phati hui hai","expected_departments":["kmc","kwsc"],"relation":"INDEPENDENT","review":false}
+{"id":"R14","text":"gas ki boo aa rahi aur alag electric pole par taar bhi spark kar rahi hai","expected_departments":["kelectric","ssgc"],"relation":"INDEPENDENT","review":false}
+{"id":"R15","text":"illegal extra floor ban raha aur market mein kachra bhi nahi uth raha","expected_departments":["sbca","sswmb"],"relation":"INDEPENDENT","review":false}
+{"id":"R16","text":"sewer overflow hai, aur doosri taraf bijli transformer ka fault hai","expected_departments":["kelectric","kwsc"],"relation":"INDEPENDENT","review":false}
+{"id":"R17","text":"gali ka footpath toot gaya aur public bin se kachra bhi gir raha hai","expected_departments":["kmc","sswmb"],"relation":"INDEPENDENT","review":false}
+{"id":"R18","text":"gas line leak hai aur public water supply band hai, dono alag issues hain","expected_departments":["kwsc","ssgc"],"relation":"INDEPENDENT","review":false}
+{"id":"R19","text":"public water main phatne se road surface bhi dhans gai, pipe replace karo aur road bhi dubara banao","expected_departments":["kmc","kwsc"],"relation":"SAME_INCIDENT_DIFFERENT_REPAIRS","review":false}
+{"id":"R20","text":"gas ka koi issue nahi, asal mein kachra nahi uth raha","expected_departments":["sswmb"],"relation":"NEGATED","review":false}
+{"id":"R21","text":"sarak bilkul theek hai, problem public pipe leak ki hai","expected_departments":["kwsc"],"relation":"NEGATED","review":false}
+{"id":"R22","text":"K-Electric ko bhi bataya tha lekin hamari complaint road ke gaddhe ki hai","expected_departments":["kmc"],"relation":"RECIPIENT_ONLY","review":false}
+{"id":"R23","text":"electric pole ke paas kachra para hai, pole kharab nahi","expected_departments":["sswmb"],"relation":"SPATIAL_PROXIMITY_ONLY","review":false}
+{"id":"R24","text":"ye pani ka masla nhi hy, feeder ki light bar bar ja rhi hy","expected_departments":["kelectric"],"relation":"NEGATED","review":false}
+{"id":"R25","text":"humare ghar ke pass wali road bohot zada kharab hoi v hai isko theek kiya jae","expected_departments":["kmc"],"relation":"SINGLE","review":false}
+{"id":"R26","text":"KMC ko letter likha tha, par asal issue gas mains ke pressure ka hai","expected_departments":["ssgc"],"relation":"RECIPIENT_ONLY","review":false}
+{"id":"R27","text":"hamare ilaqay mein ajeeb masla hai, koi dekh le","expected_departments":[],"relation":"UNCERTAIN","review":true}
+{"id":"R28","text":"mera padosi ghar ke andar mujhe pareshan kar raha hai","expected_departments":[],"relation":"UNCERTAIN","review":true}
+{"id":"R29","text":"kachra theek se uth gaya hai magar public gas pipe abhi leak ho rahi","expected_departments":["ssgc"],"relation":"NEGATED","review":false}
+{"id":"R30","text":"illegal construction chal rahi aur bilkul alag block mein footpath ki tiles bhi toot gai","expected_departments":["kmc","sbca"],"relation":"INDEPENDENT","review":false}
+{"id":"R31","text":"pani main leak hai, alag se feeder band hai aur market ki road bhi toot gai","expected_departments":["kelectric","kmc","kwsc"],"relation":"INDEPENDENT","review":false}
+

@@ -81,19 +81,27 @@ SPLIT_FAMILIES: Dict[str, Set[str]] = {
     "test": TEST_FAMILIES,
 }
 
-# Group scenarios by department within each split
-DEPT_SCENARIOS_BY_SPLIT: Dict[str, Dict[str, List[Dict[str, Any]]]] = {
+# Group scenarios by department within each split: Single vs Multi-issue
+DEPT_SINGLE_SCENARIOS_BY_SPLIT: Dict[str, Dict[str, List[Dict[str, Any]]]] = {
     split: {dept: [] for dept in DEPARTMENTS} for split in ("train", "validation", "test")
+}
+PAIR_SCENARIOS_BY_SPLIT: Dict[str, List[Dict[str, Any]]] = {
+    split: [] for split in ("train", "validation", "test")
 }
 
 for _s in SCENARIOS:
     _fid = _s["family_id"]
     _split = "train" if _fid in TRAIN_FAMILIES else ("validation" if _fid in VAL_FAMILIES else "test")
-    for _iss in _s.get("issues", []):
-        _dept = _iss.get("department_key")
-        if _dept in DEPARTMENTS:
-            if _s not in DEPT_SCENARIOS_BY_SPLIT[_split][_dept]:
-                DEPT_SCENARIOS_BY_SPLIT[_split][_dept].append(_s)
+    is_pair = len(_s.get("issues", [])) > 1 or _fid.startswith("pair_") or _fid.startswith("dual_")
+    if is_pair:
+        if _s not in PAIR_SCENARIOS_BY_SPLIT[_split]:
+            PAIR_SCENARIOS_BY_SPLIT[_split].append(_s)
+    else:
+        for _iss in _s.get("issues", []):
+            _dept = _iss.get("department_key")
+            if _dept in DEPARTMENTS:
+                if _s not in DEPT_SINGLE_SCENARIOS_BY_SPLIT[_split][_dept]:
+                    DEPT_SINGLE_SCENARIOS_BY_SPLIT[_split][_dept].append(_s)
 
 # Colloquial Roman Urdu spelling permutations
 COLLOQUIAL_SPELLINGS: List[Tuple[str, str]] = [
@@ -235,13 +243,17 @@ class AutonomousCurriculumRealizer:
         if primary_dept is None:
             primary_dept = self.rng.choice(list(DEPARTMENTS))
 
-        # Select primary scenario from the split's authorized families
-        dept_scenarios = DEPT_SCENARIOS_BY_SPLIT[split][primary_dept]
+        # Select primary scenario from the split's authorized single families
+        dept_scenarios = DEPT_SINGLE_SCENARIOS_BY_SPLIT[split][primary_dept]
         if not dept_scenarios:
-            # Fallback to any scenario in this split
-            avail = [s for s in SCENARIOS if s["family_id"] in SPLIT_FAMILIES[split]]
-            primary_spec = self.rng.choice(avail)
-            primary_dept = primary_spec["issues"][0]["department_key"]
+            avail = [s for s in SCENARIOS if s["family_id"] in SPLIT_FAMILIES[split] and len(s.get("issues", [])) == 1]
+            if avail:
+                primary_spec = self.rng.choice(avail)
+                primary_dept = primary_spec["issues"][0]["department_key"]
+            else:
+                avail_all = [s for s in SCENARIOS if s["family_id"] in SPLIT_FAMILIES[split]]
+                primary_spec = self.rng.choice(avail_all)
+                primary_dept = primary_spec["issues"][0]["department_key"]
         else:
             primary_spec = self.rng.choice(dept_scenarios)
 
@@ -284,32 +296,53 @@ class AutonomousCurriculumRealizer:
 
         elif level == 4:
             # Genuinely independent multi-department complaint
-            if secondary_dept is None or secondary_dept == primary_dept:
-                avail_depts = [d for d in DEPARTMENTS if d != primary_dept]
-                secondary_dept = self.rng.choice(avail_depts)
-
-            sec_scenarios = DEPT_SCENARIOS_BY_SPLIT[split][secondary_dept]
-            if not sec_scenarios:
-                avail_sec = [s for s in SCENARIOS if s["family_id"] in SPLIT_FAMILIES[split] and s["family_id"] != primary_spec["family_id"]]
-                sec_spec = self.rng.choice(avail_sec)
-                secondary_dept = sec_spec["issues"][0]["department_key"]
+            pair_cands = PAIR_SCENARIOS_BY_SPLIT[split]
+            if pair_cands and self.rng.random() < 0.40:
+                pair_spec = self.rng.choice(pair_cands)
+                graph.issues = []
+                target_depts = set()
+                for idx, iss in enumerate(pair_spec["issues"]):
+                    d = iss["department_key"]
+                    target_depts.add(d)
+                    graph.issues.append(IssueNode(
+                        node_id=f"i{idx+1}",
+                        department=d,
+                        defect_type=iss["issue_type"],
+                        family_id=pair_spec["family_id"],
+                        urgency="high" if "hazard_reported" in pair_spec.get("flags", []) else "medium",
+                        is_primary=(idx == 0),
+                        actionable=True,
+                    ))
+                graph.target_departments = sorted(list(target_depts))
+                rel_type = pair_spec.get("relation", "INDEPENDENT")
+                graph.edges.append(RelationEdge("i1", "i2", rel_type, "Two distinct actionable municipal repairs"))
             else:
-                sec_spec = self.rng.choice(sec_scenarios)
+                if secondary_dept is None or secondary_dept == primary_dept:
+                    avail_depts = [d for d in DEPARTMENTS if d != primary_dept]
+                    secondary_dept = self.rng.choice(avail_depts)
 
-            sec_issue_type = sec_spec["issues"][0]["issue_type"] if sec_spec.get("issues") else "general_grievance"
+                sec_scenarios = DEPT_SINGLE_SCENARIOS_BY_SPLIT[split][secondary_dept]
+                if not sec_scenarios:
+                    avail_sec = [s for s in SCENARIOS if s["family_id"] in SPLIT_FAMILIES[split] and s["family_id"] != primary_spec["family_id"] and len(s.get("issues", [])) == 1]
+                    sec_spec = self.rng.choice(avail_sec) if avail_sec else self.rng.choice(SCENARIOS)
+                    secondary_dept = sec_spec["issues"][0]["department_key"]
+                else:
+                    sec_spec = self.rng.choice(sec_scenarios)
 
-            node_2 = IssueNode(
-                node_id="i2",
-                department=secondary_dept,
-                defect_type=sec_issue_type,
-                family_id=sec_spec["family_id"],
-                urgency="high" if "hazard_reported" in sec_spec.get("flags", []) else "medium",
-                is_primary=False,
-                actionable=True,
-            )
-            graph.issues.append(node_2)
-            graph.target_departments = sorted([primary_dept, secondary_dept])
-            graph.edges.append(RelationEdge("i1", "i2", "INDEPENDENT", "Two distinct actionable municipal repairs"))
+                sec_issue_type = sec_spec["issues"][0]["issue_type"] if sec_spec.get("issues") else "general_grievance"
+
+                node_2 = IssueNode(
+                    node_id="i2",
+                    department=secondary_dept,
+                    defect_type=sec_issue_type,
+                    family_id=sec_spec["family_id"],
+                    urgency="high" if "hazard_reported" in sec_spec.get("flags", []) else "medium",
+                    is_primary=False,
+                    actionable=True,
+                )
+                graph.issues.append(node_2)
+                graph.target_departments = sorted([primary_dept, secondary_dept])
+                graph.edges.append(RelationEdge("i1", "i2", "INDEPENDENT", "Two distinct actionable municipal repairs"))
 
         elif level == 5:
             # Counterfactual / Negation / Recipient / Review
@@ -421,13 +454,19 @@ class AutonomousCurriculumRealizer:
             full_text = f"{primary_text}, {consequence_text}. {req}."
 
         elif level == 4:
-            sec_node = graph.issues[1]
-            sec_spec = SCENARIO_BY_ID[sec_node.family_id]
-            sec_tmpl = self.rng.choice(sec_spec["variants"])
-            # Format second without repeating identical location
-            sec_text = sec_tmpl.format(place="is ke qareeb", time="alag se").strip()
-            conn = self.rng.choice(INDEPENDENT_CONNECTORS)
-            full_text = f"{primary_text}, {conn} {sec_text}. Barah e karam dono issues par action lein."
+            if len(graph.issues) > 1 and graph.issues[0].family_id == graph.issues[1].family_id:
+                # Realized from a pair scenario
+                pair_spec = SCENARIO_BY_ID[graph.issues[0].family_id]
+                base_tmpl = self.rng.choice(pair_spec["variants"])
+                full_text = f"{base_tmpl.format(place=place, time=when).strip()}. {req}."
+            else:
+                sec_node = graph.issues[1]
+                sec_spec = SCENARIO_BY_ID[sec_node.family_id]
+                sec_tmpl = self.rng.choice(sec_spec["variants"])
+                # Format second without repeating identical location
+                sec_text = sec_tmpl.format(place="is ke qareeb", time="alag se").strip()
+                conn = self.rng.choice(INDEPENDENT_CONNECTORS)
+                full_text = f"{primary_text}, {conn} {sec_text}. Barah e karam dono issues par action lein."
 
         elif level == 5:
             subtype = graph.metadata.get("subtype", "negation")
@@ -479,6 +518,29 @@ class AutonomousCurriculumRealizer:
         if has_pii(full_text):
             # In rare event template interpolation triggers PII regex, clean it
             full_text = re.sub(r"\b03\d{9}\b", "", full_text)
+
+        # Record character spans for all issues
+        if len(graph.issues) == 1:
+            p_start = full_text.find(primary_text)
+            if p_start != -1:
+                graph.issues[0].metadata["span"] = [p_start, p_start + len(primary_text)]
+                graph.issues[0].metadata["span_text"] = primary_text
+        elif len(graph.issues) > 1:
+            if graph.issues[0].family_id == graph.issues[1].family_id:
+                graph.issues[0].metadata["span"] = [0, len(full_text)]
+                graph.issues[0].metadata["span_text"] = full_text
+                graph.issues[1].metadata["span"] = [0, len(full_text)]
+                graph.issues[1].metadata["span_text"] = full_text
+            else:
+                p_start = full_text.find(primary_text)
+                if p_start != -1:
+                    graph.issues[0].metadata["span"] = [p_start, p_start + len(primary_text)]
+                    graph.issues[0].metadata["span_text"] = primary_text
+                if 'sec_text' in locals():
+                    s_start = full_text.find(sec_text)
+                    if s_start != -1:
+                        graph.issues[1].metadata["span"] = [s_start, s_start + len(sec_text)]
+                        graph.issues[1].metadata["span_text"] = sec_text
 
         scenario_family = "+".join(sorted([node.family_id for node in graph.issues])) if graph.issues else "uncertain_review"
         record_id = f"cur_{hashlib.sha256(full_text.encode('utf-8')).hexdigest()[:16]}"

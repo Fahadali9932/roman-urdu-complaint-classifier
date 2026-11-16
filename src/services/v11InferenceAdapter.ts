@@ -11,6 +11,25 @@
  */
 import type { DepartmentId } from '../types';
 import type { MultiLabelModelArtifact } from './multiLabelClassifier';
+import {
+  analyzeComplaintRelationAware,
+  type IssueCandidate,
+  type RelationEdge,
+  type RelationType,
+} from './relationEngine';
+
+export interface V11RelationAwareResult {
+  departments: DepartmentId[];
+  probabilities: Record<DepartmentId, number>;
+  rawProbabilities: Record<DepartmentId, number>;
+  relation: RelationType;
+  issueCandidates: IssueCandidate[];
+  edges: RelationEdge[];
+  needsReview: boolean;
+  reviewReason: string | null;
+  missingPublicLocation: boolean;
+  notes: string[];
+}
 
 export interface V11ClassifierCalibratedFold {
   coef: number[];
@@ -494,5 +513,45 @@ export function convertV11ToMultiLabelModelArtifact(
       'theek hai',
       'koi leak nahi',
     ],
+  };
+}
+
+/**
+ * Executes issue-centric, relation-aware classification on Roman Urdu complaint text.
+ * Integrates statistical TF-IDF features with affirmative domain defect evidence,
+ * candidate span decomposition, and pairwise relation resolution.
+ */
+export function classifyV11RelationAware(
+  text: string,
+  artifact: V11ModelArtifact,
+  complaintId?: string
+): V11RelationAwareResult {
+  const features = extractV11Features(text, artifact);
+  const rawProbabilities = predictV11RawProbabilities(features, artifact);
+  const relationResult = analyzeComplaintRelationAware(text, complaintId);
+
+  // Calibrate probabilities according to affirmative issue evidence
+  const calibratedProbs = { ...rawProbabilities };
+  for (const dept of artifact.departments) {
+    if (relationResult.proposed_departments.includes(dept)) {
+      calibratedProbs[dept] = Math.max(calibratedProbs[dept], 0.85);
+    } else {
+      // If no affirmative defect was grounded, cap probability below threshold
+      const maxPermitted = (artifact.thresholds[dept] ?? 0.5) * 0.4;
+      calibratedProbs[dept] = Math.min(calibratedProbs[dept], maxPermitted);
+    }
+  }
+
+  return {
+    departments: relationResult.proposed_departments,
+    probabilities: calibratedProbs,
+    rawProbabilities,
+    relation: relationResult.relation_summary,
+    issueCandidates: relationResult.issue_candidates,
+    edges: relationResult.edges,
+    needsReview: relationResult.needs_review,
+    reviewReason: relationResult.review_reason,
+    missingPublicLocation: relationResult.missing_public_location,
+    notes: relationResult.reason_trace,
   };
 }

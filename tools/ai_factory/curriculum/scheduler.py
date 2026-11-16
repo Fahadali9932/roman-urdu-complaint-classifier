@@ -35,6 +35,7 @@ from tools.ai_factory.curriculum.realizer import (
     normalize_text,
     SPLIT_FAMILIES,
 )
+from tools.ai_factory.curriculum.relation_engine import RelationAwareComplaintAnalyzer
 from tools.ai_factory.evaluation import compute_metrics
 from tools.ai_factory.training import (
     build_feature_extractor,
@@ -142,23 +143,48 @@ class CurriculumHarness:
         model: Any,
         thresholds: Dict[str, float],
         records: List[Dict[str, Any]],
+        use_relation_engine: bool = True,
     ) -> Dict[str, Any]:
-        """Evaluate model + CivicRelationResolver on records."""
-        texts = [r["text_sanitized"] for r in records]
-        y_true = self.mlb.transform([r.get("department_labels", []) for r in records])
+        """Evaluate model + RelationAwareComplaintAnalyzer on records."""
+        def extract_text(r: Dict[str, Any]) -> str:
+            return r.get("text_sanitized") or r.get("text") or ""
+
+        def extract_labels(r: Dict[str, Any]) -> List[str]:
+            if "expected_departments" in r and r["expected_departments"] is not None:
+                return r["expected_departments"]
+            if "department_labels" in r and r["department_labels"]:
+                return r["department_labels"]
+            if "issues" in r and isinstance(r["issues"], list):
+                return [iss["department_key"] for iss in r["issues"] if "department_key" in iss]
+            return []
+
+        texts = [extract_text(r) for r in records]
+        y_true = self.mlb.transform([extract_labels(r) for r in records])
 
         X_vec = feature_union.transform(texts)
         raw_probs = model.predict_proba(X_vec)
 
-        # Apply CivicRelationResolver
+        # Apply RelationAwareComplaintAnalyzer or CivicRelationResolver
         resolved_probs = np.zeros_like(raw_probs)
         all_notes = []
+        analyzer = RelationAwareComplaintAnalyzer() if use_relation_engine else None
+
         for i, text in enumerate(texts):
             init_p = {dept: float(raw_probs[i, j]) for j, dept in enumerate(self.departments)}
-            res_p, notes = CivicRelationResolver.resolve(text, init_p)
-            for j, dept in enumerate(self.departments):
-                resolved_probs[i, j] = res_p.get(dept, init_p[dept])
-            all_notes.append(notes)
+            if use_relation_engine and analyzer:
+                analysis = analyzer.analyze(text)
+                for j, dept in enumerate(self.departments):
+                    if dept in analysis.proposed_departments:
+                        resolved_probs[i, j] = max(init_p[dept], 0.85)
+                    else:
+                        th = thresholds.get(dept, 0.50)
+                        resolved_probs[i, j] = min(init_p[dept], th * 0.4)
+                all_notes.append(analysis.reason_trace)
+            else:
+                res_p, notes = CivicRelationResolver.resolve(text, init_p)
+                for j, dept in enumerate(self.departments):
+                    resolved_probs[i, j] = res_p.get(dept, init_p[dept])
+                all_notes.append(notes)
 
         # Apply thresholds
         y_pred = np.zeros_like(resolved_probs, dtype=int)
@@ -218,11 +244,21 @@ class CurriculumHarness:
         seed: int = 42,
     ) -> Tuple[Any, Any, Dict[str, float]]:
         """Fit feature extractor, train Logistic Regression, and tune thresholds on val."""
-        train_texts = [r["text_sanitized"] for r in train_records]
-        train_labels = self.mlb.transform([r.get("department_labels", []) for r in train_records])
+        def extract_labels(r: Dict[str, Any]) -> List[str]:
+            if "department_labels" in r and r["department_labels"]:
+                return r["department_labels"]
+            if "issues" in r and isinstance(r["issues"], list):
+                return [iss["department_key"] for iss in r["issues"] if "department_key" in iss]
+            return []
 
-        val_texts = [r["text_sanitized"] for r in val_records]
-        val_labels = self.mlb.transform([r.get("department_labels", []) for r in val_records])
+        def extract_text(r: Dict[str, Any]) -> str:
+            return r.get("text_sanitized") or r.get("text") or ""
+
+        train_texts = [extract_text(r) for r in train_records]
+        train_labels = self.mlb.transform([extract_labels(r) for r in train_records])
+
+        val_texts = [extract_text(r) for r in val_records]
+        val_labels = self.mlb.transform([extract_labels(r) for r in val_records])
 
         # Dual-track TF-IDF FeatureUnion
         feature_union = build_feature_extractor()
@@ -469,15 +505,16 @@ def execute_curriculum_run(
     # Measure latency
     sample_texts = [r["text_sanitized"] for r in test_records[:50]]
     t0 = time.time()
+    analyzer = RelationAwareComplaintAnalyzer()
     for txt in sample_texts:
         v = feat_union.transform([txt])
         raw_p = champ_model.predict_proba(v)[0]
         init_p = {d: float(raw_p[j]) for j, d in enumerate(harness.departments)}
-        CivicRelationResolver.resolve(txt, init_p)
+        analysis = analyzer.analyze(txt)
     latency_ms = (time.time() - t0) / len(sample_texts) * 1000.0
 
     # Evaluate frozen synthetic test ONCE
-    test_eval = harness.evaluate_model(feat_union, champ_model, thresh, test_records)
+    test_eval = harness.evaluate_model(feat_union, champ_model, thresh, test_records, use_relation_engine=True)
     test_overall = test_eval["overall"]
     test_diff_slices = test_eval["difficulty_slices"]
     test_rel_slices = test_eval["relation_slices"]
@@ -488,12 +525,28 @@ def execute_curriculum_run(
     print(f"Missed Department Rate: {test_overall['missed_issue_rate'] * 100:.2f}%")
     print(f"Single-inference Latency: {latency_ms:.2f} ms")
 
+    # Evaluate on the 31 developer-authored behavioral regression cases (Contract Gate)
+    reg_path = Path("data/v11/regression/regression_cases.jsonl")
+    regression_contract_metrics = None
+    if reg_path.exists():
+        reg_records = [json.loads(l) for l in reg_path.read_text(encoding="utf-8").splitlines() if l.strip()]
+        reg_eval = harness.evaluate_model(feat_union, champ_model, thresh, reg_records, use_relation_engine=True)
+        regression_contract_metrics = {
+            "sample_size": len(reg_records),
+            "exact_set_accuracy": reg_eval["overall"]["exact_set_match"],
+            "macro_f1": reg_eval["overall"]["macro_f1"],
+            "false_extra_department_rate": reg_eval["overall"]["false_extra_department_rate"],
+            "missed_issue_rate": reg_eval["overall"]["missed_issue_rate"],
+            "contract_status": "PASSED" if reg_eval["overall"]["exact_set_match"] == 1.0 else "FAILED",
+        }
+        print(f"Regression Contract Gate (31 Cases): Exact Set Accuracy = {regression_contract_metrics['exact_set_accuracy']*100:.2f}%, False Extra = {regression_contract_metrics['false_extra_department_rate']*100:.2f}% (Status: {regression_contract_metrics['contract_status']})")
+
     # Evaluate on the 33 historical developer-authored fixtures (as a regression check only)
     gold_path = Path("data/v11/human_gold/locked_gold.jsonl")
     legacy_fixture_metrics = None
     if gold_path.exists():
         gold_records = [json.loads(l) for l in gold_path.read_text(encoding="utf-8").splitlines() if l.strip()]
-        gold_eval = harness.evaluate_model(feat_union, champ_model, thresh, gold_records)
+        gold_eval = harness.evaluate_model(feat_union, champ_model, thresh, gold_records, use_relation_engine=True)
         legacy_fixture_metrics = {
             "sample_size": len(gold_records),
             "exact_set_accuracy": gold_eval["overall"]["exact_set_match"],
@@ -508,7 +561,7 @@ def execute_curriculum_run(
 
     # 4. Save Master Run Report
     run_report = {
-        "title": "Awaaz-e-Awam Phase V11.3 Autonomous Curriculum Training Report",
+        "title": "Awaaz-e-Awam Phase V11.4 Relation-Aware Curriculum Training Report",
         "scope": "SYNTHETIC_LAB_CURRICULUM_NOT_REAL_WORLD_HUMAN_CLAIM",
         "generator_seed": seed,
         "max_cycles": max_cycles,
@@ -523,6 +576,7 @@ def execute_curriculum_run(
         "frozen_synthetic_test_metrics": test_overall,
         "frozen_synthetic_test_difficulty_slices": test_diff_slices,
         "frozen_synthetic_test_relation_slices": test_rel_slices,
+        "regression_contract_gate": regression_contract_metrics,
         "legacy_developer_fixtures_regression": legacy_fixture_metrics,
         "cycle_history": history,
         "split_hashes": {
