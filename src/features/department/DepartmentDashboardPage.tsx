@@ -31,12 +31,9 @@ import {
 import {
   Loader2,
   Search,
-  Sun,
-  Moon,
   ChevronDown,
   AlertCircle,
   X,
-  LogOut,
   KeyRound,
   Eye,
   EyeOff,
@@ -51,16 +48,12 @@ export const DepartmentDashboardPage: React.FC = () => {
   const { referenceNumber: urlRef } = useParams<{ referenceNumber?: string }>();
   const [searchParams] = useSearchParams();
 
-  const username = session?.username || session?.email?.split('@')[0] || 'staff-member';
-  const departmentName = departmentMeta?.name || session?.departmentName || 'Department Workspace';
-  const staffEmail = session?.email || 'Authenticated staff identity';
-
   // Scoped per-user preferences key to avoid cross-account leakage
   const userId = session?.userId || 'default';
   const prefsKey = `awaaz_staff_prefs_v7:${userId}`;
 
   // Work preferences: density, startPage, defaultQueueView, defaultQueueSort
-  const [preferences, setPreferences] = useState<{
+  const [preferences] = useState<{
     density: 'comfortable' | 'compact';
     startPage: 'overview' | 'queue';
     defaultQueueView: 'needs' | 'all';
@@ -87,21 +80,6 @@ export const DepartmentDashboardPage: React.FC = () => {
       defaultQueueSort: 'attention',
     };
   });
-
-  const updatePreference = <K extends keyof typeof preferences>(
-    key: K,
-    val: (typeof preferences)[K]
-  ) => {
-    setPreferences((prev) => {
-      const next = { ...prev, [key]: val };
-      try {
-        if (typeof window !== 'undefined' && window.localStorage) {
-          localStorage.setItem(prefsKey, JSON.stringify(next));
-        }
-      } catch {}
-      return next;
-    });
-  };
 
   // Password change modal state
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
@@ -199,14 +177,6 @@ export const DepartmentDashboardPage: React.FC = () => {
     });
   };
 
-  const handleSetSidebarCollapsed = (collapsed: boolean) => {
-    setIsSidebarCollapsed(collapsed);
-    if (typeof window !== 'undefined' && window.localStorage) {
-      localStorage.setItem('aawaaz-demo-collapsed', collapsed ? 'yes' : 'no');
-      localStorage.setItem('awaaz_dept_sidebar_collapsed', String(collapsed));
-    }
-  };
-
   // Navigation State
   const [currentSection, setCurrentSection] = useState<WorkspaceSection>(() => {
     const v = searchParams.get('view');
@@ -215,7 +185,7 @@ export const DepartmentDashboardPage: React.FC = () => {
     if (v === 'queue' || v === 'cases') return 'queue';
     if (v === 'areas') return 'areas';
     if (v === 'priority') return 'priority_queue';
-    if (v === 'settings') return 'settings';
+    if (v === 'settings') return 'dashboard';
     // For unit tests that mount directly at '/department' expecting complaints list
     if (import.meta.env.MODE === 'test') {
       return 'tasks';
@@ -233,6 +203,13 @@ export const DepartmentDashboardPage: React.FC = () => {
     return searchParams.get('case') || searchParams.get('caseId') || null;
   });
   const [selectedAreaFilter, setSelectedAreaFilter] = useState<string>('All areas');
+
+  // Gracefully redirect any direct ?view=settings navigation to overview
+  useEffect(() => {
+    if (searchParams.get('view') === 'settings') {
+      navigate('/department?view=overview', { replace: true });
+    }
+  }, [searchParams, navigate]);
 
   // Complaints State
   const [complaints, setComplaints] = useState<DepartmentComplaintView[]>([]);
@@ -619,12 +596,17 @@ export const DepartmentDashboardPage: React.FC = () => {
           selectedCaseId={selectedCaseId}
           onOpenMobileDrawer={() => setIsMobileDrawerOpen(true)}
           onSelectSection={(sec) => {
-            setCurrentSection(sec);
+            if (sec === 'settings') {
+              setCurrentSection('dashboard');
+            } else {
+              setCurrentSection(sec);
+            }
             setSelectedCaseId(null);
             setSelectedReference(null);
           }}
           themeMode={themeMode}
           onToggleTheme={() => handleSetTheme(themeMode === 'light' ? 'dark' : 'light')}
+          onOpenPasswordModal={() => setIsPasswordModalOpen(true)}
           onSignOut={() => {
             signOut();
             navigate('/department/login');
@@ -915,242 +897,6 @@ export const DepartmentDashboardPage: React.FC = () => {
                   }}
                 />
               )}
-            </div>
-          )}
-
-          {/* =========================================================================
-              VIEW 4: SETTINGS (CLEAN CIVIC PREFERENCES)
-              ========================================================================= */}
-          {currentSection === 'settings' && (
-            <div>
-              <div className="overview-header" style={{ marginBottom: '24px' }}>
-                <div>
-                  <span className="overview-dept-tag">{departmentName}</span>
-                  <h1 className="overview-title">Settings</h1>
-                  <p className="page-lead" style={{ margin: '4px 0 0', color: 'var(--v7-muted)' }}>
-                    Your workspace preferences and authenticated staff account.
-                  </p>
-                </div>
-              </div>
-
-              <div className="settings-stack">
-                {/* Card 1: Work Preferences */}
-                <section className="settings-card">
-                  <h2>Work preferences</h2>
-                  <p className="card-desc">Configure your default triage workflow and queue displays.</p>
-
-                  <div className="setting-row">
-                    <div>
-                      <strong>Starting page</strong>
-                      <span>Choose which workspace page opens when you sign in.</span>
-                    </div>
-                    <div className="settings-choice-group" role="group" aria-label="Starting page">
-                      <button
-                        type="button"
-                        className="settings-choice-btn"
-                        aria-pressed={preferences.startPage === 'overview'}
-                        onClick={() => updatePreference('startPage', 'overview')}
-                      >
-                        Overview
-                      </button>
-                      <button
-                        type="button"
-                        className="settings-choice-btn"
-                        aria-pressed={preferences.startPage === 'queue'}
-                        onClick={() => updatePreference('startPage', 'queue')}
-                      >
-                        Work queue
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="setting-row">
-                    <div>
-                      <strong>Table density</strong>
-                      <span>Adjust row height across incident tables (Comfortable 58px / Compact 46px).</span>
-                    </div>
-                    <div className="settings-choice-group" role="group" aria-label="Table density">
-                      <button
-                        type="button"
-                        className="settings-choice-btn"
-                        aria-pressed={preferences.density === 'comfortable'}
-                        onClick={() => updatePreference('density', 'comfortable')}
-                      >
-                        Comfortable
-                      </button>
-                      <button
-                        type="button"
-                        className="settings-choice-btn"
-                        aria-pressed={preferences.density === 'compact'}
-                        onClick={() => updatePreference('density', 'compact')}
-                      >
-                        Compact
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="setting-row">
-                    <div>
-                      <strong>Default queue view</strong>
-                      <span>Filter applied automatically when entering the work queue.</span>
-                    </div>
-                    <div className="settings-choice-group" role="group" aria-label="Default queue view">
-                      <button
-                        type="button"
-                        className="settings-choice-btn"
-                        aria-pressed={preferences.defaultQueueView === 'needs'}
-                        onClick={() => updatePreference('defaultQueueView', 'needs')}
-                      >
-                        Needs response
-                      </button>
-                      <button
-                        type="button"
-                        className="settings-choice-btn"
-                        aria-pressed={preferences.defaultQueueView === 'all'}
-                        onClick={() => updatePreference('defaultQueueView', 'all')}
-                      >
-                        All cases
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="setting-row">
-                    <div>
-                      <strong>Default sort order</strong>
-                      <span>Initial sequence for organizing cases in your active queue.</span>
-                    </div>
-                    <div className="settings-choice-group" role="group" aria-label="Default sort order">
-                      <button
-                        type="button"
-                        className="settings-choice-btn"
-                        aria-pressed={preferences.defaultQueueSort === 'attention'}
-                        onClick={() => updatePreference('defaultQueueSort', 'attention')}
-                      >
-                        Attention first
-                      </button>
-                      <button
-                        type="button"
-                        className="settings-choice-btn"
-                        aria-pressed={preferences.defaultQueueSort === 'oldest'}
-                        onClick={() => updatePreference('defaultQueueSort', 'oldest')}
-                      >
-                        Oldest waiting
-                      </button>
-                      <button
-                        type="button"
-                        className="settings-choice-btn"
-                        aria-pressed={preferences.defaultQueueSort === 'recently_updated'}
-                        onClick={() => updatePreference('defaultQueueSort', 'recently_updated')}
-                      >
-                        Recently updated
-                      </button>
-                    </div>
-                  </div>
-                </section>
-
-                {/* Card 2: Appearance Card */}
-                <section className="settings-card">
-                  <h2>Appearance</h2>
-                  <p className="card-desc">Display theme and navigation layout preferences saved on this device.</p>
-
-                  <div className="setting-row">
-                    <div>
-                      <strong>Color mode</strong>
-                      <span>Light mode is optimized for daytime operations; dark mode for low-light desks.</span>
-                    </div>
-                    <div className="settings-choice-group" role="group" aria-label="Color mode">
-                      <button
-                        type="button"
-                        className="settings-choice-btn"
-                        aria-pressed={themeMode === 'light'}
-                        onClick={() => handleSetTheme('light')}
-                      >
-                        <Sun className="w-4 h-4" /> Light
-                      </button>
-                      <button
-                        type="button"
-                        className="settings-choice-btn"
-                        aria-pressed={themeMode === 'dark'}
-                        onClick={() => handleSetTheme('dark')}
-                      >
-                        <Moon className="w-4 h-4" /> Dark
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="setting-row">
-                    <div>
-                      <strong>Sidebar navigation</strong>
-                      <span>Keep navigation expanded with labels or collapse to compact icon mode.</span>
-                    </div>
-                    <div className="settings-choice-group" role="group" aria-label="Sidebar display">
-                      <button
-                        type="button"
-                        className="settings-choice-btn"
-                        aria-pressed={!isSidebarCollapsed}
-                        onClick={() => handleSetSidebarCollapsed(false)}
-                      >
-                        Expanded
-                      </button>
-                      <button
-                        type="button"
-                        className="settings-choice-btn"
-                        aria-pressed={isSidebarCollapsed}
-                        onClick={() => handleSetSidebarCollapsed(true)}
-                      >
-                        Compact
-                      </button>
-                    </div>
-                  </div>
-                </section>
-
-                {/* Card 3: Department Account Card */}
-                <section className="settings-card">
-                  <h2>Department account &amp; security</h2>
-                  <p className="card-desc">Authenticated staff session and security credentials.</p>
-
-                  <div className="data-line">
-                    <span className="label">Staff account</span>
-                    <span className="value">{username}</span>
-                  </div>
-                  <div className="data-line">
-                    <span className="label">Official email</span>
-                    <span className="value">{staffEmail}</span>
-                  </div>
-                  <div className="data-line">
-                    <span className="label">Department</span>
-                    <span className="value">{departmentName}</span>
-                  </div>
-                  <div className="data-line">
-                    <span className="label">Role</span>
-                    <span className="value">Department staff (Operations Desk)</span>
-                  </div>
-                  <div className="data-line">
-                    <span className="label">Authorization boundary</span>
-                    <span className="value">Supabase RLS Isolated ({departmentId || 'kmc'})</span>
-                  </div>
-
-                  <div className="settings-actions-row">
-                    <button
-                      type="button"
-                      onClick={() => setIsPasswordModalOpen(true)}
-                      className="settings-btn settings-btn-primary"
-                    >
-                      <KeyRound className="w-4 h-4" /> Change password
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        signOut();
-                        navigate('/department/login');
-                      }}
-                      className="settings-btn settings-btn-danger"
-                    >
-                      <LogOut className="w-4 h-4" /> Sign out
-                    </button>
-                  </div>
-                </section>
-              </div>
             </div>
           )}
         </main>

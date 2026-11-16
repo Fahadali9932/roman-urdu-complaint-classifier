@@ -3338,6 +3338,11 @@
   background: var(--v7-warn);
 }
 
+.stage-fill-accepted {
+  background: #2563EB;
+  animation-delay: 0.04s;
+}
+
 .stage-fill-prog {
   background: var(--v7-accent);
   animation-delay: 0.08s;

@@ -23,6 +23,7 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
     totalCases: number;
     totalReports: number;
     casesNeedingResponse: number;
+    casesAccepted: number;
     reportsAwaitingAck: number;
     casesInProgress: number;
     casesCompleted: number;
@@ -32,6 +33,7 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
     totalCases: 0,
     totalReports: 0,
     casesNeedingResponse: 0,
+    casesAccepted: 0,
     reportsAwaitingAck: 0,
     casesInProgress: 0,
     casesCompleted: 0,
@@ -88,6 +90,7 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
     const total = Math.max(1, summary.totalCases);
     return {
       needsPct: Math.min(100, Math.round((summary.casesNeedingResponse / total) * 100)),
+      acceptedPct: Math.min(100, Math.round(((summary.casesAccepted || 0) / total) * 100)),
       inProgPct: Math.min(100, Math.round((summary.casesInProgress / total) * 100)),
       donePct: Math.min(100, Math.round((summary.casesCompleted / total) * 100)),
     };
@@ -156,6 +159,17 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
           </div>
 
           <div className="stage-row">
+            <span className="stage-name">Accepted</span>
+            <div className="stage-bar-track">
+              <div
+                className="stage-bar-fill stage-fill-accepted"
+                style={{ width: `${stageStats.acceptedPct}%` }}
+              />
+            </div>
+            <strong className="stage-count">{summary.casesAccepted || 0}</strong>
+          </div>
+
+          <div className="stage-row">
             <span className="stage-name">In progress</span>
             <div className="stage-bar-track">
               <div
@@ -201,9 +215,9 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
           className="fact-item"
           onClick={() => onNavigate('queue')}
         >
-          <span className="fact-label">In progress</span>
-          <b className="fact-value">{summary.casesInProgress}</b>
-          <span className="fact-desc">cases being worked on</span>
+          <span className="fact-label">Accepted</span>
+          <b className="fact-value">{summary.casesAccepted || 0}</b>
+          <span className="fact-desc">cases acknowledged</span>
         </button>
 
         <button
@@ -211,9 +225,9 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
           className="fact-item"
           onClick={() => onNavigate('queue')}
         >
-          <span className="fact-label">Unassigned</span>
-          <b className="fact-value">{summary.casesUnassigned}</b>
-          <span className="fact-desc">cases without an owner</span>
+          <span className="fact-label">In progress</span>
+          <b className="fact-value">{summary.casesInProgress}</b>
+          <span className="fact-desc">cases being worked on</span>
         </button>
 
         <button

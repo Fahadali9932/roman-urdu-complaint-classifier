@@ -81,6 +81,7 @@ export const WorkQueuePage: React.FC<WorkQueuePageProps> = ({
     totalCases: 0,
     totalReports: 0,
     casesNeedingResponse: 0,
+    casesAccepted: 0,
     reportsAwaitingAck: 0,
     casesInProgress: 0,
     casesCompleted: 0,

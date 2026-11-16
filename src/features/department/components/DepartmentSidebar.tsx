@@ -5,7 +5,6 @@ import {
   MapPin,
   Flame,
   Layers,
-  Settings,
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react';
@@ -91,7 +90,6 @@ export const DepartmentSidebar: React.FC<DepartmentSidebarProps> = ({
   const isReviewActive =
     currentSection === 'review' ||
     (currentSection === 'tasks' && activeTaskFilter === 'under_review');
-  const isSettingsActive = currentSection === 'settings';
 
   const handleNavClick = (section: WorkspaceSection, filter?: TaskFilterType) => {
     if (filter && onSelectTaskFilter) {
@@ -216,22 +214,6 @@ export const DepartmentSidebar: React.FC<DepartmentSidebarProps> = ({
             </b>
           </button>
         )}
-      </nav>
-
-      <div className="nav-label nav-second">PREFERENCES</div>
-      <nav className="navigation" aria-label="Preferences navigation">
-        {/* Settings */}
-        <button
-          type="button"
-          data-view="settings"
-          onClick={() => handleNavClick('settings')}
-          className={`nav-item ${isSettingsActive ? 'active' : ''}`}
-          aria-current={isSettingsActive ? 'page' : undefined}
-          data-tooltip="Settings"
-        >
-          <Settings className="ico" />
-          <span>Settings</span>
-        </button>
       </nav>
 
       {/* Bottom Account Card */}

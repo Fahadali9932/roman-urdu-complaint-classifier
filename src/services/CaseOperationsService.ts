@@ -812,6 +812,34 @@ export class CaseOperationsService implements ICaseOperationsService {
     return result;
   }
 
+  private isCorridorMatch(placeA: string, placeB: string): boolean {
+    if (!placeA || !placeB) return false;
+    const a = placeA.trim().toLowerCase();
+    const b = placeB.trim().toLowerCase();
+    if (a === b) return true;
+
+    const stopWords = new Set([
+      'near', 'at', 'in', 'on', 'the', 'karachi', 'road', 'street', 'block',
+      'phase', 'sector', 'main', 'opposite', 'behind', 'beside', 'front',
+      'area', 'ke', 'samne', 'pass', 'crossing', 'flyover', 'corridor',
+      'roundabout', 'chowk', 'signal', 'lane', 'gate',
+      'gulshan', 'iqbal', 'korangi', 'gulberg', 'nazimabad', 'north',
+      'saddar', 'clifton', 'pechs', 'district', 'east', 'west', 'central',
+      'south', 'malir', 'keamari'
+    ]);
+    const getTokens = (s: string) =>
+      s
+        .replace(/[^a-z0-9\s]/g, ' ')
+        .split(/\s+/)
+        .filter((w) => w.length > 2 && !stopWords.has(w));
+
+    const tokensA = getTokens(a);
+    const tokensB = getTokens(b);
+    if (tokensA.length === 0 || tokensB.length === 0) return false;
+
+    return tokensA.some((t) => tokensB.includes(t));
+  }
+
   private async syncWithSupabase(deptId: DepartmentId): Promise<void> {
     if (!isSupabaseConfigured() || !supabase) return;
     try {
@@ -837,6 +865,19 @@ export class CaseOperationsService implements ICaseOperationsService {
         if (mapped) {
           mapped.report.status = row.status || mapped.report.status;
           mapped.report.updatedAt = row.updated_at || mapped.report.updatedAt;
+          const reports = mapped.caseItem.reports;
+          mapped.caseItem.pendingAcceptanceCount = reports.filter(
+            (r) => r.status === 'assigned' || r.status === 'submitted'
+          ).length;
+          if (reports.every((r) => r.status === 'resolved' || r.status === 'rejected')) {
+            mapped.caseItem.workStatus = 'completed';
+          } else if (reports.some((r) => r.status === 'in_progress')) {
+            mapped.caseItem.workStatus = 'in_progress';
+          } else if (reports.some((r) => r.status === 'accepted')) {
+            mapped.caseItem.workStatus = 'accepted';
+          } else {
+            mapped.caseItem.workStatus = 'needs_acceptance';
+          }
         } else {
           const newReport: CaseReportRow = {
             complaintId: row.id,
@@ -853,15 +894,38 @@ export class CaseOperationsService implements ICaseOperationsService {
           };
 
           const locality = row.incident_locality || 'General';
-          const targetCase = list.find((c) => c.locality.toLowerCase() === locality.toLowerCase());
+          const rowPlace = row.incident_public_location || '';
+
+          // Match against active cases: must match department, not completed, matching locality, AND matching corridor/landmark
+          const targetCase = list.find((c) => {
+            if (c.workStatus === 'completed') return false;
+            if (c.locality.trim().toLowerCase() !== locality.trim().toLowerCase()) return false;
+            if (!rowPlace) return false;
+            return this.isCorridorMatch(c.publicPlace, rowPlace);
+          });
+
           if (targetCase) {
             targetCase.reports.unshift(newReport);
-            targetCase.linkedReportCount += 1;
-            if (newReport.status === 'assigned' || newReport.status === 'submitted') {
-              targetCase.pendingAcceptanceCount += 1;
+            targetCase.linkedReportCount = targetCase.reports.length;
+            const uniqueReporters = new Set(targetCase.reports.map((r) => r.uniquePersonId));
+            targetCase.uniqueReporterCount = uniqueReporters.size;
+            targetCase.pendingAcceptanceCount = targetCase.reports.filter(
+              (r) => r.status === 'assigned' || r.status === 'submitted'
+            ).length;
+            if (newReport.submittedAt > targetCase.lastReportedAt) {
+              targetCase.lastReportedAt = newReport.submittedAt;
             }
           } else {
-            const caseNum = `C-${(row.reference_number || row.id).slice(-4).toUpperCase()}`;
+            let caseNum = `C-${(row.reference_number || row.id).slice(-4).toUpperCase()}`;
+            if (list.some((c) => c.id === caseNum)) {
+              caseNum = `C-${row.id.replace(/-/g, '').slice(0, 4).toUpperCase()}`;
+            }
+
+            let initialStatus: 'needs_acceptance' | 'accepted' | 'in_progress' | 'completed' = 'needs_acceptance';
+            if (row.status === 'accepted') initialStatus = 'accepted';
+            else if (row.status === 'in_progress') initialStatus = 'in_progress';
+            else if (row.status === 'resolved' || row.status === 'rejected') initialStatus = 'completed';
+
             const newCase: StoredCase = {
               id: caseNum,
               caseNumber: caseNum,
@@ -872,12 +936,12 @@ export class CaseOperationsService implements ICaseOperationsService {
               publicPlace: row.incident_public_location || locality,
               district: row.incident_district || 'District East',
               locality: locality,
-              workStatus: newReport.status === 'assigned' ? 'needs_acceptance' : 'in_progress',
+              workStatus: initialStatus,
               linkedReportCount: 1,
               uniqueReporterCount: 1,
-              pendingAcceptanceCount: newReport.status === 'assigned' ? 1 : 0,
-              priority: 'normal',
-              priorityReason: 'Live submission received from citizen portal.',
+              pendingAcceptanceCount: (row.status === 'assigned' || row.status === 'submitted') ? 1 : 0,
+              priority: (row.manual_priority as any) || 'normal',
+              priorityReason: row.manual_priority_reason || 'Live submission received from citizen portal.',
               firstReportedAt: row.created_at || new Date().toISOString(),
               lastReportedAt: row.created_at || new Date().toISOString(),
               oldestPendingAt: row.created_at || new Date().toISOString(),
@@ -889,7 +953,7 @@ export class CaseOperationsService implements ICaseOperationsService {
               reports: [newReport],
               activity: [
                 {
-                  id: `act-live-${Date.now()}`,
+                  id: `act-live-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
                   caseId: caseNum,
                   eventType: 'created',
                   label: 'Complaint submitted',
@@ -1286,14 +1350,23 @@ export class CaseOperationsService implements ICaseOperationsService {
 
     // Persist status updates to Supabase complaints if configured
     if (isSupabaseConfigured() && supabase) {
-      const acceptedRefs = found.reports
-        .filter((r) => r.status === 'accepted')
-        .map((r) => r.referenceNumber);
-      if (acceptedRefs.length > 0) {
-        void supabase
-          .from('complaints')
-          .update({ status: 'in_progress', updated_at: new Date().toISOString() })
-          .in('reference_number', acceptedRefs);
+      const acceptedReports = found.reports.filter((r) => r.status === 'accepted');
+      for (const r of acceptedReports) {
+        supabase.rpc('staff_update_complaint_status', {
+          p_complaint_id: r.complaintId,
+          p_new_status: 'accepted',
+          p_title_en: 'Complaint Accepted by Department',
+          p_title_ur: 'شکایت محکمہ نے قبول کر لی',
+          p_note_en: `Acknowledged in batch operation under incident case ${found.caseNumber}.`,
+          p_note_ur: `شکایت کو کیس نمبر ${found.caseNumber} کے تحت کارروائی کے لیے منظور کر لیا گیا ہے۔`,
+        }).then(({ error }) => {
+          if (error && supabase) {
+            void supabase
+              .from('complaints')
+              .update({ status: 'accepted', updated_at: new Date().toISOString() })
+              .eq('id', r.complaintId);
+          }
+        });
       }
     }
 
@@ -1317,6 +1390,7 @@ export class CaseOperationsService implements ICaseOperationsService {
     totalCases: number;
     totalReports: number;
     casesNeedingResponse: number;
+    casesAccepted: number;
     reportsAwaitingAck: number;
     casesInProgress: number;
     casesCompleted: number;
@@ -1324,6 +1398,7 @@ export class CaseOperationsService implements ICaseOperationsService {
     urgentCases: number;
     awaitingAcceptance: number;
   }> {
+    await this.syncWithSupabase(deptId);
     const list = this.casesByDept.get(deptId) || [];
     const active = list.filter((c) => c.workStatus !== 'completed');
     const totalReports = list.reduce((s, c) => s + c.linkedReportCount, 0);
@@ -1332,7 +1407,10 @@ export class CaseOperationsService implements ICaseOperationsService {
       0
     );
     const casesNeedingResponse = active.filter(
-      (c) => c.workStatus === 'needs_acceptance' || c.pendingAcceptanceCount > 0
+      (c) => c.workStatus === 'needs_acceptance'
+    ).length;
+    const casesAccepted = active.filter(
+      (c) => c.workStatus === 'accepted'
     ).length;
     const casesInProgress = active.filter(
       (c) => c.workStatus === 'in_progress'
@@ -1350,6 +1428,7 @@ export class CaseOperationsService implements ICaseOperationsService {
       totalCases: list.length,
       totalReports,
       casesNeedingResponse,
+      casesAccepted,
       reportsAwaitingAck: awaitingAcceptance,
       casesInProgress,
       casesCompleted,

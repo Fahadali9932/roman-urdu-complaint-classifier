@@ -53,6 +53,7 @@ export interface ICaseOperationsService {
     totalCases: number;
     totalReports: number;
     casesNeedingResponse: number;
+    casesAccepted: number;
     reportsAwaitingAck: number;
     casesInProgress: number;
     casesCompleted: number;
