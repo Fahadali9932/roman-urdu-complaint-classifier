@@ -85,6 +85,22 @@ class CivicRelationResolver:
     # Solid waste affirmative check
     WASTE_EVIDENCE = re.compile(r"\b(?:kachra|kachray|garbage|trash|safai|dustbin|dhair|dumper|sweeper|malba|kura|dumpster|dumped|waste)\b", re.IGNORECASE)
 
+    # Building affirmative check
+    BUILDING_EVIDENCE = re.compile(
+        r"\b(?:building|imarat|construction|floor|chath|daraar|crack|demolition|basement|pillar|plaza|makan|plot|premises|shutter)\b",
+        re.IGNORECASE,
+    )
+
+    # Explicit defect negations across departments
+    EXPLICIT_DEPT_DENIALS = [
+        ("ssgc", re.compile(r"\b(?:ye\s+)?gas\s+ka\s+(?:koi\s+)?(?:masla|issue|masalah|problem)\s+nahi\b|\bgas\s+bilkul\s+theek\s+hai\b", re.IGNORECASE)),
+        ("kmc", re.compile(r"\b(?:ye\s+)?(?:sarak|road|sadak)\s+ka\s+(?:koi\s+)?(?:masla|issue|masalah|problem)\s+nahi\b|\b(?:sarak|road|sadak)\s+(?:bilkul\s+)?theek\s+hai\b|\b(?:koi\s+)?(?:khadda|gadda|damage)\s+nahi\b|\broad\s+kharab\s+nahi\b", re.IGNORECASE)),
+        ("kelectric", re.compile(r"\b(?:ye\s+)?(?:bijli|light|electric)\s+ka\s+(?:koi\s+)?(?:masla|issue|masalah|problem)\s+nahi\b|\btaar\s+(?:safe|theek)\s+hai\b|\bwire\s+se\s+khatra\s+nahi\b", re.IGNORECASE)),
+        ("kwsc", re.compile(r"\b(?:ye\s+)?(?:pani|water|sewer|gutter)\s+ka\s+(?:koi\s+)?(?:masla|issue|masalah|problem)\s+nahi\b|\bpaani\s+theek\s+hai\b", re.IGNORECASE)),
+        ("sswmb", re.compile(r"\b(?:ye\s+)?(?:kachra|garbage|safai)\s+ka\s+(?:koi\s+)?(?:masla|issue|masalah|problem)\s+nahi\b|\bkachra\s+nahi\s+hai\b|\bsafai\s+theek\s+hai\b", re.IGNORECASE)),
+        ("sbca", re.compile(r"\b(?:ye\s+)?(?:building|construction)\s+ka\s+(?:koi\s+)?(?:masla|issue|masalah|problem)\s+nahi\b|\bbuilding\s+theek\s+hai\b|\bkoi\s+crack\s+nahi\b", re.IGNORECASE)),
+    ]
+
     # Generalized recipient mentions across all 6 departments
     RECIPIENT_MENTIONS = [
         ("kelectric", re.compile(r"\bk-?electric\s+(?:wale|walay|team|staff|ko\s+chahiye|please|hazrat)\b", re.IGNORECASE), re.compile(r"\b(?:bijli|taar|voltage|transformer|light|current|feeder|meter|power|load\s*shedding)\b", re.IGNORECASE)),
@@ -162,26 +178,28 @@ class CivicRelationResolver:
                 notes.append("Suppressed KMC: Road is wet from water pipe leak without structural pavement damage")
 
         # 8. Explicit defect negations
-        if cls.ROAD_DENIAL.search(text):
-            probs["kmc"] = 0.05
-            notes.append("Suppressed KMC: Road structural damage explicitly denied/intact")
+        for dept, denial_pat in cls.EXPLICIT_DEPT_DENIALS:
+            if denial_pat.search(text):
+                probs[dept] = 0.05
+                notes.append(f"Suppressed {dept}: Explicit denial of issue or confirmed defect-free")
 
         if cls.GAS_LEAK_DENIAL.search(text):
             notes.append("Noted: Gas leak explicitly denied")
-
-        if cls.WASTE_DENIAL.search(text):
-            probs["sswmb"] = 0.05
-            notes.append("Suppressed SSWMB: Solid waste issue explicitly denied")
-
-        if cls.WIRE_SAFE.search(text):
-            probs["kelectric"] = 0.05
-            notes.append("Suppressed K-Electric: Wire explicitly affirmed safe")
 
         # 9. Mention of agency name as recipient without grievance
         for dept, mention_pat, fault_pat in cls.RECIPIENT_MENTIONS:
             if mention_pat.search(text) and not fault_pat.search(text):
                 probs[dept] = 0.05
                 notes.append(f"Suppressed {dept}: Entity addressed as message recipient, not fault owner")
+
+        # 10. Affirmative domain evidence gating for SSGC and SBCA
+        if probs.get("ssgc", 0) > 0.20 and not cls.GAS_EVIDENCE.search(text):
+            probs["ssgc"] = 0.05
+            notes.append("Suppressed SSGC: No affirmative gas infrastructure tokens found")
+
+        if probs.get("sbca", 0) > 0.20 and not cls.BUILDING_EVIDENCE.search(text):
+            probs["sbca"] = 0.05
+            notes.append("Suppressed SBCA: No affirmative building control tokens found")
 
         return probs, notes
 

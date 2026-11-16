@@ -282,29 +282,43 @@ export function resolveV11CivicRelations(
   }
 
   // 8. Explicit defect negations
-  const roadDenial =
-    /\b(?:sarak|road|sadak)\s+(?:bilkul\s+)?theek\s+hai\b|\b(?:koi\s+)?(?:khadda|gadda|damage)\s+nahi\b|\broad\s+kharab\s+nahi\b/i;
-  const gasLeakDenial = /\bgas\s+(?:leak|leek)\s+nahi\b|\bboo\s+(?:bilkul\s+)?nahi\b|\bkoi\s+leakage\s+nahi\b/i;
-  const wasteDenial = /\bkachra\s+nahi\s+hai\b|\bsafai\s+theek\s+hai\b/i;
-  const wireSafe = /\btaar\s+(?:safe|theek)\s+hai\b|\bwire\s+se\s+khatra\s+nahi\b/i;
+  const explicitDeptDenials: Array<{ dept: DepartmentId; pattern: RegExp }> = [
+    {
+      dept: 'ssgc',
+      pattern: /\b(?:ye\s+)?gas\s+ka\s+(?:koi\s+)?(?:masla|issue|masalah|problem)\s+nahi\b|\bgas\s+bilkul\s+theek\s+hai\b/i,
+    },
+    {
+      dept: 'kmc',
+      pattern: /\b(?:ye\s+)?(?:sarak|road|sadak)\s+ka\s+(?:koi\s+)?(?:masla|issue|masalah|problem)\s+nahi\b|\b(?:sarak|road|sadak)\s+(?:bilkul\s+)?theek\s+hai\b|\b(?:koi\s+)?(?:khadda|gadda|damage)\s+nahi\b|\broad\s+kharab\s+nahi\b/i,
+    },
+    {
+      dept: 'kelectric',
+      pattern: /\b(?:ye\s+)?(?:bijli|light|electric)\s+ka\s+(?:koi\s+)?(?:masla|issue|masalah|problem)\s+nahi\b|\btaar\s+(?:safe|theek)\s+hai\b|\bwire\s+se\s+khatra\s+nahi\b/i,
+    },
+    {
+      dept: 'kwsc',
+      pattern: /\b(?:ye\s+)?(?:pani|water|sewer|gutter)\s+ka\s+(?:koi\s+)?(?:masla|issue|masalah|problem)\s+nahi\b|\bpaani\s+theek\s+hai\b/i,
+    },
+    {
+      dept: 'sswmb',
+      pattern: /\b(?:ye\s+)?(?:kachra|garbage|safai)\s+ka\s+(?:koi\s+)?(?:masla|issue|masalah|problem)\s+nahi\b|\bkachra\s+nahi\s+hai\b|\bsafai\s+theek\s+hai\b/i,
+    },
+    {
+      dept: 'sbca',
+      pattern: /\b(?:ye\s+)?(?:building|construction)\s+ka\s+(?:koi\s+)?(?:masla|issue|masalah|problem)\s+nahi\b|\bbuilding\s+theek\s+hai\b|\bkoi\s+crack\s+nahi\b/i,
+    },
+  ];
 
-  if (roadDenial.test(low)) {
-    probs.kmc = 0.05;
-    notes.push('Suppressed KMC: Road structural damage explicitly denied/intact');
+  for (const { dept, pattern } of explicitDeptDenials) {
+    if (pattern.test(low)) {
+      probs[dept] = 0.05;
+      notes.push(`Suppressed ${dept}: Explicit denial of issue or confirmed defect-free`);
+    }
   }
 
+  const gasLeakDenial = /\bgas\s+(?:leak|leek)\s+nahi\b|\bboo\s+(?:bilkul\s+)?nahi\b|\bkoi\s+leakage\s+nahi\b/i;
   if (gasLeakDenial.test(low)) {
     notes.push('Noted: Gas leak explicitly denied');
-  }
-
-  if (wasteDenial.test(low)) {
-    probs.sswmb = 0.05;
-    notes.push('Suppressed SSWMB: Solid waste issue explicitly denied');
-  }
-
-  if (wireSafe.test(low)) {
-    probs.kelectric = 0.05;
-    notes.push('Suppressed K-Electric: Wire explicitly affirmed safe');
   }
 
   // 9. Mention of agency name as recipient without grievance
@@ -346,6 +360,20 @@ export function resolveV11CivicRelations(
       probs[dept] = 0.05;
       notes.push(`Suppressed ${dept}: Entity addressed as message recipient, not fault owner`);
     }
+  }
+
+  // 10. Affirmative domain evidence gating for SSGC and SBCA
+  const buildingEvidence =
+    /\b(?:building|imarat|construction|floor|chath|daraar|crack|demolition|basement|pillar|plaza|makan|plot|premises|shutter)\b/i;
+
+  if ((probs.ssgc ?? 0) > 0.20 && !gasEvidence.test(low)) {
+    probs.ssgc = 0.05;
+    notes.push('Suppressed SSGC: No affirmative gas infrastructure tokens found');
+  }
+
+  if ((probs.sbca ?? 0) > 0.20 && !buildingEvidence.test(low)) {
+    probs.sbca = 0.05;
+    notes.push('Suppressed SBCA: No affirmative building control tokens found');
   }
 
   return { resolvedProbs: probs, notes };

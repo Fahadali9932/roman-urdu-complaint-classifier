@@ -62,3 +62,8 @@ supabase/.temp/
 
 .chrome_verify_profile/
 chrome_*
+
+# Curriculum runs & large training caches
+data/v11/curriculum_runs/
+scratch/
+*.joblib

@@ -205,6 +205,28 @@ def main(argv: Optional[List[str]] = None) -> int:
     p_hs.add_argument("--out-dir", type=Path, required=True)
     p_hs.add_argument("--seed", type=int, default=42)
 
+    # Command: curriculum-preview
+    p_cp = subparsers.add_parser("curriculum-preview", help="Preview isolated synthetic curriculum samples")
+    p_cp.add_argument("--count", type=int, default=30)
+    p_cp.add_argument("--seed", type=int, default=42)
+    p_cp.add_argument("--level", type=int, choices=[1, 2, 3, 4, 5], default=4)
+    p_cp.add_argument("--split", type=str, choices=["train", "validation", "test"], default="train")
+    p_cp.add_argument("--out", "--output", dest="out", type=Path, default=Path("data/v11/curriculum_runs/preview.jsonl"))
+
+    # Command: curriculum-run
+    p_cr = subparsers.add_parser("curriculum-run", help="Execute bounded isolated synthetic curriculum training")
+    p_cr.add_argument("--seed", type=int, default=42)
+    p_cr.add_argument("--cycles", "--max-cycles", dest="cycles", type=int, default=5)
+    p_cr.add_argument("--per-cycle", type=int, default=1200)
+    p_cr.add_argument("--eval-size", type=int, default=250)
+    p_cr.add_argument("--patience", type=int, default=2)
+    p_cr.add_argument("--output", "--out", dest="output", type=Path, required=True)
+
+    # Command: curriculum-report
+    p_crep = subparsers.add_parser("curriculum-report", help="Generate Markdown dashboard for curriculum run")
+    p_crep.add_argument("--run", type=Path, required=True)
+    p_crep.add_argument("--out", type=Path, default=None)
+
     args = parser.parse_args(argv)
 
     if args.command == "generate":
@@ -427,6 +449,55 @@ def main(argv: Optional[List[str]] = None) -> int:
         from tools.ai_factory.human_data.cli import split_human_dataset
         manifest = split_human_dataset(args.input, args.out_dir, seed=args.seed)
         print(json.dumps(manifest, indent=2))
+        return 0
+
+    if args.command == "curriculum-preview":
+        from tools.ai_factory.curriculum.realizer import AutonomousCurriculumRealizer
+        from tools.ai_factory.curriculum.scheduler import write_jsonl
+        realizer = AutonomousCurriculumRealizer(seed=args.seed)
+        records = realizer.generate_batch(
+            split=args.split,
+            levels=[args.level],
+            count=args.count,
+        )
+        write_jsonl(args.out, records)
+        print(json.dumps({
+            "status": "SUCCESS",
+            "command": "curriculum-preview",
+            "records_generated": len(records),
+            "split": args.split,
+            "difficulty_level": args.level,
+            "output_path": str(args.out),
+            "sample_snippet": records[0]["text_sanitized"] if records else None,
+            "sample_departments": records[0]["department_labels"] if records else None,
+        }, indent=2, ensure_ascii=False))
+        return 0
+
+    if args.command == "curriculum-run":
+        from tools.ai_factory.curriculum.scheduler import execute_curriculum_run
+        report = execute_curriculum_run(
+            output_dir=args.output,
+            seed=args.seed,
+            max_cycles=args.cycles,
+            per_cycle=args.per_cycle,
+            eval_size=args.eval_size,
+            patience=args.patience,
+        )
+        return 0
+
+    if args.command == "curriculum-report":
+        from tools.ai_factory.curriculum.reporting import generate_markdown_report
+        run_dir = Path(args.run).resolve()
+        report_file = run_dir / "run_report.json"
+        if not report_file.exists():
+            print(f"ERROR: {report_file} does not exist", file=sys.stderr)
+            return 1
+        data = json.loads(report_file.read_text(encoding="utf-8"))
+        md_text = generate_markdown_report(data)
+        out_file = args.out or (run_dir / "report.md")
+        out_file.write_text(md_text, encoding="utf-8")
+        print(md_text)
+        print(f"\n[Report saved to {out_file}]")
         return 0
 
     return 0
