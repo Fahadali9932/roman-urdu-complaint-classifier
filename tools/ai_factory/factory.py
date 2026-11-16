@@ -177,6 +177,34 @@ def main(argv: Optional[List[str]] = None) -> int:
     p_al.add_argument("--synthetic-increment", type=int, default=300)
     p_al.add_argument("--seed", type=int, default=42)
 
+    # Command: human-init
+    p_hi = subparsers.add_parser("human-init", help="Generate blank human annotation templates")
+    p_hi.add_argument("--out", type=Path, required=True)
+    p_hi.add_argument("--count", type=int, default=50)
+
+    # Command: human-validate
+    p_hv = subparsers.add_parser("human-validate", help="Validate human-annotated complaint records")
+    p_hv.add_argument("--input", type=Path, required=True)
+
+    # Command: human-agreement
+    p_ha = subparsers.add_parser("human-agreement", help="Compute inter-annotator agreement metrics")
+    p_ha.add_argument("--annotator1", type=Path, required=True)
+    p_ha.add_argument("--annotator2", type=Path, required=True)
+
+    # Command: human-adjudicate
+    p_had = subparsers.add_parser("human-adjudicate", help="Merge dual-annotator consensus and export disputes")
+    p_had.add_argument("--annotator1", type=Path, required=True)
+    p_had.add_argument("--annotator2", type=Path, required=True)
+    p_had.add_argument("--out-consensus", type=Path, required=True)
+    p_had.add_argument("--out-disputed", type=Path, required=True)
+    p_had.add_argument("--adjudicator", type=str, default="senior_adjudicator")
+
+    # Command: human-split
+    p_hs = subparsers.add_parser("human-split", help="Partition adjudicated human dataset")
+    p_hs.add_argument("--input", type=Path, required=True)
+    p_hs.add_argument("--out-dir", type=Path, required=True)
+    p_hs.add_argument("--seed", type=int, default=42)
+
     args = parser.parse_args(argv)
 
     if args.command == "generate":
@@ -362,6 +390,43 @@ def main(argv: Optional[List[str]] = None) -> int:
         summary_file = Path("tools/ai_factory/registry/active_learning_summary.json")
         summary_file.write_text(json.dumps(history, indent=2), encoding="utf-8")
         print(f"Active learning completed. Summary saved to {summary_file}")
+        return 0
+
+    if args.command == "human-init":
+        from tools.ai_factory.human_data.cli import generate_annotation_templates
+        n = generate_annotation_templates(args.out, count=args.count)
+        print(json.dumps({"status": "SUCCESS", "records_generated": n, "output_path": str(args.out)}, indent=2))
+        return 0
+
+    if args.command == "human-validate":
+        from tools.ai_factory.human_data.schema import validate_human_dataset
+        records = [json.loads(l) for l in args.input.read_text(encoding="utf-8").splitlines() if l.strip()]
+        res = validate_human_dataset(records)
+        print(json.dumps(res, indent=2))
+        return 0 if res["valid"] else 1
+
+    if args.command == "human-agreement":
+        from tools.ai_factory.human_data.agreement import compute_detailed_inter_annotator_agreement
+        res = compute_detailed_inter_annotator_agreement(args.annotator1, args.annotator2)
+        print(json.dumps(res, indent=2))
+        return 0
+
+    if args.command == "human-adjudicate":
+        from tools.ai_factory.human_data.agreement import adjudicate_annotations
+        res = adjudicate_annotations(
+            args.annotator1,
+            args.annotator2,
+            args.out_consensus,
+            args.out_disputed,
+            adjudicator_id=args.adjudicator,
+        )
+        print(json.dumps(res, indent=2))
+        return 0
+
+    if args.command == "human-split":
+        from tools.ai_factory.human_data.cli import split_human_dataset
+        manifest = split_human_dataset(args.input, args.out_dir, seed=args.seed)
+        print(json.dumps(manifest, indent=2))
         return 0
 
     return 0
