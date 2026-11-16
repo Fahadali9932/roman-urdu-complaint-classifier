@@ -24,8 +24,9 @@ We designed, implemented, evaluated, and documented an offline, isolated, zero-c
   - `tools/ai_factory/evaluation/`: Full multi-label civic evaluation suite (exact department-set match, macro/micro F1, per-class P/R/F1, false extra rate, missed rate, causal accuracy, and bootstrap 95% confidence intervals).
   - `tools/ai_factory/active_learning/`: Bounded active learning loop (max 6 cycles, max 2000 synthetic rows, max 50 human reviews, early stopping on 2 non-improving cycles).
   - `tools/ai_factory/factory.py`: Modular CLI entry point.
-- **Test Suite:** `tests/v11/test_v11_suite.py` containing **43 comprehensive unit and integration tests** covering factory determinism, privacy gates, leakage prevention, and all 30 fixed civic anchor behaviors from Section 3 of `GENERATION_AND_QA_PLAN.md`.
-- **Existing Test Suite:** All 32 existing test files (272 Vitest tests) continue to pass 100% with 0 regressions, and `npm run build` succeeds in 715 ms.
+- **Test Suite:** `tests/v11/test_v11_suite.py` containing **55 comprehensive unit and integration tests** covering factory determinism, privacy gates, leakage prevention, all 30 fixed civic anchor behaviors from Section 3 of `GENERATION_AND_QA_PLAN.md`, and focused V11.2A regression checks.
+- **Existing Test Suite:** All 33 test files (298 Vitest tests) continue to pass 100% with 0 regressions, and `npm run build` succeeds cleanly.
+- **V11.2A Audit & Repair Note:** Active Learning Cycles 1–3 were formally marked as `INVALIDATED_DUE_TO_DATA_LEAKAGE` following the Phase V11.1 forensic audit. The 33 evaluation records are historical developer unit fixtures from V9/V10, not real citizen gold. Model compatibility was repaired with `src/services/v11InferenceAdapter.ts` and verified with Python-to-TypeScript parity tests (`src/test/V11InferenceParity.test.ts`).
 
 ---
 

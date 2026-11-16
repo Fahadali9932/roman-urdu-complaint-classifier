@@ -33,7 +33,7 @@ CNIC_PATTERN = re.compile(r"(?<!\d)\d{5}-?\d{7}-?\d(?!\d)")
 EMAIL_PATTERN = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
 API_KEY_PATTERN = re.compile(r"\b(sk-[A-Za-z0-9_-]{20,}|ey[A-Za-z0-9_-]{20,}|ghp_[A-Za-z0-9]{20,})\b")
 PRIVATE_RESIDENCE_PATTERN = re.compile(
-    r"\b(?:house|makan|flat|banglow|bungalow|plot)\s*(?:no\.?|number|#)?\s*[a-z0-9\-/]+\b",
+    r"\b(?:house|hno|h\.no|makan|flat|banglow|bungalow|plot|apartment|apt)\b\s*(?:(?:no\.?|number|#)\s*[a-z0-9\-/]+|\s+[a-z0-9\-/]*\d[a-z0-9\-/]*)\b|\b(?:h#|flat#|plot#|apt#)\s*[a-z0-9\-/]+\b",
     re.IGNORECASE,
 )
 
@@ -308,4 +308,38 @@ def check_family_leakage(train_records: List[Dict[str, Any]], val_records: List[
         "train_val_overlap": list(tv_overlap),
         "train_test_overlap": list(tt_overlap),
         "val_test_overlap": list(vt_overlap),
+    }
+
+
+def check_split_near_duplicates(
+    train_records: List[Dict[str, Any]],
+    val_records: List[Dict[str, Any]],
+    test_records: List[Dict[str, Any]],
+    threshold: float = 0.88,
+) -> Dict[str, Any]:
+    """Verify that no near-duplicate text spans exist between train and held-out splits."""
+    train_shingles = [(r["record_id"], r["family_id"], get_char_shingles(r["text_sanitized"])) for r in train_records if "text_sanitized" in r]
+    val_shingles = [(r["record_id"], r["family_id"], get_char_shingles(r["text_sanitized"])) for r in val_records if "text_sanitized" in r]
+    test_shingles = [(r["record_id"], r["family_id"], get_char_shingles(r["text_sanitized"])) for r in test_records if "text_sanitized" in r]
+
+    val_leaks = []
+    for tr_id, tr_fam, tr_sh in train_shingles:
+        for val_id, val_fam, val_sh in val_shingles:
+            sim = jaccard_similarity(tr_sh, val_sh)
+            if sim >= threshold:
+                val_leaks.append({"train_id": tr_id, "train_fam": tr_fam, "val_id": val_id, "val_fam": val_fam, "similarity": round(sim, 4)})
+
+    test_leaks = []
+    for tr_id, tr_fam, tr_sh in train_shingles:
+        for t_id, t_fam, t_sh in test_shingles:
+            sim = jaccard_similarity(tr_sh, t_sh)
+            if sim >= threshold:
+                test_leaks.append({"train_id": tr_id, "train_fam": tr_fam, "test_id": t_id, "test_fam": t_fam, "similarity": round(sim, 4)})
+
+    return {
+        "has_near_duplicate_leak": bool(val_leaks or test_leaks),
+        "val_leaks_count": len(val_leaks),
+        "test_leaks_count": len(test_leaks),
+        "val_sample_leaks": val_leaks[:5],
+        "test_sample_leaks": test_leaks[:5],
     }

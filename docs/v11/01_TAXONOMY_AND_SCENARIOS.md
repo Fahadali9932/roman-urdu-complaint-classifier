@@ -62,55 +62,49 @@ flowchart TD
 
 ### 4. Scenario Catalog Breakdown (75 Typed Families)
 
-The scenario catalog in `tools/ai_factory/scenarios/` is structured into 6 primary operational clusters:
+The scenario catalog in `tools/ai_factory/scenarios/` is structured into 6 primary operational clusters totaling exactly 75 scenario families:
 
-1. **Single Agency Core Faults (45 Families):**
-   - **KMC (10 Families):** Potholes, road sinkholes, cave-ins, open manholes on footpaths, broken curbs, flyover expansion joint damage, pedestrian bridge hazards, illegal road cuts, missing drain slabs, missing median barriers.
-   - **KWSC (10 Families):** Total water supply cutoff, main trunk pipe burst, low water pressure, contaminated turbid water, sewage backflow into streets, missing sewer cover, water tanker hydrant extortion, industrial effluent in sewer, booster line leakage, burst air valve.
-   - **K-Electric (10 Families):** Complete area blackout, transformer blowout/fire, fallen live electrical wire, low voltage / brownout, spark shower from pole, damaged electric meter, phase drop, hanging wire near school, recurring feeder trip, damaged sub-station door.
-   - **SSGC (8 Families):** Zero natural gas supply, critically low gas pressure, public gas pipeline leak with odor, pipeline rupture from road construction, leaking consumer valve, gas compressor theft in area, gas pipeline water ingress, low pressure during cooking hours.
-   - **SSWMB (8 Families):** Overflowing neighborhood garbage bins, uncollected waste for days, illegal commercial dumping on vacant plots, animal carcasses on public roads, burning garbage heaps with smoke, missing garbage bins, medical waste dumped in public alley, construction debris (malba) obstructing road.
-   - **SBCA (8 Families):** Visible deep structural cracks in multistory residential building, unauthorized extra floor construction, demolition safety hazard without protective netting, dangerous tilted residential structure, illegal basement excavation destabilizing neighboring foundation, unauthorized commercial usage of residential plot, hazardous balcony collapse risk, structural column concrete spalling.
+1. **Single Agency Core Faults (54 Families):**
+   - **KMC (10 Families):** Potholes (`kmc_potholes_asphalt`), sinkholes (`kmc_sinkhole_collapse`), footpath encroachments (`kmc_footpath_encroachment`), storm drain clogged (`kmc_storm_drain_clogged`), bridge expansion joint (`kmc_bridge_expansion_joint`), damaged median divider (`kmc_divider_damaged`), missing manhole cover on footpath (`kmc_manhole_cover_missing`), streetlights out (`kmc_street_lights_out`), unauthorized speed breaker (`kmc_speed_breaker_unauthorized`), road flooded in monsoon (`kmc_road_flooded_monsoon`).
+   - **KWSC (10 Families):** Water shortage (`kwsc_water_supply_shortage`), pipe burst leak (`kwsc_pipe_burst_leak`), low water pressure (`kwsc_low_water_pressure`), sewer overflow foul odor (`kwsc_sewer_overflow_foul`), contaminated water mix (`kwsc_water_contamination_mix`), missing sewer lid (`kwsc_missing_sewer_lid`), tanker mafia suction (`kwsc_tanker_mafia_suction`), submerged road sewer (`kwsc_submerged_road_sewer`), broken distribution valve (`kwsc_valve_broken`), clogged drainage manhole (`kwsc_clogged_drainage_manhole`).
+   - **K-Electric (10 Families):** Complete power outage (`ke_power_outage_blackout`), transformer burn/spark (`ke_transformer_burn_spark`), fallen live wire hazard (`ke_live_wire_fallen_hazard`), low voltage fluctuation (`ke_low_voltage_fluctuation`), dangerous leaning pole (`ke_pole_leaning_dangerous`), loose service cable (`ke_loose_service_cable`), meter sparking (`ke_meter_sparking`), frequent feeder tripping (`ke_feeder_tripping_frequent`), missing phase (`ke_phase_missing`), underground cable fault (`ke_underground_cable_fault`).
+   - **SSGC (8 Families):** Gas supply loss (`ssgc_gas_supply_loss`), low gas pressure (`ssgc_low_gas_pressure`), pipeline leak odor hazard (`ssgc_pipeline_leak_odor_hazard`), meter joint leak (`ssgc_meter_joint_leak`), compressor theft (`ssgc_compressor_theft`), pipeline fracture during excavation (`ssgc_pipeline_fracture_excavation`), broken gas valve (`ssgc_gas_valve_broken`), cooking hour timing shortage (`ssgc_timing_shortage`).
+   - **SSWMB (8 Families):** Overflowing garbage dump (`sswmb_garbage_overflow_dump`), missed garbage collection (`sswmb_missed_collection`), urgent animal carcass (`sswmb_animal_carcass_urgent`), street sweeping neglect (`sswmb_sweeping_neglect`), hospital clinical waste dumped (`sswmb_hospital_waste_dumped`), drain bank dumping (`sswmb_drain_bank_dumping`), commercial market waste (`sswmb_commercial_market_waste`), burning garbage smoke (`sswmb_burning_garbage_smoke`).
+   - **SBCA (8 Families):** Illegal extra floors (`sbca_illegal_extra_floors`), dangerous cracked building (`sbca_dangerous_cracked_building`), illegal commercial conversion (`sbca_illegal_commercial_conversion`), hazardous balcony overhang (`sbca_hazardous_balcony_overhang`), illegal basement excavation (`sbca_illegal_basement_excavation` — restored in V11.2A), unauthorized extension onto street (`sbca_unauthorized_extension_street`), sealing order violation (`sbca_sealing_order_violation`), falling concrete debris (`sbca_falling_concrete_debris`).
 
-2. **Causal Consequence Scenarios (8 Families):**
-   - Power blackout -> domestic water motor failure (K-Electric only; KWSC suppressed).
-   - Sewer overflow -> vehicular traffic jam (KWSC only; KMC suppressed).
-   - Low natural gas pressure -> citizen unable to cook food (SSGC only; no secondary agency).
-   - Water supply cut -> reliance on expensive private water tankers (KWSC only).
-   - Road excavation -> dust accumulation (KMC only).
-   - Power outage -> commercial cold storage spoilage (K-Electric only).
-   - Transformer explosion -> localized fire hazard (K-Electric priority safety).
-   - Sewer flooding -> pedestrian footpath submerged (KWSC only).
+2. **Causal Consequence Scenarios (4 Families):**
+   - Power blackout -> domestic water motor failure (`causal_power_motor_kwsc_suppressed` -> K-Electric only; KWSC suppressed).
+   - Sewer overflow -> vehicular traffic jam (`causal_sewage_traffic_kmc_suppressed` -> KWSC only; KMC suppressed).
+   - Low natural gas pressure -> cooking symptom (`causal_low_gas_cooking_symptom` -> SSGC only).
+   - Water supply cut -> tanker reliance (`causal_water_outage_tanker_reliance` -> KWSC only).
 
-3. **Same Incident Dual Repair Scenarios (6 Families):**
-   - Water main burst collapses road asphalt (KWSC + KMC, `SAME_INCIDENT_DIFFERENT_REPAIRS`).
-   - Road grading excavation cuts gas pipeline (KMC + SSGC, `SAME_INCIDENT_DIFFERENT_REPAIRS`).
-   - Garbage heap clogging open stormwater drain (SSWMB + KMC, `SAME_INCIDENT_DIFFERENT_REPAIRS`).
-   - Fallen live high-voltage wire submerged in sewage puddle (K-Electric + KWSC, `SAME_INCIDENT_DIFFERENT_REPAIRS` with dual hazard flags).
-   - Heavy road roller hits and cracks exposed gas distribution valve (KMC + SSGC).
-   - Deep illegal building excavation causes adjacent public road to slide (SBCA + KMC).
+3. **Syntactic Negation & Boundary Contrast Scenarios (5 Families):**
+   - Road intact, sewer overflowing (`negation_road_fine_sewer_broken` -> KWSC only, KMC negated).
+   - Gas leak denied, low pressure affirmed (`negation_gas_leak_denied_low_pressure` -> SSGC pressure only, no leak hazard).
+   - Electrical wire safe, road broken (`negation_wire_safe_pothole_reported` -> KMC only, K-Electric negated).
+   - Drain area clean of waste, drain structurally clogged (`negation_waste_drain_clean` -> KMC only, SSWMB negated).
+   - Building structurally sound, illegal extra floor (`negation_building_solid_illegal_floor` -> SBCA only).
 
-4. **Diverse Independent Agency Pairs (10 Families):**
-   - Broken road pavement + Power blackout (KMC + K-Electric, `INDEPENDENT`).
-   - Water supply cutoff + Low natural gas pressure (KWSC + SSGC, `INDEPENDENT`).
-   - Uncollected garbage heap + Transformer blowout (SSWMB + K-Electric, `INDEPENDENT`).
-   - Gas line leak + Exposed fallen electrical wire (SSGC + K-Electric, `INDEPENDENT`, dual hazards).
-   - Overflowing sewer + Structural building crack (KWSC + SBCA, `INDEPENDENT`).
-   - Road potholes + Missed garbage collection (KMC + SSWMB, `INDEPENDENT`).
-   - Low water pressure + Power voltage drop (KWSC + K-Electric, `INDEPENDENT`).
-   - Dangerous building construction + Low gas pressure (SBCA + SSGC, `INDEPENDENT`).
-   - Road manhole open + Street garbage dump (KMC + SSWMB, `INDEPENDENT`).
-   - Water supply loss + High-voltage wire spark (KWSC + K-Electric, `INDEPENDENT`).
+4. **Same Incident Dual Repair Scenarios (4 Families):**
+   - Water main burst collapses road asphalt (`dual_water_burst_road_collapsed` -> KWSC + KMC, `SAME_INCIDENT_DIFFERENT_REPAIRS`).
+   - Road excavation cuts gas pipeline (`dual_excavation_gas_leak` -> KMC + SSGC, `SAME_INCIDENT_DIFFERENT_REPAIRS`).
+   - Garbage heap clogging open stormwater drain (`dual_garbage_clogged_storm_drain` -> SSWMB + KMC, `SAME_INCIDENT_DIFFERENT_REPAIRS`).
+   - Fallen live high-voltage wire submerged in sewage puddle (`dual_submerged_live_wire_sewage` -> K-Electric + KWSC, dual hazards).
 
-5. **Negation & Boundary Contrast Scenarios (4 Families):**
-   - Road intact, sewer overflowing (`"sarak bilkul theek hai magar gutter leak hai"` -> KWSC only, KMC negated).
-   - Low gas pressure asserted, gas leak denied (`"gas leak nahi hai sirf pressure kam hai"` -> SSGC pressure only, no leak hazard).
-   - Electrical wire safe, road broken (`"wire bilkul theek hai road par khadday hain"` -> KMC only, K-Electric negated).
-   - Solid waste clean, open manhole present (`"kachra nahi hai lekin manhole khula hai"` -> KMC only, SSWMB negated).
+5. **Diverse Independent Agency Pairs (6 Families):**
+   - Broken road pavement + Power blackout (`indep_road_damage_power_outage` -> KMC + K-Electric, `INDEPENDENT`).
+   - Water supply cutoff + Low natural gas pressure (`indep_water_cutoff_low_gas` -> KWSC + SSGC, `INDEPENDENT`).
+   - Uncollected garbage heap + Transformer blowout (`indep_garbage_heap_transformer_burn` -> SSWMB + K-Electric, `INDEPENDENT`).
+   - Gas line leak + Exposed fallen electrical wire (`indep_gas_leak_live_wire` -> SSGC + K-Electric, `INDEPENDENT`, dual hazards).
+   - Overflowing sewer + Structural building crack (`indep_overflowing_sewer_building_crack` -> KWSC + SBCA, `INDEPENDENT`).
+   - Road potholes + Missed garbage collection (`indep_road_potholes_missed_garbage` -> KMC + SSWMB, `INDEPENDENT`).
 
 6. **Ambiguous & Review Scenarios (2 Families):**
-   - Generic complaint without department evidence (`"har taraf maslay hain koi sunwai nahi"` -> `expected_route="review"`).
-   - Speculative causal guess (`"pani band hai shayad bijli ki wajah se?"` -> `expected_route="review"`).
+   - Speculative causal guess (`uncertain_cause_speculation` -> `expected_route="review"`).
+   - Generic complaint without department evidence (`vague_complaint_no_service_detail` -> `expected_route="review"`).
+
+**Scenario Arithmetic Summary:**  
+`54 (Core) + 4 (Causal) + 5 (Negation) + 4 (Dual Repair) + 6 (Independent) + 2 (Review) = 75 Total Scenario Families.`
 
 ---
 
@@ -121,3 +115,12 @@ To reflect genuine citizen submissions, complaints are generated using authentic
 - **Linguistic Noise & Transliteration Variants:** Selective stochastic variation for high-frequency words:
   `bohat` / `bohot` / `bht`; `kharab` / `khrab` / `khrb`; `sarak` / `sadak` / `road`; `pani` / `paani`; `bijli` / `bijlee` / `light`; `gutter` / `gatar`; `kachra` / `kachray` / `garbage`; `theek` / `thik`; `nahi` / `nhi` / `nai`; `hai` / `he`; `mein` / `me` / `mai`.
 - **Narrative Length Distribution:** 20% Short (5–15 words), 60% Standard (20–40 words), 20% Long multi-clause narratives (50–100 words with community impact context).
+
+---
+
+### 6. Evaluation Corpus Provenance & Historical Developer Fixtures
+
+> [!IMPORTANT]
+> The 33 evaluation records in `data/v11/splits/human_gold.jsonl` are **historical developer-authored unit test fixtures** originally created during Phases V9 and V10 to test edge cases, multi-department routing, and regex logic.
+>
+> They are **NOT** independently verified real citizen complaints collected from live municipal intake channels. They must not be described as a fresh locked human-gold benchmark, nor used to claim >90% real-world citizen accuracy. In Phase V11.2B, an authentic, double-annotated citizen corpus will be collected following strict human-in-the-loop review governance.

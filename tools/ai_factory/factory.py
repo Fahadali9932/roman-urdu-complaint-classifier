@@ -40,6 +40,7 @@ from tools.ai_factory.training import (
 )
 from tools.ai_factory.validators import (
     check_family_leakage,
+    check_split_near_duplicates,
     validate_dataset,
 )
 
@@ -201,12 +202,35 @@ def main(argv: Optional[List[str]] = None) -> int:
         records = read_jsonl(args.input)
         splits = split_by_family(records, seed=args.seed)
         args.out_dir.mkdir(parents=True, exist_ok=True)
+        split_hashes = {}
         for name, rows in splits.items():
-            write_jsonl(args.out_dir / f"{name}.jsonl", rows)
+            out_file = args.out_dir / f"{name}.jsonl"
+            write_jsonl(out_file, rows)
+            h = hashlib.sha256(out_file.read_bytes()).hexdigest()
+            split_hashes[name] = {"path": str(out_file), "sha256": h, "rows_count": len(rows)}
+
         leakage = check_family_leakage(splits["train"], splits["validation"], splits["test_synthetic"])
+        assert not leakage["has_leak"], f"CRITICAL: Family leakage in dataset split: {leakage}"
+
+        near_dup_check = check_split_near_duplicates(splits["train"], splits["validation"], splits["test_synthetic"])
+        assert not near_dup_check["has_near_duplicate_leak"], f"CRITICAL: Near-duplicate leakage in dataset split: {near_dup_check}"
+
+        manifest = {
+            "version": "v11.2a-isolated-splits",
+            "seed": args.seed,
+            "split_hashes": split_hashes,
+            "leakage_check": leakage,
+            "near_duplicate_check": near_dup_check,
+            "splits": {name: get_summary(rows) for name, rows in splits.items()},
+        }
+        manifest_file = args.out_dir / "split_manifest.json"
+        manifest_file.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
+
         print(json.dumps({
             "status": "SUCCESS",
+            "manifest_file": str(manifest_file),
             "leakage_check": leakage,
+            "near_duplicate_check": near_dup_check,
             "splits": {name: get_summary(rows) for name, rows in splits.items()}
         }, indent=2))
         return 0

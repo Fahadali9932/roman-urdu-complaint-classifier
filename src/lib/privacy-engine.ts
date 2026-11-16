@@ -353,7 +353,7 @@ export function sanitizeComplaint(
   });
 
   // 7. Simple house / flat identifier: "House 24", "Flat 402", "H# 14", "Plot 12-B"
-  const simpleHouseRegex = /\b(?:house|hno|h\.no|h#|makan|makaan|flat|flat#|fl#|apartment|apt|plot)\s*(?:(?:no|num|number|#)[.:]?)?\s*[0-9a-zA-Z\-/]+\b/gi;
+  const simpleHouseRegex = /(?:\b(?:house|hno|h\.no|makan|makaan|flat|banglow|bungalow|apartment|apt|plot)\b\s*(?:(?:no|num|number|#)[.:]?\s*[0-9a-zA-Z\-/]+|[0-9a-zA-Z\-/]*\d[0-9a-zA-Z\-/]*)\b|\b(?:h#|flat#|fl#|apt#|plot#)\s*[0-9a-zA-Z\-/]+\b)/gi;
   text = text.replace(simpleHouseRegex, (match) => {
     if (isPublicLocation(match, metadata)) return match;
     flags.hasPrivateAddress = true;

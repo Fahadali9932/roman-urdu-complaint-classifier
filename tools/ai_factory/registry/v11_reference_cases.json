@@ -1,0 +1,439 @@
+{
+  "model_version": "v11-candidate-1",
+  "thresholds": {
+    "kmc": 0.62,
+    "kwsc": 0.68,
+    "kelectric": 0.75,
+    "ssgc": 0.25,
+    "sswmb": 0.25,
+    "sbca": 0.32
+  },
+  "departments": [
+    "kmc",
+    "kwsc",
+    "kelectric",
+    "ssgc",
+    "sswmb",
+    "sbca"
+  ],
+  "cases": [
+    {
+      "id": "short_road",
+      "category": "short",
+      "text": "sadak par bara khadda hai",
+      "raw_probabilities": {
+        "kmc": 0.630775,
+        "kwsc": 0.085946,
+        "kelectric": 0.002129,
+        "ssgc": 0.003062,
+        "sswmb": 0.55338,
+        "sbca": 0.058901
+      },
+      "resolved_probabilities": {
+        "kmc": 0.630775,
+        "kwsc": 0.085946,
+        "kelectric": 0.002129,
+        "ssgc": 0.003062,
+        "sswmb": 0.05,
+        "sbca": 0.058901
+      },
+      "selected_departments": [
+        "kmc"
+      ],
+      "notes": [
+        "Suppressed SSWMB: No affirmative waste/garbage tokens found"
+      ]
+    },
+    {
+      "id": "short_power",
+      "category": "short",
+      "text": "bijli band hai subah se",
+      "raw_probabilities": {
+        "kmc": 0.258648,
+        "kwsc": 0.235774,
+        "kelectric": 0.998196,
+        "ssgc": 0.005038,
+        "sswmb": 0.004972,
+        "sbca": 0.003255
+      },
+      "resolved_probabilities": {
+        "kmc": 0.258648,
+        "kwsc": 0.235774,
+        "kelectric": 0.998196,
+        "ssgc": 0.005038,
+        "sswmb": 0.004972,
+        "sbca": 0.003255
+      },
+      "selected_departments": [
+        "kelectric"
+      ],
+      "notes": []
+    },
+    {
+      "id": "long_mixed",
+      "category": "long",
+      "text": "humare ilaqay gulshan e iqbal block 13 mein pichlay char dino se street lights mukammal tor par band hain jis ki wajah se raat ko andhera rehta hai aur crime ka andesha hai barah e karam is ko jald theek karwayen",
+      "raw_probabilities": {
+        "kmc": 0.213884,
+        "kwsc": 0.608991,
+        "kelectric": 0.357068,
+        "ssgc": 0.102543,
+        "sswmb": 0.002499,
+        "sbca": 0.034134
+      },
+      "resolved_probabilities": {
+        "kmc": 0.213884,
+        "kwsc": 0.608991,
+        "kelectric": 0.357068,
+        "ssgc": 0.102543,
+        "sswmb": 0.002499,
+        "sbca": 0.034134
+      },
+      "selected_departments": [],
+      "notes": []
+    },
+    {
+      "id": "long_water_sewage",
+      "category": "long",
+      "text": "north nazimabad block l mein main sewerage line choke hone ki wajah se poori sarak par ganda pani beh raha hai aur badboo se rehna dushwar ho gaya hai log masjid nahi ja sakte",
+      "raw_probabilities": {
+        "kmc": 0.073002,
+        "kwsc": 0.999731,
+        "kelectric": 0.002098,
+        "ssgc": 0.000461,
+        "sswmb": 0.000758,
+        "sbca": 0.003204
+      },
+      "resolved_probabilities": {
+        "kmc": 0.073002,
+        "kwsc": 0.999731,
+        "kelectric": 0.002098,
+        "ssgc": 0.000461,
+        "sswmb": 0.000758,
+        "sbca": 0.003204
+      },
+      "selected_departments": [
+        "kwsc"
+      ],
+      "notes": []
+    },
+    {
+      "id": "causal_power_motor",
+      "category": "causal",
+      "text": "bijli band hone ki wajah se pani ki motor nahi chal rahi voltage bhi zero hai",
+      "raw_probabilities": {
+        "kmc": 0.200463,
+        "kwsc": 0.986692,
+        "kelectric": 0.786518,
+        "ssgc": 0.001123,
+        "sswmb": 0.003563,
+        "sbca": 0.00116
+      },
+      "resolved_probabilities": {
+        "kmc": 0.200463,
+        "kwsc": 0.15,
+        "kelectric": 0.786518,
+        "ssgc": 0.001123,
+        "sswmb": 0.003563,
+        "sbca": 0.00116
+      },
+      "selected_departments": [
+        "kelectric"
+      ],
+      "notes": [
+        "Suppressed KWSC: Domestic water motor failure is downstream symptom of power outage"
+      ]
+    },
+    {
+      "id": "causal_sewage_traffic",
+      "category": "causal",
+      "text": "gutter ka pani ubal kar raste par aagaya hai jis ki wajah se traffic jam ho gaya hai sarak bilkul theek hai koi khadda nahi",
+      "raw_probabilities": {
+        "kmc": 0.37063,
+        "kwsc": 0.984979,
+        "kelectric": 0.000444,
+        "ssgc": 1.6e-05,
+        "sswmb": 0.001892,
+        "sbca": 0.003046
+      },
+      "resolved_probabilities": {
+        "kmc": 0.05,
+        "kwsc": 0.984979,
+        "kelectric": 0.000444,
+        "ssgc": 1.6e-05,
+        "sswmb": 0.001892,
+        "sbca": 0.003046
+      },
+      "selected_departments": [
+        "kwsc"
+      ],
+      "notes": [
+        "Suppressed KMC: Road structural damage explicitly denied/intact"
+      ]
+    },
+    {
+      "id": "negated_road",
+      "category": "negated",
+      "text": "wire khamba se gir gayi hai lekin sarak bilkul theek hai koi khadda nahi hai",
+      "raw_probabilities": {
+        "kmc": 0.577236,
+        "kwsc": 0.038793,
+        "kelectric": 0.03344,
+        "ssgc": 0.002191,
+        "sswmb": 0.027022,
+        "sbca": 0.007787
+      },
+      "resolved_probabilities": {
+        "kmc": 0.05,
+        "kwsc": 0.038793,
+        "kelectric": 0.03344,
+        "ssgc": 0.002191,
+        "sswmb": 0.027022,
+        "sbca": 0.007787
+      },
+      "selected_departments": [],
+      "notes": [
+        "Suppressed KMC: Road structural damage explicitly denied/intact"
+      ]
+    },
+    {
+      "id": "negated_wire_safe",
+      "category": "negated",
+      "text": "sarak par kachra para hai taar safe hai koi khatra nahi",
+      "raw_probabilities": {
+        "kmc": 0.467143,
+        "kwsc": 0.005904,
+        "kelectric": 0.001371,
+        "ssgc": 0.001328,
+        "sswmb": 0.971057,
+        "sbca": 0.030099
+      },
+      "resolved_probabilities": {
+        "kmc": 0.05,
+        "kwsc": 0.005904,
+        "kelectric": 0.05,
+        "ssgc": 0.001328,
+        "sswmb": 0.971057,
+        "sbca": 0.030099
+      },
+      "selected_departments": [
+        "sswmb"
+      ],
+      "notes": [
+        "Suppressed KMC: Road/footpath is location of electrical hazard without structural road defect",
+        "Suppressed K-Electric: Wire explicitly affirmed safe"
+      ]
+    },
+    {
+      "id": "negated_waste_clean",
+      "category": "negated",
+      "text": "pani ki main pipeline phat gayi hai gali mein safai theek hai kachra nahi hai",
+      "raw_probabilities": {
+        "kmc": 0.218196,
+        "kwsc": 0.837732,
+        "kelectric": 0.000318,
+        "ssgc": 0.11681,
+        "sswmb": 0.764696,
+        "sbca": 0.004521
+      },
+      "resolved_probabilities": {
+        "kmc": 0.218196,
+        "kwsc": 0.837732,
+        "kelectric": 0.000318,
+        "ssgc": 0.11681,
+        "sswmb": 0.05,
+        "sbca": 0.004521
+      },
+      "selected_departments": [
+        "kwsc"
+      ],
+      "notes": [
+        "Suppressed SSWMB: Solid waste issue explicitly denied"
+      ]
+    },
+    {
+      "id": "multi_water_power",
+      "category": "multi_independent",
+      "text": "gali mein bijli 24 ghante se band hai aur water supply ka peene ka pani bhi do haftay se nahi aya",
+      "raw_probabilities": {
+        "kmc": 0.096229,
+        "kwsc": 0.995104,
+        "kelectric": 0.9897,
+        "ssgc": 0.002664,
+        "sswmb": 0.02247,
+        "sbca": 0.00152
+      },
+      "resolved_probabilities": {
+        "kmc": 0.096229,
+        "kwsc": 0.995104,
+        "kelectric": 0.9897,
+        "ssgc": 0.002664,
+        "sswmb": 0.02247,
+        "sbca": 0.00152
+      },
+      "selected_departments": [
+        "kwsc",
+        "kelectric"
+      ],
+      "notes": []
+    },
+    {
+      "id": "multi_waste_road",
+      "category": "multi_independent",
+      "text": "main road par bara khadda para hua hai aur sath hi kachray ka dher bhi laga hua hai",
+      "raw_probabilities": {
+        "kmc": 0.37086,
+        "kwsc": 0.255302,
+        "kelectric": 0.004267,
+        "ssgc": 0.001891,
+        "sswmb": 0.76905,
+        "sbca": 0.010538
+      },
+      "resolved_probabilities": {
+        "kmc": 0.37086,
+        "kwsc": 0.255302,
+        "kelectric": 0.004267,
+        "ssgc": 0.001891,
+        "sswmb": 0.76905,
+        "sbca": 0.010538
+      },
+      "selected_departments": [
+        "sswmb"
+      ],
+      "notes": []
+    },
+    {
+      "id": "multi_building_footpath",
+      "category": "multi_independent",
+      "text": "commercial plaza walay ghair qanooni manzil tameer kar rahay hain aur footpath par cement bajri daal kar qabza kar liya",
+      "raw_probabilities": {
+        "kmc": 0.728366,
+        "kwsc": 0.014335,
+        "kelectric": 0.02111,
+        "ssgc": 0.000324,
+        "sswmb": 0.048589,
+        "sbca": 0.224757
+      },
+      "resolved_probabilities": {
+        "kmc": 0.728366,
+        "kwsc": 0.014335,
+        "kelectric": 0.02111,
+        "ssgc": 0.000324,
+        "sswmb": 0.048589,
+        "sbca": 0.224757
+      },
+      "selected_departments": [
+        "kmc"
+      ],
+      "notes": []
+    },
+    {
+      "id": "disambig_water_pressure",
+      "category": "disambiguation",
+      "text": "hamare ghar mein water supply ka low pressure hai pani bilkul nahi charh raha motor par",
+      "raw_probabilities": {
+        "kmc": 0.085011,
+        "kwsc": 0.997754,
+        "kelectric": 0.253965,
+        "ssgc": 0.669934,
+        "sswmb": 0.001307,
+        "sbca": 0.005748
+      },
+      "resolved_probabilities": {
+        "kmc": 0.085011,
+        "kwsc": 0.997754,
+        "kelectric": 0.253965,
+        "ssgc": 0.05,
+        "sswmb": 0.001307,
+        "sbca": 0.005748
+      },
+      "selected_departments": [
+        "kwsc"
+      ],
+      "notes": [
+        "Suppressed SSGC: 'pressure' refers to water supply, not gas"
+      ]
+    },
+    {
+      "id": "disambig_basement_excavation",
+      "category": "disambiguation",
+      "text": "commercial building ki illegal basement excavation ho rahi hai sath walay makan ki deewar mein crack aagaya hai",
+      "raw_probabilities": {
+        "kmc": 0.279295,
+        "kwsc": 0.026254,
+        "kelectric": 0.073306,
+        "ssgc": 0.461351,
+        "sswmb": 0.010966,
+        "sbca": 0.782222
+      },
+      "resolved_probabilities": {
+        "kmc": 0.279295,
+        "kwsc": 0.026254,
+        "kelectric": 0.073306,
+        "ssgc": 0.05,
+        "sswmb": 0.010966,
+        "sbca": 0.782222
+      },
+      "selected_departments": [
+        "sbca"
+      ],
+      "notes": [
+        "Suppressed SSGC: Excavation relates to building construction, no gas pipeline mentioned"
+      ]
+    },
+    {
+      "id": "disambig_wire_on_footpath",
+      "category": "disambiguation",
+      "text": "footpath par bijli ki nangi taar giri hui hai current lagne ka khatra hai",
+      "raw_probabilities": {
+        "kmc": 0.73143,
+        "kwsc": 0.316227,
+        "kelectric": 0.991393,
+        "ssgc": 0.000228,
+        "sswmb": 0.001948,
+        "sbca": 0.006167
+      },
+      "resolved_probabilities": {
+        "kmc": 0.05,
+        "kwsc": 0.316227,
+        "kelectric": 0.991393,
+        "ssgc": 0.000228,
+        "sswmb": 0.001948,
+        "sbca": 0.006167
+      },
+      "selected_departments": [
+        "kelectric"
+      ],
+      "notes": [
+        "Suppressed KMC: Road/footpath is location of electrical hazard without structural road defect"
+      ]
+    },
+    {
+      "id": "recipient_kmc_water_defect",
+      "category": "recipient",
+      "text": "kmc walay please dekhein humare block mein sewage gutter ka pani ubal raha hai",
+      "raw_probabilities": {
+        "kmc": 0.050666,
+        "kwsc": 0.998136,
+        "kelectric": 0.017635,
+        "ssgc": 0.000105,
+        "sswmb": 0.001429,
+        "sbca": 0.012671
+      },
+      "resolved_probabilities": {
+        "kmc": 0.05,
+        "kwsc": 0.998136,
+        "kelectric": 0.017635,
+        "ssgc": 0.000105,
+        "sswmb": 0.001429,
+        "sbca": 0.012671
+      },
+      "selected_departments": [
+        "kwsc"
+      ],
+      "notes": [
+        "Suppressed kmc: Entity addressed as message recipient, not fault owner"
+      ]
+    }
+  ]
+}

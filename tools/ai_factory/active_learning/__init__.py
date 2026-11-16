@@ -10,13 +10,15 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 import numpy as np
 
 from tools.ai_factory.evaluation import evaluate_dataset
 from tools.ai_factory.generator import generate_dataset
+from tools.ai_factory.scenarios import SCENARIOS
 from tools.ai_factory.training import DEPARTMENTS, train_candidates, tune_thresholds
+from tools.ai_factory.validators import get_char_shingles, jaccard_similarity
 
 
 class BoundedActiveLearner:
@@ -75,12 +77,58 @@ class BoundedActiveLearner:
         human_gold_records: Optional[List[Dict[str, Any]]] = None,
         synthetic_increment: int = 300,
         seed: int = 42,
+        authorized_train_families: Optional[Set[str]] = None,
     ) -> Dict[str, Any]:
-        """Execute one complete active learning acquisition cycle."""
-        # 1. Expand synthetic pool safely with new seed
+        """Execute one complete active learning acquisition cycle with strict leakage prevention."""
+        val_families = {r["family_id"] for r in val_records if "family_id" in r}
+        test_families = {r["family_id"] for r in test_records if "family_id" in r}
+
+        # 1. Determine authorized training families
+        if authorized_train_families:
+            auth_fams = set(authorized_train_families)
+        else:
+            auth_fams = {r["family_id"] for r in current_train if "family_id" in r}
+
+        # Ensure authorized train families NEVER intersect with val or test
+        overlap_val = auth_fams & val_families
+        overlap_test = auth_fams & test_families
+        if overlap_val or overlap_test:
+            raise ValueError(
+                f"Active learning initialization error: authorized_train_families intersects held-out splits! "
+                f"Overlap val: {overlap_val}, Overlap test: {overlap_test}"
+            )
+
+        train_scenarios = [s for s in SCENARIOS if s["family_id"] in auth_fams]
+        if not train_scenarios:
+            raise ValueError("No authorized training scenarios available for synthetic generation.")
+
+        # 2. Expand synthetic pool safely with new seed ONLY from authorized train_scenarios
         cycle_seed = seed + (cycle_idx * 17)
         increment_count = min(synthetic_increment, self.max_new_synthetic)
-        new_synthetic = generate_dataset(count=increment_count, seed=cycle_seed)
+        new_synthetic = generate_dataset(
+            count=increment_count,
+            seed=cycle_seed,
+            custom_scenarios=train_scenarios,
+        )
+
+        # STRICT LEAKAGE ASSERTIONS
+        new_fams = {r["family_id"] for r in new_synthetic}
+        leak_val = new_fams & val_families
+        leak_test = new_fams & test_families
+        assert not leak_val, f"CRITICAL: Active learning leaked {len(leak_val)} validation families into training: {leak_val}"
+        assert not leak_test, f"CRITICAL: Active learning leaked {len(leak_test)} test families into training: {leak_test}"
+
+        # Near-duplicate assertions against validation and test sets
+        val_shingles = [get_char_shingles(r["text_sanitized"]) for r in val_records]
+        test_shingles = [get_char_shingles(r["text_sanitized"]) for r in test_records]
+        for syn_r in new_synthetic:
+            syn_sh = get_char_shingles(syn_r["text_sanitized"])
+            for v_sh in val_shingles:
+                sim = jaccard_similarity(syn_sh, v_sh)
+                assert sim < 0.88, f"Near-duplicate leakage with validation set ({sim:.3f}): {syn_r['text_sanitized']}"
+            for t_sh in test_shingles:
+                sim = jaccard_similarity(syn_sh, t_sh)
+                assert sim < 0.88, f"Near-duplicate leakage with test set ({sim:.3f}): {syn_r['text_sanitized']}"
 
         augmented_train = list(current_train) + new_synthetic
 

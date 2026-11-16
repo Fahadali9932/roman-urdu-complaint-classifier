@@ -13,7 +13,11 @@
 All 4 candidates were evaluated on the **exact same locked family-disjoint train/validation split** ($N_{\text{train}}=844$, $N_{\text{val}}=186$).
 Evaluations are reported separately for:
 1. **Synthetic Held-out Test Set** ($N=170$, 12 unseen scenario families).
-2. **Quarantined Locked Human Gold Set** ($N=33$, verified historical citizen complaints).
+2. **Historical Developer Fixture Set** ($N=33$, historical unit test fixtures from V9/V10).
+
+> [!NOTE]
+> **Active Learning Benchmark Invalidation:**  
+> The subsequent Active Learning Cycles (1–3) originally reported in V11 are **invalidated due to data leakage** during acquisition. The metrics presented below represent the clean, uncompromised Initial Split Baseline ($N_{\text{train}}=844, N_{\text{val}}=186, N_{\text{test}}=170$). Furthermore, the 33 evaluation records are historical developer-authored test fixtures from V9/V10, not an independently verified real-citizen production benchmark.
 
 ```mermaid
 flowchart TD
@@ -42,7 +46,7 @@ flowchart TD
 | **B1-B: Calibrated LinearSVC** | **87.65%** [82.4%, 92.4%] | **0.9550** [0.937, 0.971] | **0.9501** | **6.47%** | **4.76%** | **100.0%** | **93.13%** | **0.0217** |
 | **B1-C: Calibrated SGD** | 31.76% [24.1%, 38.8%] | 0.4924 [0.424, 0.541] | 0.5333 | 30.59% | 52.38% | 0.00% | 41.86% | 0.1503 |
 
-#### Quarantined Human Gold Set ($N=33$, Natural Citizen Language):
+#### Historical Developer Test Fixtures Set ($N=33$, Historical V9/V10 Regression Cases):
 
 | Model Candidate | Exact Set Match (95% CI) | Macro-F1 (95% CI) | Micro-F1 | False Extra Rate | Missed Issue Rate | Auto-Route Precision | Mean Brier Score |
 |---|---:|---:|---:|---:|---:|---:|---:|

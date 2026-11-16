@@ -210,7 +210,10 @@ export function detectHazard(text: string): { hasHazard: boolean; hazardType?: s
 /**
  * Causal relation resolver and consequence suppressor.
  */
-function resolveIssueRelations(
+/**
+ * Causal relation resolver and consequence suppressor.
+ */
+export function resolveIssueRelations(
   text: string,
   departments: DepartmentId[]
 ): {
@@ -225,13 +228,13 @@ function resolveIssueRelations(
 
   // Consequence 1: Power out -> Motor stopped (Household water motor symptom is NOT KWSC defect)
   const isPowerOut = departments.includes('kelectric');
-  const isMotorSymptom = /\b(motor\s+(nahi|band)|pani\s+ki\s+motor)\b/i.test(norm);
-  const hasPublicWaterDefect = /\b(sarkari\s+line|main\s+line|pipeline\s+phat|peene\s+ka\s+pani\s+nahi)\b/i.test(norm);
+  const isMotorSymptom = /\b(motor\s+(nahi|band)|pani\s+ki\s+motor|water\s+pump\s+band)\b/i.test(norm);
+  const hasPublicWaterDefect = /\b(sarkari\s+line|main\s+line|pipeline\s+phat|peene\s+ka\s+pani\s+nahi|water\s+supply\s+band)\b/i.test(norm);
 
   // Consequence 2: Sewer overflow -> Traffic jam (Traffic obstruction is NOT structural road defect)
   const isSewageDefect = departments.includes('kwsc');
   const isTrafficSymptom = /\b(traffic\s+(ruk|jam|slow)|road\s+geeli|sarak\s+geeli)\b/i.test(norm);
-  const hasStructuralRoadDefect = /\b(khadda|pothole|gadda|sarak\s+toot|road\s+toot|dhans)\b/i.test(norm);
+  const hasStructuralRoadDefect = /\b(khadda|khadday|gadda|gadday|pothole|potholes|sarak\s+toot|road\s+toot|toota|tooti|dhans|parat\s+ukhad|asphalt|crater)\b/i.test(norm);
 
   // Dual Repair: Water main burst broke road surface
   const isWaterMainRoadCollapse =
@@ -245,7 +248,144 @@ function resolveIssueRelations(
   const isDualRepair = isWaterMainRoadCollapse || isExcavationGasLeak;
   const isAmbiguous = /\b(shayad|ho\s+sakta\s+hai|lagta\s+hai|pata\s+nahi)\b/i.test(norm) && departments.length > 1;
 
+  // V11.2A Contextual disambiguation patterns
+  const isWaterPressure =
+    /\b(?:water|pani|paani)(?:\s+supply)?(?:\s+ka)?\s+(?:intihai\s+|bohot\s+|bht\s+)?(?:low|kam|zero)\s+pressure\b|\b(?:water|pani|paani)\s+(?:ka\s+)?pressure\b|\bpressure\s+(?:intihai\s+)?kam\s+hai\s+(?:pani|motor)\b|\bpressure\s+intihai\s+kam\s+hai\s+motor\b/i.test(
+      norm
+    );
+  const hasGasEvidence =
+    /\b(?:gas|sui\s*gas|chulha|stove|gas\s*meter|flame|methane|gas\s+leak|boo|odor|smell)\b/i.test(
+      norm
+    );
+
+  const isBuildingExcavation =
+    /\b(?:basement|foundation|shoring|building|house|makan|wall|deewar|pillar)\b.*\b(?:excavation|khudai)\b|\b(?:excavation|khudai)\b.*\b(?:basement|foundation|shoring|building|house|wall|deewar|crack)\b/i.test(
+      norm
+    );
+
+  const isElectricalHazard =
+    /\b(?:wire|taar|taaren|cable|pole|khamba|transformer|current|sparks?|snapping)\b/i.test(
+      norm
+    );
+
+  const hasWasteEvidence =
+    /\b(?:kachra|kachray|garbage|trash|safai|dustbin|dhair|dumper|sweeper|malba|kura|dumpster|dumped|waste)\b/i.test(
+      norm
+    );
+
+  const isRoadDenial =
+    /\b(?:sarak|road|sadak)\s+(?:bilkul\s+)?theek\s+hai\b|\b(?:koi\s+)?(?:khadda|gadda|damage)\s+nahi\b|\broad\s+kharab\s+nahi\b/i.test(
+      norm
+    );
+  const isWasteDenial =
+    /\bkachra\s+nahi\s+hai\b|\bsafai\s+theek\s+hai\b/i.test(norm);
+  const isWireSafe =
+    /\btaar\s+(?:safe|theek)\s+hai\b|\bwire\s+se\s+khatra\s+nahi\b/i.test(norm);
+
+  const recipientMentions: Array<{ dept: DepartmentId; mention: RegExp; fault: RegExp }> = [
+    {
+      dept: 'kelectric',
+      mention: /\bk-?electric\s+(?:wale|walay|team|staff|ko\s+chahiye|please|hazrat)\b/i,
+      fault: /\b(?:bijli|taar|voltage|transformer|light|current|feeder|meter|power|load\s*shedding)\b/i,
+    },
+    {
+      dept: 'kmc',
+      mention: /\bkmc\s+(?:wale|walay|team|staff|ko\s+chahiye|please|hazrat)\b/i,
+      fault: /\b(?:sarak|road|sadak|footpath|flyover|bridge|khadda|pothole|underpass|street\s*light)\b/i,
+    },
+    {
+      dept: 'kwsc',
+      mention: /\b(?:kwsc|kwsb|water\s+board)\s+(?:wale|walay|team|staff|ko\s+chahiye|please|hazrat)\b/i,
+      fault: /\b(?:pani|paani|water|sewer|sewerage|gutter|gatar|line\s+phat|pipe|drain)\b/i,
+    },
+    {
+      dept: 'ssgc',
+      mention: /\bssgc\s+(?:wale|walay|team|staff|ko\s+chahiye|please|hazrat)\b/i,
+      fault: /\b(?:gas|sui\s*gas|cylinder|chulha|pipeline|meter)\b/i,
+    },
+    {
+      dept: 'sswmb',
+      mention: /\bsswmb\s+(?:wale|walay|team|staff|ko\s+chahiye|please|hazrat)\b/i,
+      fault: /\b(?:kachra|garbage|trash|safai|dustbin|dhair|dumper|sweeper)\b/i,
+    },
+    {
+      dept: 'sbca',
+      mention: /\bsbca\s+(?:wale|walay|team|staff|ko\s+chahiye|please|hazrat)\b/i,
+      fault: /\b(?:building|imarat|construction|floor|chath|daraar|crack|demolition)\b/i,
+    },
+  ];
+
   for (const dept of departments) {
+    // Check recipient-only mentions without fault
+    const recMatch = recipientMentions.find((r) => r.dept === dept);
+    if (recMatch && recMatch.mention.test(norm) && !recMatch.fault.test(norm)) {
+      suppressed.push({
+        dept,
+        reason: 'Entity addressed as conversational recipient without grievance.',
+      });
+      continue;
+    }
+
+    // Negations
+    if (dept === 'kmc' && isRoadDenial && !hasStructuralRoadDefect) {
+      suppressed.push({
+        dept: 'kmc',
+        reason: 'Road structural damage explicitly denied/intact.',
+      });
+      continue;
+    }
+    if (dept === 'sswmb' && isWasteDenial) {
+      suppressed.push({
+        dept: 'sswmb',
+        reason: 'Solid waste issue explicitly denied.',
+      });
+      continue;
+    }
+    if (dept === 'kelectric' && isWireSafe) {
+      suppressed.push({
+        dept: 'kelectric',
+        reason: 'Wire explicitly affirmed safe.',
+      });
+      continue;
+    }
+
+    // Water pressure vs Gas pressure
+    if (dept === 'ssgc' && isWaterPressure && !hasGasEvidence) {
+      suppressed.push({
+        dept: 'ssgc',
+        reason: "'pressure' refers to water supply, not gas infrastructure.",
+      });
+      continue;
+    }
+
+    // Building excavation vs Gas pipeline fracture
+    if (dept === 'ssgc' && isBuildingExcavation && !hasGasEvidence) {
+      suppressed.push({
+        dept: 'ssgc',
+        reason: 'Excavation relates to building construction, no gas pipeline mentioned.',
+      });
+      continue;
+    }
+
+    // Spatial location (wire on footpath/road) without road defect
+    if (dept === 'kmc' && isElectricalHazard && !hasStructuralRoadDefect && !isDualRepair) {
+      suppressed.push({
+        dept: 'kmc',
+        reason: 'Road/footpath is location of electrical hazard without structural road defect.',
+      });
+      continue;
+    }
+
+    // SSWMB false positive without affirmative waste tokens
+    if (dept === 'sswmb' && !hasWasteEvidence) {
+      suppressed.push({
+        dept: 'sswmb',
+        reason: 'No affirmative waste/garbage tokens found.',
+      });
+      continue;
+    }
+
+    // Power outage -> Motor consequence
     if (dept === 'kwsc' && isPowerOut && isMotorSymptom && !hasPublicWaterDefect && !isDualRepair) {
       suppressed.push({
         dept: 'kwsc',
@@ -253,6 +393,8 @@ function resolveIssueRelations(
       });
       continue;
     }
+
+    // Sewer overflow -> Traffic consequence
     if (dept === 'kmc' && isSewageDefect && isTrafficSymptom && !hasStructuralRoadDefect && !isDualRepair) {
       suppressed.push({
         dept: 'kmc',
@@ -260,6 +402,7 @@ function resolveIssueRelations(
       });
       continue;
     }
+
     actionable.push(dept);
   }
 

@@ -47,6 +47,10 @@ class CivicRelationResolver:
     1. Downstream causal symptoms (e.g. power outage causing domestic water pump failure).
     2. Explicitly negated defects (e.g. 'sarak theek hai', 'gas leak nahi hai').
     3. Location-only mentions (e.g. 'road par accident hua, sarak kharab nahi').
+    4. Cross-domain unigram leakage (water pressure vs gas pressure).
+    5. Structural building excavation vs gas pipeline fracture.
+    6. Electrical wire hazards in spatial street/footpath locations without road damage.
+    7. Agency addressed as conversational recipient without grievance.
     """
 
     # Negation indicators that dismiss a physical defect
@@ -59,10 +63,41 @@ class CivicRelationResolver:
     MOTOR_CONSEQUENCE = re.compile(r"\b(?:pani\s+ki\s+)?motor\s+(?:nahi\s+chal\s+rahi|band\s+hai|ruk\s+gai)\b|\bwater\s+pump\s+band\b", re.IGNORECASE)
     TRAFFIC_CONSEQUENCE = re.compile(r"\b(?:traffic\s+jam|gariyan\s+phans\s+rahi|gariyan\s+ruk\s+rahi)\b", re.IGNORECASE)
     WET_ROAD_ONLY = re.compile(r"\broad\s+geeli\s+hai\b|\bsarak\s+par\s+pani\s+hai\b", re.IGNORECASE)
-    ROAD_ACTUAL_DAMAGE = re.compile(r"\b(?:sarak|road)\s+(?:dhans\s+gai|toot\s+gai|baith\s+gai|khadday\s+par\s+gaye|parat\s+ukhad\s+gai)\b", re.IGNORECASE)
+    ROAD_ACTUAL_DAMAGE = re.compile(r"\b(?:sarak|road)\s+(?:dhans\s+gai|toot\s+gai|baith\s+gai|khadday\s+par\s+gaye|parat\s+ukhad\s+gai)\b|\b(?:pothole|khadda|gadda|crater|asphalt|footpath\s+toot)\b", re.IGNORECASE)
 
-    # Agency name mention without defect
-    KELECTRIC_MENTION_ONLY = re.compile(r"\bk-?electric\s+wale\s+(?:please\s+)?dekhen\s+asal\s+masla\b", re.IGNORECASE)
+    # Cross-domain disambiguation: Water pressure vs Gas pressure
+    WATER_PRESSURE = re.compile(
+        r"\b(?:water|pani|paani)(?:\s+supply)?(?:\s+ka)?\s+(?:intihai\s+|bohot\s+|bht\s+)?(?:low|kam|zero)\s+pressure\b|"
+        r"\b(?:water|pani|paani)\s+(?:ka\s+)?pressure\b|"
+        r"\bpressure\s+(?:intihai\s+)?kam\s+hai\s+(?:pani|motor)\b|"
+        r"\bpressure\s+intihai\s+kam\s+hai\s+motor\b",
+        re.IGNORECASE,
+    )
+    GAS_EVIDENCE = re.compile(r"\b(?:gas|sui\s*gas|chulha|stove|gas\s*meter|flame|methane)\b", re.IGNORECASE)
+
+    # Cross-domain disambiguation: Building excavation vs Gas pipeline fracture
+    BUILDING_EXCAVATION = re.compile(r"\b(?:basement|foundation|shoring|building|house|makan|wall|deewar|pillar)\b.*\b(?:excavation|khudai)\b|\b(?:excavation|khudai)\b.*\b(?:basement|foundation|shoring|building|house|wall|deewar|crack)\b", re.IGNORECASE)
+
+    # Cross-domain disambiguation: Spatial wire hazard vs Road damage
+    ELECTRICAL_HAZARD = re.compile(r"\b(?:wire|taar|taaren|cable|pole|khamba|transformer|current|sparks?|snapping)\b", re.IGNORECASE)
+    ROAD_STRUCTURAL_DEFECT = re.compile(r"\b(?:khadda|khadday|gadda|gadday|pothole|potholes|toota|tooti|damaged?|crater|dhans|asphalt|carpeting|encroachment|thela|vendor)\b", re.IGNORECASE)
+
+    # Solid waste affirmative check
+    WASTE_EVIDENCE = re.compile(r"\b(?:kachra|kachray|garbage|trash|safai|dustbin|dhair|dumper|sweeper|malba|kura|dumpster|dumped|waste)\b", re.IGNORECASE)
+
+    # Generalized recipient mentions across all 6 departments
+    RECIPIENT_MENTIONS = [
+        ("kelectric", re.compile(r"\bk-?electric\s+(?:wale|walay|team|staff|ko\s+chahiye|please|hazrat)\b", re.IGNORECASE), re.compile(r"\b(?:bijli|taar|voltage|transformer|light|current|feeder|meter|power|load\s*shedding)\b", re.IGNORECASE)),
+        ("kmc", re.compile(r"\bkmc\s+(?:wale|walay|team|staff|ko\s+chahiye|please|hazrat)\b", re.IGNORECASE), re.compile(r"\b(?:sarak|road|sadak|footpath|flyover|bridge|khadda|pothole|underpass|street\s*light)\b", re.IGNORECASE)),
+        ("kwsc", re.compile(r"\b(?:kwsc|kwsb|water\s+board)\s+(?:wale|walay|team|staff|ko\s+chahiye|please|hazrat)\b", re.IGNORECASE), re.compile(r"\b(?:pani|paani|water|sewer|sewerage|gutter|gatar|line\s+phat|pipe|drain)\b", re.IGNORECASE)),
+        ("ssgc", re.compile(r"\bssgc\s+(?:wale|walay|team|staff|ko\s+chahiye|please|hazrat)\b", re.IGNORECASE), re.compile(r"\b(?:gas|sui\s*gas|cylinder|chulha|pipeline|meter)\b", re.IGNORECASE)),
+        ("sswmb", re.compile(r"\bsswmb\s+(?:wale|walay|team|staff|ko\s+chahiye|please|hazrat)\b", re.IGNORECASE), re.compile(r"\b(?:kachra|garbage|trash|safai|dustbin|dhair|dumper|sweeper)\b", re.IGNORECASE)),
+        ("sbca", re.compile(r"\bsbca\s+(?:wale|walay|team|staff|ko\s+chahiye|please|hazrat)\b", re.IGNORECASE), re.compile(r"\b(?:building|imarat|construction|floor|chath|daraar|crack|demolition)\b", re.IGNORECASE)),
+    ]
+
+    # English civic terms boosting
+    ENGLISH_POWER = re.compile(r"\b(?:load\s*shedding|power\s*cut|continuous\s+power\s+cut|feeder\s+down|feeder\s+tripping)\b", re.IGNORECASE)
+    ENGLISH_BUILDING = re.compile(r"\b(?:stop-work\s*order|seal\s+the\s+premises|unauthorized\s+construction|demolition\s+order)\b", re.IGNORECASE)
 
     @classmethod
     def resolve(cls, text: str, initial_probs: Dict[str, float]) -> Tuple[Dict[str, float], List[str]]:
@@ -70,7 +105,40 @@ class CivicRelationResolver:
         probs = dict(initial_probs)
         notes = []
 
-        # 1. Power outage causing domestic water motor failure
+        # 0. Boost English civic loanwords
+        if cls.ENGLISH_POWER.search(text):
+            probs["kelectric"] = max(probs.get("kelectric", 0), 0.85)
+            notes.append("Boosted K-Electric: English power terms detected")
+
+        if cls.ENGLISH_BUILDING.search(text):
+            probs["sbca"] = max(probs.get("sbca", 0), 0.85)
+            notes.append("Boosted SBCA: English building control terms detected")
+
+        # 1. Water pressure vs Gas pressure
+        if cls.WATER_PRESSURE.search(text) and not cls.GAS_EVIDENCE.search(text):
+            if probs.get("ssgc", 0) > 0.10:
+                probs["ssgc"] = 0.05
+                notes.append("Suppressed SSGC: 'pressure' refers to water supply, not gas")
+
+        # 2. Building excavation vs Gas pipeline fracture
+        if cls.BUILDING_EXCAVATION.search(text) and not cls.GAS_EVIDENCE.search(text):
+            if probs.get("ssgc", 0) > 0.10:
+                probs["ssgc"] = 0.05
+                notes.append("Suppressed SSGC: Excavation relates to building construction, no gas pipeline mentioned")
+
+        # 3. Spatial location (wire on footpath/road) without road defect
+        if cls.ELECTRICAL_HAZARD.search(text):
+            if not cls.ROAD_STRUCTURAL_DEFECT.search(text):
+                if probs.get("kmc", 0) > 0.15:
+                    probs["kmc"] = 0.05
+                    notes.append("Suppressed KMC: Road/footpath is location of electrical hazard without structural road defect")
+
+        # 4. SSWMB false positive without garbage evidence
+        if probs.get("sswmb", 0) > 0.20 and not cls.WASTE_EVIDENCE.search(text):
+            probs["sswmb"] = 0.05
+            notes.append("Suppressed SSWMB: No affirmative waste/garbage tokens found")
+
+        # 5. Power outage causing domestic water motor failure
         # If electricity has strong fault and motor is mentioned as symptom, suppress KWSC
         if probs.get("kelectric", 0) > 0.40 and cls.MOTOR_CONSEQUENCE.search(text):
             # Check if there is an affirmative public water line fault
@@ -79,7 +147,7 @@ class CivicRelationResolver:
                     probs["kwsc"] = min(probs.get("kwsc", 0), 0.15)
                     notes.append("Suppressed KWSC: Domestic water motor failure is downstream symptom of power outage")
 
-        # 2. Sewer overflow causing traffic slowdown
+        # 6. Sewer overflow causing traffic slowdown
         if probs.get("kwsc", 0) > 0.40 and cls.TRAFFIC_CONSEQUENCE.search(text):
             # Suppress KMC unless genuine road structural damage is affirmed
             if not cls.ROAD_ACTUAL_DAMAGE.search(text) and not re.search(r"\b(?:sarak|road)\s+(?:kharab|tooti)\b", text, re.IGNORECASE):
@@ -87,29 +155,33 @@ class CivicRelationResolver:
                     probs["kmc"] = min(probs.get("kmc", 0), 0.15)
                     notes.append("Suppressed KMC: Traffic congestion is downstream effect of sewer overflow")
 
-        # 3. Water line burst making road wet vs damaging road
+        # 7. Water line burst making road wet vs damaging road
         if probs.get("kwsc", 0) > 0.40 and cls.WET_ROAD_ONLY.search(text):
             if not cls.ROAD_ACTUAL_DAMAGE.search(text):
                 probs["kmc"] = min(probs.get("kmc", 0), 0.15)
                 notes.append("Suppressed KMC: Road is wet from water pipe leak without structural pavement damage")
 
-        # 4. Explicit defect negations
+        # 8. Explicit defect negations
         if cls.ROAD_DENIAL.search(text):
             probs["kmc"] = 0.05
             notes.append("Suppressed KMC: Road structural damage explicitly denied/intact")
 
         if cls.GAS_LEAK_DENIAL.search(text):
-            # Keep gas pressure if asserted, but avoid leak hazard
             notes.append("Noted: Gas leak explicitly denied")
 
         if cls.WASTE_DENIAL.search(text):
             probs["sswmb"] = 0.05
             notes.append("Suppressed SSWMB: Solid waste issue explicitly denied")
 
-        # 5. Mention of agency name as recipient without grievance
-        if cls.KELECTRIC_MENTION_ONLY.search(text) and not re.search(r"\b(?:bijli|taar|voltage|transformer|light)\s+(?:band|kharab|nahi|giri)\b", text, re.IGNORECASE):
+        if cls.WIRE_SAFE.search(text):
             probs["kelectric"] = 0.05
-            notes.append("Suppressed K-Electric: Entity addressed as message recipient, not fault owner")
+            notes.append("Suppressed K-Electric: Wire explicitly affirmed safe")
+
+        # 9. Mention of agency name as recipient without grievance
+        for dept, mention_pat, fault_pat in cls.RECIPIENT_MENTIONS:
+            if mention_pat.search(text) and not fault_pat.search(text):
+                probs[dept] = 0.05
+                notes.append(f"Suppressed {dept}: Entity addressed as message recipient, not fault owner")
 
         return probs, notes
 
@@ -296,11 +368,15 @@ def export_model_artifact(
                 # CalibratedClassifierCV
                 sub_data = []
                 for cal in est.calibrated_classifiers_:
+                    # In scikit-learn 1.2+, sigmoid calibrator is stored in cal.calibrators[0]
+                    calibrator = cal.calibrators[0] if hasattr(cal, "calibrators") and cal.calibrators else None
+                    a_val = getattr(calibrator, "a_", getattr(cal, "a_", None))
+                    b_val = getattr(calibrator, "b_", getattr(cal, "b_", None))
                     sub_data.append({
-                        "coef": cal.estimator.coef_[0].tolist(),
-                        "intercept": cal.estimator.intercept_.tolist(),
-                        "a": getattr(cal, "a_", None),
-                        "b": getattr(cal, "b_", None),
+                        "coef": [round(float(w), 8) for w in cal.estimator.coef_[0]],
+                        "intercept": [round(float(b0), 8) for b0 in cal.estimator.intercept_],
+                        "a": round(float(a_val), 8) if a_val is not None else None,
+                        "b": round(float(b_val), 8) if b_val is not None else None,
                     })
                 classifiers_data.append({"calibrated": sub_data})
         model_export_data["classifiers"] = classifiers_data

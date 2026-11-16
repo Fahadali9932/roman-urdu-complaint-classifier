@@ -78,9 +78,15 @@ Pairs across different families exceeding the similarity threshold of 0.88 are f
 
 To prevent data leakage, dataset splitting is executed strictly on **disjoint scenario families** (`family_id`), not by random row sampling. All syntactic and narrative variations of a specific fault family reside in exactly one partition.
 
+> [!NOTE]
+> **V11.2A Resolution of the 74 vs 75 Family Count Discrepancy:**
+> In the initial V11 generation run, 74 unique families were produced instead of 75 because scenario `sbca_illegal_basement_excavation` contained the Roman Urdu word `makanon` (*"sath walay makanon ki bunyad"*), which was mistakenly matched by the aggressive residential address regex `\b(?:house|makan|plot)\b.*`.
+> In Phase V11.2A, the regex was updated to `\b(?:house|hno|h\.no|makan|flat|banglow|bungalow|plot|apartment|apt)\b\s*(?:(?:no\.?|number|#)\s*[a-z0-9\-/]+|\s+[a-z0-9\-/]*\d[a-z0-9\-/]*)\b|\b(?:h#|flat#|plot#|apt#)\s*[a-z0-9\-/]+\b`. All 75 scenario families now generate cleanly without false PII drops.
+
 ```
+Initial Baseline Generation:
 Total Generated Records: 1,200
-Total Unique Families:   74
+Total Catalog Families:   75 (74 generated in initial V11 split, 75 restored in V11.2A)
 Random Seed:             42
 ```
 
@@ -98,19 +104,25 @@ Random Seed:             42
 
 ---
 
-### 4. Quarantined Human Gold Corpus Governance
+### 4. Evaluation Set Provenance: Historical Developer Fixtures
 
-To preserve scientific validity and prevent model contamination, human gold records are managed under strict quarantine:
+> [!WARNING]
+> **Provenance Rectification:**
+> The 33 records stored in `data/v11/splits/human_gold.jsonl` are **historical developer-authored unit test fixtures** originally created during Phases V9 and V10 to test edge cases, multi-department routing, and regex logic.
+>
+> They are **NOT** independently verified real citizen complaints collected from live municipal intake archives.
+>
+> In the Phase V11.1 audit, these 33 fixtures were found to be:
+> 1. Developer-authored phrases (e.g. *"humare ghar ke pass wali road bohot zada kharab hoi v hai isko theek kiya jae"*).
+> 2. Historically recycled across V9, V10, and V11 test matrices.
+> 3. Single-issue dominant (31 single-department fixtures, 2 multi-department fixtures, 0 complex causal multi-department complaints).
+>
+> Therefore, these 33 records serve strictly as **historical developer regression fixtures**, not an independent real-world citizen benchmark. In Phase V11.2B, a new double-annotated citizen gold corpus will be curated from actual intake records under formal human-in-the-loop review governance.
 
-1. **Storage Location:** `data/v11/human_gold/locked_gold.jsonl` (never read by training routines).
-2. **Current Quarantined Gold Set Size:** $N = 33$ verified genuine human complaints from Karachi civic archives.
-3. **Distribution in Gold:**
-   - KMC: 3
-   - KWSC: 3
-   - K-Electric: 8
-   - SSGC: 5
-   - SSWMB: 5
-   - SBCA: 9
-4. **Blinded Human Review Tooling:**
-   - `python tools/ai_factory/factory.py review-export --input <data> --out review_queue.jsonl`: Segregates model suggestions in `suggested_scenario_issues` while keeping human fields null.
-   - `python tools/ai_factory/factory.py review-import --input review_queue.jsonl --gold-out data/v11/human_gold/locked_gold.jsonl`: Ingests verified human decisions, requiring explicit reviewer ID and timestamp.
+Distribution across the 33 historical developer fixtures:
+- KMC: 3
+- KWSC: 3
+- K-Electric: 8
+- SSGC: 5
+- SSWMB: 5
+- SBCA: 9

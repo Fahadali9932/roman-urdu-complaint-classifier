@@ -210,5 +210,7 @@
     "sswmb": 0.25,
     "sbca": 0.25
   },
-  "primary_model": "B1_B_LinearSVC"
+  "primary_model": "B1_B_LinearSVC",
+  "status": "INVALIDATED_DUE_TO_DATA_LEAKAGE",
+  "invalidation_reason": "Global scenario generation leaked held-out validation and test families into training"
 }

@@ -400,5 +400,142 @@ class TestCivicAnchorBehaviors(unittest.TestCase):
         self.assertGreater(refined["ssgc"], 0.80)
 
 
+class TestV11_2AFocusedRegressions(unittest.TestCase):
+    """V11.2A focused regression tests for forensic repairs."""
+
+    def test_pii_scanner_ordinary_words_negative(self):
+        """Ordinary words like makanon, flaton, ploton must not trigger PII."""
+        self.assertFalse(has_pii("humare makanon ke samne kachra phenka jata hai"))
+        self.assertFalse(has_pii("flaton ki taraf ganda pani beh raha hai"))
+        self.assertFalse(has_pii("ploton par deewar khari kar li hai"))
+        self.assertFalse(has_pii("sadak par makan ban rahe hain"))
+
+    def test_pii_scanner_real_addresses_positive(self):
+        """Actual private residences with unit numbers must be flagged."""
+        self.assertTrue(has_pii("House no 14-B street 3 mein issue hai"))
+        self.assertTrue(has_pii("Plot # 45 commercial area"))
+        self.assertTrue(has_pii("flat # 502, al-rehman tower"))
+        self.assertTrue(has_pii("makan no 12 gali 4"))
+        self.assertTrue(has_pii("plot# 12-C phase 2"))
+
+    def test_scenario_75_illegal_basement_excavation_generation(self):
+        """Scenario sbca_illegal_basement_excavation must generate without privacy rejection."""
+        scenario_75 = [s for s in SCENARIOS if s["family_id"] == "sbca_illegal_basement_excavation"]
+        self.assertEqual(len(scenario_75), 1)
+        dataset = generate_dataset(count=75, seed=42)
+        fam_ids = {r["family_id"] for r in dataset}
+        self.assertIn("sbca_illegal_basement_excavation", fam_ids)
+        r75 = next(r for r in dataset if r["family_id"] == "sbca_illegal_basement_excavation")
+        self.assertFalse(has_pii(r75["text_sanitized"]))
+
+    def test_water_pressure_suppresses_ssgc_without_gas_evidence(self):
+        """Water pressure must not trigger SSGC without explicit gas evidence."""
+        text = "hamare ghar mein water supply ka low pressure hai pani bilkul nahi charh raha motor par"
+        probs = {"kmc": 0.08, "kwsc": 0.95, "kelectric": 0.10, "ssgc": 0.65, "sswmb": 0.05, "sbca": 0.05}
+        refined, notes = CivicRelationResolver.resolve(text, probs)
+        self.assertLessEqual(refined["ssgc"], 0.05)
+        self.assertGreaterEqual(refined["kwsc"], 0.90)
+        self.assertTrue(any("water supply, not gas" in n for n in notes))
+
+    def test_water_pressure_preserves_ssgc_when_gas_is_present(self):
+        """Gas pressure complaints must retain SSGC assignment."""
+        text = "gas supply ka low pressure hai chulha nahi jal raha cylinder use karna par raha hai"
+        probs = {"kmc": 0.05, "kwsc": 0.05, "kelectric": 0.05, "ssgc": 0.85, "sswmb": 0.05, "sbca": 0.05}
+        refined, notes = CivicRelationResolver.resolve(text, probs)
+        self.assertGreaterEqual(refined["ssgc"], 0.80)
+
+    def test_building_excavation_suppresses_ssgc_without_gas_evidence(self):
+        """Building excavation must not trigger SSGC without gas evidence."""
+        text = "commercial building ki illegal basement excavation ho rahi hai sath walay makan ki deewar mein crack aagaya hai"
+        probs = {"kmc": 0.25, "kwsc": 0.05, "kelectric": 0.05, "ssgc": 0.45, "sswmb": 0.05, "sbca": 0.80}
+        refined, notes = CivicRelationResolver.resolve(text, probs)
+        self.assertLessEqual(refined["ssgc"], 0.05)
+        self.assertGreaterEqual(refined["sbca"], 0.75)
+        self.assertTrue(any("building construction, no gas" in n for n in notes))
+
+    def test_spatial_wire_on_footpath_suppresses_kmc(self):
+        """Electrical wire hazard on footpath/road must not trigger KMC unless road is structurally damaged."""
+        text = "footpath par bijli ki nangi taar giri hui hai current lagne ka khatra hai"
+        probs = {"kmc": 0.70, "kwsc": 0.10, "kelectric": 0.95, "ssgc": 0.05, "sswmb": 0.05, "sbca": 0.05}
+        refined, notes = CivicRelationResolver.resolve(text, probs)
+        self.assertLessEqual(refined["kmc"], 0.05)
+        self.assertGreaterEqual(refined["kelectric"], 0.90)
+        self.assertTrue(any("location of electrical hazard" in n for n in notes))
+
+    def test_spatial_wire_with_structural_defect_preserves_both(self):
+        """Electrical wire hazard WITH actual structural road damage retains both KMC and K-Electric."""
+        text = "footpath toot gaya hai khadday ban gaye hain aur bijli ki taar bhi giri hui hai"
+        probs = {"kmc": 0.75, "kwsc": 0.10, "kelectric": 0.90, "ssgc": 0.05, "sswmb": 0.05, "sbca": 0.05}
+        refined, notes = CivicRelationResolver.resolve(text, probs)
+        self.assertGreaterEqual(refined["kmc"], 0.70)
+        self.assertGreaterEqual(refined["kelectric"], 0.85)
+
+    def test_sswmb_affirmative_waste_evidence_required(self):
+        """SSWMB must be suppressed when no affirmative waste evidence exists."""
+        text = "sadak par bara khadda hai aur traffic ruk gaya hai"
+        probs = {"kmc": 0.70, "kwsc": 0.05, "kelectric": 0.05, "ssgc": 0.05, "sswmb": 0.50, "sbca": 0.05}
+        refined, notes = CivicRelationResolver.resolve(text, probs)
+        self.assertLessEqual(refined["sswmb"], 0.05)
+        self.assertGreaterEqual(refined["kmc"], 0.70)
+
+    def test_recipient_mentions_suppressed_across_all_departments(self):
+        """Addressing an agency without describing an actionable fault must be suppressed."""
+        # KMC addressed as recipient for sewage
+        text1 = "kmc walay please dekhein humare block mein sewage gutter ka pani ubal raha hai"
+        probs1 = {"kmc": 0.60, "kwsc": 0.95, "kelectric": 0.05, "ssgc": 0.05, "sswmb": 0.05, "sbca": 0.05}
+        refined1, _ = CivicRelationResolver.resolve(text1, probs1)
+        self.assertLessEqual(refined1["kmc"], 0.05)
+        self.assertGreaterEqual(refined1["kwsc"], 0.90)
+
+        # K-Electric addressed as recipient for road defect
+        text2 = "k-electric staff ko chahiye ke road ki kharab soorat e haal par ghor karen sadak tooti hai"
+        probs2 = {"kmc": 0.85, "kwsc": 0.05, "kelectric": 0.70, "ssgc": 0.05, "sswmb": 0.05, "sbca": 0.05}
+        refined2, _ = CivicRelationResolver.resolve(text2, probs2)
+        self.assertLessEqual(refined2["kelectric"], 0.05)
+        self.assertGreaterEqual(refined2["kmc"], 0.80)
+
+    def test_preservation_of_legitimate_multi_department_cases(self):
+        """Legitimate multi-department complaints must preserve both departments."""
+        # SSGC + K-Electric
+        t1 = "sui gas leak ho rahi hai aur bijli ka khamba bhi tedha ho kar girne wala hai"
+        p1 = {"kmc": 0.05, "kwsc": 0.05, "kelectric": 0.90, "ssgc": 0.88, "sswmb": 0.05, "sbca": 0.05}
+        r1, _ = CivicRelationResolver.resolve(t1, p1)
+        self.assertGreaterEqual(r1["kelectric"], 0.80)
+        self.assertGreaterEqual(r1["ssgc"], 0.80)
+
+        # KWSC + KMC dual repair
+        t2 = "pani ki main line phatne se sarak par bara khadda par gaya aur road toot gayi hai"
+        p2 = {"kmc": 0.85, "kwsc": 0.90, "kelectric": 0.05, "ssgc": 0.05, "sswmb": 0.05, "sbca": 0.05}
+        r2, _ = CivicRelationResolver.resolve(t2, p2)
+        self.assertGreaterEqual(r2["kwsc"], 0.80)
+        self.assertGreaterEqual(r2["kmc"], 0.80)
+
+        # SSWMB + KMC independent
+        t3 = "sadak par kachray ka bara dher laga hai aur road par khadday bhi bohot hain"
+        p3 = {"kmc": 0.82, "kwsc": 0.05, "kelectric": 0.05, "ssgc": 0.05, "sswmb": 0.86, "sbca": 0.05}
+        r3, _ = CivicRelationResolver.resolve(t3, p3)
+        self.assertGreaterEqual(r3["sswmb"], 0.80)
+        self.assertGreaterEqual(r3["kmc"], 0.80)
+
+    def test_active_learning_strictly_isolates_train_families(self):
+        """Active learning must raise ValueError if authorized families intersect val/test."""
+        val_records = [{"family_id": "kmc_pothole_asphalt", "text_sanitized": "val text"}]
+        test_records = [{"family_id": "kwsc_sewer_overflow", "text_sanitized": "test text"}]
+        train_records = [{"family_id": "fam_a", "text_sanitized": "train text", "issues": []}]
+        learner = BoundedActiveLearner(registry_dir=Path(tempfile.mkdtemp()))
+        with self.assertRaises(ValueError) as ctx:
+            learner.run_cycle(
+                cycle_idx=1,
+                current_train=train_records,
+                val_records=val_records,
+                test_records=test_records,
+                authorized_train_families={"fam_a", "kmc_pothole_asphalt"},  # Leaking val family!
+                synthetic_increment=10,
+                seed=42,
+            )
+        self.assertIn("authorized_train_families intersects held-out splits", str(ctx.exception))
+
+
+
 if __name__ == "__main__":
     unittest.main()
