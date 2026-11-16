@@ -54,20 +54,33 @@ export class CaseOperationsService implements ICaseOperationsService {
   }
 
   private generateDepartmentSeed(dept: DepartmentId): StoredCase[] {
-    const segments = [
+    const landmarks = [
       'University Road near NED University',
       'Maskan Chowrangi bus stop',
       'Sector 35 public service road',
       'Water Pump Chowrangi near market',
-      'Block H market access road',
+      'Block H commercial market road',
       'Block 6 service lane near park',
       'Hasan Square main crossing',
       'School Road near Sector 5',
       'Preedy Street crossing',
       'Block 4 main footpath',
-      'Block 12 service road drain',
+      'Block 12 storm drain crossing',
       'Block J playground entrance',
+      'Tariq Road commercial strip',
+      'Boat Basin food street',
+      'Nagan Chowrangi underpass',
+      'Five Star Chowrangi service road',
+      'Dawood Chowrangi main junction',
+      'Sindhi Muslim Society roundabout',
+      'Bilawal Chowrangi coastline road',
+      'Shaheed-e-Millat expressway bridge',
+      'Burns Road heritage street',
+      'Rashid Minhas Road flyover',
+      'Allama Iqbal Road junction',
+      'Shahrah-e-Faisal service lane',
     ];
+    const segments = landmarks;
 
     const areas = [
       'Gulshan-e-Iqbal',
@@ -692,10 +705,10 @@ export class CaseOperationsService implements ICaseOperationsService {
       });
     }
 
-    // Generate 92 more distinct cases across road segments/assets to reach 104 total cases & 1,252 reports
+    // Generate 92 more distinct cases across genuine landmarks to reach 104 total cases & 1,252 reports
     for (let n = 0; n < 92; n++) {
       const area = areas[n % areas.length];
-      const place = `${segments[n % segments.length]} · segment ${n + 1}`;
+      const place = segments[n % segments.length];
       const issue = cfg.issues[n % cfg.issues.length];
       const volume = 1 + ((n * 7) % 22);
       const age = 1 + (n % 15);
@@ -1303,8 +1316,13 @@ export class CaseOperationsService implements ICaseOperationsService {
     departmentId: DepartmentId;
     totalCases: number;
     totalReports: number;
-    awaitingAcceptance: number;
+    casesNeedingResponse: number;
+    reportsAwaitingAck: number;
+    casesInProgress: number;
+    casesCompleted: number;
+    casesUnassigned: number;
     urgentCases: number;
+    awaitingAcceptance: number;
   }> {
     const list = this.casesByDept.get(deptId) || [];
     const active = list.filter((c) => c.workStatus !== 'completed');
@@ -1313,14 +1331,31 @@ export class CaseOperationsService implements ICaseOperationsService {
       (s, c) => s + c.pendingAcceptanceCount,
       0
     );
+    const casesNeedingResponse = active.filter(
+      (c) => c.workStatus === 'needs_acceptance' || c.pendingAcceptanceCount > 0
+    ).length;
+    const casesInProgress = active.filter(
+      (c) => c.workStatus === 'in_progress'
+    ).length;
+    const casesCompleted = list.filter(
+      (c) => c.workStatus === 'completed'
+    ).length;
+    const casesUnassigned = active.filter(
+      (c) => !c.assignedStaffId || c.assignedStaffLabel === 'Unassigned'
+    ).length;
     const urgentCases = active.filter((c) => c.priority === 'critical').length;
 
     return {
       departmentId: deptId,
       totalCases: list.length,
       totalReports,
-      awaitingAcceptance,
+      casesNeedingResponse,
+      reportsAwaitingAck: awaitingAcceptance,
+      casesInProgress,
+      casesCompleted,
+      casesUnassigned,
       urgentCases,
+      awaitingAcceptance,
     };
   }
 }

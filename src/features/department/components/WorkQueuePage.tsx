@@ -22,6 +22,7 @@ interface WorkQueuePageProps {
   initialSavedView?: 'needs' | 'unassigned' | 'mine' | 'all';
   initialDisplayMode?: 'cases' | 'reports';
   onCountUpdate?: (counts: { cases: number; reports: number; urgent: number }) => void;
+  density?: 'comfortable' | 'compact';
 }
 
 export const WorkQueuePage: React.FC<WorkQueuePageProps> = ({
@@ -32,6 +33,7 @@ export const WorkQueuePage: React.FC<WorkQueuePageProps> = ({
   initialSavedView = 'needs',
   initialDisplayMode = 'cases',
   onCountUpdate,
+  density = 'comfortable',
 }) => {
   // State
   const [savedView, setSavedView] = useState<'needs' | 'unassigned' | 'mine' | 'all'>(
@@ -78,8 +80,13 @@ export const WorkQueuePage: React.FC<WorkQueuePageProps> = ({
   const [summaryStats, setSummaryStats] = useState({
     totalCases: 0,
     totalReports: 0,
-    awaitingAcceptance: 0,
+    casesNeedingResponse: 0,
+    reportsAwaitingAck: 0,
+    casesInProgress: 0,
+    casesCompleted: 0,
+    casesUnassigned: 0,
     urgentCases: 0,
+    awaitingAcceptance: 0,
   });
 
   // Areas list
@@ -229,54 +236,85 @@ export const WorkQueuePage: React.FC<WorkQueuePageProps> = ({
       {/* Saved Views & Display Mode Switch */}
       <div className="viewbar">
         <div className="saved-views" role="tablist" aria-label="Saved work views">
-          <button
-            type="button"
-            role="tab"
-            aria-selected={savedView === 'needs'}
-            className={`view-chip ${savedView === 'needs' ? 'active' : ''}`}
-            onClick={() => {
-              setSavedView('needs');
-              setPage(0);
-            }}
-          >
-            Needs action {summaryStats.awaitingAcceptance > 0 && <b>{summaryStats.awaitingAcceptance}</b>}
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={savedView === 'unassigned'}
-            className={`view-chip ${savedView === 'unassigned' ? 'active' : ''}`}
-            onClick={() => {
-              setSavedView('unassigned');
-              setPage(0);
-            }}
-          >
-            Unassigned
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={savedView === 'mine'}
-            className={`view-chip ${savedView === 'mine' ? 'active' : ''}`}
-            onClick={() => {
-              setSavedView('mine');
-              setPage(0);
-            }}
-          >
-            My cases
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={savedView === 'all'}
-            className={`view-chip ${savedView === 'all' ? 'active' : ''}`}
-            onClick={() => {
-              setSavedView('all');
-              setPage(0);
-            }}
-          >
-            All cases <b>{summaryStats.totalCases}</b>
-          </button>
+          {displayMode === 'cases' ? (
+            <>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={savedView === 'needs'}
+                className={`view-chip ${savedView === 'needs' ? 'active' : ''}`}
+                onClick={() => {
+                  setSavedView('needs');
+                  setPage(0);
+                }}
+              >
+                Needs response {summaryStats.casesNeedingResponse > 0 && <b>{summaryStats.casesNeedingResponse}</b>}
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={savedView === 'unassigned'}
+                className={`view-chip ${savedView === 'unassigned' ? 'active' : ''}`}
+                onClick={() => {
+                  setSavedView('unassigned');
+                  setPage(0);
+                }}
+              >
+                Unassigned {summaryStats.casesUnassigned > 0 && <b>{summaryStats.casesUnassigned}</b>}
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={savedView === 'mine'}
+                className={`view-chip ${savedView === 'mine' ? 'active' : ''}`}
+                onClick={() => {
+                  setSavedView('mine');
+                  setPage(0);
+                }}
+              >
+                My cases
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={savedView === 'all'}
+                className={`view-chip ${savedView === 'all' ? 'active' : ''}`}
+                onClick={() => {
+                  setSavedView('all');
+                  setPage(0);
+                }}
+              >
+                All cases <b>{summaryStats.totalCases}</b>
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={savedView === 'needs'}
+                className={`view-chip ${savedView === 'needs' ? 'active' : ''}`}
+                onClick={() => {
+                  setSavedView('needs');
+                  setPage(0);
+                }}
+              >
+                Awaiting acknowledgment {summaryStats.reportsAwaitingAck > 0 && <b>{summaryStats.reportsAwaitingAck}</b>}
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={savedView === 'all'}
+                className={`view-chip ${savedView === 'all' ? 'active' : ''}`}
+                onClick={() => {
+                  setSavedView('all');
+                  setPage(0);
+                }}
+              >
+                All reports <b>{summaryStats.totalReports}</b>
+              </button>
+            </>
+          )}
         </div>
 
         {/* Display Mode: Cases vs Individual Reports */}
@@ -493,7 +531,7 @@ export const WorkQueuePage: React.FC<WorkQueuePageProps> = ({
       </p>
 
       {/* Contiguous List Surface */}
-      <div className="list-shell">
+      <div className={`list-shell ${density === 'compact' ? 'density-compact' : 'density-comfortable'}`}>
         <div className="case-list-header">
           <span>
             {displayMode === 'cases' ? 'INCIDENT CASE' : 'ORIGINAL REPORT'} / PUBLIC LOCATION
@@ -517,12 +555,10 @@ export const WorkQueuePage: React.FC<WorkQueuePageProps> = ({
                 aria-label={`Open incident case ${c.title} with ${c.linkedReportCount} linked reports`}
               >
                 <div>
-                  <div className="case-title">
-                    {c.priority === 'critical' ? (
-                      <span className="risk">● URGENT</span>
-                    ) : c.priority === 'high' ? (
-                      <span className="risk high">● ATTENTION</span>
-                    ) : null}
+                  <div className="case-title" title={c.title}>
+                    {c.priority === 'critical' && (
+                      <span className="risk">● Urgent</span>
+                    )}
                     {c.title}
                   </div>
                   <div className="case-subline">
@@ -531,8 +567,8 @@ export const WorkQueuePage: React.FC<WorkQueuePageProps> = ({
                 </div>
 
                 <div className="number">
-                  {c.linkedReportCount} {c.linkedReportCount === 1 ? 'report' : 'reports'}
-                  <small>{c.uniqueReporterCount} residents</small>
+                  {c.linkedReportCount}
+                  <small>{c.linkedReportCount === 1 ? 'report' : 'reports'}</small>
                 </div>
 
                 <div className="age">
@@ -553,7 +589,7 @@ export const WorkQueuePage: React.FC<WorkQueuePageProps> = ({
                     }`}
                   >
                     {c.workStatus === 'needs_acceptance'
-                      ? 'Needs acceptance'
+                      ? 'Needs response'
                       : c.workStatus === 'in_progress'
                       ? 'In progress'
                       : c.workStatus === 'completed'

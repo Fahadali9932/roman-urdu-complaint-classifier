@@ -49,9 +49,15 @@ export interface ICaseOperationsService {
   getDepartmentWorkSummary(
     deptId: DepartmentId
   ): Promise<{
+    departmentId: DepartmentId;
     totalCases: number;
     totalReports: number;
-    awaitingAcceptance: number;
+    casesNeedingResponse: number;
+    reportsAwaitingAck: number;
+    casesInProgress: number;
+    casesCompleted: number;
+    casesUnassigned: number;
     urgentCases: number;
+    awaitingAcceptance: number;
   }>;
 }

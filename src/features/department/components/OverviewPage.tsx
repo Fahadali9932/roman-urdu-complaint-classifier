@@ -1,14 +1,15 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import type { DepartmentId, IncidentCaseSummary, AreaWorkloadSummary } from '../../../types';
 import type { WorkspaceSection } from './DepartmentSidebar';
 import { caseOperationsService } from '../../../services/CaseOperationsService';
-import { ArrowRight, ArrowUpRight } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, AlertTriangle, Clock } from 'lucide-react';
 
 interface OverviewPageProps {
   departmentId: DepartmentId;
   departmentName: string;
   onNavigate: (section: WorkspaceSection) => void;
   onSelectCase: (caseId: string) => void;
+  density?: 'comfortable' | 'compact';
 }
 
 export const OverviewPage: React.FC<OverviewPageProps> = ({
@@ -16,20 +17,30 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
   departmentName,
   onNavigate,
   onSelectCase,
+  density = 'comfortable',
 }) => {
   const [summary, setSummary] = useState<{
-    needsAcceptanceCount: number;
-    inProgressCount: number;
-    completedCount: number;
-    totalActiveCases: number;
+    totalCases: number;
+    totalReports: number;
+    casesNeedingResponse: number;
+    reportsAwaitingAck: number;
+    casesInProgress: number;
+    casesCompleted: number;
+    casesUnassigned: number;
+    urgentCases: number;
   }>({
-    needsAcceptanceCount: 0,
-    inProgressCount: 0,
-    completedCount: 0,
-    totalActiveCases: 0,
+    totalCases: 0,
+    totalReports: 0,
+    casesNeedingResponse: 0,
+    reportsAwaitingAck: 0,
+    casesInProgress: 0,
+    casesCompleted: 0,
+    casesUnassigned: 0,
+    urgentCases: 0,
   });
   const [nextUpCases, setNextUpCases] = useState<IncidentCaseSummary[]>([]);
   const [topAreas, setTopAreas] = useState<AreaWorkloadSummary[]>([]);
+  const [lastRefreshed, setLastRefreshed] = useState<string>('');
 
   useEffect(() => {
     let active = true;
@@ -38,7 +49,7 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
       caseOperationsService.getDepartmentWorkSummary(departmentId),
       caseOperationsService.listDepartmentCases(departmentId, {
         displayMode: 'cases',
-        savedView: 'all',
+        savedView: 'needs',
         sort: 'attention',
         searchQuery: '',
         area: 'All areas',
@@ -50,14 +61,18 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
     ])
       .then(([workSummary, casesPage, areas]) => {
         if (!active) return;
-        setSummary({
-          needsAcceptanceCount: workSummary.awaitingAcceptance,
-          inProgressCount: Math.max(0, workSummary.totalCases - workSummary.awaitingAcceptance),
-          completedCount: Math.max(0, workSummary.totalReports - workSummary.awaitingAcceptance),
-          totalActiveCases: workSummary.totalCases,
-        });
+        setSummary(workSummary);
         setNextUpCases(casesPage.items.slice(0, 4));
         setTopAreas(areas.slice(0, 4));
+
+        const now = new Date();
+        const pktTime = now.toLocaleTimeString('en-US', {
+          timeZone: 'Asia/Karachi',
+          hour: 'numeric',
+          minute: '2-digit',
+          hour12: true,
+        });
+        setLastRefreshed(`Updated today at ${pktTime} PKT`);
       })
       .catch((err) => {
         console.warn('Overview data loading failed:', err);
@@ -68,461 +83,246 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
     };
   }, [departmentId]);
 
-  // Time-aware greeting for Pakistan Standard Time
-  const getTimeGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return 'Good morning';
-    if (hour < 17) return 'Good afternoon';
-    return 'Good evening';
-  };
+  // Stage percentages for progress bars
+  const stageStats = useMemo(() => {
+    const total = Math.max(1, summary.totalCases);
+    return {
+      needsPct: Math.min(100, Math.round((summary.casesNeedingResponse / total) * 100)),
+      inProgPct: Math.min(100, Math.round((summary.casesInProgress / total) * 100)),
+      donePct: Math.min(100, Math.round((summary.casesCompleted / total) * 100)),
+    };
+  }, [summary]);
 
   return (
-    <div className="overview-page">
-      {/* 1. Hero Section with Headline & Animated Motion Frame */}
-      <section
-        className="overview-hero"
-        aria-labelledby="overview-headline"
-      >
+    <div className={`overview-page ${density === 'compact' ? 'density-compact' : 'density-comfortable'}`}>
+      {/* 1. Page Heading */}
+      <div className="overview-header">
         <div>
-          <div
-            style={{
-              fontSize: '11px',
-              fontWeight: 800,
-              color: 'var(--text-muted, #708996)',
-              letterSpacing: '0.14em',
-              textTransform: 'uppercase',
-            }}
-          >
-            {getTimeGreeting()} · {departmentName}
-          </div>
-          <h1
-            id="overview-headline"
-            style={{
-              fontSize: 'clamp(28px, 2.5vw, 42px)',
-              letterSpacing: '-0.04em',
-              lineHeight: 1.15,
-              margin: '16px 0 12px',
-              fontWeight: 800,
-              color: 'var(--text-primary, #141414)',
-            }}
-          >
-            A clearer view of <span style={{ color: 'var(--primary, #681822)' }}>what matters next.</span>
-          </h1>
-          <p
-            style={{
-              fontSize: '15px',
-              maxWidth: '440px',
-              lineHeight: 1.6,
-              color: 'var(--text-muted, #625D58)',
-              margin: 0,
-            }}
-          >
-            {summary.needsAcceptanceCount > 0
-              ? `${summary.needsAcceptanceCount} cases need a reply. Start with the oldest requests, or review areas with high public activity.`
-              : 'All pending requests have been acknowledged. Operational queues are up to date.'}
-          </p>
-
-          <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginTop: '26px' }}>
-            <button
-              type="button"
-              onClick={() => onNavigate('queue')}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
-                padding: '11px 18px',
-                borderRadius: '9px',
-                backgroundColor: 'var(--primary, #681822)',
-                fontWeight: 700,
-                color: '#FFFFFF',
-                fontSize: '14px',
-                border: 'none',
-                cursor: 'pointer',
-                boxShadow: '0 4px 14px rgba(104, 24, 34, 0.15)',
-              }}
-            >
-              <span>Open work queue</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => onNavigate('areas')}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                fontSize: '14px',
-                padding: '11px 12px',
-                fontWeight: 650,
-                color: 'var(--primary, #681822)',
-                backgroundColor: 'transparent',
-                border: 'none',
-                cursor: 'pointer',
-              }}
-            >
-              <span>Browse areas</span>
-              <ArrowUpRight className="w-4 h-4" />
-            </button>
-          </div>
+          <div className="overview-eyebrow">{departmentName}</div>
+          <h1 className="overview-title">Overview</h1>
+          <p className="overview-subtitle">Work that needs a response from your team.</p>
         </div>
-
-        {/* Animated Civic Service Network Illustration */}
-        <div
-          className="motion-frame"
-          aria-label="Decorative illustration of civic service routes and public issue markers."
-          style={{
-            position: 'relative',
-            height: '280px',
-            border: '1px solid var(--border-subtle, #DDE4E8)',
-            borderRadius: '18px',
-            overflow: 'hidden',
-            backgroundColor: '#F4F7F9',
-            boxShadow: '0 8px 24px rgba(20, 20, 20, 0.03)',
-          }}
+        <button
+          type="button"
+          className="btn-overview-queue"
+          onClick={() => onNavigate('queue')}
         >
-          <div
-            style={{
-              position: 'absolute',
-              zIndex: 2,
-              top: '18px',
-              left: '20px',
-              color: '#526F7D',
-              fontSize: '12px',
-              fontWeight: 700,
-              letterSpacing: '0.02em',
-            }}
+          <span>Open work queue</span>
+          <ArrowUpRight className="w-4 h-4" />
+        </button>
+      </div>
+
+      {/* 2. Response Needed Feature Band */}
+      <div className="overview-feature-band">
+        <div className="feature-band-left">
+          <div className="feature-band-eyebrow">First response</div>
+          <h2 className="feature-band-title">Cases waiting for a reply</h2>
+          <div className="feature-band-figure">
+            <span className="feature-band-number">{summary.casesNeedingResponse}</span>
+            <div className="feature-band-note">
+              <strong>distinct cases needing action</strong>
+              <span>
+                {summary.reportsAwaitingAck > 0
+                  ? `${summary.reportsAwaitingAck.toLocaleString()} citizen reports waiting for acknowledgment.`
+                  : 'All linked citizen reports acknowledged.'}
+              </span>
+            </div>
+          </div>
+          <button
+            type="button"
+            className="btn-feature-action"
+            onClick={() => onNavigate('queue')}
           >
-            Civic Response Network <small style={{ fontSize: '10px', color: '#7D939E', marginLeft: '6px' }}>MUNICIPAL</small>
+            <span>Review {summary.casesNeedingResponse} cases</span>
+            <ArrowRight className="w-4 h-4" />
+          </button>
+        </div>
+
+        <div className="feature-band-right">
+          <div className="stage-breakdown-head">
+            <span>Work by stage</span>
+            <small>Cases</small>
           </div>
 
-          <svg
-            viewBox="0 0 465 280"
-            role="img"
-            aria-label="Abstract roads connected to service response nodes"
-            style={{ width: '100%', height: '100%', display: 'block' }}
-          >
-            {/* Background block shapes */}
-            <rect x="32" y="85" width="91" height="52" rx="12" fill="#E2EDEF" stroke="#D5E5E8" strokeWidth="1.5" />
-            <rect x="218" y="52" width="107" height="56" rx="12" fill="#E2EDEF" stroke="#D5E5E8" strokeWidth="1.5" />
-            <rect x="348" y="145" width="77" height="60" rx="12" fill="#E2EDEF" stroke="#D5E5E8" strokeWidth="1.5" />
-            <rect x="160" y="195" width="95" height="50" rx="12" fill="#E2EDEF" stroke="#D5E5E8" strokeWidth="1.5" />
+          <div className="stage-row">
+            <span className="stage-name">Needs response</span>
+            <div className="stage-bar-track">
+              <div
+                className="stage-bar-fill stage-fill-needs"
+                style={{ width: `${stageStats.needsPct}%` }}
+              />
+            </div>
+            <strong className="stage-count">{summary.casesNeedingResponse}</strong>
+          </div>
 
-            {/* Road pathways */}
-            <path d="M25 228 C118 198 137 138 196 116 S314 138 422 46" stroke="#FFFFFF" strokeWidth="24" strokeLinecap="round" fill="none" />
-            <path d="M25 228 C118 198 137 138 196 116 S314 138 422 46" stroke="#CFDEE3" strokeWidth="2" strokeDasharray="5 9" strokeLinecap="round" fill="none" />
+          <div className="stage-row">
+            <span className="stage-name">In progress</span>
+            <div className="stage-bar-track">
+              <div
+                className="stage-bar-fill stage-fill-prog"
+                style={{ width: `${stageStats.inProgPct}%` }}
+              />
+            </div>
+            <strong className="stage-count">{summary.casesInProgress}</strong>
+          </div>
 
-            <path d="M415 250 C342 192 295 180 257 192 S116 216 73 64" stroke="#FFFFFF" strokeWidth="24" strokeLinecap="round" fill="none" />
-            <path d="M415 250 C342 192 295 180 257 192 S116 216 73 64" stroke="#CFDEE3" strokeWidth="2" strokeDasharray="5 9" strokeLinecap="round" fill="none" />
+          <div className="stage-row">
+            <span className="stage-name">Completed</span>
+            <div className="stage-bar-track">
+              <div
+                className="stage-bar-fill stage-fill-done"
+                style={{ width: `${stageStats.donePct}%` }}
+              />
+            </div>
+            <strong className="stage-count">{summary.casesCompleted}</strong>
+          </div>
 
-            {/* Active route line */}
-            <path d="M52 228 C130 195 127 125 195 113 S310 140 382 52" stroke="#75B5C2" strokeWidth="3" fill="none" strokeLinecap="round" strokeDasharray="6 10" opacity="0.9" />
-
-            {/* Issue Node with Pulse */}
-            <circle cx="196" cy="116" r="22" fill="#B8DDE3" opacity="0.45" />
-            <circle cx="196" cy="116" r="12" fill="#D8F0F3" stroke="#81B7C4" strokeWidth="2" />
-            <circle cx="196" cy="116" r="5" fill="#681822" />
-
-            {/* Response Node */}
-            <circle cx="342" cy="180" r="24" fill="#C6E5E9" opacity="0.45" />
-            <circle cx="342" cy="180" r="12" fill="#FFFFFF" stroke="#78ADBA" strokeWidth="2" />
-            <path d="M337 180h10M342 175v10" stroke="#25748A" strokeWidth="2" strokeLinecap="round" />
-
-            <circle cx="83" cy="90" r="7" fill="#FFFFFF" stroke="#7CB9C3" strokeWidth="2" />
-
-            <text x="212" y="112" style={{ font: '600 11px system-ui, sans-serif', fill: '#436B79' }}>
-              Citizen report
-            </text>
-            <text x="358" y="184" style={{ font: '600 11px system-ui, sans-serif', fill: '#436B79' }}>
-              Action unit
-            </text>
-          </svg>
-          <div
-            style={{
-              position: 'absolute',
-              bottom: '10px',
-              right: '12px',
-              zIndex: 3,
-              color: '#6D8993',
-              background: 'rgba(255, 255, 255, 0.85)',
-              border: '1px solid #D7E7EA',
-              padding: '2px 7px',
-              borderRadius: '5px',
-              fontSize: '10px',
-            }}
-          >
-            Karachi municipal network
+          <div className="stage-footer">
+            <Clock className="w-3.5 h-3.5 text-[#5A6877]" />
+            <span>{lastRefreshed || 'Updated today PKT'}</span>
           </div>
         </div>
-      </section>
+      </div>
 
-      {/* 2. Metrics Strip */}
-      <section
-        className="overview-metrics"
-        aria-label="Overview summary metrics"
-      >
-        <div style={{ paddingRight: '16px', borderRight: '1px solid var(--border-subtle, #E6E3DF)' }}>
-          <span style={{ color: 'var(--text-muted, #617987)', fontSize: '13px', fontWeight: 600 }}>
-            Waiting for a reply
-          </span>
-          <strong
-            style={{
-              display: 'block',
-              fontSize: '30px',
-              letterSpacing: '-0.04em',
-              fontWeight: 800,
-              color: summary.needsAcceptanceCount > 0 ? 'var(--primary, #681822)' : 'var(--text-primary, #141414)',
-              margin: '2px 0',
-            }}
-          >
-            {summary.needsAcceptanceCount}
-          </strong>
-          <small style={{ fontSize: '12px', color: 'var(--text-muted, #718692)' }}>Needs acceptance</small>
-        </div>
+      {/* 3. Facts Strip (4 Distinct Case-Based Metrics) */}
+      <div className="overview-facts-strip" role="group" aria-label="Department case summary metrics">
+        <button
+          type="button"
+          className="fact-item"
+          onClick={() => onNavigate('queue')}
+        >
+          <span className="fact-label">Needs response</span>
+          <b className="fact-value fact-alert">{summary.casesNeedingResponse}</b>
+          <span className="fact-desc">cases awaiting action</span>
+        </button>
 
-        <div style={{ padding: '0 16px', borderRight: '1px solid var(--border-subtle, #E6E3DF)' }}>
-          <span style={{ color: 'var(--text-muted, #617987)', fontSize: '13px', fontWeight: 600 }}>
-            Work started
-          </span>
-          <strong
-            style={{
-              display: 'block',
-              fontSize: '30px',
-              letterSpacing: '-0.04em',
-              fontWeight: 800,
-              color: 'var(--text-primary, #141414)',
-              margin: '2px 0',
-            }}
-          >
-            {summary.inProgressCount}
-          </strong>
-          <small style={{ fontSize: '12px', color: 'var(--text-muted, #718692)' }}>Currently in progress</small>
-        </div>
+        <button
+          type="button"
+          className="fact-item"
+          onClick={() => onNavigate('queue')}
+        >
+          <span className="fact-label">In progress</span>
+          <b className="fact-value">{summary.casesInProgress}</b>
+          <span className="fact-desc">cases being worked on</span>
+        </button>
 
-        <div style={{ padding: '0 16px', borderRight: '1px solid var(--border-subtle, #E6E3DF)' }}>
-          <span style={{ color: 'var(--text-muted, #617987)', fontSize: '13px', fontWeight: 600 }}>
-            Completed cases
-          </span>
-          <strong
-            style={{
-              display: 'block',
-              fontSize: '30px',
-              letterSpacing: '-0.04em',
-              fontWeight: 800,
-              color: '#15803D',
-              margin: '2px 0',
-            }}
-          >
-            {summary.completedCount}
-          </strong>
-          <small style={{ fontSize: '12px', color: 'var(--text-muted, #718692)' }}>Verified closed</small>
-        </div>
+        <button
+          type="button"
+          className="fact-item"
+          onClick={() => onNavigate('queue')}
+        >
+          <span className="fact-label">Unassigned</span>
+          <b className="fact-value">{summary.casesUnassigned}</b>
+          <span className="fact-desc">cases without an owner</span>
+        </button>
 
-        <div style={{ paddingLeft: '16px' }}>
-          <span style={{ color: 'var(--text-muted, #617987)', fontSize: '13px', fontWeight: 600 }}>
-            Active municipal areas
-          </span>
-          <strong
-            style={{
-              display: 'block',
-              fontSize: '30px',
-              letterSpacing: '-0.04em',
-              fontWeight: 800,
-              color: 'var(--text-primary, #141414)',
-              margin: '2px 0',
-            }}
-          >
-            {topAreas.length}
-          </strong>
-          <small style={{ fontSize: '12px', color: 'var(--text-muted, #718692)' }}>Karachi sub-districts</small>
-        </div>
-      </section>
+        <button
+          type="button"
+          className="fact-item"
+          onClick={() => onNavigate('queue')}
+        >
+          <span className="fact-label">Completed</span>
+          <b className="fact-value fact-success">{summary.casesCompleted}</b>
+          <span className="fact-desc">cases closed</span>
+        </button>
+      </div>
 
-      {/* 3. Lower Grid: Next Up (Cases) + Areas to Check */}
-      <section
-        className="overview-lower"
-      >
-        {/* Next Up List */}
-        <div>
-          <div
-            style={{
-              marginBottom: '14px',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'baseline',
-            }}
-          >
-            <h2 style={{ fontSize: '18px', letterSpacing: '-0.03em', margin: 0, fontWeight: 700 }}>
-              Next up
-            </h2>
+      {/* 4. Lower Two-Column Section: Work First + Areas with Open Cases */}
+      <div className="overview-lower-grid">
+        {/* Left Column: Work First */}
+        <section className="overview-section" aria-labelledby="work-first-heading">
+          <div className="overview-section-head">
+            <h2 id="work-first-heading">Work first</h2>
             <button
               type="button"
+              className="section-link-btn"
               onClick={() => onNavigate('queue')}
-              style={{
-                color: 'var(--primary, #681822)',
-                fontSize: '13px',
-                fontWeight: 650,
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-              }}
             >
-              View all cases →
+              <span>See all cases</span>
+              <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
 
-          <div
-            style={{
-              border: '1px solid var(--border-subtle, #E6E3DF)',
-              backgroundColor: '#FFFFFF',
-              borderRadius: '14px',
-              overflow: 'hidden',
-              boxShadow: '0 4px 16px rgba(20, 20, 20, 0.02)',
-            }}
-          >
-            {nextUpCases.length === 0 ? (
-              <div style={{ padding: '28px', textAlign: 'center', color: '#88827A', fontSize: '13px' }}>
-                No active cases awaiting attention.
-              </div>
-            ) : (
-              nextUpCases.map((c, idx) => {
-                const isNeedsAcceptance = c.workStatus === 'needs_acceptance' || c.pendingAcceptanceCount > 0;
-                return (
-                  <div
-                    key={c.id || idx}
-                    onClick={() => onSelectCase(c.id)}
-                    style={{
-                      minHeight: '72px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      gap: '12px',
-                      padding: '14px 18px',
-                      borderBottom:
-                        idx === nextUpCases.length - 1 ? 'none' : '1px solid var(--border-subtle, #E6E3DF)',
-                      cursor: 'pointer',
-                      transition: 'background-color 0.15s ease',
-                    }}
-                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#FAF9F7')}
-                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-                  >
-                    <div>
-                      <strong
-                        style={{
-                          display: 'block',
-                          fontSize: '14px',
-                          fontWeight: 700,
-                          color: 'var(--text-primary, #141414)',
-                          marginBottom: '3px',
-                        }}
-                      >
-                        {c.title}
-                      </strong>
-                      <small style={{ color: 'var(--text-muted, #625D58)', fontSize: '12px' }}>
-                        {c.locality} · {c.ageDays === 0 ? 'Reported today' : `Reported ${c.ageDays}d ago`} · {c.linkedReportCount} reports
-                      </small>
-                    </div>
-
-                    <span
-                      style={{
-                        fontSize: '11px',
-                        fontWeight: 700,
-                        padding: '4px 8px',
-                        borderRadius: '6px',
-                        whiteSpace: 'nowrap',
-                        backgroundColor: isNeedsAcceptance ? '#FEF3C7' : '#EFF6FF',
-                        color: isNeedsAcceptance ? '#92400E' : '#1E40AF',
-                        border: isNeedsAcceptance ? '1px solid #FDE68A' : '1px solid #BFDBFE',
-                      }}
-                    >
-                      {isNeedsAcceptance ? 'Needs reply' : 'In progress'}
+          <div className="overview-panel">
+            {nextUpCases.length > 0 ? (
+              nextUpCases.map((c) => (
+                <button
+                  type="button"
+                  key={c.id}
+                  className="overview-work-item"
+                  onClick={() => onSelectCase(c.id)}
+                >
+                  <div className="work-item-content">
+                    <strong className="work-item-title">
+                      {c.priority === 'critical' && (
+                        <span className="work-item-hazard">
+                          <AlertTriangle className="w-3.5 h-3.5 inline mr-1" />
+                          Safety risk ·{' '}
+                        </span>
+                      )}
+                      {c.title}
+                    </strong>
+                    <span className="work-item-subline">
+                      {c.locality} · {c.linkedReportCount} {c.linkedReportCount === 1 ? 'report' : 'reports'}
                     </span>
                   </div>
-                );
-              })
+                  <div className="work-item-age">
+                    <b>{c.ageDays} {c.ageDays === 1 ? 'day' : 'days'}</b>
+                    <small>first reported</small>
+                  </div>
+                </button>
+              ))
+            ) : (
+              <div className="empty-panel-note">No cases currently require response.</div>
             )}
           </div>
-        </div>
+        </section>
 
-        {/* Areas to Check */}
-        <div>
-          <div
-            style={{
-              marginBottom: '14px',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'baseline',
-            }}
-          >
-            <h2 style={{ fontSize: '18px', letterSpacing: '-0.03em', margin: 0, fontWeight: 700 }}>
-              Areas to check
-            </h2>
+        {/* Right Column: Areas with Open Cases */}
+        <section className="overview-section" aria-labelledby="areas-heading">
+          <div className="overview-section-head">
+            <h2 id="areas-heading">Areas with open cases</h2>
             <button
               type="button"
+              className="section-link-btn"
               onClick={() => onNavigate('areas')}
-              style={{
-                color: 'var(--primary, #681822)',
-                fontSize: '13px',
-                fontWeight: 650,
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-              }}
             >
-              All areas →
+              <span>View areas</span>
+              <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
 
-          <div
-            style={{
-              border: '1px solid var(--border-subtle, #E6E3DF)',
-              backgroundColor: '#FFFFFF',
-              borderRadius: '14px',
-              padding: '6px 18px',
-              boxShadow: '0 4px 16px rgba(20, 20, 20, 0.02)',
-            }}
-          >
-            {topAreas.length === 0 ? (
-              <div style={{ padding: '24px', textAlign: 'center', color: '#88827A', fontSize: '13px' }}>
-                No area workload data.
-              </div>
-            ) : (
-              topAreas.map((area, idx) => (
-                <div
-                  key={area.area || idx}
+          <div className="overview-panel">
+            {topAreas.length > 0 ? (
+              topAreas.map((a) => (
+                <button
+                  type="button"
+                  key={a.area}
+                  className="overview-area-row"
                   onClick={() => onNavigate('areas')}
-                  style={{
-                    padding: '14px 2px',
-                    borderBottom: idx === topAreas.length - 1 ? 'none' : '1px solid var(--border-subtle, #EAE7E2)',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    gap: '12px',
-                    cursor: 'pointer',
-                  }}
                 >
-                  <div>
-                    <strong style={{ fontWeight: 700, fontSize: '13px', color: 'var(--text-primary, #141414)' }}>
-                      {area.area}
-                    </strong>
-                    <div style={{ fontSize: '11px', color: 'var(--text-muted, #718692)', marginTop: '2px' }}>
-                      {area.topIssues?.slice(0, 1).join(', ') || 'Road maintenance'}
-                    </div>
+                  <div className="area-row-content">
+                    <strong className="area-row-name">{a.area}</strong>
+                    <span className="area-row-subline">
+                      {a.topIssues.length > 0 ? a.topIssues.join(', ') : 'Municipal works'}
+                    </span>
                   </div>
-                  <span
-                    style={{
-                      fontSize: '12px',
-                      fontWeight: 600,
-                      color: area.activeCasesCount > 0 ? 'var(--primary, #681822)' : '#625D58',
-                    }}
-                  >
-                    {area.activeCasesCount} open {area.activeCasesCount === 1 ? 'case' : 'cases'}
-                  </span>
-                </div>
+                  <div className="area-row-stats">
+                    <b>{a.activeCasesCount}</b>
+                    <small>{a.activeCasesCount === 1 ? 'case' : 'cases'}</small>
+                  </div>
+                </button>
               ))
+            ) : (
+              <div className="empty-panel-note">No active areas reported.</div>
             )}
           </div>
-        </div>
-      </section>
+        </section>
+      </div>
+
+      <div className="overview-data-note">
+        Total municipal workload: {summary.totalCases} physical cases representing {summary.totalReports.toLocaleString()} individual citizen submissions across Karachi.
+      </div>
     </div>
   );
 };
