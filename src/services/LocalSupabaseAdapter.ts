@@ -76,6 +76,18 @@ export interface AccessAuditLogRow {
   created_at: string;
 }
 
+export interface ComplaintIssueRow {
+  id: string;
+  complaint_id: string;
+  department_id: string;
+  issue_type: string;
+  evidence_span?: string;
+  confidence: number;
+  status: 'submitted' | 'under_review' | 'assigned' | 'accepted' | 'in_progress' | 'resolved' | 'rejected' | 'partly_resolved';
+  status_notes?: string;
+  updated_at: string;
+}
+
 export interface ComplaintRow {
   id: string;
   reference_number: string;
@@ -86,10 +98,16 @@ export interface ComplaintRow {
   incident_district: string;
   incident_locality: string;
   incident_public_location: string;
-  status: 'submitted' | 'under_review' | 'assigned' | 'accepted' | 'in_progress' | 'resolved' | 'rejected';
+  status: 'submitted' | 'under_review' | 'assigned' | 'accepted' | 'in_progress' | 'resolved' | 'rejected' | 'partly_resolved';
   assigned_department_id: string;
+  assigned_department_ids?: string[];
   predicted_department_id?: string | null;
+  predicted_department_ids?: string[];
   prediction_confidence?: number | null;
+  is_multilabel?: boolean;
+  has_hazard?: boolean;
+  hazard_type?: string | null;
+  issues?: ComplaintIssueRow[];
   is_reviewed_by_admin: boolean;
   is_demonstration: boolean;
   created_at: string;
@@ -111,7 +129,7 @@ export interface ComplaintCitizenPrivateRow {
 export interface ComplaintTimelineEventRow {
   id: string;
   complaint_id: string;
-  status: 'submitted' | 'under_review' | 'assigned' | 'accepted' | 'in_progress' | 'resolved' | 'rejected';
+  status: 'submitted' | 'under_review' | 'assigned' | 'accepted' | 'in_progress' | 'resolved' | 'rejected' | 'partly_resolved';
   title: string;
   title_urdu: string;
   description: string;
@@ -1293,7 +1311,10 @@ export class LocalSupabaseAdapter {
     );
     if (activeMembership) {
       return this.state.complaints.filter(
-        (c) => c.assigned_department_id === activeMembership.department_id || (activeMembership.department_id === 'kmc' && c.status === 'under_review')
+        (c) =>
+          c.assigned_department_id === activeMembership.department_id ||
+          (c.assigned_department_ids && c.assigned_department_ids.includes(activeMembership.department_id)) ||
+          (activeMembership.department_id === 'kmc' && c.status === 'under_review')
       );
     }
 
@@ -1376,11 +1397,13 @@ export class LocalSupabaseAdapter {
 
     const isAdmin = this.isMainAdmin(callerUserId);
 
+    let actingDeptId = complaint.assigned_department_id;
     if (!isAdmin) {
       const membership = this.state.memberships.find(
         (m) =>
           m.user_id === callerUserId &&
-          m.department_id === complaint.assigned_department_id &&
+          (m.department_id === complaint.assigned_department_id ||
+           Boolean(complaint.assigned_department_ids && complaint.assigned_department_ids.includes(m.department_id))) &&
           m.status === 'active'
       );
       if (!membership) {
@@ -1389,6 +1412,7 @@ export class LocalSupabaseAdapter {
           error: 'Unauthorized: You do not have active staff credentials for this department.',
         };
       }
+      actingDeptId = membership.department_id;
 
       const current = complaint.status;
       const next = params.new_status;
@@ -1406,6 +1430,7 @@ export class LocalSupabaseAdapter {
         assigned: ['accepted', 'rejected'],
         accepted: ['in_progress', 'rejected'],
         in_progress: ['resolved', 'rejected'],
+        partly_resolved: ['in_progress', 'resolved', 'rejected'],
         resolved: [],
         rejected: [],
       };
@@ -1420,7 +1445,34 @@ export class LocalSupabaseAdapter {
 
     const oldStatus = complaint.status;
     const now = new Date().toISOString();
-    complaint.status = params.new_status;
+
+    // Update issue if present
+    if (complaint.issues && complaint.issues.length > 0) {
+      const targetIssue = complaint.issues.find((i) => i.department_id === actingDeptId);
+      if (targetIssue) {
+        targetIssue.status = params.new_status;
+        targetIssue.status_notes = params.note_en;
+        targetIssue.updated_at = now;
+      }
+
+      // Reconcile composite aggregate status
+      const issueStatuses = complaint.issues.map((i) => i.status);
+      if (issueStatuses.every((s) => s === 'resolved')) {
+        complaint.status = 'resolved';
+      } else if (issueStatuses.every((s) => s === 'rejected')) {
+        complaint.status = 'rejected';
+      } else if (issueStatuses.some((s) => s === 'in_progress')) {
+        complaint.status = 'in_progress';
+      } else if (issueStatuses.some((s) => s === 'accepted')) {
+        complaint.status = 'accepted';
+      } else if (issueStatuses.some((s) => s === 'resolved')) {
+        complaint.status = 'partly_resolved';
+      } else {
+        complaint.status = params.new_status;
+      }
+    } else {
+      complaint.status = params.new_status;
+    }
     complaint.updated_at = now;
 
     this.state.timelineEvents.push({

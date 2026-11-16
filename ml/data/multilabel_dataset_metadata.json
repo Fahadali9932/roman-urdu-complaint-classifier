@@ -1,0 +1,26 @@
+{
+  "dataset_name": "Awaaz-e-Awam Multi-Department Civic Dataset V9",
+  "version": "9.0",
+  "created_at": "2026-11-16T16:20:00Z",
+  "total_samples": 1545,
+  "departments": [
+    "kmc",
+    "kwsc",
+    "kelectric",
+    "ssgc",
+    "sswmb",
+    "sbca"
+  ],
+  "splits": {
+    "train": 1081,
+    "val": 231,
+    "test": 233
+  },
+  "families": {
+    "train": 649,
+    "val": 127,
+    "test": 95,
+    "total": 871
+  },
+  "leakage_audit_passed": true
+}

@@ -21,7 +21,8 @@ export type ComplaintStatus =
   | 'accepted'
   | 'in_progress'
   | 'resolved'
-  | 'rejected';
+  | 'rejected'
+  | 'partly_resolved';
 
 export type DepartmentId =
   | 'kwsc'
@@ -63,8 +64,13 @@ export interface DepartmentComplaintView {
   status: ComplaintStatus;
   assignedDepartmentId: DepartmentId;
   assignedDepartmentName?: string;
+  assignedDepartmentIds?: DepartmentId[];
   predictedDepartmentId?: DepartmentId;
   predictionConfidence?: number;
+  isMultiLabel?: boolean;
+  issues?: ComplaintIssue[];
+  hasHazard?: boolean;
+  hazardType?: string;
   submittedAt: string;
   updatedAt: string;
   timeline: ComplaintTimelineEvent[];
@@ -89,6 +95,31 @@ export interface ComplaintTimelineEvent {
   departmentCode?: string;
 }
 
+export interface ComplaintIssue {
+  id: string;
+  complaintId: string;
+  departmentId: DepartmentId;
+  departmentName?: string;
+  issueType: string;
+  evidenceSpan?: string;
+  confidence: number;
+  status: ComplaintStatus;
+  statusNotes?: string;
+  updatedAt: string;
+}
+
+export interface MultiDepartmentRouting {
+  isMultiLabel: boolean;
+  departments: DepartmentId[];
+  issues: ComplaintIssue[];
+  hasHazard: boolean;
+  hazardType?: string;
+  needsReview: boolean;
+  reviewReason?: string;
+  modelVersion: string;
+  aggregateStatus: ComplaintStatus;
+}
+
 export interface Complaint {
   id: string;
   citizenId?: string | null;
@@ -108,8 +139,14 @@ export interface Complaint {
   status: ComplaintStatus;
   assignedDepartmentId: DepartmentId;
   assignedDepartmentName?: string;
+  assignedDepartmentIds?: DepartmentId[];
   predictedDepartmentId?: DepartmentId;
+  predictedDepartmentIds?: DepartmentId[];
   predictionConfidence?: number;
+  isMultiLabel?: boolean;
+  issues?: ComplaintIssue[];
+  hasHazard?: boolean;
+  hazardType?: string;
   submittedAt: string;
   updatedAt: string;
   timeline: ComplaintTimelineEvent[];

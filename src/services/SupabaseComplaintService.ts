@@ -33,35 +33,43 @@ const formatTimelineEvents = (rows: any[] = []): ComplaintTimelineEvent[] =>
           : r.actor_role,
     }));
 
-const mapComplaintRow = (r: any): Complaint => ({
-  id: r.id,
-  citizenId: r.citizen_id,
-  citizenName: '',
-  referenceNumber: r.reference_number,
-  district: r.incident_district,
-  locality: r.incident_locality,
-  publicLocation: r.incident_public_location,
-  title: r.generated_heading ?? r.title ?? 'Public complaint',
-  description: r.sanitized_description ?? r.description,
-  sanitizedDescription: r.sanitized_description ?? r.description,
-  generatedHeading: r.generated_heading ?? r.title ?? 'Public complaint',
-  factualSummary: r.factual_summary ?? r.description,
-  redactionFlags: r.redaction_flags ?? undefined,
-  redactionNeedsReview: r.redaction_needs_review ?? false,
-  detectedLanguage: r.detected_language,
-  status: r.status,
-  assignedDepartmentId: r.assigned_department_id,
-  predictedDepartmentId: r.predicted_department_id,
-  predictionConfidence: r.prediction_confidence == null ? undefined : Number(r.prediction_confidence),
-  submittedAt: r.created_at,
-  updatedAt: r.updated_at,
-  timeline: formatTimelineEvents(r.complaint_timeline_events),
-  isDemonstration: r.is_demonstration,
-  manualPriority: r.manual_priority ?? undefined,
-  manualPriorityReason: r.manual_priority_reason ?? undefined,
-  manualPriorityBy: r.manual_priority_by ?? undefined,
-  manualPriorityAt: r.manual_priority_at ?? undefined,
-});
+const mapComplaintRow = (r: any): Complaint => {
+  const routingMeta = r.redaction_flags?.multi_department_routing;
+  return {
+    id: r.id,
+    citizenId: r.citizen_id,
+    citizenName: '',
+    referenceNumber: r.reference_number,
+    district: r.incident_district,
+    locality: r.incident_locality,
+    publicLocation: r.incident_public_location,
+    title: r.generated_heading ?? r.title ?? 'Public complaint',
+    description: r.sanitized_description ?? r.description,
+    sanitizedDescription: r.sanitized_description ?? r.description,
+    generatedHeading: r.generated_heading ?? r.title ?? 'Public complaint',
+    factualSummary: r.factual_summary ?? r.description,
+    redactionFlags: r.redaction_flags ?? undefined,
+    redactionNeedsReview: r.redaction_needs_review ?? false,
+    detectedLanguage: r.detected_language,
+    status: r.status,
+    assignedDepartmentId: r.assigned_department_id,
+    assignedDepartmentIds: routingMeta?.departments || (r.assigned_department_id ? [r.assigned_department_id] : []),
+    predictedDepartmentId: r.predicted_department_id,
+    predictedDepartmentIds: routingMeta?.departments || (r.predicted_department_id ? [r.predicted_department_id] : []),
+    predictionConfidence: r.prediction_confidence == null ? undefined : Number(r.prediction_confidence),
+    isMultiLabel: routingMeta?.is_multilabel ?? false,
+    hasHazard: routingMeta?.has_hazard ?? false,
+    issues: routingMeta?.issues,
+    submittedAt: r.created_at,
+    updatedAt: r.updated_at,
+    timeline: formatTimelineEvents(r.complaint_timeline_events),
+    isDemonstration: r.is_demonstration,
+    manualPriority: r.manual_priority ?? undefined,
+    manualPriorityReason: r.manual_priority_reason ?? undefined,
+    manualPriorityBy: r.manual_priority_by ?? undefined,
+    manualPriorityAt: r.manual_priority_at ?? undefined,
+  };
+};
 
 const COMPLAINT_SELECT_QUERY = '*, complaint_timeline_events(*)';
 
@@ -205,6 +213,13 @@ export class SupabaseComplaintService implements IComplaintService {
     submitted_at?: string;
     updated_at?: string;
     public_updates?: Array<{ status: string; at: string; message: string }>;
+    is_multilabel?: boolean;
+    public_issues?: Array<{
+      department_name: string;
+      department_id: string;
+      status: string;
+      display_status: string;
+    }>;
     error?: string;
   }> {
     if (!isSupabaseConfigured() || !supabase) {
@@ -404,6 +419,7 @@ export class SupabaseComplaintService implements IComplaintService {
       assigned: { en: 'Pending Department Acceptance', ur: 'محکمانہ توثیق کے منتظر' },
       accepted: { en: 'Complaint Accepted by Department', ur: 'محکمے کی جانب سے شکایت منظور کر لی گئی' },
       in_progress: { en: 'Remediation In Progress', ur: 'ازالے کی کارروائی جاری' },
+      partly_resolved: { en: 'Partially Resolved', ur: 'جزوی طور پر حل شدہ' },
       resolved: { en: 'Remediation Verified & Resolved', ur: 'مسئلہ حل کر دیا گیا ہے' },
       rejected: { en: 'Complaint Closed / Not Actionable', ur: 'شکایت بند کر دی گئی' },
     };

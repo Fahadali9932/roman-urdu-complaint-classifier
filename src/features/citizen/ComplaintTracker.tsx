@@ -54,6 +54,13 @@ export const ComplaintTracker: React.FC = () => {
     submitted_at?: string;
     updated_at?: string;
     public_updates?: Array<{ status: string; at: string; message: string }>;
+    is_multilabel?: boolean;
+    public_issues?: Array<{
+      department_name: string;
+      department_id: string;
+      status: string;
+      display_status: string;
+    }>;
   } | null>(null);
 
   // Account Claim State (Legacy / Ownership Flow)
@@ -266,6 +273,29 @@ export const ComplaintTracker: React.FC = () => {
                       </span>
                     </div>
                   </div>
+
+                  {trackResult.public_issues && trackResult.public_issues.length > 1 && (
+                    <div className="rounded-xl border border-[#EAE7E2] bg-[#FAF8F5] p-3.5 space-y-2.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-[#681822]">
+                          Multi-Agency Linked Tasks ({trackResult.public_issues.length} Departments)
+                        </span>
+                        <span className="text-[10px] bg-[#681822]/10 text-[#681822] font-semibold px-2 py-0.5 rounded-full">
+                          Single Receipt
+                        </span>
+                      </div>
+                      <div className="space-y-2">
+                        {trackResult.public_issues.map((iss, i) => (
+                          <div key={i} className="flex items-center justify-between text-xs py-1 border-b border-[#EAE7E2]/60 last:border-0">
+                            <span className="font-medium text-[#141414]">{iss.department_name}</span>
+                            <span className="font-semibold text-emerald-800 capitalize bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded text-[11px]">
+                              {iss.display_status || iss.status}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
                   {trackResult.public_updates && trackResult.public_updates.length > 0 && (
                     <div className="space-y-2">

@@ -7,11 +7,13 @@ import {
   type DepartmentComplaintView,
   type ComplaintStatus,
   type ComplaintTimelineEvent,
+  type ComplaintIssue,
   DEMO_CITIZEN,
 } from '../types';
 import { IComplaintService } from './IComplaintService';
 import { KARACHI_DEPARTMENTS } from '../mocks/complaints';
 import { generateMockReference } from '../utils/referenceGenerator';
+import { classifyMultiLabel } from './multiLabelClassifier';
 
 const STORAGE_KEY = 'awaaz_complaints_store_v1';
 
@@ -161,11 +163,28 @@ export class MockComplaintService implements IComplaintService {
 
     const refNumber = generateMockReference(2026);
     const now = new Date().toISOString();
-    const routed = this.routeDepartment(`${input.title} ${input.description}`);
+    const textToClassify = `${input.title} ${input.description}`;
+    const prediction = classifyMultiLabel(textToClassify);
+    const routedDepts = prediction.departments.length > 0 ? prediction.departments : [this.routeDepartment(textToClassify).id];
+    const primaryDeptId = prediction.primaryDepartment || routedDepts[0];
+    const primaryDeptName = KARACHI_DEPARTMENTS[primaryDeptId]?.name || 'Municipal Agency';
+    const status: ComplaintStatus = prediction.needsReview ? 'under_review' : 'assigned';
     const claimCode = `CLM-${Math.random().toString(36).substring(2, 6).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
 
+    const complaintId = `cmp-${Date.now()}`;
+    const issues: ComplaintIssue[] = routedDepts.map((d, idx) => ({
+      id: `iss-${d}-${Date.now()}-${idx + 1}`,
+      complaintId,
+      departmentId: d,
+      departmentName: KARACHI_DEPARTMENTS[d]?.name,
+      issueType: `${d}.reported_defect`,
+      confidence: prediction.probabilities[d] ?? 0.85,
+      status: prediction.needsReview ? 'under_review' : 'assigned',
+      updatedAt: now,
+    }));
+
     const newComplaint: Complaint = {
-      id: `cmp-${Date.now()}`,
+      id: complaintId,
       citizenId: null, // Guest complaint starts unclaimed
       referenceNumber: refNumber,
       citizenName: input.citizenName,
@@ -175,9 +194,17 @@ export class MockComplaintService implements IComplaintService {
       title: input.title,
       description: input.description,
       detectedLanguage: 'roman_urdu',
-      status: 'assigned',
-      assignedDepartmentId: routed.id,
-      assignedDepartmentName: routed.name,
+      status,
+      assignedDepartmentId: primaryDeptId,
+      assignedDepartmentName: primaryDeptName,
+      assignedDepartmentIds: routedDepts,
+      predictedDepartmentId: primaryDeptId,
+      predictedDepartmentIds: routedDepts,
+      predictionConfidence: prediction.confidence,
+      isMultiLabel: prediction.isMultiLabel,
+      hasHazard: prediction.hasHazard,
+      hazardType: prediction.hazardType,
+      issues,
       submittedAt: now,
       updatedAt: now,
       isDemonstration: false,
@@ -195,11 +222,15 @@ export class MockComplaintService implements IComplaintService {
         },
         {
           id: `t-${Date.now() + 1}`,
-          status: 'assigned',
-          title: 'Department Assigned',
-          titleUrdu: 'محکمہ تفویض کر دیا گیا',
-          description: 'The classifier routed this complaint to the responsible department.',
-          descriptionUrdu: 'درجہ بندی کے بعد شکایت متعلقہ محکمے کو بھیج دی گئی ہے۔',
+          status: status,
+          title: prediction.needsReview ? 'Under Review' : 'Department Assigned',
+          titleUrdu: prediction.needsReview ? 'زیرِ جائزہ' : 'محکمہ تفویض کر دیا گیا',
+          description: prediction.needsReview
+            ? 'Classifier flagged complaint for municipal clearinghouse review.'
+            : `The classifier routed this complaint to ${routedDepts.map((d) => d.toUpperCase()).join(' & ')}.`,
+          descriptionUrdu: prediction.needsReview
+            ? 'شکایت جائزے کے لیے مارک کر دی گئی ہے۔'
+            : 'درجہ بندی کے بعد شکایت متعلقہ محکمے کو بھیج دی گئی ہے۔',
           timestamp: now,
           actorRole: 'system',
         },
@@ -213,11 +244,12 @@ export class MockComplaintService implements IComplaintService {
       referenceNumber: refNumber,
       isSimulated: false,
       timestamp: now,
-      message:
-        'Your complaint has been securely registered and routed.',
-      departmentId: routed.id,
-      status: 'assigned',
-      needsReview: false,
+      message: prediction.needsReview
+        ? 'Your complaint was received and is awaiting safe routing review.'
+        : 'Your complaint has been securely registered and routed.',
+      departmentId: primaryDeptId,
+      status,
+      needsReview: prediction.needsReview,
       claimCode,
     };
   }
@@ -317,6 +349,11 @@ export class MockComplaintService implements IComplaintService {
       status: c.status,
       assignedDepartmentId: c.assignedDepartmentId,
       assignedDepartmentName: c.assignedDepartmentName,
+      assignedDepartmentIds: c.assignedDepartmentIds,
+      isMultiLabel: c.isMultiLabel,
+      issues: c.issues,
+      hasHazard: c.hasHazard,
+      hazardType: c.hazardType,
       submittedAt: c.submittedAt,
       updatedAt: c.updatedAt,
       timeline: [...c.timeline],
@@ -335,7 +372,11 @@ export class MockComplaintService implements IComplaintService {
   async getDepartmentComplaints(departmentId: DepartmentId): Promise<DepartmentComplaintView[]> {
     await this.delay(100);
     return this.complaints
-      .filter((c) => c.assignedDepartmentId === departmentId)
+      .filter(
+        (c) =>
+          c.assignedDepartmentId === departmentId ||
+          Boolean(c.assignedDepartmentIds && c.assignedDepartmentIds.includes(departmentId))
+      )
       .map((c) => this.toDepartmentView(c));
   }
 
@@ -365,7 +406,13 @@ export class MockComplaintService implements IComplaintService {
       (c) => c.referenceNumber.toUpperCase() === upperCleaned || c.id === cleaned
     );
 
-    if (!found || (found.assignedDepartmentId !== departmentId && !(departmentId === 'kmc' && found.status === 'under_review'))) {
+    const isAssigned =
+      found &&
+      (found.assignedDepartmentId === departmentId ||
+        Boolean(found.assignedDepartmentIds && found.assignedDepartmentIds.includes(departmentId)) ||
+        (departmentId === 'kmc' && found.status === 'under_review'));
+
+    if (!found || !isAssigned) {
       return null;
     }
 
@@ -394,14 +441,43 @@ export class MockComplaintService implements IComplaintService {
       throw new Error(`Complaint ${referenceNumber} not found.`);
     }
 
-    if (found.assignedDepartmentId !== departmentId) {
+    const isAssigned =
+      found.assignedDepartmentId === departmentId ||
+      Boolean(found.assignedDepartmentIds && found.assignedDepartmentIds.includes(departmentId));
+
+    if (!isAssigned) {
       throw new Error(
         `Unauthorized: Complaint ${referenceNumber} does not belong to department ${departmentId}.`
       );
     }
 
     const now = new Date().toISOString();
-    found.status = newStatus;
+
+    // Update issue if present
+    if (found.issues && found.issues.length > 0) {
+      const issue = found.issues.find((i) => i.departmentId === departmentId);
+      if (issue) {
+        issue.status = newStatus;
+        issue.statusNotes = note;
+        issue.updatedAt = now;
+      }
+      const allStatuses = found.issues.map((i) => i.status);
+      if (allStatuses.every((s) => s === 'resolved')) {
+        found.status = 'resolved';
+      } else if (allStatuses.every((s) => s === 'rejected')) {
+        found.status = 'rejected';
+      } else if (allStatuses.some((s) => s === 'in_progress')) {
+        found.status = 'in_progress';
+      } else if (allStatuses.some((s) => s === 'accepted')) {
+        found.status = 'accepted';
+      } else if (allStatuses.some((s) => s === 'resolved')) {
+        found.status = 'partly_resolved';
+      } else {
+        found.status = newStatus;
+      }
+    } else {
+      found.status = newStatus;
+    }
     found.updatedAt = now;
 
     const deptMeta = KARACHI_DEPARTMENTS[departmentId];
@@ -413,6 +489,7 @@ export class MockComplaintService implements IComplaintService {
       assigned: { en: 'Pending Acceptance', ur: 'توثیق کے منتظر' },
       accepted: { en: 'Complaint Accepted', ur: 'شکایت منظور کر لی گئی' },
       in_progress: { en: 'Remediation In Progress', ur: 'کارروائی جاری' },
+      partly_resolved: { en: 'Partially Resolved', ur: 'جزوی طور پر حل شدہ' },
       resolved: { en: 'Issue Resolved', ur: 'مسئلہ حل ہو گیا' },
       rejected: { en: 'Complaint Closed', ur: 'شکایت بند' },
     };
@@ -570,6 +647,13 @@ export class MockComplaintService implements IComplaintService {
     submitted_at?: string;
     updated_at?: string;
     public_updates?: Array<{ status: string; at: string; message: string }>;
+    is_multilabel?: boolean;
+    public_issues?: Array<{
+      department_name: string;
+      department_id: string;
+      status: string;
+      display_status: string;
+    }>;
     error?: string;
   }> {
     await this.delay(60);
@@ -606,6 +690,13 @@ export class MockComplaintService implements IComplaintService {
       public_category: deptMeta?.name || 'Karachi Metropolitan Corporation (KMC / DMCs)',
       submitted_at: complaint?.submittedAt || '2026-11-14T10:15:00.000Z',
       updated_at: complaint?.updatedAt || '2026-11-15T14:30:00.000Z',
+      is_multilabel: complaint?.isMultiLabel,
+      public_issues: complaint?.issues?.map((i) => ({
+        department_name: i.departmentName || KARACHI_DEPARTMENTS[i.departmentId]?.name || i.departmentId,
+        department_id: i.departmentId,
+        status: i.status,
+        display_status: displayStatuses[i.status] || i.status,
+      })),
       public_updates: [
         {
           status: 'submitted',

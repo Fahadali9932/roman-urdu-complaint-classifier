@@ -99,6 +99,13 @@ export interface IComplaintService {
     submitted_at?: string;
     updated_at?: string;
     public_updates?: Array<{ status: string; at: string; message: string }>;
+    is_multilabel?: boolean;
+    public_issues?: Array<{
+      department_name: string;
+      department_id: string;
+      status: string;
+      display_status: string;
+    }>;
     error?: string;
   }>;
 

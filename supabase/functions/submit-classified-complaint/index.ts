@@ -1,20 +1,24 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
-import model from "./model.json" with { type: "json" };
+import model from "./multilabel_model.json" with { type: "json" };
 import { processComplaintPrivacy } from "./privacy-engine.ts";
 
-type Model = {
+type MultiLabelModel = {
+  model_version: string;
   classes: string[];
   vocabulary: Record<string, number>;
   idf: number[];
   coef: number[][];
   intercept: number[];
+  thresholds: Record<string, number>;
+  auto_route_confidence_gate: number;
   ngram_range: [number, number];
-  analyzer?: string;
-  confidence_threshold?: number;
-  margin_threshold?: number;
+  sublinear_tf: boolean;
+  hazard_affirmative_patterns: string[];
+  hazard_negation_patterns: string[];
 };
-const classifier = model as Model;
+
+const classifier = model as MultiLabelModel;
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -66,61 +70,118 @@ async function sha256Hex(text: string): Promise<string> {
     .join("");
 }
 
+function normalizeRomanUrdu(text: string): string {
+  return text
+    .toLowerCase()
+    .normalize("NFKC")
+    .replace(/\bbijlee\b|\bbijlii\b|\bbijly\b|\bbatti\b/g, "bijli")
+    .replace(/\bpaani\b|\bpany\b|\bpaney\b/g, "pani")
+    .replace(/\bgadda\b|\bkhadday\b|\bcrater\b/g, "khadda")
+    .replace(/\bsarak\b|\bsadq\b/g, "sadak")
+    .replace(/\bgutar\b|\bgatar\b|\bgater\b/g, "gutter")
+    .replace(/\bkoora\b|\bkura\b|\bkuchra\b/g, "kachra")
+    .replace(/\bsooi\s+gas\b|\bsui\s+gas\b/g, "ssgc gas");
+}
+
 function features(text: string): Map<number, number> {
   const counts = new Map<number, number>();
-  if (classifier.analyzer === "word") {
-    const words = text.toLowerCase().normalize("NFKC").match(/\b\w\w+\b/gu) ?? [];
-    for (let i = 0; i < words.length; i++) {
-      const col1 = classifier.vocabulary[words[i]];
-      if (col1 !== undefined) counts.set(col1, (counts.get(col1) ?? 0) + 1);
-      if (classifier.ngram_range[1] >= 2 && i < words.length - 1) {
-        const bigram = `${words[i]} ${words[i + 1]}`;
-        const col2 = classifier.vocabulary[bigram];
-        if (col2 !== undefined) counts.set(col2, (counts.get(col2) ?? 0) + 1);
-      }
-    }
-  } else {
-    const words = text.toLowerCase().normalize("NFKC").match(/[^\s]+/g) ?? [];
-    for (const word of words) {
-      const padded = ` ${word} `;
-      for (let n = classifier.ngram_range[0]; n <= classifier.ngram_range[1]; n++) {
-        for (let index = 0; index <= padded.length - n; index++) {
-          const column = classifier.vocabulary[padded.slice(index, index + n)];
-          if (column !== undefined) counts.set(column, (counts.get(column) ?? 0) + 1);
-        }
-      }
+  const normalized = normalizeRomanUrdu(text);
+  const words = normalized.match(/\b\w\w+\b/gu) ?? [];
+  for (let i = 0; i < words.length; i++) {
+    const col1 = classifier.vocabulary[words[i]];
+    if (col1 !== undefined) counts.set(col1, (counts.get(col1) ?? 0) + 1);
+    if (classifier.ngram_range[1] >= 2 && i < words.length - 1) {
+      const bigram = `${words[i]} ${words[i + 1]}`;
+      const col2 = classifier.vocabulary[bigram];
+      if (col2 !== undefined) counts.set(col2, (counts.get(col2) ?? 0) + 1);
     }
   }
   let norm = 0;
-  for (const [column, count] of counts) {
-    const weighted = count * classifier.idf[column];
-    counts.set(column, weighted);
+  for (const [col, count] of counts) {
+    const tf = classifier.sublinear_tf ? 1 + Math.log(count) : count;
+    const weighted = tf * classifier.idf[col];
+    counts.set(col, weighted);
     norm += weighted * weighted;
   }
   norm = Math.sqrt(norm) || 1;
-  for (const [column, weighted] of counts) counts.set(column, weighted / norm);
+  for (const [col, weighted] of counts) counts.set(col, weighted / norm);
   return counts;
 }
 
-function classify(text: string) {
+function sigmoid(z: number): number {
+  return 1 / (1 + Math.exp(-z));
+}
+
+function checkHazard(text: string): boolean {
+  const low = text.toLowerCase();
+  for (const neg of classifier.hazard_negation_patterns) {
+    if (new RegExp(neg, "i").test(low)) return false;
+  }
+  for (const aff of classifier.hazard_affirmative_patterns) {
+    if (new RegExp(aff, "i").test(low)) return true;
+  }
+  return false;
+}
+
+function classifyMultiLabel(text: string) {
   const vector = features(text);
-  const scores = classifier.classes.map((_, classIndex) => {
-    let score = classifier.intercept[classIndex];
-    for (const [column, value] of vector) score += classifier.coef[classIndex][column] * value;
-    return score;
-  });
-  const ordered = scores.map((score, index) => ({ score, index })).sort((a, b) => b.score - a.score);
-  const max = ordered[0].score;
-  const probabilities = scores.map((score) => Math.exp(score - max));
-  const total = probabilities.reduce((sum, value) => sum + value, 0);
-  const confidence = probabilities[ordered[0].index] / total;
-  const margin = ordered[0].score - ordered[1].score;
-  const confThresh = classifier.confidence_threshold ?? 0.50;
-  const margThresh = classifier.margin_threshold ?? 0.15;
+  const probabilities: Record<string, number> = {};
+  const selectedDepartments: string[] = [];
+
+  for (let c = 0; c < classifier.classes.length; c++) {
+    const dept = classifier.classes[c];
+    let score = classifier.intercept[c];
+    for (const [col, val] of vector) {
+      score += classifier.coef[c][col] * val;
+    }
+    const prob = sigmoid(score);
+    probabilities[dept] = prob;
+
+    const threshold = classifier.thresholds[dept] ?? 0.50;
+    if (prob >= threshold) {
+      selectedDepartments.push(dept);
+    }
+  }
+
+  // Sort selected by probability descending
+  selectedDepartments.sort((a, b) => probabilities[b] - probabilities[a]);
+
+  const maxProb = Math.max(...Object.values(probabilities));
+  const autoRouteGate = classifier.auto_route_confidence_gate ?? 0.65;
+  const isMultiLabel = selectedDepartments.length > 1;
+  const hasHazard = checkHazard(text);
+
+  let needsReview = false;
+  let reviewReason = "";
+
+  if (selectedDepartments.length === 0) {
+    needsReview = true;
+    reviewReason = "NO_DEPARTMENT_MET_THRESHOLD";
+  } else if (maxProb < autoRouteGate) {
+    needsReview = true;
+    reviewReason = "CONFIDENCE_BELOW_AUTO_ROUTE_GATE";
+  }
+
+  const primaryDept = selectedDepartments[0] || "kmc";
+
+  const issues = selectedDepartments.map((dept, idx) => ({
+    id: `iss-${dept}-${idx + 1}`,
+    departmentId: dept,
+    confidence: probabilities[dept] ?? 0,
+    status: "assigned" as const,
+  }));
+
   return {
-    departmentId: classifier.classes[ordered[0].index],
-    confidence,
-    needsReview: confidence < confThresh || margin < margThresh,
+    departments: selectedDepartments,
+    primaryDepartmentId: primaryDept,
+    confidence: maxProb,
+    probabilities,
+    needsReview,
+    reviewReason,
+    isMultiLabel,
+    hasHazard,
+    issues,
+    modelVersion: classifier.model_version,
   };
 }
 
@@ -179,7 +240,7 @@ Deno.serve(async (req) => {
       guestTrackingHash = await sha256Hex(tracking.raw);
     }
 
-    const result = classify(`${input.title ?? ""} ${input.description}`);
+    const result = classifyMultiLabel(`${input.title ?? ""} ${input.description}`);
     const privacy = processComplaintPrivacy(input.description, {
       citizenName: input.citizenName,
       citizenPhone: input.citizenPhone,
@@ -188,8 +249,23 @@ Deno.serve(async (req) => {
       incidentDistrict: input.incidentDistrict,
       incidentLocality: input.incidentLocality,
       incidentPublicLocation: input.incidentPublicLocation,
-      departmentId: result.departmentId,
+      departmentId: result.primaryDepartmentId,
     });
+
+    // Embed rich multi-department routing metadata into redaction_flags
+    const multiDepartmentMetadata = {
+      is_multilabel: result.isMultiLabel,
+      departments: result.departments,
+      has_hazard: result.hasHazard,
+      issues: result.issues,
+      review_reason: result.reviewReason,
+      model_version: result.modelVersion,
+    };
+
+    const combinedRedactionFlags = {
+      ...(privacy.flags || {}),
+      multi_department_routing: multiDepartmentMetadata,
+    };
 
     const { data, error } = await admin.rpc("submit_citizen_complaint", {
       p_citizen_id: citizenId,
@@ -198,8 +274,8 @@ Deno.serve(async (req) => {
       p_sanitized_description: privacy.sanitizedDescription, // Sanitized description stored in complaints
       p_generated_heading: privacy.generatedHeading,
       p_factual_summary: privacy.factualSummary,
-      p_redaction_flags: privacy.flags,
-      p_redaction_needs_review: privacy.flags.uncertainRedaction || privacy.flags.safetyHazard,
+      p_redaction_flags: combinedRedactionFlags,
+      p_redaction_needs_review: privacy.flags.uncertainRedaction || privacy.flags.safetyHazard || result.needsReview,
       p_incident_district: input.incidentDistrict,
       p_incident_locality: input.incidentLocality,
       p_incident_public_location: input.incidentPublicLocation,
@@ -207,7 +283,7 @@ Deno.serve(async (req) => {
       p_citizen_phone: input.citizenPhone,
       p_citizen_email: input.citizenEmail ?? "",
       p_residential_address: input.residentialAddress,
-      p_predicted_department_id: result.departmentId,
+      p_predicted_department_id: result.primaryDepartmentId,
       p_prediction_confidence: result.confidence,
       p_needs_review: result.needsReview,
       p_is_demonstration: input.isDemonstration === true,
@@ -220,7 +296,17 @@ Deno.serve(async (req) => {
     }
     return json({
       ...data,
-      prediction: result,
+      prediction: {
+        departmentId: result.primaryDepartmentId,
+        departments: result.departments,
+        confidence: result.confidence,
+        probabilities: result.probabilities,
+        isMultiLabel: result.isMultiLabel,
+        hasHazard: result.hasHazard,
+        needsReview: result.needsReview,
+        issues: result.issues,
+        modelVersion: result.modelVersion,
+      },
       privacy: {
         heading: privacy.generatedHeading,
         summary: privacy.factualSummary,

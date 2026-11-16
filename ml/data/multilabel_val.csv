@@ -1,0 +1,232 @@
+dataset_id,text,departments,issue_types,is_multilabel,has_hazard,hazard_type,difficulty_tags,source_type,template_family_id,split
+AEA-ML-00210,transformer replace karein purana load nahi utha pata,kelectric,kelectric.general,False,False,,spelling_variant,colloquial_variant,base_kelectric_210,val
+AEA-ML-00536,kachray k dher mein kutte aur janwar gandagi phaila rahay hain,sswmb,sswmb.general,False,False,,standard,curated_genuine,base_sswmb_536,val
+AEA-ML-00041,defence view main road par asphalt wash out ho chuki hai,kmc,kmc.general,False,False,,standard,curated_genuine,base_kmc_41,val
+AEA-ML-00123,water leak nahi tha road khud hi dhas gai hai gadda bharwayen,kmc,kmc.general,False,False,,negation,negation_contrast,base_kmc_123,val
+AEA-ML-00241,PMT explosion damaged the street asphalt electric fault primary,kelectric,kelectric.general,False,False,,boundary_case,edge_case,base_kelectric_241,val
+AEA-ML-00665,residential plot divided into sub-plots illegally without SBCA approval,sbca,sbca.general,False,False,,standard,curated_genuine,base_sbca_665,val
+AEA-ML-00083,traffic signal controller board jal gaya signal off he,kmc,kmc.general,False,False,,spelling_variant,colloquial_variant,base_kmc_83,val
+AEA-ML-00555,garbage truck broken down left abandoned with rotting trash inside,sswmb,sswmb.general,False,False,,standard,curated_genuine,base_sswmb_555,val
+AEA-ML-00681,balcony slab collapsed injured pedestrian dangerous building SBCA,sbca,sbca.general,False,False,,standard,curated_genuine,base_sbca_681,val
+AEA-ML-00489,gali k corner par gas pipe rusted hai water line theek hai,ssgc,ssgc.general,False,False,,boundary_case,edge_case,base_ssgc_489,val
+AEA-ML-00059,flyovr pe bumpy ride he joints loose ho gaye hain,kmc,kmc.general,False,False,,spelling_variant,colloquial_variant,base_kmc_59,val
+AEA-ML-00636,bijli paani theek hai gali mein kachray ka dher laga hua hai SSWMB,sswmb,sswmb.general,False,False,,negation,negation_contrast,base_sswmb_636,val
+AEA-ML-00671,neighbor encroaching into alleyway by extending balcony 5 feet out,sbca,sbca.general,False,False,,standard,curated_genuine,base_sbca_671,val
+AEA-ML-00304,sewage accumulated in front of houses causing dengue mosquito outbreak,kwsc,kwsc.general,False,False,,standard,curated_genuine,base_kwsc_304,val
+AEA-ML-00159,current passing through rain water near electric pole disconnect power,kelectric,kelectric.general,False,False,,standard,curated_genuine,base_kelectric_159,val
+AEA-ML-00608,garbage disposal truck not lifting waste from doorsteps,sswmb,sswmb.general,False,False,,spelling_variant,colloquial_variant,base_sswmb_608,val
+AEA-ML-00658,builder ne approved plan ke khilaf 3 additional floors bana liye,sbca,sbca.general,False,False,,standard,curated_genuine,base_sbca_658,val
+AEA-ML-00768,gas leak nahi hai building k pillar khasta ho chukay hain collapse danger,sbca,sbca.general,False,False,,negation,negation_contrast,base_sbca_768,val
+AEA-ML-00756,excavation machinery cracked water supply line builder fault SBCA notice,sbca,sbca.general,False,False,,boundary_case,edge_case,base_sbca_756,val
+AEA-ML-00623,rain drain choked with plastic solid waste clear garbage from drain,sswmb,sswmb.general,False,False,,boundary_case,edge_case,base_sswmb_623,val
+AEA-ML-00243,meter burnt completely outside property line utility equipment fire,kelectric,kelectric.general,False,False,,boundary_case,edge_case,base_kelectric_243,val
+AEA-ML-00554,uncollected household trash stinking outside apartments lift waste,sswmb,sswmb.general,False,False,,standard,curated_genuine,base_sswmb_554,val
+AEA-ML-01086,gutter overflowing onto public road near Gulberg Block 12 severe sewage smell,kwsc,kwsc.sewage_overflow,False,False,,locality_variant,curated_locality_expansion,loc_kwsc_208,val
+AEA-ML-01087,gutter overflowing onto public road near Gulistan-e-Jauhar Block 7 severe sewage smell,kwsc,kwsc.sewage_overflow,False,False,,locality_variant,curated_locality_expansion,loc_kwsc_208,val
+AEA-ML-01088,gutter overflowing onto public road near Surjani Town Sector 4-B severe sewage smell,kwsc,kwsc.sewage_overflow,False,False,,locality_variant,curated_locality_expansion,loc_kwsc_208,val
+AEA-ML-01089,gutter overflowing onto public road near Jamshed Road severe sewage smell,kwsc,kwsc.sewage_overflow,False,False,,locality_variant,curated_locality_expansion,loc_kwsc_208,val
+AEA-ML-01090,gutter overflowing onto public road near Gulshan-e-Iqbal Block 13-D severe sewage smell,kwsc,kwsc.sewage_overflow,False,False,,locality_variant,curated_locality_expansion,loc_kwsc_208,val
+AEA-ML-01091,gutter overflowing onto public road near Landhi Town severe sewage smell,kwsc,kwsc.sewage_overflow,False,False,,locality_variant,curated_locality_expansion,loc_kwsc_208,val
+AEA-ML-01092,gutter overflowing onto public road near Saddar Empress Market severe sewage smell,kwsc,kwsc.sewage_overflow,False,False,,locality_variant,curated_locality_expansion,loc_kwsc_208,val
+AEA-ML-01093,gutter overflowing onto public road near Malir Cantt Road severe sewage smell,kwsc,kwsc.sewage_overflow,False,False,,locality_variant,curated_locality_expansion,loc_kwsc_208,val
+AEA-ML-01094,gutter overflowing onto public road near North Nazimabad Block H severe sewage smell,kwsc,kwsc.sewage_overflow,False,False,,locality_variant,curated_locality_expansion,loc_kwsc_208,val
+AEA-ML-01095,gutter overflowing onto public road near Garden East severe sewage smell,kwsc,kwsc.sewage_overflow,False,False,,locality_variant,curated_locality_expansion,loc_kwsc_208,val
+AEA-ML-01096,gutter overflowing onto public road near Korangi Industrial Area severe sewage smell,kwsc,kwsc.sewage_overflow,False,False,,locality_variant,curated_locality_expansion,loc_kwsc_208,val
+AEA-ML-01097,gutter overflowing onto public road near PECHS Block 6 severe sewage smell,kwsc,kwsc.sewage_overflow,False,False,,locality_variant,curated_locality_expansion,loc_kwsc_208,val
+AEA-ML-01098,gutter overflowing onto public road near Liaquatabad No 4 severe sewage smell,kwsc,kwsc.sewage_overflow,False,False,,locality_variant,curated_locality_expansion,loc_kwsc_208,val
+AEA-ML-01099,gutter overflowing onto public road near Orangi Town Sector 11 severe sewage smell,kwsc,kwsc.sewage_overflow,False,False,,locality_variant,curated_locality_expansion,loc_kwsc_208,val
+AEA-ML-00869,bijli theek aa rahi hai magar water board ka peenay ka pani 15 din se bilkul nahi aya,kwsc,kwsc.water_shortage,False,False,,negation,curated_hard_case,neg_dept_power_fine_water_dry_01,val
+AEA-ML-00870,power is available without interruption but domestic water supply is totally dry,kwsc,kwsc.water_shortage,False,False,,negation,curated_hard_case,neg_dept_power_fine_water_dry_01,val
+AEA-ML-00871,light ka koi masla nahi hai bhai pani bhejo line bilkul sookhi pari hai,kwsc,kwsc.water_shortage,False,False,,negation,curated_hard_case,neg_dept_power_fine_water_dry_01,val
+AEA-ML-00872,"electricity is running fine, however water supply has ceased since last week",kwsc,kwsc.water_shortage,False,False,,negation,curated_hard_case,neg_dept_power_fine_water_dry_01,val
+AEA-ML-00063,street light pole tilted falling danger kmc electricity wing,kmc,kmc.general,False,False,,spelling_variant,colloquial_variant,base_kmc_63,val
+AEA-ML-00056,traffic light kaam ni kar rahi chorangi pe,kmc,kmc.general,False,False,,spelling_variant,colloquial_variant,base_kmc_56,val
+AEA-ML-00421,low pressure sui gas unable to light single stove burner,ssgc,ssgc.general,False,False,,standard,curated_genuine,base_ssgc_421,val
+AEA-ML-00363,street light pole base rusted by continuous sewage overflow KWSC stop leak,kwsc,kwsc.general,False,False,,boundary_case,edge_case,base_kwsc_363,val
+AEA-ML-00953,gali mein na gas ka pressure hai aur na hi light hai dono taraf se azaab hai,ssgc;kelectric,ssgc.low_pressure;kelectric.power_outage,True,False,,multi_department,synthetic_multilabel_variant,synth_pair_ssgc_kelectric_110,val
+AEA-ML-00954,facing both gas pressure reduction and unannounced power load shedding together,ssgc;kelectric,ssgc.low_pressure;kelectric.power_outage,True,False,,multi_department,synthetic_multilabel_variant,synth_pair_ssgc_kelectric_110,val
+AEA-ML-00955,chulha nahi jal raha gas zero hai aur bijli bhi 6 ghantay se gayab hai,ssgc;kelectric,ssgc.low_pressure;kelectric.power_outage,True,False,,multi_department,synthetic_multilabel_variant,synth_pair_ssgc_kelectric_110,val
+AEA-ML-00956,severe gas crisis combined with continuous electric feeder breakdown in block,ssgc;kelectric,ssgc.low_pressure;kelectric.power_outage,True,False,,multi_department,synthetic_multilabel_variant,synth_pair_ssgc_kelectric_110,val
+AEA-ML-00485,electric pole k pas gas pipe leak ho raha hai gas shutdown required,ssgc,ssgc.general,False,False,,boundary_case,edge_case,base_ssgc_485,val
+AEA-ML-00585,kachra kundi overflow ho gai he poori sadak pe kachra,sswmb,sswmb.general,False,False,,spelling_variant,colloquial_variant,base_sswmb_585,val
+AEA-ML-00653,building ki deewar mein barray cracks aa gaye hain collapse ka khatra,sbca,sbca.general,False,False,,standard,curated_genuine,base_sbca_653,val
+AEA-ML-01170,severe voltage fluctuation burning appliances in North Nazimabad Block H neutral missing,kelectric,kelectric.power_outage,False,False,,locality_variant,curated_locality_expansion,loc_kelectric_214,val
+AEA-ML-01171,severe voltage fluctuation burning appliances in Gulistan-e-Jauhar Block 7 neutral missing,kelectric,kelectric.power_outage,False,False,,locality_variant,curated_locality_expansion,loc_kelectric_214,val
+AEA-ML-01172,severe voltage fluctuation burning appliances in Surjani Town Sector 4-B neutral missing,kelectric,kelectric.power_outage,False,False,,locality_variant,curated_locality_expansion,loc_kelectric_214,val
+AEA-ML-01173,severe voltage fluctuation burning appliances in Liaquatabad No 4 neutral missing,kelectric,kelectric.power_outage,False,False,,locality_variant,curated_locality_expansion,loc_kelectric_214,val
+AEA-ML-01174,severe voltage fluctuation burning appliances in Defence Phase 6 neutral missing,kelectric,kelectric.power_outage,False,False,,locality_variant,curated_locality_expansion,loc_kelectric_214,val
+AEA-ML-01175,severe voltage fluctuation burning appliances in Nazimabad No 2 neutral missing,kelectric,kelectric.power_outage,False,False,,locality_variant,curated_locality_expansion,loc_kelectric_214,val
+AEA-ML-01176,severe voltage fluctuation burning appliances in Saddar Empress Market neutral missing,kelectric,kelectric.power_outage,False,False,,locality_variant,curated_locality_expansion,loc_kelectric_214,val
+AEA-ML-01177,severe voltage fluctuation burning appliances in Gulberg Block 12 neutral missing,kelectric,kelectric.power_outage,False,False,,locality_variant,curated_locality_expansion,loc_kelectric_214,val
+AEA-ML-01178,severe voltage fluctuation burning appliances in Shah Faisal Colony neutral missing,kelectric,kelectric.power_outage,False,False,,locality_variant,curated_locality_expansion,loc_kelectric_214,val
+AEA-ML-01179,severe voltage fluctuation burning appliances in PECHS Block 6 neutral missing,kelectric,kelectric.power_outage,False,False,,locality_variant,curated_locality_expansion,loc_kelectric_214,val
+AEA-ML-01180,severe voltage fluctuation burning appliances in Landhi Town neutral missing,kelectric,kelectric.power_outage,False,False,,locality_variant,curated_locality_expansion,loc_kelectric_214,val
+AEA-ML-01181,severe voltage fluctuation burning appliances in Orangi Town Sector 11 neutral missing,kelectric,kelectric.power_outage,False,False,,locality_variant,curated_locality_expansion,loc_kelectric_214,val
+AEA-ML-01182,severe voltage fluctuation burning appliances in Federal Capital Area neutral missing,kelectric,kelectric.power_outage,False,False,,locality_variant,curated_locality_expansion,loc_kelectric_214,val
+AEA-ML-01183,severe voltage fluctuation burning appliances in Federal B Area Block 14 neutral missing,kelectric,kelectric.power_outage,False,False,,locality_variant,curated_locality_expansion,loc_kelectric_214,val
+AEA-ML-00639,building issue nahi plot par ghair qanooni kachra phainka ja raha hai,sswmb,sswmb.general,False,False,,negation,negation_contrast,base_sswmb_639,val
+AEA-ML-00236,street light connection se sparking nahi main 11kv line spark hai,kelectric,kelectric.general,False,False,,boundary_case,edge_case,base_kelectric_236,val
+AEA-ML-00568,toxic fumes from burning garbage pile behind residential apartments,sswmb,sswmb.general,False,False,,standard,curated_genuine,base_sswmb_568,val
+AEA-ML-00603,dustbin overflow attracting stray dogs and rats hazard,sswmb,sswmb.general,False,False,,spelling_variant,colloquial_variant,base_sswmb_603,val
+AEA-ML-00022,pechs block 2 road patchwork bohat kharab hua hai dubara karein,kmc,kmc.general,False,False,,standard,curated_genuine,base_kmc_22,val
+AEA-ML-00347,sewerage water pooling outside hospital gate dengue risk,kwsc,kwsc.general,False,False,,spelling_variant,colloquial_variant,base_kwsc_347,val
+AEA-ML-00718,chhat par mobile tower laga lia wazan bohat he,sbca,sbca.general,False,False,,spelling_variant,colloquial_variant,base_sbca_718,val
+AEA-ML-00231,electric current wall me araha he service drop wire insulation peel,kelectric,kelectric.general,False,False,,boundary_case,edge_case,base_kelectric_231,val
+AEA-ML-00124,garbage ka issue nahi hai footpath toota hua hai pedestrians can't walk,kmc,kmc.general,False,False,,negation,negation_contrast,base_kmc_124,val
+AEA-ML-00530,commercial market k bahar garbage dump pile up ho raha hai flies and germs,sswmb,sswmb.general,False,False,,standard,curated_genuine,base_sswmb_530,val
+AEA-ML-00684,unauthorized basement dug deep water table exposed neighbor foundation,sbca,sbca.general,False,False,,standard,curated_genuine,base_sbca_684,val
+AEA-ML-00320,paani me keeday aur mitti arahi he tap water dirty,kwsc,kwsc.general,False,False,,spelling_variant,colloquial_variant,base_kwsc_320,val
+AEA-ML-00682,residential street turning into commercial market illegal construction,sbca,sbca.general,False,False,,standard,curated_genuine,base_sbca_682,val
+AEA-ML-00434,meter union joint cracked gas hissing out loudly shut supply,ssgc,ssgc.general,False,True,gas_leak_hazard,hazard,curated_genuine,base_ssgc_434,val
+AEA-ML-00742,water line nahi builder ne basement khodi to underground foundation phati,sbca,sbca.general,False,False,,boundary_case,edge_case,base_sbca_742,val
+AEA-ML-00487,trench mein paani nahi gas ka pressurized leak hissing sound,ssgc,ssgc.general,False,True,gas_leak_hazard,boundary_case;hazard,edge_case,base_ssgc_487,val
+AEA-ML-00546,dead cow remains dumped on roadside emergency carcass disposal needed,sswmb,sswmb.general,False,False,,standard,curated_genuine,base_sswmb_546,val
+AEA-ML-00088,sarak par bajri aur mitti se bike skid hoti hai,kmc,kmc.general,False,False,,spelling_variant,colloquial_variant,base_kmc_88,val
+AEA-ML-00247,sadak par paani nahi bijli ki nangi taar giri hui hai current danger,kelectric,kelectric.general,False,True,electrical_hazard,negation;hazard,negation_contrast,base_kelectric_247,val
+AEA-ML-00246,pani aur gas theek araha hai lekin bijli kal se band hai KE solve,kelectric,kelectric.general,False,False,,negation,negation_contrast,base_kelectric_246,val
+AEA-ML-00372,manhole overflowing onto pedestrian walkway KWSC de-silt line,kwsc,kwsc.general,False,False,,boundary_case,edge_case,base_kwsc_372,val
+AEA-ML-00020,shahrah e pakistan par potholes ki wajah se traffic jam rehta hai,kmc,kmc.general,False,False,,standard,curated_genuine,base_kmc_20,val
+AEA-ML-00614,gas leak nahi kachray k dher se toxic smoke nikal raha hai fire,sswmb,sswmb.general,False,False,,boundary_case,edge_case,base_sswmb_614,val
+AEA-ML-00553,market cleaning not done after sunday bazaar rotten vegetables lying,sswmb,sswmb.general,False,False,,standard,curated_genuine,base_sswmb_553,val
+AEA-ML-00724,pillar tod k hall bana lia structure kamzor ho gaya,sbca,sbca.general,False,False,,spelling_variant,colloquial_variant,base_sbca_724,val
+AEA-ML-01408,builder excavating deep basement without safety shoring threatening adjacent house in Gulberg Block 12,sbca,sbca.structural_hazard,False,True,emergency_hazard,locality_variant;hazard,curated_locality_expansion,loc_sbca_231,val
+AEA-ML-01409,builder excavating deep basement without safety shoring threatening adjacent house in Gulshan-e-Iqbal Block 13-D,sbca,sbca.structural_hazard,False,True,emergency_hazard,locality_variant;hazard,curated_locality_expansion,loc_sbca_231,val
+AEA-ML-01410,builder excavating deep basement without safety shoring threatening adjacent house in Surjani Town Sector 4-B,sbca,sbca.structural_hazard,False,True,emergency_hazard,locality_variant;hazard,curated_locality_expansion,loc_sbca_231,val
+AEA-ML-01411,builder excavating deep basement without safety shoring threatening adjacent house in Korangi Industrial Area,sbca,sbca.structural_hazard,False,True,emergency_hazard,locality_variant;hazard,curated_locality_expansion,loc_sbca_231,val
+AEA-ML-01412,builder excavating deep basement without safety shoring threatening adjacent house in Landhi Town,sbca,sbca.structural_hazard,False,True,emergency_hazard,locality_variant;hazard,curated_locality_expansion,loc_sbca_231,val
+AEA-ML-01413,builder excavating deep basement without safety shoring threatening adjacent house in Malir Cantt Road,sbca,sbca.structural_hazard,False,True,emergency_hazard,locality_variant;hazard,curated_locality_expansion,loc_sbca_231,val
+AEA-ML-01414,builder excavating deep basement without safety shoring threatening adjacent house in Federal Capital Area,sbca,sbca.structural_hazard,False,True,emergency_hazard,locality_variant;hazard,curated_locality_expansion,loc_sbca_231,val
+AEA-ML-01415,builder excavating deep basement without safety shoring threatening adjacent house in Liaquatabad No 4,sbca,sbca.structural_hazard,False,True,emergency_hazard,locality_variant;hazard,curated_locality_expansion,loc_sbca_231,val
+AEA-ML-01416,builder excavating deep basement without safety shoring threatening adjacent house in Garden East,sbca,sbca.structural_hazard,False,True,emergency_hazard,locality_variant;hazard,curated_locality_expansion,loc_sbca_231,val
+AEA-ML-01417,builder excavating deep basement without safety shoring threatening adjacent house in Nazimabad No 2,sbca,sbca.structural_hazard,False,True,emergency_hazard,locality_variant;hazard,curated_locality_expansion,loc_sbca_231,val
+AEA-ML-01418,builder excavating deep basement without safety shoring threatening adjacent house in Gulistan-e-Jauhar Block 7,sbca,sbca.structural_hazard,False,True,emergency_hazard,locality_variant;hazard,curated_locality_expansion,loc_sbca_231,val
+AEA-ML-01419,builder excavating deep basement without safety shoring threatening adjacent house in Shah Faisal Colony,sbca,sbca.structural_hazard,False,True,emergency_hazard,locality_variant;hazard,curated_locality_expansion,loc_sbca_231,val
+AEA-ML-01420,builder excavating deep basement without safety shoring threatening adjacent house in Clifton Block 2,sbca,sbca.structural_hazard,False,True,emergency_hazard,locality_variant;hazard,curated_locality_expansion,loc_sbca_231,val
+AEA-ML-01421,builder excavating deep basement without safety shoring threatening adjacent house in Federal B Area Block 14,sbca,sbca.structural_hazard,False,True,emergency_hazard,locality_variant;hazard,curated_locality_expansion,loc_sbca_231,val
+AEA-ML-00520,domestic stove is brand new yet no flame due to zero line pressure,ssgc,ssgc.general,False,False,,negation,negation_contrast,base_ssgc_520,val
+AEA-ML-00737,unauthorized steel shade over public footpath by shopkeeper,sbca,sbca.general,False,False,,spelling_variant,colloquial_variant,base_sbca_737,val
+AEA-ML-00162,k-electric cable smoking heavily near main market,kelectric,kelectric.general,False,False,,standard,curated_genuine,base_kelectric_162,val
+AEA-ML-00897,kuchra bht jama hy kundi overflow ho rhi hy badboo se sar phat rha hy,sswmb,sswmb.garbage_dump,False,False,,spelling_variant;slang,curated_hard_case,slang_spelling_sswmb_01,val
+AEA-ML-00898,koora uthane wali gadi 2 hafte se nae ai har trf plastic or gandagi h,sswmb,sswmb.garbage_dump,False,False,,spelling_variant;slang,curated_hard_case,slang_spelling_sswmb_01,val
+AEA-ML-00899,kachray k pahar lag gae hen solid waste board so rha hy kya,sswmb,sswmb.garbage_dump,False,False,,spelling_variant;slang,curated_hard_case,slang_spelling_sswmb_01,val
+AEA-ML-00900,gali me gand bikhra hua hy safai karamchari nae aty,sswmb,sswmb.garbage_dump,False,False,,spelling_variant;slang,curated_hard_case,slang_spelling_sswmb_01,val
+AEA-ML-00657,chhat par illegally mobile tower aur heavy rooms bana liye hain,sbca,sbca.general,False,False,,standard,curated_genuine,base_sbca_657,val
+AEA-ML-00781,sadak par bohat baray khadday hain aur sath hi gutter ka ganda pani overflow ho raha hai,kmc;kwsc,kmc.road_damage;kwsc.sewage_overflow,True,False,,multi_department,curated_multilabel,m_kmc_kwsc_01,val
+AEA-ML-00782,road completely damaged hai aur sewer line block hone se ganda pani sadak par jama hai,kmc;kwsc,kmc.road_damage;kwsc.sewage_overflow,True,False,,multi_department,curated_multilabel,m_kmc_kwsc_01,val
+AEA-ML-00783,gali ki road par asphalt toot gaya hai aur gutter ubal raha hai badboo phail chuki hai,kmc;kwsc,kmc.road_damage;kwsc.sewage_overflow,True,False,,multi_department,curated_multilabel,m_kmc_kwsc_01,val
+AEA-ML-00784,potholes in street and overflowing manhole creating huge mess for traffic and pedestrians,kmc;kwsc,kmc.road_damage;kwsc.sewage_overflow,True,False,,multi_department,curated_multilabel,m_kmc_kwsc_01,val
+AEA-ML-00785,main raste par khadda dhas gaya hai aur gutter ka paani bahar aa raha hai chalna dushwar hai,kmc;kwsc,kmc.road_damage;kwsc.sewage_overflow,True,False,,multi_department,curated_multilabel,m_kmc_kwsc_01,val
+AEA-ML-00786,sadak kharab hai aur sewerage water jama hai dono maslay hal karein,kmc;kwsc,kmc.road_damage;kwsc.sewage_overflow,True,False,,multi_department,curated_multilabel,m_kmc_kwsc_01,val
+AEA-ML-00922,water board ki supply line leak hone se sadak dhas gai aur lake ban gai hai,kmc;kwsc,kmc.road_damage;kwsc.water_leak,True,False,,multi_department,synthetic_multilabel_variant,synth_pair_kmc_kwsc_102,val
+AEA-ML-00923,main water pipe burst flooded the avenue causing massive potholes and road erosion,kmc;kwsc,kmc.road_damage;kwsc.water_leak,True,False,,multi_department,synthetic_multilabel_variant,synth_pair_kmc_kwsc_102,val
+AEA-ML-00924,peenay ka saaf pani zaya ho raha hai pipe leak se aur sadak par deep crater ban gaya,kmc;kwsc,kmc.road_damage;kwsc.water_leak,True,False,,multi_department,synthetic_multilabel_variant,synth_pair_kmc_kwsc_102,val
+AEA-ML-00925,drinking water pipeline fractured damaging the newly paved municipal asphalt road,kmc;kwsc,kmc.road_damage;kwsc.water_leak,True,False,,multi_department,synthetic_multilabel_variant,synth_pair_kmc_kwsc_102,val
+AEA-ML-00012,hamari gali ki sadak complete banwayen KMC staff ko bhejein,kmc,kmc.general,False,False,,standard,curated_genuine,base_kmc_12,val
+AEA-ML-00258,no street light issue main 220v line is completely dead in block,kelectric,kelectric.general,False,False,,negation,negation_contrast,base_kelectric_258,val
+AEA-ML-00780,sewerage works well but old building balcony has deep structural crack,sbca,sbca.general,False,False,,negation,negation_contrast,base_sbca_780,val
+AEA-ML-00066,sadak beth gai he yahan zameen dhas gai,kmc,kmc.general,False,False,,spelling_variant,colloquial_variant,base_kmc_66,val
+AEA-ML-00697,illegal sixth floor construction ongoing during night hours SBCA raid,sbca,sbca.general,False,False,,standard,curated_genuine,base_sbca_697,val
+AEA-ML-00643,electrical pole is safe but garbage dumped around its base smells,sswmb,sswmb.general,False,False,,negation,negation_contrast,base_sswmb_643,val
+AEA-ML-00157,lineman left live wire open on electric pole child hazard,kelectric,kelectric.general,False,False,,standard,curated_genuine,base_kelectric_157,val
+AEA-ML-00049,footpath par illegally dukandaaro ne saman rakha hua hai,kmc,kmc.general,False,False,,standard,curated_genuine,base_kmc_49,val
+AEA-ML-00506,bijli aur paani theek hai magar sui gas bilkul gayab hai choolha band,ssgc,ssgc.general,False,False,,negation,negation_contrast,base_ssgc_506,val
+AEA-ML-00142,feeder trip ho gaya hai poora block blackout mein hai,kelectric,kelectric.general,False,False,,standard,curated_genuine,base_kelectric_142,val
+AEA-ML-00883,batti gul ho gai hai subah se andhera chaaya hai batti chalu karo bhai,kelectric,kelectric.power_outage,False,False,,spelling_variant;slang,curated_hard_case,slang_spelling_ke_01,val
+AEA-ML-00884,bijlee gayab hai garmi mein halat ghair ho chuki hai KE walo sharam kro,kelectric,kelectric.power_outage,False,False,,spelling_variant;slang,curated_hard_case,slang_spelling_ke_01,val
+AEA-ML-00885,bijlii ka koye thikana nahi 2 minute aati hai 2 ghante jati hai,kelectric,kelectric.power_outage,False,False,,spelling_variant;slang,curated_hard_case,slang_spelling_ke_01,val
+AEA-ML-00886,light chali gye h kab ayegi kuch to batao feeder trip ho gya h kya,kelectric,kelectric.power_outage,False,False,,spelling_variant;slang,curated_hard_case,slang_spelling_ke_01,val
+AEA-ML-00887,current chala gya hai pmt se awaaz ayi thi dhamaka hua tha,kelectric,kelectric.power_outage,False,False,,spelling_variant;slang,curated_hard_case,slang_spelling_ke_01,val
+AEA-ML-00552,solid waste collection irregular garbage piling up on every doorstep,sswmb,sswmb.general,False,False,,standard,curated_genuine,base_sswmb_552,val
+AEA-ML-00253,road kharab nahi magar bijli ka khamba girne se rasta block ho gaya,kelectric,kelectric.general,False,False,,negation,negation_contrast,base_kelectric_253,val
+AEA-ML-01450,road damaged with massive potholes and sewer water flooding the street near Garden East,kmc;kwsc,kmc.road_damage;kwsc.sewage_overflow,True,False,,multi_department;locality_variant,curated_multilabel_expansion,multi_loc_kmc_kwsc_501,val
+AEA-ML-01451,road damaged with massive potholes and sewer water flooding the street near Orangi Town Sector 11,kmc;kwsc,kmc.road_damage;kwsc.sewage_overflow,True,False,,multi_department;locality_variant,curated_multilabel_expansion,multi_loc_kmc_kwsc_501,val
+AEA-ML-01452,road damaged with massive potholes and sewer water flooding the street near Gulistan-e-Jauhar Block 7,kmc;kwsc,kmc.road_damage;kwsc.sewage_overflow,True,False,,multi_department;locality_variant,curated_multilabel_expansion,multi_loc_kmc_kwsc_501,val
+AEA-ML-01453,road damaged with massive potholes and sewer water flooding the street near Surjani Town Sector 4-B,kmc;kwsc,kmc.road_damage;kwsc.sewage_overflow,True,False,,multi_department;locality_variant,curated_multilabel_expansion,multi_loc_kmc_kwsc_501,val
+AEA-ML-01454,road damaged with massive potholes and sewer water flooding the street near Nazimabad No 2,kmc;kwsc,kmc.road_damage;kwsc.sewage_overflow,True,False,,multi_department;locality_variant,curated_multilabel_expansion,multi_loc_kmc_kwsc_501,val
+AEA-ML-01455,road damaged with massive potholes and sewer water flooding the street near Federal Capital Area,kmc;kwsc,kmc.road_damage;kwsc.sewage_overflow,True,False,,multi_department;locality_variant,curated_multilabel_expansion,multi_loc_kmc_kwsc_501,val
+AEA-ML-01456,road damaged with massive potholes and sewer water flooding the street near Liaquatabad No 4,kmc;kwsc,kmc.road_damage;kwsc.sewage_overflow,True,False,,multi_department;locality_variant,curated_multilabel_expansion,multi_loc_kmc_kwsc_501,val
+AEA-ML-01457,road damaged with massive potholes and sewer water flooding the street near Jamshed Road,kmc;kwsc,kmc.road_damage;kwsc.sewage_overflow,True,False,,multi_department;locality_variant,curated_multilabel_expansion,multi_loc_kmc_kwsc_501,val
+AEA-ML-01458,road damaged with massive potholes and sewer water flooding the street near Defence Phase 6,kmc;kwsc,kmc.road_damage;kwsc.sewage_overflow,True,False,,multi_department;locality_variant,curated_multilabel_expansion,multi_loc_kmc_kwsc_501,val
+AEA-ML-01459,road damaged with massive potholes and sewer water flooding the street near Landhi Town,kmc;kwsc,kmc.road_damage;kwsc.sewage_overflow,True,False,,multi_department;locality_variant,curated_multilabel_expansion,multi_loc_kmc_kwsc_501,val
+AEA-ML-01460,road damaged with massive potholes and sewer water flooding the street near North Nazimabad Block H,kmc;kwsc,kmc.road_damage;kwsc.sewage_overflow,True,False,,multi_department;locality_variant,curated_multilabel_expansion,multi_loc_kmc_kwsc_501,val
+AEA-ML-01461,road damaged with massive potholes and sewer water flooding the street near Gulshan-e-Iqbal Block 13-D,kmc;kwsc,kmc.road_damage;kwsc.sewage_overflow,True,False,,multi_department;locality_variant,curated_multilabel_expansion,multi_loc_kmc_kwsc_501,val
+AEA-ML-00217,phase 1 dead no light in whole row of houses,kelectric,kelectric.general,False,False,,spelling_variant,colloquial_variant,base_kelectric_217,val
+AEA-ML-00411,gas line punctured by third party contractors gas escaping into air,ssgc,ssgc.general,False,False,,standard,curated_genuine,base_ssgc_411,val
+AEA-ML-00235,meter panel par fire extinguisher chahiye electrical fire in progress,kelectric,kelectric.general,False,False,,boundary_case,edge_case,base_kelectric_235,val
+AEA-ML-00333,sewerage overflow badboo se sans lena mushkil,kwsc,kwsc.general,False,False,,spelling_variant,colloquial_variant,base_kwsc_333,val
+AEA-ML-00225,current gutter k paani me araha he bijli ki taar tooti hai KE cut power,kelectric,kelectric.general,False,True,electrical_hazard,boundary_case;hazard,edge_case,base_kelectric_225,val
+AEA-ML-00705,chhat pe illegal floor bana lia he 4th manzil,sbca,sbca.general,False,False,,spelling_variant,colloquial_variant,base_sbca_705,val
+AEA-ML-00277,sewer line collapsed road dhas gai gutter water flooding shops,kwsc,kwsc.general,False,False,,standard,curated_genuine,base_kwsc_277,val
+AEA-ML-00474,gas na hone ki wajah se bache bhookay school gaye,ssgc,ssgc.general,False,False,,spelling_variant,colloquial_variant,base_ssgc_474,val
+AEA-ML-01474,overflowing garbage pile blocking vehicular traffic and storm drain in North Nazimabad Block H,sswmb;kmc,sswmb.garbage_dump;kmc.storm_drain,True,False,,multi_department;locality_variant,curated_multilabel_expansion,multi_loc_sswmb_kmc_503,val
+AEA-ML-01475,overflowing garbage pile blocking vehicular traffic and storm drain in Orangi Town Sector 11,sswmb;kmc,sswmb.garbage_dump;kmc.storm_drain,True,False,,multi_department;locality_variant,curated_multilabel_expansion,multi_loc_sswmb_kmc_503,val
+AEA-ML-01476,overflowing garbage pile blocking vehicular traffic and storm drain in Liaquatabad No 4,sswmb;kmc,sswmb.garbage_dump;kmc.storm_drain,True,False,,multi_department;locality_variant,curated_multilabel_expansion,multi_loc_sswmb_kmc_503,val
+AEA-ML-01477,overflowing garbage pile blocking vehicular traffic and storm drain in Surjani Town Sector 4-B,sswmb;kmc,sswmb.garbage_dump;kmc.storm_drain,True,False,,multi_department;locality_variant,curated_multilabel_expansion,multi_loc_sswmb_kmc_503,val
+AEA-ML-01478,overflowing garbage pile blocking vehicular traffic and storm drain in Shah Faisal Colony,sswmb;kmc,sswmb.garbage_dump;kmc.storm_drain,True,False,,multi_department;locality_variant,curated_multilabel_expansion,multi_loc_sswmb_kmc_503,val
+AEA-ML-01479,overflowing garbage pile blocking vehicular traffic and storm drain in Jamshed Road,sswmb;kmc,sswmb.garbage_dump;kmc.storm_drain,True,False,,multi_department;locality_variant,curated_multilabel_expansion,multi_loc_sswmb_kmc_503,val
+AEA-ML-01480,overflowing garbage pile blocking vehicular traffic and storm drain in Federal B Area Block 14,sswmb;kmc,sswmb.garbage_dump;kmc.storm_drain,True,False,,multi_department;locality_variant,curated_multilabel_expansion,multi_loc_sswmb_kmc_503,val
+AEA-ML-01481,overflowing garbage pile blocking vehicular traffic and storm drain in Saddar Empress Market,sswmb;kmc,sswmb.garbage_dump;kmc.storm_drain,True,False,,multi_department;locality_variant,curated_multilabel_expansion,multi_loc_sswmb_kmc_503,val
+AEA-ML-01482,overflowing garbage pile blocking vehicular traffic and storm drain in Korangi Industrial Area,sswmb;kmc,sswmb.garbage_dump;kmc.storm_drain,True,False,,multi_department;locality_variant,curated_multilabel_expansion,multi_loc_sswmb_kmc_503,val
+AEA-ML-01483,overflowing garbage pile blocking vehicular traffic and storm drain in Nazimabad No 2,sswmb;kmc,sswmb.garbage_dump;kmc.storm_drain,True,False,,multi_department;locality_variant,curated_multilabel_expansion,multi_loc_sswmb_kmc_503,val
+AEA-ML-01484,overflowing garbage pile blocking vehicular traffic and storm drain in Gulberg Block 12,sswmb;kmc,sswmb.garbage_dump;kmc.storm_drain,True,False,,multi_department;locality_variant,curated_multilabel_expansion,multi_loc_sswmb_kmc_503,val
+AEA-ML-01485,overflowing garbage pile blocking vehicular traffic and storm drain in PECHS Block 6,sswmb;kmc,sswmb.garbage_dump;kmc.storm_drain,True,False,,multi_department;locality_variant,curated_multilabel_expansion,multi_loc_sswmb_kmc_503,val
+AEA-ML-00364,commercial building drain connected illegally into small sewer line,kwsc,kwsc.general,False,False,,boundary_case,edge_case,base_kwsc_364,val
+AEA-ML-00167,meter neutral link loose sparking continuously call KE lineman,kelectric,kelectric.general,False,False,,standard,curated_genuine,base_kelectric_167,val
+AEA-ML-00651,hamare mohallay mein bila ijazat ghair qanooni imarat ban rahi hai,sbca,sbca.general,False,False,,standard,curated_genuine,base_sbca_651,val
+AEA-ML-00979,ghair qanooni building excavation ne underground gas connection tod diya hai gas hawa mein leak ho rahi,sbca;ssgc,sbca.illegal_construction;ssgc.gas_leak_hazard,True,True,emergency_hazard,multi_department;hazard,synthetic_multilabel_variant,synth_pair_sbca_ssgc_118,val
+AEA-ML-00980,unauthorized basement digging fractured the municipal natural gas main strong odor,sbca;ssgc,sbca.illegal_construction;ssgc.gas_leak_hazard,True,True,emergency_hazard,multi_department;hazard,synthetic_multilabel_variant,synth_pair_sbca_ssgc_118,val
+AEA-ML-00981,illegal construction workers hit the main gas pipeline causing severe leak near houses,sbca;ssgc,sbca.illegal_construction;ssgc.gas_leak_hazard,True,True,emergency_hazard,multi_department;hazard,synthetic_multilabel_variant,synth_pair_sbca_ssgc_118,val
+AEA-ML-00104,sadak par bajri pheli hai pavement repair chahiye garbage issue nahi,kmc,kmc.general,False,False,,boundary_case,edge_case,base_kmc_104,val
+AEA-ML-00082,gadday he gadday hain puri sarak par gari chalana azab,kmc,kmc.general,False,False,,spelling_variant,colloquial_variant,base_kmc_82,val
+AEA-ML-00297,water supply valve man demanding bribe to open line take action,kwsc,kwsc.general,False,False,,standard,curated_genuine,base_kwsc_297,val
+AEA-ML-00831,sadak par baray khadday ban chukay hain water line leak ho rahi hai aur bijli ka taar bhi toot kar latak raha hai,kmc;kwsc;kelectric,kmc.road_damage;kwsc.water_leak;kelectric.fallen_wire_hazard,True,True,electrical_water_critical_hazard,multi_department;three_departments;hazard,curated_multilabel,m_triple_kmc_kwsc_ke_01,val
+AEA-ML-00832,road asphalt completely broken water supply line leaking badly and electric pole leaning over street,kmc;kwsc;kelectric,kmc.road_damage;kwsc.water_leak;kelectric.fallen_wire_hazard,True,True,electrical_water_critical_hazard,multi_department;three_departments;hazard,curated_multilabel,m_triple_kmc_kwsc_ke_01,val
+AEA-ML-00833,major municipal disaster road damaged clean water wasting and power cables sparking dangerously,kmc;kwsc;kelectric,kmc.road_damage;kwsc.water_leak;kelectric.fallen_wire_hazard,True,True,electrical_water_critical_hazard,multi_department;three_departments;hazard,curated_multilabel,m_triple_kmc_kwsc_ke_01,val
+AEA-ML-00834,triple problem in street crater on road burst pipeline flooding water and fallen power wire,kmc;kwsc;kelectric,kmc.road_damage;kwsc.water_leak;kelectric.fallen_wire_hazard,True,True,electrical_water_critical_hazard,multi_department;three_departments;hazard,curated_multilabel,m_triple_kmc_kwsc_ke_01,val
+AEA-ML-00047,pothole patch work required urgently on university road near NED,kmc,kmc.general,False,False,,standard,curated_genuine,base_kmc_47,val
+AEA-ML-00722,commercial warehouse in residential street ban it,sbca,sbca.general,False,False,,spelling_variant,colloquial_variant,base_sbca_722,val
+AEA-ML-00592,bazar k baad kachra wese hi chor dia safai nahi hui,sswmb,sswmb.general,False,False,,spelling_variant,colloquial_variant,base_sswmb_592,val
+AEA-ML-00634,road obstruction caused by 5 tons of uncollected solid municipal waste,sswmb,sswmb.general,False,False,,boundary_case,edge_case,base_sswmb_634,val
+AEA-ML-00301,gutter lid broken by truck needs concrete cover installation,kwsc,kwsc.general,False,False,,standard,curated_genuine,base_kwsc_301,val
+AEA-ML-00081,asphalt layer completely washed away stones hitting windscreens,kmc,kmc.general,False,False,,spelling_variant,colloquial_variant,base_kmc_81,val
+AEA-ML-00128,line leak nahi hai sadak ki asphalt ukhar gai hai,kmc,kmc.general,False,False,,negation,negation_contrast,base_kmc_128,val
+AEA-ML-00471,chulha nahi on hota gas match box se b aag nahi pakadti,ssgc,ssgc.general,False,False,,spelling_variant,colloquial_variant,base_ssgc_471,val
+AEA-ML-00271,sewerage drain blocked with silt suction machine required,kwsc,kwsc.general,False,False,,standard,curated_genuine,base_kwsc_271,val
+AEA-ML-00368,gas leakage checked clear it is sewer gas coming from unsealed manhole,kwsc,kwsc.general,False,False,,boundary_case,edge_case,base_kwsc_368,val
+AEA-ML-00095,traffic signal pole toota hai bijli ki line nahi balkay signal unit kharab,kmc,kmc.general,False,False,,boundary_case,edge_case,base_kmc_95,val
+AEA-ML-00787,water board ki main supply line phat gai hai jis se poori sadak beh gai aur khadday ban gaye,kmc;kwsc,kmc.road_damage;kwsc.water_leak,True,False,,multi_department,curated_multilabel,m_kmc_kwsc_02,val
+AEA-ML-00788,peenay ke pani ki pipeline leak ho kar sadak ko ukhar chuki hai road carpet toot gaya,kmc;kwsc,kmc.road_damage;kwsc.water_leak,True,False,,multi_department,curated_multilabel,m_kmc_kwsc_02,val
+AEA-ML-00789,clean water main pipe burst damaged the whole asphalt road deep crater formed,kmc;kwsc,kmc.road_damage;kwsc.water_leak,True,False,,multi_department,curated_multilabel,m_kmc_kwsc_02,val
+AEA-ML-00790,pani ki line tootnay se road dhas gaya hai gaariyan phans rahi hain water board aur KMC dono aayen,kmc;kwsc,kmc.road_damage;kwsc.water_leak,True,False,,multi_department,curated_multilabel,m_kmc_kwsc_02,val
+AEA-ML-00791,water supply line leakage has ruined the newly constructed street pavement,kmc;kwsc,kmc.road_damage;kwsc.water_leak,True,False,,multi_department,curated_multilabel,m_kmc_kwsc_02,val
+AEA-ML-00349,open gutter cover lagao jaldi accident ho gaya,kwsc,kwsc.general,False,False,,spelling_variant,colloquial_variant,base_kwsc_349,val
+AEA-ML-01338,open burning of plastic waste creating toxic smoke in Clifton Block 2 sswmb stop this,sswmb,sswmb.garbage_dump,False,False,,locality_variant,curated_locality_expansion,loc_sswmb_226,val
+AEA-ML-01339,open burning of plastic waste creating toxic smoke in Liaquatabad No 4 sswmb stop this,sswmb,sswmb.garbage_dump,False,False,,locality_variant,curated_locality_expansion,loc_sswmb_226,val
+AEA-ML-01340,open burning of plastic waste creating toxic smoke in Jamshed Road sswmb stop this,sswmb,sswmb.garbage_dump,False,False,,locality_variant,curated_locality_expansion,loc_sswmb_226,val
+AEA-ML-01341,open burning of plastic waste creating toxic smoke in PECHS Block 6 sswmb stop this,sswmb,sswmb.garbage_dump,False,False,,locality_variant,curated_locality_expansion,loc_sswmb_226,val
+AEA-ML-01342,open burning of plastic waste creating toxic smoke in Gulshan-e-Iqbal Block 13-D sswmb stop this,sswmb,sswmb.garbage_dump,False,False,,locality_variant,curated_locality_expansion,loc_sswmb_226,val
+AEA-ML-01343,open burning of plastic waste creating toxic smoke in Federal Capital Area sswmb stop this,sswmb,sswmb.garbage_dump,False,False,,locality_variant,curated_locality_expansion,loc_sswmb_226,val
+AEA-ML-01344,open burning of plastic waste creating toxic smoke in Shah Faisal Colony sswmb stop this,sswmb,sswmb.garbage_dump,False,False,,locality_variant,curated_locality_expansion,loc_sswmb_226,val
+AEA-ML-01345,open burning of plastic waste creating toxic smoke in Gulberg Block 12 sswmb stop this,sswmb,sswmb.garbage_dump,False,False,,locality_variant,curated_locality_expansion,loc_sswmb_226,val
+AEA-ML-01346,open burning of plastic waste creating toxic smoke in Surjani Town Sector 4-B sswmb stop this,sswmb,sswmb.garbage_dump,False,False,,locality_variant,curated_locality_expansion,loc_sswmb_226,val
+AEA-ML-01347,open burning of plastic waste creating toxic smoke in Gulistan-e-Jauhar Block 7 sswmb stop this,sswmb,sswmb.garbage_dump,False,False,,locality_variant,curated_locality_expansion,loc_sswmb_226,val
+AEA-ML-01348,open burning of plastic waste creating toxic smoke in Garden East sswmb stop this,sswmb,sswmb.garbage_dump,False,False,,locality_variant,curated_locality_expansion,loc_sswmb_226,val
+AEA-ML-01349,open burning of plastic waste creating toxic smoke in North Nazimabad Block H sswmb stop this,sswmb,sswmb.garbage_dump,False,False,,locality_variant,curated_locality_expansion,loc_sswmb_226,val
+AEA-ML-01350,open burning of plastic waste creating toxic smoke in Defence Phase 6 sswmb stop this,sswmb,sswmb.garbage_dump,False,False,,locality_variant,curated_locality_expansion,loc_sswmb_226,val
+AEA-ML-01351,open burning of plastic waste creating toxic smoke in Korangi Industrial Area sswmb stop this,sswmb,sswmb.garbage_dump,False,False,,locality_variant,curated_locality_expansion,loc_sswmb_226,val
+AEA-ML-00460,ssgc lineman disconnected pipe without any bill overdue,ssgc,ssgc.general,False,False,,spelling_variant,colloquial_variant,base_ssgc_460,val
+AEA-ML-00430,gas service pipe severed by excavator gas blowing with pressure,ssgc,ssgc.general,False,False,,standard,curated_genuine,base_ssgc_430,val
+AEA-ML-00666,builder constructing commercial plaza without parking space violation,sbca,sbca.general,False,False,,standard,curated_genuine,base_sbca_666,val
+AEA-ML-00204,low voltage problem appliances not functioning properly,kelectric,kelectric.general,False,False,,spelling_variant,colloquial_variant,base_kelectric_204,val
+AEA-ML-00028,rashid minhas road par asphalt phat gaya hai lane kharab,kmc,kmc.general,False,False,,standard,curated_genuine,base_kmc_28,val
+AEA-ML-00518,clean drinking water is available but cooking gas is absent,ssgc,ssgc.general,False,False,,negation,negation_contrast,base_ssgc_518,val
+AEA-ML-00224,underground cable blast ho gai sadak ki trench nahi bijli fault hai,kelectric,kelectric.general,False,True,electrical_hazard,boundary_case;hazard,edge_case,base_kelectric_224,val
+AEA-ML-00031,malir bridge par expansion gap barh gaya hai jhatkay lagtay hain,kmc,kmc.general,False,False,,standard,curated_genuine,base_kmc_31,val
+AEA-ML-00433,leak in main gas line feeding residential apartments urgent inspection,ssgc,ssgc.general,False,False,,standard,curated_genuine,base_ssgc_433,val
+AEA-ML-00090,kmc road maintenance complaint block 5 gulshan e iqbal,kmc,kmc.general,False,False,,spelling_variant,colloquial_variant,base_kmc_90,val
+AEA-ML-00759,drainage blocked by builder pouring concrete wash into storm drain,sbca,sbca.general,False,False,,boundary_case,edge_case,base_sbca_759,val
+AEA-ML-00105,main road par deep crater ban gaya asphalt patch team bhejein,kmc,kmc.general,False,False,,boundary_case,edge_case,base_kmc_105,val
+AEA-ML-00143,meter box mein tez sparking ho rahi hai lineman ko bhejein,kelectric,kelectric.general,False,False,,standard,curated_genuine,base_kelectric_143,val
+AEA-ML-00251,kachra nahi uthana bijli ka pole tedha hai usko theek karein,kelectric,kelectric.general,False,False,,negation,negation_contrast,base_kelectric_251,val
+AEA-ML-00760,building exterior tiles falling on parked cars structural defect,sbca,sbca.general,False,False,,boundary_case,edge_case,base_sbca_760,val
+AEA-ML-00115,road divider gap dangerous vehicles crossing illegally close the cut,kmc,kmc.general,False,False,,boundary_case,edge_case,base_kmc_115,val
