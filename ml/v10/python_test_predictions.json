@@ -1,0 +1,3980 @@
+[
+  {
+    "dataset_id": "AEA-V10-00008",
+    "text": "nazimabad petrol pump ke samne road dhas gai hai",
+    "normalized_text": "nazimabad petrol pump ke samne road dhas gai hai",
+    "probabilities": {
+      "kmc": 0.750992,
+      "kwsc": 0.074239,
+      "kelectric": 0.237659,
+      "ssgc": 0.10648,
+      "sswmb": 0.154864,
+      "sbca": 0.041869
+    },
+    "selected_departments": [
+      "kmc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00016",
+    "text": "manhole ka dhakkan gayab hai khula gutter dangerous bachay gir saktay",
+    "normalized_text": "manhole ka dhakkan gayab hai khula gutter dangerous bachay gir saktay",
+    "probabilities": {
+      "kmc": 0.124928,
+      "kwsc": 0.917129,
+      "kelectric": 0.205744,
+      "ssgc": 0.082519,
+      "sswmb": 0.062309,
+      "sbca": 0.1403
+    },
+    "selected_departments": [
+      "kwsc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00037",
+    "text": "meter box jal gya he black smoke coming out",
+    "normalized_text": "meter box jal gya he black smoke coming out",
+    "probabilities": {
+      "kmc": 0.056485,
+      "kwsc": 0.138271,
+      "kelectric": 0.58504,
+      "ssgc": 0.157496,
+      "sswmb": 0.097617,
+      "sbca": 0.115892
+    },
+    "selected_departments": [
+      "kelectric"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00039",
+    "text": "pot hole filled with leaking drinking water fix the water line first",
+    "normalized_text": "pot hole filled with leak drinking water fix the water line first",
+    "probabilities": {
+      "kmc": 0.076874,
+      "kwsc": 0.988082,
+      "kelectric": 0.074348,
+      "ssgc": 0.116263,
+      "sswmb": 0.058824,
+      "sbca": 0.074184
+    },
+    "selected_departments": [
+      "kwsc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00064",
+    "text": "residential corner converted into illegal trash dumping site clean it",
+    "normalized_text": "residential corner converted into illegal kachra dumping site clean it",
+    "probabilities": {
+      "kmc": 0.038922,
+      "kwsc": 0.078509,
+      "kelectric": 0.076366,
+      "ssgc": 0.078898,
+      "sswmb": 0.903076,
+      "sbca": 0.380626
+    },
+    "selected_departments": [
+      "sswmb",
+      "sbca"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00099",
+    "text": "balcony toot k road pe gir gai kismat se bachat hui",
+    "normalized_text": "balcony toot k road pe gir gai kismat se bachat hui",
+    "probabilities": {
+      "kmc": 0.600036,
+      "kwsc": 0.093743,
+      "kelectric": 0.135295,
+      "ssgc": 0.066602,
+      "sswmb": 0.085925,
+      "sbca": 0.428182
+    },
+    "selected_departments": [
+      "sbca"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00100",
+    "text": "pedestrian bridge railing rusted and broken municipal repair",
+    "normalized_text": "pedestrian bridge railing rusted and broken municipal repair",
+    "probabilities": {
+      "kmc": 0.849059,
+      "kwsc": 0.368485,
+      "kelectric": 0.123316,
+      "ssgc": 0.135769,
+      "sswmb": 0.174964,
+      "sbca": 0.10591
+    },
+    "selected_departments": [
+      "kmc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00103",
+    "text": "kachray ke pahar ne barsati nallay ko block kar diya hai aur road par malba bikhra hai",
+    "normalized_text": "kachray ke pahar ne barsati nallay ko block kar diya hai aur road par malba bikhra hai",
+    "probabilities": {
+      "kmc": 0.789105,
+      "kwsc": 0.120125,
+      "kelectric": 0.163964,
+      "ssgc": 0.059853,
+      "sswmb": 0.891897,
+      "sbca": 0.076298
+    },
+    "selected_departments": [
+      "kmc",
+      "sswmb"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00104",
+    "text": "solid waste blocking storm drainage and creating huge road traffic obstruction",
+    "normalized_text": "solid waste blocking storm drainage and creating huge road traffic obstruction",
+    "probabilities": {
+      "kmc": 0.901602,
+      "kwsc": 0.081813,
+      "kelectric": 0.066868,
+      "ssgc": 0.040442,
+      "sswmb": 0.863983,
+      "sbca": 0.175898
+    },
+    "selected_departments": [
+      "kmc",
+      "sswmb"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00105",
+    "text": "kura kundi sadak ke beech fail chuki hai road carpet block hai aur drain choke hai",
+    "normalized_text": "kachra kundi sarak ke beech fail chuki hai road carpet block hai aur drain choke hai",
+    "probabilities": {
+      "kmc": 0.927863,
+      "kwsc": 0.208532,
+      "kelectric": 0.089904,
+      "ssgc": 0.058651,
+      "sswmb": 0.879886,
+      "sbca": 0.025544
+    },
+    "selected_departments": [
+      "kmc",
+      "sswmb"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00106",
+    "text": "municipal garbage accumulated on the sidewalk and storm water canal is choked",
+    "normalized_text": "municipal garbage accumulated on the footpath and storm water canal is choked",
+    "probabilities": {
+      "kmc": 0.851936,
+      "kwsc": 0.520123,
+      "kelectric": 0.054582,
+      "ssgc": 0.059508,
+      "sswmb": 0.823262,
+      "sbca": 0.116403
+    },
+    "selected_departments": [
+      "kmc",
+      "kwsc",
+      "sswmb"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00159",
+    "text": "gutter ka paani masjid ke gate ke samnay khara hai namazi pareshan",
+    "normalized_text": "gutter ka pani masjid ke gate ke samnay khara hai namazi pareshan",
+    "probabilities": {
+      "kmc": 0.332726,
+      "kwsc": 0.931708,
+      "kelectric": 0.215272,
+      "ssgc": 0.052491,
+      "sswmb": 0.123946,
+      "sbca": 0.040346
+    },
+    "selected_departments": [
+      "kwsc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00160",
+    "text": "street light ka pole toota hai aur sath bijli ke taaron se chingariyan nikal rahi hain",
+    "normalized_text": "streetlight ka khamba toota hai aur sath bijli ke taaron se chingariyan nikal rahi hain",
+    "probabilities": {
+      "kmc": 0.820782,
+      "kwsc": 0.077631,
+      "kelectric": 0.885764,
+      "ssgc": 0.050042,
+      "sswmb": 0.062893,
+      "sbca": 0.045201
+    },
+    "selected_departments": [
+      "kmc",
+      "kelectric"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00161",
+    "text": "dark street due to broken lights and overhead power cables sparking over road",
+    "normalized_text": "dark street due to broken lights and overhead power cables spark over road",
+    "probabilities": {
+      "kmc": 0.762094,
+      "kwsc": 0.213334,
+      "kelectric": 0.958084,
+      "ssgc": 0.053098,
+      "sswmb": 0.08715,
+      "sbca": 0.063817
+    },
+    "selected_departments": [
+      "kmc",
+      "kelectric"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00162",
+    "text": "sadak ki battiyan band hain aur K-Electric ka transformer dhuwan chhor raha hai",
+    "normalized_text": "sarak ki streetlight band hain aur k-electric ka transformer dhuwan chhor raha hai",
+    "probabilities": {
+      "kmc": 0.855687,
+      "kwsc": 0.114633,
+      "kelectric": 0.958871,
+      "ssgc": 0.064141,
+      "sswmb": 0.053036,
+      "sbca": 0.034128
+    },
+    "selected_departments": [
+      "kmc",
+      "kelectric"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00163",
+    "text": "street lighting infrastructure defective and power pole leaning over traffic corridor",
+    "normalized_text": "street lighting infrastructure defective and power khamba leaning over traffic corridor",
+    "probabilities": {
+      "kmc": 0.908031,
+      "kwsc": 0.099801,
+      "kelectric": 0.713074,
+      "ssgc": 0.09518,
+      "sswmb": 0.129783,
+      "sbca": 0.142644
+    },
+    "selected_departments": [
+      "kmc",
+      "kelectric"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00188",
+    "text": "transformer me aag lag gai he foran feeder off karo",
+    "normalized_text": "transformer me aag lag gai he foran feeder off karo",
+    "probabilities": {
+      "kmc": 0.082011,
+      "kwsc": 0.045375,
+      "kelectric": 0.947073,
+      "ssgc": 0.111161,
+      "sswmb": 0.086145,
+      "sbca": 0.047779
+    },
+    "selected_departments": [
+      "kelectric"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00193",
+    "text": "road restoration required after trench digging work",
+    "normalized_text": "road restoration required after trench digging work",
+    "probabilities": {
+      "kmc": 0.436246,
+      "kwsc": 0.054954,
+      "kelectric": 0.096389,
+      "ssgc": 0.348812,
+      "sswmb": 0.110792,
+      "sbca": 0.218509
+    },
+    "selected_departments": []
+  },
+  {
+    "dataset_id": "AEA-V10-00195",
+    "text": "building height limit violate kar di 60 feet se zyada",
+    "normalized_text": "building height limit violate kar di 60 feet se zyada",
+    "probabilities": {
+      "kmc": 0.190087,
+      "kwsc": 0.068202,
+      "kelectric": 0.213933,
+      "ssgc": 0.062193,
+      "sswmb": 0.100235,
+      "sbca": 0.830303
+    },
+    "selected_departments": [
+      "sbca"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00198",
+    "text": "gutter leak nahi hai kachra naali mein phansnay se nala band hua",
+    "normalized_text": "gutter leak nahi hai kachra naali mein phansnay se nala band hua",
+    "probabilities": {
+      "kmc": 0.247768,
+      "kwsc": 0.592805,
+      "kelectric": 0.090614,
+      "ssgc": 0.084871,
+      "sswmb": 0.742388,
+      "sbca": 0.030775
+    },
+    "selected_departments": [
+      "kwsc",
+      "sswmb"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00201",
+    "text": "illegal gas suction booster compressors operating in Landhi Town denying gas to others",
+    "normalized_text": "illegal gas suction booster compressors operating in landhi town denying gas to others",
+    "probabilities": {
+      "kmc": 0.110469,
+      "kwsc": 0.053919,
+      "kelectric": 0.065649,
+      "ssgc": 0.793437,
+      "sswmb": 0.168721,
+      "sbca": 0.279057
+    },
+    "selected_departments": [
+      "ssgc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00202",
+    "text": "illegal gas suction booster compressors operating in Orangi Town Sector 11 denying gas to others",
+    "normalized_text": "illegal gas suction booster compressors operating in orangi town sector 11 denying gas to others",
+    "probabilities": {
+      "kmc": 0.109191,
+      "kwsc": 0.06966,
+      "kelectric": 0.062639,
+      "ssgc": 0.742083,
+      "sswmb": 0.174824,
+      "sbca": 0.251075
+    },
+    "selected_departments": [
+      "ssgc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00203",
+    "text": "illegal gas suction booster compressors operating in Federal B Area Block 14 denying gas to others",
+    "normalized_text": "illegal gas suction booster compressors operating in federal b area block 14 denying gas to others",
+    "probabilities": {
+      "kmc": 0.122921,
+      "kwsc": 0.054831,
+      "kelectric": 0.080208,
+      "ssgc": 0.778489,
+      "sswmb": 0.159115,
+      "sbca": 0.235533
+    },
+    "selected_departments": [
+      "ssgc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00204",
+    "text": "illegal gas suction booster compressors operating in PECHS Block 6 denying gas to others",
+    "normalized_text": "illegal gas suction booster compressors operating in pechs block 6 denying gas to others",
+    "probabilities": {
+      "kmc": 0.102176,
+      "kwsc": 0.056394,
+      "kelectric": 0.064672,
+      "ssgc": 0.789976,
+      "sswmb": 0.190882,
+      "sbca": 0.274282
+    },
+    "selected_departments": [
+      "ssgc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00205",
+    "text": "illegal gas suction booster compressors operating in Garden East denying gas to others",
+    "normalized_text": "illegal gas suction booster compressors operating in garden east denying gas to others",
+    "probabilities": {
+      "kmc": 0.10183,
+      "kwsc": 0.056752,
+      "kelectric": 0.057476,
+      "ssgc": 0.790237,
+      "sswmb": 0.203803,
+      "sbca": 0.274398
+    },
+    "selected_departments": [
+      "ssgc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00206",
+    "text": "illegal gas suction booster compressors operating in Gulberg Block 12 denying gas to others",
+    "normalized_text": "illegal gas suction booster compressors operating in gulberg block 12 denying gas to others",
+    "probabilities": {
+      "kmc": 0.103855,
+      "kwsc": 0.065572,
+      "kelectric": 0.063579,
+      "ssgc": 0.76831,
+      "sswmb": 0.185906,
+      "sbca": 0.258675
+    },
+    "selected_departments": [
+      "ssgc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00207",
+    "text": "illegal gas suction booster compressors operating in Gulshan-e-Iqbal Block 13-D denying gas to others",
+    "normalized_text": "illegal gas suction booster compressors operating in gulshan-e-iqbal block 13-d denying gas to others",
+    "probabilities": {
+      "kmc": 0.109183,
+      "kwsc": 0.068991,
+      "kelectric": 0.07552,
+      "ssgc": 0.715517,
+      "sswmb": 0.176166,
+      "sbca": 0.227957
+    },
+    "selected_departments": [
+      "ssgc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00208",
+    "text": "illegal gas suction booster compressors operating in Nazimabad No 2 denying gas to others",
+    "normalized_text": "illegal gas suction booster compressors operating in nazimabad no 2 denying gas to others",
+    "probabilities": {
+      "kmc": 0.091873,
+      "kwsc": 0.051318,
+      "kelectric": 0.064205,
+      "ssgc": 0.806567,
+      "sswmb": 0.185622,
+      "sbca": 0.239698
+    },
+    "selected_departments": [
+      "ssgc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00209",
+    "text": "illegal gas suction booster compressors operating in Surjani Town Sector 4-B denying gas to others",
+    "normalized_text": "illegal gas suction booster compressors operating in surjani town sector 4-b denying gas to others",
+    "probabilities": {
+      "kmc": 0.1045,
+      "kwsc": 0.075492,
+      "kelectric": 0.068157,
+      "ssgc": 0.720761,
+      "sswmb": 0.191414,
+      "sbca": 0.241405
+    },
+    "selected_departments": [
+      "ssgc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00210",
+    "text": "illegal gas suction booster compressors operating in Defence Phase 6 denying gas to others",
+    "normalized_text": "illegal gas suction booster compressors operating in defence phase 6 denying gas to others",
+    "probabilities": {
+      "kmc": 0.093937,
+      "kwsc": 0.053802,
+      "kelectric": 0.103075,
+      "ssgc": 0.750079,
+      "sswmb": 0.172699,
+      "sbca": 0.252025
+    },
+    "selected_departments": [
+      "ssgc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00211",
+    "text": "illegal gas suction booster compressors operating in Liaquatabad No 4 denying gas to others",
+    "normalized_text": "illegal gas suction booster compressors operating in liaquatabad no 4 denying gas to others",
+    "probabilities": {
+      "kmc": 0.123309,
+      "kwsc": 0.059568,
+      "kelectric": 0.064604,
+      "ssgc": 0.778673,
+      "sswmb": 0.159205,
+      "sbca": 0.252705
+    },
+    "selected_departments": [
+      "ssgc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00212",
+    "text": "illegal gas suction booster compressors operating in Saddar Empress Market denying gas to others",
+    "normalized_text": "illegal gas suction booster compressors operating in saddar empress market denying gas to others",
+    "probabilities": {
+      "kmc": 0.122081,
+      "kwsc": 0.062804,
+      "kelectric": 0.061045,
+      "ssgc": 0.758791,
+      "sswmb": 0.173836,
+      "sbca": 0.214414
+    },
+    "selected_departments": [
+      "ssgc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00213",
+    "text": "illegal gas suction booster compressors operating in Clifton Block 2 denying gas to others",
+    "normalized_text": "illegal gas suction booster compressors operating in clifton block 2 denying gas to others",
+    "probabilities": {
+      "kmc": 0.096689,
+      "kwsc": 0.058067,
+      "kelectric": 0.061307,
+      "ssgc": 0.753977,
+      "sswmb": 0.24692,
+      "sbca": 0.262327
+    },
+    "selected_departments": [
+      "ssgc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00214",
+    "text": "illegal gas suction booster compressors operating in North Nazimabad Block H denying gas to others",
+    "normalized_text": "illegal gas suction booster compressors operating in north nazimabad block h denying gas to others",
+    "probabilities": {
+      "kmc": 0.101198,
+      "kwsc": 0.061279,
+      "kelectric": 0.07708,
+      "ssgc": 0.761018,
+      "sswmb": 0.196211,
+      "sbca": 0.203163
+    },
+    "selected_departments": [
+      "ssgc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00234",
+    "text": "kachra phainkna mana he ka board lagao empty plot pe",
+    "normalized_text": "kachra phainkna mana he ka board lagao empty plot pe",
+    "probabilities": {
+      "kmc": 0.096295,
+      "kwsc": 0.145587,
+      "kelectric": 0.070425,
+      "ssgc": 0.057657,
+      "sswmb": 0.915504,
+      "sbca": 0.117856
+    },
+    "selected_departments": [
+      "sswmb"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00244",
+    "text": "safai karwao bhai mohallay me bimar ho rahe bache",
+    "normalized_text": "safai karwao bhai mohallay me bimar ho rahe bache",
+    "probabilities": {
+      "kmc": 0.122606,
+      "kwsc": 0.159613,
+      "kelectric": 0.222637,
+      "ssgc": 0.115289,
+      "sswmb": 0.382199,
+      "sbca": 0.129725
+    },
+    "selected_departments": [
+      "sswmb"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00245",
+    "text": "motor se b paani nahi nikal raha line bilkul dry he",
+    "normalized_text": "motor se b pani nahi nikal raha line bilkul dry he",
+    "probabilities": {
+      "kmc": 0.034578,
+      "kwsc": 0.790031,
+      "kelectric": 0.215346,
+      "ssgc": 0.216892,
+      "sswmb": 0.063174,
+      "sbca": 0.065364
+    },
+    "selected_departments": [
+      "kwsc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00251",
+    "text": "speed breaker bohat ooncha aur ghair qanooni bana diya hai",
+    "normalized_text": "speed breaker bohot ooncha aur illegal construction bana diya hai",
+    "probabilities": {
+      "kmc": 0.674996,
+      "kwsc": 0.071237,
+      "kelectric": 0.142711,
+      "ssgc": 0.117316,
+      "sswmb": 0.08798,
+      "sbca": 0.913963
+    },
+    "selected_departments": [
+      "sbca"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00268",
+    "text": "bijli ka taar toot kar sadak par gutter ke jama shuda pani mein gira hua hai current dhor raha hai emergency",
+    "normalized_text": "bijli ka wire toot kar sarak par gutter ke jama shuda pani mein gira hua hai current dhor raha hai emergency",
+    "probabilities": {
+      "kmc": 0.220782,
+      "kwsc": 0.809244,
+      "kelectric": 0.83629,
+      "ssgc": 0.048331,
+      "sswmb": 0.054667,
+      "sbca": 0.050023
+    },
+    "selected_departments": [
+      "kwsc",
+      "kelectric"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00269",
+    "text": "live electrical wire fallen in overflowing sewerage water high electrocution risk",
+    "normalized_text": "live electrical wire fallen in overflowing sewage water high electrocution risk",
+    "probabilities": {
+      "kmc": 0.053229,
+      "kwsc": 0.848391,
+      "kelectric": 0.896408,
+      "ssgc": 0.026606,
+      "sswmb": 0.090697,
+      "sbca": 0.065866
+    },
+    "selected_departments": [
+      "kwsc",
+      "kelectric"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00270",
+    "text": "pole se bijli ki taar gir kar pani ke talab mein doob chuki hai koi qareeb na jaye current hai",
+    "normalized_text": "khamba se bijli ki wire gir kar pani ke talab mein doob chuki hai koi qareeb na jaye current hai",
+    "probabilities": {
+      "kmc": 0.141381,
+      "kwsc": 0.48933,
+      "kelectric": 0.970939,
+      "ssgc": 0.044616,
+      "sswmb": 0.04124,
+      "sbca": 0.10667
+    },
+    "selected_departments": [
+      "kelectric"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00271",
+    "text": "gutter ka pani sadak par bhara hai aur K-Electric ki main line toot kar us mein gir gai hai bachon ki jan ko khatra",
+    "normalized_text": "gutter ka pani sarak par bhara hai aur k-electric ki main line toot kar us mein gir gai hai bachon ki jan ko khatra",
+    "probabilities": {
+      "kmc": 0.744824,
+      "kwsc": 0.868318,
+      "kelectric": 0.701591,
+      "ssgc": 0.059307,
+      "sswmb": 0.051111,
+      "sbca": 0.04108
+    },
+    "selected_departments": [
+      "kmc",
+      "kwsc",
+      "kelectric"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00272",
+    "text": "wire snapped into stagnant street water sparking dangerously shut down feeder immediately",
+    "normalized_text": "wire snapped into stagnant street water spark dangerously shut down feeder immediately",
+    "probabilities": {
+      "kmc": 0.120583,
+      "kwsc": 0.30735,
+      "kelectric": 0.949479,
+      "ssgc": 0.048802,
+      "sswmb": 0.043442,
+      "sbca": 0.143997
+    },
+    "selected_departments": [
+      "kelectric"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00274",
+    "text": "sooi gass ka presure bilkul 0 hy khana ni bn rha chulha thanda pra h",
+    "normalized_text": "sooi gass ka presure bilkul 0 hai khana ni bn rha chulha thanda pra h",
+    "probabilities": {
+      "kmc": 0.110758,
+      "kwsc": 0.208486,
+      "kelectric": 0.107806,
+      "ssgc": 0.676209,
+      "sswmb": 0.099116,
+      "sbca": 0.097968
+    },
+    "selected_departments": [
+      "ssgc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00275",
+    "text": "gass chli gyi hy subah se bachy bhookay school gye hen ssgc walo sharam kro",
+    "normalized_text": "gass chli gyi hai subah se bachy bhookay school gye hain ssgc walo sharam kro",
+    "probabilities": {
+      "kmc": 0.124664,
+      "kwsc": 0.118935,
+      "kelectric": 0.336505,
+      "ssgc": 0.506442,
+      "sswmb": 0.133879,
+      "sbca": 0.070004
+    },
+    "selected_departments": [
+      "ssgc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00276",
+    "text": "gas k nalon me hawa a rhi hy cylinder bhrwana pr rha hy",
+    "normalized_text": "gas k nalon me hawa a rhi hai cylinder bhrwana pr rha hai",
+    "probabilities": {
+      "kmc": 0.121167,
+      "kwsc": 0.115595,
+      "kelectric": 0.137649,
+      "ssgc": 0.678107,
+      "sswmb": 0.109977,
+      "sbca": 0.114097
+    },
+    "selected_departments": [
+      "ssgc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00277",
+    "text": "gass presure bht low h roti ni pak skti",
+    "normalized_text": "gass presure bohot low h roti ni pak skti",
+    "probabilities": {
+      "kmc": 0.174624,
+      "kwsc": 0.115956,
+      "kelectric": 0.094211,
+      "ssgc": 0.576839,
+      "sswmb": 0.120804,
+      "sbca": 0.089123
+    },
+    "selected_departments": [
+      "ssgc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00284",
+    "text": "sewer line gradient reversed waste water flowing back into homes",
+    "normalized_text": "sewage line gradient reversed waste water flowing back into homes",
+    "probabilities": {
+      "kmc": 0.066471,
+      "kwsc": 0.972955,
+      "kelectric": 0.084258,
+      "ssgc": 0.043588,
+      "sswmb": 0.278697,
+      "sbca": 0.059091
+    },
+    "selected_departments": [
+      "kwsc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00287",
+    "text": "underground gas leak seeping through paving stones fire hazard",
+    "normalized_text": "underground gas leak seeping through paving stones fire hazard",
+    "probabilities": {
+      "kmc": 0.194642,
+      "kwsc": 0.081245,
+      "kelectric": 0.080753,
+      "ssgc": 0.830452,
+      "sswmb": 0.09197,
+      "sbca": 0.188567
+    },
+    "selected_departments": [
+      "ssgc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00294",
+    "text": "storm water drainage nallah silted and blocked before monsoons in Shah Faisal Colony",
+    "normalized_text": "storm water drainage nallah silted and blocked before monsoons in shah faisal colony",
+    "probabilities": {
+      "kmc": 0.59179,
+      "kwsc": 0.569845,
+      "kelectric": 0.123415,
+      "ssgc": 0.096657,
+      "sswmb": 0.270314,
+      "sbca": 0.093301
+    },
+    "selected_departments": [
+      "kwsc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00295",
+    "text": "storm water drainage nallah silted and blocked before monsoons in Liaquatabad No 4",
+    "normalized_text": "storm water drainage nallah silted and blocked before monsoons in liaquatabad no 4",
+    "probabilities": {
+      "kmc": 0.616437,
+      "kwsc": 0.618284,
+      "kelectric": 0.129418,
+      "ssgc": 0.094992,
+      "sswmb": 0.244076,
+      "sbca": 0.076164
+    },
+    "selected_departments": [
+      "kwsc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00296",
+    "text": "storm water drainage nallah silted and blocked before monsoons in Gulberg Block 12",
+    "normalized_text": "storm water drainage nallah silted and blocked before monsoons in gulberg block 12",
+    "probabilities": {
+      "kmc": 0.565,
+      "kwsc": 0.652046,
+      "kelectric": 0.129958,
+      "ssgc": 0.085989,
+      "sswmb": 0.276087,
+      "sbca": 0.078621
+    },
+    "selected_departments": [
+      "kwsc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00297",
+    "text": "storm water drainage nallah silted and blocked before monsoons in Malir Cantt Road",
+    "normalized_text": "storm water drainage nallah silted and blocked before monsoons in malir cantt road",
+    "probabilities": {
+      "kmc": 0.696579,
+      "kwsc": 0.6118,
+      "kelectric": 0.127526,
+      "ssgc": 0.086597,
+      "sswmb": 0.22089,
+      "sbca": 0.06871
+    },
+    "selected_departments": [
+      "kwsc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00298",
+    "text": "storm water drainage nallah silted and blocked before monsoons in Garden East",
+    "normalized_text": "storm water drainage nallah silted and blocked before monsoons in garden east",
+    "probabilities": {
+      "kmc": 0.583684,
+      "kwsc": 0.628721,
+      "kelectric": 0.115368,
+      "ssgc": 0.09583,
+      "sswmb": 0.310574,
+      "sbca": 0.079165
+    },
+    "selected_departments": [
+      "kwsc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00299",
+    "text": "storm water drainage nallah silted and blocked before monsoons in Orangi Town Sector 11",
+    "normalized_text": "storm water drainage nallah silted and blocked before monsoons in orangi town sector 11",
+    "probabilities": {
+      "kmc": 0.575282,
+      "kwsc": 0.651175,
+      "kelectric": 0.124911,
+      "ssgc": 0.080667,
+      "sswmb": 0.264043,
+      "sbca": 0.076362
+    },
+    "selected_departments": [
+      "kwsc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00300",
+    "text": "storm water drainage nallah silted and blocked before monsoons in Defence Phase 6",
+    "normalized_text": "storm water drainage nallah silted and blocked before monsoons in defence phase 6",
+    "probabilities": {
+      "kmc": 0.548105,
+      "kwsc": 0.596635,
+      "kelectric": 0.199728,
+      "ssgc": 0.079773,
+      "sswmb": 0.263684,
+      "sbca": 0.07579
+    },
+    "selected_departments": [
+      "kwsc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00301",
+    "text": "storm water drainage nallah silted and blocked before monsoons in Nazimabad No 2",
+    "normalized_text": "storm water drainage nallah silted and blocked before monsoons in nazimabad no 2",
+    "probabilities": {
+      "kmc": 0.558374,
+      "kwsc": 0.611262,
+      "kelectric": 0.132326,
+      "ssgc": 0.097428,
+      "sswmb": 0.284429,
+      "sbca": 0.06835
+    },
+    "selected_departments": [
+      "kwsc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00302",
+    "text": "storm water drainage nallah silted and blocked before monsoons in Federal B Area Block 14",
+    "normalized_text": "storm water drainage nallah silted and blocked before monsoons in federal b area block 14",
+    "probabilities": {
+      "kmc": 0.595067,
+      "kwsc": 0.583356,
+      "kelectric": 0.157553,
+      "ssgc": 0.099572,
+      "sswmb": 0.237016,
+      "sbca": 0.07317
+    },
+    "selected_departments": [
+      "kwsc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00303",
+    "text": "storm water drainage nallah silted and blocked before monsoons in Gulistan-e-Jauhar Block 7",
+    "normalized_text": "storm water drainage nallah silted and blocked before monsoons in gulistan-e-jauhar block 7",
+    "probabilities": {
+      "kmc": 0.560224,
+      "kwsc": 0.564068,
+      "kelectric": 0.118513,
+      "ssgc": 0.10722,
+      "sswmb": 0.290498,
+      "sbca": 0.078176
+    },
+    "selected_departments": [
+      "kwsc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00304",
+    "text": "storm water drainage nallah silted and blocked before monsoons in Gulshan-e-Iqbal Block 13-D",
+    "normalized_text": "storm water drainage nallah silted and blocked before monsoons in gulshan-e-iqbal block 13-d",
+    "probabilities": {
+      "kmc": 0.522654,
+      "kwsc": 0.592117,
+      "kelectric": 0.142657,
+      "ssgc": 0.090236,
+      "sswmb": 0.254079,
+      "sbca": 0.07679
+    },
+    "selected_departments": [
+      "kwsc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00305",
+    "text": "storm water drainage nallah silted and blocked before monsoons in Clifton Block 2",
+    "normalized_text": "storm water drainage nallah silted and blocked before monsoons in clifton block 2",
+    "probabilities": {
+      "kmc": 0.543557,
+      "kwsc": 0.620643,
+      "kelectric": 0.125881,
+      "ssgc": 0.079875,
+      "sswmb": 0.354678,
+      "sbca": 0.080723
+    },
+    "selected_departments": [
+      "kwsc",
+      "sswmb"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00306",
+    "text": "storm water drainage nallah silted and blocked before monsoons in Korangi Industrial Area",
+    "normalized_text": "storm water drainage nallah silted and blocked before monsoons in korangi industrial area",
+    "probabilities": {
+      "kmc": 0.645816,
+      "kwsc": 0.585627,
+      "kelectric": 0.121896,
+      "ssgc": 0.097081,
+      "sswmb": 0.239073,
+      "sbca": 0.075066
+    },
+    "selected_departments": [
+      "kwsc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00307",
+    "text": "storm water drainage nallah silted and blocked before monsoons in Saddar Empress Market",
+    "normalized_text": "storm water drainage nallah silted and blocked before monsoons in saddar empress market",
+    "probabilities": {
+      "kmc": 0.574703,
+      "kwsc": 0.597876,
+      "kelectric": 0.113672,
+      "ssgc": 0.112976,
+      "sswmb": 0.25292,
+      "sbca": 0.062682
+    },
+    "selected_departments": [
+      "kwsc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00313",
+    "text": "gas ya pani ka nahi bijli ka feeder trip hone se blackout hua hai",
+    "normalized_text": "gas ya pani ka nahi bijli ka feeder trip hone se blackout hua hai",
+    "probabilities": {
+      "kmc": 0.089249,
+      "kwsc": 0.23899,
+      "kelectric": 0.895603,
+      "ssgc": 0.337711,
+      "sswmb": 0.040003,
+      "sbca": 0.040782
+    },
+    "selected_departments": [
+      "kelectric"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00355",
+    "text": "gas nhe arahi khana kese pakayein chulha bnd he",
+    "normalized_text": "gas nhe arahi khana kese pakayein chulha bnd he",
+    "probabilities": {
+      "kmc": 0.123319,
+      "kwsc": 0.087711,
+      "kelectric": 0.218137,
+      "ssgc": 0.789803,
+      "sswmb": 0.103692,
+      "sbca": 0.109491
+    },
+    "selected_departments": [
+      "ssgc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00360",
+    "text": "digital meter screen dead ho gai hai light chali gai",
+    "normalized_text": "digital meter screen dead ho gai hai light chali gai",
+    "probabilities": {
+      "kmc": 0.388225,
+      "kwsc": 0.054356,
+      "kelectric": 0.679853,
+      "ssgc": 0.135834,
+      "sswmb": 0.111273,
+      "sbca": 0.054058
+    },
+    "selected_departments": [
+      "kelectric"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00378",
+    "text": "paani ki line nahi phati gas pipeline hissing sound se leak ho rahi",
+    "normalized_text": "pani ki line nahi phati gas pipeline hissing sound se leak ho rahi",
+    "probabilities": {
+      "kmc": 0.036006,
+      "kwsc": 0.677782,
+      "kelectric": 0.061391,
+      "ssgc": 0.988915,
+      "sswmb": 0.032548,
+      "sbca": 0.016937
+    },
+    "selected_departments": [
+      "kwsc",
+      "ssgc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00380",
+    "text": "underpass ceiling plaster ukhad raha hai sadak par girta hai",
+    "normalized_text": "underpass ceiling plaster ukhad raha hai sarak par girta hai",
+    "probabilities": {
+      "kmc": 0.746891,
+      "kwsc": 0.209707,
+      "kelectric": 0.109946,
+      "ssgc": 0.105812,
+      "sswmb": 0.216494,
+      "sbca": 0.105221
+    },
+    "selected_departments": [
+      "kmc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00383",
+    "text": "gas ki line nahi water pipeline khodi thi ab paani leak ho raha",
+    "normalized_text": "gas ki line nahi water pipeline khodi thi ab pani leak ho raha",
+    "probabilities": {
+      "kmc": 0.121348,
+      "kwsc": 0.947814,
+      "kelectric": 0.05011,
+      "ssgc": 0.93032,
+      "sswmb": 0.019108,
+      "sbca": 0.0177
+    },
+    "selected_departments": [
+      "kwsc",
+      "ssgc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00388",
+    "text": "gutter ubal raha hai sewerage ka ganda paani sadak par phel gaya",
+    "normalized_text": "gutter ubal raha hai sewage ka badboo sarak par phel gaya",
+    "probabilities": {
+      "kmc": 0.245577,
+      "kwsc": 0.98765,
+      "kelectric": 0.046671,
+      "ssgc": 0.028914,
+      "sswmb": 0.226163,
+      "sbca": 0.031007
+    },
+    "selected_departments": [
+      "kwsc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00389",
+    "text": "gali me gas ki tezz smell he SSGC walay aao jaldi",
+    "normalized_text": "gali me gas ki tezz smell he ssgc walay aao jaldi",
+    "probabilities": {
+      "kmc": 0.092057,
+      "kwsc": 0.074438,
+      "kelectric": 0.077346,
+      "ssgc": 0.911799,
+      "sswmb": 0.082388,
+      "sbca": 0.075515
+    },
+    "selected_departments": [
+      "ssgc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00391",
+    "text": "kachray k dher par aag lagane walon ke khilaf action lein toxic smoke",
+    "normalized_text": "kachray k dher par aag lagane walon ke khilaf action lein toxic smoke",
+    "probabilities": {
+      "kmc": 0.082417,
+      "kwsc": 0.04128,
+      "kelectric": 0.121306,
+      "ssgc": 0.062356,
+      "sswmb": 0.965443,
+      "sbca": 0.103787
+    },
+    "selected_departments": [
+      "sswmb"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00411",
+    "text": "snapped live power cable lying in stagnant gutter water at Garden East high electrocution risk",
+    "normalized_text": "snapped live power cable lying in stagnant gutter water at garden east high electrocution risk",
+    "probabilities": {
+      "kmc": 0.088265,
+      "kwsc": 0.578495,
+      "kelectric": 0.882034,
+      "ssgc": 0.052526,
+      "sswmb": 0.111418,
+      "sbca": 0.105137
+    },
+    "selected_departments": [
+      "kwsc",
+      "kelectric"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00412",
+    "text": "snapped live power cable lying in stagnant gutter water at Orangi Town Sector 11 high electrocution risk",
+    "normalized_text": "snapped live power cable lying in stagnant gutter water at orangi town sector 11 high electrocution risk",
+    "probabilities": {
+      "kmc": 0.095467,
+      "kwsc": 0.600844,
+      "kelectric": 0.874678,
+      "ssgc": 0.045807,
+      "sswmb": 0.097974,
+      "sbca": 0.100838
+    },
+    "selected_departments": [
+      "kwsc",
+      "kelectric"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00413",
+    "text": "snapped live power cable lying in stagnant gutter water at Korangi Industrial Area high electrocution risk",
+    "normalized_text": "snapped live power cable lying in stagnant gutter water at korangi industrial area high electrocution risk",
+    "probabilities": {
+      "kmc": 0.12692,
+      "kwsc": 0.546389,
+      "kelectric": 0.859838,
+      "ssgc": 0.054978,
+      "sswmb": 0.090282,
+      "sbca": 0.098181
+    },
+    "selected_departments": [
+      "kwsc",
+      "kelectric"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00414",
+    "text": "snapped live power cable lying in stagnant gutter water at Malir Cantt Road high electrocution risk",
+    "normalized_text": "snapped live power cable lying in stagnant gutter water at malir cantt road high electrocution risk",
+    "probabilities": {
+      "kmc": 0.135772,
+      "kwsc": 0.564354,
+      "kelectric": 0.882048,
+      "ssgc": 0.048356,
+      "sswmb": 0.079394,
+      "sbca": 0.093689
+    },
+    "selected_departments": [
+      "kwsc",
+      "kelectric"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00415",
+    "text": "snapped live power cable lying in stagnant gutter water at Nazimabad No 2 high electrocution risk",
+    "normalized_text": "snapped live power cable lying in stagnant gutter water at nazimabad no 2 high electrocution risk",
+    "probabilities": {
+      "kmc": 0.080886,
+      "kwsc": 0.561721,
+      "kelectric": 0.895989,
+      "ssgc": 0.05384,
+      "sswmb": 0.100492,
+      "sbca": 0.092275
+    },
+    "selected_departments": [
+      "kwsc",
+      "kelectric"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00416",
+    "text": "snapped live power cable lying in stagnant gutter water at Surjani Town Sector 4-B high electrocution risk",
+    "normalized_text": "snapped live power cable lying in stagnant gutter water at surjani town sector 4-b high electrocution risk",
+    "probabilities": {
+      "kmc": 0.091562,
+      "kwsc": 0.608316,
+      "kelectric": 0.872606,
+      "ssgc": 0.045717,
+      "sswmb": 0.106938,
+      "sbca": 0.098812
+    },
+    "selected_departments": [
+      "kwsc",
+      "kelectric"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00417",
+    "text": "snapped live power cable lying in stagnant gutter water at Shah Faisal Colony high electrocution risk",
+    "normalized_text": "snapped live power cable lying in stagnant gutter water at shah faisal colony high electrocution risk",
+    "probabilities": {
+      "kmc": 0.102292,
+      "kwsc": 0.534169,
+      "kelectric": 0.869091,
+      "ssgc": 0.05442,
+      "sswmb": 0.100516,
+      "sbca": 0.118274
+    },
+    "selected_departments": [
+      "kwsc",
+      "kelectric"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00418",
+    "text": "snapped live power cable lying in stagnant gutter water at Gulshan-e-Iqbal Block 13-D high electrocution risk",
+    "normalized_text": "snapped live power cable lying in stagnant gutter water at gulshan-e-iqbal block 13-d high electrocution risk",
+    "probabilities": {
+      "kmc": 0.095576,
+      "kwsc": 0.553825,
+      "kelectric": 0.86678,
+      "ssgc": 0.051791,
+      "sswmb": 0.101195,
+      "sbca": 0.097608
+    },
+    "selected_departments": [
+      "kwsc",
+      "kelectric"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00419",
+    "text": "snapped live power cable lying in stagnant gutter water at Federal B Area Block 14 high electrocution risk",
+    "normalized_text": "snapped live power cable lying in stagnant gutter water at federal b area block 14 high electrocution risk",
+    "probabilities": {
+      "kmc": 0.104517,
+      "kwsc": 0.545867,
+      "kelectric": 0.898345,
+      "ssgc": 0.054837,
+      "sswmb": 0.088846,
+      "sbca": 0.095022
+    },
+    "selected_departments": [
+      "kwsc",
+      "kelectric"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00420",
+    "text": "snapped live power cable lying in stagnant gutter water at Jamshed Road high electrocution risk",
+    "normalized_text": "snapped live power cable lying in stagnant gutter water at jamshed road high electrocution risk",
+    "probabilities": {
+      "kmc": 0.154816,
+      "kwsc": 0.600607,
+      "kelectric": 0.896907,
+      "ssgc": 0.044048,
+      "sswmb": 0.078328,
+      "sbca": 0.095452
+    },
+    "selected_departments": [
+      "kwsc",
+      "kelectric"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00421",
+    "text": "snapped live power cable lying in stagnant gutter water at Federal Capital Area high electrocution risk",
+    "normalized_text": "snapped live power cable lying in stagnant gutter water at federal capital area high electrocution risk",
+    "probabilities": {
+      "kmc": 0.103297,
+      "kwsc": 0.536363,
+      "kelectric": 0.881464,
+      "ssgc": 0.05301,
+      "sswmb": 0.091066,
+      "sbca": 0.103225
+    },
+    "selected_departments": [
+      "kwsc",
+      "kelectric"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00422",
+    "text": "snapped live power cable lying in stagnant gutter water at PECHS Block 6 high electrocution risk",
+    "normalized_text": "snapped live power cable lying in stagnant gutter water at pechs block 6 high electrocution risk",
+    "probabilities": {
+      "kmc": 0.088924,
+      "kwsc": 0.585068,
+      "kelectric": 0.898396,
+      "ssgc": 0.048648,
+      "sswmb": 0.103104,
+      "sbca": 0.106096
+    },
+    "selected_departments": [
+      "kwsc",
+      "kelectric"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00432",
+    "text": "road divider is intact but builder constructed commercial steps on footpath",
+    "normalized_text": "road divider is intact but builder constructed commercial steps on footpath",
+    "probabilities": {
+      "kmc": 0.601314,
+      "kwsc": 0.037455,
+      "kelectric": 0.038285,
+      "ssgc": 0.06466,
+      "sswmb": 0.073792,
+      "sbca": 0.941253
+    },
+    "selected_departments": [
+      "sbca"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00435",
+    "text": "severe gas pressure outage combined with 12 hour electricity loadshedding in Nazimabad No 2",
+    "normalized_text": "severe gas pressure outage combined with 12 hour electricity loadshedding in nazimabad no 2",
+    "probabilities": {
+      "kmc": 0.020486,
+      "kwsc": 0.115899,
+      "kelectric": 0.713405,
+      "ssgc": 0.808797,
+      "sswmb": 0.030683,
+      "sbca": 0.051709
+    },
+    "selected_departments": [
+      "kelectric",
+      "ssgc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00436",
+    "text": "severe gas pressure outage combined with 12 hour electricity loadshedding in Saddar Empress Market",
+    "normalized_text": "severe gas pressure outage combined with 12 hour electricity loadshedding in saddar empress market",
+    "probabilities": {
+      "kmc": 0.030217,
+      "kwsc": 0.129315,
+      "kelectric": 0.641978,
+      "ssgc": 0.772689,
+      "sswmb": 0.032568,
+      "sbca": 0.050916
+    },
+    "selected_departments": [
+      "kelectric",
+      "ssgc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00437",
+    "text": "severe gas pressure outage combined with 12 hour electricity loadshedding in Defence Phase 6",
+    "normalized_text": "severe gas pressure outage combined with 12 hour electricity loadshedding in defence phase 6",
+    "probabilities": {
+      "kmc": 0.021912,
+      "kwsc": 0.117261,
+      "kelectric": 0.785344,
+      "ssgc": 0.757381,
+      "sswmb": 0.029756,
+      "sbca": 0.057825
+    },
+    "selected_departments": [
+      "kelectric",
+      "ssgc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00438",
+    "text": "severe gas pressure outage combined with 12 hour electricity loadshedding in Gulshan-e-Iqbal Block 13-D",
+    "normalized_text": "severe gas pressure outage combined with 12 hour electricity loadshedding in gulshan-e-iqbal block 13-d",
+    "probabilities": {
+      "kmc": 0.02834,
+      "kwsc": 0.138266,
+      "kelectric": 0.67055,
+      "ssgc": 0.726706,
+      "sswmb": 0.034962,
+      "sbca": 0.058064
+    },
+    "selected_departments": [
+      "kelectric",
+      "ssgc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00439",
+    "text": "severe gas pressure outage combined with 12 hour electricity loadshedding in Liaquatabad No 4",
+    "normalized_text": "severe gas pressure outage combined with 12 hour electricity loadshedding in liaquatabad no 4",
+    "probabilities": {
+      "kmc": 0.029126,
+      "kwsc": 0.128412,
+      "kelectric": 0.689172,
+      "ssgc": 0.783923,
+      "sswmb": 0.027598,
+      "sbca": 0.05818
+    },
+    "selected_departments": [
+      "kelectric",
+      "ssgc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00440",
+    "text": "severe gas pressure outage combined with 12 hour electricity loadshedding in Garden East",
+    "normalized_text": "severe gas pressure outage combined with 12 hour electricity loadshedding in garden east",
+    "probabilities": {
+      "kmc": 0.022749,
+      "kwsc": 0.125194,
+      "kelectric": 0.684086,
+      "ssgc": 0.798678,
+      "sswmb": 0.034469,
+      "sbca": 0.06059
+    },
+    "selected_departments": [
+      "kelectric",
+      "ssgc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00441",
+    "text": "severe gas pressure outage combined with 12 hour electricity loadshedding in Landhi Town",
+    "normalized_text": "severe gas pressure outage combined with 12 hour electricity loadshedding in landhi town",
+    "probabilities": {
+      "kmc": 0.024567,
+      "kwsc": 0.121326,
+      "kelectric": 0.721629,
+      "ssgc": 0.795957,
+      "sswmb": 0.027412,
+      "sbca": 0.061246
+    },
+    "selected_departments": [
+      "kelectric",
+      "ssgc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00442",
+    "text": "severe gas pressure outage combined with 12 hour electricity loadshedding in Malir Cantt Road",
+    "normalized_text": "severe gas pressure outage combined with 12 hour electricity loadshedding in malir cantt road",
+    "probabilities": {
+      "kmc": 0.037576,
+      "kwsc": 0.122598,
+      "kelectric": 0.69283,
+      "ssgc": 0.775072,
+      "sswmb": 0.024073,
+      "sbca": 0.053029
+    },
+    "selected_departments": [
+      "kelectric",
+      "ssgc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00443",
+    "text": "severe gas pressure outage combined with 12 hour electricity loadshedding in Federal Capital Area",
+    "normalized_text": "severe gas pressure outage combined with 12 hour electricity loadshedding in federal capital area",
+    "probabilities": {
+      "kmc": 0.029582,
+      "kwsc": 0.11667,
+      "kelectric": 0.694412,
+      "ssgc": 0.767433,
+      "sswmb": 0.029419,
+      "sbca": 0.060355
+    },
+    "selected_departments": [
+      "kelectric",
+      "ssgc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00444",
+    "text": "severe gas pressure outage combined with 12 hour electricity loadshedding in Jamshed Road",
+    "normalized_text": "severe gas pressure outage combined with 12 hour electricity loadshedding in jamshed road",
+    "probabilities": {
+      "kmc": 0.043241,
+      "kwsc": 0.133967,
+      "kelectric": 0.702964,
+      "ssgc": 0.772066,
+      "sswmb": 0.023741,
+      "sbca": 0.054769
+    },
+    "selected_departments": [
+      "kelectric",
+      "ssgc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00445",
+    "text": "severe gas pressure outage combined with 12 hour electricity loadshedding in Gulistan-e-Jauhar Block 7",
+    "normalized_text": "severe gas pressure outage combined with 12 hour electricity loadshedding in gulistan-e-jauhar block 7",
+    "probabilities": {
+      "kmc": 0.032289,
+      "kwsc": 0.125229,
+      "kelectric": 0.625982,
+      "ssgc": 0.762489,
+      "sswmb": 0.041122,
+      "sbca": 0.059045
+    },
+    "selected_departments": [
+      "kelectric",
+      "ssgc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00446",
+    "text": "severe gas pressure outage combined with 12 hour electricity loadshedding in Gulberg Block 12",
+    "normalized_text": "severe gas pressure outage combined with 12 hour electricity loadshedding in gulberg block 12",
+    "probabilities": {
+      "kmc": 0.024395,
+      "kwsc": 0.142181,
+      "kelectric": 0.693846,
+      "ssgc": 0.769072,
+      "sswmb": 0.032435,
+      "sbca": 0.059454
+    },
+    "selected_departments": [
+      "kelectric",
+      "ssgc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00450",
+    "text": "sbca building control complaint sector 11 korangi",
+    "normalized_text": "sbca building control complaint sector 11 korangi",
+    "probabilities": {
+      "kmc": 0.139934,
+      "kwsc": 0.075643,
+      "kelectric": 0.125406,
+      "ssgc": 0.095795,
+      "sswmb": 0.133911,
+      "sbca": 0.791398
+    },
+    "selected_departments": [
+      "sbca"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00478",
+    "text": "road completely destroyed near Saddar Empress Market potholes causing severe accidents",
+    "normalized_text": "road completely destroyed near saddar empress market khadda causing severe accidents",
+    "probabilities": {
+      "kmc": 0.73114,
+      "kwsc": 0.378985,
+      "kelectric": 0.168783,
+      "ssgc": 0.103605,
+      "sswmb": 0.095109,
+      "sbca": 0.07254
+    },
+    "selected_departments": [
+      "kmc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00479",
+    "text": "road completely destroyed near Federal Capital Area potholes causing severe accidents",
+    "normalized_text": "road completely destroyed near federal capital area khadda causing severe accidents",
+    "probabilities": {
+      "kmc": 0.760965,
+      "kwsc": 0.358839,
+      "kelectric": 0.197653,
+      "ssgc": 0.085082,
+      "sswmb": 0.089506,
+      "sbca": 0.087986
+    },
+    "selected_departments": [
+      "kmc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00480",
+    "text": "road completely destroyed near North Nazimabad Block H potholes causing severe accidents",
+    "normalized_text": "road completely destroyed near north nazimabad block h khadda causing severe accidents",
+    "probabilities": {
+      "kmc": 0.730158,
+      "kwsc": 0.390014,
+      "kelectric": 0.210207,
+      "ssgc": 0.083531,
+      "sswmb": 0.10791,
+      "sbca": 0.068918
+    },
+    "selected_departments": [
+      "kmc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00481",
+    "text": "road completely destroyed near Clifton Block 2 potholes causing severe accidents",
+    "normalized_text": "road completely destroyed near clifton block 2 khadda causing severe accidents",
+    "probabilities": {
+      "kmc": 0.741407,
+      "kwsc": 0.38976,
+      "kelectric": 0.184106,
+      "ssgc": 0.072663,
+      "sswmb": 0.133989,
+      "sbca": 0.087997
+    },
+    "selected_departments": [
+      "kmc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00482",
+    "text": "road completely destroyed near Shah Faisal Colony potholes causing severe accidents",
+    "normalized_text": "road completely destroyed near shah faisal colony khadda causing severe accidents",
+    "probabilities": {
+      "kmc": 0.759936,
+      "kwsc": 0.354195,
+      "kelectric": 0.179086,
+      "ssgc": 0.087546,
+      "sswmb": 0.09941,
+      "sbca": 0.101491
+    },
+    "selected_departments": [
+      "kmc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00483",
+    "text": "road completely destroyed near Korangi Industrial Area potholes causing severe accidents",
+    "normalized_text": "road completely destroyed near korangi industrial area khadda causing severe accidents",
+    "probabilities": {
+      "kmc": 0.790923,
+      "kwsc": 0.37014,
+      "kelectric": 0.175837,
+      "ssgc": 0.088067,
+      "sswmb": 0.089041,
+      "sbca": 0.083223
+    },
+    "selected_departments": [
+      "kmc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00484",
+    "text": "road completely destroyed near PECHS Block 6 potholes causing severe accidents",
+    "normalized_text": "road completely destroyed near pechs block 6 khadda causing severe accidents",
+    "probabilities": {
+      "kmc": 0.764846,
+      "kwsc": 0.398541,
+      "kelectric": 0.195181,
+      "ssgc": 0.080126,
+      "sswmb": 0.101207,
+      "sbca": 0.089601
+    },
+    "selected_departments": [
+      "kmc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00485",
+    "text": "road completely destroyed near Landhi Town potholes causing severe accidents",
+    "normalized_text": "road completely destroyed near landhi town khadda causing severe accidents",
+    "probabilities": {
+      "kmc": 0.780409,
+      "kwsc": 0.386896,
+      "kelectric": 0.197607,
+      "ssgc": 0.080784,
+      "sswmb": 0.090236,
+      "sbca": 0.090905
+    },
+    "selected_departments": [
+      "kmc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00486",
+    "text": "road completely destroyed near Jamshed Road potholes causing severe accidents",
+    "normalized_text": "road completely destroyed near jamshed road khadda causing severe accidents",
+    "probabilities": {
+      "kmc": 0.82894,
+      "kwsc": 0.41102,
+      "kelectric": 0.197088,
+      "ssgc": 0.076484,
+      "sswmb": 0.08063,
+      "sbca": 0.086251
+    },
+    "selected_departments": [
+      "kmc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00487",
+    "text": "road completely destroyed near Liaquatabad No 4 potholes causing severe accidents",
+    "normalized_text": "road completely destroyed near liaquatabad no 4 khadda causing severe accidents",
+    "probabilities": {
+      "kmc": 0.775162,
+      "kwsc": 0.391251,
+      "kelectric": 0.187395,
+      "ssgc": 0.086328,
+      "sswmb": 0.086917,
+      "sbca": 0.085859
+    },
+    "selected_departments": [
+      "kmc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00488",
+    "text": "road completely destroyed near Surjani Town Sector 4-B potholes causing severe accidents",
+    "normalized_text": "road completely destroyed near surjani town sector 4-b khadda causing severe accidents",
+    "probabilities": {
+      "kmc": 0.730834,
+      "kwsc": 0.427197,
+      "kelectric": 0.189124,
+      "ssgc": 0.073458,
+      "sswmb": 0.106177,
+      "sbca": 0.083677
+    },
+    "selected_departments": [
+      "kmc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00489",
+    "text": "road completely destroyed near Orangi Town Sector 11 potholes causing severe accidents",
+    "normalized_text": "road completely destroyed near orangi town sector 11 khadda causing severe accidents",
+    "probabilities": {
+      "kmc": 0.753381,
+      "kwsc": 0.415318,
+      "kelectric": 0.181604,
+      "ssgc": 0.074339,
+      "sswmb": 0.096896,
+      "sbca": 0.085271
+    },
+    "selected_departments": [
+      "kmc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00490",
+    "text": "road completely destroyed near Gulberg Block 12 potholes causing severe accidents",
+    "normalized_text": "road completely destroyed near gulberg block 12 khadda causing severe accidents",
+    "probabilities": {
+      "kmc": 0.755178,
+      "kwsc": 0.421585,
+      "kelectric": 0.188531,
+      "ssgc": 0.077447,
+      "sswmb": 0.10015,
+      "sbca": 0.086006
+    },
+    "selected_departments": [
+      "kmc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00491",
+    "text": "road completely destroyed near Defence Phase 6 potholes causing severe accidents",
+    "normalized_text": "road completely destroyed near defence phase 6 khadda causing severe accidents",
+    "probabilities": {
+      "kmc": 0.731094,
+      "kwsc": 0.369641,
+      "kelectric": 0.270974,
+      "ssgc": 0.073715,
+      "sswmb": 0.093841,
+      "sbca": 0.084566
+    },
+    "selected_departments": [
+      "kmc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00498",
+    "text": "construction koi nahi ho rahi bas KMC ki road repairs pending hain",
+    "normalized_text": "construction koi nahi ho rahi bas kmc ki road repairs pending hain",
+    "probabilities": {
+      "kmc": 0.760196,
+      "kwsc": 0.064551,
+      "kelectric": 0.131654,
+      "ssgc": 0.108376,
+      "sswmb": 0.052931,
+      "sbca": 0.510251
+    },
+    "selected_departments": [
+      "kmc",
+      "sbca"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00503",
+    "text": "pani ka masla nahi hai magar sadak par gadday bohat hain road banwayen",
+    "normalized_text": "pani ka masla nahi hai magar sarak par khadda bohot hain road banwayen",
+    "probabilities": {
+      "kmc": 0.971293,
+      "kwsc": 0.352739,
+      "kelectric": 0.068314,
+      "ssgc": 0.026778,
+      "sswmb": 0.050867,
+      "sbca": 0.044706
+    },
+    "selected_departments": [
+      "kmc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00522",
+    "text": "footpath par paani sewage manhole se overflow ho kar aa raha hai",
+    "normalized_text": "footpath par pani sewage manhole se overflow ho kar aa raha hai",
+    "probabilities": {
+      "kmc": 0.37609,
+      "kwsc": 0.993514,
+      "kelectric": 0.085349,
+      "ssgc": 0.026816,
+      "sswmb": 0.152868,
+      "sbca": 0.040193
+    },
+    "selected_departments": [
+      "kwsc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00532",
+    "text": "light chali gai achanak loud blast k baad",
+    "normalized_text": "light chali gai achanak loud blast k baad",
+    "probabilities": {
+      "kmc": 0.271259,
+      "kwsc": 0.042663,
+      "kelectric": 0.540134,
+      "ssgc": 0.128872,
+      "sswmb": 0.137847,
+      "sbca": 0.141879
+    },
+    "selected_departments": []
+  },
+  {
+    "dataset_id": "AEA-V10-00535",
+    "text": "water supply bilkul bnd he hamare ilaqay me",
+    "normalized_text": "water supply bilkul bnd he hamare ilaqay me",
+    "probabilities": {
+      "kmc": 0.105344,
+      "kwsc": 0.743837,
+      "kelectric": 0.187529,
+      "ssgc": 0.103331,
+      "sswmb": 0.082911,
+      "sbca": 0.172105
+    },
+    "selected_departments": [
+      "kwsc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00536",
+    "text": "unauthorized multi-story illegal construction underway on residential plot in Federal Capital Area",
+    "normalized_text": "unauthorized multi-story illegal construction underway on residential plot in federal capital area",
+    "probabilities": {
+      "kmc": 0.155179,
+      "kwsc": 0.045901,
+      "kelectric": 0.131038,
+      "ssgc": 0.093101,
+      "sswmb": 0.168168,
+      "sbca": 0.974451
+    },
+    "selected_departments": [
+      "sbca"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00537",
+    "text": "unauthorized multi-story illegal construction underway on residential plot in Jamshed Road",
+    "normalized_text": "unauthorized multi-story illegal construction underway on residential plot in jamshed road",
+    "probabilities": {
+      "kmc": 0.227417,
+      "kwsc": 0.048824,
+      "kelectric": 0.120778,
+      "ssgc": 0.080382,
+      "sswmb": 0.149931,
+      "sbca": 0.980525
+    },
+    "selected_departments": [
+      "sbca"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00538",
+    "text": "unauthorized multi-story illegal construction underway on residential plot in Gulistan-e-Jauhar Block 7",
+    "normalized_text": "unauthorized multi-story illegal construction underway on residential plot in gulistan-e-jauhar block 7",
+    "probabilities": {
+      "kmc": 0.1561,
+      "kwsc": 0.050465,
+      "kelectric": 0.111122,
+      "ssgc": 0.102702,
+      "sswmb": 0.205125,
+      "sbca": 0.967963
+    },
+    "selected_departments": [
+      "sbca"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00539",
+    "text": "unauthorized multi-story illegal construction underway on residential plot in PECHS Block 6",
+    "normalized_text": "unauthorized multi-story illegal construction underway on residential plot in pechs block 6",
+    "probabilities": {
+      "kmc": 0.13617,
+      "kwsc": 0.046434,
+      "kelectric": 0.124147,
+      "ssgc": 0.087527,
+      "sswmb": 0.19326,
+      "sbca": 0.9827
+    },
+    "selected_departments": [
+      "sbca"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00540",
+    "text": "unauthorized multi-story illegal construction underway on residential plot in North Nazimabad Block H",
+    "normalized_text": "unauthorized multi-story illegal construction underway on residential plot in north nazimabad block h",
+    "probabilities": {
+      "kmc": 0.13294,
+      "kwsc": 0.050166,
+      "kelectric": 0.138585,
+      "ssgc": 0.090463,
+      "sswmb": 0.197887,
+      "sbca": 0.969796
+    },
+    "selected_departments": [
+      "sbca"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00541",
+    "text": "unauthorized multi-story illegal construction underway on residential plot in Gulberg Block 12",
+    "normalized_text": "unauthorized multi-story illegal construction underway on residential plot in gulberg block 12",
+    "probabilities": {
+      "kmc": 0.137176,
+      "kwsc": 0.053148,
+      "kelectric": 0.120662,
+      "ssgc": 0.084674,
+      "sswmb": 0.188795,
+      "sbca": 0.979765
+    },
+    "selected_departments": [
+      "sbca"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00542",
+    "text": "unauthorized multi-story illegal construction underway on residential plot in Orangi Town Sector 11",
+    "normalized_text": "unauthorized multi-story illegal construction underway on residential plot in orangi town sector 11",
+    "probabilities": {
+      "kmc": 0.141223,
+      "kwsc": 0.056382,
+      "kelectric": 0.117185,
+      "ssgc": 0.081099,
+      "sswmb": 0.178342,
+      "sbca": 0.976743
+    },
+    "selected_departments": [
+      "sbca"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00543",
+    "text": "unauthorized multi-story illegal construction underway on residential plot in Surjani Town Sector 4-B",
+    "normalized_text": "unauthorized multi-story illegal construction underway on residential plot in surjani town sector 4-b",
+    "probabilities": {
+      "kmc": 0.134901,
+      "kwsc": 0.061039,
+      "kelectric": 0.123739,
+      "ssgc": 0.079624,
+      "sswmb": 0.192607,
+      "sbca": 0.9734
+    },
+    "selected_departments": [
+      "sbca"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00544",
+    "text": "unauthorized multi-story illegal construction underway on residential plot in Clifton Block 2",
+    "normalized_text": "unauthorized multi-story illegal construction underway on residential plot in clifton block 2",
+    "probabilities": {
+      "kmc": 0.129768,
+      "kwsc": 0.047916,
+      "kelectric": 0.116765,
+      "ssgc": 0.079697,
+      "sswmb": 0.242034,
+      "sbca": 0.979924
+    },
+    "selected_departments": [
+      "sbca"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00545",
+    "text": "unauthorized multi-story illegal construction underway on residential plot in Landhi Town",
+    "normalized_text": "unauthorized multi-story illegal construction underway on residential plot in landhi town",
+    "probabilities": {
+      "kmc": 0.145628,
+      "kwsc": 0.044561,
+      "kelectric": 0.125756,
+      "ssgc": 0.088424,
+      "sswmb": 0.173938,
+      "sbca": 0.983077
+    },
+    "selected_departments": [
+      "sbca"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00546",
+    "text": "unauthorized multi-story illegal construction underway on residential plot in Defence Phase 6",
+    "normalized_text": "unauthorized multi-story illegal construction underway on residential plot in defence phase 6",
+    "probabilities": {
+      "kmc": 0.126274,
+      "kwsc": 0.044251,
+      "kelectric": 0.177356,
+      "ssgc": 0.080436,
+      "sswmb": 0.176961,
+      "sbca": 0.978535
+    },
+    "selected_departments": [
+      "sbca"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00547",
+    "text": "unauthorized multi-story illegal construction underway on residential plot in Gulshan-e-Iqbal Block 13-D",
+    "normalized_text": "unauthorized multi-story illegal construction underway on residential plot in gulshan-e-iqbal block 13-d",
+    "probabilities": {
+      "kmc": 0.139783,
+      "kwsc": 0.056221,
+      "kelectric": 0.132117,
+      "ssgc": 0.088507,
+      "sswmb": 0.179536,
+      "sbca": 0.966417
+    },
+    "selected_departments": [
+      "sbca"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00548",
+    "text": "unauthorized multi-story illegal construction underway on residential plot in Malir Cantt Road",
+    "normalized_text": "unauthorized multi-story illegal construction underway on residential plot in malir cantt road",
+    "probabilities": {
+      "kmc": 0.199472,
+      "kwsc": 0.046059,
+      "kelectric": 0.119363,
+      "ssgc": 0.086398,
+      "sswmb": 0.149129,
+      "sbca": 0.977027
+    },
+    "selected_departments": [
+      "sbca"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00549",
+    "text": "unauthorized multi-story illegal construction underway on residential plot in Nazimabad No 2",
+    "normalized_text": "unauthorized multi-story illegal construction underway on residential plot in nazimabad no 2",
+    "probabilities": {
+      "kmc": 0.124367,
+      "kwsc": 0.042734,
+      "kelectric": 0.123083,
+      "ssgc": 0.096182,
+      "sswmb": 0.188604,
+      "sbca": 0.97946
+    },
+    "selected_departments": [
+      "sbca"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00580",
+    "text": "road par asphalt toot gaya koi kachra nahi road infrastructure fault hai",
+    "normalized_text": "road par asphalt toot gaya koi kachra nahi road infrastructure fault hai",
+    "probabilities": {
+      "kmc": 0.887546,
+      "kwsc": 0.102615,
+      "kelectric": 0.095344,
+      "ssgc": 0.060783,
+      "sswmb": 0.314426,
+      "sbca": 0.066691
+    },
+    "selected_departments": [
+      "kmc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00584",
+    "text": "hamare ilaqay mein water supply teen din se band hai tankers bula rahay",
+    "normalized_text": "hamare ilaqay mein water supply teen din se band hai tankers bula rahay",
+    "probabilities": {
+      "kmc": 0.16442,
+      "kwsc": 0.734238,
+      "kelectric": 0.391566,
+      "ssgc": 0.111349,
+      "sswmb": 0.127881,
+      "sbca": 0.141095
+    },
+    "selected_departments": [
+      "kwsc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00601",
+    "text": "high voltage surge in pechs society electronics fried",
+    "normalized_text": "high voltage surge in pechs society electronics fried",
+    "probabilities": {
+      "kmc": 0.074163,
+      "kwsc": 0.071904,
+      "kelectric": 0.813677,
+      "ssgc": 0.08716,
+      "sswmb": 0.093582,
+      "sbca": 0.129891
+    },
+    "selected_departments": [
+      "kelectric"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00612",
+    "text": "gas pipe ka nahi builder ne gas riser k bilkul ooper deewar bana li",
+    "normalized_text": "gas pipeline ka nahi builder ne gas riser k bilkul ooper deewar bana li",
+    "probabilities": {
+      "kmc": 0.030663,
+      "kwsc": 0.061558,
+      "kelectric": 0.02469,
+      "ssgc": 0.921332,
+      "sswmb": 0.034141,
+      "sbca": 0.708956
+    },
+    "selected_departments": [
+      "ssgc",
+      "sbca"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00635",
+    "text": "kachray ka dabba bhar gya he bahr gir rha he",
+    "normalized_text": "kachray ka dabba bhar gya he bahr gir rha he",
+    "probabilities": {
+      "kmc": 0.065996,
+      "kwsc": 0.207634,
+      "kelectric": 0.182107,
+      "ssgc": 0.051096,
+      "sswmb": 0.775815,
+      "sbca": 0.134594
+    },
+    "selected_departments": [
+      "sswmb"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00676",
+    "text": "barish ka paani nahi hai sewerage line leak hai gali mein",
+    "normalized_text": "barish ka pani nahi hai sewage line leak hai gali mein",
+    "probabilities": {
+      "kmc": 0.211952,
+      "kwsc": 0.98143,
+      "kelectric": 0.12919,
+      "ssgc": 0.139194,
+      "sswmb": 0.06899,
+      "sbca": 0.018964
+    },
+    "selected_departments": [
+      "kwsc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00679",
+    "text": "voltage drop ho gaya he 130 volt aa rahay hain",
+    "normalized_text": "voltage drop ho gaya he 130 volt aa rahay hain",
+    "probabilities": {
+      "kmc": 0.110887,
+      "kwsc": 0.108692,
+      "kelectric": 0.83165,
+      "ssgc": 0.11886,
+      "sswmb": 0.103069,
+      "sbca": 0.100244
+    },
+    "selected_departments": [
+      "kelectric"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00691",
+    "text": "hamari gali ki road kb banegi itne saal se kachi sadak he",
+    "normalized_text": "hamari gali ki road kb banegi itne saal se kachi sarak he",
+    "probabilities": {
+      "kmc": 0.779443,
+      "kwsc": 0.137367,
+      "kelectric": 0.096483,
+      "ssgc": 0.070967,
+      "sswmb": 0.313085,
+      "sbca": 0.124556
+    },
+    "selected_departments": [
+      "kmc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00702",
+    "text": "illegal gas compressors used by neighbors causing zero pressure in our house",
+    "normalized_text": "illegal gas compressors used by neighbors causing zero pressure in our house",
+    "probabilities": {
+      "kmc": 0.043721,
+      "kwsc": 0.099717,
+      "kelectric": 0.06696,
+      "ssgc": 0.896636,
+      "sswmb": 0.065174,
+      "sbca": 0.52814
+    },
+    "selected_departments": [
+      "ssgc",
+      "sbca"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00707",
+    "text": "footpath broken tiles and severe encroachment near Orangi Town Sector 11 market",
+    "normalized_text": "footpath broken tiles and severe encroachment near orangi town sector 11 market",
+    "probabilities": {
+      "kmc": 0.747809,
+      "kwsc": 0.189999,
+      "kelectric": 0.161909,
+      "ssgc": 0.098246,
+      "sswmb": 0.075702,
+      "sbca": 0.294619
+    },
+    "selected_departments": [
+      "kmc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00708",
+    "text": "footpath broken tiles and severe encroachment near Federal Capital Area market",
+    "normalized_text": "footpath broken tiles and severe encroachment near federal capital area market",
+    "probabilities": {
+      "kmc": 0.756238,
+      "kwsc": 0.157474,
+      "kelectric": 0.178031,
+      "ssgc": 0.111982,
+      "sswmb": 0.070278,
+      "sbca": 0.296166
+    },
+    "selected_departments": [
+      "kmc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00709",
+    "text": "footpath broken tiles and severe encroachment near Shah Faisal Colony market",
+    "normalized_text": "footpath broken tiles and severe encroachment near shah faisal colony market",
+    "probabilities": {
+      "kmc": 0.754278,
+      "kwsc": 0.155405,
+      "kelectric": 0.159219,
+      "ssgc": 0.115341,
+      "sswmb": 0.077858,
+      "sbca": 0.332745
+    },
+    "selected_departments": [
+      "kmc",
+      "sbca"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00710",
+    "text": "footpath broken tiles and severe encroachment near Gulistan-e-Jauhar Block 7 market",
+    "normalized_text": "footpath broken tiles and severe encroachment near gulistan-e-jauhar block 7 market",
+    "probabilities": {
+      "kmc": 0.734533,
+      "kwsc": 0.166261,
+      "kelectric": 0.151121,
+      "ssgc": 0.124754,
+      "sswmb": 0.092626,
+      "sbca": 0.274089
+    },
+    "selected_departments": [
+      "kmc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00711",
+    "text": "footpath broken tiles and severe encroachment near Jamshed Road market",
+    "normalized_text": "footpath broken tiles and severe encroachment near jamshed road market",
+    "probabilities": {
+      "kmc": 0.85769,
+      "kwsc": 0.180675,
+      "kelectric": 0.168905,
+      "ssgc": 0.098149,
+      "sswmb": 0.058612,
+      "sbca": 0.296712
+    },
+    "selected_departments": [
+      "kmc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00712",
+    "text": "footpath broken tiles and severe encroachment near Surjani Town Sector 4-B market",
+    "normalized_text": "footpath broken tiles and severe encroachment near surjani town sector 4-b market",
+    "probabilities": {
+      "kmc": 0.724407,
+      "kwsc": 0.201486,
+      "kelectric": 0.169343,
+      "ssgc": 0.096543,
+      "sswmb": 0.083757,
+      "sbca": 0.283717
+    },
+    "selected_departments": [
+      "kmc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00713",
+    "text": "footpath broken tiles and severe encroachment near Gulshan-e-Iqbal Block 13-D market",
+    "normalized_text": "footpath broken tiles and severe encroachment near gulshan-e-iqbal block 13-d market",
+    "probabilities": {
+      "kmc": 0.708625,
+      "kwsc": 0.181822,
+      "kelectric": 0.177483,
+      "ssgc": 0.10572,
+      "sswmb": 0.07928,
+      "sbca": 0.270555
+    },
+    "selected_departments": [
+      "kmc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00714",
+    "text": "footpath broken tiles and severe encroachment near Liaquatabad No 4 market",
+    "normalized_text": "footpath broken tiles and severe encroachment near liaquatabad no 4 market",
+    "probabilities": {
+      "kmc": 0.773125,
+      "kwsc": 0.17335,
+      "kelectric": 0.167082,
+      "ssgc": 0.113795,
+      "sswmb": 0.06725,
+      "sbca": 0.297072
+    },
+    "selected_departments": [
+      "kmc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00715",
+    "text": "footpath broken tiles and severe encroachment near Garden East market",
+    "normalized_text": "footpath broken tiles and severe encroachment near garden east market",
+    "probabilities": {
+      "kmc": 0.754147,
+      "kwsc": 0.168989,
+      "kelectric": 0.152294,
+      "ssgc": 0.115154,
+      "sswmb": 0.085792,
+      "sbca": 0.317337
+    },
+    "selected_departments": [
+      "kmc",
+      "sbca"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00716",
+    "text": "footpath broken tiles and severe encroachment near Saddar Empress Market market",
+    "normalized_text": "footpath broken tiles and severe encroachment near saddar empress market market",
+    "probabilities": {
+      "kmc": 0.720253,
+      "kwsc": 0.169676,
+      "kelectric": 0.149964,
+      "ssgc": 0.135762,
+      "sswmb": 0.073285,
+      "sbca": 0.253696
+    },
+    "selected_departments": [
+      "kmc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00717",
+    "text": "footpath broken tiles and severe encroachment near Korangi Industrial Area market",
+    "normalized_text": "footpath broken tiles and severe encroachment near korangi industrial area market",
+    "probabilities": {
+      "kmc": 0.788328,
+      "kwsc": 0.167129,
+      "kelectric": 0.15684,
+      "ssgc": 0.115045,
+      "sswmb": 0.069677,
+      "sbca": 0.279552
+    },
+    "selected_departments": [
+      "kmc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00718",
+    "text": "footpath broken tiles and severe encroachment near Gulberg Block 12 market",
+    "normalized_text": "footpath broken tiles and severe encroachment near gulberg block 12 market",
+    "probabilities": {
+      "kmc": 0.749772,
+      "kwsc": 0.190159,
+      "kelectric": 0.167907,
+      "ssgc": 0.102949,
+      "sswmb": 0.077878,
+      "sbca": 0.303895
+    },
+    "selected_departments": [
+      "kmc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00719",
+    "text": "footpath broken tiles and severe encroachment near Malir Cantt Road market",
+    "normalized_text": "footpath broken tiles and severe encroachment near malir cantt road market",
+    "probabilities": {
+      "kmc": 0.822681,
+      "kwsc": 0.163283,
+      "kelectric": 0.16701,
+      "ssgc": 0.105821,
+      "sswmb": 0.059954,
+      "sbca": 0.281713
+    },
+    "selected_departments": [
+      "kmc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00720",
+    "text": "footpath broken tiles and severe encroachment near Federal B Area Block 14 market",
+    "normalized_text": "footpath broken tiles and severe encroachment near federal b area block 14 market",
+    "probabilities": {
+      "kmc": 0.767765,
+      "kwsc": 0.159611,
+      "kelectric": 0.19701,
+      "ssgc": 0.116901,
+      "sswmb": 0.067797,
+      "sbca": 0.280635
+    },
+    "selected_departments": [
+      "kmc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00722",
+    "text": "electricity bills are paid but municipal garbage collection is dead",
+    "normalized_text": "electricity bills are paid but municipal garbage collection is dead",
+    "probabilities": {
+      "kmc": 0.080019,
+      "kwsc": 0.085142,
+      "kelectric": 0.353983,
+      "ssgc": 0.086189,
+      "sswmb": 0.83698,
+      "sbca": 0.135562
+    },
+    "selected_departments": [
+      "sswmb"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00764",
+    "text": "kachra gari roz nahi aati haftay me aik dafa aati he",
+    "normalized_text": "kachra gari roz nahi aati haftay me aik dafa aati he",
+    "probabilities": {
+      "kmc": 0.079454,
+      "kwsc": 0.103267,
+      "kelectric": 0.138149,
+      "ssgc": 0.066178,
+      "sswmb": 0.883943,
+      "sbca": 0.062338
+    },
+    "selected_departments": [
+      "sswmb"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00770",
+    "text": "demolition work without safety nets stones falling on neighbor roof",
+    "normalized_text": "demolition work without safety nets stones falling on neighbor roof",
+    "probabilities": {
+      "kmc": 0.096661,
+      "kwsc": 0.059896,
+      "kelectric": 0.09715,
+      "ssgc": 0.090064,
+      "sswmb": 0.076996,
+      "sbca": 0.901782
+    },
+    "selected_departments": [
+      "sbca"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00785",
+    "text": "road surface uneven hai sewerage overflow nahi road grading chahiye",
+    "normalized_text": "road surface uneven hai sewage overflow nahi road grading chahiye",
+    "probabilities": {
+      "kmc": 0.640227,
+      "kwsc": 0.637015,
+      "kelectric": 0.073408,
+      "ssgc": 0.034845,
+      "sswmb": 0.173921,
+      "sbca": 0.034599
+    },
+    "selected_departments": [
+      "kwsc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00791",
+    "text": "electric motor chal rahi hai magar line se paani zero drop ata hai",
+    "normalized_text": "electric motor chal rahi hai magar line se pani zero drop ata hai",
+    "probabilities": {
+      "kmc": 0.089466,
+      "kwsc": 0.484258,
+      "kelectric": 0.881391,
+      "ssgc": 0.115476,
+      "sswmb": 0.066247,
+      "sbca": 0.035941
+    },
+    "selected_departments": [
+      "kelectric"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00813",
+    "text": "paani ki supply band hai tanker mafia zindabad kar rahe",
+    "normalized_text": "pani ki supply band hai tanker mafia zindabad kar rahe",
+    "probabilities": {
+      "kmc": 0.273237,
+      "kwsc": 0.821596,
+      "kelectric": 0.283343,
+      "ssgc": 0.086179,
+      "sswmb": 0.087735,
+      "sbca": 0.129888
+    },
+    "selected_departments": [
+      "kwsc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00814",
+    "text": "zero gas supply in winter morning hours ssgc complaint",
+    "normalized_text": "zero gas supply in winter morning hours ssgc complaint",
+    "probabilities": {
+      "kmc": 0.071207,
+      "kwsc": 0.18646,
+      "kelectric": 0.198712,
+      "ssgc": 0.832447,
+      "sswmb": 0.088089,
+      "sbca": 0.057334
+    },
+    "selected_departments": [
+      "ssgc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00816",
+    "text": "gutter ka ganda paani gharon ke andar dakhil ho raha hai evacuate",
+    "normalized_text": "gutter ka badboo gharon ke andar dakhil ho raha hai evacuate",
+    "probabilities": {
+      "kmc": 0.09041,
+      "kwsc": 0.813653,
+      "kelectric": 0.240318,
+      "ssgc": 0.068989,
+      "sswmb": 0.220082,
+      "sbca": 0.131201
+    },
+    "selected_departments": [
+      "kwsc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00833",
+    "text": "pani bilkul nahi araha do haftay ho gaye tanki khali hai",
+    "normalized_text": "pani bilkul nahi araha do haftay ho gaye tanki khali hai",
+    "probabilities": {
+      "kmc": 0.129086,
+      "kwsc": 0.471849,
+      "kelectric": 0.203336,
+      "ssgc": 0.127557,
+      "sswmb": 0.117377,
+      "sbca": 0.073249
+    },
+    "selected_departments": []
+  },
+  {
+    "dataset_id": "AEA-V10-00842",
+    "text": "footpath par paver blocks toot gaye kachray ka masla nahi rasta block",
+    "normalized_text": "footpath par paver blocks toot gaye kachray ka masla nahi rasta block",
+    "probabilities": {
+      "kmc": 0.773506,
+      "kwsc": 0.113551,
+      "kelectric": 0.065881,
+      "ssgc": 0.049787,
+      "sswmb": 0.621133,
+      "sbca": 0.072169
+    },
+    "selected_departments": [
+      "kmc",
+      "sswmb"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00847",
+    "text": "gas smell seeping through floor tiles emergency call",
+    "normalized_text": "gas smell seeping through floor tiles emergency call",
+    "probabilities": {
+      "kmc": 0.147212,
+      "kwsc": 0.066246,
+      "kelectric": 0.092891,
+      "ssgc": 0.726397,
+      "sswmb": 0.065343,
+      "sbca": 0.155979
+    },
+    "selected_departments": [
+      "ssgc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00852",
+    "text": "boundary wall collapse danger due to neighbor illegal 4-story loading",
+    "normalized_text": "boundary wall girne wali danger due to neighbor illegal 4-story loading",
+    "probabilities": {
+      "kmc": 0.146656,
+      "kwsc": 0.058514,
+      "kelectric": 0.205131,
+      "ssgc": 0.056304,
+      "sswmb": 0.088089,
+      "sbca": 0.953531
+    },
+    "selected_departments": [
+      "sbca"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00853",
+    "text": "footpath encroached by car mechanics parking vehicles on pedestrian path",
+    "normalized_text": "footpath encroached by car mechanics parking vehicles on pedestrian path",
+    "probabilities": {
+      "kmc": 0.825722,
+      "kwsc": 0.075269,
+      "kelectric": 0.099004,
+      "ssgc": 0.06543,
+      "sswmb": 0.186688,
+      "sbca": 0.335649
+    },
+    "selected_departments": [
+      "kmc",
+      "sbca"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00857",
+    "text": "power outage in our block no light since yesterday",
+    "normalized_text": "power outage in our block no light since yesterday",
+    "probabilities": {
+      "kmc": 0.132565,
+      "kwsc": 0.224086,
+      "kelectric": 0.953191,
+      "ssgc": 0.084798,
+      "sswmb": 0.092839,
+      "sbca": 0.07077
+    },
+    "selected_departments": [
+      "kelectric"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00864",
+    "text": "bijli ka transformer blast hua hai sadak par aag KE department case",
+    "normalized_text": "bijli ka transformer blast hua hai sarak par aag ke department case",
+    "probabilities": {
+      "kmc": 0.359292,
+      "kwsc": 0.061589,
+      "kelectric": 0.911207,
+      "ssgc": 0.066228,
+      "sswmb": 0.092635,
+      "sbca": 0.057091
+    },
+    "selected_departments": [
+      "kelectric"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00867",
+    "text": "gas leak near electrical meter dangerous combination",
+    "normalized_text": "gas leak near electrical meter dangerous combination",
+    "probabilities": {
+      "kmc": 0.065826,
+      "kwsc": 0.139355,
+      "kelectric": 0.558723,
+      "ssgc": 0.764885,
+      "sswmb": 0.026245,
+      "sbca": 0.147243
+    },
+    "selected_departments": [
+      "ssgc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00924",
+    "text": "sewerage theek hai paani mein current bijli ki tooti taar se aya",
+    "normalized_text": "sewage theek hai pani mein current bijli ki tooti wire se aya",
+    "probabilities": {
+      "kmc": 0.046216,
+      "kwsc": 0.883871,
+      "kelectric": 0.903608,
+      "ssgc": 0.019379,
+      "sswmb": 0.031699,
+      "sbca": 0.046523
+    },
+    "selected_departments": [
+      "kwsc",
+      "kelectric"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00925",
+    "text": "sui gas load shedding schedule follow nahi ho raha",
+    "normalized_text": "gas load shedding schedule follow nahi ho raha",
+    "probabilities": {
+      "kmc": 0.040875,
+      "kwsc": 0.062571,
+      "kelectric": 0.294528,
+      "ssgc": 0.870759,
+      "sswmb": 0.060291,
+      "sbca": 0.045153
+    },
+    "selected_departments": [
+      "ssgc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00927",
+    "text": "sbca inspector bribe le kar illegal building banwa raha",
+    "normalized_text": "sbca inspector bribe le kar illegal building banwa raha",
+    "probabilities": {
+      "kmc": 0.115902,
+      "kwsc": 0.073577,
+      "kelectric": 0.071966,
+      "ssgc": 0.094027,
+      "sswmb": 0.154699,
+      "sbca": 0.951931
+    },
+    "selected_departments": [
+      "sbca"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00936",
+    "text": "gutter ka dhakkan nhe he koi bacha gir na jaye",
+    "normalized_text": "gutter ka dhakkan nhe he koi bacha gir na jaye",
+    "probabilities": {
+      "kmc": 0.102277,
+      "kwsc": 0.784919,
+      "kelectric": 0.233448,
+      "ssgc": 0.063342,
+      "sswmb": 0.105706,
+      "sbca": 0.162556
+    },
+    "selected_departments": [
+      "kwsc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00977",
+    "text": "footpath par kachray ke dher lagay hain aur pavement broken hai paidal chalna impossible hai",
+    "normalized_text": "footpath par kachray ke dher lagay hain aur pavement broken hai paidal chalna impossible hai",
+    "probabilities": {
+      "kmc": 0.89578,
+      "kwsc": 0.132426,
+      "kelectric": 0.23311,
+      "ssgc": 0.087726,
+      "sswmb": 0.604431,
+      "sbca": 0.08686
+    },
+    "selected_departments": [
+      "kmc",
+      "sswmb"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00978",
+    "text": "sidewalk tiles completely broken and municipal solid waste spilling over pedestrian corridor",
+    "normalized_text": "footpath tiles completely broken and municipal solid waste spilling over pedestrian corridor",
+    "probabilities": {
+      "kmc": 0.880789,
+      "kwsc": 0.271648,
+      "kelectric": 0.124369,
+      "ssgc": 0.050789,
+      "sswmb": 0.634419,
+      "sbca": 0.106345
+    },
+    "selected_departments": [
+      "kmc",
+      "sswmb"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00979",
+    "text": "footpath encroachment aur kura daan overflow dono maslon se market ka rasta block hai",
+    "normalized_text": "footpath encroachment aur kachra daan overflow dono maslon se market ka rasta block hai",
+    "probabilities": {
+      "kmc": 0.651814,
+      "kwsc": 0.248644,
+      "kelectric": 0.091191,
+      "ssgc": 0.060753,
+      "sswmb": 0.838787,
+      "sbca": 0.197773
+    },
+    "selected_departments": [
+      "sswmb"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00983",
+    "text": "heavy generator installed on rooftop vibrating building slab",
+    "normalized_text": "heavy generator installed on rooftop vibrating building slab",
+    "probabilities": {
+      "kmc": 0.089238,
+      "kwsc": 0.062892,
+      "kelectric": 0.127743,
+      "ssgc": 0.088331,
+      "sswmb": 0.229765,
+      "sbca": 0.852599
+    },
+    "selected_departments": [
+      "sbca"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-00984",
+    "text": "gas pipeline sparking near electric wire severe explosion hazard SSGC",
+    "normalized_text": "gas pipeline spark near electric wire severe explosion hazard ssgc",
+    "probabilities": {
+      "kmc": 0.014453,
+      "kwsc": 0.136826,
+      "kelectric": 0.86959,
+      "ssgc": 0.880113,
+      "sswmb": 0.017998,
+      "sbca": 0.07634
+    },
+    "selected_departments": [
+      "kelectric",
+      "ssgc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-01020",
+    "text": "water supply line disconnected by line man restore immediately",
+    "normalized_text": "water supply line disconnected by line man restore immediately",
+    "probabilities": {
+      "kmc": 0.086834,
+      "kwsc": 0.808642,
+      "kelectric": 0.371664,
+      "ssgc": 0.250598,
+      "sswmb": 0.120604,
+      "sbca": 0.047585
+    },
+    "selected_departments": [
+      "kwsc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-01023",
+    "text": "building construction issue nahi sewer line chocking ho rahi hai",
+    "normalized_text": "building construction issue nahi sewage line chocking ho rahi hai",
+    "probabilities": {
+      "kmc": 0.110856,
+      "kwsc": 0.504122,
+      "kelectric": 0.168987,
+      "ssgc": 0.103959,
+      "sswmb": 0.070635,
+      "sbca": 0.850981
+    },
+    "selected_departments": [
+      "kwsc",
+      "sbca"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-01043",
+    "text": "central district ki tamam link roads par gadday hain",
+    "normalized_text": "central district ki tamam link roads par khadda hain",
+    "probabilities": {
+      "kmc": 0.854962,
+      "kwsc": 0.136518,
+      "kelectric": 0.188701,
+      "ssgc": 0.07119,
+      "sswmb": 0.057969,
+      "sbca": 0.076651
+    },
+    "selected_departments": [
+      "kmc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-01046",
+    "text": "pani nahi ha 10 din se khawateen pareshan hain",
+    "normalized_text": "pani nahi hai 10 din se khawateen pareshan hain",
+    "probabilities": {
+      "kmc": 0.230709,
+      "kwsc": 0.640441,
+      "kelectric": 0.279537,
+      "ssgc": 0.073015,
+      "sswmb": 0.080506,
+      "sbca": 0.051617
+    },
+    "selected_departments": [
+      "kwsc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-01064",
+    "text": "roundabout par traffic signal kaam nahi kar raha accident ka khatra",
+    "normalized_text": "roundabout par traffic signal kaam nahi kar raha accident ka khatra",
+    "probabilities": {
+      "kmc": 0.826905,
+      "kwsc": 0.081613,
+      "kelectric": 0.123751,
+      "ssgc": 0.106515,
+      "sswmb": 0.189412,
+      "sbca": 0.088931
+    },
+    "selected_departments": [
+      "kmc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-01065",
+    "text": "water pipeline illegal connections installed by water mafia disconnect",
+    "normalized_text": "water pipeline illegal connections installed by water mafia disconnect",
+    "probabilities": {
+      "kmc": 0.065854,
+      "kwsc": 0.743658,
+      "kelectric": 0.10381,
+      "ssgc": 0.271881,
+      "sswmb": 0.075133,
+      "sbca": 0.235203
+    },
+    "selected_departments": [
+      "kwsc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-01070",
+    "text": "kachray ko aag lga di dhuan sans me ja rha he",
+    "normalized_text": "kachray ko aag lga di dhuan sans me ja rha he",
+    "probabilities": {
+      "kmc": 0.060409,
+      "kwsc": 0.118551,
+      "kelectric": 0.157628,
+      "ssgc": 0.079725,
+      "sswmb": 0.893313,
+      "sbca": 0.090859
+    },
+    "selected_departments": [
+      "sswmb"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-01073",
+    "text": "footpath par road divider toota hai building ka koi masla nahi",
+    "normalized_text": "footpath par road divider toota hai building ka koi masla nahi",
+    "probabilities": {
+      "kmc": 0.892067,
+      "kwsc": 0.093369,
+      "kelectric": 0.088053,
+      "ssgc": 0.035005,
+      "sswmb": 0.045417,
+      "sbca": 0.543953
+    },
+    "selected_departments": [
+      "kmc",
+      "sbca"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-01075",
+    "text": "burning plastic smell from neighborhood garbage dump",
+    "normalized_text": "burning plastic smell from neighborhood garbage dump",
+    "probabilities": {
+      "kmc": 0.048747,
+      "kwsc": 0.04882,
+      "kelectric": 0.058371,
+      "ssgc": 0.119543,
+      "sswmb": 0.919688,
+      "sbca": 0.111909
+    },
+    "selected_departments": [
+      "sswmb"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-01078",
+    "text": "amenity plot reserved for school converted into commercial flats plaza",
+    "normalized_text": "amenity plot reserved for school converted into commercial flats plaza",
+    "probabilities": {
+      "kmc": 0.04657,
+      "kwsc": 0.11415,
+      "kelectric": 0.092798,
+      "ssgc": 0.137886,
+      "sswmb": 0.146733,
+      "sbca": 0.743028
+    },
+    "selected_departments": [
+      "sbca"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-01083",
+    "text": "kachray k dher mein kutte aur janwar gandagi phaila rahay hain",
+    "normalized_text": "kachray k dher mein kutte aur janwar gandagi phaila rahay hain",
+    "probabilities": {
+      "kmc": 0.095773,
+      "kwsc": 0.221084,
+      "kelectric": 0.128628,
+      "ssgc": 0.10557,
+      "sswmb": 0.973702,
+      "sbca": 0.065218
+    },
+    "selected_departments": [
+      "sswmb"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-01124",
+    "text": "low pressure sui gas unable to light single stove burner",
+    "normalized_text": "low pressure gas unable to light single stove burner",
+    "probabilities": {
+      "kmc": 0.053442,
+      "kwsc": 0.05181,
+      "kelectric": 0.548664,
+      "ssgc": 0.8972,
+      "sswmb": 0.049435,
+      "sbca": 0.050647
+    },
+    "selected_departments": [
+      "ssgc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-01151",
+    "text": "pechs block 2 road patchwork bohat kharab hua hai dubara karein",
+    "normalized_text": "pechs block 2 road patchwork bohot kharab hua hai dubara kiya jaye",
+    "probabilities": {
+      "kmc": 0.88446,
+      "kwsc": 0.150918,
+      "kelectric": 0.094674,
+      "ssgc": 0.063034,
+      "sswmb": 0.085957,
+      "sbca": 0.059989
+    },
+    "selected_departments": [
+      "kmc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-01152",
+    "text": "sewerage water pooling outside hospital gate dengue risk",
+    "normalized_text": "sewage water pooling outside hospital gate dengue risk",
+    "probabilities": {
+      "kmc": 0.074897,
+      "kwsc": 0.841778,
+      "kelectric": 0.143261,
+      "ssgc": 0.072542,
+      "sswmb": 0.239396,
+      "sbca": 0.07608
+    },
+    "selected_departments": [
+      "kwsc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-01156",
+    "text": "commercial market k bahar garbage dump pile up ho raha hai flies and germs",
+    "normalized_text": "commercial market k bahar garbage dump pile up ho raha hai flies and germs",
+    "probabilities": {
+      "kmc": 0.203351,
+      "kwsc": 0.10033,
+      "kelectric": 0.108111,
+      "ssgc": 0.073096,
+      "sswmb": 0.826293,
+      "sbca": 0.225058
+    },
+    "selected_departments": [
+      "sswmb"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-01161",
+    "text": "water line nahi builder ne basement khodi to underground foundation phati",
+    "normalized_text": "water line nahi builder ne basement khodi to underground foundation phati",
+    "probabilities": {
+      "kmc": 0.049211,
+      "kwsc": 0.227156,
+      "kelectric": 0.082854,
+      "ssgc": 0.259752,
+      "sswmb": 0.05738,
+      "sbca": 0.827331
+    },
+    "selected_departments": [
+      "sbca"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-01167",
+    "text": "manhole overflowing onto pedestrian walkway KWSC de-silt line",
+    "normalized_text": "manhole overflowing onto pedestrian walkway kwsc de-silt line",
+    "probabilities": {
+      "kmc": 0.091885,
+      "kwsc": 0.935303,
+      "kelectric": 0.044143,
+      "ssgc": 0.039437,
+      "sswmb": 0.331578,
+      "sbca": 0.046091
+    },
+    "selected_departments": [
+      "kwsc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-01193",
+    "text": "chhat par illegally mobile tower aur heavy rooms bana liye hain",
+    "normalized_text": "chhat par illegally mobile tower aur heavy rooms bana liye hain",
+    "probabilities": {
+      "kmc": 0.289504,
+      "kwsc": 0.132835,
+      "kelectric": 0.220069,
+      "ssgc": 0.07401,
+      "sswmb": 0.084692,
+      "sbca": 0.841899
+    },
+    "selected_departments": [
+      "sbca"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-01212",
+    "text": "bijli aur paani theek hai magar sui gas bilkul gayab hai choolha band",
+    "normalized_text": "bijli aur pani theek hai magar gas bilkul gayab hai choolha band",
+    "probabilities": {
+      "kmc": 0.164067,
+      "kwsc": 0.29168,
+      "kelectric": 0.457487,
+      "ssgc": 0.600546,
+      "sswmb": 0.076734,
+      "sbca": 0.080752
+    },
+    "selected_departments": [
+      "ssgc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-01220",
+    "text": "road kharab nahi magar bijli ka khamba girne se rasta block ho gaya",
+    "normalized_text": "road kharab nahi magar bijli ka khamba girne se rasta block ho gaya",
+    "probabilities": {
+      "kmc": 0.387137,
+      "kwsc": 0.081846,
+      "kelectric": 0.689865,
+      "ssgc": 0.057377,
+      "sswmb": 0.099093,
+      "sbca": 0.10338
+    },
+    "selected_departments": [
+      "kelectric"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-01261",
+    "text": "water supply valve man demanding bribe to open line take action",
+    "normalized_text": "water supply valve man demanding bribe to open line take action",
+    "probabilities": {
+      "kmc": 0.139967,
+      "kwsc": 0.885922,
+      "kelectric": 0.123947,
+      "ssgc": 0.155234,
+      "sswmb": 0.124429,
+      "sbca": 0.13668
+    },
+    "selected_departments": [
+      "kwsc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-01267",
+    "text": "commercial warehouse in residential street ban it",
+    "normalized_text": "commercial warehouse in residential street ban it",
+    "probabilities": {
+      "kmc": 0.129637,
+      "kwsc": 0.146233,
+      "kelectric": 0.154285,
+      "ssgc": 0.07972,
+      "sswmb": 0.09964,
+      "sbca": 0.575966
+    },
+    "selected_departments": [
+      "sbca"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-01307",
+    "text": "drainage blocked by builder pouring concrete wash into storm drain",
+    "normalized_text": "drainage blocked by builder pouring concrete wash into storm drain",
+    "probabilities": {
+      "kmc": 0.27223,
+      "kwsc": 0.190414,
+      "kelectric": 0.059849,
+      "ssgc": 0.100418,
+      "sswmb": 0.196582,
+      "sbca": 0.652182
+    },
+    "selected_departments": [
+      "sbca"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-01312",
+    "text": "road divider gap dangerous vehicles crossing illegally close the cut",
+    "normalized_text": "road divider gap dangerous vehicles crossing illegally close the cut",
+    "probabilities": {
+      "kmc": 0.683959,
+      "kwsc": 0.134895,
+      "kelectric": 0.160135,
+      "ssgc": 0.095484,
+      "sswmb": 0.079966,
+      "sbca": 0.467634
+    },
+    "selected_departments": [
+      "sbca"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-01331",
+    "text": "chulha jalane par halki si aag aati hai gas pressure extremely low",
+    "normalized_text": "chulha jalane par halki si aag aati hai gas pressure extremely low",
+    "probabilities": {
+      "kmc": 0.133646,
+      "kwsc": 0.072966,
+      "kelectric": 0.187245,
+      "ssgc": 0.925159,
+      "sswmb": 0.084206,
+      "sbca": 0.057212
+    },
+    "selected_departments": [
+      "ssgc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-01418",
+    "text": "no road defect kachray k dumper truck nahi aya pichle 2 hafton se",
+    "normalized_text": "no road defect kachray k dumper truck nahi aya pichle 2 hafton se",
+    "probabilities": {
+      "kmc": 0.082537,
+      "kwsc": 0.079917,
+      "kelectric": 0.095169,
+      "ssgc": 0.062466,
+      "sswmb": 0.905679,
+      "sbca": 0.067336
+    },
+    "selected_departments": [
+      "sswmb"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-01438",
+    "text": "sswmb complaints cell not responding to trash accumulation ticket",
+    "normalized_text": "sswmb complaints cell not responding to kachra accumulation ticket",
+    "probabilities": {
+      "kmc": 0.085611,
+      "kwsc": 0.069505,
+      "kelectric": 0.064889,
+      "ssgc": 0.088511,
+      "sswmb": 0.924867,
+      "sbca": 0.092304
+    },
+    "selected_departments": [
+      "sswmb"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-01458",
+    "text": "residential bungalow ko commercial school aur hospital mein badal diya",
+    "normalized_text": "residential bungalow ko commercial school aur hospital mein badal diya",
+    "probabilities": {
+      "kmc": 0.057944,
+      "kwsc": 0.210224,
+      "kelectric": 0.229695,
+      "ssgc": 0.178485,
+      "sswmb": 0.204634,
+      "sbca": 0.401605
+    },
+    "selected_departments": [
+      "sbca"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-01468",
+    "text": "sadak k beech me khada he bara wala accident ka darr he",
+    "normalized_text": "sarak k beech me khada he bara wala accident ka darr he",
+    "probabilities": {
+      "kmc": 0.715256,
+      "kwsc": 0.203813,
+      "kelectric": 0.112529,
+      "ssgc": 0.076165,
+      "sswmb": 0.162387,
+      "sbca": 0.132857
+    },
+    "selected_departments": [
+      "kmc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-01481",
+    "text": "sweepers dumping trash into sewage manhole stop this practice",
+    "normalized_text": "sweepers dumping kachra into sewage manhole stop this practice",
+    "probabilities": {
+      "kmc": 0.029293,
+      "kwsc": 0.648386,
+      "kelectric": 0.024888,
+      "ssgc": 0.050096,
+      "sswmb": 0.942527,
+      "sbca": 0.064029
+    },
+    "selected_departments": [
+      "kwsc",
+      "sswmb"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-01503",
+    "text": "pungent rotting odor from communal garbage dumpster clean bin",
+    "normalized_text": "pungent rotting odor from communal garbage dumpster clean bin",
+    "probabilities": {
+      "kmc": 0.089132,
+      "kwsc": 0.065597,
+      "kelectric": 0.071891,
+      "ssgc": 0.061893,
+      "sswmb": 0.967754,
+      "sbca": 0.084132
+    },
+    "selected_departments": [
+      "sswmb"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-01531",
+    "text": "hazardous building structural pillars cracked severely in Orangi Town Sector 11 imminent collapse risk",
+    "normalized_text": "hazardous building structural pillars cracked severely in orangi town sector 11 imminent girne wali risk",
+    "probabilities": {
+      "kmc": 0.070249,
+      "kwsc": 0.104032,
+      "kelectric": 0.175353,
+      "ssgc": 0.11114,
+      "sswmb": 0.078522,
+      "sbca": 0.971393
+    },
+    "selected_departments": [
+      "sbca"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-01532",
+    "text": "hazardous building structural pillars cracked severely in Nazimabad No 2 imminent collapse risk",
+    "normalized_text": "hazardous building structural pillars cracked severely in nazimabad no 2 imminent girne wali risk",
+    "probabilities": {
+      "kmc": 0.059759,
+      "kwsc": 0.084877,
+      "kelectric": 0.185276,
+      "ssgc": 0.130576,
+      "sswmb": 0.080429,
+      "sbca": 0.973856
+    },
+    "selected_departments": [
+      "sbca"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-01533",
+    "text": "hazardous building structural pillars cracked severely in North Nazimabad Block H imminent collapse risk",
+    "normalized_text": "hazardous building structural pillars cracked severely in north nazimabad block h imminent girne wali risk",
+    "probabilities": {
+      "kmc": 0.065532,
+      "kwsc": 0.095173,
+      "kelectric": 0.202021,
+      "ssgc": 0.122139,
+      "sswmb": 0.087332,
+      "sbca": 0.963597
+    },
+    "selected_departments": [
+      "sbca"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-01534",
+    "text": "hazardous building structural pillars cracked severely in Federal B Area Block 14 imminent collapse risk",
+    "normalized_text": "hazardous building structural pillars cracked severely in federal b area block 14 imminent girne wali risk",
+    "probabilities": {
+      "kmc": 0.07784,
+      "kwsc": 0.087875,
+      "kelectric": 0.20919,
+      "ssgc": 0.12909,
+      "sswmb": 0.072285,
+      "sbca": 0.968519
+    },
+    "selected_departments": [
+      "sbca"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-01535",
+    "text": "hazardous building structural pillars cracked severely in Shah Faisal Colony imminent collapse risk",
+    "normalized_text": "hazardous building structural pillars cracked severely in shah faisal colony imminent girne wali risk",
+    "probabilities": {
+      "kmc": 0.076083,
+      "kwsc": 0.085727,
+      "kelectric": 0.173064,
+      "ssgc": 0.127728,
+      "sswmb": 0.08109,
+      "sbca": 0.973922
+    },
+    "selected_departments": [
+      "sbca"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-01536",
+    "text": "hazardous building structural pillars cracked severely in Clifton Block 2 imminent collapse risk",
+    "normalized_text": "hazardous building structural pillars cracked severely in clifton block 2 imminent girne wali risk",
+    "probabilities": {
+      "kmc": 0.062226,
+      "kwsc": 0.092177,
+      "kelectric": 0.176834,
+      "ssgc": 0.109616,
+      "sswmb": 0.106308,
+      "sbca": 0.975034
+    },
+    "selected_departments": [
+      "sbca"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-01537",
+    "text": "hazardous building structural pillars cracked severely in Landhi Town imminent collapse risk",
+    "normalized_text": "hazardous building structural pillars cracked severely in landhi town imminent girne wali risk",
+    "probabilities": {
+      "kmc": 0.069721,
+      "kwsc": 0.088306,
+      "kelectric": 0.18901,
+      "ssgc": 0.12136,
+      "sswmb": 0.073711,
+      "sbca": 0.978043
+    },
+    "selected_departments": [
+      "sbca"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-01538",
+    "text": "hazardous building structural pillars cracked severely in Defence Phase 6 imminent collapse risk",
+    "normalized_text": "hazardous building structural pillars cracked severely in defence phase 6 imminent girne wali risk",
+    "probabilities": {
+      "kmc": 0.061522,
+      "kwsc": 0.086245,
+      "kelectric": 0.250662,
+      "ssgc": 0.110625,
+      "sswmb": 0.076582,
+      "sbca": 0.973131
+    },
+    "selected_departments": [
+      "sbca"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-01539",
+    "text": "hazardous building structural pillars cracked severely in Malir Cantt Road imminent collapse risk",
+    "normalized_text": "hazardous building structural pillars cracked severely in malir cantt road imminent girne wali risk",
+    "probabilities": {
+      "kmc": 0.097867,
+      "kwsc": 0.089618,
+      "kelectric": 0.179546,
+      "ssgc": 0.118452,
+      "sswmb": 0.063805,
+      "sbca": 0.971142
+    },
+    "selected_departments": [
+      "sbca"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-01540",
+    "text": "hazardous building structural pillars cracked severely in Korangi Industrial Area imminent collapse risk",
+    "normalized_text": "hazardous building structural pillars cracked severely in korangi industrial area imminent girne wali risk",
+    "probabilities": {
+      "kmc": 0.093194,
+      "kwsc": 0.093309,
+      "kelectric": 0.17079,
+      "ssgc": 0.127406,
+      "sswmb": 0.073387,
+      "sbca": 0.965452
+    },
+    "selected_departments": [
+      "sbca"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-01541",
+    "text": "hazardous building structural pillars cracked severely in Gulistan-e-Jauhar Block 7 imminent collapse risk",
+    "normalized_text": "hazardous building structural pillars cracked severely in gulistan-e-jauhar block 7 imminent girne wali risk",
+    "probabilities": {
+      "kmc": 0.079269,
+      "kwsc": 0.093048,
+      "kelectric": 0.164067,
+      "ssgc": 0.135097,
+      "sswmb": 0.093895,
+      "sbca": 0.962385
+    },
+    "selected_departments": [
+      "sbca"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-01542",
+    "text": "hazardous building structural pillars cracked severely in Gulberg Block 12 imminent collapse risk",
+    "normalized_text": "hazardous building structural pillars cracked severely in gulberg block 12 imminent girne wali risk",
+    "probabilities": {
+      "kmc": 0.066477,
+      "kwsc": 0.101812,
+      "kelectric": 0.181145,
+      "ssgc": 0.116092,
+      "sswmb": 0.081428,
+      "sbca": 0.974433
+    },
+    "selected_departments": [
+      "sbca"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-01543",
+    "text": "hazardous building structural pillars cracked severely in Federal Capital Area imminent collapse risk",
+    "normalized_text": "hazardous building structural pillars cracked severely in federal capital area imminent girne wali risk",
+    "probabilities": {
+      "kmc": 0.077235,
+      "kwsc": 0.087545,
+      "kelectric": 0.192072,
+      "ssgc": 0.124512,
+      "sswmb": 0.074316,
+      "sbca": 0.968808
+    },
+    "selected_departments": [
+      "sbca"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-01544",
+    "text": "hazardous building structural pillars cracked severely in PECHS Block 6 imminent collapse risk",
+    "normalized_text": "hazardous building structural pillars cracked severely in pechs block 6 imminent girne wali risk",
+    "probabilities": {
+      "kmc": 0.065243,
+      "kwsc": 0.091493,
+      "kelectric": 0.186875,
+      "ssgc": 0.120231,
+      "sswmb": 0.082294,
+      "sbca": 0.977611
+    },
+    "selected_departments": [
+      "sbca"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-01558",
+    "text": "hamare ilaqay mein do haftay se peene ka pani nahi aa raha tanker se guzara hai",
+    "normalized_text": "hamare ilaqay mein do haftay se peene ka pani nahi aa raha tanker se guzara hai",
+    "probabilities": {
+      "kmc": 0.090962,
+      "kwsc": 0.68502,
+      "kelectric": 0.385254,
+      "ssgc": 0.099716,
+      "sswmb": 0.176596,
+      "sbca": 0.08253
+    },
+    "selected_departments": [
+      "kwsc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-01559",
+    "text": "line mein paani bilkul nahi hai awam boond boond ko taras rahi hai kwsc dhyan de",
+    "normalized_text": "line mein pani bilkul nahi hai awam boond boond ko taras rahi hai kwsc dhyan de",
+    "probabilities": {
+      "kmc": 0.106017,
+      "kwsc": 0.757393,
+      "kelectric": 0.21847,
+      "ssgc": 0.200334,
+      "sswmb": 0.072225,
+      "sbca": 0.042566
+    },
+    "selected_departments": [
+      "kwsc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-01560",
+    "text": "pani ki supply band hai aur line mein hawa aa rahi hai paani kab aayega",
+    "normalized_text": "pani ki supply band hai aur line mein hawa aa rahi hai pani kab aayega",
+    "probabilities": {
+      "kmc": 0.206403,
+      "kwsc": 0.951863,
+      "kelectric": 0.537902,
+      "ssgc": 0.183358,
+      "sswmb": 0.065407,
+      "sbca": 0.053455
+    },
+    "selected_departments": [
+      "kwsc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-01561",
+    "text": "peene ka paani nahi mil raha line sookhi pari hai fori supply bahal karein",
+    "normalized_text": "peene ka pani nahi mil raha line sookhi pari hai fori supply bahal kiya jaye",
+    "probabilities": {
+      "kmc": 0.193836,
+      "kwsc": 0.893358,
+      "kelectric": 0.241846,
+      "ssgc": 0.1095,
+      "sswmb": 0.068452,
+      "sbca": 0.04619
+    },
+    "selected_departments": [
+      "kwsc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-01589",
+    "text": "residential plot par ghair qanooni 5 manzila commercial building banai ja rahi hai",
+    "normalized_text": "residential plot par illegal construction 5 manzila commercial building banai ja rahi hai",
+    "probabilities": {
+      "kmc": 0.07285,
+      "kwsc": 0.0468,
+      "kelectric": 0.075036,
+      "ssgc": 0.047248,
+      "sswmb": 0.092107,
+      "sbca": 0.996694
+    },
+    "selected_departments": [
+      "sbca"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-01590",
+    "text": "bina sbca approval ke gali mein illegal construction ho rahi hai rasta tang kar diya",
+    "normalized_text": "bina sbca approval ke gali mein illegal construction ho rahi hai rasta tang kar diya",
+    "probabilities": {
+      "kmc": 0.201621,
+      "kwsc": 0.075793,
+      "kelectric": 0.182776,
+      "ssgc": 0.08311,
+      "sswmb": 0.144886,
+      "sbca": 0.954441
+    },
+    "selected_departments": [
+      "sbca"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-01591",
+    "text": "residential ilaqay mein bina ijazat commercial plaza khara kiya ja raha hai",
+    "normalized_text": "residential ilaqay mein bina ijazat commercial plaza khara kiya ja raha hai",
+    "probabilities": {
+      "kmc": 0.078493,
+      "kwsc": 0.207124,
+      "kelectric": 0.260496,
+      "ssgc": 0.07371,
+      "sswmb": 0.100856,
+      "sbca": 0.641476
+    },
+    "selected_departments": [
+      "sbca"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-01599",
+    "text": "sewerage ka pani road par aa raha hai jis se traffic ruk gaya hai",
+    "normalized_text": "sewage ka pani road par aa raha hai jis se traffic ruk gaya hai",
+    "probabilities": {
+      "kmc": 0.766978,
+      "kwsc": 0.924146,
+      "kelectric": 0.119545,
+      "ssgc": 0.049645,
+      "sswmb": 0.130758,
+      "sbca": 0.02375
+    },
+    "selected_departments": [
+      "kmc",
+      "kwsc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-01600",
+    "text": "gutter ubalne ki wajah se road par ganda pani jama hai traffic bohot slow hai",
+    "normalized_text": "gutter ubalne ki wajah se road par badboo jama hai traffic bohot slow hai",
+    "probabilities": {
+      "kmc": 0.684641,
+      "kwsc": 0.781692,
+      "kelectric": 0.059554,
+      "ssgc": 0.034314,
+      "sswmb": 0.19759,
+      "sbca": 0.062184
+    },
+    "selected_departments": [
+      "kwsc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-01601",
+    "text": "sewer line leak se sarak par pani beh raha hai log phans rahe hain sewer band karo",
+    "normalized_text": "sewage line leak se sarak par pani beh raha hai log phans rahe hain sewage band karo",
+    "probabilities": {
+      "kmc": 0.451069,
+      "kwsc": 0.987688,
+      "kelectric": 0.147732,
+      "ssgc": 0.085813,
+      "sswmb": 0.066814,
+      "sbca": 0.023626
+    },
+    "selected_departments": [
+      "kwsc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-01602",
+    "text": "manhole overflow ki wajah se raste mein ganda paani hai aur traffic jam hai",
+    "normalized_text": "manhole overflow ki wajah se raste mein badboo hai aur traffic jam hai",
+    "probabilities": {
+      "kmc": 0.293012,
+      "kwsc": 0.904215,
+      "kelectric": 0.112225,
+      "ssgc": 0.053244,
+      "sswmb": 0.577962,
+      "sbca": 0.042832
+    },
+    "selected_departments": [
+      "kwsc",
+      "sswmb"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-01603",
+    "text": "pani ki main line phat gai hai aur us ki wajah se road ki satah bhi toot gai hai",
+    "normalized_text": "pani ki main line phat gai hai aur us ki wajah se road ki satah bhi tooti hai",
+    "probabilities": {
+      "kmc": 0.748339,
+      "kwsc": 0.864313,
+      "kelectric": 0.297608,
+      "ssgc": 0.130608,
+      "sswmb": 0.056976,
+      "sbca": 0.048667
+    },
+    "selected_departments": [
+      "kmc",
+      "kwsc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-01604",
+    "text": "water board ki underground pipeline burst hui jis se sarak dhans gai aur khadda par gaya",
+    "normalized_text": "water board ki underground pipeline burst hui jis se sarak dhans gai aur khadda par gaya",
+    "probabilities": {
+      "kmc": 0.897185,
+      "kwsc": 0.765939,
+      "kelectric": 0.038388,
+      "ssgc": 0.335085,
+      "sswmb": 0.036792,
+      "sbca": 0.041765
+    },
+    "selected_departments": [
+      "kmc",
+      "kwsc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-01605",
+    "text": "water main pipe leak hone se asphalt road baith gai hai pipe aur road dono repair hon",
+    "normalized_text": "water main pipeline leak hone se asphalt road baith gai hai pipeline aur road dono repair hon",
+    "probabilities": {
+      "kmc": 0.917106,
+      "kwsc": 0.876257,
+      "kelectric": 0.051829,
+      "ssgc": 0.545554,
+      "sswmb": 0.022269,
+      "sbca": 0.018255
+    },
+    "selected_departments": [
+      "kmc",
+      "kwsc",
+      "ssgc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-01606",
+    "text": "sarkari pipe phat gaya aur poori sarak toot phoot gai dono teams bhejo",
+    "normalized_text": "sarkari pipeline phat gaya aur poori sarak toot phoot gai dono teams bhejo",
+    "probabilities": {
+      "kmc": 0.788178,
+      "kwsc": 0.461855,
+      "kelectric": 0.14785,
+      "ssgc": 0.436223,
+      "sswmb": 0.102665,
+      "sbca": 0.050488
+    },
+    "selected_departments": [
+      "kmc",
+      "ssgc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-01616",
+    "text": "sarak bilkul theek hai magar gutter ka paani ubal raha hai sewer line theek karo",
+    "normalized_text": "sarak bilkul theek hai magar gutter ka pani ubal raha hai sewage line theek karo",
+    "probabilities": {
+      "kmc": 0.207582,
+      "kwsc": 0.98708,
+      "kelectric": 0.054102,
+      "ssgc": 0.048537,
+      "sswmb": 0.090707,
+      "sbca": 0.040846
+    },
+    "selected_departments": [
+      "kwsc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-01617",
+    "text": "road tooti hui nahi hai masla sewer line choke hone ka hai",
+    "normalized_text": "road tooti hui nahi hai masla sewage line choke hone ka hai",
+    "probabilities": {
+      "kmc": 0.626619,
+      "kwsc": 0.888874,
+      "kelectric": 0.088956,
+      "ssgc": 0.053061,
+      "sswmb": 0.087486,
+      "sbca": 0.014036
+    },
+    "selected_departments": [
+      "kwsc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-01618",
+    "text": "sadak theek hai khadda koi nahi hai bas gutter overflow hai",
+    "normalized_text": "sarak theek hai khadda koi nahi hai bas gutter overflow hai",
+    "probabilities": {
+      "kmc": 0.79015,
+      "kwsc": 0.782354,
+      "kelectric": 0.046851,
+      "ssgc": 0.026266,
+      "sswmb": 0.14863,
+      "sbca": 0.034694
+    },
+    "selected_departments": [
+      "kmc",
+      "kwsc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-01619",
+    "text": "gas leak nahi hai magar pressure intehai kam hai chulha nahi jal raha",
+    "normalized_text": "gas leak nahi hai magar pressure intehai kam hai chulha nahi jal raha",
+    "probabilities": {
+      "kmc": 0.093879,
+      "kwsc": 0.068542,
+      "kelectric": 0.140472,
+      "ssgc": 0.954434,
+      "sswmb": 0.06817,
+      "sbca": 0.041059
+    },
+    "selected_departments": [
+      "ssgc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-01620",
+    "text": "boo nahi aa rahi gas leak nahi hai sirf gas ka pressure kam hai",
+    "normalized_text": "boo nahi aa rahi gas leak nahi hai sirf gas ka pressure kam hai",
+    "probabilities": {
+      "kmc": 0.07002,
+      "kwsc": 0.061774,
+      "kelectric": 0.098219,
+      "ssgc": 0.984981,
+      "sswmb": 0.050208,
+      "sbca": 0.022329
+    },
+    "selected_departments": [
+      "ssgc"
+    ]
+  },
+  {
+    "dataset_id": "AEA-V10-01621",
+    "text": "gas ki pipeline mein koi leak nahi hai pressure ka masla hai",
+    "normalized_text": "gas ki pipeline mein koi leak nahi hai pressure ka masla hai",
+    "probabilities": {
+      "kmc": 0.089783,
+      "kwsc": 0.337031,
+      "kelectric": 0.081476,
+      "ssgc": 0.982083,
+      "sswmb": 0.018093,
+      "sbca": 0.01878
+    },
+    "selected_departments": [
+      "ssgc"
+    ]
+  }
+]

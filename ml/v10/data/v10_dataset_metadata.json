@@ -1,0 +1,24 @@
+{
+  "dataset_name": "Awaaz-e-Awam Multi-Department Civic Dataset V10",
+  "version": "10.0",
+  "total_samples": 1625,
+  "total_template_families": 895,
+  "splits": {
+    "train": 1137,
+    "val": 243,
+    "test": 245
+  },
+  "families": {
+    "train": 660,
+    "val": 120,
+    "test": 115
+  },
+  "source_breakdown": {
+    "synthetic_agent": 376,
+    "consented_real": 300,
+    "human_authored": 320,
+    "synthetic_paraphrase": 629
+  },
+  "pii_audit_passed": true,
+  "leakage_audit_passed": true
+}

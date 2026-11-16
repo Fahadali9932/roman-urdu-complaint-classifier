@@ -1,0 +1,109 @@
+{
+  "dataset_version": "v10.0-active-learned",
+  "rounds_executed": 3,
+  "total_acquired": 6,
+  "acquired_ids": [
+    "AL-POOL-010",
+    "AL-POOL-009",
+    "AL-POOL-002",
+    "AL-POOL-003",
+    "AL-POOL-004",
+    "AL-POOL-008"
+  ],
+  "round_history": [
+    {
+      "round": 1,
+      "train_size": 1139,
+      "acquired_samples": [
+        "AL-POOL-010",
+        "AL-POOL-009"
+      ],
+      "val_macro_f1": 0.9532,
+      "val_exact_match": 0.93,
+      "delta_f1": 0.0,
+      "consecutive_no_gain": 0
+    },
+    {
+      "round": 2,
+      "train_size": 1141,
+      "acquired_samples": [
+        "AL-POOL-002",
+        "AL-POOL-003"
+      ],
+      "val_macro_f1": 0.9532,
+      "val_exact_match": 0.93,
+      "delta_f1": 0.0,
+      "consecutive_no_gain": 1
+    },
+    {
+      "round": 3,
+      "train_size": 1143,
+      "acquired_samples": [
+        "AL-POOL-004",
+        "AL-POOL-008"
+      ],
+      "val_macro_f1": 0.9532,
+      "val_exact_match": 0.93,
+      "delta_f1": 0.0,
+      "consecutive_no_gain": 2
+    }
+  ],
+  "final_locked_test_metrics": {
+    "exact_match_ratio": 0.8122,
+    "macro_f1": 0.9046,
+    "micro_f1": 0.893,
+    "macro_precision": 0.8751,
+    "macro_recall": 0.9463,
+    "hamming_loss": 0.0435,
+    "false_positive_assignments": 42,
+    "false_negative_assignments": 22,
+    "over_routing_rate": 0.0286,
+    "under_routing_rate": 0.015,
+    "per_department": {
+      "kmc": {
+        "precision": 0.9508,
+        "recall": 0.7733,
+        "f1": 0.8529,
+        "support": 75
+      },
+      "kwsc": {
+        "precision": 0.7183,
+        "recall": 0.9273,
+        "f1": 0.8095,
+        "support": 55
+      },
+      "kelectric": {
+        "precision": 0.9556,
+        "recall": 0.9773,
+        "f1": 0.9663,
+        "support": 44
+      },
+      "ssgc": {
+        "precision": 0.92,
+        "recall": 1.0,
+        "f1": 0.9583,
+        "support": 46
+      },
+      "sswmb": {
+        "precision": 0.8846,
+        "recall": 1.0,
+        "f1": 0.9388,
+        "support": 23
+      },
+      "sbca": {
+        "precision": 0.8214,
+        "recall": 1.0,
+        "f1": 0.902,
+        "support": 46
+      }
+    }
+  },
+  "final_tuned_thresholds": {
+    "kmc": 0.69,
+    "kwsc": 0.49,
+    "kelectric": 0.58,
+    "ssgc": 0.41,
+    "sswmb": 0.35,
+    "sbca": 0.31
+  }
+}
