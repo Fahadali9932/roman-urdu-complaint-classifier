@@ -11,12 +11,15 @@
  */
 import type { DepartmentId } from '../types';
 import type { MultiLabelModelArtifact } from './multiLabelClassifier';
+import candidateModelJson from '../models/v11_candidate_model.json';
 import {
   analyzeComplaintRelationAware,
   type IssueCandidate,
   type RelationEdge,
   type RelationType,
 } from './relationEngine';
+
+export const championV11Model = candidateModelJson as unknown as V11ModelArtifact;
 
 export interface V11RelationAwareResult {
   departments: DepartmentId[];
@@ -39,7 +42,9 @@ export interface V11ClassifierCalibratedFold {
 }
 
 export interface V11DepartmentClassifier {
-  calibrated: V11ClassifierCalibratedFold[];
+  calibrated?: V11ClassifierCalibratedFold[];
+  coef?: number[];
+  intercept?: number[];
 }
 
 export interface V11ModelArtifact {
@@ -165,28 +170,43 @@ export function predictV11RawProbabilities(
   for (let j = 0; j < artifact.departments.length; j++) {
     const dept = artifact.departments[j];
     const deptClf = artifact.classifiers[j];
-    const folds = deptClf.calibrated;
-    let sumProb = 0;
+    if (deptClf.calibrated && deptClf.calibrated.length > 0) {
+      const folds = deptClf.calibrated;
+      let sumProb = 0;
 
-    for (let k = 0; k < folds.length; k++) {
-      const fold = folds[k];
-      const coef = fold.coef;
-      let df = fold.intercept[0] ?? 0;
+      for (let k = 0; k < folds.length; k++) {
+        const fold = folds[k];
+        const coef = fold.coef;
+        let df = fold.intercept[0] ?? 0;
 
+        for (let i = 0; i < coef.length; i++) {
+          const fi = features[i];
+          if (fi !== 0) {
+            df += coef[i] * fi;
+          }
+        }
+
+        // Sigmoid calibration: expit(-(a * df + b)) = 1 / (1 + exp(a * df + b))
+        const z = fold.a * df + fold.b;
+        const prob = 1 / (1 + Math.exp(z));
+        sumProb += prob;
+      }
+
+      result[dept] = sumProb / folds.length;
+    } else if (deptClf.coef && deptClf.intercept) {
+      // Direct LogisticRegression OneVsRest inference (V11.4.2 Champion run_003)
+      let score = deptClf.intercept[0] ?? 0;
+      const coef = deptClf.coef;
       for (let i = 0; i < coef.length; i++) {
         const fi = features[i];
         if (fi !== 0) {
-          df += coef[i] * fi;
+          score += coef[i] * fi;
         }
       }
-
-      // Sigmoid calibration: expit(-(a * df + b)) = 1 / (1 + exp(a * df + b))
-      const z = fold.a * df + fold.b;
-      const prob = 1 / (1 + Math.exp(z));
-      sumProb += prob;
+      result[dept] = 1 / (1 + Math.exp(-score));
+    } else {
+      result[dept] = 0;
     }
-
-    result[dept] = sumProb / folds.length;
   }
 
   return result as Record<DepartmentId, number>;
@@ -465,25 +485,30 @@ export function convertV11ToMultiLabelModelArtifact(
 
   for (let j = 0; j < numClasses; j++) {
     const deptClf = v11.classifiers[j];
-    const folds = deptClf.calibrated;
-    const avgW = new Float64Array(numFeatures);
-    let avgB = 0;
+    if (deptClf.calibrated && deptClf.calibrated.length > 0) {
+      const folds = deptClf.calibrated;
+      const avgW = new Float64Array(numFeatures);
+      let avgB = 0;
 
-    for (const fold of folds) {
-      const a = fold.a;
-      const b = fold.b;
-      const b0 = fold.intercept[0] ?? 0;
+      for (const fold of folds) {
+        const a = fold.a;
+        const b = fold.b;
+        const b0 = fold.intercept[0] ?? 0;
 
-      // -a * w
-      for (let i = 0; i < fold.coef.length; i++) {
-        avgW[i] += (-a * fold.coef[i]) / folds.length;
+        // -a * w
+        for (let i = 0; i < fold.coef.length; i++) {
+          avgW[i] += (-a * fold.coef[i]) / folds.length;
+        }
+        // -(a * b0 + b)
+        avgB += -(a * b0 + b) / folds.length;
       }
-      // -(a * b0 + b)
-      avgB += -(a * b0 + b) / folds.length;
-    }
 
-    coef.push(Array.from(avgW));
-    intercept.push(avgB);
+      coef.push(Array.from(avgW));
+      intercept.push(avgB);
+    } else if (deptClf.coef && deptClf.intercept) {
+      coef.push([...deptClf.coef]);
+      intercept.push(deptClf.intercept[0] ?? 0);
+    }
   }
 
   return {
@@ -523,20 +548,23 @@ export function convertV11ToMultiLabelModelArtifact(
  */
 export function classifyV11RelationAware(
   text: string,
-  artifact: V11ModelArtifact,
+  artifact: V11ModelArtifact = championV11Model,
   complaintId?: string
 ): V11RelationAwareResult {
   const features = extractV11Features(text, artifact);
   const rawProbabilities = predictV11RawProbabilities(features, artifact);
   const relationResult = analyzeComplaintRelationAware(text, complaintId);
 
-  // Calibrate probabilities according to affirmative issue evidence
+  // Preserve model's legitimate scoring and calibration behavior:
+  // - For grounded actionable departments, retain legitimate model probability (or ensure >= threshold)
+  // - For ungrounded or suppressed departments, cap probability safely below threshold
   const calibratedProbs = { ...rawProbabilities };
   for (const dept of artifact.departments) {
     if (relationResult.proposed_departments.includes(dept)) {
-      calibratedProbs[dept] = Math.max(calibratedProbs[dept], 0.85);
+      const thresh = artifact.thresholds[dept] ?? 0.25;
+      calibratedProbs[dept] = Math.max(calibratedProbs[dept], thresh);
     } else {
-      // If no affirmative defect was grounded, cap probability below threshold
+      // If no affirmative defect was grounded or relation suppressed it, cap probability below threshold
       const maxPermitted = (artifact.thresholds[dept] ?? 0.5) * 0.4;
       calibratedProbs[dept] = Math.min(calibratedProbs[dept], maxPermitted);
     }

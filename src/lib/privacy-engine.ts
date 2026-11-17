@@ -575,7 +575,8 @@ export function extractComplaintFacts(text: string): ExtractedFacts {
     topic = "road";
     if (/flyover|bridge|joint/i.test(lower)) subType = "flyover_joint";
     else if (/footpath/i.test(lower)) subType = "footpath_damaged";
-    else subType = "potholes";
+    else if (/khadd[ae]|gadd[ae]|pothole/i.test(lower)) subType = "potholes";
+    else subType = "general_damage";
   } else if (isBuilding) {
     topic = "building";
     if (/crack|darar|pillar/i.test(lower)) subType = "structural_cracks";
@@ -674,6 +675,9 @@ export function generateHeading(
       }
       if (facts.subType === "potholes") {
         return "Damaged Road and Potholes";
+      }
+      if (facts.subType === "footpath_damaged") {
+        return cleanLoc ? `Damaged Footpath in ${cleanLoc}` : "Damaged Footpath Infrastructure";
       }
       return cleanLoc ? `Damaged Road in ${cleanLoc}` : "Damaged Road in Area";
 
@@ -774,9 +778,15 @@ export function generateSummary(
       if (facts.subType === "flyover_joint") {
         sentence1 = `The resident reports damaged expansion joints on the overhead bridge${locPhrase ? ` ${locPhrase}` : ""}.`;
         sentence2 = "The road defect poses an accident risk for moving vehicles and requires inspection.";
-      } else {
+      } else if (facts.subType === "potholes") {
         sentence1 = `The resident reports severe road damage with deep potholes${locPhrase ? ` ${locPhrase}` : ""}.`;
         sentence2 = "The poor road condition is creating hazardous driving conditions for vehicles.";
+      } else if (facts.subType === "footpath_damaged") {
+        sentence1 = `The resident reports damaged footpath infrastructure${locPhrase ? ` ${locPhrase}` : ""}.`;
+        sentence2 = "Pedestrians are facing difficulty navigating the walkway.";
+      } else {
+        sentence1 = `The resident reports damaged road conditions requiring municipal repair${locPhrase ? ` ${locPhrase}` : ""}.`;
+        sentence2 = "Timely road maintenance is requested for the area.";
       }
       break;
     }

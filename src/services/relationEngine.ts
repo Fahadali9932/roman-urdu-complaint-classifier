@@ -123,11 +123,13 @@ export const DOMAIN_EVIDENCE: Record<AgencyId, DomainLexicon> = {
       /\breplace\s*lid\b/i, /\bcovers?\s*missing\b/i, /\bcontaminated\b/i, /\btoxic\s*smell\b/i,
       /\btanki\s*nahi\s*bhar\b/i, /\bsewer\s*line\s*choke\b/i, /\bchoke\b/i,
       /\bsirf\s*hawa\s*aa\s*rahi\b/i, /\bganda\s*pani\b/i, /\bsewage\s*mix\b/i,
+      /\bgutter\s+(?:ka\s+)?(?:ganda\s+)?pani\s+beh\s+raha\b/i,
     ],
     denials: [
       /\bye\s+pani\s+ka\s+masla\s+na?h?i\b/i,
       /\bpani\s+ka\s+koi\s+masla\s+nahi\b/i,
       /\bwater\s+ka\s+masla\s+nahi\b/i,
+      /\bpani\s+ka\s+masla\s+(?:solve|hal|theek)\s*ho\s*gaya\b/i,
     ],
   },
   kelectric: {
@@ -156,6 +158,7 @@ export const DOMAIN_EVIDENCE: Record<AgencyId, DomainLexicon> = {
       /\bpole\s+kharab\s+nahi\b/i,
       /\bbijli\s+ka\s+masla\s+nahi\b/i,
       /\blight\s+theek\s+hai\b/i,
+      /\bbijli\s+ka\s+masla\s+(?:solve|hal|theek)\s*ho\s*gaya\b/i,
     ],
   },
   ssgc: {
@@ -178,6 +181,7 @@ export const DOMAIN_EVIDENCE: Record<AgencyId, DomainLexicon> = {
       /\bye\s+gas\s+ka\s+masla\s+na?h?i\b/i,
       /\bgas\s+leak\s+nahi\s+hai\b/i,
       /\bgas\s+theek\s+hai\b/i,
+      /\bgas\s+(?:theek\s+ho\s+gayi|ka\s+masla\s+(?:solve|hal|theek)\s*ho\s*gaya)\b/i,
     ],
   },
   sswmb: {
@@ -189,7 +193,7 @@ export const DOMAIN_EVIDENCE: Record<AgencyId, DomainLexicon> = {
       /\bcarcass\b/i, /\billegal\s*(?:garbage\s*)?dump\b/i, /\bdump\b/i,
     ],
     defects: [
-      /\bnahi\s*utha\b/i, /\bnahi\s*uth\b/i, /\bnahi\s*uthta\b/i,
+      /\bnahi\s*uth(?:a|aya|ti|te)?\b/i, /\bnahi\s*uthta\b/i,
       /\buthta\s*nahi\b/i, /\buthaya\s*nahi\b/i, /\bpara\s*hai\b/i, /\bpara\s*hua\b/i,
       /\bpari\s*hai\b/i, /\bparay\s*hain\b/i, /\bpare\s*hain\b/i, /\bparha\s*hai\b/i,
       /\bparhi\s*hai\b/i, /\bdher\b/i, /\boverflow\b/i, /\bbikhra\b/i, /\bgir\s*raha\b/i,

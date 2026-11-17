@@ -261,10 +261,13 @@ export interface SubmissionResult {
   timestamp: string;
   message: string;
   departmentId?: string;
+  departments?: string[];
   status?: string;
   needsReview?: boolean;
   claimCode?: string;
   guestTrackingNumber?: string;
+  isLocalTestMode?: boolean;
+  v11Analysis?: any;
 }
 
 /**

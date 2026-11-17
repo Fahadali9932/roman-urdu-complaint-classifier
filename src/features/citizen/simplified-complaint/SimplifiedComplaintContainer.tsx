@@ -25,7 +25,8 @@ import { KarachiAreaCombobox } from '../components/KarachiAreaCombobox';
 import { defaultLocalityResolver } from '../../../data/karachi/locationResolver';
 import { KARACHI_DISTRICTS_DATA } from '../../../data/karachi/districts';
 import { KARACHI_DEPARTMENTS } from '../../../mocks/complaints';
-import { complaintService } from '../../../services';
+import { complaintService, localV11ComplaintService } from '../../../services';
+import { V11AnalysisResultView } from './V11AnalysisResultView';
 import { supabase, isSupabaseConfigured } from '../../../lib/supabase';
 import {
   ApplicantFormData,
@@ -65,6 +66,80 @@ const INITIAL_FORM: FullComplaintFormState = {
   complaint: { title: '', description: '' },
 };
 
+interface TestPreset {
+  id: string;
+  label: string;
+  category: string;
+  locality: string;
+  district: KarachiDistrict;
+  publicLocation: string;
+  address: string;
+  description: string;
+}
+
+const PRESET_CASES: TestPreset[] = [
+  {
+    id: 'road_original',
+    label: '1. Road (KHI-2026-B1D32C02)',
+    category: 'Single Issue (Road Damage)',
+    locality: 'Machar Colony',
+    district: 'District Keamari',
+    publicLocation: 'Machar Colony Road',
+    address: 'House 42, Sector 5, Machar Colony',
+    description: 'Humare ghar ke pass wali road kharab hai isko jald se jald theek kiya jae',
+  },
+  {
+    id: 'causal_motor',
+    label: '2. Causal (Power -> Water Motor)',
+    category: 'Causal Consequence',
+    locality: 'Gulshan-e-Iqbal',
+    district: 'District East',
+    publicLocation: 'Block 4 Main Market',
+    address: 'House 12, Street 3, Block 4',
+    description: 'Bijli nahi aa rahi jiski wajah se pani ki motor nahi chal rahi',
+  },
+  {
+    id: 'independent_dual',
+    label: '3. Independent (Road + Pipe)',
+    category: 'Independent Multi-Agency',
+    locality: 'Saddar',
+    district: 'District South',
+    publicLocation: 'Preedy Street near market',
+    address: 'Flat 3-B, Commercial Area',
+    description: 'Sarak mein gaddha hai aur public pani ki pipeline bhi leak kar rahi hai',
+  },
+  {
+    id: 'negated_garbage',
+    label: '4. Negated (Gas Fine, Waste Uncollected)',
+    category: 'Negation Handling',
+    locality: 'Korangi',
+    district: 'District Korangi',
+    publicLocation: 'Sector 31-D Main Road',
+    address: 'House 88, Street 4, Sector 31-D',
+    description: 'Gas ka koi masla nahi hai lekin hamari gali se kachra nahi uthaya ja raha',
+  },
+  {
+    id: 'complex_collapse',
+    label: '5. Complex (Pipe Burst + Road Collapse)',
+    category: 'Dual Repair (Same Incident)',
+    locality: 'Nazimabad',
+    district: 'District Central',
+    publicLocation: 'Block 2 near petrol pump',
+    address: 'House 15, Block 2',
+    description: 'Public water main phat gayi hai jiski wajah se road bhi dhans gayi. Dono pipeline aur road ko repair karna zaroori hai.',
+  },
+  {
+    id: 'long_letter_180',
+    label: '6. Full Letter (~175 Words)',
+    category: 'Long-Form Complete Letter',
+    locality: 'Clifton',
+    district: 'District South',
+    publicLocation: 'Block 2 near Boat Basin',
+    address: 'House 204, Block 2, Clifton',
+    description: 'Mohtaram afsaran, main Clifton Block 2 ka rehaishi hun aur nihayat adab se ap ki tawajjuh is ahem maslay ki taraf dilana chahta hun. Pichlay chand hafton se hamare ilaqay ki mukammal main sarak shadeed toot phoot ka shikar hai aur jaga jaga gehre khadday ban chukay hain jis se aam shehriyon aur traffic ko shaded mushkilaat ka samna hai. Barsat ke baad se halat mazeed kharab ho chuki hai aur footpath bhi toot phoot chuka hai. Hum barha ilaqay ke muaziz shehriyon ke sath mil kar guzarish kar chuke hain lekin abhi tak KMC ki taraf se koi amli iqdam nahi uthaya gaya. Rozana subah school jane wale bachay aur daftari mulazmeen is kharab sarak ki wajah se shadeed takleef uthate hain aur gaariyon ko bhi nuqsan pohanch raha hai. Baraye meherbani is shikayat ka fori notice liya jaye aur KMC ki engineering team bhej kar is sarak aur footpath ki jald az jald az-sar-e-nau taameer aur carpeting karwai jaye taake awam ko mazeed pareshani na ho. Shukriya.',
+  },
+];
+
 export const SimplifiedComplaintContainer: React.FC = () => {
   const { language, isRTL } = useLanguage();
   const ur = language === 'ur';
@@ -74,6 +149,35 @@ export const SimplifiedComplaintContainer: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submission, setSubmission] = useState<SubmissionResult | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [isTestMode, setIsTestMode] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    const params = new URLSearchParams(window.location.search);
+    return params.get('mode') === 'local-ai-test' || params.get('aiTest') === 'true';
+  });
+
+  const applyPreset = (preset: TestPreset) => {
+    setFormData({
+      applicant: {
+        citizenName: 'Fahad Malik (Test Citizen)',
+        citizenPhone: '03001234567',
+        citizenEmail: 'citizen.test@awaaz.local',
+        applicantAddress: preset.address,
+      },
+      location: {
+        locality: preset.locality,
+        district: preset.district,
+        publicLocation: preset.publicLocation,
+        isDistrictAutoResolved: true,
+        districtNeedsConfirmation: false,
+      },
+      complaint: {
+        title: preset.description.slice(0, 50),
+        description: preset.description,
+      },
+    });
+    setStage(3);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   // One-time startup purge of legacy unnamespaced draft key
   useEffect(() => {
@@ -272,7 +376,8 @@ export const SimplifiedComplaintContainer: React.FC = () => {
       return next;
     });
     try {
-      const result = await complaintService.submitComplaint({
+      const activeService = (import.meta.env.DEV && isTestMode) ? localV11ComplaintService : complaintService;
+      const result = await activeService.submitComplaint({
         citizenName: formData.applicant.citizenName,
         citizenPhone: formData.applicant.citizenPhone,
         citizenEmail: formData.applicant.citizenEmail,
@@ -282,7 +387,7 @@ export const SimplifiedComplaintContainer: React.FC = () => {
         publicLocation: formData.location.publicLocation,
         title: formData.complaint.description.trim().slice(0, 50) || 'Public complaint',
         description: formData.complaint.description,
-        isDemonstration: false,
+        isDemonstration: Boolean(import.meta.env.DEV && isTestMode),
       });
       if (typeof window !== 'undefined' && window.sessionStorage) {
         sessionStorage.removeItem(getDraftKey(currentUserId));
@@ -311,6 +416,90 @@ export const SimplifiedComplaintContainer: React.FC = () => {
     >
       <div className="write-complaint-viewport sticky bottom-0 z-10 w-full px-4 pt-28 pb-12 sm:px-6 sm:pt-32 sm:pb-16 lg:pt-36 lg:pb-20 motion-reduce:static">
         <div className="mx-auto max-w-5xl">
+          {/* Development-Only Local AI Test Mode Banner & Presets */}
+          {import.meta.env.DEV && (
+            <div
+              className={`mb-6 rounded-2xl border p-4 sm:p-5 shadow-sm text-start transition ${
+                isTestMode
+                  ? 'border-amber-300 bg-amber-50/95 ring-1 ring-amber-300'
+                  : 'border-slate-200 bg-white'
+              }`}
+              data-testid="local-ai-test-banner"
+            >
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <span
+                    className={`flex h-9 w-9 items-center justify-center rounded-xl text-base font-bold shrink-0 shadow-2xs ${
+                      isTestMode ? 'bg-amber-600 text-white' : 'bg-slate-100 text-slate-500'
+                    }`}
+                  >
+                    🧪
+                  </span>
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-xs font-black uppercase tracking-wider text-slate-900">
+                        LOCAL AI TEST MODE
+                      </span>
+                      <span className="text-[11px] font-mono bg-amber-100 text-amber-900 border border-amber-300 px-2 py-0.2 rounded-full font-bold">
+                        V11.4.2 Champion (run_003)
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-600 mt-0.5">
+                      Executes V11.4.2 inference 100% locally in browser. Zero network calls to Supabase. Zero DB mutations.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2.5 self-end sm:self-auto">
+                  <span className="text-xs font-mono font-bold text-slate-600">
+                    {isTestMode ? 'ENABLED' : 'OFF'}
+                  </span>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={isTestMode}
+                      onChange={(e) => setIsTestMode(e.target.checked)}
+                      className="sr-only peer"
+                      aria-label="Toggle Local AI Test Mode"
+                    />
+                    <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#681822]"></div>
+                  </label>
+                </div>
+              </div>
+
+              {/* Quick-Fill Presets for Phase V11.4.3 Evaluation */}
+              {isTestMode && (
+                <div className="mt-4 pt-3.5 border-t border-amber-200">
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-amber-900">
+                      ⚡ Quick-Fill Phase V11.4.3 Test Complaints:
+                    </p>
+                    <span className="text-[10px] text-amber-700 italic">
+                      Click to auto-populate and jump to Step 3
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                    {PRESET_CASES.map((preset) => (
+                      <button
+                        key={preset.id}
+                        type="button"
+                        onClick={() => applyPreset(preset)}
+                        className="flex flex-col text-start rounded-xl bg-white border border-amber-200/80 p-2.5 hover:bg-amber-100/60 hover:border-amber-300 transition cursor-pointer shadow-2xs group"
+                      >
+                        <span className="text-xs font-bold text-[#681822] group-hover:text-[#52131B]">
+                          {preset.label}
+                        </span>
+                        <span className="text-[10px] text-slate-500 font-medium line-clamp-1 mt-0.5">
+                          {preset.category}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Main Page Header */}
           <header className="mb-7 text-center sm:mb-9">
             <p className="mb-2 text-xs font-bold uppercase tracking-[0.16em] text-[#681822]">
@@ -760,17 +949,32 @@ export const SimplifiedComplaintContainer: React.FC = () => {
       </div>
 
       {submission && (
-        <SubmissionModal
-          submission={submission}
-          formData={formData}
-          copy={copy}
-          ur={ur}
-          onClose={() => {
-            setSubmission(null);
-            setFormData(INITIAL_FORM);
-            setStage(1);
-          }}
-        />
+        submission.v11Analysis ? (
+          <V11AnalysisResultView
+            submission={submission}
+            analysis={submission.v11Analysis}
+            ur={ur}
+            onClose={() => {
+              setSubmission(null);
+            }}
+            onReset={() => {
+              setSubmission(null);
+              setStage(3);
+            }}
+          />
+        ) : (
+          <SubmissionModal
+            submission={submission}
+            formData={formData}
+            copy={copy}
+            ur={ur}
+            onClose={() => {
+              setSubmission(null);
+              setFormData(INITIAL_FORM);
+              setStage(1);
+            }}
+          />
+        )
       )}
     </div>
   );

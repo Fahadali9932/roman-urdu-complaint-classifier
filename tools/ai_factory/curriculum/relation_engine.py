@@ -78,12 +78,14 @@ DOMAIN_EVIDENCE = {
             r"\bsupply\s*(?:mukammal|bilkul|poori)?\s*band\b", r"\bshortage\b", r"\bchori\b", r"\bband\s*hai\b",
             r"\breplace\s*lid\b", r"\bcovers?\s*missing\b", r"\bcontaminated\b", r"\btoxic\s*smell\b",
             r"\btanki\s*nahi\s*bhar\b", r"\bsewer\s*line\s*choke\b", r"\bchoke\b",
-            r"\bsirf\s*hawa\s*aa\s*rahi\b", r"\bganda\s*pani\b", r"\bsewage\s*mix\b"
+            r"\bsirf\s*hawa\s*aa\s*rahi\b", r"\bganda\s*pani\b", r"\bsewage\s*mix\b",
+            r"\bgutter\s+(?:ka\s+)?(?:ganda\s+)?pani\s+beh\s+raha\b"
         ],
         "denials": [
             r"\bye\s+pani\s+ka\s+masla\s+na?h?i\b",
             r"\bpani\s+ka\s+koi\s+masla\s+nahi\b",
-            r"\bwater\s+ka\s+masla\s+nahi\b"
+            r"\bwater\s+ka\s+masla\s+nahi\b",
+            r"\bpani\s+ka\s+masla\s+(?:solve|hal|theek)\s*ho\s*gaya\b"
         ]
     },
     "kelectric": {
@@ -111,7 +113,8 @@ DOMAIN_EVIDENCE = {
         "denials": [
             r"\bpole\s+kharab\s+nahi\b",
             r"\bbijli\s+ka\s+masla\s+nahi\b",
-            r"\blight\s+theek\s+hai\b"
+            r"\blight\s+theek\s+hai\b",
+            r"\bbijli\s+ka\s+masla\s+(?:solve|hal|theek)\s*ho\s*gaya\b"
         ]
     },
     "ssgc": {
@@ -133,7 +136,8 @@ DOMAIN_EVIDENCE = {
             r"\bgas\s+ka\s+koi\s+issue\s+nahi\b",
             r"\bye\s+gas\s+ka\s+masla\s+na?h?i\b",
             r"\bgas\s+leak\s+nahi\s+hai\b",
-            r"\bgas\s+theek\s+hai\b"
+            r"\bgas\s+theek\s+hai\b",
+            r"\bgas\s+(?:theek\s+ho\s+gayi|ka\s+masla\s+(?:solve|hal|theek)\s*ho\s*gaya)\b"
         ]
     },
     "sswmb": {
@@ -145,7 +149,7 @@ DOMAIN_EVIDENCE = {
             r"\bcarcass\b", r"\billegal\s*(?:garbage\s*)?dump\b", r"\bdump\b"
         ],
         "defects": [
-            r"\bnahi\s*utha\b", r"\bnahi\s*uth\b", r"\bnahi\s*uthta\b",
+            r"\bnahi\s*uth(?:a|aya|ti|te)?\b", r"\bnahi\s*uthta\b",
             r"\buthta\s*nahi\b", r"\buthaya\s*nahi\b", r"\bpara\s*hai\b", r"\bpara\s*hua\b",
             r"\bpari\s*hai\b", r"\bparay\s*hain\b", r"\bpare\s*hain\b", r"\bparha\s*hai\b",
             r"\bparhi\s*hai\b", r"\bdher\b", r"\boverflow\b", r"\bbikhra\b", r"\bgir\s*raha\b",
