@@ -66,5 +66,6 @@ chrome_*
 # Curriculum runs & large training caches
 data/v11/curriculum_runs/
 data/v11/stress_test/
+data/v11/eval_v11_4_8/*.jsonl
 scratch/
 *.joblib

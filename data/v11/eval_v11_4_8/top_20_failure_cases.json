@@ -1,0 +1,408 @@
+[
+  {
+    "num": 1,
+    "id": "EVAL-V1148-0003",
+    "category": "NORMAL_EVERYDAY",
+    "bracket": "36-80",
+    "word_count": 55,
+    "text": "Guzarish ye hai ke Surjani Town Sector 7-A ki galiyon mein unannounced load shedding 14 ghante tak pohnch gayi hai emergency halat hain. Daily commuters aur shopkeepers is soorat-e-haal se be-inteha pareshan hain aur traffic muattal hai. Higher authorities se appeal hai ke aam shehriyon ki pareshani par tawajjah dein aur fori relief faraham karein.",
+    "expected": [
+      "kelectric"
+    ],
+    "website_pred": [],
+    "website_relation": "UNCERTAIN",
+    "website_needs_review": true,
+    "website_review_reason": "UNCERTAIN_DEFECT",
+    "r6_pred": [
+      "kelectric"
+    ],
+    "r6_correct": true
+  },
+  {
+    "num": 2,
+    "id": "EVAL-V1148-0005",
+    "category": "NORMAL_EVERYDAY",
+    "bracket": "81-125",
+    "word_count": 94,
+    "text": "Mohtaram afsaran, hum Khokhrapar sector 2 ke tax-paying shehri hain aur nihayat dukh ke sath ye report likhwa rahe hain. Haqeeqat ye hai ke solid waste walon ki la-parwahi se bimariyan phailne ka shadeed andesha hai. Is waja se local businesses aur schools dono mutasir hain aur bimar afraad hospital nahi ja sakte. Staff ke sust rawayye ki waja se mohallay mein ehtijaj ki faza ban rahi hai jo kisi bhi waqt mazeed barh sakti hai. Baraye meharbani is critical grievance ko top priority par hal kiya jae aur field team rawana ki jae.",
+    "expected": [
+      "sswmb"
+    ],
+    "website_pred": [],
+    "website_relation": "UNCERTAIN",
+    "website_needs_review": true,
+    "website_review_reason": "UNCERTAIN_DEFECT",
+    "r6_pred": [
+      "sswmb"
+    ],
+    "r6_correct": true
+  },
+  {
+    "num": 3,
+    "id": "EVAL-V1148-0303",
+    "category": "ANGRY_AGGRESSIVE",
+    "bracket": "81-125",
+    "word_count": 116,
+    "text": "Assalam o alaikum, hum Old Golimar main chowk ke rehaishi hain aur pichle kafi arsay se shadeed pareshani mein mubtila hain. Hamari gali mein Shadeed gham-o-gussa phail raha hai! neutral wire break hone se high voltage aya hai aur ghar ke AC aur TV phat gaye. Foran theek karo warna ehtijaj hoga. Is maslay ki waja se bache aur buzurg sab shadeed museebat mein hain aur aam guzar-gah band ho chuki hai. Humne pehle bhi multiple times complaint cell par rabta kiya magar koi sunwayi nahi hui sirf aana kani se kaam lia ja raha hai. Aap se darkhwast hai ke fori notice le kar team ko field mein depute karein taake mazeed nuqsan na ho.",
+    "expected": [
+      "kelectric"
+    ],
+    "website_pred": [],
+    "website_relation": "UNCERTAIN",
+    "website_needs_review": true,
+    "website_review_reason": "UNCERTAIN_DEFECT",
+    "r6_pred": [],
+    "r6_correct": false
+  },
+  {
+    "num": 4,
+    "id": "EVAL-V1148-0305",
+    "category": "ANGRY_AGGRESSIVE",
+    "bracket": "5-35",
+    "word_count": 35,
+    "text": "Attn Municipal Commissioner: In Malir Cantt check post 5, Had ho chuki hai is bay-hisi ki! commercial area mein waste management walon ne safai karna band kar di hai. Foran theek karo warna ehtijaj hoga.",
+    "expected": [
+      "sswmb"
+    ],
+    "website_pred": [],
+    "website_relation": "UNCERTAIN",
+    "website_needs_review": true,
+    "website_review_reason": "UNCERTAIN_DEFECT",
+    "r6_pred": [
+      "sswmb"
+    ],
+    "r6_correct": true
+  },
+  {
+    "num": 5,
+    "id": "EVAL-V1148-0504",
+    "category": "ABUSIVE_PROFANITY",
+    "bracket": "166-200",
+    "word_count": 200,
+    "text": "Janab aala, hum pichle bees saal se Ancholi society Block 20 ke mustaqil rehaishi hain aur nihayat dukh aur sadme ke sath ye arzi guzar rahe hain. Hamare ghar mein mere buzurg walid hain jinki tabiyat shadeed kharab rehti hai aur unko 24 ghante medical oxygen machine ki ashad zarurat parti hai. Sath hi mere teen chote bache hain jinke board ke annual imtihanaat sar par hain aur unki parhai shadeed mutasir ho rahi hai. Afsos is baat ka hai ke pipeline crack hone ki wajah se gas ka bara leekage hai dhmaka hone ka andeesha hai! in jahilon ko koi aqal nahi hai. Awam ko pagal banaya hua hai. Humne pichle das roz mein baraha helpline 118 aur local complaint cell par formal shikayat darj karwai hai aur complaint number 84920 bhi mila. Lekin har dafa duty officer sirf jhooti tasalli deta hai ke emergency response van rawana ho chuki hai jo aaj tak nahi pohanchi. Pura mohalla shadeed azab mein mubtila hai aur tamam rehaishi shiddat se mutaliba karte hain ke aala afsaran is sangheen soorat-e-haal ka fori notice lein. Agar aglay 24 ghanton mein staff ne physical visit na kiya to hum tamam rehaishi sarak par aakar",
+    "expected": [
+      "ssgc"
+    ],
+    "website_pred": [
+      "kmc"
+    ],
+    "website_relation": "SINGLE",
+    "website_needs_review": false,
+    "website_review_reason": null,
+    "r6_pred": [
+      "ssgc"
+    ],
+    "r6_correct": true
+  },
+  {
+    "num": 6,
+    "id": "EVAL-V1148-0505",
+    "category": "ABUSIVE_PROFANITY",
+    "bracket": "126-165",
+    "word_count": 158,
+    "text": "Mohtaram afsaran, nihayat dukh aur afsos ke sath ye shikayat darj karwa raha hoon ke hamare ilaqa Gulshan-e-Hadeed phase 1 commercial mein civic facilities ka bohot bura haal hai. Hum tax ada karne wale shehri hain magar badlay mein humein ye khwari milti hai. Asal sangheen masla ye hai ke gali ke konay par kachray ka pahar ban chuka hai char din se koi dumper nahi aya! haramkhor administration bilkul andhi ho chuki hai. Awam ko pagal banaya hua hai. Is kharab soorat-e-haal ki wajah se gali ke tamam dukaandar aur rehaishi shadeed nuqsan utha rahe hain aur karobar bilkul thapp ho chuka hai. Humne 20 afrad ke dastakhat ke sath formal application bhi submit karwai thi magar registry clerk ne sirf stamp laga kar file dabba di. Awam ka sabar ab jawab de chuka hai aur agar aglay 24 ghanton mein team na ayi to hum ehtijaj karenge. Khuda ke waste is museebat se hamari jaan churayein.",
+    "expected": [
+      "sswmb"
+    ],
+    "website_pred": [],
+    "website_relation": "UNCERTAIN",
+    "website_needs_review": true,
+    "website_review_reason": "UNCERTAIN_DEFECT",
+    "r6_pred": [
+      "sswmb"
+    ],
+    "r6_correct": true
+  },
+  {
+    "num": 7,
+    "id": "EVAL-V1148-0701",
+    "category": "SLANG_CODESWITCH",
+    "bracket": "126-165",
+    "word_count": 154,
+    "text": "Janab-e-wala, arzi guzaar hain ke Soldier Bazaar near garden mein pichle do hafton se aisi ghair mamooli halat paida ho gayi hai jis ne sab ka jeena haram kar diya hai. Asal kharabi ye hai ke chikna kaam karne ke bajae so rahe hain! Citizens are enduring extreme mental and physical agony due to administrative negligence. Basically road ki carpeting ukhar chuki hai aur pathar urr kar pedistrians ko lagte hain. Immediate response expected. Har roz subah log daftar aur bache taleemi idaron ke liye nikalte hain to raste mein zillat uthate hain. Humne local elected councilor aur assistant commissioner office ke chakar kaatay magar wahan sirf thande kamron mein baten banti hain zameen par koi nahi ata. Hum kisi siyasi jalsay ke khwahish mand nahi hain sirf apne bunyadi shehri haqooq ka mutaliba kar rahe hain. Umeed hai aala hukkam is notice ka jaiza le kar fori tor par action orders jari karenge.",
+    "expected": [
+      "kmc"
+    ],
+    "website_pred": [],
+    "website_relation": "UNCERTAIN",
+    "website_needs_review": true,
+    "website_review_reason": "UNCERTAIN_DEFECT",
+    "r6_pred": [
+      "kmc"
+    ],
+    "r6_correct": true
+  },
+  {
+    "num": 8,
+    "id": "EVAL-V1148-0702",
+    "category": "SLANG_CODESWITCH",
+    "bracket": "81-125",
+    "word_count": 118,
+    "text": "Mohtaram afsaran, hum Steel Town sector 3 ke tax-paying shehri hain aur nihayat dukh ke sath ye report likhwa rahe hain. Haqeeqat ye hai ke level ki khwari chal rahi hai! The competent authorities are requested to take urgent cognizance of this civic hazard. Basically water pump station band hone se poora sector paani se mehroom hai. Immediate response expected. Is waja se local businesses aur schools dono mutasir hain aur bimar afraad hospital nahi ja sakte. Staff ke sust rawayye ki waja se mohallay mein ehtijaj ki faza ban rahi hai jo kisi bhi waqt mazeed barh sakti hai. Baraye meharbani is critical grievance ko top priority par hal kiya jae aur field team rawana ki jae.",
+    "expected": [
+      "kwsc"
+    ],
+    "website_pred": [],
+    "website_relation": "UNCERTAIN",
+    "website_needs_review": true,
+    "website_review_reason": "UNCERTAIN_DEFECT",
+    "r6_pred": [],
+    "r6_correct": false
+  },
+  {
+    "num": 9,
+    "id": "EVAL-V1148-0901",
+    "category": "INDEPENDENT_DUAL",
+    "bracket": "126-165",
+    "word_count": 155,
+    "text": "Janab-e-wala, arzi guzaar hain ke Golimar number 1 near chakiwara bridge mein pichle do hafton se aisi ghair mamooli halat paida ho gayi hai jis ne sab ka jeena haram kar diya hai. Asal kharabi ye hai ke do alag alag baray defects hain: pehla masla flyover ke expansion joints kharab hain aur darmian mein daraar par chuki hai, aur doosri taraf kura dan toot chuka hai aur kachra poori sarak par phaila hua hai. Har roz subah log daftar aur bache taleemi idaron ke liye nikalte hain to raste mein zillat uthate hain. Humne local elected councilor aur assistant commissioner office ke chakar kaatay magar wahan sirf thande kamron mein baten banti hain zameen par koi nahi ata. Hum kisi siyasi jalsay ke khwahish mand nahi hain sirf apne bunyadi shehri haqooq ka mutaliba kar rahe hain. Umeed hai aala hukkam is notice ka jaiza le kar fori tor par action orders jari karenge.",
+    "expected": [
+      "kmc",
+      "sswmb"
+    ],
+    "website_pred": [
+      "kmc"
+    ],
+    "website_relation": "SINGLE",
+    "website_needs_review": false,
+    "website_review_reason": null,
+    "r6_pred": [
+      "kmc",
+      "sswmb"
+    ],
+    "r6_correct": true
+  },
+  {
+    "num": 10,
+    "id": "EVAL-V1148-0902",
+    "category": "INDEPENDENT_DUAL",
+    "bracket": "36-80",
+    "word_count": 50,
+    "text": "Emergency alert from Gulshan-e-Hadeed phase 1 commercial: do alag alag baray defects hain: pehla masla electric meter box mein short circuit ho raha hai current dharne ka khatra hai, aur doosri taraf residential plot par ghair qanooni taur par 5th floor ki construction ki ja rahi hai. Immediate inspection required.",
+    "expected": [
+      "kelectric",
+      "sbca"
+    ],
+    "website_pred": [
+      "kelectric"
+    ],
+    "website_relation": "SINGLE",
+    "website_needs_review": false,
+    "website_review_reason": null,
+    "r6_pred": [
+      "kelectric",
+      "sbca"
+    ],
+    "r6_correct": true
+  },
+  {
+    "num": 11,
+    "id": "EVAL-V1148-0904",
+    "category": "INDEPENDENT_DUAL",
+    "bracket": "36-80",
+    "word_count": 47,
+    "text": "Attn Municipal Commissioner: In Soldier Bazaar near garden, do alag alag baray defects hain: pehla masla solid waste walon ki la-parwahi se bimariyan phailne ka shadeed andesha hai, aur doosri taraf line phatne ki wajah se drinking water mein gutter ka ganda paani mix hokar araha hai.",
+    "expected": [
+      "kwsc",
+      "sswmb"
+    ],
+    "website_pred": [
+      "kwsc"
+    ],
+    "website_relation": "SINGLE",
+    "website_needs_review": false,
+    "website_review_reason": null,
+    "r6_pred": [
+      "kwsc",
+      "sswmb"
+    ],
+    "r6_correct": true
+  },
+  {
+    "num": 12,
+    "id": "EVAL-V1148-1151",
+    "category": "INDEPENDENT_TRIPLE",
+    "bracket": "81-125",
+    "word_count": 96,
+    "text": "Janab aala, hamare ilaqa Saudabad near RCD ground mein pichle teen din se emergency civic alert: teen alag alag idaron ki la-parwahi hai. 1: dumper driver kachra uthaye baghair chakkar laga kar nikal jate hain. 2: electric meter box mein short circuit ho raha hai current dharne ka khatra hai. 3: drinking water line pichle chaar haftay se band hai meetha pani bilkul nahi araha. Awam aur chote bachon ko aane jaane mein shadeed mushkilat ka samna hai. Baraye meharbani mutaaliqa staff ko foran bhej kar masla hal karwayein taake log sukoon ka saans le sakein.",
+    "expected": [
+      "kelectric",
+      "kwsc",
+      "sswmb"
+    ],
+    "website_pred": [
+      "kelectric",
+      "kwsc"
+    ],
+    "website_relation": "INDEPENDENT",
+    "website_needs_review": false,
+    "website_review_reason": null,
+    "r6_pred": [
+      "kelectric",
+      "kwsc",
+      "sswmb"
+    ],
+    "r6_correct": true
+  },
+  {
+    "num": 13,
+    "id": "EVAL-V1148-1152",
+    "category": "INDEPENDENT_TRIPLE",
+    "bracket": "36-80",
+    "word_count": 65,
+    "text": "Mehran Town near Bilal colony ke rehaishi shikayat darj karwa rahe hain ke emergency civic alert: teen alag alag idaron ki la-parwahi hai. 1: sewerage nala kachray se block hai aur ganda pani overtopping kar raha hai. 2: residential plot par ghair qanooni taur par 5th floor ki construction ki ja rahi hai. 3: gali ki pukhta sadak toot kar kacha rasta ban chuki hai.",
+    "expected": [
+      "kmc",
+      "kwsc",
+      "sbca"
+    ],
+    "website_pred": [
+      "kmc",
+      "kwsc"
+    ],
+    "website_relation": "INDEPENDENT",
+    "website_needs_review": false,
+    "website_review_reason": null,
+    "r6_pred": [
+      "kwsc",
+      "sbca",
+      "sswmb"
+    ],
+    "r6_correct": false
+  },
+  {
+    "num": 14,
+    "id": "EVAL-V1148-1301",
+    "category": "NEGATION_CONTRADICTION",
+    "bracket": "126-165",
+    "word_count": 135,
+    "text": "Assalam o alaikum, hum PECHS Block 2 near society office ke rehaishi hain aur pichle kafi arsay se shadeed pareshani mein mubtila hain. Hamari gali mein sweepers kachra uthane ki bajae wahin aag laga dete hain shadeed dhuwan phailta hai ka issue pichle hafte solve hogaya tha wo ab theek hai, lekin asal current masla ye hai ke khamba jhuk gaya hai aur taaren logon ki chatton ko chhu rahi hain. Is maslay ki waja se bache aur buzurg sab shadeed museebat mein hain aur aam guzar-gah band ho chuki hai. Humne pehle bhi multiple times complaint cell par rabta kiya magar koi sunwayi nahi hui sirf aana kani se kaam lia ja raha hai. Aap se darkhwast hai ke fori notice le kar team ko field mein depute karein taake mazeed nuqsan na ho.",
+    "expected": [
+      "kelectric"
+    ],
+    "website_pred": [
+      "sswmb"
+    ],
+    "website_relation": "SINGLE",
+    "website_needs_review": false,
+    "website_review_reason": null,
+    "r6_pred": [
+      "sswmb"
+    ],
+    "r6_correct": false
+  },
+  {
+    "num": 15,
+    "id": "EVAL-V1148-1302",
+    "category": "NEGATION_CONTRADICTION",
+    "bracket": "126-165",
+    "word_count": 163,
+    "text": "Janab-e-wala, arzi guzaar hain ke Shah Latif Town sector 17-B mein pichle do hafton se aisi ghair mamooli halat paida ho gayi hai jis ne sab ka jeena haram kar diya hai. Asal kharabi ye hai ke transformer blast hogaya hai aur pichle 24 ghante se poora mohalla andhere mein hai ka issue pichle hafte solve hogaya tha wo ab theek hai, lekin asal current masla ye hai ke subah se raat tak gas gayab rehti hai commercial cylinder afford nahi kar sakte. Har roz subah log daftar aur bache taleemi idaron ke liye nikalte hain to raste mein zillat uthate hain. Humne local elected councilor aur assistant commissioner office ke chakar kaatay magar wahan sirf thande kamron mein baten banti hain zameen par koi nahi ata. Hum kisi siyasi jalsay ke khwahish mand nahi hain sirf apne bunyadi shehri haqooq ka mutaliba kar rahe hain. Umeed hai aala hukkam is notice ka jaiza le kar fori tor par action orders jari karenge.",
+    "expected": [
+      "ssgc"
+    ],
+    "website_pred": [
+      "kelectric",
+      "ssgc"
+    ],
+    "website_relation": "INDEPENDENT",
+    "website_needs_review": false,
+    "website_review_reason": null,
+    "r6_pred": [
+      "kelectric",
+      "ssgc"
+    ],
+    "r6_correct": false
+  },
+  {
+    "num": 16,
+    "id": "EVAL-V1148-1501",
+    "category": "CAUSAL_CONSEQUENCES",
+    "bracket": "81-125",
+    "word_count": 81,
+    "text": "Guzarish ye hai ke Chanesar Goth main road ki galiyon mein solid waste management walon ne kachra uthana band kar dia hai kachray ka dhair lag gaya hai, jis ke sabab kachra phailne ki waja se gali ka rasta block hogaya hai. Root problem yehi hai isko hal karein. Daily commuters aur shopkeepers is soorat-e-haal se be-inteha pareshan hain aur traffic muattal hai. Higher authorities se appeal hai ke aam shehriyon ki pareshani par tawajjah dein aur fori relief faraham karein.",
+    "expected": [
+      "sswmb"
+    ],
+    "website_pred": [],
+    "website_relation": "UNCERTAIN",
+    "website_needs_review": true,
+    "website_review_reason": "UNCERTAIN_DEFECT",
+    "r6_pred": [
+      "sswmb"
+    ],
+    "r6_correct": true
+  },
+  {
+    "num": 17,
+    "id": "EVAL-V1148-1504",
+    "category": "CAUSAL_CONSEQUENCES",
+    "bracket": "81-125",
+    "word_count": 84,
+    "text": "Assalam o alaikum, nihayat adab se ilteja hai ke Jamshed Road near Gurumandir mein solid waste management walon ne kachra uthana band kar dia hai kachray ka dhair lag gaya hai, jis ke sabab kachra phailne ki waja se gali ka rasta block hogaya hai. Root problem yehi hai isko hal karein. Humne pichle hafte bhi helpline par call ki thi magar koi sunwayi nahi hui aur masla barhta ja raha hai. Meharbani farma kar iska fori sadd-e-baab karein aur emergency crew depute karein.",
+    "expected": [
+      "sswmb"
+    ],
+    "website_pred": [],
+    "website_relation": "UNCERTAIN",
+    "website_needs_review": true,
+    "website_review_reason": "UNCERTAIN_DEFECT",
+    "r6_pred": [
+      "sswmb"
+    ],
+    "r6_correct": true
+  },
+  {
+    "num": 18,
+    "id": "EVAL-V1148-1651",
+    "category": "CORRUPTED_SPELLING_GRAMMAR",
+    "bracket": "81-125",
+    "word_count": 100,
+    "text": "Assalam o alaikum, hum Kharadar Paper Market ke rehaishi hain aur pichle kafi arsay se shadeed pareshani mein mubtila hain. Hamari gali mein pole par cable wire mein aag lag gayi hai dhamakay ho rahe hain. Is maslay ki waja se bache aur buzurg sab shadeed museebat mein hain aur aam guzar-gah band ho chuki hai. Humne pehle bhi multiple times complaint cell par rabta kiya magar koi sunwayi nahi hui sirf aana kani se kaam lia ja raha hai. Aap se darkhwast hai ke fori notice le kar team ko field mein depute karein taake mazeed nuqsan na ho.",
+    "expected": [
+      "kelectric"
+    ],
+    "website_pred": [],
+    "website_relation": "UNCERTAIN",
+    "website_needs_review": true,
+    "website_review_reason": "UNCERTAIN_DEFECT",
+    "r6_pred": [
+      "kelectric"
+    ],
+    "r6_correct": true
+  },
+  {
+    "num": 19,
+    "id": "EVAL-V1148-1652",
+    "category": "CORRUPTED_SPELLING_GRAMMAR",
+    "bracket": "36-80",
+    "word_count": 58,
+    "text": "Janab aala, haaamare ilaqa Gulshan-e-Hadeed phase 1 commercial mein pichle teen din se kchra kundi oooooverflow ho rahi hai aaaaspas kuttay aur maaakhiyan jaaaama ho gayi haaain. aaaaawam aur chote bachon ko aane jaane mein shaaaadeed mushkilat ka samna hai. Baraye mehaaaaarbani mutaaliqa staaaff ko fooooran bhej kar maaaasla hal kaaaarwayein taaaaake log sukoon ka saans le sakein.",
+    "expected": [
+      "sswmb"
+    ],
+    "website_pred": [],
+    "website_relation": "UNCERTAIN",
+    "website_needs_review": true,
+    "website_review_reason": "UNCERTAIN_DEFECT",
+    "r6_pred": [],
+    "r6_correct": false
+  },
+  {
+    "num": 20,
+    "id": "EVAL-V1148-1801",
+    "category": "LONG_NARRATIVES",
+    "bracket": "126-165",
+    "word_count": 131,
+    "text": "Janab-e-wala, arzi guzaar hain ke Manghopir road near warm springs mein pichle do hafton se aisi ghair mamooli halat paida ho gayi hai jis ne sab ka jeena haram kar diya hai. Asal kharabi ye hai ke chhat par ghair qanooni rooms banaye ja rahe hain load bearing capacity khatam hai. Har roz subah log daftar aur bache taleemi idaron ke liye nikalte hain to raste mein zillat uthate hain. Humne local elected councilor aur assistant commissioner office ke chakar kaatay magar wahan sirf thande kamron mein baten banti hain zameen par koi nahi ata. Hum kisi siyasi jalsay ke khwahish mand nahi hain sirf apne bunyadi shehri haqooq ka mutaliba kar rahe hain. Umeed hai aala hukkam is notice ka jaiza le kar fori tor par action orders jari karenge.",
+    "expected": [
+      "sbca"
+    ],
+    "website_pred": [],
+    "website_relation": "UNCERTAIN",
+    "website_needs_review": true,
+    "website_review_reason": "UNCERTAIN_DEFECT",
+    "r6_pred": [],
+    "r6_correct": false
+  }
+]

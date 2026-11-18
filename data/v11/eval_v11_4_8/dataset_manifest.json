@@ -1,0 +1,60 @@
+{
+  "title": "Awaaz-e-Awam Phase V11.4.8 — 2,000 Unseen Complaint Blind Evaluation Dataset Manifest",
+  "phase": "V11.4.8",
+  "generated_at": "2026-11-18T23:43:10+05:00",
+  "seed": 20261119,
+  "sample_count": 2000,
+  "dataset_path": "data/v11/eval_v11_4_8/benchmark_2000.jsonl",
+  "sha256": "7c6a15b98c19b68450f0d153322f9f3db1b4b84bce76aed1a238d51b448d4747",
+  "source_branch": "feature/v11-4-8-2000-blind-evaluation",
+  "source_commit": "02d152d",
+  "category_distribution": {
+    "NORMAL_EVERYDAY": 300,
+    "ANGRY_AGGRESSIVE": 200,
+    "ABUSIVE_PROFANITY": 200,
+    "SLANG_CODESWITCH": 200,
+    "INDEPENDENT_DUAL": 250,
+    "INDEPENDENT_TRIPLE": 150,
+    "NEGATION_CONTRADICTION": 200,
+    "CAUSAL_CONSEQUENCES": 150,
+    "CORRUPTED_SPELLING_GRAMMAR": 150,
+    "LONG_NARRATIVES": 100,
+    "OUT_OF_SCOPE_HARD_NEGATIVES": 100
+  },
+  "department_gold_support": {
+    "kelectric": 457,
+    "kmc": 389,
+    "kwsc": 425,
+    "sbca": 387,
+    "ssgc": 384,
+    "sswmb": 408
+  },
+  "length_bracket_distribution": {
+    "5-35": {
+      "count": 189,
+      "percentage": 9.45
+    },
+    "36-80": {
+      "count": 555,
+      "percentage": 27.75
+    },
+    "81-125": {
+      "count": 480,
+      "percentage": 24.00
+    },
+    "126-165": {
+      "count": 409,
+      "percentage": 20.45
+    },
+    "166-200": {
+      "count": 367,
+      "percentage": 18.35
+    }
+  },
+  "leakage_check": {
+    "historical_records_checked": 9137,
+    "exact_leakage_count": 0,
+    "leakage_rate": 0.0,
+    "status": "PASSED_ZERO_LEAKAGE"
+  }
+}
