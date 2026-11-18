@@ -89,8 +89,8 @@ class AutonomousAdversarialTrainer:
         self.harness = CurriculumHarness(departments=self.departments)
 
         # Pre-flight disk space validation
-        free_c, free_d = check_system_storage(min_gb_start=25.0, min_gb_abort=15.0)
-        log(f"[STORAGE SAFETY] Initial disk check: C: {free_c:.2f} GB free, D: {free_d:.2f} GB free (>= 25.0 GB verified)")
+        self.initial_c_free_gb, self.initial_d_free_gb = check_system_storage(min_gb_start=25.0, min_gb_abort=15.0)
+        log(f"[STORAGE SAFETY] Initial disk check: C: {self.initial_c_free_gb:.2f} GB free, D: {self.initial_d_free_gb:.2f} GB free (>= 25.0 GB verified)")
 
         # Load Frozen Sets from run_004 for exact scientific comparability
         self.val_records = [
@@ -493,12 +493,12 @@ class AutonomousAdversarialTrainer:
             "champion_joblib_sha256": joblib_sha256,
             "thresholds": thresholds,
             "disk_usage": {
-                "initial_c_free_gb": free_c,
-                "initial_d_free_gb": free_d,
+                "initial_c_free_gb": self.initial_c_free_gb,
+                "initial_d_free_gb": self.initial_d_free_gb,
                 "final_c_free_gb": end_free_c,
                 "final_d_free_gb": end_free_d,
-                "used_c_gb": round(free_c - end_free_c, 3),
-                "used_d_gb": round(free_d - end_free_d, 3),
+                "used_c_gb": round(self.initial_c_free_gb - end_free_c, 3),
+                "used_d_gb": round(self.initial_d_free_gb - end_free_d, 3),
             },
             "evaluations": {
                 "frozen_test_250": ft_overall,
