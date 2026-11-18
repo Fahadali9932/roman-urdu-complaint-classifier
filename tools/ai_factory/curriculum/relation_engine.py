@@ -39,7 +39,8 @@ DOMAIN_EVIDENCE = {
             r"\bchowk\b", r"\bbridge\b", r"\bpul\b", r"\bunderpass\b", r"\btiles\b",
             r"\basphalt\b", r"\bpavement\b", r"\bnaali\b", r"\bnaala\b", r"\bnullah\b",
             r"\bstormwater(?:\s*drain)?\b", r"\bdrainage\s*nala\b", r"\bdrainage\b",
-            r"\bbarish\s*ka\s*paani\b"
+            r"\bbarish\s*ka\s*paani\b", r"\bflyover\b", r"\bdivider\b",
+            r"\bpedestrian\s*bridge\b", r"\bfootbridge\b", r"\bbarsati\s*nala\b", r"\bbarasati\s*nala\b"
         ],
         "defects": [
             r"\btoot\b", r"\btooti\b", r"\btoota\b", r"\bgaddha\b", r"\bgaddhay\b",
@@ -53,13 +54,16 @@ DOMAIN_EVIDENCE = {
             r"\bpaani\s*khara\b", r"\bdo\s*foot\s*paani\b",
             r"\bdrainage\s*nala\s*kaam\s*n[ah]?[iy]\s*kar\s*raha\b",
             r"\bkaam\s*n[ah]?[iy]\s*kar\s*raha\b", r"\bdhakkan\s*(?:gayab|chori|missing)?\b",
-            r"\bexpansion\s*joint\b", r"\bspeed\s*breaker\b", r"\bdivider\b", r"\bblock\s*para\b"
+            r"\bexpansion\s*joint\b", r"\bspeed\s*breaker\b", r"\bdivider\b", r"\bblock\s*para\b",
+            r"\bbarsati\s*nala\b", r"\bnala\s*(?:choke|kachray)\b"
         ],
         "denials": [
             r"\bsarak\s+(?:bilkul\s+)?theek\b",
             r"\broad\s+tooti\s+(?:hui\s+)?na?h?i\b",
             r"\bsarak\s+tooti\s+(?:hui\s+)?na?h?i\b",
-            r"\bfootpath\s+kharab\s+(?:hua\s+)?na?h?i\b"
+            r"\bfootpath\s+kharab\s+(?:hua\s+)?na?h?i\b",
+            r"\b(?:road|sadak|sarak|street|gali|pothole|street\s*lights?)\s*(?:ka|ki|ke|mein)?\s*(?:koi\s+)?(?:masla|issue|problem|kharabi)\s*na?h?i\b",
+            r"\broad\s*(?:theek|sahi)\s*hai\b"
         ]
     },
     "kwsc": {
@@ -69,7 +73,8 @@ DOMAIN_EVIDENCE = {
             r"\bsarkari\s*pani\b", r"\bpublic\s*(?:water|pani|pipe|pipeline)\b",
             r"\bpipe\b", r"\bpipeline\b", r"\bwater\s*board\b", r"\bkwsc\b", r"\bkw&sc\b",
             r"\bdrinking\s*water\b", r"\btap\b", r"\bsewage\b", r"\btanki\b", r"\btankee\b",
-            r"\bsewer\s*line\b", r"\bwater\s*supply\s*line\b"
+            r"\bsewer\s*line\b", r"\bwater\s*supply\s*line\b", r"\bwater\s*pipeline\b",
+            r"\bdrinking\s*water\s*line\b", r"\bseptic\s*tank\b"
         ],
         "defects": [
             r"\bleak\b", r"\bleakage\b", r"\bphat\b", r"\bphati\b", r"\bphatne\b",
@@ -81,13 +86,26 @@ DOMAIN_EVIDENCE = {
             r"\btanki\s*nahi\s*bhar\b", r"\bsewer\s*line\s*choke\b", r"\bchoke\b",
             r"\bsirf\s*hawa\s*aa\s*rahi\b", r"\bganda\s*pani\b", r"\bsewage\s*mix\b",
             r"\bgutter\s+(?:ka\s+)?(?:ganda\s+)?pani\s+beh\s+raha\b",
-            r"\bdhakkan\s*(?:gayab|chori|missing)?\b", r"\bmanhole\s*ka\s*dhakkan\b"
+            r"\bdhakkan\s*(?:gayab|chori|missing)?\b", r"\bmanhole\s*ka\s*dhakkan\b",
+            r"\bganda\s*(?:black\s*|kala\s*)?pa?ni\b",
+            r"\b(?:sewer|sewage)\s*(?:ka\s*.*?)?mix\b",
+            r"\bmix\s*(?:ho\s*kar\s*)?aa\s*raha\b",
+            r"\bbadboo(?:dar)?\s*pa?ni\b",
+            r"\bbadboo\s*phail\b",
+            r"\bsewerage\s*line\s*collapse\b",
+            r"\bline\s*collapse\b",
+            r"\bback\s*maar\b",
+            r"\bback\s*flow\b"
         ],
         "denials": [
             r"\bye\s+pani\s+ka\s+masla\s+na?h?i\b",
             r"\bpani\s+ka\s+koi\s+masla\s+nahi\b",
             r"\bwater\s+ka\s+masla\s+nahi\b",
-            r"\bpani\s+ka\s+masla\s+(?:solve|hal|theek)\s*ho\s*gaya\b"
+            r"\bpani\s+ka\s+masla\s+(?:solve|hal|theek)\s*ho\s*gaya\b",
+            r"\b(?:pani|water|sewer|sewage|gut?tar)\s*(?:ka|ki|mein)?\s*(?:koi\s+)?(?:masla|issue|problem|kharabi)\s*na?h?i\b",
+            r"\bpehle\s*(?:pani|water)\s*(?:ka\s+)?(?:masla|issue)\s*tha\s*lekin\s*ab\s*(?:theek|hal)\b",
+            r"\bpani\s*(?:ka\s*)?(?:koi\s*)?issue\s*nahi\b",
+            r"\bpani\s*theek\s*hai\b"
         ]
     },
     "kelectric": {
@@ -119,7 +137,9 @@ DOMAIN_EVIDENCE = {
             r"\bpole\s+kharab\s+nahi\b",
             r"\bbijli\s+ka\s+masla\s+nahi\b",
             r"\blight\s+theek\s+hai\b",
-            r"\bbijli\s+ka\s+masla\s+(?:solve|hal|theek)\s*ho\s*gaya\b"
+            r"\bbijli\s+ka\s+masla\s+(?:solve|hal|theek)\s*ho\s*gaya\b",
+            r"\b(?:bijli|light|current|electricity|voltage|load\s*shedding|transformer|wire|taar)\s*(?:ka|ki|ke|mein)?\s*(?:koi\s+)?(?:masla|issue|problem|kharabi)\s*na?h?i\b",
+            r"\bbijli\s*(?:theek|aa\s*rahi)\s*hai\b"
         ]
     },
     "ssgc": {
@@ -135,14 +155,17 @@ DOMAIN_EVIDENCE = {
             r"\bruptured\b", r"\bwhistling\b", r"\bblowing\s*out\b", r"\bchulha\s*band\b",
             r"\bnahi\s*aa\s*rahi\b", r"\bsupply\s*(?:mukammal|bilkul|poori)?\s*band\b",
             r"\bgas\s*(?:na\s*hone|gayab)\b", r"\bkhana\s*banana\s*namumkin\b",
-            r"\btez\s*boo\b", r"\bcylinder\s*lana\s*parh\b"
+            r"\btez\s*boo\b", r"\bcylinder\s*lana\s*parh\b",
+            r"\bescape\b", r"\bgas\s*escape\b", r"\bmachis\b"
         ],
         "denials": [
             r"\bgas\s+ka\s+koi\s+issue\s+nahi\b",
             r"\bye\s+gas\s+ka\s+masla\s+na?h?i\b",
             r"\bgas\s+leak\s+nahi\s+hai\b",
             r"\bgas\s+theek\s+hai\b",
-            r"\bgas\s+(?:theek\s+ho\s+gayi|ka\s+masla\s+(?:solve|hal|theek)\s*ho\s*gaya)\b"
+            r"\bgas\s+(?:theek\s+ho\s+gayi|ka\s+masla\s+(?:solve|hal|theek)\s*ho\s*gaya)\b",
+            r"\b(?:gas|suigas|cylinder|pipeline)\s*(?:ka|ki|ke|mein)?\s*(?:koi\s+)?(?:masla|issue|problem|kharabi)\s*na?h?i\b",
+            r"\bgas\s*(?:theek|aa\s*rahi)\s*hai\b"
         ]
     },
     "sswmb": {
@@ -151,7 +174,8 @@ DOMAIN_EVIDENCE = {
             r"\bdustbin\b", r"\bdustbins\b", r"\bbin\b", r"\bbins\b", r"\bdhabay\b",
             r"\bdead\s*animal\b", r"\bkachra\s*kundi\b", r"\bsswmb\b",
             r"\bwaste\b", r"\bdumpster\b", r"\bmurda\s*janwar\b", r"\blaash\b",
-            r"\bcarcass\b", r"\billegal\s*(?:garbage\s*)?dump\b", r"\bdump\b"
+            r"\bcarcass\b", r"\billegal\s*(?:garbage\s*)?dump\b", r"\bdump\b",
+            r"\bgarbage\s*dump\b", r"\bdumping\s*site\b"
         ],
         "defects": [
             r"\bnahi\s*uth(?:a|aya|ti|te)?\b", r"\bnahi\s*uthta\b",
@@ -167,7 +191,9 @@ DOMAIN_EVIDENCE = {
         ],
         "denials": [
             r"\bkachra\s+(?:bilkul\s+)?theek\s+se\s+uth\s+gaya\b",
-            r"\bkachray\s+ka\s+masla\s+nahi\b"
+            r"\bkachray\s+ka\s+masla\s+nahi\b",
+            r"\b(?:kachra|garbage|safai|waste|trash|kunda)\s*(?:ka|ki|ke|mein)?\s*(?:koi\s+)?(?:masla|issue|problem|kharabi)\s*na?h?i\b",
+            r"\bsafai\s*(?:theek|ho\s*chuki)\s*hai\b"
         ]
     },
     "sbca": {
@@ -193,7 +219,8 @@ DOMAIN_EVIDENCE = {
         ],
         "denials": [
             r"\bbuilding\s+theek\s+hai\b",
-            r"\billegal\s+kaam\s+nahi\b"
+            r"\billegal\s+kaam\s+nahi\b",
+            r"\b(?:illegal\s*construction|builder|manzila|dhamaka|demolition)\s*(?:ka|ki|ke|mein)?\s*(?:koi\s+)?(?:masla|issue|problem|kharabi)\s*na?h?i\b"
         ]
     }
 }
@@ -317,6 +344,10 @@ class RelationAwareComplaintAnalyzer:
         t = re.sub(r"\bkrdo\b", "karo", t)
         t = re.sub(r"\b(badbu|bad-?boo)\b", "badboo", t)
         t = re.sub(r"\bbhee\b", "bhi", t)
+        t = re.sub(r"\bpaani\b", "pani", t)
+        t = re.sub(r"\b(pni|paney)\b", "pani", t)
+        t = re.sub(r"\b(bjl|bijlee)\b", "bijli", t)
+        t = re.sub(r"\b(srk|sark)\b", "sarak", t)
         return t
 
     @classmethod
@@ -329,7 +360,7 @@ class RelationAwareComplaintAnalyzer:
         splitter_regex = re.compile(
             r"(?:,\s*(?:aur\s+alag\s+se|alag\s+se|is\s+ke\s+ilawa|is\s+ke\s+sath\s+sath|saath\s+mein|doosra\s+masla|doosri\s+taraf)\b|"
             r"\b(?:aur\s+alag\s+se|alag\s+se|is\s+ke\s+ilawa|is\s+ke\s+sath\s+sath|saath\s+mein|doosra\s+masla|doosri\s+taraf|aur\s+saath\s+wali)\b|"
-            r"(?<!\w[A-Za-z])\.\s+|;\s*)"
+            r"(?<!\d)\.(?!\d)\s*|[?!;]+\s*|\n+)"
         )
 
         spans: List[Tuple[int, int, str]] = []

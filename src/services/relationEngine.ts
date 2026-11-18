@@ -83,7 +83,8 @@ export const DOMAIN_EVIDENCE: Record<AgencyId, DomainLexicon> = {
       /\bchowk\b/i, /\bbridge\b/i, /\bpul\b/i, /\bunderpass\b/i, /\btiles\b/i,
       /\basphalt\b/i, /\bpavement\b/i, /\bnaali\b/i, /\bnaala\b/i, /\bnullah\b/i,
       /\bstormwater(?:\s*drain)?\b/i, /\bdrainage\s*nala\b/i, /\bdrainage\b/i,
-      /\bbarish\s*ka\s*paani\b/i,
+      /\bbarish\s*ka\s*paani\b/i, /\bflyover\b/i, /\bdivider\b/i,
+      /\bpedestrian\s*bridge\b/i, /\bfootbridge\b/i, /\bbarsati\s*nala\b/i, /\bbarasati\s*nala\b/i,
     ],
     defects: [
       /\btoot\b/i, /\btooti\b/i, /\btoota\b/i, /\bgaddha\b/i, /\bgaddhay\b/i,
@@ -98,12 +99,15 @@ export const DOMAIN_EVIDENCE: Record<AgencyId, DomainLexicon> = {
       /\bdrainage\s*nala\s*kaam\s*n[ah]?[iy]\s*kar\s*raha\b/i,
       /\bkaam\s*n[ah]?[iy]\s*kar\s*raha\b/i, /\bdhakkan\s*(?:gayab|chori|missing)?\b/i,
       /\bexpansion\s*joint\b/i, /\bspeed\s*breaker\b/i, /\bdivider\b/i, /\bblock\s*para\b/i,
+      /\bbarsati\s*nala\b/i, /\bnala\s*(?:choke|kachray)\b/i,
     ],
     denials: [
       /\bsarak\s+(?:bilkul\s+)?theek\b/i,
       /\broad\s+tooti\s+(?:hui\s+)?na?h?i\b/i,
       /\bsarak\s+tooti\s+(?:hui\s+)?na?h?i\b/i,
       /\bfootpath\s+kharab\s+(?:hua\s+)?na?h?i\b/i,
+      /\b(?:road|sadak|sarak|street|gali|pothole|street\s*lights?)\s*(?:ka|ki|ke|mein)?\s*(?:koi\s+)?(?:masla|issue|problem|kharabi)\s*na?h?i\b/i,
+      /\broad\s*(?:theek|sahi)\s*hai\b/i,
     ],
   },
   kwsc: {
@@ -113,7 +117,8 @@ export const DOMAIN_EVIDENCE: Record<AgencyId, DomainLexicon> = {
       /\bsarkari\s*pani\b/i, /\bpublic\s*(?:water|pani|pipe|pipeline)\b/i,
       /\bpipe\b/i, /\bpipeline\b/i, /\bwater\s*board\b/i, /\bkwsc\b/i, /\bkw&sc\b/i,
       /\bdrinking\s*water\b/i, /\btap\b/i, /\bsewage\b/i, /\btanki\b/i, /\btankee\b/i,
-      /\bsewer\s*line\b/i, /\bwater\s*supply\s*line\b/i,
+      /\bsewer\s*line\b/i, /\bwater\s*supply\s*line\b/i, /\bwater\s*pipeline\b/i,
+      /\bdrinking\s*water\s*line\b/i, /\bseptic\s*tank\b/i,
     ],
     defects: [
       /\bleak\b/i, /\bleakage\b/i, /\bphat\b/i, /\bphati\b/i, /\bphatne\b/i,
@@ -126,12 +131,25 @@ export const DOMAIN_EVIDENCE: Record<AgencyId, DomainLexicon> = {
       /\bsirf\s*hawa\s*aa\s*rahi\b/i, /\bganda\s*pani\b/i, /\bsewage\s*mix\b/i,
       /\bgutter\s+(?:ka\s+)?(?:ganda\s+)?pani\s+beh\s+raha\b/i,
       /\bdhakkan\s*(?:gayab|chori|missing)?\b/i, /\bmanhole\s*ka\s*dhakkan\b/i,
+      /\bganda\s*(?:black\s*|kala\s*)?pa?ni\b/i,
+      /\b(?:sewer|sewage)\s*(?:ka\s*.*?)?mix\b/i,
+      /\bmix\s*(?:ho\s*kar\s*)?aa\s*raha\b/i,
+      /\bbadboo(?:dar)?\s*pa?ni\b/i,
+      /\bbadboo\s*phail\b/i,
+      /\bsewerage\s*line\s*collapse\b/i,
+      /\bline\s*collapse\b/i,
+      /\bback\s*maar\b/i,
+      /\bback\s*flow\b/i,
     ],
     denials: [
       /\bye\s+pani\s+ka\s+masla\s+na?h?i\b/i,
       /\bpani\s+ka\s+koi\s+masla\s+nahi\b/i,
       /\bwater\s+ka\s+masla\s+nahi\b/i,
       /\bpani\s+ka\s+masla\s+(?:solve|hal|theek)\s*ho\s*gaya\b/i,
+      /\b(?:pani|water|sewer|sewage|gut?tar)\s*(?:ka|ki|mein)?\s*(?:koi\s+)?(?:masla|issue|problem|kharabi)\s*na?h?i\b/i,
+      /\bpehle\s*(?:pani|water)\s*(?:ka\s+)?(?:masla|issue)\s*tha\s*lekin\s*ab\s*(?:theek|hal)\b/i,
+      /\bpani\s*(?:ka\s*)?(?:koi\s*)?issue\s*nahi\b/i,
+      /\bpani\s*theek\s*hai\b/i,
     ],
   },
   kelectric: {
@@ -164,6 +182,8 @@ export const DOMAIN_EVIDENCE: Record<AgencyId, DomainLexicon> = {
       /\bbijli\s+ka\s+masla\s+nahi\b/i,
       /\blight\s+theek\s+hai\b/i,
       /\bbijli\s+ka\s+masla\s+(?:solve|hal|theek)\s*ho\s*gaya\b/i,
+      /\b(?:bijli|light|current|electricity|voltage|load\s*shedding|transformer|wire|taar)\s*(?:ka|ki|ke|mein)?\s*(?:koi\s+)?(?:masla|issue|problem|kharabi)\s*na?h?i\b/i,
+      /\bbijli\s*(?:theek|aa\s*rahi)\s*hai\b/i,
     ],
   },
   ssgc: {
@@ -180,6 +200,7 @@ export const DOMAIN_EVIDENCE: Record<AgencyId, DomainLexicon> = {
       /\bnahi\s*aa\s*rahi\b/i, /\bsupply\s*(?:mukammal|bilkul|poori)?\s*band\b/i,
       /\bgas\s*(?:na\s*hone|gayab)\b/i, /\bkhana\s*banana\s*namumkin\b/i,
       /\btez\s*boo\b/i, /\bcylinder\s*lana\s*parh\b/i,
+      /\bescape\b/i, /\bgas\s*escape\b/i, /\bmachis\b/i,
     ],
     denials: [
       /\bgas\s+ka\s+koi\s+issue\s+nahi\b/i,
@@ -187,6 +208,8 @@ export const DOMAIN_EVIDENCE: Record<AgencyId, DomainLexicon> = {
       /\bgas\s+leak\s+nahi\s+hai\b/i,
       /\bgas\s+theek\s+hai\b/i,
       /\bgas\s+(?:theek\s+ho\s+gayi|ka\s+masla\s+(?:solve|hal|theek)\s*ho\s*gaya)\b/i,
+      /\b(?:gas|suigas|cylinder|pipeline)\s*(?:ka|ki|ke|mein)?\s*(?:koi\s+)?(?:masla|issue|problem|kharabi)\s*na?h?i\b/i,
+      /\bgas\s*(?:theek|aa\s*rahi)\s*hai\b/i,
     ],
   },
   sswmb: {
@@ -196,6 +219,7 @@ export const DOMAIN_EVIDENCE: Record<AgencyId, DomainLexicon> = {
       /\bdead\s*animal\b/i, /\bkachra\s*kundi\b/i, /\bsswmb\b/i,
       /\bwaste\b/i, /\bdumpster\b/i, /\bmurda\s*janwar\b/i, /\blaash\b/i,
       /\bcarcass\b/i, /\billegal\s*(?:garbage\s*)?dump\b/i, /\bdump\b/i,
+      /\bgarbage\s*dump\b/i, /\bdumping\s*site\b/i,
     ],
     defects: [
       /\bnahi\s*uth(?:a|aya|ti|te)?\b/i, /\bnahi\s*uthta\b/i,
@@ -212,6 +236,8 @@ export const DOMAIN_EVIDENCE: Record<AgencyId, DomainLexicon> = {
     denials: [
       /\bkachra\s+(?:bilkul\s+)?theek\s+se\s+uth\s+gaya\b/i,
       /\bkachray\s+ka\s+masla\s+nahi\b/i,
+      /\b(?:kachra|garbage|safai|waste|trash|kunda)\s*(?:ka|ki|ke|mein)?\s*(?:koi\s+)?(?:masla|issue|problem|kharabi)\s*na?h?i\b/i,
+      /\bsafai\s*(?:theek|ho\s*chuki)\s*hai\b/i,
     ],
   },
   sbca: {
@@ -238,6 +264,7 @@ export const DOMAIN_EVIDENCE: Record<AgencyId, DomainLexicon> = {
     denials: [
       /\bbuilding\s+theek\s+hai\b/i,
       /\billegal\s+kaam\s+nahi\b/i,
+      /\b(?:illegal\s*construction|builder|manzila|dhamaka|demolition)\s*(?:ka|ki|ke|mein)?\s*(?:koi\s+)?(?:masla|issue|problem|kharabi)\s*na?h?i\b/i,
     ],
   },
 };
@@ -302,6 +329,10 @@ export function normalizeRomanUrduText(text: string): string {
   t = t.replace(/\bkrdo\b/g, 'karo');
   t = t.replace(/\b(badbu|bad-?boo)\b/g, 'badboo');
   t = t.replace(/\bbhee\b/g, 'bhi');
+  t = t.replace(/\bpaani\b/g, 'pani');
+  t = t.replace(/\b(pni|paney)\b/g, 'pani');
+  t = t.replace(/\b(bjl|bijlee)\b/g, 'bijli');
+  t = t.replace(/\b(srk|sark)\b/g, 'sarak');
   return t;
 }
 
@@ -310,7 +341,7 @@ export function segmentSpansWithOffsets(text: string): Array<[number, number, st
   if (!raw) return [];
 
   const splitterRegex =
-    /(?:,\s*(?:aur\s+alag\s+se|alag\s+se|is\s+ke\s+ilawa|is\s+ke\s+sath\s+sath|saath\s+mein|doosra\s+masla|doosri\s+taraf)\b|\b(?:aur\s+alag\s+se|alag\s+se|is\s+ke\s+ilawa|is\s+ke\s+sath\s+sath|saath\s+mein|doosra\s+masla|doosri\s+taraf|aur\s+saath\s+wali)\b|(?<!\w[A-Za-z])\.\s+|;\s*)/gi;
+    /(?:,\s*(?:aur\s+alag\s+se|alag\s+se|is\s+ke\s+ilawa|is\s+ke\s+sath\s+sath|saath\s+mein|doosra\s+masla|doosri\s+taraf)\b|\b(?:aur\s+alag\s+se|alag\s+se|is\s+ke\s+ilawa|is\s+ke\s+sath\s+sath|saath\s+mein|doosra\s+masla|doosri\s+taraf|aur\s+saath\s+wali)\b|(?<!\d)\.(?!\d)\s*|[?!;]+\s*|\n+)/gi;
 
   const spans: Array<[number, number, string]> = [];
   let lastEnd = 0;

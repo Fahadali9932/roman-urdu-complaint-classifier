@@ -157,7 +157,7 @@ describe('AWAAZ-E-AWAM — Phase V11.4.3 Citizen Website Integration Suite', () 
         'Gas ka koi masla nahi hai lekin hamari gali se kachra nahi uthaya ja raha.';
       const res = classifyV11RelationAware(text, championV11Model);
       expect(res.departments).toEqual(['sswmb']);
-      expect(res.relation).toBe('SINGLE');
+      expect(res.relation).toBe('NEGATED');
       expect(res.needsReview).toBe(false);
     });
 
