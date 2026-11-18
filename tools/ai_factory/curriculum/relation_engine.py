@@ -47,12 +47,13 @@ DOMAIN_EVIDENCE = {
             r"\bkhaddhon\b", r"\bpothole\b", r"\bpotholes\b", r"\bdhans\b",
             r"\bkharab\b", r"\bdamage\b", r"\bdamaged\b", r"\brepair\b",
             r"\brebuild\b", r"\bbana(?:o|ein)\b", r"\bandhera\b",
-            r"\bencroachment\b", r"\bgaariyan\s*lagti\b", r"\bgehra\b",
+            r"\bencroachment\b", r"\bqabza\b", r"\bpatharay\b", r"\bgaariyan\s*lagti\b", r"\bgehra\b",
             r"\bdarya\b", r"\bubal\s*kar\s*road\b", r"\bandhera\s*rehta\b",
             r"\bbattiyan\s*kharab\b", r"\bband\s*pari\b", r"\bband\s*hain\b",
             r"\bpaani\s*khara\b", r"\bdo\s*foot\s*paani\b",
             r"\bdrainage\s*nala\s*kaam\s*n[ah]?[iy]\s*kar\s*raha\b",
-            r"\bkaam\s*n[ah]?[iy]\s*kar\s*raha\b"
+            r"\bkaam\s*n[ah]?[iy]\s*kar\s*raha\b", r"\bdhakkan\s*(?:gayab|chori|missing)?\b",
+            r"\bexpansion\s*joint\b", r"\bspeed\s*breaker\b", r"\bdivider\b", r"\bblock\s*para\b"
         ],
         "denials": [
             r"\bsarak\s+(?:bilkul\s+)?theek\b",
@@ -79,7 +80,8 @@ DOMAIN_EVIDENCE = {
             r"\breplace\s*lid\b", r"\bcovers?\s*missing\b", r"\bcontaminated\b", r"\btoxic\s*smell\b",
             r"\btanki\s*nahi\s*bhar\b", r"\bsewer\s*line\s*choke\b", r"\bchoke\b",
             r"\bsirf\s*hawa\s*aa\s*rahi\b", r"\bganda\s*pani\b", r"\bsewage\s*mix\b",
-            r"\bgutter\s+(?:ka\s+)?(?:ganda\s+)?pani\s+beh\s+raha\b"
+            r"\bgutter\s+(?:ka\s+)?(?:ganda\s+)?pani\s+beh\s+raha\b",
+            r"\bdhakkan\s*(?:gayab|chori|missing)?\b", r"\bmanhole\s*ka\s*dhakkan\b"
         ],
         "denials": [
             r"\bye\s+pani\s+ka\s+masla\s+na?h?i\b",
@@ -98,17 +100,20 @@ DOMAIN_EVIDENCE = {
         "defects": [
             r"\bload\s*shedding\b", r"\bspark\b", r"\bsparking\b", r"\bblast\b",
             r"\bshort\s*circuit\b", r"\btrip\b", r"\blatak\b", r"\bhanging\b",
-            r"\bjhatkay\b", r"\bbijli\s*nahi\s*aa\s*rahi\b", r"\blight\s*gayi\b",
-            r"\bbijli\s*gayi\b", r"\bfeeder\s*band\b", r"\bfeeder\s*fault\b",
+            r"\bjhatkay\b", r"\bbijli\s*nahi\s*aa\s*rahi\b", r"\blight\s*nahi\s*aa\s*rahi\b",
+            r"\bbijli\s*nahi\b", r"\blight\s*nahi\b", r"\bcurrent\s*nahi\s*(?:aa\s*raha|hai)?\b",
+            r"\blight\s*gayi\b", r"\blight\s*chali\s*gayi\b", r"\bbijli\s*chali\s*gayi\b",
+            r"\bbijli\s*gayi\b", r"\blight\s*band\b", r"\bbijli\s*band\b", r"\bbijli\s*gayab\b", r"\blight\s*gayab\b",
+            r"\bfeeder\s*band\b", r"\bfeeder\s*fault\b",
             r"\bfeeder\s*down\b", r"\bbar\s*bar\s*(?:light|bijli)?\s*ja\s*ra?h?i\b",
             r"\btransformer\s*(?:ka\s*)?(?:blast|jal\s*gaya|phat\s*gaya|kharab|fault)\b",
             r"\bfeeder\s*(?:ka\s*)?(?:fault|band)\b",
-            r"\bpower\s*outage\b", r"\bband\s*hai\b", r"\bpower\s*supply\s*cut\s*off\b",
-            r"\bzero\s*voltage\b", r"\bsingle\s*phase\b", r"\bburnt\b", r"\bsnapping\b",
+            r"\bpower\s*outage\b", r"\bpower\s*cut\b", r"\bband\s*hai\b", r"\bpower\s*supply\s*cut\s*off\b",
+            r"\bzero\s*voltage\b", r"\blow\s*voltage\b", r"\bsingle\s*phase\b", r"\bburnt\b", r"\bsnapping\b",
             r"\bcorroded\b", r"\bmight\s*collapse\b", r"\b(?:2|do)?\s*phase\s*gayab\b",
-            r"\bdim\s*light\b", r"\bvoltage\s*(?:drop|fluctuation|low|kam|up\s*down|bohat\s*zyada\s*low)\b",
+            r"\bdim\s*light\b", r"\bvoltage\s*(?:drop|fluctuation|low|kam|up\s*down|bohat\s*zyada\s*low|nahi\s*aa\s*raha|nahi\s*hai|ka\s*masla)\b",
             r"\bfeeder\s*trip\b", r"\btoot\s*(?:kar\s*)?(?:zameen\s*par\s*)?(?:gir|giri)\b",
-            r"\bnangi\s*taar\b", r"\bappliances\s*jalne\b"
+            r"\bnangi\s*taar\b", r"\bappliances\s*jalne\b", r"\bbijli\s*ki\s*wajah\s*se\b", r"\blight\s*ki\s*wajah\s*se\b"
         ],
         "denials": [
             r"\bpole\s+kharab\s+nahi\b",
@@ -295,18 +300,23 @@ class RelationAwareComplaintAnalyzer:
         """Lightweight phonetic normalizer for Roman Urdu without losing spans."""
         t = (text or "").lower()
         t = re.sub(r"\bsadak\b", "sarak", t)
-        t = re.sub(r"\b(nhi|nai|naheen)\b", "nahi", t)
+        t = re.sub(r"\b(nhi|nai|naheen|nhn)\b", "nahi", t)
+        t = re.sub(r"\b(aarhi|arhi|aarahi)\b", "aa rahi", t)
+        t = re.sub(r"\b(aarha|arha|aaraha)\b", "aa raha", t)
+        t = re.sub(r"\b(waja|vajha|vaja)\b", "wajah", t)
         t = re.sub(r"\b(boht|bht|bohat|bhat)\b", "bohot", t)
         t = re.sub(r"\b(choolha|chula)\b", "chulha", t)
         t = re.sub(r"\b(gadda|gadha)\b", "gaddha", t)
         t = re.sub(r"\b(khrab|xrab)\b", "kharab", t)
-        t = re.sub(r"\b(hy)\b", "hai", t)
+        t = re.sub(r"\b(hy|\bh\b)\b", "hai", t)
         t = re.sub(r"\b(rhi|rhin)\b", "rahi", t)
         t = re.sub(r"\b(rha|rhe|rhay)\b", "rahe", t)
         t = re.sub(r"\b(zada|zyadh)\b", "zyada", t)
-        t = re.sub(r"\b(hoi\s*v|hoi\s*hai)\b", "hui hai", t)
+        t = re.sub(r"\b(hoi\s*v|hoi\s*hai|ho\s*gae|ho\s*gai)\b", "hui hai", t)
+        t = re.sub(r"\b(gy|gai)\b", "gayi", t)
         t = re.sub(r"\bkrdo\b", "karo", t)
         t = re.sub(r"\b(badbu|bad-?boo)\b", "badboo", t)
+        t = re.sub(r"\bbhee\b", "bhi", t)
         return t
 
     @classmethod
@@ -491,7 +501,9 @@ class RelationAwareComplaintAnalyzer:
 
         # Check if electrical outage causes private water motor symptom
         has_electric_evidence = any(re.search(pat, norm_full) for pat in DOMAIN_EVIDENCE["kelectric"]["assets"])
-        has_water_motor_symptom = has_electric_evidence and bool(re.search(r"\b(motor\s*band|motor\s*nahi\s*chal)\b", norm_full))
+        has_water_motor_symptom = has_electric_evidence and bool(
+            re.search(r"\b(?:pani\s+ki\s+)?motor\s+(?:band|nahi\s*chal|ruk\s*gayi|kharab)\b|\bwater\s*pump\s*band\b", norm_full)
+        )
 
         # 8. Segment into spans and classify issues
         span_tuples = cls.segment_spans(sanitized)
@@ -662,6 +674,8 @@ class RelationAwareComplaintAnalyzer:
 
                 a_hits = [pat for pat in lex["assets"] if re.search(pat, norm_full)]
                 d_hits = [pat for pat in lex["defects"] if re.search(pat, norm_full)]
+                if dept == "kelectric" and has_water_motor_symptom and a_hits and not d_hits:
+                    d_hits = ["power_outage_causing_water_motor_failure"]
                 if a_hits and d_hits:
                     actionable_depts.append(dept)
                     candidates.append(IssueCandidate(
@@ -763,14 +777,17 @@ class RelationAwareComplaintAnalyzer:
                         for c in candidates
                     )
                     if not is_benign:
-                        has_grievance_token = bool(re.search(
-                            r"\b(masla|kharab|problem|issue|choke|dara?ar|khatra|khatarnak|dher|kachra|dump|illegal|unsafe|band|toot|current|shikayat|pareshan|dhuwan|aag|gari\s*nahi)\b",
-                            st_norm
-                        ))
-                        if has_grievance_token:
+                        unrouted_depts_in_span = set()
+                        for other_dept, o_lex in DOMAIN_EVIDENCE.items():
+                            if other_dept not in actionable_depts and other_dept not in negated_depts:
+                                has_asset = any(re.search(a_pat, st_norm) for a_pat in o_lex["assets"])
+                                has_defect = any(re.search(d_pat, st_norm) for d_pat in o_lex["defects"])
+                                if has_asset and has_defect:
+                                    unrouted_depts_in_span.add(other_dept)
+                        if unrouted_depts_in_span:
                             needs_review = True
                             review_reason = "POSSIBLE_UNROUTED_SECONDARY_ISSUE"
-                            reason_trace.append("Secondary clause contains unrouted civic defect indicators; flagged for human triage (POSSIBLE_UNROUTED_SECONDARY_ISSUE)")
+                            reason_trace.append(f"Secondary clause contains unrouted civic defect indicators for {sorted(list(unrouted_depts_in_span))}; flagged for human triage (POSSIBLE_UNROUTED_SECONDARY_ISSUE)")
                             break
 
         return ComplaintAnalysisResult(

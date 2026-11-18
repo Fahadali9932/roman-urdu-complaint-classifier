@@ -107,14 +107,24 @@ for _s in SCENARIOS:
 COLLOQUIAL_SPELLINGS: List[Tuple[str, str]] = [
     ("bohot", "boht"),
     ("bohot", "bht"),
+    ("bohot", "bohat"),
     ("sarak", "sadak"),
     ("sarak", "road"),
     ("nahi", "nhi"),
     ("nahi", "nai"),
+    ("aa rahi", "aarhi"),
+    ("aa rahi", "arhi"),
+    ("aa raha", "aarha"),
+    ("aa raha", "arha"),
+    ("wajah", "waja"),
     ("hai", "he"),
     ("hai", "hy"),
+    ("hai", "h"),
     ("gaya", "gya"),
+    ("gayi", "gy"),
+    ("gayi", "gai"),
     ("rahi", "rhi"),
+    ("rahe", "rha"),
     ("pani", "paani"),
     ("bijli", "light"),
     ("theek", "thik"),
@@ -123,7 +133,19 @@ COLLOQUIAL_SPELLINGS: List[Tuple[str, str]] = [
     ("mein", "me"),
     ("aur", "or"),
     ("bhi", "b"),
+    ("bhi", "bhee"),
 ]
+
+CONCISE_PLACES: Sequence[str] = (
+    "Gulshan", "Korangi", "Clifton", "Saddar", "Lyari",
+    "North Nazimabad", "Malir", "PECHS", "Nazimabad", "Keamari",
+    "Baldia", "Gulberg", "Liaquatabad", "Jauhar", "SITE"
+)
+
+CONCISE_REQUESTS: Sequence[str] = (
+    "Fori check karein.", "Jald theek karein.", "Team bhejen.",
+    "Notice lein.", "Koshish karein.", "Hal karein.", "Jald az jald hal karo."
+)
 
 # Informal Karachite openings and expressions
 INFORMAL_OPENINGS: Sequence[str] = (
@@ -382,31 +404,60 @@ class AutonomousCurriculumRealizer:
 
         return graph
 
-    def realize(self, graph: IntentGraph) -> Dict[str, Any]:
-        """Realize Roman Urdu text from the Intent Graph."""
+    def realize(self, graph: IntentGraph, length_tier: Optional[int] = None) -> Dict[str, Any]:
+        """Realize Roman Urdu text from the Intent Graph across 5 explicit length tiers."""
+        tier = length_tier or graph.metadata.get("length_tier") or self.rng.choice([1, 2, 3, 4, 5])
+        graph.metadata["length_tier"] = tier
+
         place = self.rng.choice(PUBLIC_PLACES)
+        c_place = self.rng.choice(CONCISE_PLACES)
         when = self.rng.choice(TIMES)
         req = self.rng.choice(REQUESTS)
+        c_req = self.rng.choice(CONCISE_REQUESTS)
         level = graph.difficulty_level
 
         if graph.needs_review:
             # Vague / unroutable inputs assigned to split-specific scenario family
-            if graph.split == "validation":
-                scenario_fam = "uncertain_cause_speculation"
+            if tier == 1:
                 vague_texts = [
-                    f"{place} mein pani nahi aa raha shayad bijli ki wajah se hai pata nahi samajh nahi aa raha.",
-                    f"{place} par service band hai magar asal wajah maloom nahi hai check karein.",
-                    f"{place} par light aur pani dono ka masla lag raha hai pata nahi kya issue hai.",
+                    f"{c_place} par bohot masla hai.",
+                    f"{c_place} mein halaat kharab hain.",
+                    f"service band hai {c_place} par.",
+                    f"awam pareshan hai {c_place} mein.",
                 ]
-            else:
-                scenario_fam = "vague_complaint_no_service_detail"
+            elif tier == 2:
                 vague_texts = [
                     f"{place} par bohot masla hai awam pareshan hai koi sunwai nahi ho rahi.",
                     f"{place} mein halaat bohot kharab hain barah e karam koi to tawajjo de.",
                     f"hamare ilaqay mein har taraf pareshani hai koi dekhne wala nahi hai {place} par.",
-                    f"ye masla kab hal hoga pure ilaqay mein zillat ho rahi hai koi team bhejen.",
+                ]
+            elif tier == 3:
+                vague_texts = [
+                    f"Janab aali, {place} mein har taraf ajeeb masla bana hua hai aur log sakht pareshan hain. "
+                    f"Service ka shadeed bohran hai magar kisi ko samajh nahi aa raha ke asal kharabi kahan hai. "
+                    f"Pata nahi bijli ka masla hai ya water supply ka, koi wazeh soorat-e-haal maloom nahi ho rahi. "
+                    f"Barah e karam mutalliqah staff bhej kar muaina karwayen taake haqeeqat samne aa sake."
+                ]
+            elif tier == 4:
+                vague_texts = [
+                    f"Bakhidmat Janab Mutalliqah Hukkam, Karachi. Hum ahl-e-ilaqa {place} aap ki tawajjo is taraf mabzool karwana chahtay hain. "
+                    f"Pichlay {when} se pure ilaqay mein ajeeb o ghareeb pareshani barpa hai aur roz marrah ki aamad-o-raft shadeed mutasir ho chuki hai. "
+                    f"Awam ko intehayi mushkilat ka samna hai magar koi ye batane ko tayyar nahi ke asal masla kis department ka hai. "
+                    f"Kayi martaba complaints darj karwane ke bawajood kisi ne ground par aakar tehqeeq nahi ki aur log shadeed aziyat mein mubtala hain. "
+                    f"Lihaza aali janab se purzor iltija hai ke fori notice le kar supervisory staff ko muainay ke liye rawana karein."
+                ]
+            else:
+                vague_texts = [
+                    f"Ba-Khidmat Janab Managing Director wa Municipal Commissioner Sahab, Civic Authorities Karachi. "
+                    f"Guzarish baraye fori sadd-e-bab wa imdad: Ahlian-e-{place}. "
+                    f"Mohtaram Janab-e-Aala, Hum ahl-e-ilaqa nihayat adab se aap ki janib ek intehayi sangeen masla pesh kar rahe hain. "
+                    f"Pichlay taweel arsay se hamare ilaqay {place} mein soorat-e-haal intehayi ghumbeer aur na-qabil-e-bardasht ho chuki hai magar abhi tak koi wazeh waja samne nahi aa saki. "
+                    f"Pure mohallay ke hazaron log shadeed pareshani aur be-yaqeeni ki kefiyat mein mubtala hain. "
+                    f"Aap ke ilaqai daftar par mutaddad baar darj karwai gayi shikayatat ke bawajood ab tak kisi zimmedar afsar ne is par amli dhyan nahi diya aur sirf khali tasalliyan di gayin. "
+                    f"Lihaza aali martabat se pur-khuloos guzarish hai ke reham farma kar fori inquiry committee rawana farmayein taake is sangeen soorat-e-haal ka jaiza le kar relief faraham kiya jaye. Ahlian-e-Ilaqa."
                 ]
             full_text = self.rng.choice(vague_texts)
+            scenario_fam = "uncertain_cause_speculation" if graph.split == "validation" else "vague_complaint_no_service_detail"
             record_id = f"cur_{hashlib.sha256(full_text.encode('utf-8')).hexdigest()[:16]}"
             return {
                 "record_id": record_id,
@@ -427,88 +478,155 @@ class AutonomousCurriculumRealizer:
         base_tmpl = self.rng.choice(primary_spec["variants"])
         primary_text = base_tmpl.format(place=place, time=when).strip()
 
-        if level == 1:
-            full_text = f"{primary_text}. {req}."
+        # Extract secondary text for level 4 pairs if available
+        sec_text = None
+        if len(graph.issues) > 1 and graph.issues[0].family_id != graph.issues[1].family_id:
+            sec_spec = SCENARIO_BY_ID[graph.issues[1].family_id]
+            sec_tmpl = self.rng.choice(sec_spec["variants"])
+            sec_text = sec_tmpl.format(place="is ke qareeb", time="alag se").strip()
 
-        elif level == 2:
-            op = self.rng.choice(INFORMAL_OPENINGS)
-            plea = self.rng.choice(INFORMAL_PLEAS)
-            length_style = self.rng.choice(["short", "medium", "long"])
-            if length_style == "short":
-                core = f"{primary_text}, {plea}"
-            elif length_style == "long":
+        # Extract consequence text for level 3 if available
+        consequence_text = None
+        if level == 3 and primary_node.department in CONSEQUENCE_TEMPLATES:
+            chosen = self.rng.choice(CONSEQUENCE_TEMPLATES[primary_node.department])
+            consequence_text = chosen[0]
+
+        # Realize text by length tier
+        if tier == 1:
+            rendered_short = base_tmpl.format(place=c_place, time="kal se").strip()
+            if level == 3 and consequence_text:
+                full_text = f"{rendered_short}, motor band hai."
+            elif level == 4 and sec_text:
+                sec_short = sec_spec["variants"][0].format(place="qareeb", time="alag se").strip()
+                full_text = f"{rendered_short}, aur alag se {sec_short}."
+            elif level == 5:
+                subtype = graph.metadata.get("subtype", "negation")
+                if subtype == "negation" and graph.negated_departments:
+                    neg_dept = graph.negated_departments[0]
+                    decoy_name = DECOY_LABELS.get(neg_dept, neg_dept)
+                    full_text = f"{decoy_name} theek hai, {rendered_short}."
+                elif subtype == "recipient_mention" and graph.addressee_department:
+                    addr_dept = graph.addressee_department.upper()
+                    full_text = f"{addr_dept} dekhein, {rendered_short}."
+                elif subtype == "spatial_landmark":
+                    full_text = f"Footpath par {rendered_short}. Sarak theek hai."
+                else:
+                    full_text = f"{rendered_short}. {c_req}"
+            else:
+                full_text = f"{rendered_short}. {c_req}"
+
+            if level == 2:
+                full_text = apply_informal_noise(full_text, self.rng, probability=0.45)
+
+            w_list = full_text.split()
+            if len(w_list) > 20:
+                full_text = " ".join(w_list[:19]) + "."
+            elif len(w_list) < 5:
+                full_text = full_text + " Jald dekhein."
+
+        elif tier == 2:
+            if level == 1:
+                full_text = f"{primary_text}. {req}."
+            elif level == 2:
+                op = self.rng.choice(INFORMAL_OPENINGS)
+                plea = self.rng.choice(INFORMAL_PLEAS)
                 core = f"{op}, {primary_text}. {req}, {plea}"
-            else:
-                core = f"{op}, {primary_text}. {req}"
-            full_text = apply_informal_noise(core, self.rng, probability=0.40)
-
-        elif level == 3:
-            dept = primary_node.department
-            consequence_text = ""
-            if dept in CONSEQUENCE_TEMPLATES:
-                cands = CONSEQUENCE_TEMPLATES[dept]
-                chosen = self.rng.choice(cands)
-                consequence_text = chosen[0]
-            if not consequence_text:
-                consequence_text = "is wajah se aane jane walon ko shadeed pareshani ka samna hai"
-            full_text = f"{primary_text}, {consequence_text}. {req}."
-
-        elif level == 4:
-            if len(graph.issues) > 1 and graph.issues[0].family_id == graph.issues[1].family_id:
-                # Realized from a pair scenario
-                pair_spec = SCENARIO_BY_ID[graph.issues[0].family_id]
-                base_tmpl = self.rng.choice(pair_spec["variants"])
-                full_text = f"{base_tmpl.format(place=place, time=when).strip()}. {req}."
-            else:
-                sec_node = graph.issues[1]
-                sec_spec = SCENARIO_BY_ID[sec_node.family_id]
-                sec_tmpl = self.rng.choice(sec_spec["variants"])
-                # Format second without repeating identical location
-                sec_text = sec_tmpl.format(place="is ke qareeb", time="alag se").strip()
-                conn = self.rng.choice(INDEPENDENT_CONNECTORS)
-                full_text = f"{primary_text}, {conn} {sec_text}. Barah e karam dono issues par action lein."
-
-        elif level == 5:
-            subtype = graph.metadata.get("subtype", "negation")
-            if subtype == "negation" and graph.negated_departments:
-                neg_dept = graph.negated_departments[0]
-                decoy_name = DECOY_LABELS.get(neg_dept, neg_dept)
-                denial_opening = self.rng.choice([
-                    f"ye {decoy_name} ka masla nahi hai, asal mein",
-                    f"ye {decoy_name} ka issue nahi, hamara masla ye hai ke",
-                    f"{decoy_name} bilkul theek hai magar",
-                ])
-                full_text = f"{denial_opening} {primary_text}. {req}."
-
-            elif subtype == "recipient_mention" and graph.addressee_department:
-                addr_dept = graph.addressee_department
-                recipient_phrases = {
-                    "kelectric": "K-Electric wale please dekhein,",
-                    "kmc": "KMC staff ko chahiye ke ghor karein,",
-                    "kwsc": "Water Board team please tawajjo de,",
-                    "ssgc": "SSGC wale please note karein,",
-                    "sswmb": "SSWMB walay hazrat please dekhein,",
-                    "sbca": "SBCA office ko arz hai,",
-                }
-                addr_prefix = recipient_phrases.get(addr_dept, f"{addr_dept.upper()} team please dekhein,")
-                full_text = f"{addr_prefix} {primary_text}. {req}."
-
-            elif subtype == "spatial_landmark":
-                full_text = f"footpath aur road par {primary_text}. Sarak tooti nahi hai sirf yeh khatra hal karein."
-
-            elif subtype == "loanwords":
-                loanword_samples = {
-                    "kelectric": f"{place} par whole street running on single phase due to burnt cutout fuse and severe voltage tripping.",
-                    "kwsc": f"{place} par underground high pressure main water line leakage causing water shortage.",
-                    "kmc": f"{place} par asphalt road carpet completely eroded with multiple dangerous potholes.",
-                    "ssgc": f"{place} par low gas pressure during peak cooking hours unable to use kitchen appliances.",
-                    "sswmb": f"{place} par overflowing waste dumpster with uncollected garbage bags scattered.",
-                    "sbca": f"{place} par ongoing unauthorized building construction in violation of SBCA stop-work order.",
-                }
-                full_text = loanword_samples.get(primary_node.department, f"{primary_text}. {req}.")
-
+                full_text = apply_informal_noise(core, self.rng, probability=0.40)
+            elif level == 3:
+                c_text = consequence_text or "is wajah se aane jane walon ko shadeed pareshani ka samna hai"
+                full_text = f"{primary_text}, {c_text}. {req}."
+            elif level == 4:
+                if sec_text:
+                    conn = self.rng.choice(INDEPENDENT_CONNECTORS)
+                    full_text = f"{primary_text}, {conn} {sec_text}. Barah e karam dono issues par action lein."
+                else:
+                    full_text = f"{primary_text}. {req}."
+            elif level == 5:
+                subtype = graph.metadata.get("subtype", "negation")
+                if subtype == "negation" and graph.negated_departments:
+                    neg_dept = graph.negated_departments[0]
+                    decoy_name = DECOY_LABELS.get(neg_dept, neg_dept)
+                    full_text = f"ye {decoy_name} ka masla nahi hai, asal mein {primary_text}. {req}."
+                elif subtype == "recipient_mention" and graph.addressee_department:
+                    addr_dept = graph.addressee_department
+                    full_text = f"{addr_dept.upper()} team please dekhein, {primary_text}. {req}."
+                elif subtype == "spatial_landmark":
+                    full_text = f"footpath aur road par {primary_text}. Sarak tooti nahi hai sirf yeh khatra hal karein."
+                elif subtype == "loanwords":
+                    loanword_samples = {
+                        "kelectric": f"{place} par whole street running on single phase due to burnt cutout fuse and severe voltage tripping.",
+                        "kwsc": f"{place} par underground high pressure main water line leakage causing water shortage.",
+                        "kmc": f"{place} par asphalt road carpet completely eroded with multiple dangerous potholes.",
+                        "ssgc": f"{place} par low gas pressure during peak cooking hours unable to use kitchen appliances.",
+                        "sswmb": f"{place} par overflowing waste dumpster with uncollected garbage bags scattered.",
+                        "sbca": f"{place} par ongoing unauthorized building construction in violation of SBCA stop-work order.",
+                    }
+                    full_text = loanword_samples.get(primary_node.department, f"{primary_text}. {req}.")
+                else:
+                    full_text = f"{primary_text}. {req}."
             else:
                 full_text = f"{primary_text}. {req}."
+
+            w_list = full_text.split()
+            if len(w_list) > 50:
+                full_text = " ".join(w_list[:48]) + "."
+            elif len(w_list) < 21:
+                full_text = f"Hamare ilaqay {place} mein pichlay {when} se {full_text}"
+
+        elif tier == 3:
+            sec_part = f" Is ke sath sath alag se {sec_text}." if sec_text else ""
+            conseq = consequence_text if consequence_text else "tamam ilaqay ke aane jane walon ko sakht dushwari pesh aa rahi hai"
+            full_text = (
+                f"Janab aali, hum {place} ke muqami rehayishi hain aur pichlay {when} se sakht pareshan hain. "
+                f"Asal masla ye hai ke {primary_text}.{sec_part} "
+                f"Is ki wajah se {conseq} aur roz marrah ke umoor mutasir ho chuke hain. "
+                f"Hum ne pehle bhi complaint darj karwayi thi magar abhi tak koi pesh-raft nahi hui. "
+                f"Barah e karam is shikayat par fori karwai farmaen taake awam ko relief mil sake. Shukriya."
+            )
+            if level == 2:
+                full_text = apply_informal_noise(full_text, self.rng, probability=0.35)
+            w_list = full_text.split()
+            if len(w_list) > 100:
+                full_text = " ".join(w_list[:98]) + "."
+            elif len(w_list) < 51:
+                full_text = full_text + " Barah e karam is masle par bila-takheer action lein aur fori team dispatch karein."
+
+        elif tier == 4:
+            sec_clause = f" Is ke sath sath alag se {sec_text}." if sec_text else (f" Is ki wajah se {consequence_text}." if consequence_text else " Is wajah se pure mohallay ka nizam darham barham ho chuka hai.")
+            full_text = (
+                f"Bakhidmat Janab Mutalliqah Afsaran, Karachi. Hum ahl-e-ilaqa {place} aap ki tawajjo is maslay ki janib mabzool karwana chahtay hain. "
+                f"Hamare ilaqay mein pichlay {when} se {primary_text}.{sec_clause} "
+                f"School jane wale bachon, buzurgon aur namaziyon ko aane jane mein shadeed takleef ka samna hai aur log gir kar zakhmi ho rahe hain. "
+                f"Hum ne ilaqai complaint counter par do martaba application jama karwayi magar sirf tasalliyan di gayin aur koi amli iqdam nahi uthaya gaya. "
+                f"Lihaza aali janab se purzor iltija hai ke fori notice le kar staff ko rawana karein."
+            )
+            if level == 2:
+                full_text = apply_informal_noise(full_text, self.rng, probability=0.30)
+            w_list = full_text.split()
+            if len(w_list) > 150:
+                full_text = " ".join(w_list[:148]) + "."
+            elif len(w_list) < 101:
+                full_text = full_text + " Ilawa azeen aam shehri aur karobari hazrat bhi is soorat-e-haal se sakht tang hain aur fori sadd-e-bab chahtay hain."
+
+        else:
+            sec_clause_5 = f" Mazeed bar-aan alag se doosra masla ye hai ke {sec_text}." if sec_text else (f" Is kharabi ke sabab {consequence_text}." if consequence_text else " Is wajah se ilaqay ki roz marrah zindagi bilkul maflooj ho kar reh gayi hai.")
+            full_text = (
+                f"Ba-Khidmat Janab Managing Director wa Municipal Commissioner Sahab, Civic Authorities Karachi. "
+                f"Guzarish baraye fori sadd-e-bab wa imdad: Ahlian-e-{place}. "
+                f"Mohtaram Janab-e-Aala, Hum ahl-e-ilaqa nihayat adab se aap ki janib ek intehayi sangeen masla pesh kar rahe hain. "
+                f"Pichlay taweel arsay se hamare ilaqay {place} mein soorat-e-haal intehayi ghumbeer aur na-qabil-e-bardasht ho chuki hai. "
+                f"Asal haqeeqat ye hai ke {primary_text}.{sec_clause_5} "
+                f"Is kharabi ki wajah se hamare buzurg, beemar afrad aur school jane wale bachay shadeed aziyat mein mubtala hain aur aamad-o-raft intehayi dushwar ho chuki hai. "
+                f"Aap ke ilaqai daftar par mutaddad baar darj karwai gayi shikayatat ke bawajood ab tak kisi zimmedar afsar ne is par amli dhyan nahi diya aur sirf khali tasalliyan di gayin. "
+                f"Lihaza aali martabat se pur-khuloos guzarish hai ke reham farma kar fori inquiry committee aur field team rawana farmayein taake is maslay ko mustaqil bunyadon par hal kiya ja sake. Ahlian-e-Ilaqa."
+            )
+            if level == 2:
+                full_text = apply_informal_noise(full_text, self.rng, probability=0.25)
+            w_list = full_text.split()
+            if len(w_list) > 200:
+                full_text = " ".join(w_list[:198]) + "."
+            elif len(w_list) < 151:
+                full_text = full_text + " Hamare pure mohallay ke hazaron afrad is faryad par daskhat kar rahe hain aur ummeed rakhte hain ke aap is par bila takheer hidayat jari farmayenge. Shukriya."
 
         # Final sanitization and double-space collapse
         full_text = re.sub(r"\s+", " ", full_text).strip()
@@ -575,9 +693,11 @@ class AutonomousCurriculumRealizer:
 
         while len(batch) < count and attempts < max_attempts:
             attempts += 1
+            tier = (len(batch) % 5) + 1
             lvl = focus_level if (focus_level is not None and self.rng.random() < 0.60) else self.rng.choice(levels)
             graph = self.plan_intent_graph(split, lvl)
-            record = self.realize(graph)
+            graph.metadata["length_tier"] = tier
+            record = self.realize(graph, length_tier=tier)
             norm = normalize_text(record["text_sanitized"])
 
             if norm in seen:

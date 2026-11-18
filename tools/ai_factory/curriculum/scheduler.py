@@ -597,4 +597,9 @@ def execute_curriculum_run(
     report_path.write_text(json.dumps(run_report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     print(f"\nRun report saved to: {report_path}")
 
+    from tools.ai_factory.curriculum.reporting import generate_markdown_report
+    md_content = generate_markdown_report(run_report)
+    (out / "report.md").write_text(md_content, encoding="utf-8")
+    print(f"Markdown report saved to: {out / 'report.md'}")
+
     return run_report

@@ -91,12 +91,13 @@ export const DOMAIN_EVIDENCE: Record<AgencyId, DomainLexicon> = {
       /\bkhaddhon\b/i, /\bpothole\b/i, /\bpotholes\b/i, /\bdhans\b/i,
       /\bkharab\b/i, /\bdamage\b/i, /\bdamaged\b/i, /\brepair\b/i,
       /\brebuild\b/i, /\bbana(?:o|ein)\b/i, /\bandhera\b/i,
-      /\bencroachment\b/i, /\bgaariyan\s*lagti\b/i, /\bgehra\b/i,
+      /\bencroachment\b/i, /\bqabza\b/i, /\bpatharay\b/i, /\bgaariyan\s*lagti\b/i, /\bgehra\b/i,
       /\bdarya\b/i, /\bubal\s*kar\s*road\b/i, /\bandhera\s*rehta\b/i,
       /\bbattiyan\s*kharab\b/i, /\bband\s*pari\b/i, /\bband\s*hain\b/i,
       /\bpaani\s*khara\b/i, /\bdo\s*foot\s*paani\b/i,
       /\bdrainage\s*nala\s*kaam\s*n[ah]?[iy]\s*kar\s*raha\b/i,
-      /\bkaam\s*n[ah]?[iy]\s*kar\s*raha\b/i,
+      /\bkaam\s*n[ah]?[iy]\s*kar\s*raha\b/i, /\bdhakkan\s*(?:gayab|chori|missing)?\b/i,
+      /\bexpansion\s*joint\b/i, /\bspeed\s*breaker\b/i, /\bdivider\b/i, /\bblock\s*para\b/i,
     ],
     denials: [
       /\bsarak\s+(?:bilkul\s+)?theek\b/i,
@@ -124,6 +125,7 @@ export const DOMAIN_EVIDENCE: Record<AgencyId, DomainLexicon> = {
       /\btanki\s*nahi\s*bhar\b/i, /\bsewer\s*line\s*choke\b/i, /\bchoke\b/i,
       /\bsirf\s*hawa\s*aa\s*rahi\b/i, /\bganda\s*pani\b/i, /\bsewage\s*mix\b/i,
       /\bgutter\s+(?:ka\s+)?(?:ganda\s+)?pani\s+beh\s+raha\b/i,
+      /\bdhakkan\s*(?:gayab|chori|missing)?\b/i, /\bmanhole\s*ka\s*dhakkan\b/i,
     ],
     denials: [
       /\bye\s+pani\s+ka\s+masla\s+na?h?i\b/i,
@@ -142,17 +144,20 @@ export const DOMAIN_EVIDENCE: Record<AgencyId, DomainLexicon> = {
     defects: [
       /\bload\s*shedding\b/i, /\bspark\b/i, /\bsparking\b/i, /\bblast\b/i,
       /\bshort\s*circuit\b/i, /\btrip\b/i, /\blatak\b/i, /\bhanging\b/i,
-      /\bjhatkay\b/i, /\bbijli\s*nahi\s*aa\s*rahi\b/i, /\blight\s*gayi\b/i,
-      /\bbijli\s*gayi\b/i, /\bfeeder\s*band\b/i, /\bfeeder\s*fault\b/i,
+      /\bjhatkay\b/i, /\bbijli\s*nahi\s*aa\s*rahi\b/i, /\blight\s*nahi\s*aa\s*rahi\b/i,
+      /\bbijli\s*nahi\b/i, /\blight\s*nahi\b/i, /\bcurrent\s*nahi\s*(?:aa\s*raha|hai)?\b/i,
+      /\blight\s*gayi\b/i, /\blight\s*chali\s*gayi\b/i, /\bbijli\s*chali\s*gayi\b/i,
+      /\bbijli\s*gayi\b/i, /\blight\s*band\b/i, /\bbijli\s*band\b/i, /\bbijli\s*gayab\b/i, /\blight\s*gayab\b/i,
+      /\bfeeder\s*band\b/i, /\bfeeder\s*fault\b/i,
       /\bfeeder\s*down\b/i, /\bbar\s*bar\s*(?:light|bijli)?\s*ja\s*ra?h?i\b/i,
       /\btransformer\s*(?:ka\s*)?(?:blast|jal\s*gaya|phat\s*gaya|kharab|fault)\b/i,
       /\bfeeder\s*(?:ka\s*)?(?:fault|band)\b/i,
-      /\bpower\s*outage\b/i, /\bband\s*hai\b/i, /\bpower\s*supply\s*cut\s*off\b/i,
-      /\bzero\s*voltage\b/i, /\bsingle\s*phase\b/i, /\bburnt\b/i, /\bsnapping\b/i,
+      /\bpower\s*outage\b/i, /\bpower\s*cut\b/i, /\bband\s*hai\b/i, /\bpower\s*supply\s*cut\s*off\b/i,
+      /\bzero\s*voltage\b/i, /\blow\s*voltage\b/i, /\bsingle\s*phase\b/i, /\bburnt\b/i, /\bsnapping\b/i,
       /\bcorroded\b/i, /\bmight\s*collapse\b/i, /\b(?:2|do)?\s*phase\s*gayab\b/i,
-      /\bdim\s*light\b/i, /\bvoltage\s*(?:drop|fluctuation|low|kam|up\s*down|bohat\s*zyada\s*low)\b/i,
+      /\bdim\s*light\b/i, /\bvoltage\s*(?:drop|fluctuation|low|kam|up\s*down|bohat\s*zyada\s*low|nahi\s*aa\s*raha|nahi\s*hai|ka\s*masla)\b/i,
       /\bfeeder\s*trip\b/i, /\btoot\s*(?:kar\s*)?(?:zameen\s*par\s*)?(?:gir|giri)\b/i,
-      /\bnangi\s*taar\b/i, /\bappliances\s*jalne\b/i,
+      /\bnangi\s*taar\b/i, /\bappliances\s*jalne\b/i, /\bbijli\s*ki\s*wajah\s*se\b/i, /\blight\s*ki\s*wajah\s*se\b/i,
     ],
     denials: [
       /\bpole\s+kharab\s+nahi\b/i,
@@ -280,18 +285,23 @@ const LOCATION_INDICATORS = [
 export function normalizeRomanUrduText(text: string): string {
   let t = (text || '').toLowerCase();
   t = t.replace(/\bsadak\b/g, 'sarak');
-  t = t.replace(/\b(nhi|nai|naheen)\b/g, 'nahi');
+  t = t.replace(/\b(nhi|nai|naheen|nhn)\b/g, 'nahi');
+  t = t.replace(/\b(aarhi|arhi|aarahi)\b/g, 'aa rahi');
+  t = t.replace(/\b(aarha|arha|aaraha)\b/g, 'aa raha');
+  t = t.replace(/\b(waja|vajha|vaja)\b/g, 'wajah');
   t = t.replace(/\b(boht|bht|bohat|bhat)\b/g, 'bohot');
   t = t.replace(/\b(choolha|chula)\b/g, 'chulha');
   t = t.replace(/\b(gadda|gadha)\b/g, 'gaddha');
   t = t.replace(/\b(khrab|xrab)\b/g, 'kharab');
-  t = t.replace(/\b(hy)\b/g, 'hai');
+  t = t.replace(/\b(hy|\bh\b)\b/g, 'hai');
   t = t.replace(/\b(rhi|rhin)\b/g, 'rahi');
   t = t.replace(/\b(rha|rhe|rhay)\b/g, 'rahe');
   t = t.replace(/\b(zada|zyadh)\b/g, 'zyada');
-  t = t.replace(/\b(hoi\s*v|hoi\s*hai)\b/g, 'hui hai');
+  t = t.replace(/\b(hoi\s*v|hoi\s*hai|ho\s*gae|ho\s*gai)\b/g, 'hui hai');
+  t = t.replace(/\b(gy|gai)\b/g, 'gayi');
   t = t.replace(/\bkrdo\b/g, 'karo');
   t = t.replace(/\b(badbu|bad-?boo)\b/g, 'badboo');
+  t = t.replace(/\bbhee\b/g, 'bhi');
   return t;
 }
 
@@ -521,7 +531,11 @@ export function analyzeComplaintRelationAware(
   // 7. Causal Consequence Indicators
   const hasCausalConsequence = CONSEQUENCE_INDICATORS.some((pat) => pat.test(normFull));
   const hasElectricEvidence = DOMAIN_EVIDENCE.kelectric.assets.some((pat) => pat.test(normFull));
-  const hasWaterMotorSymptom = hasElectricEvidence && /\b(motor\s*band|motor\s*nahi\s*chal)\b/i.test(normFull);
+  const hasWaterMotorSymptom =
+    hasElectricEvidence &&
+    /\b(?:pani\s+ki\s+)?motor\s+(?:band|nahi\s*chal|ruk\s*gayi|kharab)\b|\bwater\s*pump\s*band\b/i.test(
+      normFull
+    );
 
   // 8. Span-by-span Issue Classification
   const spanTuples = segmentSpansWithOffsets(sanitized);
@@ -723,7 +737,10 @@ export function analyzeComplaintRelationAware(
       if (dept === 'ssgc' && !/\b(gas|chulha|sui\s*gas|natural\s*gas)\b/i.test(normFull)) continue;
 
       const aHits = lex.assets.filter((pat) => pat.test(normFull));
-      const dHits = lex.defects.filter((pat) => pat.test(normFull));
+      let dHits = lex.defects.filter((pat) => pat.test(normFull));
+      if (dept === 'kelectric' && hasWaterMotorSymptom && aHits.length > 0 && dHits.length === 0) {
+        dHits = [/power_outage_causing_water_motor_failure/i];
+      }
       if (aHits.length > 0 && dHits.length > 0) {
         actionableDepts.push(dept);
         candidates.push({
@@ -855,15 +872,21 @@ export function analyzeComplaintRelationAware(
             )
         );
         if (!isBenign) {
-          const hasGrievanceToken =
-            /\b(masla|kharab|problem|issue|choke|dara?ar|khatra|khatarnak|dher|kachra|dump|illegal|unsafe|band|toot|current|shikayat|pareshan|dhuwan|aag|gari\s*nahi)\b/i.test(
-              stNorm
-            );
-          if (hasGrievanceToken) {
+          const unroutedDeptsInSpan = new Set<string>();
+          for (const [otherDept, oLex] of Object.entries(DOMAIN_EVIDENCE) as Array<[AgencyId, DomainLexicon]>) {
+            if (!actionableDepts.includes(otherDept) && !negatedDepts.has(otherDept)) {
+              const hasAsset = oLex.assets.some((pat) => pat.test(stNorm));
+              const hasDefect = oLex.defects.some((pat) => pat.test(stNorm));
+              if (hasAsset && hasDefect) {
+                unroutedDeptsInSpan.add(otherDept);
+              }
+            }
+          }
+          if (unroutedDeptsInSpan.size > 0) {
             needsReview = true;
             reviewReason = 'POSSIBLE_UNROUTED_SECONDARY_ISSUE';
             reasonTrace.push(
-              'Secondary clause contains unrouted civic defect indicators; flagged for human triage (POSSIBLE_UNROUTED_SECONDARY_ISSUE)'
+              `Secondary clause contains unrouted civic defect indicators for ${Array.from(unroutedDeptsInSpan).sort().join(', ')}; flagged for human triage (POSSIBLE_UNROUTED_SECONDARY_ISSUE)`
             );
             break;
           }
