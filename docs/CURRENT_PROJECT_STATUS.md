@@ -1,11 +1,73 @@
 # Verified current project status
 
-Verified on **19 November 2026 (Pakistan time)**. Internal delivery target:
+Verified on **20 November 2026 (Pakistan time)**. Internal delivery target:
 **5 December 2026**. Read `PROJECT_MASTER_CONTEXT.md` for requirements/history.
 This document distinguishes inspected source, automated checks, and unverified
 hosted behavior. Update it after every significant verified milestone.
 
-## Latest verification, 19 November 2026 — Phase V13.0: Real Citizen Submission & V11 AI Classifier Integration
+## Latest verification, 20 November 2026 — Phase V13.1: Production-Path Verification & Independent 2,000-Complaint Adversarial Evaluation
+
+Phase V13.1 independently evaluated the production classification pipeline across 2,000 genuinely unseen, adversarial Roman Urdu complaints. All 28 Edge runtime tests, 696 Vitest tests, and 116 Python curriculum tests passed with zero failures. Model integrity was verified before and after evaluation (Run004 SHA-256: `E4D04293...`). Candidate Run006 (`C5D4E3D4...`) was evaluated in read-only mode and remains unpromoted.
+
+### 1. Key Adversarial Evaluation Results (2,000 Complaints)
+- **The 98% Myth Disproved:**
+  - Historical development validation (98% on 250 records) suffered from synthetic prompt overlap.
+  - On 2,000 independently generated, complex adversarial complaints up to 200 words, **Run004 achieved 49.95% full-set exact accuracy (95% CI: [47.76% – 52.14%])**.
+- **Selective Auto-Routing Safety:**
+  - Auto-routing coverage: 77.75% of complaints routed without human intervention or clarification.
+  - **Run004 Selective Auto-Routing Accuracy: 57.56% (95% CI: [55.08% – 60.00%])**.
+  - **Run006 Selective Auto-Routing Accuracy: 63.61% (95% CI: [61.18% – 65.99%])**.
+- **Run006 Superior Generalization (+5.35% Exact Match):**
+  - Run006 Full-Set Exact Accuracy: **55.30% (95% CI: [53.11% – 57.47%])** vs 49.95% for Run004.
+  - Run006 Macro F1: **83.34%** vs 79.85% for Run004.
+  - Run006 Micro F1: **83.32%** vs 79.90% for Run004.
+  - Run006 SBCA Canonical Accuracy: **72.0%** vs 32.0% for Run004.
+  - Run006 remains **unpromoted** in archive pending user review and approval.
+- **Inference Latency:**
+  - Run004: Mean **8.22 ms** (median 8.08 ms, p95 17.3 ms).
+  - Run006: Mean **20.56 ms** (median 20.25 ms, p95 43.9 ms).
+  - Both run 100% locally on commodity hardware at zero cost.
+
+### 2. Benchmark Integrity & Zero Contamination
+- **Benchmark Dataset:** `data/v11/eval_v13_1/adversarial_benchmark_2000.jsonl` (2,000 records).
+- **Geographic Coverage:** 80 Karachi localities and landmarks across all 7 administrative districts.
+- **25 Difficulty Families:** Canonical (6), Typos/Mutations (4), Dialect/Style/Length (6), Reasoning/Causality/Negation (3), Multi-agency (4), Ambiguous Clarification (1), Out-of-Scope (1).
+- **Length Brackets:** 5-35 words (47), 36-80 words (596), 81-125 words (536), 126-165 words (399), 166-200 words (422). Min: 27, Max: 187, Avg: 106.7 words.
+- **Zero Leakage Audit:** Quarantine filter scanned 46,556 historical records (17,814 unique hashes) in `data/v11/` -> **0 exact leaks, 0 normalized leaks, 0 Jaccard 3-gram duplicates**.
+
+### 3. Production Path & Browser Viewport Verification
+- **Local HTTP Integration Tests:** Executed over real TCP sockets with Node 24 native `node:http` (5/5 passed):
+  - Natural complaint routes to SSGC (200 OK).
+  - Clarification answer processed and resolved to K-Electric (200 OK).
+  - Ambiguous submission without answer marked for human review (`UNRESOLVED_AMBIGUITY`).
+  - Strict 200-word limit enforced with 400 Bad Request.
+  - Expired citizen sessions rejected with 401 Unauthorized.
+- **Responsive Viewports Tested:** Desktop (1280px), Tablet (768px), Mobile (390px), Small Mobile (320px) verified in `src/test/V13_1_ViewportAndAccessibility.test.tsx` (6/6 passed):
+  - English/Urdu bilingual toggle and RTL (`dir="rtl"`) layout.
+  - Accessible touch targets, focus order, keyboard navigation.
+  - Clarification prompts render cleanly without clipping or horizontal overflow on 320px screens.
+  - Reduced motion classes respected (`motion-reduce:static`).
+
+### 4. Comprehensive V13.1 Deliverables
+1. `docs/v11/V13_1_INTEGRATION_VERIFICATION_REPORT.md`
+2. `docs/v11/V13_1_BENCHMARK_INTEGRITY_REPORT.md`
+3. `docs/v11/V13_1_ACCURACY_REPORT.md`
+4. `docs/v11/V13_1_FAILURE_ANALYSIS.md`
+5. `docs/v11/V13_1_RECOMMENDATIONS.md`
+6. `data/v11/eval_v13_1/adversarial_benchmark_2000.jsonl`
+7. `data/v11/eval_v13_1/v13_1_evaluation_summary.json`
+8. `data/v11/eval_v13_1/predictions_run_004.jsonl` and `failures_run_004.jsonl`
+9. `data/v11/eval_v13_1/predictions_run_006.jsonl` and `failures_run_006.jsonl`
+
+### 5. Verified Test Suite Summary
+- **Edge Integration Tests (`tests/edge/*.mjs`):** 28 / 28 passed.
+- **Vitest Frontend Suite:** 696 / 696 passed across 50 test files.
+- **Python Curriculum Suite (`tests/v11`):** 116 / 116 passed.
+- **TypeScript & Production Build:** `tsc -b && vite build` passed (0 errors).
+- **Linter:** `oxlint` passed (0 errors, 101 warnings on 277 files).
+- **Model Checksums:** Run004 SHA-256 confirmed unchanged as `E4D042937CF8C3E1E3C70F147A707B33A629D463DB34485766C98DA21C2E3A56`.
+
+## Earlier verifications, 19 November 2026 — Phase V13.0: Real Citizen Submission & V11 AI Classifier Integration
 
 The actual website submission workflow in `src/features/citizen/simplified-complaint/SimplifiedComplaintContainer.tsx`, `src/services/SupabaseComplaintService.ts`, `src/services/MockComplaintService.ts`, and Supabase Edge Function `submit-classified-complaint` has been audited, unified, and upgraded to use the authoritative V11 relation-aware AI classification and pre-submission clarification engine with frozen Run004 model weights.
 

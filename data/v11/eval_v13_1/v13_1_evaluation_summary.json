@@ -1,0 +1,646 @@
+{
+  "eval_timestamp": "2026-11-19T19:01:28.413Z",
+  "benchmark_size": 2000,
+  "run004_sha256": "E4D042937CF8C3E1E3C70F147A707B33A629D463DB34485766C98DA21C2E3A56",
+  "run006_sha256": "C5D4E3D4164AD5482A0ABE4F614115A596665683FBF23914460EE4ED40AE0D3E",
+  "run004_results": {
+    "model_name": "Run004 (Active Runtime Model)",
+    "total_eval_samples": 2000,
+    "full_set_exact_matches": 999,
+    "full_set_exact_accuracy_pct": 49.95,
+    "full_set_exact_accuracy_ci95": {
+      "center": 49.95,
+      "low": 47.76,
+      "high": 52.14
+    },
+    "department_exact_matches": 1038,
+    "department_exact_accuracy_pct": 51.9,
+    "auto_routed_count": 1555,
+    "auto_routing_coverage_pct": 77.75,
+    "auto_routing_coverage_ci95": {
+      "center": 77.7,
+      "low": 75.87,
+      "high": 79.52
+    },
+    "auto_routed_exact_matches": 895,
+    "selective_auto_routing_accuracy_pct": 57.56,
+    "selective_auto_routing_accuracy_ci95": {
+      "center": 57.54,
+      "low": 55.08,
+      "high": 59.99
+    },
+    "clarification_triggers": 430,
+    "clarification_rate_pct": 21.5,
+    "clarification_correct": 37,
+    "human_review_count": 15,
+    "human_review_rate_pct": 0.75,
+    "false_extra_count": 352,
+    "missed_department_count": 746,
+    "macro_precision": 88.92,
+    "macro_recall": 73.76,
+    "macro_f1": 79.85,
+    "micro_precision": 87.28,
+    "micro_recall": 73.67,
+    "micro_f1": 79.9,
+    "agency_metrics": {
+      "kmc": {
+        "tp": 406,
+        "fp": 213,
+        "fn": 205,
+        "tn": 1176,
+        "precision": 65.59,
+        "recall": 66.45,
+        "f1": 66.02
+      },
+      "kwsc": {
+        "tp": 548,
+        "fp": 63,
+        "fn": 13,
+        "tn": 1376,
+        "precision": 89.69,
+        "recall": 97.68,
+        "f1": 93.52
+      },
+      "kelectric": {
+        "tp": 355,
+        "fp": 32,
+        "fn": 211,
+        "tn": 1402,
+        "precision": 91.73,
+        "recall": 62.72,
+        "f1": 74.5
+      },
+      "ssgc": {
+        "tp": 437,
+        "fp": 14,
+        "fn": 113,
+        "tn": 1436,
+        "precision": 96.9,
+        "recall": 79.45,
+        "f1": 87.31
+      },
+      "sswmb": {
+        "tp": 426,
+        "fp": 24,
+        "fn": 121,
+        "tn": 1429,
+        "precision": 94.67,
+        "recall": 77.88,
+        "f1": 85.46
+      },
+      "sbca": {
+        "tp": 318,
+        "fp": 17,
+        "fn": 227,
+        "tn": 1438,
+        "precision": 94.93,
+        "recall": 58.35,
+        "f1": 72.27
+      }
+    },
+    "latency_ms": {
+      "min": 0.97,
+      "max": 28.14,
+      "mean": 8.22,
+      "p50": 7.33,
+      "p95": 17.3,
+      "p99": 17.3
+    },
+    "fault_breakdown": {
+      "0": {
+        "total": 120,
+        "exact": 87,
+        "autoExact": 0,
+        "autoTotal": 33
+      },
+      "1": {
+        "total": 880,
+        "exact": 555,
+        "autoExact": 538,
+        "autoTotal": 750
+      },
+      "2": {
+        "total": 600,
+        "exact": 257,
+        "autoExact": 257,
+        "autoTotal": 491
+      },
+      "3": {
+        "total": 300,
+        "exact": 85,
+        "autoExact": 85,
+        "autoTotal": 188
+      },
+      "4": {
+        "total": 100,
+        "exact": 15,
+        "autoExact": 15,
+        "autoTotal": 93
+      }
+    },
+    "family_breakdown": {
+      "CANONICAL_KMC": {
+        "total": 25,
+        "exact": 22,
+        "autoExact": 22,
+        "autoTotal": 22
+      },
+      "CANONICAL_KWSC": {
+        "total": 25,
+        "exact": 21,
+        "autoExact": 21,
+        "autoTotal": 25
+      },
+      "CANONICAL_KELECTRIC": {
+        "total": 25,
+        "exact": 15,
+        "autoExact": 15,
+        "autoTotal": 16
+      },
+      "CANONICAL_SSGC": {
+        "total": 25,
+        "exact": 17,
+        "autoExact": 17,
+        "autoTotal": 21
+      },
+      "CANONICAL_SSWMB": {
+        "total": 25,
+        "exact": 13,
+        "autoExact": 13,
+        "autoTotal": 18
+      },
+      "CANONICAL_SBCA": {
+        "total": 25,
+        "exact": 8,
+        "autoExact": 8,
+        "autoTotal": 15
+      },
+      "PHONETIC_VARIATION": {
+        "total": 40,
+        "exact": 29,
+        "autoExact": 29,
+        "autoTotal": 33
+      },
+      "MISSING_LETTERS": {
+        "total": 40,
+        "exact": 27,
+        "autoExact": 27,
+        "autoTotal": 33
+      },
+      "JOINED_WORDS": {
+        "total": 40,
+        "exact": 31,
+        "autoExact": 31,
+        "autoTotal": 36
+      },
+      "NO_PUNCTUATION": {
+        "total": 40,
+        "exact": 28,
+        "autoExact": 28,
+        "autoTotal": 35
+      },
+      "FORMAL_ENGLISH_MIX": {
+        "total": 50,
+        "exact": 34,
+        "autoExact": 34,
+        "autoTotal": 41
+      },
+      "STREET_ROMAN_URDU": {
+        "total": 50,
+        "exact": 34,
+        "autoExact": 34,
+        "autoTotal": 49
+      },
+      "SHORT_CLIPPED": {
+        "total": 50,
+        "exact": 40,
+        "autoExact": 40,
+        "autoTotal": 43
+      },
+      "LONG_NARRATIVE": {
+        "total": 50,
+        "exact": 35,
+        "autoExact": 35,
+        "autoTotal": 40
+      },
+      "ANGRY_ABUSIVE_NOISE": {
+        "total": 50,
+        "exact": 41,
+        "autoExact": 41,
+        "autoTotal": 44
+      },
+      "KARACHI_LOCAL_SLANG": {
+        "total": 50,
+        "exact": 42,
+        "autoExact": 42,
+        "autoTotal": 45
+      },
+      "CAUSAL_CONSEQUENCE": {
+        "total": 70,
+        "exact": 28,
+        "autoExact": 28,
+        "autoTotal": 67
+      },
+      "FALSE_SECONDARY": {
+        "total": 60,
+        "exact": 16,
+        "autoExact": 16,
+        "autoTotal": 59
+      },
+      "NEGATED_MENTIONS": {
+        "total": 60,
+        "exact": 47,
+        "autoExact": 47,
+        "autoTotal": 55
+      },
+      "INDEPENDENT_DUAL": {
+        "total": 479,
+        "exact": 203,
+        "autoExact": 203,
+        "autoTotal": 386
+      },
+      "PHONETIC_DUAL": {
+        "total": 121,
+        "exact": 54,
+        "autoExact": 54,
+        "autoTotal": 105
+      },
+      "INDEPENDENT_TRIPLE": {
+        "total": 300,
+        "exact": 85,
+        "autoExact": 85,
+        "autoTotal": 188
+      },
+      "INDEPENDENT_QUAD": {
+        "total": 100,
+        "exact": 15,
+        "autoExact": 15,
+        "autoTotal": 93
+      },
+      "AMBIGUOUS_CLARIFICATION": {
+        "total": 100,
+        "exact": 37,
+        "autoExact": 10,
+        "autoTotal": 63
+      },
+      "OUT_OF_SCOPE": {
+        "total": 100,
+        "exact": 77,
+        "autoExact": 0,
+        "autoTotal": 23
+      }
+    },
+    "bracket_breakdown": {
+      "36-80": {
+        "total": 596,
+        "exact": 346,
+        "autoExact": 312,
+        "autoTotal": 476
+      },
+      "81-125": {
+        "total": 536,
+        "exact": 220,
+        "autoExact": 203,
+        "autoTotal": 411
+      },
+      "126-165": {
+        "total": 399,
+        "exact": 190,
+        "autoExact": 171,
+        "autoTotal": 313
+      },
+      "166-200": {
+        "total": 422,
+        "exact": 210,
+        "autoExact": 186,
+        "autoTotal": 324
+      },
+      "5-35": {
+        "total": 47,
+        "exact": 33,
+        "autoExact": 23,
+        "autoTotal": 31
+      }
+    }
+  },
+  "run006_results": {
+    "model_name": "Run006 (Unpromoted Candidate)",
+    "total_eval_samples": 2000,
+    "full_set_exact_matches": 1106,
+    "full_set_exact_accuracy_pct": 55.3,
+    "full_set_exact_accuracy_ci95": {
+      "center": 55.29,
+      "low": 53.11,
+      "high": 57.47
+    },
+    "department_exact_matches": 1175,
+    "department_exact_accuracy_pct": 58.75,
+    "auto_routed_count": 1539,
+    "auto_routing_coverage_pct": 76.95,
+    "auto_routing_coverage_ci95": {
+      "center": 76.9,
+      "low": 75.05,
+      "high": 78.74
+    },
+    "auto_routed_exact_matches": 979,
+    "selective_auto_routing_accuracy_pct": 63.61,
+    "selective_auto_routing_accuracy_ci95": {
+      "center": 63.58,
+      "low": 61.18,
+      "high": 65.98
+    },
+    "clarification_triggers": 446,
+    "clarification_rate_pct": 22.3,
+    "clarification_correct": 47,
+    "human_review_count": 15,
+    "human_review_rate_pct": 0.75,
+    "false_extra_count": 265,
+    "missed_department_count": 680,
+    "macro_precision": 90.85,
+    "macro_recall": 77.43,
+    "macro_f1": 83.34,
+    "micro_precision": 90.56,
+    "micro_recall": 77.16,
+    "micro_f1": 83.32,
+    "agency_metrics": {
+      "kmc": {
+        "tp": 368,
+        "fp": 151,
+        "fn": 243,
+        "tn": 1238,
+        "precision": 70.91,
+        "recall": 60.23,
+        "f1": 65.13
+      },
+      "kwsc": {
+        "tp": 542,
+        "fp": 26,
+        "fn": 19,
+        "tn": 1413,
+        "precision": 95.42,
+        "recall": 96.61,
+        "f1": 96.01
+      },
+      "kelectric": {
+        "tp": 407,
+        "fp": 34,
+        "fn": 159,
+        "tn": 1400,
+        "precision": 92.29,
+        "recall": 71.91,
+        "f1": 80.83
+      },
+      "ssgc": {
+        "tp": 463,
+        "fp": 18,
+        "fn": 87,
+        "tn": 1432,
+        "precision": 96.26,
+        "recall": 84.18,
+        "f1": 89.82
+      },
+      "sswmb": {
+        "tp": 459,
+        "fp": 26,
+        "fn": 88,
+        "tn": 1427,
+        "precision": 94.64,
+        "recall": 83.91,
+        "f1": 88.95
+      },
+      "sbca": {
+        "tp": 369,
+        "fp": 17,
+        "fn": 176,
+        "tn": 1438,
+        "precision": 95.6,
+        "recall": 67.71,
+        "f1": 79.27
+      }
+    },
+    "latency_ms": {
+      "min": 2.74,
+      "max": 60.83,
+      "mean": 20.56,
+      "p50": 18.66,
+      "p95": 43.9,
+      "p99": 43.9
+    },
+    "fault_breakdown": {
+      "0": {
+        "total": 120,
+        "exact": 109,
+        "autoExact": 0,
+        "autoTotal": 11
+      },
+      "1": {
+        "total": 880,
+        "exact": 595,
+        "autoExact": 577,
+        "autoTotal": 745
+      },
+      "2": {
+        "total": 600,
+        "exact": 291,
+        "autoExact": 291,
+        "autoTotal": 500
+      },
+      "3": {
+        "total": 300,
+        "exact": 93,
+        "autoExact": 93,
+        "autoTotal": 190
+      },
+      "4": {
+        "total": 100,
+        "exact": 18,
+        "autoExact": 18,
+        "autoTotal": 93
+      }
+    },
+    "family_breakdown": {
+      "CANONICAL_KMC": {
+        "total": 25,
+        "exact": 21,
+        "autoExact": 21,
+        "autoTotal": 21
+      },
+      "CANONICAL_KWSC": {
+        "total": 25,
+        "exact": 22,
+        "autoExact": 22,
+        "autoTotal": 25
+      },
+      "CANONICAL_KELECTRIC": {
+        "total": 25,
+        "exact": 17,
+        "autoExact": 17,
+        "autoTotal": 17
+      },
+      "CANONICAL_SSGC": {
+        "total": 25,
+        "exact": 19,
+        "autoExact": 19,
+        "autoTotal": 22
+      },
+      "CANONICAL_SSWMB": {
+        "total": 25,
+        "exact": 16,
+        "autoExact": 16,
+        "autoTotal": 17
+      },
+      "CANONICAL_SBCA": {
+        "total": 25,
+        "exact": 18,
+        "autoExact": 18,
+        "autoTotal": 22
+      },
+      "PHONETIC_VARIATION": {
+        "total": 40,
+        "exact": 31,
+        "autoExact": 31,
+        "autoTotal": 33
+      },
+      "MISSING_LETTERS": {
+        "total": 40,
+        "exact": 31,
+        "autoExact": 31,
+        "autoTotal": 35
+      },
+      "JOINED_WORDS": {
+        "total": 40,
+        "exact": 29,
+        "autoExact": 29,
+        "autoTotal": 33
+      },
+      "NO_PUNCTUATION": {
+        "total": 40,
+        "exact": 29,
+        "autoExact": 29,
+        "autoTotal": 35
+      },
+      "FORMAL_ENGLISH_MIX": {
+        "total": 50,
+        "exact": 35,
+        "autoExact": 35,
+        "autoTotal": 40
+      },
+      "STREET_ROMAN_URDU": {
+        "total": 50,
+        "exact": 38,
+        "autoExact": 38,
+        "autoTotal": 45
+      },
+      "SHORT_CLIPPED": {
+        "total": 50,
+        "exact": 39,
+        "autoExact": 39,
+        "autoTotal": 41
+      },
+      "LONG_NARRATIVE": {
+        "total": 50,
+        "exact": 36,
+        "autoExact": 36,
+        "autoTotal": 40
+      },
+      "ANGRY_ABUSIVE_NOISE": {
+        "total": 50,
+        "exact": 42,
+        "autoExact": 42,
+        "autoTotal": 43
+      },
+      "KARACHI_LOCAL_SLANG": {
+        "total": 50,
+        "exact": 45,
+        "autoExact": 45,
+        "autoTotal": 45
+      },
+      "CAUSAL_CONSEQUENCE": {
+        "total": 70,
+        "exact": 27,
+        "autoExact": 27,
+        "autoTotal": 63
+      },
+      "FALSE_SECONDARY": {
+        "total": 60,
+        "exact": 14,
+        "autoExact": 14,
+        "autoTotal": 60
+      },
+      "NEGATED_MENTIONS": {
+        "total": 60,
+        "exact": 57,
+        "autoExact": 57,
+        "autoTotal": 57
+      },
+      "INDEPENDENT_DUAL": {
+        "total": 479,
+        "exact": 226,
+        "autoExact": 226,
+        "autoTotal": 394
+      },
+      "PHONETIC_DUAL": {
+        "total": 121,
+        "exact": 65,
+        "autoExact": 65,
+        "autoTotal": 106
+      },
+      "INDEPENDENT_TRIPLE": {
+        "total": 300,
+        "exact": 93,
+        "autoExact": 93,
+        "autoTotal": 190
+      },
+      "INDEPENDENT_QUAD": {
+        "total": 100,
+        "exact": 18,
+        "autoExact": 18,
+        "autoTotal": 93
+      },
+      "AMBIGUOUS_CLARIFICATION": {
+        "total": 100,
+        "exact": 47,
+        "autoExact": 11,
+        "autoTotal": 53
+      },
+      "OUT_OF_SCOPE": {
+        "total": 100,
+        "exact": 91,
+        "autoExact": 0,
+        "autoTotal": 9
+      }
+    },
+    "bracket_breakdown": {
+      "36-80": {
+        "total": 596,
+        "exact": 391,
+        "autoExact": 352,
+        "autoTotal": 470
+      },
+      "81-125": {
+        "total": 536,
+        "exact": 254,
+        "autoExact": 230,
+        "autoTotal": 412
+      },
+      "126-165": {
+        "total": 399,
+        "exact": 206,
+        "autoExact": 180,
+        "autoTotal": 305
+      },
+      "166-200": {
+        "total": 422,
+        "exact": 220,
+        "autoExact": 194,
+        "autoTotal": 324
+      },
+      "5-35": {
+        "total": 47,
+        "exact": 35,
+        "autoExact": 23,
+        "autoTotal": 28
+      }
+    }
+  }
+}
