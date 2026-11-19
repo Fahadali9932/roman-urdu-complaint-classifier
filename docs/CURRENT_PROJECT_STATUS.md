@@ -5,6 +5,60 @@ Verified on **19 November 2026 (Pakistan time)**. Internal delivery target:
 This document distinguishes inspected source, automated checks, and unverified
 hosted behavior. Update it after every significant verified milestone.
 
+## Latest verification, 19 November 2026 — Road-Address Precision and SSGC Pipe-Burst Routing Repair (v11_hybrid_ml_relation_v9)
+
+The local classification pipeline (`classifyV11RelationAware`) in `src/services/v11InferenceAdapter.ts` and `src/services/relationEngine.ts` has been verified and upgraded to decision policy `v11_hybrid_ml_relation_v9`. Cross-language parity is maintained with `tools/ai_factory/curriculum/relation_engine.py`.
+
+### 1. Stage 1: Road-Address Precision Verification (v8 -> v9)
+- **Problem & Mechanism:** When roads, footpaths, bridges, or chowks were mentioned solely as physical location addresses (e.g., `"Footpath par kal se Gulberg mein sui gas bilkul gayab hai"` or `"Keamari dock yard road par bohot masla hai"`), whole-complaint TF-IDF models and coarse keyword matching previously assigned KMC inappropriately. The repair introduces `ROAD_LOCATION` address phrase masking in `hasDomainKeywordSupport` so that location mentions without affirmative pavement/structural road defects do not trigger KMC routes.
+- **Verification on 250 Historical Development Records (`data/v11/curriculum_runs/run_006/frozen_validation.jsonl`):**
+  - **Before (v8):** 229 / 250 exact matches (91.60%), 12 reviews (4.80%), 15 extra labels (14 false KMC additions), 6 missed labels.
+  - **After (v9):** 243 / 250 exact matches (97.20%), 16 reviews (6.40%), 1 extra label, 6 missed labels, 0 false KMC additions.
+  - **Changed Predictions:** Exactly 14 predictions changed; all 14 eliminated false KMC additions (10 single-fault complaints correctly stripped of KMC; 4 vague location complaints correctly diverted to review).
+  - **Analysis of 4 Additional Reviews (`cur_c66357b0b89c15ac`, `cur_289e40a1d2a015f4`, `cur_fa93da8879b5cc00`, `cur_518012c6b1d895b7`):** All 4 complaints have ground truth `[]` (vague grievances citing only a road address with no specific defect). Under v8, these were falsely routed to `['kmc']` without review. Under v9, with `ROAD_LOCATION` masking, they correctly defer to human review (`needsReview: true`, `reviewReason: "UNCERTAIN_DEFECT"`, predicted `[]`), matching ground truth. None are regressions.
+  - **Test Suite Updates:** 5 focused road-address tests added to `src/test/V12_9_RoutingIntegrity.test.ts` and `tests/v11/v12_9_routing_cases.json`. Legacy assertion in `src/test/V12_5_IssueExtractionAndClarification.test.ts` updated from `v8` to `v9`.
+
+### 2. Stage 2: Confirmed Routing Defect Diagnosis & Repair (SSGC Pipe Burst)
+- **Defect Diagnosis:** Analysis of the remaining 7 imperfect cases on the 250 development set revealed that 5 of the 6 missed labels were truncated synthetic records ending abruptly with `", aur alag."` or `", aur alag se qareeb par kisi ne khudai."` which the classifier correctly flags as `INCOMPLETE_SECONDARY_ISSUE`. The single non-truncated missed label was `cur_6acc2c11b8f80cec` (`"pichlay haftay se barish ke baad Orangi Town Sector 11-L public school ke paas par do foot paani khara hai drainage nala kaam nahi kar raha, aur is ke sath sath alag se is ke qareeb par kisi ne khudai ki aur gas ki pipeline phat gai hai."`).
+- **Root Cause:** Ground truth is `['kmc', 'ssgc']`. While KWSC had `/\bphat\b/i, /\bphati\b/i, /\bphatne\b/i` in its defects lexicon, SSGC completely omitted pipe burst/rupture verbs. When a gas pipeline ruptures in Roman Urdu (`"gas ki pipeline phat gai hai"`), the defect was unrecognized. In compound sentences, this also falsely triggered `reviewReason: "INCOMPLETE_SECONDARY_ISSUE"` because the explicit secondary issue marker lacked an actionable defect.
+- **Minimal Repair:** Added `/\bphat\b/i, /\bphati\b/i, /\bphatne\b/i` to `DOMAIN_EVIDENCE.ssgc.defects` in both TypeScript (`src/services/relationEngine.ts`) and Python (`tools/ai_factory/curriculum/relation_engine.py`).
+- **Failing Test & Controls:** Added failing test cases (`gas-pipeline-burst-defect` and compound `road-drainage-and-gas-burst`) plus nearby controls (`water-pipeline-burst-control` -> KWSC, and `car-tyre-burst-pothole-control` -> KMC) in `src/test/V12_9_RoutingIntegrity.test.ts`, `tests/v11/v12_9_routing_cases.json`, and `tests/v11/test_v12_9_routing.py`.
+- **Row-by-Row Impact on 250 Historical Development Records:**
+  - Exact matches: rose from 243 (97.20%) to 244 / 250 (97.60%).
+  - Missed labels: dropped from 6 to 5.
+  - Extra labels: remained at 1.
+  - Total human reviews: 15 / 250 (6.00%) — 8 `UNCERTAIN_DEFECT`, 7 `INCOMPLETE_SECONDARY_ISSUE`.
+  - Automatic routing precision: 234 / 235 (99.57%).
+  - Automatic coverage: 235 / 250 (94.00%).
+  - Zero regressions on any previously passing cases.
+
+### 3. Full Verification Results
+- **Node Edge Tests:** 17 tests passed (exit code 0).
+- **Vitest:** 611 tests passed across 48 test files (exit code 0).
+- **Python Unittests:** 116 tests passed across `tests/v11` (exit code 0).
+- **TypeScript:** `npx tsc -b` exited with code 0 (zero errors).
+- **Production Build:** `npm run build` completed in 1.11s with exit code 0.
+- **Linter:** `npm run lint` completed with 0 errors, 96 warnings (exit code 0).
+- **Frozen Model Integrity:** `src/models/v11_candidate_model.json` SHA-256 confirmed as `e4d042937cf8c3e1e3c70f147a707b33a629d463db34485766c98da21c2e3a56` (frozen Run004 weights untouched).
+- **Git State:** Branch `feature/v11-6-final-ai-accuracy-optimization`, base commit `e270a4a4bbe6e430c4764a68ba0924c71a8ff6c2`.
+
+### 4. Next Highest-Priority Classifier Weakness
+- The single remaining non-truncated routing error on the development set is `cur_567e1bbfff36089f`: citizen writes `"Pata nahi bijli ka masla hai ya water supply ka, koi wazeh soorat-e-haal maloom nahi ho rahi"` (speculative mention without an affirmative fault). While `relationEngine` correctly classifies relation as `UNCERTAIN` (`UNCERTAIN_DEFECT`), the whole-text ML score for `kelectric` (0.2887) crosses threshold and passes `hasDomainKeywordSupport` due to the word `"bijli"`, bypassing review and predicting `['kelectric']` instead of deferring to review. Adding speculative-mention gating to ML fallback support is the logical next improvement.
+
+## Latest verification, 19 November 2026 — review access and guest tracking
+
+The working tree contains the review-access and guest-tracking repairs. PostgreSQL enforcement and the hosted database remain unverified. This entry supersedes the earlier assurance about database security based on the simulated Node tests.
+
+- The prepared migrations use active department memberships and persisted assignments. An unassigned case creates no department issue rows. The classification-review RPC checks for a main administrator before reading or changing the case. A whole-case transfer replaces the assigned department list, and issue visibility follows the current parent assignment. The public issue column grant excludes staff notes.
+- The department service handles primary and secondary assignments, checks administrator status before loading the global review queue, and uses persisted assignments for reference lookups. The offline department services also deny global review access. The application regression test covers denial to KMC, administrator assignment, KMC access after assignment, and loss of that access after transfer.
+- The guest tracking function reads existing schema columns, reports confirmed department assignments and constructs public updates from recorded timeline events with fixed public messages.
+- The rollback-only database test sets the actual anonymous and authenticated database roles. It covers citizen ownership, primary and secondary departments, an unrelated department, a revoked member, KMC before and after assignment and transfer, administrator review, guest tracking, and a failure during issue insertion. It requires a **disposable Supabase-compatible PostgreSQL database**. PostgreSQL, Docker and Supabase CLI were unavailable locally. Fetching an isolated PostgreSQL runtime also failed because the package registry was unreachable. No database test result is recorded for this milestone.
+- Automated checks passed with exit 0: 584 Vitest tests across 48 files, 17 Node Edge tests with database doubles, 116 Python tests, TypeScript compilation and the production Vite build. Lint exited 0 with warnings. Vite reported its bundle-size warning. These runs establish application behavior and build health.
+- Git branch `feature/v11-6-final-ai-accuracy-optimization`, HEAD `e270a4a`. Changes are local and uncommitted. The shared worktree Git metadata is read-only in this session. Existing unrelated edits were preserved. Pre-edit copies are in `scratch/review_tracking_0f5c851623474b14b4662a9c3c9e7f69/`.
+- Classifier identity was checked separately. The Edge model remains V10 (`c939a35d769f31a5961da447457dc2477135ecee2036be5eeff12c781c71d3f2`). Local V11 remains frozen Run004 (`e4d042937cf8c3e1e3c70f147a707b33a629d463db34485766c98da21c2e3a56`). There was no model promotion, new accuracy evaluation or deployment.
+
+**Next release gate.** Replay the migrations on a fresh disposable Supabase database, then run `psql -X -v ON_ERROR_STOP=1 -f supabase/tests/security_repair_verification.sql` against that instance. Inspect migration history before any approved rollout. This repair edits the two migration files previously recorded here as pending. A database that has recorded those versions requires a forward migration. The earlier development-server diagnostic-control finding remains a separate open item.
+
 ## Security and normal submission audit, 19 November 2026
 
 **Release decision: hold public intake pending database verification.** Inspected

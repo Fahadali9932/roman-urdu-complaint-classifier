@@ -52,18 +52,21 @@ DOMAIN_EVIDENCE = {
             r"\bdarya\b", r"\bubal\s*kar\s*road\b", r"\bandhera\s*rehta\b",
             r"\bbattiyan\s*kharab\b", r"\bband\s*pari\b", r"\bband\s*hain\b",
             r"\bpaani\s*khara\b", r"\bdo\s*foot\s*paani\b",
-            r"\bdrainage\s*nala\s*kaam\s*n[ah]?[iy]\s*kar\s*raha\b",
-            r"\bkaam\s*n[ah]?[iy]\s*kar\s*raha\b", r"\bdhakkan\s*(?:gayab|chori|missing)?\b",
+            r"\bdrainage\s*nala\s*kaam\s*nahi\s*kar\s*raha\b",
+            r"\bkaam\s*nahi\s*kar\s*raha\b", r"\bdhakkan\s*(?:gayab|chori|missing)?\b",
             r"\bexpansion\s*joint\b", r"\bspeed\s*breaker\b", r"\bdivider\b", r"\bblock\s*para\b",
-            r"\bbarsati\s*nala\b", r"\bnala\s*(?:choke|kachray)\b"
+            r"\bbarsati\s*nala\b", r"\bnala\s*(?:choke|kachray)\b", r"\bsariya\s*nikal\b",
+            r"\bbarish\b[^.!?;]{0,100}\bpani\s*khara\b"
         ],
         "denials": [
             r"\bsarak\s+(?:bilkul\s+)?theek\b",
-            r"\broad\s+tooti\s+(?:hui\s+)?na?h?i\b",
-            r"\bsarak\s+tooti\s+(?:hui\s+)?na?h?i\b",
+            r"\broad\s+(?:toot|tooti)\s+(?:hui\s+)?na?h?i\b",
+            r"\bsarak\s+(?:toot|tooti)\s+(?:hui\s+)?na?h?i\b",
             r"\bfootpath\s+kharab\s+(?:hua\s+)?na?h?i\b",
             r"\b(?:road|sadak|sarak|street|gali|pothole|street\s*lights?)\s*(?:ka|ki|ke|mein)?\s*(?:koi\s+)?(?:masla|issue|problem|kharabi)\s*na?h?i\b",
-            r"\broad\s*(?:theek|sahi)\s*hai\b"
+            r"\broad\s*(?:theek|sahi)\s*hai\b",
+            r"\b(?:sarak|road)\s+(?:ka\s+masla\s+)?(?:theek|hal|solve)\s+ho\s+gay[ai]\b",
+            r"\broad\s+repair\s+ho\s+chuki\s+hai\b"
         ]
     },
     "kwsc": {
@@ -80,7 +83,7 @@ DOMAIN_EVIDENCE = {
             r"\bleak\b", r"\bleakage\b", r"\bphat\b", r"\bphati\b", r"\bphatne\b",
             r"\bburst\b", r"\boverflow\b", r"\bubalta\b", r"\bubal\b", r"\btalaab\b",
             r"\bcover\s*missing\b", r"\blid\b", r"\bsookhi\b", r"\bpressure\s*(?:intihai|bohot|bht|nihayat|bohat)?\s*kam\b",
-            r"\bpressure\s*(?:na\s*hone|zero)\b", r"\bpaani\s*nahi\s*aa\s*raha\b", r"\bwater\s*nahi\s*aa\s*raha\b",
+            r"\bpressure\s*(?:na\s*hone|zero)\b", r"\bpani\s*nahi\s*aa\s*raha\b", r"\bwater\s*nahi\s*aa\s*raha\b",
             r"\bsupply\s*(?:mukammal|bilkul|poori)?\s*band\b", r"\bshortage\b", r"\bchori\b", r"\bband\s*hai\b",
             r"\breplace\s*lid\b", r"\bcovers?\s*missing\b", r"\bcontaminated\b", r"\btoxic\s*smell\b",
             r"\btanki\s*nahi\s*bhar\b", r"\bsewer\s*line\s*choke\b", r"\bchoke\b",
@@ -105,7 +108,8 @@ DOMAIN_EVIDENCE = {
             r"\b(?:pani|water|sewer|sewage|gut?tar)\s*(?:ka|ki|mein)?\s*(?:koi\s+)?(?:masla|issue|problem|kharabi)\s*na?h?i\b",
             r"\bpehle\s*(?:pani|water)\s*(?:ka\s+)?(?:masla|issue)\s*tha\s*lekin\s*ab\s*(?:theek|hal)\b",
             r"\bpani\s*(?:ka\s*)?(?:koi\s*)?issue\s*nahi\b",
-            r"\bpani\s*theek\s*hai\b"
+            r"\bpani\s*theek\s*hai\b",
+            r"\bpani\s*(?:theek|saaf|sahi)\s*hai\b"
         ]
     },
     "kelectric": {
@@ -113,7 +117,7 @@ DOMAIN_EVIDENCE = {
             r"\bbijli\b", r"\blight\b", r"\bcurrent\b", r"\bfeeder\b", r"\btransformer\b",
             r"\btaar\b", r"\bwire\b", r"\bpole\b", r"\bkhamba\b", r"\bvoltage\b", r"\bpower\b",
             r"\bk-?electric\b", r"\b11kv\b", r"\bjumper\b", r"\bcutout\b", r"\bfuse\b",
-            r"\belectricity\s*pole\b", r"\bphase\b", r"\bphases\b"
+            r"\belectricity\s*pole\b", r"\bphase\b", r"\bphases\b", r"\bload\s*shedding\b"
         ],
         "defects": [
             r"\bload\s*shedding\b", r"\bspark\b", r"\bsparking\b", r"\bblast\b",
@@ -128,9 +132,12 @@ DOMAIN_EVIDENCE = {
             r"\bfeeder\s*(?:ka\s*)?(?:fault|band)\b",
             r"\bpower\s*outage\b", r"\bpower\s*cut\b", r"\bband\s*hai\b", r"\bpower\s*supply\s*cut\s*off\b",
             r"\bzero\s*voltage\b", r"\blow\s*voltage\b", r"\bsingle\s*phase\b", r"\bburnt\b", r"\bsnapping\b",
+            r"\bphase\s+\d+\s+(?:gayab|band|missing|down|trip|fault)\b",
             r"\bcorroded\b", r"\bmight\s*collapse\b", r"\b(?:2|do)?\s*phase\s*gayab\b",
             r"\bdim\s*light\b", r"\bvoltage\s*(?:drop|fluctuation|low|kam|up\s*down|bohat\s*zyada\s*low|nahi\s*aa\s*raha|nahi\s*hai|ka\s*masla)\b",
             r"\bfeeder\s*trip\b", r"\btoot\s*(?:kar\s*)?(?:zameen\s*par\s*)?(?:gir|giri)\b",
+            r"\b(?:pole|khamb[ae]|transformer|taar|wire)\s+(?:gir|tedha|jhuk|tilted|girne)\b",
+            r"\bgir\s*raha\b",
             r"\bnangi\s*taar\b", r"\bappliances\s*jalne\b", r"\bbijli\s*ki\s*wajah\s*se\b", r"\blight\s*ki\s*wajah\s*se\b"
         ],
         "denials": [
@@ -146,17 +153,19 @@ DOMAIN_EVIDENCE = {
         "assets": [
             r"\bgas\b", r"\bsui\s*gas\b", r"\bgas\s*pipe\b", r"\bgas\s*pipeline\b",
             r"\bgas\s*line\b", r"\bgas\s*mains\b", r"\bgas\s*meter\b", r"\bchulha\b",
-            r"\bssgc\b", r"\bregulator\b", r"\bdiaphragm\b", r"\bnatural\s*gas\b"
+            r"\bssgc\b", r"\bregulator\b", r"\bdiaphragm\b", r"\bnatural\s*gas\b", r"\bflame\b"
         ],
         "defects": [
             r"\bboo\b", r"\bsmell\b", r"\bhiss\b", r"\bleak\b", r"\bleakage\b",
+            r"\bphat\b", r"\bphati\b", r"\bphatne\b",
             r"\bpressure\b", r"\bchulha\s*nahi\s*jal\b", r"\bflame\s*nahi\b",
             r"\baag\s*lagne\b", r"\bdhamaka\b", r"\bburst\b", r"\bkam\s*aa\s*raha\b",
             r"\bruptured\b", r"\bwhistling\b", r"\bblowing\s*out\b", r"\bchulha\s*band\b",
             r"\bnahi\s*aa\s*rahi\b", r"\bsupply\s*(?:mukammal|bilkul|poori)?\s*band\b",
             r"\bgas\s*(?:na\s*hone|gayab)\b", r"\bkhana\s*banana\s*namumkin\b",
             r"\btez\s*boo\b", r"\bcylinder\s*lana\s*parh\b",
-            r"\bescape\b", r"\bgas\s*escape\b", r"\bmachis\b"
+            r"\bescape\b", r"\bgas\s*escape\b", r"\bmachis\b",
+            r"\bflame\s+(?:bilkul\s+)?(?:peel[ae]y?|yellow|low|kam|weak)\b"
         ],
         "denials": [
             r"\bgas\s+ka\s+koi\s+issue\s+nahi\b",
@@ -165,7 +174,8 @@ DOMAIN_EVIDENCE = {
             r"\bgas\s+theek\s+hai\b",
             r"\bgas\s+(?:theek\s+ho\s+gayi|ka\s+masla\s+(?:solve|hal|theek)\s*ho\s*gaya)\b",
             r"\b(?:gas|suigas|cylinder|pipeline)\s*(?:ka|ki|ke|mein)?\s*(?:koi\s+)?(?:masla|issue|problem|kharabi)\s*na?h?i\b",
-            r"\bgas\s*(?:theek|aa\s*rahi)\s*hai\b"
+            r"\bgas\s*(?:theek|aa\s*rahi)\s*hai\b",
+            r"\bgas\s+(?:ki\s+)?supply\s+(?:bilkul\s+)?(?:theek|sahi)\s+hai\b"
         ]
     },
     "sswmb": {
@@ -187,7 +197,9 @@ DOMAIN_EVIDENCE = {
             r"\brefusing\s*to\s*enter\b", r"\bclogging\b", r"\brotting\s*odor\b",
             r"\bclean\s*bin\b", r"\bgari\s*nahi\s*aa?i\b", r"\bgaari\s*nahi\s*aa?i\b",
             r"\bdump\s*ban\s*chuka\b", r"\bkutte\s*nooch\b", r"\bsaans\s*lena\s*mushkil\b",
-            r"\baag\s*laga\b", r"\bdhuwan\b", r"\btaffun\b"
+            r"\baag\s*laga\b", r"\bdhuwan\b", r"\btaffun\b",
+            r"\billegal\s+(?:(?:garbage|waste|trash)\s+)?dump(?:ing)?\b",
+            r"\b(?:garbage|waste|trash)\s+dump(?:ing)?\s+(?:is\s+)?illegal\b"
         ],
         "denials": [
             r"\bkachra\s+(?:bilkul\s+)?theek\s+se\s+uth\s+gaya\b",
@@ -204,7 +216,7 @@ DOMAIN_EVIDENCE = {
             r"\bplot\b", r"\bdukan\b", r"\bcommercial\b", r"\bcos\b",
             r"\bcompulsory\s*open\s*space\b", r"\bsbca\b", r"\bconstruction\b",
             r"\bpremises\b", r"\bbungalow\b", r"\bopen\s*space\b", r"\bcos\s*par\b",
-            r"\bunsafe\s*building\b"
+            r"\bunsafe\s*building\b", r"\b(?:chhat|chhajja|godam|warehouse|shops?|rooms?|lanter|plazas?|manzil)\b"
         ],
         "defects": [
             r"\billegal\b", r"\bgheir\s*qanooni\b", r"\bbina\s*permit\b", r"\bbina\s*noc\b",
@@ -215,7 +227,8 @@ DOMAIN_EVIDENCE = {
             r"\bstop-work\b", r"\bseal\s*the\s*premises\b", r"\bschool\b", r"\bhospital\b",
             r"\bkhasta\s*haal\b", r"\bgirne\s*wali\b", r"\bsealing\s*order\b",
             r"\bdobara\s*illegal\s*kaam\b", r"\bdemolition\s*vibration\b",
-            r"\bkhatarnak\s*dara?ar\b", r"\bunsafe\b"
+            r"\bkhatarnak\s*dara?ar\b", r"\bunsafe\b", r"\bghair\s*qanooni\b", r"\bbaghair\s+shoring\b",
+            r"\bset[- ]back\s+(?:rules\s+)?violat\w*\b"
         ],
         "denials": [
             r"\bbuilding\s+theek\s+hai\b",
@@ -268,7 +281,8 @@ OUT_OF_SCOPE_PATTERNS = [
     r"(?i)\bshauhar\s*biwi\b",
     r"(?i)\b(?:makan\s*malik|kiraya|rent\s*barha|ghar\s*khali|tenant|landlord|bina\s*notice\s*rent)\b",
     r"(?i)\b(?:cyber\s*crime|fraud\s*caller|atm\s*se\s*paise|paise\s*deduct|bank\s*account)\b",
-    r"(?i)\b(?:traffic\s*police|challan\s*kaat|mobile\s*cheen|snatching|dacoity|chori|wardatein)\b",
+    r"(?i)\b(?:traffic\s*police|challan\s*kaat|mobile\s*cheen|snatching|dacoity|wardatein)\b",
+    r"(?i)\b(?:mobile|phone|wallet|bike|motorcycle|gaari|car|paise|paisa)\s+(?:ki\s+|ka\s+)?chori\b",
     r"(?i)\b(?:school\s*management|fees\s*barha|private\s*school\s*fees)\b",
     r"(?i)\b(?:padosi\s*ke\s*kuttay|kutte\s*ne\s*kaat)\b",
 ]
@@ -278,6 +292,17 @@ LOCATION_INDICATORS = [
     r"(?i)\b(gali\s*(?:number|no)?\s*\d+|block\s*\d+|sector\s*\d+|phase\s*\d+|street\s*\d+)\b",
     r"(?i)\b(clifton|saddar|nazimabad|korangi|baldia|jauhar|gulshan|north\s*karachi|site|lyari|malir|fb\s*area|liaquatabad)\b",
     r"(?i)\b(chowrangi|chowk|road\s*number|market|bridge|mor|stop|plaza)\b",
+]
+
+HISTORICAL_RESOLVED_PATTERNS = [
+    r"(?i)\b(?:theek|hal|solve)\s*(?:ho\s*gay[ai]|ho\s*chuki|ho\s*chuka)\b",
+    r"(?i)\bpehle\s+.*?\s+(?:tha|thi)\s+lekin\s+ab\s+theek\b",
+    r"(?i)\bpehle\b[^.?!;]{0,50}\b(?:tha|thi)\b",
+    r"(?i)\bpehle\s+toot\w*\s+(?:hui\s+)?thi\b",
+    r"(?i)\brepair\s+ho\s+chuki\b",
+    r"(?i)\bsafai\s+ho\s+chuki\b",
+    r"(?i)\buth\s+gaya\b",
+    r"(?i)\bmasla\s+theek\s+ho\s+gaya\b",
 ]
 
 
@@ -298,6 +323,12 @@ class IssueCandidate:
     department: Optional[str] = None
     confidence: float = 0.0
     reason_codes: List[str] = field(default_factory=list)
+    is_historical_or_resolved: bool = False
+    is_contextual_landmark: bool = False
+    causal_relationship: Optional[str] = None  # "root_cause", "consequence_of_root", "independent", None
+    causal_target_dept: Optional[str] = None
+    decision_rationale: Optional[str] = None
+    responsible_department_candidate: Optional[str] = None
 
 
 @dataclass
@@ -324,6 +355,52 @@ class ComplaintAnalysisResult:
     reason_trace: List[str]
 
 
+LANDMARK_NOUNS = {
+    'kelectric': 'transformer|transfamer|khamb(?:a|ay|e)|pole|feeder|electricity pole',
+    'kwsc': 'water pump|water tank|water pipe|water board|pani ki tanki|sewer|gutter|manhole',
+    'ssgc': 'gas meter|gas pipeline|gas pipe|gas line|gas regulator',
+    'kmc': 'road|sarak|bridge|pul|flyover|footpath',
+    'sswmb': 'garbage dump|dustbin|kachra kundi|dumpster',
+    'sbca': 'building|imarat|construction site|plaza',
+}
+SPATIAL_TAIL = r'ke\s+(?:bilkul\s+)?(?:paas|qareeb|samne|samnay|barabar|peeche|peechay|kinare|kinaray|agay|ooper|neechay)(?:\s+(?:mein|me|par))?'
+LANDMARK_MASKS = {dept: re.compile(rf'\b(?:(?:k-?electric|kwsc|ssgc|sswmb|sbca|kmc)\s+ke\s+)?(?:{asset})(?:\s+aur\s+(?:{asset}))*\s+{SPATIAL_TAIL}\b') for dept, asset in LANDMARK_NOUNS.items()}
+COORDINATED_LANDMARK_TAIL = re.compile(rf'^(?:{"|".join(LANDMARK_NOUNS.values())})\s+{SPATIAL_TAIL}\b', re.I)
+
+
+def domain_evidence_text(normalized: str, dept: str) -> str:
+    """Evidence-only projection, mirrored in TypeScript; offsets stay original."""
+    evidence = re.sub(
+        r"\b(?:k-?electric|kmc|kw&?sc|water\s*board|ssgc|sswmb|sbca)\s+(?:(?:walon|staff|team|ko)\s+)*(?:bhi\s+)?(?:dekhein|dekhen|dekhain|sunein|sunain|bataya|kaha|ittila|letter\s+likha)\b",
+        " ", normalized,
+    )
+    evidence = LANDMARK_MASKS[dept].sub(lambda match: match.group() if re.match(
+        r'^(?:sparks?|sparking|leak|leakage|phat|burst|toot|gaddh[ae]|potholes?|blast|current|aag\s+laga)\b',
+        match.string[match.end():].lstrip(), re.I) else ' ', evidence)
+    if dept == "kelectric":
+        evidence = re.sub(r"\bphase\s+\d+\b(?!\s*(?:gayab|band|missing|down|trip|fault|nahi\s+aa))", " ", evidence)
+    elif dept == "kwsc":
+        evidence = re.sub(r"\bwater\s+pump\s+chowrangi\b", " ", evidence)
+        # Water inside a gas-owned conduit is not a second water-network fault.
+        evidence = re.sub(r"\bgas\s+(?:(?:ka|ki|ke)\s+)?(?:distribution\s+)?(?:pipeline|pipe|line|mains?)\s+(?:mein|me|main)\s+(?:pani|water)\b", " ", evidence)
+        evidence = re.sub(r"\bgas\s+(?:(?:ka|ki|ke)\s+)?(?:distribution\s+)?(?:pipeline|pipe|line|mains?)\b", " ", evidence)
+        if re.search(r"\bbarish\b", evidence) and re.search(r"\b(?:road|sarak|drainage|naali|naala|nala)\b", evidence):
+            evidence = re.sub(r"\bpani\s+khara\b", " ", evidence)
+    elif dept == "kmc":
+        evidence = re.sub(r"\b(?:main\s+)?(?:road|sarak|bridge|pul|footpath)(?:\s+(?:number|no\.?|#)\s*\d+)?\s+(?:ke\s+(?:paas|qareeb)|par|mein|me)(?:\s+(?:par|mein|me))*\s+(?=(?:bijli|taar|wire|transformer|feeder|gas|(?:pani|water)\s+(?:ki\s+)?(?:pipe|pipeline|line|main|supply)|sewer|gutter|kachra|kachray|garbage|waste|building|imarat)\b)", " ", evidence)
+        if re.search(r"\b(?:sewer|gutter|sewerage)\b", normalized) and not re.search(r"\b(?:gaddh[ae]|khadd[ae]|toot|dhans|pothole)\b", normalized):
+            evidence = re.sub(r"\bdarya\b", " ", evidence)
+    return evidence
+
+
+def _has_independent_water_fault(text: str) -> bool:
+    """A public network fault must survive unrelated private motor symptoms."""
+    return bool(re.search(r"\b(sewer|gutter|sookhi|supply\s*band)\b", text) or (
+        re.search(r"\b(?:pipe|pipeline|water\s*main|water\s*line|pani\s*ki\s*line)\b", text)
+        and re.search(r"\b(?:leak|leakage|phat|phati|burst|choke|contaminated)\b", text)
+    ))
+
+
 class RelationAwareComplaintAnalyzer:
     """Production-grade relation-aware civic complaint analyzer."""
 
@@ -331,10 +408,28 @@ class RelationAwareComplaintAnalyzer:
     def normalize_text(text: str) -> str:
         """Lightweight phonetic normalizer for Roman Urdu without losing spans."""
         t = (text or "").lower()
+        t = re.sub(r"\b(bijli|bijlee|bjl|gas|gass|pani|paani|pni)(nahi|nhi|nai)(a{1,2}(?:rahi|rhi|raha|rha))\b", r"\1 nahi \3", t)
+        t = re.sub(r"\b(pani|paani|pni|bijli|gas)(aaraha|aarahi|aarha|aarhi)\b", r"\1 \2", t)
+        t = re.sub(r"\b(road|sarak|sadak|gutter|pipeline|transformer|building|imarat)(kharab|khrab|toot|choke|leak)\b", r"\1 \2", t)
+        t = re.sub(r"\bdistributionline\b", "distribution line", t)
+        t = re.sub(r"\b(bijli|gas|pani|paani|kachra)(nahi|nhi|nai)(?:\b)", r"\1 nahi", t)
+        t = re.sub(r"\bgas{3,}\b", "gas", t)
+        t = re.sub(r"\bpa{2,}ni{2,}\b", "pani", t)
+        t = re.sub(r"\bbi{2,}jli{1,}\b", "bijli", t)
+        t = re.sub(r"\bkachra{3,}\b", "kachra", t)
+        t = re.sub(r"\b(se|ke|ki|ka|aur|yahan|mein)(gas|gass|pani|paani|bijli|road|sarak|gutter|kachra|transformer|basement|building|imarat|supply|barsati|waste)\b", r"\1 \2", t)
+        t = re.sub(r"\b(gas|gass|pani|paani|bijli|road|sarak|gutter|kachra|transformer|basement|building|imarat|supply|flame)(par|ke|ki|ka|mein|band|gayab)\b", r"\1 \2", t)
+        t = re.sub(r"\b(hai|hain|tha|thi)(aur|lekin|magar)\b", r"\1 \2", t)
+        t = re.sub(r"\b(ho|nahi)(rahi|raha|rahe|chal|jal)\b", r"\1 \2", t)
+        t = re.sub(r"\b(theek|kharab|gayab|missing|gaya|gayi|gaddha|khadda|toot|toota|tooti|choke|burst|leak)(hai|hain|tha|thi)\b", r"\1 \2", t)
+        t = re.sub(r"\bubhal\b", "ubal", t)
+        t = re.sub(r"\bubhalta\b", "ubalta", t)
+        t = re.sub(r"\bgass\b", "gas", t)
+        t = re.sub(r"\b(?:transfamer|trnsfrmr)\b", "transformer", t)
         t = re.sub(r"\bsadak\b", "sarak", t)
         t = re.sub(r"\b(nhi|nai|naheen|nhn)\b", "nahi", t)
-        t = re.sub(r"\b(aarhi|arhi|aarahi)\b", "aa rahi", t)
-        t = re.sub(r"\b(aarha|arha|aaraha)\b", "aa raha", t)
+        t = re.sub(r"\b(aarhi|arhi|aarahi|arahi)\b", "aa rahi", t)
+        t = re.sub(r"\b(aarha|arha|aaraha|araha)\b", "aa raha", t)
         t = re.sub(r"\b(waja|vajha|vaja)\b", "wajah", t)
         t = re.sub(r"\b(boht|bht|bohat|bhat)\b", "bohot", t)
         t = re.sub(r"\b(choolha|chula)\b", "chulha", t)
@@ -358,13 +453,13 @@ class RelationAwareComplaintAnalyzer:
     @classmethod
     def segment_spans(cls, text: str) -> List[Tuple[int, int, str]]:
         """Extract clause spans while preserving exact start/end offsets in original text."""
-        raw = text.strip()
-        if not raw:
+        raw = text
+        if not raw.strip():
             return []
 
         splitter_regex = re.compile(
-            r"(?:,\s*(?:aur\s+alag\s+se|alag\s+se|is\s+ke\s+ilawa|is\s+ke\s+sath\s+sath|saath\s+mein|doosra\s+masla|doosri\s+taraf)\b|"
-            r"\b(?:aur\s+alag\s+se|alag\s+se|is\s+ke\s+ilawa|is\s+ke\s+sath\s+sath|saath\s+mein|doosra\s+masla|doosri\s+taraf|aur\s+saath\s+wali)\b|"
+            r"(?:,\s*(?:aur\s+(?:is\s+ke\s+)?sath\s+sath|sath\s+sath\s+(?:doosri\s+taraf|mazeed)?|mazeed\s+(?:yeh\s+ke|teesra|chotha)?|doosra\s+(?:bara\s+)?masla|teesra\s+(?:bara\s+)?(?:masla|nuqs|issue)|chotha\s+(?:bara\s+)?(?:masla|nuqs|azaab|issue)|aakhri\s+(?:masla|chotha\s+azaab|nuqs)|pados\s+wali\s+gali\s+mein|doosri\s+taraf|aur\s+alag\s+se|alag\s+se|is\s+ke\s+ilawa|is\s+ke\s+sath\s+sath|saath\s+mein)\b|"
+            r"\b(?:aur\s+(?:is\s+ke\s+)?sath\s+sath|sath\s+sath\s+(?:doosri\s+taraf|mazeed)?|mazeed\s+(?:yeh\s+ke|teesra|chotha)?|doosra\s+(?:bara\s+)?masla|teesra\s+(?:bara\s+)?(?:masla|nuqs|issue)|chotha\s+(?:bara\s+)?(?:masla|nuqs|azaab|issue)|aakhri\s+(?:masla|chotha\s+azaab|nuqs)|pados\s+wali\s+gali\s+mein|doosri\s+taraf|aur\s+alag\s+se|alag\s+se|is\s+ke\s+ilawa|is\s+ke\s+sath\s+sath|saath\s+mein|aur\s+saath\s+wali|lekin|magar|but|however|balke|balkay)\b|"
             r"(?<!\d)\.(?!\d)\s*|[?!;]+\s*|\n+)"
         )
 
@@ -397,6 +492,8 @@ class RelationAwareComplaintAnalyzer:
                 a_start, a_end = am.span()
                 left_part = s_text[sub_last:a_start]
                 right_part = s_text[a_end:]
+                if COORDINATED_LANDMARK_TAIL.search(right_part.strip()):
+                    continue
 
                 left_depts = cls._quick_dept_check(left_part)
                 right_depts = cls._quick_dept_check(right_part)
@@ -425,8 +522,9 @@ class RelationAwareComplaintAnalyzer:
         for dept, lex in DOMAIN_EVIDENCE.items():
             if dept == "kwsc" and re.search(r"\b(gas|sui\s*gas)\b", c_norm) and not re.search(r"\b(pani|water|sewer|gutter)\b", c_norm):
                 continue
+            evidence_text = domain_evidence_text(c_norm, dept)
             for pat in lex["assets"]:
-                if re.search(pat, c_norm):
+                if re.search(pat, evidence_text):
                     found.add(dept)
                     break
         return found
@@ -453,6 +551,11 @@ class RelationAwareComplaintAnalyzer:
                     negation_scope=False,
                     mention_type="out_of_scope",
                     reason_codes=["OUT_OF_SCOPE_PRIVATE_DISPUTE"],
+                    is_historical_or_resolved=False,
+                    is_contextual_landmark=False,
+                    causal_relationship=None,
+                    decision_rationale="Citizen complaint concerns private dispute outside civic municipal jurisdiction",
+                    responsible_department_candidate=None,
                 )
                 return ComplaintAnalysisResult(
                     complaint_id=complaint_id,
@@ -487,6 +590,11 @@ class RelationAwareComplaintAnalyzer:
                 negation_scope=False,
                 mention_type="vague_complaint",
                 reason_codes=["VAGUE_NO_DEFECT_SPECIFIED"],
+                is_historical_or_resolved=False,
+                is_contextual_landmark=False,
+                causal_relationship=None,
+                decision_rationale="Input lacks actionable defect predicate or asset mention",
+                responsible_department_candidate=None,
             )
             return ComplaintAnalysisResult(
                 complaint_id=complaint_id,
@@ -536,7 +644,7 @@ class RelationAwareComplaintAnalyzer:
         has_causal_consequence = any(re.search(c_pat, norm_full) for c_pat in CONSEQUENCE_INDICATORS)
 
         # Check if electrical outage causes private water motor symptom
-        has_electric_evidence = any(re.search(pat, norm_full) for pat in DOMAIN_EVIDENCE["kelectric"]["assets"])
+        has_electric_evidence = any(re.search(pat, domain_evidence_text(norm_full, "kelectric")) for pat in DOMAIN_EVIDENCE["kelectric"]["assets"])
         has_water_motor_symptom = has_electric_evidence and bool(
             re.search(r"\b(?:pani\s+ki\s+)?motor\s+(?:band|nahi\s*chal|ruk\s*gayi|kharab)\b|\bwater\s*pump\s*band\b", norm_full)
         )
@@ -549,8 +657,14 @@ class RelationAwareComplaintAnalyzer:
             s_norm = cls.normalize_text(s_raw)
 
             for dept, lex in DOMAIN_EVIDENCE.items():
-                # Negation override
-                if dept in negated_depts:
+                evidence_text = domain_evidence_text(s_norm, dept)
+                # Scope denials and historical/resolved mentions to the clause containing them.
+                is_hist_match = any(re.search(hp, s_norm) for hp in HISTORICAL_RESOLVED_PATTERNS)
+                is_denial_match = any(re.search(den, s_norm) for den in lex["denials"])
+                has_dept_asset_in_clause = any(re.search(p, s_norm) for p in lex["assets"])
+
+                if is_denial_match or (is_hist_match and has_dept_asset_in_clause):
+                    is_hist = is_hist_match
                     candidates.append(IssueCandidate(
                         span_id=f"iss_{idx}_{dept}",
                         span_start=s_start,
@@ -558,17 +672,22 @@ class RelationAwareComplaintAnalyzer:
                         span_text=s_raw.strip(),
                         normalized_text=s_norm,
                         asset=dept,
-                        defect_evidence=["explicitly_negated"],
+                        defect_evidence=["historical_or_resolved"] if is_hist else ["explicitly_negated"],
                         is_actionable=False,
                         negation_scope=True,
                         mention_type="negated_mention",
                         department=dept,
-                        reason_codes=[f"EXPLICIT_DENIAL_{dept.upper()}"]
+                        reason_codes=[f"HISTORICAL_RESOLVED_{dept.upper()}" if is_hist else f"EXPLICIT_DENIAL_{dept.upper()}"],
+                        is_historical_or_resolved=is_hist,
+                        is_contextual_landmark=False,
+                        causal_relationship=None,
+                        decision_rationale=f"Past issue for {dept.upper()} reported resolved/repaired; not currently actionable" if is_hist else f"Explicit denial of active defect for {dept.upper()}",
+                        responsible_department_candidate=dept,
                     ))
                     continue
 
                 # Recipient override
-                if has_recipient_preamble and recipient_dept == dept:
+                if has_recipient_preamble and recipient_dept == dept and not any(re.search(pat, s_norm) for pat in lex["defects"]):
                     candidates.append(IssueCandidate(
                         span_id=f"iss_{idx}_{dept}",
                         span_start=s_start,
@@ -581,30 +700,44 @@ class RelationAwareComplaintAnalyzer:
                         negation_scope=False,
                         mention_type="recipient_mention",
                         department=dept,
-                        reason_codes=[f"RECIPIENT_ONLY_{dept.upper()}"]
+                        reason_codes=[f"RECIPIENT_ONLY_{dept.upper()}"],
+                        is_historical_or_resolved=False,
+                        is_contextual_landmark=False,
+                        causal_relationship=None,
+                        decision_rationale=f"Agency {dept.upper()} mentioned as recipient/addressee only, not an active defect",
+                        responsible_department_candidate=dept,
                     ))
                     continue
 
                 # Spatial landmark override
-                if is_spatial_proximity_only and dept == "kelectric":
+                is_landmark_candidate = bool(
+                    (is_spatial_proximity_only and dept == "kelectric")
+                    or (dept in LANDMARK_MASKS and LANDMARK_MASKS[dept].search(s_norm) and not any(re.search(pat, s_norm) for pat in lex["defects"]))
+                )
+                if is_landmark_candidate:
                     candidates.append(IssueCandidate(
                         span_id=f"iss_{idx}_{dept}",
                         span_start=s_start,
                         span_end=s_end,
                         span_text=s_raw.strip(),
                         normalized_text=s_norm,
-                        asset="pole",
+                        asset="pole" if dept == "kelectric" else dept,
                         defect_evidence=["spatial_landmark_only"],
                         is_actionable=False,
                         negation_scope=False,
                         mention_type="spatial_landmark",
                         department=dept,
-                        reason_codes=["SPATIAL_LANDMARK_WITHOUT_DEFECT"]
+                        reason_codes=["SPATIAL_LANDMARK_WITHOUT_DEFECT"],
+                        is_historical_or_resolved=False,
+                        is_contextual_landmark=True,
+                        causal_relationship=None,
+                        decision_rationale=f"Asset for {dept.upper()} mentioned solely as spatial reference/landmark; no active physical defect",
+                        responsible_department_candidate=dept,
                     ))
                     continue
 
                 # Consequence suppression: water motor symptom from power outage
-                if dept == "kwsc" and has_water_motor_symptom and not re.search(r"\b(sewer|gutter|sookhi|supply\s*band)\b", s_norm):
+                if dept == "kwsc" and has_water_motor_symptom and not _has_independent_water_fault(s_norm):
                     candidates.append(IssueCandidate(
                         span_id=f"iss_{idx}_{dept}",
                         span_start=s_start,
@@ -617,20 +750,15 @@ class RelationAwareComplaintAnalyzer:
                         negation_scope=False,
                         mention_type="consequence",
                         department=dept,
-                        reason_codes=["CONSEQUENCE_WATER_MOTOR_SYMPTOM"]
+                        reason_codes=["CONSEQUENCE_WATER_MOTOR_SYMPTOM"],
+                        is_historical_or_resolved=False,
+                        is_contextual_landmark=False,
+                        causal_relationship="consequence_of_root",
+                        causal_target_dept="kelectric",
+                        decision_rationale="Private water pump/motor non-operation caused by electric power outage; root cause is electric",
+                        responsible_department_candidate=dept,
                     ))
                     continue
-
-                # Road surface water ponding consequence without road damage
-                if dept == "kmc" and any(re.search(den, norm_full) for den in DOMAIN_EVIDENCE["kmc"]["denials"]):
-                    # Only suppress if this span does NOT contain other municipal assets like drainage nala or street lights
-                    if not re.search(r"\b(drainage\s*nala|drainage|street\s*lights?|naali|naala|nullah)\b", s_norm):
-                        continue
-
-                # Pedestrian access blocked by construction without footpath broken
-                if dept == "kmc" and re.search(r"\bfootpath\s+kharab\s+(?:hua\s+)?na?h?i\b", norm_full):
-                    if not re.search(r"\b(drainage\s*nala|drainage|street\s*lights?|naali|naala|nullah)\b", s_norm):
-                        continue
 
                 # Spatial preamble for KMC: "footpath aur road par [Location] ... [other dept issue]"
                 if dept == "kmc" and re.search(r"^(?:footpath\s+aur\s+road\s+par|sarak\s+par|road\s+par)\b", s_norm):
@@ -647,7 +775,7 @@ class RelationAwareComplaintAnalyzer:
                     continue
 
                 # SSGC must have gas tokens
-                if dept == "ssgc" and not re.search(r"\b(gas|chulha|sui\s*gas|natural\s*gas)\b", norm_full):
+                if dept == "ssgc" and not re.search(r"\b(gas|chulha|flame|sui\s*gas|natural\s*gas)\b", norm_full):
                     continue
 
                 # If taar/wire is present in K-Electric, don't confuse KMC road toot with taar toot
@@ -655,15 +783,11 @@ class RelationAwareComplaintAnalyzer:
                     continue
 
                 # Check asset and defect match in this span
-                asset_hits = [pat for pat in lex["assets"] if re.search(pat, s_norm)]
-                defect_hits = [pat for pat in lex["defects"] if re.search(pat, s_norm)]
-
-                # Special: In SSGC, if gas is mentioned in full text and defect is present
-                if dept == "ssgc" and re.search(r"\b(?:gas|natural\s*gas)\b", s_norm):
-                    if not defect_hits:
-                        defect_hits = [pat for pat in lex["defects"] if re.search(pat, norm_full)]
+                asset_hits = [pat for pat in lex["assets"] if re.search(pat, evidence_text)]
+                defect_hits = [pat for pat in lex["defects"] if re.search(pat, evidence_text)]
 
                 if asset_hits and defect_hits:
+                    is_causal_root = has_causal_consequence and (dept in ("kelectric", "kwsc"))
                     candidates.append(IssueCandidate(
                         span_id=f"iss_{idx}_{dept}",
                         span_start=s_start,
@@ -677,7 +801,12 @@ class RelationAwareComplaintAnalyzer:
                         mention_type="actionable_defect",
                         department=dept,
                         confidence=0.95,
-                        reason_codes=[f"AFFIRMATIVE_DEFECT_{dept.upper()}"]
+                        reason_codes=[f"AFFIRMATIVE_DEFECT_{dept.upper()}"],
+                        is_historical_or_resolved=False,
+                        is_contextual_landmark=False,
+                        causal_relationship="root_cause" if is_causal_root else "independent",
+                        decision_rationale=f"Affirmative active municipal defect identified for {dept.upper()}",
+                        responsible_department_candidate=dept,
                     ))
                     reason_trace.append(f"Actionable defect for {dept.upper()} in span '{s_raw.strip()}'")
 
@@ -696,7 +825,7 @@ class RelationAwareComplaintAnalyzer:
                     continue
                 if is_spatial_proximity_only and dept == "kelectric":
                     continue
-                if dept == "kwsc" and has_water_motor_symptom and not re.search(r"\b(sewer|gutter|sookhi|supply\s*band)\b", norm_full):
+                if dept == "kwsc" and has_water_motor_symptom and not _has_independent_water_fault(norm_full):
                     continue
                 if dept == "kmc" and any(re.search(den, norm_full) for den in DOMAIN_EVIDENCE["kmc"]["denials"]):
                     if not re.search(r"\b(drainage\s*nala|drainage|street\s*lights?|naali|naala|nullah)\b", norm_full):
@@ -705,14 +834,16 @@ class RelationAwareComplaintAnalyzer:
                     continue
                 if dept == "kwsc" and re.search(r"\bwater\s*pump\s*chowrangi\b", norm_full) and not re.search(r"\b(pani|paani|sewer|gutter|supply|manhole|leak|leakage|burst|choke)\b", norm_full):
                     continue
-                if dept == "ssgc" and not re.search(r"\b(gas|chulha|sui\s*gas|natural\s*gas)\b", norm_full):
+                if dept == "ssgc" and not re.search(r"\b(gas|chulha|flame|sui\s*gas|natural\s*gas)\b", norm_full):
                     continue
 
-                a_hits = [pat for pat in lex["assets"] if re.search(pat, norm_full)]
-                d_hits = [pat for pat in lex["defects"] if re.search(pat, norm_full)]
+                evidence_text = domain_evidence_text(norm_full, dept)
+                a_hits = [pat for pat in lex["assets"] if re.search(pat, evidence_text)]
+                d_hits = [pat for pat in lex["defects"] if re.search(pat, evidence_text)]
                 if dept == "kelectric" and has_water_motor_symptom and a_hits and not d_hits:
                     d_hits = ["power_outage_causing_water_motor_failure"]
                 if a_hits and d_hits:
+                    is_causal_root = has_causal_consequence and (dept in ("kelectric", "kwsc"))
                     actionable_depts.append(dept)
                     candidates.append(IssueCandidate(
                         span_id=f"iss_fb_{dept}",
@@ -727,7 +858,12 @@ class RelationAwareComplaintAnalyzer:
                         mention_type="actionable_defect",
                         department=dept,
                         confidence=0.90,
-                        reason_codes=[f"FULL_TEXT_AFFIRMATIVE_DEFECT_{dept.upper()}"]
+                        reason_codes=[f"FULL_TEXT_AFFIRMATIVE_DEFECT_{dept.upper()}"],
+                        is_historical_or_resolved=False,
+                        is_contextual_landmark=False,
+                        causal_relationship="root_cause" if is_causal_root else "independent",
+                        decision_rationale=f"Affirmative municipal defect identified from full complaint text for {dept.upper()}",
+                        responsible_department_candidate=dept,
                     ))
 
         actionable_depts = sorted(list(set(actionable_depts)))
@@ -736,22 +872,24 @@ class RelationAwareComplaintAnalyzer:
         edges: List[RelationEdge] = []
         if is_shared_incident and len(actionable_depts) >= 2:
             relation_summary = "SAME_INCIDENT_DIFFERENT_REPAIRS"
-            for i in range(len(actionable_depts) - 1):
-                edges.append(RelationEdge(
-                    actionable_depts[i],
-                    actionable_depts[i+1],
-                    "SAME_INCIDENT_DIFFERENT_REPAIRS",
-                    "Shared physical incident requires separate distinct repairs"
-                ))
+            for i in range(len(actionable_depts)):
+                for j in range(i + 1, len(actionable_depts)):
+                    edges.append(RelationEdge(
+                        actionable_depts[i],
+                        actionable_depts[j],
+                        "SAME_INCIDENT_DIFFERENT_REPAIRS",
+                        "Shared physical incident requires separate distinct repairs"
+                    ))
         elif len(actionable_depts) > 1:
             relation_summary = "INDEPENDENT"
-            for i in range(len(actionable_depts) - 1):
-                edges.append(RelationEdge(
-                    actionable_depts[i],
-                    actionable_depts[i+1],
-                    "INDEPENDENT",
-                    "Independent civic defects requiring separate municipal teams"
-                ))
+            for i in range(len(actionable_depts)):
+                for j in range(i + 1, len(actionable_depts)):
+                    edges.append(RelationEdge(
+                        actionable_depts[i],
+                        actionable_depts[j],
+                        "INDEPENDENT",
+                        "Independent civic defects requiring separate municipal teams"
+                    ))
         elif len(actionable_depts) == 1:
             if is_spatial_proximity_only:
                 relation_summary = "SPATIAL_PROXIMITY_ONLY"
@@ -813,11 +951,18 @@ class RelationAwareComplaintAnalyzer:
                         for c in candidates
                     )
                     if not is_benign:
+                        preceding_separator = sanitized[span_tuples[s_idx - 1][1]:st_start] if s_idx > 0 else ""
+                        if re.search(r"\b(?:alag\s+se|doosra\s+masla|is\s+ke\s+ilawa)\b", preceding_separator, re.I):
+                            needs_review = True
+                            review_reason = "INCOMPLETE_SECONDARY_ISSUE"
+                            reason_trace.append("An explicitly declared secondary issue lacks a grounded municipal fault.")
+                            break
                         unrouted_depts_in_span = set()
                         for other_dept, o_lex in DOMAIN_EVIDENCE.items():
-                            if other_dept not in actionable_depts and other_dept not in negated_depts:
-                                has_asset = any(re.search(a_pat, st_norm) for a_pat in o_lex["assets"])
-                                has_defect = any(re.search(d_pat, st_norm) for d_pat in o_lex["defects"])
+                            if other_dept not in actionable_depts and not any(re.search(den, st_norm) for den in o_lex["denials"]):
+                                evidence_text = domain_evidence_text(st_norm, other_dept)
+                                has_asset = any(re.search(a_pat, evidence_text) for a_pat in o_lex["assets"])
+                                has_defect = any(re.search(d_pat, evidence_text) for d_pat in o_lex["defects"])
                                 if has_asset and has_defect:
                                     unrouted_depts_in_span.add(other_dept)
                         if unrouted_depts_in_span:
@@ -825,6 +970,11 @@ class RelationAwareComplaintAnalyzer:
                             review_reason = "POSSIBLE_UNROUTED_SECONDARY_ISSUE"
                             reason_trace.append(f"Secondary clause contains unrouted civic defect indicators for {sorted(list(unrouted_depts_in_span))}; flagged for human triage (POSSIBLE_UNROUTED_SECONDARY_ISSUE)")
                             break
+
+        if re.search(r"\b(?:aur\s+alag(?:\s+se)?|alag\s+se|doosra\s+masla(?:\s+ye\s+hai\s+ke)?|is\s+ke\s+ilawa|lekin|magar)\W*$", norm_full):
+            needs_review = True
+            review_reason = "INCOMPLETE_SECONDARY_ISSUE"
+            reason_trace.append("Complaint ends at an unfinished issue connector; a missing fault cannot be inferred.")
 
         return ComplaintAnalysisResult(
             complaint_id=complaint_id,

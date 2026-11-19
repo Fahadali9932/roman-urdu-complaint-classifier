@@ -7,7 +7,9 @@
  * - CivicRelationResolver rule engine for contextual disambiguation and consequence suppression.
  * - Safe conversion to MultiLabelModelArtifact (V10 contract) for backward compatibility.
  *
- * NOTE: V11 model remains in candidate status and is NOT active in the citizen runtime.
+ * The frozen Run004 artifact is used by local V11 diagnostics and the development
+ * test-mode complaint flow. Normal Supabase submission uses its existing pipeline.
+ * Candidate Run005/Run006 artifacts are never promoted by this adapter.
  */
 import type { DepartmentId } from '../types';
 import type { MultiLabelModelArtifact } from './multiLabelClassifier';
@@ -15,12 +17,42 @@ import candidateModelJson from '../models/v11_candidate_model.json';
 import {
   analyzeComplaintRelationAware,
   DOMAIN_EVIDENCE,
+  domainEvidenceText,
+  normalizeRomanUrduText,
+  segmentSpansWithOffsets,
   type IssueCandidate,
   type RelationEdge,
   type RelationType,
 } from './relationEngine';
 
 export const championV11Model = candidateModelJson as unknown as V11ModelArtifact;
+const DECISION_POLICY = 'v11_hybrid_ml_relation_v9';
+
+// A road named as the location can support KMC only with evidence of a fault
+// in that clause, or another municipal asset outside the address phrase.
+const ROAD_LOCATION = /\b(?:road|sarak|sadak|foot\s*path|bridge|pul|chowk|chauraha|flyover|underpass)(?:\s+(?:number|no\.?|#)\s*\d+)?\s+(?:par|pe|per|mein|me|ke\s+(?:paas|qareeb))\b/g;
+
+function hasDomainKeywordSupport(lowText: string, dept: DepartmentId, hasGroundedIssue: boolean): boolean {
+  const lexicon = DOMAIN_EVIDENCE[dept as keyof typeof DOMAIN_EVIDENCE];
+  if (!lexicon) return true;
+  const clauses = segmentSpansWithOffsets(lowText).map(([, , clause]) => clause);
+  const assetClauses = clauses
+    .map(clause => domainEvidenceText(clause, dept))
+    .filter((clause) => lexicon.assets.some((p) => p.test(clause)));
+  if (assetClauses.length) {
+    // A neutral observation must not inherit a fault from an unrelated clause.
+    return assetClauses.some((clause) => {
+      if (lexicon.defects.some((pattern) => pattern.test(clause))) return true;
+      if (/\b(?:dekha|dekhi|dekhe)\s+tha\b/i.test(clause)) return false;
+      if (dept !== 'kmc') return true;
+      const outsideAddress = clause.replace(ROAD_LOCATION, ' ');
+      return lexicon.assets.some((pattern) => pattern.test(outsideAddress));
+    });
+  }
+  // A generic defect word alone is insufficient to add a second department.
+  const contextOnlyAsset = clauses.some(clause => lexicon.assets.some(p => p.test(clause)));
+  return !hasGroundedIssue && !contextOnlyAsset && lexicon.defects.some((p) => p.test(domainEvidenceText(lowText, dept)));
+}
 
 export interface V11RelationAwareResult {
   departments: DepartmentId[];
@@ -36,6 +68,7 @@ export interface V11RelationAwareResult {
   modelVersion?: string;
   decisionPolicy?: string;
   mlSelectedDepartments?: DepartmentId[];
+  clauseSelectedDepartments?: DepartmentId[];
   ruleSelectedDepartments?: DepartmentId[];
   suppressedDepartments?: DepartmentId[];
   finalReason?: string;
@@ -80,21 +113,23 @@ export function extractV11Features(
   text: string,
   artifact: V11ModelArtifact
 ): Float64Array {
-  const textLower = (text || '').toLowerCase().trim();
+  // Training uses strip_accents='unicode'. Normal Roman Urdu accents and
+  // compatibility forms must not generate different features at inference time.
+  const textLower = (text || '').toLowerCase().normalize('NFKD').replace(/\p{M}/gu, '').trim();
   const wordVocabSize = Object.keys(artifact.word_vocab).length;
   const charVocabSize = Object.keys(artifact.char_vocab).length;
   const totalFeatures = wordVocabSize + charVocabSize;
   const featureVector = new Float64Array(totalFeatures);
 
   // 1. Word n-grams (1-2) using scikit-learn token_pattern r"(?u)\b\w\w+\b"
-  const wordTokens = textLower.match(/[a-zA-Z0-9_]{2,}/g) || [];
+  const wordTokens = textLower.match(/[\p{L}\p{N}_]{2,}/gu) || [];
   const wordCounts = new Map<number, number>();
 
   for (let i = 0; i < wordTokens.length; i++) {
     // Unigram
     const uni = wordTokens[i];
     const uniIdx = artifact.word_vocab[uni];
-    if (uniIdx !== undefined) {
+    if (typeof uniIdx === 'number') {
       wordCounts.set(uniIdx, (wordCounts.get(uniIdx) ?? 0) + 1);
     }
 
@@ -102,7 +137,7 @@ export function extractV11Features(
     if (i < wordTokens.length - 1) {
       const bi = `${uni} ${wordTokens[i + 1]}`;
       const biIdx = artifact.word_vocab[bi];
-      if (biIdx !== undefined) {
+      if (typeof biIdx === 'number') {
         wordCounts.set(biIdx, (wordCounts.get(biIdx) ?? 0) + 1);
       }
     }
@@ -129,13 +164,13 @@ export function extractV11Features(
   const charCounts = new Map<number, number>();
 
   for (const word of wsTokens) {
-    const padded = ` ${word} `;
+    const padded = Array.from(` ${word} `);
     const len = padded.length;
     for (let n = 3; n <= 5; n++) {
       for (let i = 0; i <= len - n; i++) {
-        const sub = padded.substring(i, i + n);
+        const sub = padded.slice(i, i + n).join('');
         const col = artifact.char_vocab[sub];
-        if (col !== undefined) {
+        if (typeof col === 'number') {
           charCounts.set(col, (charCounts.get(col) ?? 0) + 1);
         }
       }
@@ -549,6 +584,66 @@ export function convertV11ToMultiLabelModelArtifact(
 }
 
 /**
+ * Clause-level inference to recover secondary/tertiary municipal defects
+ * that may suffer whole-complaint L2 TF-IDF dilution in compound narratives.
+ * Only admits candidates that pass calibrated threshold AND clause-level domain grounding,
+ * while strictly respecting all causal and negation suppression boundaries.
+ */
+function classifyClauseLevel(
+  text: string,
+  artifact: V11ModelArtifact,
+  relationResult: ReturnType<typeof analyzeComplaintRelationAware>,
+  suppressed: DepartmentId[],
+  alreadySelected: DepartmentId[]
+): {
+  clauseSelectedDepartments: DepartmentId[];
+  clauseNotes: string[];
+} {
+  const clauseSelectedDepartments: DepartmentId[] = [];
+  const clauseNotes: string[] = [];
+  const spans = segmentSpansWithOffsets(text);
+  if (spans.length <= 1) {
+    return { clauseSelectedDepartments, clauseNotes };
+  }
+
+  for (let idx = 0; idx < spans.length; idx++) {
+    const [, , clauseRaw] = spans[idx];
+    const clauseNorm = normalizeRomanUrduText(clauseRaw).trim();
+    const words = clauseNorm.split(/\s+/).filter(Boolean);
+    if (words.length < 3) continue;
+
+    const clauseFeatures = extractV11Features(clauseNorm, artifact);
+    const clauseRawProbs = predictV11RawProbabilities(clauseFeatures, artifact);
+    const { resolvedProbs: clauseCivicProbs } = resolveV11CivicRelations(clauseNorm, clauseRawProbs);
+
+    for (const dept of artifact.departments) {
+      if (suppressed.includes(dept) || alreadySelected.includes(dept)) continue;
+      // Negation belongs to the candidate department, not every fault in a clause.
+      if (relationResult.issue_candidates.some(c => c.department === dept &&
+          c.span_id.startsWith(`iss_${idx}_`) && (c.negation_scope || c.mention_type === 'negated_mention'))) continue;
+      const thresh = artifact.thresholds[dept] ?? 0.50;
+      if (clauseCivicProbs[dept] >= thresh) {
+        const lex = DOMAIN_EVIDENCE[dept as keyof typeof DOMAIN_EVIDENCE];
+        const evidence = domainEvidenceText(clauseNorm, dept);
+        if (!lex || !lex.assets.some(p => p.test(evidence)) || !lex.defects.some(p => p.test(evidence))) {
+          continue;
+        }
+        if (hasDomainKeywordSupport(clauseNorm, dept, false)) {
+          if (!clauseSelectedDepartments.includes(dept)) {
+            clauseSelectedDepartments.push(dept);
+            clauseNotes.push(
+              `Clause-level ML selected ${dept.toUpperCase()} in span '${clauseRaw.trim()}' (prob: ${clauseCivicProbs[dept].toFixed(2)})`
+            );
+          }
+        }
+      }
+    }
+  }
+
+  return { clauseSelectedDepartments, clauseNotes };
+}
+
+/**
  * Executes issue-centric, relation-aware classification on Roman Urdu complaint text.
  * Integrates statistical TF-IDF features with affirmative domain defect evidence,
  * candidate span decomposition, and pairwise relation resolution.
@@ -591,8 +686,9 @@ export function classifyV11RelationAware(
       missingPublicLocation: false,
       notes: [...notes, 'Decision Policy: Protected out-of-scope non-municipal grievance from auto-routing'],
       modelVersion: artifact.version,
-      decisionPolicy: 'v11_hybrid_ml_relation_v2',
+      decisionPolicy: DECISION_POLICY,
       mlSelectedDepartments: [],
+      clauseSelectedDepartments: [],
       ruleSelectedDepartments: [],
       suppressedDepartments: [],
       finalReason: 'Out-of-scope non-municipal grievance routed to administrative triage',
@@ -612,24 +708,21 @@ export function classifyV11RelationAware(
 
   // Identify departments suppressed by candidate mention types
   for (const cand of relationResult.issue_candidates) {
-    if (cand.department && !suppressed.includes(cand.department)) {
+    if (cand.department && !suppressed.includes(cand.department) && !ruleSelected.includes(cand.department)) {
       if (cand.mention_type === 'consequence') {
         suppressed.push(cand.department);
         notes.push(`Suppressed ${cand.department.toUpperCase()}: candidate identified as causal consequence symptom`);
       } else if (cand.mention_type === 'negated_mention' || cand.negation_scope) {
-        // Only suppress if there are NO active defects for this department
-        const hasActiveDefect = relationResult.issue_candidates.some(
-          (c) => c.department === cand.department && c.is_actionable && !c.negation_scope
-        );
-        if (!hasActiveDefect) {
-          suppressed.push(cand.department);
-          notes.push(`Suppressed ${cand.department.toUpperCase()}: explicitly negated or historically resolved defect`);
-        }
+        suppressed.push(cand.department);
+        notes.push(`Suppressed ${cand.department.toUpperCase()}: explicitly negated or historically resolved defect`);
+      } else if (cand.mention_type === 'recipient_mention' || cand.mention_type === 'spatial_landmark') {
+        suppressed.push(cand.department);
+        notes.push(`Suppressed ${cand.department.toUpperCase()}: context-only mention`);
       }
     }
   }
 
-  // Check which departments pass ML threshold
+  // Check which departments pass whole-complaint ML threshold
   for (const dept of artifact.departments) {
     const thresh = artifact.thresholds[dept] ?? 0.50;
     if (civicProbs[dept] >= thresh) {
@@ -637,38 +730,47 @@ export function classifyV11RelationAware(
     }
   }
 
-function hasDomainKeywordSupport(lowText: string, dept: DepartmentId): boolean {
-  const lexicon = DOMAIN_EVIDENCE[dept as keyof typeof DOMAIN_EVIDENCE];
-  if (!lexicon) return true;
-  return lexicon.assets.some((p) => p.test(lowText)) || lexicon.defects.some((p) => p.test(lowText));
-}
+  // Clause-level inference to recover secondary/tertiary faults diluted by whole-complaint TF-IDF
+  const { clauseSelectedDepartments, clauseNotes } = classifyClauseLevel(
+    text,
+    artifact,
+    relationResult,
+    suppressed,
+    ruleSelected
+  );
+  notes.push(...clauseNotes);
 
   // Combine ML and rule selections:
   // Department is included if:
   // 1. Not suppressed by causal or negation rule, AND
   // 2. Either relation engine grounded affirmative defect (ruleSelected), OR
-  //    ML model passed threshold AND has supporting domain asset/defect keyword in the text
+  //    Whole-text ML model passed threshold AND has supporting domain asset/defect keyword, OR
+  //    Clause-level ML passed threshold in an actionable clause
   const finalDepartments: DepartmentId[] = [];
-  const lowText = text.toLowerCase();
+  const lowText = normalizeRomanUrduText(text);
   for (const dept of artifact.departments) {
     if (suppressed.includes(dept)) {
       continue;
     }
     const mlPass = mlSelected.includes(dept);
     const rulePass = ruleSelected.includes(dept);
+    const clausePass = clauseSelectedDepartments.includes(dept);
 
     if (rulePass) {
       finalDepartments.push(dept);
     } else if (mlPass) {
-      if (hasDomainKeywordSupport(lowText, dept)) {
+      if (hasDomainKeywordSupport(lowText, dept, ruleSelected.length > 0)) {
         finalDepartments.push(dept);
       } else {
         notes.push(`Filtered unsupported ML candidate ${dept.toUpperCase()}: no domain asset or defect tokens present`);
       }
+    } else if (clausePass) {
+      finalDepartments.push(dept);
     }
   }
+  finalDepartments.sort();
 
-  // Calibrate output probabilities:
+  // Adjust routing scores (raw calibrated ML probabilities are returned separately):
   // - Selected departments: ensure at least threshold
   // - Unselected or suppressed departments: safely capped below threshold
   const calibratedProbs: Record<DepartmentId, number> = { ...civicProbs };
@@ -690,6 +792,9 @@ function hasDomainKeywordSupport(lowText: string, dept: DepartmentId): boolean {
     needsReview = true;
     reviewReason = relationResult.review_reason || 'UNCERTAIN_DEFECT';
     notes.push('No actionable municipal department met confidence threshold or rule criteria (Needs Review)');
+  } else if (relationResult.review_reason === 'INCOMPLETE_SECONDARY_ISSUE') {
+    needsReview = true;
+    reviewReason = relationResult.review_reason;
   } else if (relationResult.needs_review && relationResult.review_reason === 'POSSIBLE_UNROUTED_SECONDARY_ISSUE') {
     // If ML also routed additional departments beyond ruleSelected, secondary issue might already be addressed
     if (finalDepartments.length <= ruleSelected.length) {
@@ -699,14 +804,15 @@ function hasDomainKeywordSupport(lowText: string, dept: DepartmentId): boolean {
   }
 
   const finalReason = finalDepartments.length > 0
-    ? `Routed to [${finalDepartments.join(', ').toUpperCase()}] via hybrid ML-relation policy (ML: [${mlSelected.join(', ')}], Rules: [${ruleSelected.join(', ')}])`
+    ? `Routed to [${finalDepartments.join(', ').toUpperCase()}] via hybrid ML-relation policy (ML: [${mlSelected.join(', ')}], Clause: [${clauseSelectedDepartments.join(', ')}], Rules: [${ruleSelected.join(', ')}])`
     : `Routing deferred to human review: ${reviewReason}`;
 
   return {
     departments: finalDepartments,
     probabilities: calibratedProbs,
     rawProbabilities,
-    relation: finalDepartments.length > 1 ? 'INDEPENDENT' : relationResult.relation_summary,
+    relation: finalDepartments.length > 1 && relationResult.relation_summary !== 'SAME_INCIDENT_DIFFERENT_REPAIRS'
+      ? 'INDEPENDENT' : relationResult.relation_summary,
     issueCandidates: relationResult.issue_candidates,
     edges: relationResult.edges,
     needsReview,
@@ -714,8 +820,9 @@ function hasDomainKeywordSupport(lowText: string, dept: DepartmentId): boolean {
     missingPublicLocation: relationResult.missing_public_location,
     notes,
     modelVersion: artifact.version,
-    decisionPolicy: 'v11_hybrid_ml_relation_v2',
+    decisionPolicy: DECISION_POLICY,
     mlSelectedDepartments: mlSelected,
+    clauseSelectedDepartments,
     ruleSelectedDepartments: ruleSelected,
     suppressedDepartments: suppressed,
     finalReason,
