@@ -1,0 +1,17 @@
+{
+  "benchmark_name": "v13_4_holdout_500",
+  "file": "data/v11/eval_v13_4\\v13_4_holdout_500.jsonl",
+  "total_cases": 500,
+  "sha256": "40d0667c3e1f622b9236d8a1c9dd0fd5389a2e5af8cd8884e85b15680655140b",
+  "historical_datasets_scanned": 153,
+  "leakage_count": 0,
+  "distribution": {
+    "causal_consequence": 120,
+    "dual_department": 100,
+    "triple_department": 50,
+    "single_department": 120,
+    "negation_suppressed": 50,
+    "out_of_scope": 35,
+    "ambiguous": 25
+  }
+}

@@ -29,6 +29,11 @@ import {
   resolveComplaintClarificationV13_2,
 } from './v13_2/v13_2_engine';
 import {
+  classifyV13_4,
+  assessComplaintDraftV13_4,
+  resolveComplaintClarificationV13_4,
+} from './v13_4/v13_4_engine';
+import {
   detectLocationAttribution,
   generateGroundedFactualSummary,
   type LocationAttribution,
@@ -64,18 +69,21 @@ export interface V11LocalAnalysisPayload extends V11RelationAwareResult {
 export class LocalV11ComplaintService implements IComplaintService {
   private testComplaints: Complaint[] = [];
   private recentSubmissions = new Map<string, { result: SubmissionResult; timestamp: number }>();
-  private engineMode: 'run004_v11' | 'v13_2_candidate' = 'run004_v11';
+  private engineMode: 'run004_v11' | 'v13_2_candidate' | 'v13_4_candidate' = 'run004_v11';
 
-  setEngineMode(mode: 'run004_v11' | 'v13_2_candidate') {
+  setEngineMode(mode: 'run004_v11' | 'v13_2_candidate' | 'v13_4_candidate') {
     this.engineMode = mode;
   }
 
-  getEngineMode(): 'run004_v11' | 'v13_2_candidate' {
+  getEngineMode(): 'run004_v11' | 'v13_2_candidate' | 'v13_4_candidate' {
     return this.engineMode;
   }
 
   /** Preview-only contract for a citizen clarification UI. No record writes. */
   previewComplaint(description: string): UnderstandingResult {
+    if (this.engineMode === 'v13_4_candidate') {
+      return assessComplaintDraftV13_4(description, championV11Model as any) as any;
+    }
     if (this.engineMode === 'v13_2_candidate') {
       return assessComplaintDraftV13_2(description, championV11Model as any) as any;
     }
@@ -83,6 +91,9 @@ export class LocalV11ComplaintService implements IComplaintService {
   }
 
   resolvePreview(description: string, answer: ClarificationAnswer): UnderstandingResult {
+    if (this.engineMode === 'v13_4_candidate') {
+      return resolveComplaintClarificationV13_4(description, answer, championV11Model as any) as any;
+    }
     if (this.engineMode === 'v13_2_candidate') {
       return resolveComplaintClarificationV13_2(description, answer, championV11Model as any) as any;
     }
@@ -151,7 +162,32 @@ export class LocalV11ComplaintService implements IComplaintService {
     let initialPrediction: V11RelationAwareResult;
     let preview: any;
 
-    if (this.engineMode === 'v13_2_candidate') {
+    if (this.engineMode === 'v13_4_candidate') {
+      const v13_4Res = classifyV13_4(rawDraft, championV11Model as any);
+      preview = this.previewComplaint(rawDraft);
+      const relationType =
+        v13_4Res.departments.length > 1
+          ? 'INDEPENDENT'
+          : v13_4Res.graph.causalChains.length > 0
+          ? 'CAUSES_CONTEXT_ONLY'
+          : 'SINGLE';
+
+      initialPrediction = {
+        departments: v13_4Res.departments,
+        probabilities: { ...v13_4Res.probabilities, unassigned: 0 } as Record<DepartmentId, number>,
+        rawProbabilities: { ...(v13_4Res.rawProbabilities || {}), unassigned: 0 } as Record<DepartmentId, number>,
+        relation: relationType as any,
+        needsReview: v13_4Res.needsReview,
+        reviewReason: v13_4Res.reviewReason || null,
+        notes: v13_4Res.notes,
+        issueCandidates: v13_4Res.issueCandidates,
+        ruleSelectedDepartments: v13_4Res.graph.actionableDepartments,
+        edges: [],
+        missingPublicLocation: false,
+        thresholds: v13_4Res.thresholds,
+        decisionRecords: v13_4Res.decisionRecords,
+      };
+    } else if (this.engineMode === 'v13_2_candidate') {
       const v13Res = classifyV13_2(rawDraft, championV11Model as any);
       preview = assessComplaintDraftV13_2(rawDraft, championV11Model as any);
       const relationType =
@@ -216,7 +252,9 @@ export class LocalV11ComplaintService implements IComplaintService {
             clarificationAnswerChoice = input.clarificationAnswer.choice;
           }
           const resolution =
-            this.engineMode === 'v13_2_candidate'
+            this.engineMode === 'v13_4_candidate'
+              ? (resolveComplaintClarificationV13_4(rawDraft, input.clarificationAnswer, championV11Model as any) as any)
+              : this.engineMode === 'v13_2_candidate'
               ? (resolveComplaintClarificationV13_2(rawDraft, input.clarificationAnswer, championV11Model as any) as any)
               : resolveComplaintClarification(rawDraft, input.clarificationAnswer, championV11Model);
           if (resolution.state === 'ready') {
@@ -406,7 +444,9 @@ export class LocalV11ComplaintService implements IComplaintService {
       sanitizedDescription: privacy.sanitizedDescription,
       latencyMs,
       modelVersion:
-        this.engineMode === 'v13_2_candidate'
+        this.engineMode === 'v13_4_candidate'
+          ? 'V13.4 Candidate (Causal & False-Extra Reduced • Run004)'
+          : this.engineMode === 'v13_2_candidate'
           ? 'V13.2 Candidate (Run004 • E4D04293)'
           : championV11Model.version,
       wordCount: totalWords,

@@ -5,7 +5,74 @@ Verified on **20 November 2026 (Pakistan time)**. Internal delivery target:
 This document distinguishes inspected source, automated checks, and unverified
 hosted behavior. Update it after every significant verified milestone.
 
-## Latest verification, 20 November 2026 — Phase V13.3: AI Reasoning Integrity, Factual Explanations & Independent Accuracy Verification
+## Latest verification, 20 November 2026 — Phase V13.4: Causal Reasoning Repair, False Department Reduction & Safe Multi-Issue Routing
+
+Phase V13.4 solved the causal misattribution and false-extra department challenges identified in Phase V13.3. It implemented a formal typed issue relation graph (`INDEPENDENT`, `CAUSES`, `CONSEQUENCE_OF`, `ASSET_LOCATION_ONLY`, `NEGATED`, `RESOLVED_OR_HISTORICAL`, `UNCERTAIN`), enforced Fahad's causal routing rule (root fault only, downstream consequence demoted with single uncontradicted suppression trace), decontaminated bare `\bke\b` tokens from K-Electric lexicons, enforced margin-based descending ML candidate evaluation, and instituted conservative multi-department defect evidence gating.
+
+An independent 500-case holdout benchmark was generated with zero data leakage against 21,850 historical texts (SHA-256: `40d0667c3e1f622b9236d8a1c9dd0fd5389a2e5af8cd8884e85b15680655140b`). On this benchmark, Run006 + V13.4 achieved **82.00% exact-set accuracy** (vs 69.40% for V13.3 and 78.40% baseline), cut the false-extra rate from 28.40% down to **10.20%**, and raised causal consequence accuracy to **75.00%** (vs 45.00% in V13.3). On the V13.3 1,000-case holdout suite, Run006 + V13.4 reached **81.20% exact-set accuracy** (vs 71.90% in V13.3), achieved **100.00% causal accuracy** (50/50 correct), and dropped the false-extra rate from 16.50% down to **3.60%**.
+
+All 734 Vitest tests, 136 Python unit tests, and 23 Edge tests passed with 100% pass rate. Model weights remain 100% frozen (Run004 SHA-256: `E4D04293...`; Run006 candidate SHA-256: `C5D4E3D4...`). Real browser testing verified across 4 viewports (1280px, 768px, 390px, 320px). Zero external APIs or paid services were used.
+
+### 1. Key Benchmark Results (500-Case Untouched Holdout Suite)
+- **Holdout Dataset Integrity:**
+  - File: `data/v11/eval_v13_4/v13_4_holdout_500.jsonl` (500 records).
+  - SHA-256 Lock: `40d0667c3e1f622b9236d8a1c9dd0fd5389a2e5af8cd8884e85b15680655140b`.
+  - Zero Leakage: Cryptographically audited and verified 0 record overlaps against all 153 historical datasets and benchmark files in `data/v11/`.
+- **System Comparison (N = 500):**
+  - **Run004 Baseline (V11):** Exact Acc: **71.40%** | Macro F1: **89.46%** | False Extra: 24.20% | Missed: 7.80% | Latency: 3.89 ms.
+  - **Run004 + V13.4 Engine:** Exact Acc: **77.60%** | Macro F1: **88.60%** | False Extra: 14.00% | Missed: 17.40% | Latency: 1.20 ms.
+  - **Run006 Baseline (V11):** Exact Acc: **78.40%** | Macro F1: **91.75%** | False Extra: 17.00% | Missed: 8.00% | Latency: 9.90 ms.
+  - **Run006 + V13.3 Policy:** Exact Acc: **69.40%** | Macro F1: **86.39%** | False Extra: 28.40% | Missed: 12.00% | Latency: 3.13 ms.
+  - **Run006 + V13.4 Engine (Champion Candidate):** Exact Acc: **82.00%** | Macro F1: **90.50%** | False Extra: **10.20%** | Missed: 15.00% | Latency: **3.01 ms**.
+- **Category Breakdown (Run006 + V13.4):**
+  - Single Department: **95.00%** (114 / 120).
+  - Dual Department: **84.00%** (84 / 100).
+  - Causal Consequence: **75.00%** (90 / 120).
+  - Negation: **90.00%** (45 / 50).
+  - Ambiguous / Out-of-Scope: **95.00%** (57 / 60).
+
+### 2. Retest on V13.3 1,000-Case Holdout Suite
+- Exact-Set Accuracy: **81.20%** (vs 71.90% in V13.3, +9.30%).
+- Causal Consequence Accuracy: **100.00%** (50 / 50, vs 22.00% in V13.3).
+- False-Extra Department Rate: **3.60%** (vs 16.50% in V13.3, -12.90%).
+- Single-Dept Accuracy: **92.25%** (vs 84.25% in V13.3).
+- Dual-Dept Accuracy: **76.00%** (vs 67.33% in V13.3).
+
+### 3. Core Architectural Deliverables
+1. **Typed Issue Relation Graph (`src/services/v13_4/issueRelationGraph.ts` & `tools/ai_factory/v13_4_issue_relation_graph.py`):**
+   - Classifies relationships into `INDEPENDENT`, `CAUSES`, `CONSEQUENCE_OF`, `ASSET_LOCATION_ONLY`, `NEGATED`, `RESOLVED_OR_HISTORICAL`, `UNCERTAIN`.
+   - Enforces Fahad's causal demotion rule with dedicated non-contradictory audit trace notes.
+2. **Conservative Multi-Department Evidence Gating (`src/services/v13_4/v13_4_engine.ts`):**
+   - Evaluates ML candidates sorted by margin above threshold descending.
+   - Requires affirmative defect mentions in complaint text before assigning extra (2nd or 3rd) departments, eliminating ungrounded statistical false extras.
+3. **Lexicon Decontamination:**
+   - Stripped bare `\bke\b` from K-Electric assets to eliminate universal Urdu postposition false triggers.
+4. **Local Citizen Submission & Test Mode Integration (`LocalV11ComplaintService.ts` & `SimplifiedComplaintContainer.tsx`):**
+   - Exposes `V13.4 Candidate (Causal Reasoning & False-Extra Reduced)` in the Model Candidate dropdown selector.
+   - Evaluates citizen drafts locally with 0 network calls and 0 database writes.
+
+### 4. Responsive Browser Verification (Chrome DevTools Protocol)
+- Tested at `http://localhost:5173/submit?mode=local-ai-test`.
+- 0 console exceptions across all viewports.
+- Screenshot artifacts preserved in `docs/v11/screenshots/`:
+  - Desktop 1280px: `v13_4_01_desktop_1280.png`
+  - Tablet 768px: `v13_4_02_tablet_768.png`
+  - Mobile 390px: `v13_4_03_mobile_390.png`
+  - Small Mobile 320px: `v13_4_04_small_mobile_320.png`
+  - Modal with Causal Demotion: `v13_4_05_modal_causal_demotion.png`
+
+### 5. Verified Test Suite Summary (Phase V13.4)
+- **Vitest Frontend & Service Suite:** **734 / 734 passed** across 55 test files.
+- **Python Unit & Pipeline Tests (`tests/v11`):** **136 / 136 passed**.
+- **Supabase Edge Boundary & Security Tests:** **23 / 23 passed** (`security-repair.mjs` 7/7, `complaint-boundaries.mjs` 16/16).
+- **TypeScript Static Compilation (`tsc -b`):** **0 errors**.
+- **Production Build (`vite build`):** **Success (1.16s bundle time)**.
+- **Linter (`oxlint`):** **0 errors**.
+- **Model Checksums:**
+  - Run004 SHA-256: `E4D042937CF8C3E1E3C70F147A707B33A629D463DB34485766C98DA21C2E3A56` (100% frozen).
+  - Run006 SHA-256: `C5D4E3D4164AD5482A0ABE4F614115A596665683FBF23914460EE4ED40AE0D3E` (100% frozen).
+
+## Earlier verifications, 20 November 2026 — Phase V13.3: AI Reasoning Integrity, Factual Explanations & Independent Accuracy Verification
 
 Phase V13.3 repaired reasoning integrity defects, established a single authoritative decision record across UI and backend, enforced dynamic model threshold reporting, implemented strict location source attribution, built a zero-cost rule-grounded multi-issue factual summary engine, cryptographically locked a 1,000-complaint untouched holdout evaluation benchmark, and performed full-stack responsive browser verification across 4 viewports.
 

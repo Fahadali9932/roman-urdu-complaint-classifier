@@ -1,0 +1,1724 @@
+{
+  "benchmark_name": "v13_4_holdout_500",
+  "timestamp": "2026-11-19T22:10:46.926Z",
+  "totalCases": 500,
+  "systems": {
+    "run004Baseline": {
+      "systemName": "Run004 Baseline (V11)",
+      "totalCases": 500,
+      "exactMatches": 357,
+      "exactAccuracy": 71.4,
+      "macroF1": 89.46,
+      "deptMetrics": {
+        "kmc": {
+          "tp": 108,
+          "fp": 58,
+          "fn": 6,
+          "precision": 65.06,
+          "recall": 94.74,
+          "f1": 77.14
+        },
+        "kwsc": {
+          "tp": 136,
+          "fp": 38,
+          "fn": 0,
+          "precision": 78.16,
+          "recall": 100,
+          "f1": 87.74
+        },
+        "kelectric": {
+          "tp": 118,
+          "fp": 25,
+          "fn": 16,
+          "precision": 82.52,
+          "recall": 88.06,
+          "f1": 85.2
+        },
+        "ssgc": {
+          "tp": 102,
+          "fp": 0,
+          "fn": 7,
+          "precision": 100,
+          "recall": 93.58,
+          "f1": 96.68
+        },
+        "sswmb": {
+          "tp": 92,
+          "fp": 0,
+          "fn": 0,
+          "precision": 100,
+          "recall": 100,
+          "f1": 100
+        },
+        "sbca": {
+          "tp": 45,
+          "fp": 0,
+          "fn": 10,
+          "precision": 100,
+          "recall": 81.82,
+          "f1": 90
+        }
+      },
+      "complexityAccuracy": {
+        "single_department": {
+          "total": 120,
+          "correct": 102,
+          "accuracy": 85
+        },
+        "dual_department": {
+          "total": 100,
+          "correct": 74,
+          "accuracy": 74
+        },
+        "triple_department": {
+          "total": 50,
+          "correct": 40,
+          "accuracy": 80
+        },
+        "causal_consequence": {
+          "total": 120,
+          "correct": 50,
+          "accuracy": 41.67
+        },
+        "negation_suppressed": {
+          "total": 50,
+          "correct": 40,
+          "accuracy": 80
+        },
+        "out_of_scope": {
+          "total": 35,
+          "correct": 26,
+          "accuracy": 74.29
+        },
+        "ambiguous": {
+          "total": 25,
+          "correct": 25,
+          "accuracy": 100
+        }
+      },
+      "falseExtraRate": 24.2,
+      "missedDeptRate": 7.8,
+      "meanLatencyMs": 3.89,
+      "p95LatencyMs": 5.94,
+      "failureCount": 143,
+      "failuresSample": [
+        {
+          "id": "v13_4_holdout_0002",
+          "complexity": "causal_consequence",
+          "category": "ke_causes_water_pump",
+          "text": "Dukh ke sath arz hai hamare area Orangi Town Sector 10 mein 110 volt low voltage ane ke bais ghar ki pani wali motor trip ho rahi hai tanki bilkul khali pari hai. Umeed hai is dafa meri shikayat par foran tawajjo di jayegi.",
+          "expected": [
+            "kelectric"
+          ],
+          "predicted": [
+            "kelectric",
+            "kwsc"
+          ],
+          "notes": [
+            "Actionable defect for KELECTRIC in span 'Dukh ke sath arz hai hamare area Orangi Town Sector 10 mein 110 volt low voltage ane ke bais ghar ki pani wali motor trip ho rahi hai tanki bilkul khali pari hai'"
+          ]
+        },
+        {
+          "id": "v13_4_holdout_0003",
+          "complexity": "causal_consequence",
+          "category": "ke_causes_water_pump",
+          "text": "Mohtaram afsaran hamare area Federal B Area Block 6 mein Gali mein feeder trip hone se bijli band hai tab se underground water pump nahi chal saka paani nahi bhara. Is surat-e-haal ka notice le kar team rawana karein.",
+          "expected": [
+            "kelectric"
+          ],
+          "predicted": [
+            "kelectric",
+            "kwsc"
+          ],
+          "notes": [
+            "Actionable defect for KWSC in span 'Mohtaram afsaran hamare area Federal B Area Block 6 mein Gali mein feeder trip hone se bijli band hai tab se underground water pump nahi chal saka paani nahi bhara'",
+            "Actionable defect for KELECTRIC in span 'Mohtaram afsaran hamare area Federal B Area Block 6 mein Gali mein feeder trip hone se bijli band hai tab se underground water pump nahi chal saka paani nahi bhara'"
+          ]
+        },
+        {
+          "id": "v13_4_holdout_0004",
+          "complexity": "causal_consequence",
+          "category": "ke_causes_water_pump",
+          "text": "Shikayat baraye meherbani suniye hamare area Malir Model Colony mein Bijli ke taar snapping hone ki wajah se supply cut hai jis ke sabab pani ki machine nahi chali. Hamara masla hal na hua to hum ehtejaj karenge.",
+          "expected": [
+            "kelectric"
+          ],
+          "predicted": [
+            "kelectric",
+            "kwsc"
+          ],
+          "notes": [
+            "Actionable defect for KELECTRIC in span 'Shikayat baraye meherbani suniye hamare area Malir Model Colony mein Bijli ke taar snapping hone ki wajah se supply cut hai jis ke sabab pani ki machine nahi chali'",
+            "Suppressed KMC: Road/footpath is location of electrical hazard without structural road defect"
+          ]
+        },
+        {
+          "id": "v13_4_holdout_0006",
+          "complexity": "causal_consequence",
+          "category": "kwsc_causes_road_erosion",
+          "text": "Awam ki awaz suniye hamare area Nazimabad Gol Market mein Water board ki underground 48 inch line phatne ki wajah se sadak ka carpeting ukhad gaya hai aur gehra gaddha par gaya hai. Daftar ke chakkar kaat kaat kar hum tang a chuke hain.",
+          "expected": [
+            "kwsc"
+          ],
+          "predicted": [
+            "kmc",
+            "kwsc"
+          ],
+          "notes": [
+            "Actionable defect for KMC in span 'Awam ki awaz suniye hamare area Nazimabad Gol Market mein Water board ki underground 48 inch line phatne ki wajah se sadak ka carpeting ukhad gaya hai aur gehra gaddha par gaya hai'",
+            "Actionable defect for KWSC in span 'Awam ki awaz suniye hamare area Nazimabad Gol Market mein Water board ki underground 48 inch line phatne ki wajah se sadak ka carpeting ukhad gaya hai aur gehra gaddha par gaya hai'"
+          ]
+        },
+        {
+          "id": "v13_4_holdout_0007",
+          "complexity": "causal_consequence",
+          "category": "kwsc_causes_road_erosion",
+          "text": "Administration se guzarish hai hamare area Orangi Town Sector 10 mein Main gutter ubalne se ganda pani road par jama hai jis se sarak tooti phooti ho chuki hai asphalt beh gaya. Ghareeb awam par thora reham khayein aur kaam karein.",
+          "expected": [
+            "kwsc"
+          ],
+          "predicted": [
+            "kmc",
+            "kwsc"
+          ],
+          "notes": [
+            "Actionable defect for KMC in span 'Administration se guzarish hai hamare area Orangi Town Sector 10 mein Main gutter ubalne se ganda pani road par jama hai jis se sarak tooti phooti ho chuki hai asphalt beh gaya'",
+            "Actionable defect for KWSC in span 'Administration se guzarish hai hamare area Orangi Town Sector 10 mein Main gutter ubalne se ganda pani road par jama hai jis se sarak tooti phooti ho chuki hai asphalt beh gaya'"
+          ]
+        },
+        {
+          "id": "v13_4_holdout_0008",
+          "complexity": "causal_consequence",
+          "category": "kwsc_causes_road_erosion",
+          "text": "Bohot hi shadeed pareshani hai hamare area Orangi Town Sector 10 mein Sewerage overflow hone se footpath aur road dono dhans chuke hain paani ke bahao ne sarak tod di hai. Umeed hai is dafa meri shikayat par foran tawajjo di jayegi.",
+          "expected": [
+            "kwsc"
+          ],
+          "predicted": [
+            "kmc",
+            "kwsc"
+          ],
+          "notes": [
+            "Actionable defect for KMC in span 'Bohot hi shadeed pareshani hai hamare area Orangi Town Sector 10 mein Sewerage overflow hone se footpath aur road dono dhans chuke hain paani ke bahao ne sarak tod di hai'",
+            "Actionable defect for KWSC in span 'Bohot hi shadeed pareshani hai hamare area Orangi Town Sector 10 mein Sewerage overflow hone se footpath aur road dono dhans chuke hain paani ke bahao ne sarak tod di hai'"
+          ]
+        },
+        {
+          "id": "v13_4_holdout_0010",
+          "complexity": "causal_consequence",
+          "category": "ssgc_causes_road_trench",
+          "text": "Nek tamannao ke sath hamare area Gulshan-e-Iqbal Block 13D mein Sui gas walon ne new pipeline bichane ke liye sarak khodi thi aur repair kiye baghair khadda chor gaye hain. Khuda ke liye kisi zimmedar ko yahan bhein.",
+          "expected": [
+            "ssgc"
+          ],
+          "predicted": [
+            "kmc",
+            "ssgc"
+          ],
+          "notes": [
+            "Actionable defect for KMC in span 'Nek tamannao ke sath hamare area Gulshan-e-Iqbal Block 13D mein Sui gas walon ne new pipeline bichane ke liye sarak khodi thi aur repair kiye baghair khadda chor gaye hain'"
+          ]
+        },
+        {
+          "id": "v13_4_holdout_0011",
+          "complexity": "causal_consequence",
+          "category": "ssgc_causes_road_trench",
+          "text": "Bohot hi shadeed pareshani hai hamare area Kharadar Mithadar mein Gas leakage trace karne ke liye poori gali khod dali ab road tooti pari hai koi bananey nahi aya. Is surat-e-haal ka notice le kar team rawana karein.",
+          "expected": [
+            "ssgc"
+          ],
+          "predicted": [
+            "kmc",
+            "ssgc"
+          ],
+          "notes": [
+            "Actionable defect for KMC in span 'Bohot hi shadeed pareshani hai hamare area Kharadar Mithadar mein Gas leakage trace karne ke liye poori gali khod dali ab road tooti pari hai koi bananey nahi aya'",
+            "Actionable defect for SSGC in span 'Bohot hi shadeed pareshani hai hamare area Kharadar Mithadar mein Gas leakage trace karne ke liye poori gali khod dali ab road tooti pari hai koi bananey nahi aya'",
+            "Complaint contains actionable defect but lacks specific public street/landmark details (INCOMPLETE_PUBLIC_LOCATION)"
+          ]
+        },
+        {
+          "id": "v13_4_holdout_0012",
+          "complexity": "causal_consequence",
+          "category": "ssgc_causes_road_trench",
+          "text": "Awam ki awaz suniye hamare area Saddar Bohri Bazar mein SSGC contractors ne pipe repair ke baad road par mitti daal kar chor diya jo ab gaddhay ban chuki hai. Roz roz ki aziyat se nijat dilwayen shukriya.",
+          "expected": [
+            "ssgc"
+          ],
+          "predicted": [
+            "kmc"
+          ],
+          "notes": [
+            "Actionable defect for KMC in span 'Awam ki awaz suniye hamare area Saddar Bohri Bazar mein SSGC contractors ne pipe repair ke baad road par mitti daal kar chor diya jo ab gaddhay ban chuki hai'"
+          ]
+        },
+        {
+          "id": "v13_4_holdout_0013",
+          "complexity": "causal_consequence",
+          "category": "sswmb_causes_drain_block",
+          "text": "Shikayat baraye meherbani suniye hamare area Federal B Area Block 6 mein Kachra kundi se solid waste nikal kar manhole mein gir gaya jis se sewer line choke ho chuki hai. Roz roz ki aziyat se nijat dilwayen shukriya.",
+          "expected": [
+            "sswmb"
+          ],
+          "predicted": [
+            "kwsc",
+            "sswmb"
+          ],
+          "notes": [
+            "Actionable defect for KWSC in span 'Shikayat baraye meherbani suniye hamare area Federal B Area Block 6 mein Kachra kundi se solid waste nikal kar manhole mein gir gaya jis se sewer line choke ho chuki hai'"
+          ]
+        },
+        {
+          "id": "v13_4_holdout_0019",
+          "complexity": "causal_consequence",
+          "category": "ke_causes_water_pump",
+          "text": "Awam ki awaz suniye hamare area Baldia Town Ittehad Town mein 110 volt low voltage ane ke bais ghar ki pani wali motor trip ho rahi hai tanki bilkul khali pari hai. Is surat-e-haal ka notice le kar team rawana karein.",
+          "expected": [
+            "kelectric"
+          ],
+          "predicted": [
+            "kelectric",
+            "kwsc"
+          ],
+          "notes": [
+            "Actionable defect for KELECTRIC in span 'Awam ki awaz suniye hamare area Baldia Town Ittehad Town mein 110 volt low voltage ane ke bais ghar ki pani wali motor trip ho rahi hai tanki bilkul khali pari hai'"
+          ]
+        },
+        {
+          "id": "v13_4_holdout_0020",
+          "complexity": "causal_consequence",
+          "category": "ke_causes_water_pump",
+          "text": "Administration se guzarish hai hamare area Kharadar Mithadar mein Gali mein feeder trip hone se bijli band hai tab se underground water pump nahi chal saka paani nahi bhara. Ghareeb awam par thora reham khayein aur kaam karein.",
+          "expected": [
+            "kelectric"
+          ],
+          "predicted": [
+            "kelectric",
+            "kwsc"
+          ],
+          "notes": [
+            "Actionable defect for KWSC in span 'Administration se guzarish hai hamare area Kharadar Mithadar mein Gali mein feeder trip hone se bijli band hai tab se underground water pump nahi chal saka paani nahi bhara'",
+            "Actionable defect for KELECTRIC in span 'Administration se guzarish hai hamare area Kharadar Mithadar mein Gali mein feeder trip hone se bijli band hai tab se underground water pump nahi chal saka paani nahi bhara'",
+            "Complaint contains actionable defect but lacks specific public street/landmark details (INCOMPLETE_PUBLIC_LOCATION)"
+          ]
+        },
+        {
+          "id": "v13_4_holdout_0021",
+          "complexity": "causal_consequence",
+          "category": "ke_causes_water_pump",
+          "text": "Dukh ke sath arz hai hamare area Saddar Bohri Bazar mein Bijli ke taar snapping hone ki wajah se supply cut hai jis ke sabab pani ki machine nahi chali. Hamara masla hal na hua to hum ehtejaj karenge.",
+          "expected": [
+            "kelectric"
+          ],
+          "predicted": [
+            "kelectric",
+            "kwsc"
+          ],
+          "notes": [
+            "Actionable defect for KELECTRIC in span 'Dukh ke sath arz hai hamare area Saddar Bohri Bazar mein Bijli ke taar snapping hone ki wajah se supply cut hai jis ke sabab pani ki machine nahi chali'",
+            "Suppressed KMC: Road/footpath is location of electrical hazard without structural road defect"
+          ]
+        },
+        {
+          "id": "v13_4_holdout_0023",
+          "complexity": "causal_consequence",
+          "category": "kwsc_causes_road_erosion",
+          "text": "Mohtaram authority hamare area Saddar Bohri Bazar mein Water board ki underground 48 inch line phatne ki wajah se sadak ka carpeting ukhad gaya hai aur gehra gaddha par gaya hai. Ghareeb awam par thora reham khayein aur kaam karein.",
+          "expected": [
+            "kwsc"
+          ],
+          "predicted": [
+            "kmc",
+            "kwsc"
+          ],
+          "notes": [
+            "Actionable defect for KMC in span 'Mohtaram authority hamare area Saddar Bohri Bazar mein Water board ki underground 48 inch line phatne ki wajah se sadak ka carpeting ukhad gaya hai aur gehra gaddha par gaya hai'",
+            "Actionable defect for KWSC in span 'Mohtaram authority hamare area Saddar Bohri Bazar mein Water board ki underground 48 inch line phatne ki wajah se sadak ka carpeting ukhad gaya hai aur gehra gaddha par gaya hai'"
+          ]
+        },
+        {
+          "id": "v13_4_holdout_0024",
+          "complexity": "causal_consequence",
+          "category": "kwsc_causes_road_erosion",
+          "text": "Mohtaram afsaran hamare area Buffer Zone Sector 15A mein Main gutter ubalne se ganda pani road par jama hai jis se sarak tooti phooti ho chuki hai asphalt beh gaya. Is surat-e-haal ka notice le kar team rawana karein.",
+          "expected": [
+            "kwsc"
+          ],
+          "predicted": [
+            "kmc",
+            "kwsc"
+          ],
+          "notes": [
+            "Actionable defect for KMC in span 'Mohtaram afsaran hamare area Buffer Zone Sector 15A mein Main gutter ubalne se ganda pani road par jama hai jis se sarak tooti phooti ho chuki hai asphalt beh gaya'",
+            "Actionable defect for KWSC in span 'Mohtaram afsaran hamare area Buffer Zone Sector 15A mein Main gutter ubalne se ganda pani road par jama hai jis se sarak tooti phooti ho chuki hai asphalt beh gaya'",
+            "Complaint contains actionable defect but lacks specific public street/landmark details (INCOMPLETE_PUBLIC_LOCATION)"
+          ]
+        }
+      ]
+    },
+    "run004Candidate": {
+      "systemName": "Run004 + V13.4 Engine",
+      "totalCases": 500,
+      "exactMatches": 388,
+      "exactAccuracy": 77.6,
+      "macroF1": 88.6,
+      "deptMetrics": {
+        "kmc": {
+          "tp": 94,
+          "fp": 14,
+          "fn": 20,
+          "precision": 87.04,
+          "recall": 82.46,
+          "f1": 84.68
+        },
+        "kwsc": {
+          "tp": 136,
+          "fp": 32,
+          "fn": 0,
+          "precision": 80.95,
+          "recall": 100,
+          "f1": 89.47
+        },
+        "kelectric": {
+          "tp": 105,
+          "fp": 24,
+          "fn": 29,
+          "precision": 81.4,
+          "recall": 78.36,
+          "f1": 79.85
+        },
+        "ssgc": {
+          "tp": 88,
+          "fp": 0,
+          "fn": 21,
+          "precision": 100,
+          "recall": 80.73,
+          "f1": 89.34
+        },
+        "sswmb": {
+          "tp": 80,
+          "fp": 0,
+          "fn": 12,
+          "precision": 100,
+          "recall": 86.96,
+          "f1": 93.02
+        },
+        "sbca": {
+          "tp": 50,
+          "fp": 0,
+          "fn": 5,
+          "precision": 100,
+          "recall": 90.91,
+          "f1": 95.24
+        }
+      },
+      "complexityAccuracy": {
+        "single_department": {
+          "total": 120,
+          "correct": 113,
+          "accuracy": 94.17
+        },
+        "dual_department": {
+          "total": 100,
+          "correct": 78,
+          "accuracy": 78
+        },
+        "triple_department": {
+          "total": 50,
+          "correct": 20,
+          "accuracy": 40
+        },
+        "causal_consequence": {
+          "total": 120,
+          "correct": 85,
+          "accuracy": 70.83
+        },
+        "negation_suppressed": {
+          "total": 50,
+          "correct": 45,
+          "accuracy": 90
+        },
+        "out_of_scope": {
+          "total": 35,
+          "correct": 31,
+          "accuracy": 88.57
+        },
+        "ambiguous": {
+          "total": 25,
+          "correct": 16,
+          "accuracy": 64
+        }
+      },
+      "falseExtraRate": 14,
+      "missedDeptRate": 17.4,
+      "meanLatencyMs": 1.2,
+      "p95LatencyMs": 1.57,
+      "failureCount": 112,
+      "failuresSample": [
+        {
+          "id": "v13_4_holdout_0004",
+          "complexity": "causal_consequence",
+          "category": "ke_causes_water_pump",
+          "text": "Shikayat baraye meherbani suniye hamare area Malir Model Colony mein Bijli ke taar snapping hone ki wajah se supply cut hai jis ke sabab pani ki machine nahi chali. Hamara masla hal na hua to hum ehtejaj karenge.",
+          "expected": [
+            "kelectric"
+          ],
+          "predicted": [
+            "kwsc"
+          ],
+          "notes": [
+            "[SELECTED] KWSC: Statistical ML candidate passed decision threshold (prob: 0.76 >= 0.38)"
+          ]
+        },
+        {
+          "id": "v13_4_holdout_0010",
+          "complexity": "causal_consequence",
+          "category": "ssgc_causes_road_trench",
+          "text": "Nek tamannao ke sath hamare area Gulshan-e-Iqbal Block 13D mein Sui gas walon ne new pipeline bichane ke liye sarak khodi thi aur repair kiye baghair khadda chor gaye hain. Khuda ke liye kisi zimmedar ko yahan bhein.",
+          "expected": [
+            "ssgc"
+          ],
+          "predicted": [
+            "kmc",
+            "ssgc"
+          ],
+          "notes": [
+            "[SELECTED] KMC: Grounded affirmative civic defect and model passed decision threshold (prob: 0.31 >= 0.25)",
+            "[SELECTED] SSGC: Grounded affirmative civic defect and model passed decision threshold (prob: 0.46 >= 0.28)"
+          ]
+        },
+        {
+          "id": "v13_4_holdout_0011",
+          "complexity": "causal_consequence",
+          "category": "ssgc_causes_road_trench",
+          "text": "Bohot hi shadeed pareshani hai hamare area Kharadar Mithadar mein Gas leakage trace karne ke liye poori gali khod dali ab road tooti pari hai koi bananey nahi aya. Is surat-e-haal ka notice le kar team rawana karein.",
+          "expected": [
+            "ssgc"
+          ],
+          "predicted": [
+            "kmc"
+          ],
+          "notes": [
+            "[SELECTED] KMC: Grounded affirmative civic defect and model passed decision threshold (prob: 0.48 >= 0.25)"
+          ]
+        },
+        {
+          "id": "v13_4_holdout_0012",
+          "complexity": "causal_consequence",
+          "category": "ssgc_causes_road_trench",
+          "text": "Awam ki awaz suniye hamare area Saddar Bohri Bazar mein SSGC contractors ne pipe repair ke baad road par mitti daal kar chor diya jo ab gaddhay ban chuki hai. Roz roz ki aziyat se nijat dilwayen shukriya.",
+          "expected": [
+            "ssgc"
+          ],
+          "predicted": [
+            "kwsc"
+          ],
+          "notes": [
+            "[SELECTED] KWSC: Grounded independent civic defect in complaint text: \"awam ki awaz suniye hamare area saddar bohri bazar mein ssgc contractors ne pipe repair ke baad road par mitti daal kar chor diya jo ab gaddhay ban chuki hai\""
+          ]
+        },
+        {
+          "id": "v13_4_holdout_0013",
+          "complexity": "causal_consequence",
+          "category": "sswmb_causes_drain_block",
+          "text": "Shikayat baraye meherbani suniye hamare area Federal B Area Block 6 mein Kachra kundi se solid waste nikal kar manhole mein gir gaya jis se sewer line choke ho chuki hai. Roz roz ki aziyat se nijat dilwayen shukriya.",
+          "expected": [
+            "sswmb"
+          ],
+          "predicted": [
+            "kwsc"
+          ],
+          "notes": [
+            "[SELECTED] KWSC: Grounded affirmative civic defect and model passed decision threshold (prob: 0.66 >= 0.38)"
+          ]
+        },
+        {
+          "id": "v13_4_holdout_0021",
+          "complexity": "causal_consequence",
+          "category": "ke_causes_water_pump",
+          "text": "Dukh ke sath arz hai hamare area Saddar Bohri Bazar mein Bijli ke taar snapping hone ki wajah se supply cut hai jis ke sabab pani ki machine nahi chali. Hamara masla hal na hua to hum ehtejaj karenge.",
+          "expected": [
+            "kelectric"
+          ],
+          "predicted": [
+            "kwsc"
+          ],
+          "notes": [
+            "[SELECTED] KWSC: Statistical ML candidate passed decision threshold (prob: 0.68 >= 0.38)"
+          ]
+        },
+        {
+          "id": "v13_4_holdout_0027",
+          "complexity": "causal_consequence",
+          "category": "ssgc_causes_road_trench",
+          "text": "Nek tamannao ke sath hamare area Baldia Town Ittehad Town mein Sui gas walon ne new pipeline bichane ke liye sarak khodi thi aur repair kiye baghair khadda chor gaye hain. Ghareeb awam par thora reham khayein aur kaam karein.",
+          "expected": [
+            "ssgc"
+          ],
+          "predicted": [
+            "kmc",
+            "ssgc"
+          ],
+          "notes": [
+            "[SELECTED] KMC: Grounded independent civic defect in complaint text: \"nek tamannao ke sath hamare area baldia town ittehad town mein sui gas walon ne new pipeline bichane ke liye road khodi thi aur repair kiye baghair khadda chor gaye hain\"",
+            "[SELECTED] SSGC: Grounded affirmative civic defect and model passed decision threshold (prob: 0.44 >= 0.28)"
+          ]
+        },
+        {
+          "id": "v13_4_holdout_0028",
+          "complexity": "causal_consequence",
+          "category": "ssgc_causes_road_trench",
+          "text": "Bohot hi shadeed pareshani hai hamare area Kharadar Mithadar mein Gas leakage trace karne ke liye poori gali khod dali ab road tooti pari hai koi bananey nahi aya. Khuda ke liye kisi zimmedar ko yahan bhein.",
+          "expected": [
+            "ssgc"
+          ],
+          "predicted": [
+            "kmc"
+          ],
+          "notes": [
+            "[SELECTED] KMC: Grounded affirmative civic defect and model passed decision threshold (prob: 0.49 >= 0.25)"
+          ]
+        },
+        {
+          "id": "v13_4_holdout_0029",
+          "complexity": "causal_consequence",
+          "category": "ssgc_causes_road_trench",
+          "text": "Karachi ke bashinday ki faryad hamare area Malir Model Colony mein SSGC contractors ne pipe repair ke baad road par mitti daal kar chor diya jo ab gaddhay ban chuki hai. Is surat-e-haal ka notice le kar team rawana karein.",
+          "expected": [
+            "ssgc"
+          ],
+          "predicted": [
+            "kwsc"
+          ],
+          "notes": [
+            "[SELECTED] KWSC: Grounded independent civic defect in complaint text: \"karachi ke bashinday ki faryad hamare area malir model colony mein ssgc contractors ne pipe repair ke baad road par mitti daal kar chor diya jo ab gaddhay ban chuki hai\""
+          ]
+        },
+        {
+          "id": "v13_4_holdout_0030",
+          "complexity": "causal_consequence",
+          "category": "sswmb_causes_drain_block",
+          "text": "Shikayat baraye meherbani suniye hamare area P.E.C.H.S Block 6 mein Kachra kundi se solid waste nikal kar manhole mein gir gaya jis se sewer line choke ho chuki hai. Umeed hai is dafa meri shikayat par foran tawajjo di jayegi.",
+          "expected": [
+            "sswmb"
+          ],
+          "predicted": [
+            "kwsc"
+          ],
+          "notes": [
+            "[SELECTED] KWSC: Grounded affirmative civic defect and model passed decision threshold (prob: 0.75 >= 0.38)"
+          ]
+        },
+        {
+          "id": "v13_4_holdout_0038",
+          "complexity": "causal_consequence",
+          "category": "ke_causes_water_pump",
+          "text": "Mohtaram authority hamare area Orangi Town Sector 10 mein Bijli ke taar snapping hone ki wajah se supply cut hai jis ke sabab pani ki machine nahi chali. Umeed hai is dafa meri shikayat par foran tawajjo di jayegi.",
+          "expected": [
+            "kelectric"
+          ],
+          "predicted": [
+            "kwsc"
+          ],
+          "notes": [
+            "[SELECTED] KWSC: Statistical ML candidate passed decision threshold (prob: 0.63 >= 0.38)"
+          ]
+        },
+        {
+          "id": "v13_4_holdout_0044",
+          "complexity": "causal_consequence",
+          "category": "ssgc_causes_road_trench",
+          "text": "Nek tamannao ke sath hamare area Buffer Zone Sector 15A mein Sui gas walon ne new pipeline bichane ke liye sarak khodi thi aur repair kiye baghair khadda chor gaye hain. Umeed hai is dafa meri shikayat par foran tawajjo di jayegi.",
+          "expected": [
+            "ssgc"
+          ],
+          "predicted": [
+            "kmc",
+            "ssgc"
+          ],
+          "notes": [
+            "[SELECTED] KMC: Grounded affirmative civic defect and model passed decision threshold (prob: 0.30 >= 0.25)",
+            "[SELECTED] SSGC: Grounded affirmative civic defect and model passed decision threshold (prob: 0.51 >= 0.28)"
+          ]
+        },
+        {
+          "id": "v13_4_holdout_0045",
+          "complexity": "causal_consequence",
+          "category": "ssgc_causes_road_trench",
+          "text": "Dukh ke sath arz hai hamare area Orangi Town Sector 10 mein Gas leakage trace karne ke liye poori gali khod dali ab road tooti pari hai koi bananey nahi aya. Roz roz ki aziyat se nijat dilwayen shukriya.",
+          "expected": [
+            "ssgc"
+          ],
+          "predicted": [
+            "kmc"
+          ],
+          "notes": [
+            "[SELECTED] KMC: Grounded affirmative civic defect and model passed decision threshold (prob: 0.37 >= 0.25)"
+          ]
+        },
+        {
+          "id": "v13_4_holdout_0046",
+          "complexity": "causal_consequence",
+          "category": "ssgc_causes_road_trench",
+          "text": "Mohtaram authority hamare area Federal B Area Block 6 mein SSGC contractors ne pipe repair ke baad road par mitti daal kar chor diya jo ab gaddhay ban chuki hai. Umeed hai is dafa meri shikayat par foran tawajjo di jayegi.",
+          "expected": [
+            "ssgc"
+          ],
+          "predicted": [
+            "kwsc"
+          ],
+          "notes": [
+            "[SELECTED] KWSC: Grounded independent civic defect in complaint text: \"mohtaram authority hamare area federal b area block 6 mein ssgc contractors ne pipe repair ke baad road par mitti daal kar chor diya jo ab gaddhay ban chuki hai\""
+          ]
+        },
+        {
+          "id": "v13_4_holdout_0047",
+          "complexity": "causal_consequence",
+          "category": "sswmb_causes_drain_block",
+          "text": "Dukh ke sath arz hai hamare area Malir Model Colony mein Kachra kundi se solid waste nikal kar manhole mein gir gaya jis se sewer line choke ho chuki hai. Khuda ke liye kisi zimmedar ko yahan bhein.",
+          "expected": [
+            "sswmb"
+          ],
+          "predicted": [
+            "kwsc"
+          ],
+          "notes": [
+            "[SELECTED] KWSC: Grounded affirmative civic defect and model passed decision threshold (prob: 0.54 >= 0.38)"
+          ]
+        }
+      ]
+    },
+    "run006Baseline": {
+      "systemName": "Run006 Baseline (V11)",
+      "totalCases": 500,
+      "exactMatches": 392,
+      "exactAccuracy": 78.4,
+      "macroF1": 91.75,
+      "deptMetrics": {
+        "kmc": {
+          "tp": 108,
+          "fp": 47,
+          "fn": 6,
+          "precision": 69.68,
+          "recall": 94.74,
+          "f1": 80.3
+        },
+        "kwsc": {
+          "tp": 128,
+          "fp": 29,
+          "fn": 8,
+          "precision": 81.53,
+          "recall": 94.12,
+          "f1": 87.37
+        },
+        "kelectric": {
+          "tp": 124,
+          "fp": 9,
+          "fn": 10,
+          "precision": 93.23,
+          "recall": 92.54,
+          "f1": 92.88
+        },
+        "ssgc": {
+          "tp": 98,
+          "fp": 0,
+          "fn": 11,
+          "precision": 100,
+          "recall": 89.91,
+          "f1": 94.69
+        },
+        "sswmb": {
+          "tp": 92,
+          "fp": 0,
+          "fn": 0,
+          "precision": 100,
+          "recall": 100,
+          "f1": 100
+        },
+        "sbca": {
+          "tp": 50,
+          "fp": 0,
+          "fn": 5,
+          "precision": 100,
+          "recall": 90.91,
+          "f1": 95.24
+        }
+      },
+      "complexityAccuracy": {
+        "single_department": {
+          "total": 120,
+          "correct": 115,
+          "accuracy": 95.83
+        },
+        "dual_department": {
+          "total": 100,
+          "correct": 89,
+          "accuracy": 89
+        },
+        "triple_department": {
+          "total": 50,
+          "correct": 32,
+          "accuracy": 64
+        },
+        "causal_consequence": {
+          "total": 120,
+          "correct": 59,
+          "accuracy": 49.17
+        },
+        "negation_suppressed": {
+          "total": 50,
+          "correct": 40,
+          "accuracy": 80
+        },
+        "out_of_scope": {
+          "total": 35,
+          "correct": 32,
+          "accuracy": 91.43
+        },
+        "ambiguous": {
+          "total": 25,
+          "correct": 25,
+          "accuracy": 100
+        }
+      },
+      "falseExtraRate": 17,
+      "missedDeptRate": 8,
+      "meanLatencyMs": 9.9,
+      "p95LatencyMs": 14.93,
+      "failureCount": 108,
+      "failuresSample": [
+        {
+          "id": "v13_4_holdout_0003",
+          "complexity": "causal_consequence",
+          "category": "ke_causes_water_pump",
+          "text": "Mohtaram afsaran hamare area Federal B Area Block 6 mein Gali mein feeder trip hone se bijli band hai tab se underground water pump nahi chal saka paani nahi bhara. Is surat-e-haal ka notice le kar team rawana karein.",
+          "expected": [
+            "kelectric"
+          ],
+          "predicted": [
+            "kelectric",
+            "kwsc"
+          ],
+          "notes": [
+            "Actionable defect for KWSC in span 'Mohtaram afsaran hamare area Federal B Area Block 6 mein Gali mein feeder trip hone se bijli band hai tab se underground water pump nahi chal saka paani nahi bhara'",
+            "Actionable defect for KELECTRIC in span 'Mohtaram afsaran hamare area Federal B Area Block 6 mein Gali mein feeder trip hone se bijli band hai tab se underground water pump nahi chal saka paani nahi bhara'"
+          ]
+        },
+        {
+          "id": "v13_4_holdout_0004",
+          "complexity": "causal_consequence",
+          "category": "ke_causes_water_pump",
+          "text": "Shikayat baraye meherbani suniye hamare area Malir Model Colony mein Bijli ke taar snapping hone ki wajah se supply cut hai jis ke sabab pani ki machine nahi chali. Hamara masla hal na hua to hum ehtejaj karenge.",
+          "expected": [
+            "kelectric"
+          ],
+          "predicted": [
+            "kelectric",
+            "kwsc"
+          ],
+          "notes": [
+            "Actionable defect for KELECTRIC in span 'Shikayat baraye meherbani suniye hamare area Malir Model Colony mein Bijli ke taar snapping hone ki wajah se supply cut hai jis ke sabab pani ki machine nahi chali'"
+          ]
+        },
+        {
+          "id": "v13_4_holdout_0006",
+          "complexity": "causal_consequence",
+          "category": "kwsc_causes_road_erosion",
+          "text": "Awam ki awaz suniye hamare area Nazimabad Gol Market mein Water board ki underground 48 inch line phatne ki wajah se sadak ka carpeting ukhad gaya hai aur gehra gaddha par gaya hai. Daftar ke chakkar kaat kaat kar hum tang a chuke hain.",
+          "expected": [
+            "kwsc"
+          ],
+          "predicted": [
+            "kmc",
+            "kwsc"
+          ],
+          "notes": [
+            "Actionable defect for KMC in span 'Awam ki awaz suniye hamare area Nazimabad Gol Market mein Water board ki underground 48 inch line phatne ki wajah se sadak ka carpeting ukhad gaya hai aur gehra gaddha par gaya hai'",
+            "Actionable defect for KWSC in span 'Awam ki awaz suniye hamare area Nazimabad Gol Market mein Water board ki underground 48 inch line phatne ki wajah se sadak ka carpeting ukhad gaya hai aur gehra gaddha par gaya hai'"
+          ]
+        },
+        {
+          "id": "v13_4_holdout_0007",
+          "complexity": "causal_consequence",
+          "category": "kwsc_causes_road_erosion",
+          "text": "Administration se guzarish hai hamare area Orangi Town Sector 10 mein Main gutter ubalne se ganda pani road par jama hai jis se sarak tooti phooti ho chuki hai asphalt beh gaya. Ghareeb awam par thora reham khayein aur kaam karein.",
+          "expected": [
+            "kwsc"
+          ],
+          "predicted": [
+            "kmc",
+            "kwsc"
+          ],
+          "notes": [
+            "Actionable defect for KMC in span 'Administration se guzarish hai hamare area Orangi Town Sector 10 mein Main gutter ubalne se ganda pani road par jama hai jis se sarak tooti phooti ho chuki hai asphalt beh gaya'",
+            "Actionable defect for KWSC in span 'Administration se guzarish hai hamare area Orangi Town Sector 10 mein Main gutter ubalne se ganda pani road par jama hai jis se sarak tooti phooti ho chuki hai asphalt beh gaya'"
+          ]
+        },
+        {
+          "id": "v13_4_holdout_0008",
+          "complexity": "causal_consequence",
+          "category": "kwsc_causes_road_erosion",
+          "text": "Bohot hi shadeed pareshani hai hamare area Orangi Town Sector 10 mein Sewerage overflow hone se footpath aur road dono dhans chuke hain paani ke bahao ne sarak tod di hai. Umeed hai is dafa meri shikayat par foran tawajjo di jayegi.",
+          "expected": [
+            "kwsc"
+          ],
+          "predicted": [
+            "kmc",
+            "kwsc"
+          ],
+          "notes": [
+            "Actionable defect for KMC in span 'Bohot hi shadeed pareshani hai hamare area Orangi Town Sector 10 mein Sewerage overflow hone se footpath aur road dono dhans chuke hain paani ke bahao ne sarak tod di hai'",
+            "Actionable defect for KWSC in span 'Bohot hi shadeed pareshani hai hamare area Orangi Town Sector 10 mein Sewerage overflow hone se footpath aur road dono dhans chuke hain paani ke bahao ne sarak tod di hai'"
+          ]
+        },
+        {
+          "id": "v13_4_holdout_0010",
+          "complexity": "causal_consequence",
+          "category": "ssgc_causes_road_trench",
+          "text": "Nek tamannao ke sath hamare area Gulshan-e-Iqbal Block 13D mein Sui gas walon ne new pipeline bichane ke liye sarak khodi thi aur repair kiye baghair khadda chor gaye hain. Khuda ke liye kisi zimmedar ko yahan bhein.",
+          "expected": [
+            "ssgc"
+          ],
+          "predicted": [
+            "kmc",
+            "ssgc"
+          ],
+          "notes": [
+            "Actionable defect for KMC in span 'Nek tamannao ke sath hamare area Gulshan-e-Iqbal Block 13D mein Sui gas walon ne new pipeline bichane ke liye sarak khodi thi aur repair kiye baghair khadda chor gaye hain'"
+          ]
+        },
+        {
+          "id": "v13_4_holdout_0011",
+          "complexity": "causal_consequence",
+          "category": "ssgc_causes_road_trench",
+          "text": "Bohot hi shadeed pareshani hai hamare area Kharadar Mithadar mein Gas leakage trace karne ke liye poori gali khod dali ab road tooti pari hai koi bananey nahi aya. Is surat-e-haal ka notice le kar team rawana karein.",
+          "expected": [
+            "ssgc"
+          ],
+          "predicted": [
+            "kmc",
+            "ssgc"
+          ],
+          "notes": [
+            "Actionable defect for KMC in span 'Bohot hi shadeed pareshani hai hamare area Kharadar Mithadar mein Gas leakage trace karne ke liye poori gali khod dali ab road tooti pari hai koi bananey nahi aya'",
+            "Actionable defect for SSGC in span 'Bohot hi shadeed pareshani hai hamare area Kharadar Mithadar mein Gas leakage trace karne ke liye poori gali khod dali ab road tooti pari hai koi bananey nahi aya'",
+            "Complaint contains actionable defect but lacks specific public street/landmark details (INCOMPLETE_PUBLIC_LOCATION)"
+          ]
+        },
+        {
+          "id": "v13_4_holdout_0012",
+          "complexity": "causal_consequence",
+          "category": "ssgc_causes_road_trench",
+          "text": "Awam ki awaz suniye hamare area Saddar Bohri Bazar mein SSGC contractors ne pipe repair ke baad road par mitti daal kar chor diya jo ab gaddhay ban chuki hai. Roz roz ki aziyat se nijat dilwayen shukriya.",
+          "expected": [
+            "ssgc"
+          ],
+          "predicted": [
+            "kmc"
+          ],
+          "notes": [
+            "Actionable defect for KMC in span 'Awam ki awaz suniye hamare area Saddar Bohri Bazar mein SSGC contractors ne pipe repair ke baad road par mitti daal kar chor diya jo ab gaddhay ban chuki hai'"
+          ]
+        },
+        {
+          "id": "v13_4_holdout_0013",
+          "complexity": "causal_consequence",
+          "category": "sswmb_causes_drain_block",
+          "text": "Shikayat baraye meherbani suniye hamare area Federal B Area Block 6 mein Kachra kundi se solid waste nikal kar manhole mein gir gaya jis se sewer line choke ho chuki hai. Roz roz ki aziyat se nijat dilwayen shukriya.",
+          "expected": [
+            "sswmb"
+          ],
+          "predicted": [
+            "kwsc",
+            "sswmb"
+          ],
+          "notes": [
+            "Actionable defect for KWSC in span 'Shikayat baraye meherbani suniye hamare area Federal B Area Block 6 mein Kachra kundi se solid waste nikal kar manhole mein gir gaya jis se sewer line choke ho chuki hai'"
+          ]
+        },
+        {
+          "id": "v13_4_holdout_0020",
+          "complexity": "causal_consequence",
+          "category": "ke_causes_water_pump",
+          "text": "Administration se guzarish hai hamare area Kharadar Mithadar mein Gali mein feeder trip hone se bijli band hai tab se underground water pump nahi chal saka paani nahi bhara. Ghareeb awam par thora reham khayein aur kaam karein.",
+          "expected": [
+            "kelectric"
+          ],
+          "predicted": [
+            "kelectric",
+            "kwsc"
+          ],
+          "notes": [
+            "Actionable defect for KWSC in span 'Administration se guzarish hai hamare area Kharadar Mithadar mein Gali mein feeder trip hone se bijli band hai tab se underground water pump nahi chal saka paani nahi bhara'",
+            "Actionable defect for KELECTRIC in span 'Administration se guzarish hai hamare area Kharadar Mithadar mein Gali mein feeder trip hone se bijli band hai tab se underground water pump nahi chal saka paani nahi bhara'",
+            "Complaint contains actionable defect but lacks specific public street/landmark details (INCOMPLETE_PUBLIC_LOCATION)"
+          ]
+        },
+        {
+          "id": "v13_4_holdout_0021",
+          "complexity": "causal_consequence",
+          "category": "ke_causes_water_pump",
+          "text": "Dukh ke sath arz hai hamare area Saddar Bohri Bazar mein Bijli ke taar snapping hone ki wajah se supply cut hai jis ke sabab pani ki machine nahi chali. Hamara masla hal na hua to hum ehtejaj karenge.",
+          "expected": [
+            "kelectric"
+          ],
+          "predicted": [
+            "kelectric",
+            "kwsc"
+          ],
+          "notes": [
+            "Actionable defect for KELECTRIC in span 'Dukh ke sath arz hai hamare area Saddar Bohri Bazar mein Bijli ke taar snapping hone ki wajah se supply cut hai jis ke sabab pani ki machine nahi chali'"
+          ]
+        },
+        {
+          "id": "v13_4_holdout_0023",
+          "complexity": "causal_consequence",
+          "category": "kwsc_causes_road_erosion",
+          "text": "Mohtaram authority hamare area Saddar Bohri Bazar mein Water board ki underground 48 inch line phatne ki wajah se sadak ka carpeting ukhad gaya hai aur gehra gaddha par gaya hai. Ghareeb awam par thora reham khayein aur kaam karein.",
+          "expected": [
+            "kwsc"
+          ],
+          "predicted": [
+            "kmc",
+            "kwsc"
+          ],
+          "notes": [
+            "Actionable defect for KMC in span 'Mohtaram authority hamare area Saddar Bohri Bazar mein Water board ki underground 48 inch line phatne ki wajah se sadak ka carpeting ukhad gaya hai aur gehra gaddha par gaya hai'",
+            "Actionable defect for KWSC in span 'Mohtaram authority hamare area Saddar Bohri Bazar mein Water board ki underground 48 inch line phatne ki wajah se sadak ka carpeting ukhad gaya hai aur gehra gaddha par gaya hai'"
+          ]
+        },
+        {
+          "id": "v13_4_holdout_0024",
+          "complexity": "causal_consequence",
+          "category": "kwsc_causes_road_erosion",
+          "text": "Mohtaram afsaran hamare area Buffer Zone Sector 15A mein Main gutter ubalne se ganda pani road par jama hai jis se sarak tooti phooti ho chuki hai asphalt beh gaya. Is surat-e-haal ka notice le kar team rawana karein.",
+          "expected": [
+            "kwsc"
+          ],
+          "predicted": [
+            "kmc",
+            "kwsc"
+          ],
+          "notes": [
+            "Actionable defect for KMC in span 'Mohtaram afsaran hamare area Buffer Zone Sector 15A mein Main gutter ubalne se ganda pani road par jama hai jis se sarak tooti phooti ho chuki hai asphalt beh gaya'",
+            "Actionable defect for KWSC in span 'Mohtaram afsaran hamare area Buffer Zone Sector 15A mein Main gutter ubalne se ganda pani road par jama hai jis se sarak tooti phooti ho chuki hai asphalt beh gaya'",
+            "Complaint contains actionable defect but lacks specific public street/landmark details (INCOMPLETE_PUBLIC_LOCATION)"
+          ]
+        },
+        {
+          "id": "v13_4_holdout_0025",
+          "complexity": "causal_consequence",
+          "category": "kwsc_causes_road_erosion",
+          "text": "Karachi ke bashinday ki faryad hamare area Nazimabad Gol Market mein Sewerage overflow hone se footpath aur road dono dhans chuke hain paani ke bahao ne sarak tod di hai. Roz roz ki aziyat se nijat dilwayen shukriya.",
+          "expected": [
+            "kwsc"
+          ],
+          "predicted": [
+            "kmc",
+            "kwsc"
+          ],
+          "notes": [
+            "Actionable defect for KMC in span 'Karachi ke bashinday ki faryad hamare area Nazimabad Gol Market mein Sewerage overflow hone se footpath aur road dono dhans chuke hain paani ke bahao ne sarak tod di hai'",
+            "Actionable defect for KWSC in span 'Karachi ke bashinday ki faryad hamare area Nazimabad Gol Market mein Sewerage overflow hone se footpath aur road dono dhans chuke hain paani ke bahao ne sarak tod di hai'"
+          ]
+        },
+        {
+          "id": "v13_4_holdout_0027",
+          "complexity": "causal_consequence",
+          "category": "ssgc_causes_road_trench",
+          "text": "Nek tamannao ke sath hamare area Baldia Town Ittehad Town mein Sui gas walon ne new pipeline bichane ke liye sarak khodi thi aur repair kiye baghair khadda chor gaye hain. Ghareeb awam par thora reham khayein aur kaam karein.",
+          "expected": [
+            "ssgc"
+          ],
+          "predicted": [
+            "kmc",
+            "ssgc"
+          ],
+          "notes": [
+            "Actionable defect for KMC in span 'Nek tamannao ke sath hamare area Baldia Town Ittehad Town mein Sui gas walon ne new pipeline bichane ke liye sarak khodi thi aur repair kiye baghair khadda chor gaye hain'"
+          ]
+        }
+      ]
+    },
+    "run006V13_3": {
+      "systemName": "Run006 + V13.3 Policy",
+      "totalCases": 500,
+      "exactMatches": 347,
+      "exactAccuracy": 69.4,
+      "macroF1": 86.39,
+      "deptMetrics": {
+        "kmc": {
+          "tp": 91,
+          "fp": 43,
+          "fn": 23,
+          "precision": 67.91,
+          "recall": 79.82,
+          "f1": 73.39
+        },
+        "kwsc": {
+          "tp": 127,
+          "fp": 27,
+          "fn": 9,
+          "precision": 82.47,
+          "recall": 93.38,
+          "f1": 87.59
+        },
+        "kelectric": {
+          "tp": 128,
+          "fp": 28,
+          "fn": 6,
+          "precision": 82.05,
+          "recall": 95.52,
+          "f1": 88.28
+        },
+        "ssgc": {
+          "tp": 92,
+          "fp": 38,
+          "fn": 17,
+          "precision": 70.77,
+          "recall": 84.4,
+          "f1": 76.99
+        },
+        "sswmb": {
+          "tp": 92,
+          "fp": 6,
+          "fn": 0,
+          "precision": 93.88,
+          "recall": 100,
+          "f1": 96.84
+        },
+        "sbca": {
+          "tp": 50,
+          "fp": 0,
+          "fn": 5,
+          "precision": 100,
+          "recall": 90.91,
+          "f1": 95.24
+        }
+      },
+      "complexityAccuracy": {
+        "single_department": {
+          "total": 120,
+          "correct": 90,
+          "accuracy": 75
+        },
+        "dual_department": {
+          "total": 100,
+          "correct": 76,
+          "accuracy": 76
+        },
+        "triple_department": {
+          "total": 50,
+          "correct": 30,
+          "accuracy": 60
+        },
+        "causal_consequence": {
+          "total": 120,
+          "correct": 54,
+          "accuracy": 45
+        },
+        "negation_suppressed": {
+          "total": 50,
+          "correct": 40,
+          "accuracy": 80
+        },
+        "out_of_scope": {
+          "total": 35,
+          "correct": 32,
+          "accuracy": 91.43
+        },
+        "ambiguous": {
+          "total": 25,
+          "correct": 25,
+          "accuracy": 100
+        }
+      },
+      "falseExtraRate": 28.4,
+      "missedDeptRate": 12,
+      "meanLatencyMs": 3.13,
+      "p95LatencyMs": 3.86,
+      "failureCount": 153,
+      "failuresSample": [
+        {
+          "id": "v13_4_holdout_0004",
+          "complexity": "causal_consequence",
+          "category": "ke_causes_water_pump",
+          "text": "Shikayat baraye meherbani suniye hamare area Malir Model Colony mein Bijli ke taar snapping hone ki wajah se supply cut hai jis ke sabab pani ki machine nahi chali. Hamara masla hal na hua to hum ehtejaj karenge.",
+          "expected": [
+            "kelectric"
+          ],
+          "predicted": [
+            "kwsc"
+          ],
+          "notes": [
+            "[SELECTED] KWSC: Statistical ML candidate passed decision threshold (prob: 0.71 >= 0.50)"
+          ]
+        },
+        {
+          "id": "v13_4_holdout_0006",
+          "complexity": "causal_consequence",
+          "category": "kwsc_causes_road_erosion",
+          "text": "Awam ki awaz suniye hamare area Nazimabad Gol Market mein Water board ki underground 48 inch line phatne ki wajah se sadak ka carpeting ukhad gaya hai aur gehra gaddha par gaya hai. Daftar ke chakkar kaat kaat kar hum tang a chuke hain.",
+          "expected": [
+            "kwsc"
+          ],
+          "predicted": [
+            "kmc",
+            "kwsc"
+          ],
+          "notes": [
+            "[SELECTED] KMC: Grounded affirmative civic defect and model passed decision threshold (prob: 0.86 >= 0.62)",
+            "[SELECTED] KWSC: Statistical ML candidate passed decision threshold (prob: 0.81 >= 0.50)"
+          ]
+        },
+        {
+          "id": "v13_4_holdout_0007",
+          "complexity": "causal_consequence",
+          "category": "kwsc_causes_road_erosion",
+          "text": "Administration se guzarish hai hamare area Orangi Town Sector 10 mein Main gutter ubalne se ganda pani road par jama hai jis se sarak tooti phooti ho chuki hai asphalt beh gaya. Ghareeb awam par thora reham khayein aur kaam karein.",
+          "expected": [
+            "kwsc"
+          ],
+          "predicted": [
+            "kmc",
+            "kwsc"
+          ],
+          "notes": [
+            "[SELECTED] KMC: Grounded affirmative civic defect and model passed decision threshold (prob: 0.73 >= 0.62)",
+            "[SELECTED] KWSC: Grounded affirmative civic defect and model passed decision threshold (prob: 0.99 >= 0.50)"
+          ]
+        },
+        {
+          "id": "v13_4_holdout_0008",
+          "complexity": "causal_consequence",
+          "category": "kwsc_causes_road_erosion",
+          "text": "Bohot hi shadeed pareshani hai hamare area Orangi Town Sector 10 mein Sewerage overflow hone se footpath aur road dono dhans chuke hain paani ke bahao ne sarak tod di hai. Umeed hai is dafa meri shikayat par foran tawajjo di jayegi.",
+          "expected": [
+            "kwsc"
+          ],
+          "predicted": [
+            "kmc",
+            "kwsc"
+          ],
+          "notes": [
+            "[SELECTED] KMC: Statistical ML candidate passed decision threshold (prob: 0.89 >= 0.62)",
+            "[SELECTED] KWSC: Grounded affirmative civic defect and model passed decision threshold (prob: 0.82 >= 0.50)"
+          ]
+        },
+        {
+          "id": "v13_4_holdout_0009",
+          "complexity": "causal_consequence",
+          "category": "kwsc_causes_road_erosion",
+          "text": "Karachi ke bashinday ki faryad hamare area Gulshan-e-Iqbal Block 13D mein Drainage pipeline leak hone ke sabab poori gali ki road kharab ho gayi hai khadday ban gaye hain. Roz roz ki aziyat se nijat dilwayen shukriya.",
+          "expected": [
+            "kwsc"
+          ],
+          "predicted": [
+            "ssgc"
+          ],
+          "notes": [
+            "[SELECTED] SSGC: Grounded independent civic defect in complaint text: \"karachi ke bashinday ki faryad hamare area gulshan-e-iqbal block 13d mein drainage pipeline leak hone\""
+          ]
+        },
+        {
+          "id": "v13_4_holdout_0010",
+          "complexity": "causal_consequence",
+          "category": "ssgc_causes_road_trench",
+          "text": "Nek tamannao ke sath hamare area Gulshan-e-Iqbal Block 13D mein Sui gas walon ne new pipeline bichane ke liye sarak khodi thi aur repair kiye baghair khadda chor gaye hain. Khuda ke liye kisi zimmedar ko yahan bhein.",
+          "expected": [
+            "ssgc"
+          ],
+          "predicted": [
+            "kmc",
+            "ssgc"
+          ],
+          "notes": [
+            "[SELECTED] KMC: Grounded independent civic defect in complaint text: \"nek tamannao ke sath hamare area gulshan-e-iqbal block 13d mein sui gas walon ne new pipeline bichane ke liye road khodi thi aur repair kiye baghair khadda chor gaye hain\"",
+            "[SELECTED] SSGC: Statistical ML candidate passed decision threshold (prob: 0.75 >= 0.55)"
+          ]
+        },
+        {
+          "id": "v13_4_holdout_0011",
+          "complexity": "causal_consequence",
+          "category": "ssgc_causes_road_trench",
+          "text": "Bohot hi shadeed pareshani hai hamare area Kharadar Mithadar mein Gas leakage trace karne ke liye poori gali khod dali ab road tooti pari hai koi bananey nahi aya. Is surat-e-haal ka notice le kar team rawana karein.",
+          "expected": [
+            "ssgc"
+          ],
+          "predicted": [
+            "kmc"
+          ],
+          "notes": [
+            "[SELECTED] KMC: Grounded independent civic defect in complaint text: \"bohot hi shadeed pareshani hai hamare area kharadar mithadar mein gas leakage trace karne ke liye poori gali khod dali ab road toot pari hai koi bananey nahi aya\""
+          ]
+        },
+        {
+          "id": "v13_4_holdout_0012",
+          "complexity": "causal_consequence",
+          "category": "ssgc_causes_road_trench",
+          "text": "Awam ki awaz suniye hamare area Saddar Bohri Bazar mein SSGC contractors ne pipe repair ke baad road par mitti daal kar chor diya jo ab gaddhay ban chuki hai. Roz roz ki aziyat se nijat dilwayen shukriya.",
+          "expected": [
+            "ssgc"
+          ],
+          "predicted": [
+            "kmc"
+          ],
+          "notes": [
+            "[SELECTED] KMC: Statistical ML candidate passed decision threshold (prob: 0.72 >= 0.62)"
+          ]
+        },
+        {
+          "id": "v13_4_holdout_0013",
+          "complexity": "causal_consequence",
+          "category": "sswmb_causes_drain_block",
+          "text": "Shikayat baraye meherbani suniye hamare area Federal B Area Block 6 mein Kachra kundi se solid waste nikal kar manhole mein gir gaya jis se sewer line choke ho chuki hai. Roz roz ki aziyat se nijat dilwayen shukriya.",
+          "expected": [
+            "sswmb"
+          ],
+          "predicted": [
+            "kwsc",
+            "sswmb"
+          ],
+          "notes": [
+            "[SELECTED] KWSC: Grounded affirmative civic defect and model passed decision threshold (prob: 0.86 >= 0.50)",
+            "[SELECTED] SSWMB: Statistical ML candidate passed decision threshold (prob: 0.72 >= 0.25)"
+          ]
+        },
+        {
+          "id": "v13_4_holdout_0021",
+          "complexity": "causal_consequence",
+          "category": "ke_causes_water_pump",
+          "text": "Dukh ke sath arz hai hamare area Saddar Bohri Bazar mein Bijli ke taar snapping hone ki wajah se supply cut hai jis ke sabab pani ki machine nahi chali. Hamara masla hal na hua to hum ehtejaj karenge.",
+          "expected": [
+            "kelectric"
+          ],
+          "predicted": [
+            "kelectric",
+            "kwsc"
+          ],
+          "notes": [
+            "[SELECTED] KWSC: Statistical ML candidate passed decision threshold (prob: 0.65 >= 0.50)",
+            "[SELECTED] KELECTRIC: Statistical ML candidate passed decision threshold (prob: 0.56 >= 0.45)"
+          ]
+        },
+        {
+          "id": "v13_4_holdout_0023",
+          "complexity": "causal_consequence",
+          "category": "kwsc_causes_road_erosion",
+          "text": "Mohtaram authority hamare area Saddar Bohri Bazar mein Water board ki underground 48 inch line phatne ki wajah se sadak ka carpeting ukhad gaya hai aur gehra gaddha par gaya hai. Ghareeb awam par thora reham khayein aur kaam karein.",
+          "expected": [
+            "kwsc"
+          ],
+          "predicted": [
+            "kmc",
+            "kwsc"
+          ],
+          "notes": [
+            "[SELECTED] KMC: Grounded affirmative civic defect and model passed decision threshold (prob: 0.92 >= 0.62)",
+            "[SELECTED] KWSC: Statistical ML candidate passed decision threshold (prob: 0.78 >= 0.50)"
+          ]
+        },
+        {
+          "id": "v13_4_holdout_0024",
+          "complexity": "causal_consequence",
+          "category": "kwsc_causes_road_erosion",
+          "text": "Mohtaram afsaran hamare area Buffer Zone Sector 15A mein Main gutter ubalne se ganda pani road par jama hai jis se sarak tooti phooti ho chuki hai asphalt beh gaya. Is surat-e-haal ka notice le kar team rawana karein.",
+          "expected": [
+            "kwsc"
+          ],
+          "predicted": [
+            "kmc",
+            "kwsc"
+          ],
+          "notes": [
+            "[SELECTED] KMC: Grounded independent civic defect in complaint text: \"jis se road toot phooti ho chuki hai asphalt beh gaya\"",
+            "[SELECTED] KWSC: Grounded affirmative civic defect and model passed decision threshold (prob: 0.99 >= 0.50)"
+          ]
+        },
+        {
+          "id": "v13_4_holdout_0025",
+          "complexity": "causal_consequence",
+          "category": "kwsc_causes_road_erosion",
+          "text": "Karachi ke bashinday ki faryad hamare area Nazimabad Gol Market mein Sewerage overflow hone se footpath aur road dono dhans chuke hain paani ke bahao ne sarak tod di hai. Roz roz ki aziyat se nijat dilwayen shukriya.",
+          "expected": [
+            "kwsc"
+          ],
+          "predicted": [
+            "kmc",
+            "kwsc"
+          ],
+          "notes": [
+            "[SELECTED] KMC: Statistical ML candidate passed decision threshold (prob: 0.94 >= 0.62)",
+            "[SELECTED] KWSC: Grounded affirmative civic defect and model passed decision threshold (prob: 0.80 >= 0.50)"
+          ]
+        },
+        {
+          "id": "v13_4_holdout_0026",
+          "complexity": "causal_consequence",
+          "category": "kwsc_causes_road_erosion",
+          "text": "Bohot hi shadeed pareshani hai hamare area Korangi Crossing mein Drainage pipeline leak hone ke sabab poori gali ki road kharab ho gayi hai khadday ban gaye hain. Daftar ke chakkar kaat kaat kar hum tang a chuke hain.",
+          "expected": [
+            "kwsc"
+          ],
+          "predicted": [
+            "ssgc"
+          ],
+          "notes": [
+            "[SELECTED] SSGC: Grounded independent civic defect in complaint text: \"bohot hi shadeed pareshani hai hamare area korangi crossing mein drainage pipeline leak hone\""
+          ]
+        },
+        {
+          "id": "v13_4_holdout_0027",
+          "complexity": "causal_consequence",
+          "category": "ssgc_causes_road_trench",
+          "text": "Nek tamannao ke sath hamare area Baldia Town Ittehad Town mein Sui gas walon ne new pipeline bichane ke liye sarak khodi thi aur repair kiye baghair khadda chor gaye hain. Ghareeb awam par thora reham khayein aur kaam karein.",
+          "expected": [
+            "ssgc"
+          ],
+          "predicted": [
+            "kmc",
+            "ssgc"
+          ],
+          "notes": [
+            "[SELECTED] KMC: Grounded independent civic defect in complaint text: \"nek tamannao ke sath hamare area baldia town ittehad town mein sui gas walon ne new pipeline bichane ke liye road khodi thi aur repair kiye baghair khadda chor gaye hain\"",
+            "[SELECTED] SSGC: Statistical ML candidate passed decision threshold (prob: 0.77 >= 0.55)"
+          ]
+        }
+      ]
+    },
+    "run006Candidate": {
+      "systemName": "Run006 + V13.4 Engine",
+      "totalCases": 500,
+      "exactMatches": 410,
+      "exactAccuracy": 82,
+      "macroF1": 90.5,
+      "deptMetrics": {
+        "kmc": {
+          "tp": 94,
+          "fp": 14,
+          "fn": 20,
+          "precision": 87.04,
+          "recall": 82.46,
+          "f1": 84.68
+        },
+        "kwsc": {
+          "tp": 136,
+          "fp": 26,
+          "fn": 0,
+          "precision": 83.95,
+          "recall": 100,
+          "f1": 91.28
+        },
+        "kelectric": {
+          "tp": 116,
+          "fp": 11,
+          "fn": 18,
+          "precision": 91.34,
+          "recall": 86.57,
+          "f1": 88.89
+        },
+        "ssgc": {
+          "tp": 89,
+          "fp": 0,
+          "fn": 20,
+          "precision": 100,
+          "recall": 81.65,
+          "f1": 89.9
+        },
+        "sswmb": {
+          "tp": 80,
+          "fp": 0,
+          "fn": 12,
+          "precision": 100,
+          "recall": 86.96,
+          "f1": 93.02
+        },
+        "sbca": {
+          "tp": 50,
+          "fp": 0,
+          "fn": 5,
+          "precision": 100,
+          "recall": 90.91,
+          "f1": 95.24
+        }
+      },
+      "complexityAccuracy": {
+        "single_department": {
+          "total": 120,
+          "correct": 114,
+          "accuracy": 95
+        },
+        "dual_department": {
+          "total": 100,
+          "correct": 84,
+          "accuracy": 84
+        },
+        "triple_department": {
+          "total": 50,
+          "correct": 20,
+          "accuracy": 40
+        },
+        "causal_consequence": {
+          "total": 120,
+          "correct": 90,
+          "accuracy": 75
+        },
+        "negation_suppressed": {
+          "total": 50,
+          "correct": 45,
+          "accuracy": 90
+        },
+        "out_of_scope": {
+          "total": 35,
+          "correct": 32,
+          "accuracy": 91.43
+        },
+        "ambiguous": {
+          "total": 25,
+          "correct": 25,
+          "accuracy": 100
+        }
+      },
+      "falseExtraRate": 10.2,
+      "missedDeptRate": 15,
+      "meanLatencyMs": 3.01,
+      "p95LatencyMs": 3.64,
+      "failureCount": 90,
+      "failuresSample": [
+        {
+          "id": "v13_4_holdout_0004",
+          "complexity": "causal_consequence",
+          "category": "ke_causes_water_pump",
+          "text": "Shikayat baraye meherbani suniye hamare area Malir Model Colony mein Bijli ke taar snapping hone ki wajah se supply cut hai jis ke sabab pani ki machine nahi chali. Hamara masla hal na hua to hum ehtejaj karenge.",
+          "expected": [
+            "kelectric"
+          ],
+          "predicted": [
+            "kwsc"
+          ],
+          "notes": [
+            "[SELECTED] KWSC: Statistical ML candidate passed decision threshold (prob: 0.71 >= 0.50)"
+          ]
+        },
+        {
+          "id": "v13_4_holdout_0010",
+          "complexity": "causal_consequence",
+          "category": "ssgc_causes_road_trench",
+          "text": "Nek tamannao ke sath hamare area Gulshan-e-Iqbal Block 13D mein Sui gas walon ne new pipeline bichane ke liye sarak khodi thi aur repair kiye baghair khadda chor gaye hain. Khuda ke liye kisi zimmedar ko yahan bhein.",
+          "expected": [
+            "ssgc"
+          ],
+          "predicted": [
+            "kmc",
+            "ssgc"
+          ],
+          "notes": [
+            "[SELECTED] KMC: Grounded independent civic defect in complaint text: \"nek tamannao ke sath hamare area gulshan-e-iqbal block 13d mein sui gas walon ne new pipeline bichane ke liye road khodi thi aur repair kiye baghair khadda chor gaye hain\"",
+            "[SELECTED] SSGC: Grounded affirmative civic defect and model passed decision threshold (prob: 0.75 >= 0.55)"
+          ]
+        },
+        {
+          "id": "v13_4_holdout_0011",
+          "complexity": "causal_consequence",
+          "category": "ssgc_causes_road_trench",
+          "text": "Bohot hi shadeed pareshani hai hamare area Kharadar Mithadar mein Gas leakage trace karne ke liye poori gali khod dali ab road tooti pari hai koi bananey nahi aya. Is surat-e-haal ka notice le kar team rawana karein.",
+          "expected": [
+            "ssgc"
+          ],
+          "predicted": [
+            "kmc"
+          ],
+          "notes": [
+            "[SELECTED] KMC: Grounded independent civic defect in complaint text: \"bohot hi shadeed pareshani hai hamare area kharadar mithadar mein gas leakage trace karne ke liye poori gali khod dali ab road toot pari hai koi bananey nahi aya\""
+          ]
+        },
+        {
+          "id": "v13_4_holdout_0012",
+          "complexity": "causal_consequence",
+          "category": "ssgc_causes_road_trench",
+          "text": "Awam ki awaz suniye hamare area Saddar Bohri Bazar mein SSGC contractors ne pipe repair ke baad road par mitti daal kar chor diya jo ab gaddhay ban chuki hai. Roz roz ki aziyat se nijat dilwayen shukriya.",
+          "expected": [
+            "ssgc"
+          ],
+          "predicted": [
+            "kwsc"
+          ],
+          "notes": [
+            "[SELECTED] KWSC: Grounded independent civic defect in complaint text: \"awam ki awaz suniye hamare area saddar bohri bazar mein ssgc contractors ne pipe repair ke baad road par mitti daal kar chor diya jo ab gaddhay ban chuki hai\""
+          ]
+        },
+        {
+          "id": "v13_4_holdout_0013",
+          "complexity": "causal_consequence",
+          "category": "sswmb_causes_drain_block",
+          "text": "Shikayat baraye meherbani suniye hamare area Federal B Area Block 6 mein Kachra kundi se solid waste nikal kar manhole mein gir gaya jis se sewer line choke ho chuki hai. Roz roz ki aziyat se nijat dilwayen shukriya.",
+          "expected": [
+            "sswmb"
+          ],
+          "predicted": [
+            "kwsc"
+          ],
+          "notes": [
+            "[SELECTED] KWSC: Grounded affirmative civic defect and model passed decision threshold (prob: 0.86 >= 0.50)"
+          ]
+        },
+        {
+          "id": "v13_4_holdout_0021",
+          "complexity": "causal_consequence",
+          "category": "ke_causes_water_pump",
+          "text": "Dukh ke sath arz hai hamare area Saddar Bohri Bazar mein Bijli ke taar snapping hone ki wajah se supply cut hai jis ke sabab pani ki machine nahi chali. Hamara masla hal na hua to hum ehtejaj karenge.",
+          "expected": [
+            "kelectric"
+          ],
+          "predicted": [
+            "kwsc"
+          ],
+          "notes": [
+            "[SELECTED] KWSC: Statistical ML candidate passed decision threshold (prob: 0.65 >= 0.50)"
+          ]
+        },
+        {
+          "id": "v13_4_holdout_0027",
+          "complexity": "causal_consequence",
+          "category": "ssgc_causes_road_trench",
+          "text": "Nek tamannao ke sath hamare area Baldia Town Ittehad Town mein Sui gas walon ne new pipeline bichane ke liye sarak khodi thi aur repair kiye baghair khadda chor gaye hain. Ghareeb awam par thora reham khayein aur kaam karein.",
+          "expected": [
+            "ssgc"
+          ],
+          "predicted": [
+            "kmc",
+            "ssgc"
+          ],
+          "notes": [
+            "[SELECTED] KMC: Grounded independent civic defect in complaint text: \"nek tamannao ke sath hamare area baldia town ittehad town mein sui gas walon ne new pipeline bichane ke liye road khodi thi aur repair kiye baghair khadda chor gaye hain\"",
+            "[SELECTED] SSGC: Grounded affirmative civic defect and model passed decision threshold (prob: 0.77 >= 0.55)"
+          ]
+        },
+        {
+          "id": "v13_4_holdout_0028",
+          "complexity": "causal_consequence",
+          "category": "ssgc_causes_road_trench",
+          "text": "Bohot hi shadeed pareshani hai hamare area Kharadar Mithadar mein Gas leakage trace karne ke liye poori gali khod dali ab road tooti pari hai koi bananey nahi aya. Khuda ke liye kisi zimmedar ko yahan bhein.",
+          "expected": [
+            "ssgc"
+          ],
+          "predicted": [
+            "kmc"
+          ],
+          "notes": [
+            "[SELECTED] KMC: Grounded independent civic defect in complaint text: \"bohot hi shadeed pareshani hai hamare area kharadar mithadar mein gas leakage trace karne ke liye poori gali khod dali ab road toot pari hai koi bananey nahi aya\""
+          ]
+        },
+        {
+          "id": "v13_4_holdout_0029",
+          "complexity": "causal_consequence",
+          "category": "ssgc_causes_road_trench",
+          "text": "Karachi ke bashinday ki faryad hamare area Malir Model Colony mein SSGC contractors ne pipe repair ke baad road par mitti daal kar chor diya jo ab gaddhay ban chuki hai. Is surat-e-haal ka notice le kar team rawana karein.",
+          "expected": [
+            "ssgc"
+          ],
+          "predicted": [
+            "kwsc"
+          ],
+          "notes": [
+            "[SELECTED] KWSC: Grounded independent civic defect in complaint text: \"karachi ke bashinday ki faryad hamare area malir model colony mein ssgc contractors ne pipe repair ke baad road par mitti daal kar chor diya jo ab gaddhay ban chuki hai\""
+          ]
+        },
+        {
+          "id": "v13_4_holdout_0030",
+          "complexity": "causal_consequence",
+          "category": "sswmb_causes_drain_block",
+          "text": "Shikayat baraye meherbani suniye hamare area P.E.C.H.S Block 6 mein Kachra kundi se solid waste nikal kar manhole mein gir gaya jis se sewer line choke ho chuki hai. Umeed hai is dafa meri shikayat par foran tawajjo di jayegi.",
+          "expected": [
+            "sswmb"
+          ],
+          "predicted": [
+            "kwsc"
+          ],
+          "notes": [
+            "[SELECTED] KWSC: Grounded affirmative civic defect and model passed decision threshold (prob: 0.91 >= 0.50)"
+          ]
+        },
+        {
+          "id": "v13_4_holdout_0044",
+          "complexity": "causal_consequence",
+          "category": "ssgc_causes_road_trench",
+          "text": "Nek tamannao ke sath hamare area Buffer Zone Sector 15A mein Sui gas walon ne new pipeline bichane ke liye sarak khodi thi aur repair kiye baghair khadda chor gaye hain. Umeed hai is dafa meri shikayat par foran tawajjo di jayegi.",
+          "expected": [
+            "ssgc"
+          ],
+          "predicted": [
+            "kmc",
+            "ssgc"
+          ],
+          "notes": [
+            "[SELECTED] KMC: Grounded independent civic defect in complaint text: \"nek tamannao ke sath hamare area buffer zone sector 15a mein sui gas walon ne new pipeline bichane ke liye road khodi thi aur repair kiye baghair khadda chor gaye hain\"",
+            "[SELECTED] SSGC: Grounded affirmative civic defect and model passed decision threshold (prob: 0.71 >= 0.55)"
+          ]
+        },
+        {
+          "id": "v13_4_holdout_0045",
+          "complexity": "causal_consequence",
+          "category": "ssgc_causes_road_trench",
+          "text": "Dukh ke sath arz hai hamare area Orangi Town Sector 10 mein Gas leakage trace karne ke liye poori gali khod dali ab road tooti pari hai koi bananey nahi aya. Roz roz ki aziyat se nijat dilwayen shukriya.",
+          "expected": [
+            "ssgc"
+          ],
+          "predicted": [
+            "kmc"
+          ],
+          "notes": [
+            "[SELECTED] KMC: Grounded independent civic defect in complaint text: \"dukh ke sath arz hai hamare area orangi town sector 10 mein gas leakage trace karne ke liye poori gali khod dali ab road toot pari hai koi bananey nahi aya\""
+          ]
+        },
+        {
+          "id": "v13_4_holdout_0046",
+          "complexity": "causal_consequence",
+          "category": "ssgc_causes_road_trench",
+          "text": "Mohtaram authority hamare area Federal B Area Block 6 mein SSGC contractors ne pipe repair ke baad road par mitti daal kar chor diya jo ab gaddhay ban chuki hai. Umeed hai is dafa meri shikayat par foran tawajjo di jayegi.",
+          "expected": [
+            "ssgc"
+          ],
+          "predicted": [
+            "kwsc"
+          ],
+          "notes": [
+            "[SELECTED] KWSC: Grounded independent civic defect in complaint text: \"mohtaram authority hamare area federal b area block 6 mein ssgc contractors ne pipe repair ke baad road par mitti daal kar chor diya jo ab gaddhay ban chuki hai\""
+          ]
+        },
+        {
+          "id": "v13_4_holdout_0047",
+          "complexity": "causal_consequence",
+          "category": "sswmb_causes_drain_block",
+          "text": "Dukh ke sath arz hai hamare area Malir Model Colony mein Kachra kundi se solid waste nikal kar manhole mein gir gaya jis se sewer line choke ho chuki hai. Khuda ke liye kisi zimmedar ko yahan bhein.",
+          "expected": [
+            "sswmb"
+          ],
+          "predicted": [
+            "kwsc"
+          ],
+          "notes": [
+            "[SELECTED] KWSC: Grounded affirmative civic defect and model passed decision threshold (prob: 0.87 >= 0.50)"
+          ]
+        },
+        {
+          "id": "v13_4_holdout_0061",
+          "complexity": "causal_consequence",
+          "category": "ssgc_causes_road_trench",
+          "text": "Shikayat baraye meherbani suniye hamare area Malir Model Colony mein Sui gas walon ne new pipeline bichane ke liye sarak khodi thi aur repair kiye baghair khadda chor gaye hain. Is surat-e-haal ka notice le kar team rawana karein.",
+          "expected": [
+            "ssgc"
+          ],
+          "predicted": [
+            "kmc",
+            "ssgc"
+          ],
+          "notes": [
+            "[SELECTED] KMC: Grounded independent civic defect in complaint text: \"shikayat baraye meherbani suniye hamare area malir model colony mein sui gas walon ne new pipeline bichane ke liye road khodi thi aur repair kiye baghair khadda chor gaye hain\"",
+            "[SELECTED] SSGC: Grounded affirmative civic defect and model passed decision threshold (prob: 0.63 >= 0.55)"
+          ]
+        }
+      ]
+    }
+  }
+}
