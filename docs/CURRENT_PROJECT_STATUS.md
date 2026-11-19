@@ -5,7 +5,66 @@ Verified on **19 November 2026 (Pakistan time)**. Internal delivery target:
 This document distinguishes inspected source, automated checks, and unverified
 hosted behavior. Update it after every significant verified milestone.
 
-## Latest verification, 19 November 2026 — Fahad's Routing Rule & Natural Roman Urdu Paragraph Robustness (v11_hybrid_ml_relation_v9)
+## Latest verification, 19 November 2026 — Phase V13.0: Real Citizen Submission & V11 AI Classifier Integration
+
+The actual website submission workflow in `src/features/citizen/simplified-complaint/SimplifiedComplaintContainer.tsx`, `src/services/SupabaseComplaintService.ts`, `src/services/MockComplaintService.ts`, and Supabase Edge Function `submit-classified-complaint` has been audited, unified, and upgraded to use the authoritative V11 relation-aware AI classification and pre-submission clarification engine with frozen Run004 model weights.
+
+### 1. End-to-End Pipeline Audit & Unification
+- **Previous Divergence Identified:**
+  - `SimplifiedComplaintContainer.tsx` guarded clarification preview behind `if (import.meta.env.DEV && isTestMode && !overrideAnswer)`. In normal citizen submission, clarification questions were never shown to citizens.
+  - `SupabaseComplaintService.ts` did not forward `clarificationAnswer` in the payload sent to the Edge Function.
+  - `supabase/functions/submit-classified-complaint/index.ts` was still importing legacy V10 `multilabel_model.json` and `v10-features.ts`, executing a flat linear model without Roman Urdu normalization, relation engine, causal demotion, or clarification awareness.
+  - `MockComplaintService.ts` was using legacy `classifyMultiLabel` (V10).
+- **Architecture Solution & Shared Engine (`supabase/functions/_shared/v11-engine.ts`):**
+  - Unified `relationEngine.ts`, `v11InferenceAdapter.ts`, and `complaintUnderstanding.ts` into a self-contained, Deno- and browser-compatible module at `supabase/functions/_shared/v11-engine.ts`.
+  - Bundled frozen Run004 candidate model artifact into `supabase/functions/submit-classified-complaint/v11_model.json` with identical SHA-256 hash `E4D042937CF8C3E1E3C70F147A707B33A629D463DB34485766C98DA21C2E3A56`.
+  - Upgraded Edge Function `submit-classified-complaint` to evaluate `assessComplaintDraft` and `resolveComplaintClarification` server-side, enforcing strict backend boundary authority (never trusting client-side department assignments).
+  - Unanswered ambiguous complaints sent to the Edge Function are trapped on the server with `needsReview: true` and `reviewReason: 'UNRESOLVED_AMBIGUITY'`.
+  - Updated `SupabaseComplaintService.ts` to forward `clarificationAnswer` to the Edge Function and map returned multi-department assignments (`departments: data.prediction?.departments || data.assigned_department_ids`) into `SubmissionResult`.
+  - Updated `MockComplaintService.ts` to use V11 relation-aware classification and clarification evaluation with `championV11Model`.
+  - Removed dev/test-mode gate in `SimplifiedComplaintContainer.tsx`; all citizens submitting ambiguous complaints are presented with the interactive bilingual clarification modal, while clear complaints submit immediately. Enhanced success modal to display all assigned department badges.
+
+### 2. Verified Acceptance Cases (Examples A–G)
+- **Example A (Fahad's Paragraph with Anger/Frustration):**
+  - Citizen writes a 4-day gas outage grievance with harsh language (`"Hamare ilaqe Block 7 Gulshan mein pichle char din se gas bilkul band hai choolhe thande pare hain... tum log sab chor ho... sharam aani chahiye"`).
+  - Classification: Exactly `['ssgc']`, `needsReview: false`, `p_needs_review: false`.
+  - Privacy: Offensive language masked (`[OFFENSIVE LANGUAGE REDACTED]`), private details redacted, civic grievance retained, zero administrative hold or review required.
+- **Example B (Causal Consequence):**
+  - Text: `"K-Electric ki taar toot kar gir gayi jis se kachray mein aag lag gayi"`.
+  - Classification: Routes solely to `['kelectric']`; consequence symptom on garbage (`sswmb`) is demoted and suppressed.
+- **Example C (Independent Faults):**
+  - Text: `"Bijli bhi teen din se band hai aur gutter ka ganda pani bhi sadak par beh raha hai"`.
+  - Classification: Multi-department assignment to both `['kelectric', 'kwsc']`, `is_multilabel: true`, creating distinct issues for both agencies under one reference.
+- **Example D (Genuine Ambiguity):**
+  - Text: `"Hamare ilaqe mein bohot shadeed masla hai log bohot pareshan hain kripya madad karein"`.
+  - Classification: Client preflight prompts citizen with `describe_issue` clarification; if submitted directly to server without an answer, Edge Function marks `needsReview: true` with `reviewReason: 'UNRESOLVED_AMBIGUITY'`.
+- **Example E (Clarification Answered):**
+  - Citizen provides answer (`"Gas band hai choolha nahi chal raha"`).
+  - Classification: Server-side `resolveComplaintClarification` resolves ambiguity cleanly to `['ssgc']`, `needsReview: false`.
+- **Example F (200-Word Limit):**
+  - Natural paragraphs up to 200 words processed without truncation. Text exceeding 200 words strictly rejected with HTTP 400 `INVALID_COMPLAINT_PAYLOAD`.
+- **Example G (Abusive Language Alone with Valid Grievance):**
+  - Aggressive complaints containing actionable defects route directly to the responsible municipal department without being dropped or placed on review hold.
+
+### 3. Database Security & Privacy Verification
+- **Privileged Intake Gate:** Anon and authenticated roles cannot call `submit_citizen_complaint` directly; intake is exclusively callable via `service_role` through the Edge Function.
+- **Zero PII Exposure:** Public table `public.complaints` receives only sanitized descriptions, generated headings, and factual summaries. Raw descriptions and contact details are isolated in `public.complaint_citizen_private`.
+- **Department RLS Isolation:** Verified that department staff can only inspect issues matching their own active membership in `complaint_issues`. Cross-department updates are blocked with `Unauthorized`.
+- **Guest Tracking & Claims:** 24-digit tracking number and claim code hashes generated via cryptographically secure randomness.
+
+### 4. Full Automated Verification Suite Results
+- **Node Edge Tests (`tests/edge/*.mjs`):** 23 / 23 passed (exit code 0).
+  - `tests/edge/complaint-boundaries.mjs`: 16 passed (including Examples A–F at Edge boundary).
+  - `tests/edge/security-repair.mjs`: 7 passed.
+- **Vitest Suite:** 690 / 690 passed across 49 test files (exit code 0).
+  - Added `src/test/V13_0_CitizenSubmissionV11Integration.test.tsx` (13 tests verifying pipeline audit, server-side V11 integration, Examples A–G, and clarification UI interactions).
+- **Python Unittests (`tests/v11`):** 116 / 116 passed (exit code 0).
+- **TypeScript:** `npx tsc -b` passed with 0 errors (exit code 0).
+- **Production Build:** `npm run build` passed in 1.11s (exit code 0).
+- **Linter:** `npm run lint` passed with 0 errors (exit code 0).
+- **Model Integrity:** `public/models/v11/run_004/champion_model.json` and `supabase/functions/submit-classified-complaint/v11_model.json` SHA-256 verified as `E4D042937CF8C3E1E3C70F147A707B33A629D463DB34485766C98DA21C2E3A56` (frozen Run004 untouched; Run006 unpromoted).
+
+## Earlier verifications, 19 November 2026 — Fahad's Routing Rule & Natural Roman Urdu Paragraph Robustness (v11_hybrid_ml_relation_v9)
 
 The local classification pipeline (`classifyV11RelationAware`) in `src/services/v11InferenceAdapter.ts` and `src/services/relationEngine.ts` has been verified and upgraded to enforce Fahad's routing rule on natural Roman Urdu paragraphs up to 200 words. Cross-language parity is maintained with `tools/ai_factory/curriculum/relation_engine.py`.
 

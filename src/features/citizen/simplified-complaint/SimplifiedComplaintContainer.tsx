@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -26,6 +26,11 @@ import { defaultLocalityResolver } from '../../../data/karachi/locationResolver'
 import { KARACHI_DISTRICTS_DATA } from '../../../data/karachi/districts';
 import { KARACHI_DEPARTMENTS } from '../../../mocks/complaints';
 import { complaintService, localV11ComplaintService } from '../../../services';
+import {
+  assessComplaintDraft,
+  type ClarificationQuestion,
+  type ClarificationAnswer,
+} from '../../../services/complaintUnderstanding';
 import { V11AnalysisResultView } from './V11AnalysisResultView';
 import { supabase, isSupabaseConfigured } from '../../../lib/supabase';
 import {
@@ -147,6 +152,7 @@ export const SimplifiedComplaintContainer: React.FC = () => {
   const [formData, setFormData] = useState<FullComplaintFormState>(INITIAL_FORM);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const isSubmittingRef = useRef(false);
   const [submission, setSubmission] = useState<SubmissionResult | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [isTestMode, setIsTestMode] = useState<boolean>(() => {
@@ -154,6 +160,11 @@ export const SimplifiedComplaintContainer: React.FC = () => {
     const params = new URLSearchParams(window.location.search);
     return params.get('mode') === 'local-ai-test' || params.get('aiTest') === 'true';
   });
+  const [activeClarification, setActiveClarification] = useState<{
+    question: ClarificationQuestion;
+  } | null>(null);
+  const [clarificationChoice, setClarificationChoice] = useState<string>('');
+  const [clarificationDetails, setClarificationDetails] = useState<string>('');
 
   const applyPreset = (preset: TestPreset) => {
     setFormData({
@@ -366,8 +377,21 @@ export const SimplifiedComplaintContainer: React.FC = () => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
-  const submit = async () => {
+  const submit = async (overrideAnswer?: ClarificationAnswer) => {
+    if (isSubmittingRef.current || isSubmitting) return;
     if (!validate(3)) return;
+
+    if (!overrideAnswer) {
+      const preview = assessComplaintDraft(formData.complaint.description.trim());
+      if (preview.state === 'ask') {
+        setActiveClarification({ question: preview.question });
+        setClarificationChoice('');
+        setClarificationDetails('');
+        return;
+      }
+    }
+
+    isSubmittingRef.current = true;
     setIsSubmitting(true);
     setErrors((current) => {
       const next = { ...current };
@@ -375,6 +399,7 @@ export const SimplifiedComplaintContainer: React.FC = () => {
       delete next.submitCode;
       return next;
     });
+
     try {
       const activeService = (import.meta.env.DEV && isTestMode) ? localV11ComplaintService : complaintService;
       const result = await activeService.submitComplaint({
@@ -386,21 +411,67 @@ export const SimplifiedComplaintContainer: React.FC = () => {
         district: formData.location.district as KarachiDistrict,
         publicLocation: formData.location.publicLocation,
         title: formData.complaint.description.trim().slice(0, 50) || 'Public complaint',
-        description: formData.complaint.description,
+        description: formData.complaint.description.trim(),
         isDemonstration: Boolean(import.meta.env.DEV && isTestMode),
+        clarificationAnswer: overrideAnswer,
       });
       if (typeof window !== 'undefined' && window.sessionStorage) {
         sessionStorage.removeItem(getDraftKey(currentUserId));
         sessionStorage.removeItem(LEGACY_DRAFT_KEY);
       }
+      setActiveClarification(null);
       setSubmission(result);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unable to submit complaint.';
       const code = (error as { code?: string })?.code || '';
       setErrors((current) => ({ ...current, submit: message, submitCode: code }));
     } finally {
+      isSubmittingRef.current = false;
       setIsSubmitting(false);
     }
+  };
+
+  const handleClarificationConfirm = () => {
+    if (!activeClarification) return;
+    const q = activeClarification.question;
+    let answer: ClarificationAnswer;
+    if (q.kind === 'choice') {
+      if (!clarificationChoice) return;
+      answer = {
+        draftText: formData.complaint.description.trim(),
+        questionId: q.id as any,
+        choice: clarificationChoice as any,
+      };
+    } else {
+      if (!clarificationDetails.trim()) return;
+      const draftWords = formData.complaint.description.trim().split(/\s+/).filter(Boolean).length;
+      const detailsWords = clarificationDetails.trim().split(/\s+/).filter(Boolean).length;
+      if (draftWords + detailsWords > MAX_COMPLAINT_WORDS) {
+        setErrors((current) => ({
+          ...current,
+          submit: ur
+            ? 'شکایت اور اضافی تفصیلات ۲۰۰ الفاظ سے زیادہ ہیں۔'
+            : 'Complaint description with additional details cannot exceed 200 words.',
+        }));
+        return;
+      }
+      answer = {
+        draftText: formData.complaint.description.trim(),
+        questionId: q.id as any,
+        details: clarificationDetails.trim(),
+      };
+    }
+    submit(answer);
+  };
+
+  const handleClarificationSkip = () => {
+    if (!activeClarification) return;
+    const answer: ClarificationAnswer = {
+      draftText: formData.complaint.description.trim(),
+      questionId: activeClarification.question.id as any,
+      skip: true,
+    };
+    submit(answer);
   };
 
   const fieldClass = (hasError: boolean) =>
@@ -626,7 +697,7 @@ export const SimplifiedComplaintContainer: React.FC = () => {
                       </div>
                       <button
                         type="button"
-                        onClick={submit}
+                        onClick={() => { void submit(); }}
                         disabled={isSubmitting}
                         className="shrink-0 rounded-lg bg-red-700 px-3.5 py-1.5 text-xs font-bold text-white hover:bg-red-800 disabled:opacity-50 transition cursor-pointer"
                       >
@@ -835,6 +906,7 @@ export const SimplifiedComplaintContainer: React.FC = () => {
                   noValidate
                   onSubmit={(event) => {
                     event.preventDefault();
+                    if (activeClarification) return;
                     submit();
                   }}
                   className="mx-auto max-w-2xl space-y-5 text-start"
@@ -883,6 +955,9 @@ export const SimplifiedComplaintContainer: React.FC = () => {
                       value={formData.complaint.description}
                       onChange={(e) => {
                         const description = e.target.value;
+                        if (activeClarification) {
+                          setActiveClarification(null);
+                        }
                         setFormData((current) => {
                           const next = {
                             ...current,
@@ -912,6 +987,103 @@ export const SimplifiedComplaintContainer: React.FC = () => {
                     )}
                   </div>
 
+                  {activeClarification && (
+                    <div
+                      data-testid="inline-clarification-card"
+                      className="rounded-2xl border-2 border-amber-300 bg-amber-50/95 p-4 sm:p-5 shadow-sm space-y-4 text-start animate-in fade-in duration-200"
+                    >
+                      <div className="flex items-start gap-3">
+                        <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-600 text-white text-sm font-bold shrink-0">
+                          💡
+                        </span>
+                        <div className="space-y-1">
+                          <h4 className="text-sm font-bold text-amber-950">
+                            {ur ? 'وضاحت درکار ہے (مقامی اے آئی جائزہ)' : 'Clarification Needed (Local AI Preflight)'}
+                          </h4>
+                          <p className="text-xs sm:text-[13px] text-amber-900 leading-relaxed font-medium">
+                            {ur
+                              ? activeClarification.question.prompt.ur
+                              : activeClarification.question.prompt.en}
+                          </p>
+                        </div>
+                      </div>
+
+                      {'options' in activeClarification.question && activeClarification.question.options && (
+                        <div className="space-y-2 pt-1">
+                          {activeClarification.question.options.map((opt) => (
+                            <label
+                              key={opt.value}
+                              data-testid={`clarification-option-${opt.value}`}
+                              className={`flex items-start gap-3 p-3 rounded-xl border text-xs sm:text-sm cursor-pointer transition ${
+                                clarificationChoice === opt.value
+                                  ? 'border-amber-500 bg-white shadow-2xs font-semibold text-amber-950 ring-1 ring-amber-400'
+                                  : 'border-amber-200 bg-white/70 hover:bg-white text-slate-800'
+                              }`}
+                            >
+                              <input
+                                type="radio"
+                                name="clarificationChoice"
+                                value={opt.value}
+                                checked={clarificationChoice === opt.value}
+                                onChange={() => setClarificationChoice(opt.value)}
+                                className="mt-0.5 text-amber-600 focus:ring-amber-500"
+                              />
+                              <span>{ur ? opt.label.ur : opt.label.en}</span>
+                            </label>
+                          ))}
+                        </div>
+                      )}
+
+                      {activeClarification.question.kind === 'details' && (
+                        <div className="space-y-2 pt-1">
+                          <textarea
+                            data-testid="clarification-details-input"
+                            rows={3}
+                            value={clarificationDetails}
+                            onChange={(e) => setClarificationDetails(e.target.value)}
+                            placeholder={
+                              ur
+                                ? 'براہ کرم مزید تفصیلات یہاں درج کریں…'
+                                : 'Please enter additional details here…'
+                            }
+                            className="w-full px-3 py-2 text-xs sm:text-sm rounded-xl border border-amber-300 bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 text-slate-900"
+                          />
+                        </div>
+                      )}
+
+                      <div className="flex flex-wrap items-center justify-end gap-2 pt-2 border-t border-amber-200">
+                        <button
+                          type="button"
+                          onClick={() => setActiveClarification(null)}
+                          className="px-3 py-2 text-xs font-semibold text-slate-600 hover:text-slate-900 rounded-lg transition cursor-pointer"
+                        >
+                          {ur ? 'منسوخ' : 'Cancel'}
+                        </button>
+                        <button
+                          type="button"
+                          data-testid="clarification-skip-btn"
+                          onClick={handleClarificationSkip}
+                          className="px-3 py-2 text-xs font-semibold text-amber-800 hover:bg-amber-100 rounded-lg transition cursor-pointer"
+                        >
+                          {ur ? 'چھوڑیں / جائزے کے لیے جمع کریں' : 'Skip / Proceed to Review'}
+                        </button>
+                        <button
+                          type="button"
+                          data-testid="clarification-submit-btn"
+                          onClick={handleClarificationConfirm}
+                          disabled={
+                            'options' in activeClarification.question
+                              ? !clarificationChoice
+                              : !clarificationDetails.trim()
+                          }
+                          className="px-4 py-2 text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 disabled:opacity-50 rounded-lg transition shadow-2xs cursor-pointer"
+                        >
+                          {ur ? 'وضاحت کے ساتھ جمع کریں' : 'Confirm & Submit'}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-between">
                     <button
                       type="button"
@@ -924,7 +1096,7 @@ export const SimplifiedComplaintContainer: React.FC = () => {
                     </button>
                     <button
                       type="submit"
-                      disabled={isSubmitting || words > MAX_COMPLAINT_WORDS}
+                      disabled={isSubmitting || words > MAX_COMPLAINT_WORDS || Boolean(activeClarification)}
                       className="inline-flex min-h-[50px] items-center justify-center gap-2 rounded-xl bg-[#681822] px-6 text-sm sm:text-[15px] font-bold text-white shadow-[0_4px_16px_rgba(104,24,34,0.20)] transition hover:bg-[#53131B] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
                     >
                       {isSubmitting ? (
@@ -1217,6 +1389,19 @@ const SubmissionModal: React.FC<{
                   {ur ? 'محکمانہ منظوری کا انتظار' : 'Pending Acceptance'}
                 </span>
               </div>
+              {submission.departments && submission.departments.length > 1 && (
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {submission.departments.map((d) => {
+                    const m = KARACHI_DEPARTMENTS[d];
+                    const name = ur ? m?.nameUrdu || m?.name || d.toUpperCase() : m?.name || d.toUpperCase();
+                    return (
+                      <span key={d} className="inline-flex items-center rounded-md bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[11px] font-semibold text-emerald-800">
+                        {name}
+                      </span>
+                    );
+                  })}
+                </div>
+              )}
               <p className="mt-2 text-xs leading-relaxed text-[#625D58]">
                 {ur
                   ? `آپ کی شکایت ${deptDisplayName} کو بھیج دی گئی ہے اور محکمانہ توثیق کے منتظر ہے۔`

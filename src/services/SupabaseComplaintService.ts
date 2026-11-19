@@ -53,7 +53,7 @@ const mapComplaintRow = (r: any): Complaint => {
     detectedLanguage: r.detected_language,
     status: r.status,
     assignedDepartmentId: r.assigned_department_id,
-    assignedDepartmentIds: routingMeta?.departments || (r.assigned_department_id ? [r.assigned_department_id] : []),
+    assignedDepartmentIds: r.assigned_department_ids?.length ? r.assigned_department_ids : (r.assigned_department_id ? [r.assigned_department_id] : []),
     predictedDepartmentId: r.predicted_department_id,
     predictedDepartmentIds: routingMeta?.departments || (r.predicted_department_id ? [r.predicted_department_id] : []),
     predictionConfidence: r.prediction_confidence == null ? undefined : Number(r.prediction_confidence),
@@ -175,6 +175,7 @@ export class SupabaseComplaintService implements IComplaintService {
         citizenEmail: input.citizenEmail,
         residentialAddress: input.residentialAddress,
         isDemonstration: false,
+        clarificationAnswer: input.clarificationAnswer,
       },
     });
     if (error) {
@@ -190,6 +191,11 @@ export class SupabaseComplaintService implements IComplaintService {
         'SUBMISSION_UNAVAILABLE'
       );
     }
+    const routedDepts = data.prediction?.departments ||
+      (Array.isArray(data.assigned_department_ids) && data.assigned_department_ids.length > 0
+        ? data.assigned_department_ids
+        : (data.assigned_department_id ? [data.assigned_department_id] : []));
+
     return {
       referenceNumber: data.reference_number,
       isSimulated: false,
@@ -198,6 +204,7 @@ export class SupabaseComplaintService implements IComplaintService {
         ? 'Your complaint was received and is awaiting safe routing review.'
         : 'Your complaint was securely routed to the responsible department.',
       departmentId: data.prediction?.departmentId || data.assigned_department_id || data.predicted_department_id,
+      departments: routedDepts,
       status: data.status,
       needsReview: Boolean(data.needs_review),
       claimCode: data.claim_code,
@@ -344,7 +351,7 @@ export class SupabaseComplaintService implements IComplaintService {
       const { data, error } = await supabase
         .from('complaints')
         .select(COMPLAINT_SELECT_QUERY)
-        .eq('assigned_department_id', departmentId)
+        .or(`assigned_department_id.eq.${departmentId},assigned_department_ids.cs.{${departmentId}}`)
         .order('created_at', { ascending: false });
       if (error) throw error;
       const remote = ((data ?? []).map(mapComplaintRow) as DepartmentComplaintView[]);
@@ -357,6 +364,13 @@ export class SupabaseComplaintService implements IComplaintService {
   async getReviewQueueComplaints(): Promise<DepartmentComplaintView[]> {
     if (!isSupabaseConfigured() || !supabase) return fallback.getReviewQueueComplaints();
     try {
+      const { data: session, error: sessionError } = await supabase.auth.getUser();
+      if (sessionError || !session.user) return [];
+      const { data: isAdmin, error: roleError } = await supabase.rpc('is_main_admin', {
+        p_user_id: session.user.id,
+      });
+      if (roleError) throw roleError;
+      if (isAdmin !== true) return [];
       const { data, error } = await supabase
         .from('complaints')
         .select(COMPLAINT_SELECT_QUERY)
@@ -393,7 +407,7 @@ export class SupabaseComplaintService implements IComplaintService {
     const { data, error } = await queryBuilder.maybeSingle();
     if (error) throw error;
     if (!data) return null;
-    if (data.assigned_department_id !== departmentId && !(departmentId === 'kmc' && data.status === 'under_review')) {
+    if (data.assigned_department_id !== departmentId && !data.assigned_department_ids?.includes(departmentId)) {
       return null;
     }
     return mapComplaintRow(data) as DepartmentComplaintView;

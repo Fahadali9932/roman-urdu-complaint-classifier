@@ -188,6 +188,7 @@ export const DOMAIN_EVIDENCE: Record<AgencyId, DomainLexicon> = {
       /\bcorroded\b/i, /\bmight\s*collapse\b/i, /\b(?:2|do)?\s*phase\s*gayab\b/i,
       /\bdim\s*light\b/i, /\bvoltage\s*(?:drop|fluctuation|low|kam|up\s*down|bohat\s*zyada\s*low|nahi\s*aa\s*raha|nahi\s*hai|ka\s*masla)\b/i,
       /\bfeeder\s*trip\b/i, /\btoot\s*(?:kar\s*)?(?:zameen\s*par\s*)?(?:gir|giri)\b/i,
+      /\b(?:taar|wire|pole|khamb[ae])\s*(?:bhi\s*)?toot(?:i|a|ay|e)?\b/i,
       /\b(?:pole|khamb[ae]|transformer|taar|wire)\s+(?:gir|tedha|jhuk|tilted|girne)\b/i,
       /\bgir\s*raha\b/i,
       /\bnangi\s*taar\b/i, /\bappliances\s*jalne\b/i, /\bbijli\s*ki\s*wajah\s*se\b/i, /\blight\s*ki\s*wajah\s*se\b/i,

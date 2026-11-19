@@ -1,24 +1,20 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
-import model from "./multilabel_model.json" with { type: "json" };
+import model from "./v11_model.json" with { type: "json" };
+import {
+  classifyV11RelationAware,
+  assessComplaintDraft,
+  resolveComplaintClarification,
+  checkHazard,
+  type V11ModelArtifact,
+  type ClarificationAnswer,
+  type DepartmentId,
+  type V11RelationAwareResult,
+  type UnderstandingResult,
+} from "../_shared/v11-engine.ts";
 import { processComplaintPrivacy } from "./privacy-engine.ts";
 
-type MultiLabelModel = {
-  model_version: string;
-  classes: string[];
-  vocabulary: Record<string, number>;
-  idf: number[];
-  coef: number[][];
-  intercept: number[];
-  thresholds: Record<string, number>;
-  auto_route_confidence_gate: number;
-  ngram_range: [number, number];
-  sublinear_tf: boolean;
-  hazard_affirmative_patterns: string[];
-  hazard_negation_patterns: string[];
-};
-
-const classifier = model as MultiLabelModel;
+const classifier = model as unknown as V11ModelArtifact;
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -70,121 +66,6 @@ async function sha256Hex(text: string): Promise<string> {
     .join("");
 }
 
-function normalizeRomanUrdu(text: string): string {
-  return text
-    .toLowerCase()
-    .normalize("NFKC")
-    .replace(/\bbijlee\b|\bbijlii\b|\bbijly\b|\bbatti\b/g, "bijli")
-    .replace(/\bpaani\b|\bpany\b|\bpaney\b/g, "pani")
-    .replace(/\bgadda\b|\bkhadday\b|\bcrater\b/g, "khadda")
-    .replace(/\bsarak\b|\bsadq\b/g, "sadak")
-    .replace(/\bgutar\b|\bgatar\b|\bgater\b/g, "gutter")
-    .replace(/\bkoora\b|\bkura\b|\bkuchra\b/g, "kachra")
-    .replace(/\bsooi\s+gas\b|\bsui\s+gas\b/g, "ssgc gas");
-}
-
-function features(text: string): Map<number, number> {
-  const counts = new Map<number, number>();
-  const normalized = normalizeRomanUrdu(text);
-  const words = normalized.match(/\b\w\w+\b/gu) ?? [];
-  for (let i = 0; i < words.length; i++) {
-    const col1 = classifier.vocabulary[words[i]];
-    if (col1 !== undefined) counts.set(col1, (counts.get(col1) ?? 0) + 1);
-    if (classifier.ngram_range[1] >= 2 && i < words.length - 1) {
-      const bigram = `${words[i]} ${words[i + 1]}`;
-      const col2 = classifier.vocabulary[bigram];
-      if (col2 !== undefined) counts.set(col2, (counts.get(col2) ?? 0) + 1);
-    }
-  }
-  let norm = 0;
-  for (const [col, count] of counts) {
-    const tf = classifier.sublinear_tf ? 1 + Math.log(count) : count;
-    const weighted = tf * classifier.idf[col];
-    counts.set(col, weighted);
-    norm += weighted * weighted;
-  }
-  norm = Math.sqrt(norm) || 1;
-  for (const [col, weighted] of counts) counts.set(col, weighted / norm);
-  return counts;
-}
-
-function sigmoid(z: number): number {
-  return 1 / (1 + Math.exp(-z));
-}
-
-function checkHazard(text: string): boolean {
-  const low = text.toLowerCase();
-  for (const neg of classifier.hazard_negation_patterns) {
-    if (new RegExp(neg, "i").test(low)) return false;
-  }
-  for (const aff of classifier.hazard_affirmative_patterns) {
-    if (new RegExp(aff, "i").test(low)) return true;
-  }
-  return false;
-}
-
-function classifyMultiLabel(text: string) {
-  const vector = features(text);
-  const probabilities: Record<string, number> = {};
-  const selectedDepartments: string[] = [];
-
-  for (let c = 0; c < classifier.classes.length; c++) {
-    const dept = classifier.classes[c];
-    let score = classifier.intercept[c];
-    for (const [col, val] of vector) {
-      score += classifier.coef[c][col] * val;
-    }
-    const prob = sigmoid(score);
-    probabilities[dept] = prob;
-
-    const threshold = classifier.thresholds[dept] ?? 0.50;
-    if (prob >= threshold) {
-      selectedDepartments.push(dept);
-    }
-  }
-
-  // Sort selected by probability descending
-  selectedDepartments.sort((a, b) => probabilities[b] - probabilities[a]);
-
-  const maxProb = Math.max(...Object.values(probabilities));
-  const autoRouteGate = classifier.auto_route_confidence_gate ?? 0.65;
-  const isMultiLabel = selectedDepartments.length > 1;
-  const hasHazard = checkHazard(text);
-
-  let needsReview = false;
-  let reviewReason = "";
-
-  if (selectedDepartments.length === 0) {
-    needsReview = true;
-    reviewReason = "NO_DEPARTMENT_MET_THRESHOLD";
-  } else if (maxProb < autoRouteGate) {
-    needsReview = true;
-    reviewReason = "CONFIDENCE_BELOW_AUTO_ROUTE_GATE";
-  }
-
-  const primaryDept = selectedDepartments[0] || "kmc";
-
-  const issues = selectedDepartments.map((dept, idx) => ({
-    id: `iss-${dept}-${idx + 1}`,
-    departmentId: dept,
-    confidence: probabilities[dept] ?? 0,
-    status: "assigned" as const,
-  }));
-
-  return {
-    departments: selectedDepartments,
-    primaryDepartmentId: primaryDept,
-    confidence: maxProb,
-    probabilities,
-    needsReview,
-    reviewReason,
-    isMultiLabel,
-    hasHazard,
-    issues,
-    modelVersion: classifier.model_version,
-  };
-}
-
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "Method not allowed." }, 405);
@@ -196,21 +77,17 @@ Deno.serve(async (req) => {
     // Check optional authenticated user session
     let citizenId: string | null = null;
     const authorization = req.headers.get("Authorization");
-    if (authorization) {
-      const token = authorization.replace(/^Bearer\s+/i, "");
-      const { data: identity } = await admin.auth.getUser(token);
-      if (identity?.user) {
-        const { data: profile } = await admin
-          .from("profiles")
-          .select("role")
-          .eq("id", identity.user.id)
-          .maybeSingle();
-        if (profile?.role === "citizen") {
-          citizenId = identity.user.id;
-        } else if (profile?.role === "department_staff") {
-          return json({ error: "A citizen account is required to submit a complaint.", code: "CITIZEN_ACCOUNT_REQUIRED" }, 403);
-        }
+    const token = authorization?.match(/^Bearer\s+(\S+)$/i)?.[1];
+    if (authorization !== null && !token) return json({ error: "Invalid authentication.", code: "INVALID_SESSION" }, 401);
+    if (token && token !== Deno.env.get("SUPABASE_ANON_KEY")) {
+      const { data: identity, error: identityError } = await admin.auth.getUser(token);
+      if (identityError || !identity?.user) return json({ error: "Please sign in again.", code: "INVALID_SESSION" }, 401);
+      const { data: profile, error: profileError } = await admin.from("profiles")
+        .select("role").eq("id", identity.user.id).maybeSingle();
+      if (profileError || profile?.role !== "citizen") {
+        return json({ error: "A citizen account is required to submit a complaint.", code: "CITIZEN_ACCOUNT_REQUIRED" }, 403);
       }
+      citizenId = identity.user.id;
     }
 
     const input = await req.json();
@@ -223,7 +100,7 @@ Deno.serve(async (req) => {
     ];
     const words = input.description.trim().split(/\s+/).filter(Boolean);
     if (words.length === 0 || words.length > 200 || requiredTextFields.some((value) => typeof value !== "string" || !value.trim())) {
-      return json({ error: "Please complete all required complaint fields.", code: "INVALID_COMPLAINT_PAYLOAD" }, 400);
+      return json({ error: "Please complete all required complaint fields (200 words max).", code: "INVALID_COMPLAINT_PAYLOAD" }, 400);
     }
 
     // Generate cryptographic private claim code and 24-digit tracking number for guest submissions
@@ -240,7 +117,71 @@ Deno.serve(async (req) => {
       guestTrackingHash = await sha256Hex(tracking.raw);
     }
 
-    const result = classifyMultiLabel(`${input.title ?? ""} ${input.description}`);
+    // Server-Side Authoritative V11 Classification & Clarification
+    let understanding: UnderstandingResult;
+    if (input.clarificationAnswer) {
+      understanding = resolveComplaintClarification(
+        input.description,
+        input.clarificationAnswer as ClarificationAnswer,
+        classifier
+      );
+    } else {
+      understanding = assessComplaintDraft(input.description, classifier);
+    }
+
+    if (understanding.state === "invalid") {
+      return json({
+        error: understanding.reason === "WORD_LIMIT"
+          ? "Complaint must contain 200 words or fewer."
+          : "Complaint description cannot be empty.",
+        code: "INVALID_COMPLAINT_PAYLOAD",
+      }, 400);
+    }
+
+    let prediction: V11RelationAwareResult;
+    let needsReview = false;
+    let reviewReason: string | null = null;
+    let departments: DepartmentId[] = [];
+
+    if (understanding.state === "ready") {
+      prediction = understanding.prediction;
+      departments = [...understanding.departments];
+      needsReview = prediction.needsReview;
+      reviewReason = prediction.reviewReason ?? null;
+    } else if (understanding.state === "ask") {
+      // Citizen submitted without answering clarification
+      prediction = understanding.prediction;
+      departments = [...prediction.departments];
+      needsReview = true;
+      reviewReason = "UNRESOLVED_AMBIGUITY";
+    } else {
+      // understanding.state === 'review'
+      prediction = understanding.prediction;
+      departments = [...prediction.departments];
+      needsReview = true;
+      reviewReason = understanding.reason ?? prediction.reviewReason ?? "REQUIRES_ADMIN_REVIEW";
+    }
+
+    if (departments.length === 0) {
+      needsReview = true;
+      if (!reviewReason) {
+        reviewReason = "NO_DEPARTMENT_MET_THRESHOLD";
+      }
+    }
+
+    const primaryDept = departments[0] ?? null;
+    const probValues = Object.values(prediction.probabilities || {});
+    const maxProb = probValues.length > 0 ? Math.max(...probValues) : 0;
+    const isMultiLabel = departments.length > 1;
+    const hasHazard = checkHazard(input.description);
+
+    const issues = departments.map((dept, idx) => ({
+      id: `iss-${dept}-${idx + 1}`,
+      departmentId: dept,
+      confidence: prediction.probabilities[dept] ?? 0,
+      status: needsReview ? "under_review" : "assigned",
+    }));
+
     const privacy = processComplaintPrivacy(input.description, {
       citizenName: input.citizenName,
       citizenPhone: input.citizenPhone,
@@ -249,17 +190,33 @@ Deno.serve(async (req) => {
       incidentDistrict: input.incidentDistrict,
       incidentLocality: input.incidentLocality,
       incidentPublicLocation: input.incidentPublicLocation,
-      departmentId: result.primaryDepartmentId,
+      departmentId: primaryDept,
     });
+
+    // Hold a privacy-uncertain case before department assignment. A nonempty
+    // safe placeholder also prevents the historical RPC fallback to raw text.
+    const privacyHold = privacy.flags.uncertainRedaction || !privacy.sanitizedDescription.trim();
+    if (privacyHold) {
+      needsReview = true;
+      reviewReason = "PRIVACY_REVIEW_REQUIRED";
+      for (const issue of issues) issue.status = "under_review";
+    }
+    const safeDescription = privacyHold ? "Complaint pending privacy review." : privacy.sanitizedDescription;
+    const safeHeading = privacyHold ? "Complaint pending privacy review" : privacy.generatedHeading;
+    const safeSummary = privacyHold ? safeDescription : privacy.factualSummary;
 
     // Embed rich multi-department routing metadata into redaction_flags
     const multiDepartmentMetadata = {
-      is_multilabel: result.isMultiLabel,
-      departments: result.departments,
-      has_hazard: result.hasHazard,
-      issues: result.issues,
-      review_reason: result.reviewReason,
-      model_version: result.modelVersion,
+      is_multilabel: isMultiLabel,
+      departments,
+      has_hazard: hasHazard,
+      issues,
+      review_reason: reviewReason,
+      model_version: prediction.modelVersion,
+      decision_policy: prediction.decisionPolicy,
+      notes: prediction.notes,
+      clarification_state: understanding.state,
+      clarification_answered: Boolean(input.clarificationAnswer),
     };
 
     const combinedRedactionFlags = {
@@ -269,13 +226,13 @@ Deno.serve(async (req) => {
 
     const { data, error } = await admin.rpc("submit_citizen_complaint", {
       p_citizen_id: citizenId,
-      p_title: input.title ?? "",
+      p_title: safeHeading,
       p_description: input.description, // Raw description stored in private table only
-      p_sanitized_description: privacy.sanitizedDescription, // Sanitized description stored in complaints
-      p_generated_heading: privacy.generatedHeading,
-      p_factual_summary: privacy.factualSummary,
+      p_sanitized_description: safeDescription,
+      p_generated_heading: safeHeading,
+      p_factual_summary: safeSummary,
       p_redaction_flags: combinedRedactionFlags,
-      p_redaction_needs_review: privacy.flags.uncertainRedaction || privacy.flags.safetyHazard || result.needsReview,
+      p_redaction_needs_review: privacy.flags.uncertainRedaction || privacy.flags.safetyHazard || needsReview,
       p_incident_district: input.incidentDistrict,
       p_incident_locality: input.incidentLocality,
       p_incident_public_location: input.incidentPublicLocation,
@@ -283,9 +240,9 @@ Deno.serve(async (req) => {
       p_citizen_phone: input.citizenPhone,
       p_citizen_email: input.citizenEmail ?? "",
       p_residential_address: input.residentialAddress,
-      p_predicted_department_id: result.primaryDepartmentId,
-      p_prediction_confidence: result.confidence,
-      p_needs_review: result.needsReview,
+      p_predicted_department_id: primaryDept,
+      p_prediction_confidence: maxProb,
+      p_needs_review: needsReview,
       p_is_demonstration: input.isDemonstration === true,
       p_claim_code_hash: claimCodeHash,
       p_guest_tracking_hash: guestTrackingHash,
@@ -297,20 +254,23 @@ Deno.serve(async (req) => {
     return json({
       ...data,
       prediction: {
-        departmentId: result.primaryDepartmentId,
-        departments: result.departments,
-        confidence: result.confidence,
-        probabilities: result.probabilities,
-        isMultiLabel: result.isMultiLabel,
-        hasHazard: result.hasHazard,
-        needsReview: result.needsReview,
-        issues: result.issues,
-        modelVersion: result.modelVersion,
+        departmentId: primaryDept,
+        departments,
+        confidence: maxProb,
+        probabilities: prediction.probabilities,
+        isMultiLabel,
+        hasHazard,
+        needsReview,
+        reviewReason,
+        issues,
+        modelVersion: prediction.modelVersion,
+        decisionPolicy: prediction.decisionPolicy,
+        clarificationState: understanding.state,
       },
       privacy: {
-        heading: privacy.generatedHeading,
-        summary: privacy.factualSummary,
-        sanitizedDescription: privacy.sanitizedDescription,
+        heading: safeHeading,
+        summary: safeSummary,
+        sanitizedDescription: safeDescription,
         flags: privacy.flags,
       },
       claim_code: claimCode,

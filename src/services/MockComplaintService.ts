@@ -13,7 +13,8 @@ import {
 import { IComplaintService } from './IComplaintService';
 import { KARACHI_DEPARTMENTS } from '../mocks/complaints';
 import { generateMockReference } from '../utils/referenceGenerator';
-import { classifyMultiLabel } from './multiLabelClassifier';
+import { classifyV11RelationAware, championV11Model, type V11RelationAwareResult } from './v11InferenceAdapter';
+import { assessComplaintDraft, resolveComplaintClarification, type UnderstandingResult } from './complaintUnderstanding';
 
 const STORAGE_KEY = 'awaaz_complaints_store_v1';
 
@@ -163,12 +164,39 @@ export class MockComplaintService implements IComplaintService {
 
     const refNumber = generateMockReference(2026);
     const now = new Date().toISOString();
-    const textToClassify = `${input.title} ${input.description}`;
-    const prediction = classifyMultiLabel(textToClassify);
-    const routedDepts = prediction.departments.length > 0 ? prediction.departments : [this.routeDepartment(textToClassify).id];
-    const primaryDeptId = prediction.primaryDepartment || routedDepts[0];
+    const textToClassify = input.description.trim();
+
+    let understanding: UnderstandingResult;
+    if (input.clarificationAnswer) {
+      understanding = resolveComplaintClarification(textToClassify, input.clarificationAnswer, championV11Model);
+    } else {
+      understanding = assessComplaintDraft(textToClassify, championV11Model);
+    }
+
+    let prediction: V11RelationAwareResult;
+    let routedDepts: DepartmentId[] = [];
+    let needsReview = false;
+
+    if (understanding.state === 'ready') {
+      prediction = understanding.prediction;
+      routedDepts = [...understanding.departments];
+      needsReview = prediction.needsReview;
+    } else if (understanding.state === 'ask' || understanding.state === 'review') {
+      prediction = understanding.prediction;
+      routedDepts = [...prediction.departments];
+      needsReview = true;
+    } else {
+      prediction = classifyV11RelationAware(textToClassify, championV11Model);
+      routedDepts = [...prediction.departments];
+      needsReview = prediction.needsReview;
+    }
+
+    if (routedDepts.length === 0) {
+      routedDepts = [this.routeDepartment(textToClassify).id];
+    }
+    const primaryDeptId = routedDepts[0];
     const primaryDeptName = KARACHI_DEPARTMENTS[primaryDeptId]?.name || 'Municipal Agency';
-    const status: ComplaintStatus = prediction.needsReview ? 'under_review' : 'assigned';
+    const status: ComplaintStatus = needsReview ? 'under_review' : 'assigned';
     const claimCode = `CLM-${Math.random().toString(36).substring(2, 6).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
 
     const complaintId = `cmp-${Date.now()}`;
@@ -179,9 +207,12 @@ export class MockComplaintService implements IComplaintService {
       departmentName: KARACHI_DEPARTMENTS[d]?.name,
       issueType: `${d}.reported_defect`,
       confidence: prediction.probabilities[d] ?? 0.85,
-      status: prediction.needsReview ? 'under_review' : 'assigned',
+      status: needsReview ? 'under_review' : 'assigned',
       updatedAt: now,
     }));
+
+    const probValues = Object.values(prediction.probabilities || {});
+    const maxProb = probValues.length > 0 ? Math.max(...probValues) : 0.85;
 
     const newComplaint: Complaint = {
       id: complaintId,
@@ -200,10 +231,9 @@ export class MockComplaintService implements IComplaintService {
       assignedDepartmentIds: routedDepts,
       predictedDepartmentId: primaryDeptId,
       predictedDepartmentIds: routedDepts,
-      predictionConfidence: prediction.confidence,
-      isMultiLabel: prediction.isMultiLabel,
-      hasHazard: prediction.hasHazard,
-      hazardType: prediction.hazardType,
+      predictionConfidence: maxProb,
+      isMultiLabel: routedDepts.length > 1,
+      hasHazard: false,
       issues,
       submittedAt: now,
       updatedAt: now,
@@ -248,8 +278,9 @@ export class MockComplaintService implements IComplaintService {
         ? 'Your complaint was received and is awaiting safe routing review.'
         : 'Your complaint has been securely registered and routed.',
       departmentId: primaryDeptId,
+      departments: routedDepts,
       status,
-      needsReview: prediction.needsReview,
+      needsReview,
       claimCode,
     };
   }
@@ -385,10 +416,7 @@ export class MockComplaintService implements IComplaintService {
    * Scoped to authorized clearinghouse reviewers.
    */
   async getReviewQueueComplaints(): Promise<DepartmentComplaintView[]> {
-    await this.delay(100);
-    return this.complaints
-      .filter((c) => c.status === 'under_review')
-      .map((c) => this.toDepartmentView(c));
+    return []; // This department mock has no authenticated administrator.
   }
 
   /**
@@ -409,8 +437,7 @@ export class MockComplaintService implements IComplaintService {
     const isAssigned =
       found &&
       (found.assignedDepartmentId === departmentId ||
-        Boolean(found.assignedDepartmentIds && found.assignedDepartmentIds.includes(departmentId)) ||
-        (departmentId === 'kmc' && found.status === 'under_review'));
+        found.assignedDepartmentIds?.includes(departmentId));
 
     if (!found || !isAssigned) {
       return null;
@@ -539,50 +566,11 @@ export class MockComplaintService implements IComplaintService {
    * Reviews an uncertain complaint and assigns it to a confirmed department.
    */
   async reviewAndAssignComplaint(
-    complaintId: string,
-    targetDepartmentId: DepartmentId,
-    reviewNotes?: string
+    _complaintId: string,
+    _targetDepartmentId: DepartmentId,
+    _reviewNotes?: string
   ): Promise<{ success: boolean; complaint?: DepartmentComplaintView; error?: string }> {
-    await this.delay(120);
-    const found = this.complaints.find(
-      (c) => c.id === complaintId || c.referenceNumber.toUpperCase() === complaintId.toUpperCase()
-    );
-
-    if (!found) {
-      return { success: false, error: `Complaint not found: ${complaintId}` };
-    }
-
-    if (found.status !== 'under_review') {
-      return {
-        success: false,
-        error: `Only complaints under review can be assigned via classification review (current status: ${found.status}).`,
-      };
-    }
-
-    const deptMeta = KARACHI_DEPARTMENTS[targetDepartmentId];
-    if (!deptMeta) {
-      return { success: false, error: `Invalid target department: ${targetDepartmentId}` };
-    }
-
-    const now = new Date().toISOString();
-    found.assignedDepartmentId = targetDepartmentId;
-    found.assignedDepartmentName = deptMeta.name;
-    found.status = 'assigned';
-    found.updatedAt = now;
-
-    found.timeline.push({
-      id: `t-${Date.now()}`,
-      status: 'assigned',
-      title: 'Classification Reviewed & Department Assigned',
-      titleUrdu: 'درجہ بندی کا جائزہ مکمل اور محکمہ تفویض',
-      description: `Complaint reviewed by staff officer and assigned to ${deptMeta.name}.${reviewNotes ? ` Review note: ${reviewNotes}` : ''}`,
-      descriptionUrdu: `محکمہ افسر نے شکایت کا جائزہ لے کر متعلقہ محکمے (${deptMeta.name}) کے سپرد کر دیا۔`,
-      timestamp: now,
-      actorRole: 'department_officer',
-    });
-
-    this.persistToStorage();
-    return { success: true, complaint: this.toDepartmentView(found) };
+    return { success: false, error: 'Administrator required for classification review.' };
   }
 
   /**
@@ -606,7 +594,7 @@ export class MockComplaintService implements IComplaintService {
       return { success: false, error: `Complaint ${referenceNumber} not found.` };
     }
 
-    if (found.assignedDepartmentId !== departmentId && !(departmentId === 'kmc' && found.status === 'under_review')) {
+    if (found.assignedDepartmentId !== departmentId) {
       return { success: false, error: `Unauthorized: Complaint ${referenceNumber} does not belong to department ${departmentId}.` };
     }
 
