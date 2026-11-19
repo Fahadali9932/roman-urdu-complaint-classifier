@@ -5,7 +5,58 @@ Verified on **19 November 2026 (Pakistan time)**. Internal delivery target:
 This document distinguishes inspected source, automated checks, and unverified
 hosted behavior. Update it after every significant verified milestone.
 
-## Latest verification, 19 November 2026 — Road-Address Precision and SSGC Pipe-Burst Routing Repair (v11_hybrid_ml_relation_v9)
+## Latest verification, 19 November 2026 — Fahad's Routing Rule & Natural Roman Urdu Paragraph Robustness (v11_hybrid_ml_relation_v9)
+
+The local classification pipeline (`classifyV11RelationAware`) in `src/services/v11InferenceAdapter.ts` and `src/services/relationEngine.ts` has been verified and upgraded to enforce Fahad's routing rule on natural Roman Urdu paragraphs up to 200 words. Cross-language parity is maintained with `tools/ai_factory/curriculum/relation_engine.py`.
+
+### 1. Fahad's Routing Rule Implementation & Core Repairs
+- **Fahad's Exact Paragraph Root Cause & Repair (Case A):**
+  - Text: `"Assalamualikum do din se masla hai koyi sunta hi nhi kab se bol rahe hain gas nhi hai humare elaqe mein lekin koyi sunne wala hi nhi hai yeh haqomat sunti hi nhi hai madarchod ho tum sare tum sub ki maa ki chut"`
+  - Failure: Pre-edit, whole-complaint L2 TF-IDF dilution from greeting and profanity dropped the ML score for `"gas"` below threshold, and `DOMAIN_EVIDENCE.ssgc.defects` lacked `"gas nahi"` / `"gas nhi hai"`, yielding `[]`, `UNCERTAIN_DEFECT`, and citizen prompt `ask` (`describe_issue`).
+  - Fix: Added `/\bgas\s*(?:bilkul\s*|bhi\s*)?na?h?i\b/i`, `/\bgas\s*band\b/i`, `/\bgas\s*gayab\b/i` to `DOMAIN_EVIDENCE.ssgc.defects`. Added corresponding colloquial intensifier variants for water (`/\bpani\s*(?:bilkul\s*|bhi\s*)?na?h?i\b/i`) and waste (`/\bsafai\s*(?:bilkul\s*|bhi\s*)?na?h?i\b/i`).
+  - Result: Directly routes to `['ssgc']`, `needsReview: false`, and citizen draft state is `ready` (0 questions, 0 administrative review).
+- **Causal Consequence Demotion (Case E.1):**
+  - Rule: One reported fault plus its stated consequences goes only to the department responsible for the original fault. Two independently reported faults go to both departments.
+  - Fix: Implemented cross-department causal consequence detection linking cause defect in `preText` with consequence defect in `consequenceClause` via explicit causal connectors (`jis ki wajah se`, `us ki wajah se`, `is wajah se`, `isi liye`, `ke sabab`, `ke natijay mein`). Downstream consequence candidates are demoted to `mention_type: 'consequence'` with edge `CAUSES_CONTEXT_ONLY`, leaving the root department in `proposed_departments`. Downstream consequence clauses are strictly bounded to their syntactic clause, preserving independent secondary defects in subsequent sentences/clauses.
+  - Result: Case E.1 (`"Pani ki main line phat gayi jis ki wajah se sarak dhans gayi"`) routes solely to `['kwsc']` (road sink demoted to consequence). Independent Case E.2 (`"Pani ki main line aaj phati hai aur doosre block ki sarak do hafton se tooti pari hai"`) routes to both `['kmc', 'kwsc']`.
+- **Speculative Disjunction Gating (Case C.1):**
+  - When citizen expresses uncertainty or ignorance between departments without an affirmative defect (e.g. `cur_567e1bbfff36089f`: `"Pata nahi bijli ka masla hai ya water supply ka..."`), `hasDomainKeywordSupport` suppresses false ML triggering. Correctly routes to `[]`, `needsReview: true`, `UNCERTAIN_DEFECT`, citizen draft `ask` / `review`. Control Case C.2 (`"Pata nahi wajah kya hai lekin do din se nal mein pani nahi aa raha"`) contains an affirmative defect and routes cleanly to `['kwsc']`, `ready`.
+
+### 2. Acceptance Cases Results (10 / 10 Passing)
+- **Case A (Fahad's exact paragraph):** `['ssgc']`, `needsReview: false`, citizen draft `ready` (direct route).
+- **Case A.1 (Clean):** `['ssgc']`, `needsReview: false`, citizen draft `ready`.
+- **Case A.2 (Fault at end):** `['ssgc']`, `needsReview: false`, citizen draft `ready`.
+- **Case B (Uncertainty about listeners):** `['ssgc']`, `needsReview: false`, citizen draft `ready`.
+- **Case C.1 (Speculative cur_567e1bbfff36089f):** `[]`, `needsReview: true`, `UNCERTAIN_DEFECT`, citizen draft `ask` / `review`.
+- **Case C.2 (Control: affirmative water defect):** `['kwsc']`, `needsReview: false`, citizen draft `ready`.
+- **Case D.1 (Motor consequence of power cut):** `['kelectric']`, `needsReview: false`, citizen draft `ready`.
+- **Case D.2 (Independent power and water pipe burst):** `['kelectric', 'kwsc']`, `needsReview: false`, citizen draft `ready`.
+- **Case E.1 (Road sink consequence of water pipe burst):** `['kwsc']`, `needsReview: false`, citizen draft `ready`.
+- **Case E.2 (Independent water main burst and old road damage):** `['kmc', 'kwsc']`, `needsReview: false`, citizen draft `ready`.
+
+### 3. Developer-Authored Natural Paragraphs (18 / 18 Passing)
+- Tested across all 6 departments (KMC, KWSC, K-Electric, SSGC, SSWMB, SBCA) with defects positioned at beginning, middle, and end without punctuation.
+- 18 / 18 passed in pure rule analysis and 18 / 18 passed in hybrid classification.
+
+### 4. Replay on 250 Historical Development Records (`data/v11/curriculum_runs/run_006/frozen_validation.jsonl`)
+- **Exact Matches:** 245 / 250 (98.00%) (up from 244 / 97.60%).
+- **False Extra Labels:** 0 (0.00% false positive rate; down from 1 extra).
+- **Missed Labels:** 5 (all 5 are truncated synthetic records ending abruptly with `aur alag se...` correctly diverted to human review with `INCOMPLETE_SECONDARY_ISSUE`).
+- **Human Reviews:** 16 / 250 (6.40%) — 9 `UNCERTAIN_DEFECT`, 7 `INCOMPLETE_SECONDARY_ISSUE`.
+- **Automatic Routing Precision:** 234 / 234 (100.00%).
+- **Automatic Routing Coverage:** 234 / 250 (93.60%).
+
+### 5. Full Test Suite Exit Codes & Verification
+- **Node Edge Tests:** 17/17 tests passed (exit code 0).
+- **Vitest:** 677/677 tests passed across 48 test files (exit code 0).
+- **Python Unittests:** 116/116 tests passed across `tests/v11` (exit code 0).
+- **TypeScript:** `npx tsc -b` passed with 0 errors (exit code 0).
+- **Production Build:** `npm run build` passed in 1.07s (exit code 0).
+- **Linter:** `npm run lint` passed with 0 errors, 96 warnings (exit code 0).
+- **Frozen Model Integrity:** `src/models/v11_candidate_model.json` SHA-256 confirmed as `E4D042937CF8C3E1E3C70F147A707B33A629D463DB34485766C98DA21C2E3A56` (untouched).
+- **Path Clarification:** Production website submit button (`submit-classified-complaint` Edge Function) uses bundled V10 artifact (`c939a35d...`). Tested classifier (`classifyV11RelationAware` & `assessComplaintDraft`) uses local V11 champion model (Run004, `e4d04293...`).
+
+## Earlier verifications
 
 The local classification pipeline (`classifyV11RelationAware`) in `src/services/v11InferenceAdapter.ts` and `src/services/relationEngine.ts` has been verified and upgraded to decision policy `v11_hybrid_ml_relation_v9`. Cross-language parity is maintained with `tools/ai_factory/curriculum/relation_engine.py`.
 

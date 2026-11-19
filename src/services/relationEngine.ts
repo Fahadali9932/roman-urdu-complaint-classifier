@@ -134,7 +134,7 @@ export const DOMAIN_EVIDENCE: Record<AgencyId, DomainLexicon> = {
       /\bleak\b/i, /\bleakage\b/i, /\bphat\b/i, /\bphati\b/i, /\bphatne\b/i,
       /\bburst\b/i, /\boverflow\b/i, /\bubalta\b/i, /\bubal\b/i, /\btalaab\b/i,
       /\bcover\s*missing\b/i, /\blid\b/i, /\bsookhi\b/i, /\bpressure\s*(?:intihai|bohot|bht|nihayat|bohat)?\s*kam\b/i,
-      /\bpressure\s*(?:na\s*hone|zero)\b/i, /\bpani\s*nahi\s*aa\s*raha\b/i, /\bwater\s*nahi\s*aa\s*raha\b/i,
+      /\bpressure\s*(?:na\s*hone|zero)\b/i, /\bpani\s*(?:bilkul\s*|bhi\s*)?na?h?i\b/i, /\bpani\s*nahi\s*aa\s*raha\b/i, /\bwater\s*nahi\s*aa\s*raha\b/i,
       /\bsupply\s*(?:mukammal|bilkul|poori)?\s*band\b/i, /\bshortage\b/i, /\bchori\b/i, /\bband\s*hai\b/i,
       /\breplace\s*lid\b/i, /\bcovers?\s*missing\b/i, /\bcontaminated\b/i, /\btoxic\s*smell\b/i,
       /\btanki\s*nahi\s*bhar\b/i, /\bsewer\s*line\s*choke\b/i, /\bchoke\b/i,
@@ -211,6 +211,7 @@ export const DOMAIN_EVIDENCE: Record<AgencyId, DomainLexicon> = {
     defects: [
       /\bboo\b/i, /\bsmell\b/i, /\bhiss\b/i, /\bleak\b/i, /\bleakage\b/i,
       /\bphat\b/i, /\bphati\b/i, /\bphatne\b/i,
+      /\bgas\s*(?:bilkul\s*|bhi\s*)?na?h?i\b/i, /\bgas\s*band\b/i, /\bgas\s*gayab\b/i,
       /\bpressure\b/i, /\bchulha\s*nahi\s*jal\b/i, /\bflame\s*nahi\b/i,
       /\baag\s*lagne\b/i, /\bdhamaka\b/i, /\bburst\b/i, /\bkam\s*aa\s*raha\b/i,
       /\bruptured\b/i, /\bwhistling\b/i, /\bblowing\s*out\b/i, /\bchulha\s*band\b/i,
@@ -250,7 +251,7 @@ export const DOMAIN_EVIDENCE: Record<AgencyId, DomainLexicon> = {
       /\brefusing\s*to\s*enter\b/i, /\bclogging\b/i, /\brotting\s*odor\b/i,
       /\bclean\s*bin\b/i, /\bgari\s*nahi\s*aa?i\b/i, /\bgaari\s*nahi\s*aa?i\b/i,
       /\bdump\s*ban\s*chuka\b/i, /\bkutte\s*nooch\b/i, /\bsaans\s*lena\s*mushkil\b/i,
-      /\baag\s*laga\b/i, /\bdhuwan\b/i, /\btaffun\b/i,
+      /\baag\s*laga\b/i, /\bdhuwan\b/i, /\btaffun\b/i, /\bsafai\s*(?:bilkul\s*|bhi\s*)?na?h?i\b/i,
       /\billegal\s+(?:(?:garbage|waste|trash)\s+)?dump(?:ing)?\b/i,
       /\b(?:garbage|waste|trash)\s+dump(?:ing)?\s+(?:is\s+)?illegal\b/i,
     ],
@@ -707,6 +708,7 @@ export function analyzeComplaintRelationAware(
     );
 
   // 8. Span-by-span Issue Classification
+  const edges: RelationEdge[] = [];
   const spanTuples = segmentSpansWithOffsets(sanitized);
   const candidates: IssueCandidate[] = [];
 
@@ -963,8 +965,67 @@ export function analyzeComplaintRelationAware(
     actionableDepts = Array.from(new Set(actionableDepts)).sort();
   }
 
+  // Causal consequence between distinct departments linked by explicit causal connectors
+  const CAUSAL_CONNECTOR_REGEX =
+    /\b(?:jis\s*(?:ki\s*)?wajah\s*se|us\s*(?:ki\s*)?wajah\s*se|is\s*(?:wajah\s*se|i?s?\s*liye)|isi\s*liye|ke\s*sabab|ke\s*natijay\s*mein)\b/i;
+  const causalMatch = CAUSAL_CONNECTOR_REGEX.exec(normFull);
+  if (causalMatch && !isSharedIncident) {
+    const preText = normFull.slice(0, causalMatch.index);
+    const postRaw = normFull.slice(causalMatch.index + causalMatch[0].length);
+    const consequenceClause = postRaw.split(/[.\n;]|\b(?:lekin|magar|aur\s+alag\s+se|alag\s+se)\b/i)[0];
+    const consequenceEnd = causalMatch.index + causalMatch[0].length + consequenceClause.length;
+
+    // Find departments with affirmative defects in preText vs consequenceClause
+    const deptsInPre = new Set<AgencyId>();
+    const deptsInConsequence = new Set<AgencyId>();
+    for (const [d, lex] of Object.entries(DOMAIN_EVIDENCE) as Array<[AgencyId, DomainLexicon]>) {
+      const preEv = domainEvidenceText(preText, d);
+      if (lex.assets.some((p) => p.test(preEv)) && lex.defects.some((p) => p.test(preEv))) {
+        deptsInPre.add(d);
+      }
+      const consEv = domainEvidenceText(consequenceClause, d);
+      if (lex.assets.some((p) => p.test(consEv)) && lex.defects.some((p) => p.test(consEv))) {
+        deptsInConsequence.add(d);
+      }
+    }
+
+    // Demote only candidates within the consequence clause for deptsInConsequence not in preText
+    for (const postDept of deptsInConsequence) {
+      if (!deptsInPre.has(postDept)) {
+        for (const preDept of deptsInPre) {
+          for (const cand of candidates) {
+            if (
+              cand.department === postDept &&
+              cand.is_actionable &&
+              cand.span_start < consequenceEnd
+            ) {
+              cand.is_actionable = false;
+              cand.mention_type = 'consequence';
+              cand.causal_relationship = 'consequence_of_root';
+              cand.causal_target_dept = preDept;
+              cand.decision_rationale = `Defect for ${postDept.toUpperCase()} is a stated consequence of ${preDept.toUpperCase()} root fault`;
+            }
+          }
+          edges.push({
+            source_id: preDept,
+            target_id: postDept,
+            relation_type: 'CAUSES_CONTEXT_ONLY',
+            description: `${postDept.toUpperCase()} is a stated consequence caused by ${preDept.toUpperCase()}`,
+          });
+        }
+      }
+    }
+    // Recompute actionableDepts after causal consequence demotion
+    actionableDepts = Array.from(
+      new Set(
+        candidates
+          .filter((c) => c.is_actionable && c.department)
+          .map((c) => c.department as DepartmentId)
+      )
+    ).sort();
+  }
+
   // 10. Relational Summary and Edge Building
-  const edges: RelationEdge[] = [];
   let relationSummary: RelationType = 'UNCERTAIN';
 
   if (isSharedIncident && actionableDepts.length >= 2) {
@@ -1008,14 +1069,16 @@ export function analyzeComplaintRelationAware(
         relation_type: 'RECIPIENT_ONLY',
         description: 'Other department mentioned as recipient',
       });
-    } else if (hasCausalConsequence) {
+    } else if (hasCausalConsequence || edges.some((e) => e.relation_type === 'CAUSES_CONTEXT_ONLY')) {
       relationSummary = 'CAUSES_CONTEXT_ONLY';
-      edges.push({
-        source_id: actionableDepts[0],
-        target_id: 'consequence',
-        relation_type: 'CAUSES_CONTEXT_ONLY',
-        description: 'Root civic cause with non-actionable symptom',
-      });
+      if (!edges.some((e) => e.relation_type === 'CAUSES_CONTEXT_ONLY')) {
+        edges.push({
+          source_id: actionableDepts[0],
+          target_id: 'consequence',
+          relation_type: 'CAUSES_CONTEXT_ONLY',
+          description: 'Root civic cause with non-actionable symptom',
+        });
+      }
     } else if (negatedDepts.size > 0) {
       relationSummary = 'NEGATED';
       edges.push({

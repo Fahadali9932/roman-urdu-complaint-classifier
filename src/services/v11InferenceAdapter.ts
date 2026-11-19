@@ -44,6 +44,13 @@ function hasDomainKeywordSupport(lowText: string, dept: DepartmentId, hasGrounde
     return assetClauses.some((clause) => {
       if (lexicon.defects.some((pattern) => pattern.test(clause))) return true;
       if (/\b(?:dekha|dekhi|dekhe)\s+tha\b/i.test(clause)) return false;
+      // Speculative disjunctive uncertainty ("pata nahi X hai ya Y") without defect does not support ML routing
+      if (/\b(?:pata|maloom|samajh)\s*na?h?i\b[^.!?;]{0,60}\b(?:ya|or)\b/i.test(clause)) return false;
+      if (
+        /\b(?:pata|maloom|samajh)\s*na?h?i\b.*\b(?:kya|kahan|kis)\s+(?:masla|kharabi|wajah|fault)\b/i.test(clause) &&
+        !lexicon.defects.some((p) => p.test(clause))
+      )
+        return false;
       if (dept !== 'kmc') return true;
       const outsideAddress = clause.replace(ROAD_LOCATION, ' ');
       return lexicon.assets.some((pattern) => pattern.test(outsideAddress));
@@ -331,7 +338,7 @@ export function resolveV11CivicRelations(
   // 5. Power outage causing domestic water motor failure
   const motorConsequence = /\b(?:pani\s+ki\s+)?motor\s+(?:nahi\s+chal\s+rahi|band\s+hai|ruk\s+gai)\b|\bwater\s+pump\s+band\b/i;
   if ((probs.kelectric ?? 0) > 0.4 && motorConsequence.test(low)) {
-    if (!/\b(?:sarkari|main|public)\s+water\s+line\b|\bpani\s+ki\s+supply\s+band\b/i.test(low)) {
+    if (!/\b(?:sarkari|main|public)\s+(?:water\s+)?(?:line|pipe|pipeline)\b|\bpani\s+ki\s+supply\s+band\b/i.test(low)) {
       if ((probs.kwsc ?? 0) > 0.2) {
         probs.kwsc = Math.min(probs.kwsc ?? 0, 0.15);
         notes.push('Suppressed KWSC: Domestic water motor failure is downstream symptom of power outage');
@@ -699,7 +706,11 @@ export function classifyV11RelationAware(
   for (const edge of relationResult.edges) {
     if (edge.relation_type === 'CAUSES_CONTEXT_ONLY' && edge.target_id && edge.target_id !== 'consequence') {
       const targetDept = edge.target_id as DepartmentId;
-      if (artifact.departments.includes(targetDept) && !suppressed.includes(targetDept)) {
+      if (
+        artifact.departments.includes(targetDept) &&
+        !suppressed.includes(targetDept) &&
+        !ruleSelected.includes(targetDept)
+      ) {
         suppressed.push(targetDept);
         notes.push(`Suppressed ${targetDept.toUpperCase()} via relation edge: secondary consequence of ${edge.source_id.toUpperCase()}`);
       }

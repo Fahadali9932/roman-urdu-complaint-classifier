@@ -83,7 +83,7 @@ DOMAIN_EVIDENCE = {
             r"\bleak\b", r"\bleakage\b", r"\bphat\b", r"\bphati\b", r"\bphatne\b",
             r"\bburst\b", r"\boverflow\b", r"\bubalta\b", r"\bubal\b", r"\btalaab\b",
             r"\bcover\s*missing\b", r"\blid\b", r"\bsookhi\b", r"\bpressure\s*(?:intihai|bohot|bht|nihayat|bohat)?\s*kam\b",
-            r"\bpressure\s*(?:na\s*hone|zero)\b", r"\bpani\s*nahi\s*aa\s*raha\b", r"\bwater\s*nahi\s*aa\s*raha\b",
+            r"\bpressure\s*(?:na\s*hone|zero)\b", r"\bpani\s*(?:bilkul\s*|bhi\s*)?na?h?i\b", r"\bpani\s*nahi\s*aa\s*raha\b", r"\bwater\s*nahi\s*aa\s*raha\b",
             r"\bsupply\s*(?:mukammal|bilkul|poori)?\s*band\b", r"\bshortage\b", r"\bchori\b", r"\bband\s*hai\b",
             r"\breplace\s*lid\b", r"\bcovers?\s*missing\b", r"\bcontaminated\b", r"\btoxic\s*smell\b",
             r"\btanki\s*nahi\s*bhar\b", r"\bsewer\s*line\s*choke\b", r"\bchoke\b",
@@ -158,6 +158,7 @@ DOMAIN_EVIDENCE = {
         "defects": [
             r"\bboo\b", r"\bsmell\b", r"\bhiss\b", r"\bleak\b", r"\bleakage\b",
             r"\bphat\b", r"\bphati\b", r"\bphatne\b",
+            r"\bgas\s*(?:bilkul\s*|bhi\s*)?na?h?i\b", r"\bgas\s*band\b", r"\bgas\s*gayab\b",
             r"\bpressure\b", r"\bchulha\s*nahi\s*jal\b", r"\bflame\s*nahi\b",
             r"\baag\s*lagne\b", r"\bdhamaka\b", r"\bburst\b", r"\bkam\s*aa\s*raha\b",
             r"\bruptured\b", r"\bwhistling\b", r"\bblowing\s*out\b", r"\bchulha\s*band\b",
@@ -197,7 +198,7 @@ DOMAIN_EVIDENCE = {
             r"\brefusing\s*to\s*enter\b", r"\bclogging\b", r"\brotting\s*odor\b",
             r"\bclean\s*bin\b", r"\bgari\s*nahi\s*aa?i\b", r"\bgaari\s*nahi\s*aa?i\b",
             r"\bdump\s*ban\s*chuka\b", r"\bkutte\s*nooch\b", r"\bsaans\s*lena\s*mushkil\b",
-            r"\baag\s*laga\b", r"\bdhuwan\b", r"\btaffun\b",
+            r"\baag\s*laga\b", r"\bdhuwan\b", r"\btaffun\b", r"\bsafai\s*(?:bilkul\s*|bhi\s*)?na?h?i\b",
             r"\billegal\s+(?:(?:garbage|waste|trash)\s+)?dump(?:ing)?\b",
             r"\b(?:garbage|waste|trash)\s+dump(?:ing)?\s+(?:is\s+)?illegal\b"
         ],
@@ -650,6 +651,7 @@ class RelationAwareComplaintAnalyzer:
         )
 
         # 8. Segment into spans and classify issues
+        edges: List[RelationEdge] = []
         span_tuples = cls.segment_spans(sanitized)
         candidates: List[IssueCandidate] = []
 
@@ -868,8 +870,46 @@ class RelationAwareComplaintAnalyzer:
 
         actionable_depts = sorted(list(set(actionable_depts)))
 
+        # Causal consequence between distinct departments linked by explicit causal connectors
+        causal_connector_regex = r"\b(?:jis\s*(?:ki\s*)?wajah\s*se|us\s*(?:ki\s*)?wajah\s*se|is\s*(?:wajah\s*se|i?s?\s*liye)|isi\s*liye|ke\s*sabab|ke\s*natijay\s*mein)\b"
+        causal_match = re.search(causal_connector_regex, norm_full, re.I)
+        if causal_match and not is_shared_incident:
+            pre_text = norm_full[:causal_match.start()]
+            post_raw = norm_full[causal_match.end():]
+            consequence_clause = re.split(r"[.\n;]|\b(?:lekin|magar|aur\s+alag\s+se|alag\s+se)\b", post_raw, flags=re.I)[0]
+            consequence_end = causal_match.start() + len(causal_match.group(0)) + len(consequence_clause)
+
+            depts_in_pre = set()
+            depts_in_consequence = set()
+            for d, lex in DOMAIN_EVIDENCE.items():
+                pre_ev = domain_evidence_text(pre_text, d)
+                if any(re.search(p, pre_ev) for p in lex["assets"]) and any(re.search(p, pre_ev) for p in lex["defects"]):
+                    depts_in_pre.add(d)
+                cons_ev = domain_evidence_text(consequence_clause, d)
+                if any(re.search(p, cons_ev) for p in lex["assets"]) and any(re.search(p, cons_ev) for p in lex["defects"]):
+                    depts_in_consequence.add(d)
+
+            for post_dept in depts_in_consequence:
+                if post_dept not in depts_in_pre:
+                    for pre_dept in depts_in_pre:
+                        for cand in candidates:
+                            if cand.department == post_dept and cand.is_actionable and cand.span_start < consequence_end:
+                                cand.is_actionable = False
+                                cand.mention_type = "consequence"
+                                cand.causal_relationship = "consequence_of_root"
+                                cand.causal_target_dept = pre_dept
+                                cand.decision_rationale = f"Defect for {post_dept.upper()} is a stated consequence of {pre_dept.upper()} root fault"
+                        edges.append(RelationEdge(
+                            pre_dept, post_dept, "CAUSES_CONTEXT_ONLY",
+                            f"{post_dept.upper()} is a stated consequence caused by {pre_dept.upper()}"
+                        ))
+
+            actionable_depts = sorted(list(set(
+                c.department for c in candidates
+                if c.is_actionable and c.department is not None
+            )))
+
         # 10. Relational Summary and Edge Building
-        edges: List[RelationEdge] = []
         if is_shared_incident and len(actionable_depts) >= 2:
             relation_summary = "SAME_INCIDENT_DIFFERENT_REPAIRS"
             for i in range(len(actionable_depts)):
@@ -903,12 +943,13 @@ class RelationAwareComplaintAnalyzer:
                     actionable_depts[0], "recipient", "RECIPIENT_ONLY",
                     "Other department mentioned as recipient"
                 ))
-            elif has_causal_consequence:
+            elif has_causal_consequence or any(e.relation_type == "CAUSES_CONTEXT_ONLY" for e in edges):
                 relation_summary = "CAUSES_CONTEXT_ONLY"
-                edges.append(RelationEdge(
-                    actionable_depts[0], "consequence", "CAUSES_CONTEXT_ONLY",
-                    "Root civic cause with non-actionable symptom"
-                ))
+                if not any(e.relation_type == "CAUSES_CONTEXT_ONLY" for e in edges):
+                    edges.append(RelationEdge(
+                        actionable_depts[0], "consequence", "CAUSES_CONTEXT_ONLY",
+                        "Root civic cause with non-actionable symptom"
+                    ))
             elif negated_depts:
                 relation_summary = "NEGATED"
                 edges.append(RelationEdge(

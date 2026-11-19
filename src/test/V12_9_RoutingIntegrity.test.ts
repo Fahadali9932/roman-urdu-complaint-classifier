@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import fixtures from '../../tests/v11/v12_9_routing_cases.json';
 import { analyzeComplaintRelationAware } from '../services/relationEngine';
 import { championV11Model, classifyV11RelationAware, extractV11Features, predictV11RawProbabilities } from '../services/v11InferenceAdapter';
+import { assessComplaintDraft } from '../services/complaintUnderstanding';
 
 describe('V12.9 scoped asset and actionable fault regressions', () => {
   it.each(fixtures)('$id rule', ({text, expected}) => {
@@ -95,5 +96,135 @@ describe('V12.9 Unicode inference parity with the frozen sklearn artifact', () =
   ] as const)('matches raw probabilities for %s', (text, expected) => {
     const scores = predictV11RawProbabilities(extractV11Features(text, championV11Model), championV11Model);
     championV11Model.departments.forEach((dept, index) => expect(scores[dept]).toBeCloseTo(expected[index], 7));
+  });
+});
+
+describe("Fahad's Acceptance Cases & Citizen Submission/Clarification Flow", () => {
+  it('Case A (exact): routes directly to SSGC and citizen draft is ready without asking questions', () => {
+    const text = 'Assalamualikum do din se masla hai koyi sunta hi nhi kab se bol rahe hain gas nhi hai humare elaqe mein lekin koyi sunne wala hi nhi hai yeh haqomat sunti hi nhi hai madarchod ho tum sare tum sub ki maa ki chut';
+    const res = classifyV11RelationAware(text);
+    expect(res.departments).toEqual(['ssgc']);
+    expect(res.needsReview).toBe(false);
+
+    const draft = assessComplaintDraft(text);
+    expect(draft.state).toBe('ready');
+    if (draft.state === 'ready') {
+      expect(draft.departments).toEqual(['ssgc']);
+    }
+  });
+
+  it('Case A.1 (clean): routes directly to SSGC and citizen draft is ready', () => {
+    const text = 'Do din se masla hai koi sunta hi nahi kab se bol rahe hain gas nahi hai humare elaqe mein lekin koi sunne wala hi nahi hai yeh haqomat sunti hi nahi hai';
+    const res = classifyV11RelationAware(text);
+    expect(res.departments).toEqual(['ssgc']);
+    expect(res.needsReview).toBe(false);
+
+    const draft = assessComplaintDraft(text);
+    expect(draft.state).toBe('ready');
+    if (draft.state === 'ready') {
+      expect(draft.departments).toEqual(['ssgc']);
+    }
+  });
+
+  it('Case A.2 (gas outage at end): routes directly to SSGC and citizen draft is ready', () => {
+    const text = 'Assalamualikum do din se masla hai koyi sunta hi nhi kab se bol rahe hain lekin koyi sunne wala hi nhi hai yeh haqomat sunti hi nhi hai gas nhi hai humare elaqe mein';
+    const res = classifyV11RelationAware(text);
+    expect(res.departments).toEqual(['ssgc']);
+    expect(res.needsReview).toBe(false);
+
+    const draft = assessComplaintDraft(text);
+    expect(draft.state).toBe('ready');
+    if (draft.state === 'ready') {
+      expect(draft.departments).toEqual(['ssgc']);
+    }
+  });
+
+  it('Case B (listen uncertainty): routes to SSGC and citizen draft is ready', () => {
+    const text = 'Pata nahi koi sunta kyun nahi hum teen baar bata chuke hain do din se gas nhi hai ghar mein chulha nahi jal raha';
+    const res = classifyV11RelationAware(text);
+    expect(res.departments).toEqual(['ssgc']);
+    expect(res.needsReview).toBe(false);
+
+    const draft = assessComplaintDraft(text);
+    expect(draft.state).toBe('ready');
+    if (draft.state === 'ready') {
+      expect(draft.departments).toEqual(['ssgc']);
+    }
+  });
+
+  it('Case C.1 (cur_567e1bbfff36089f): vague defect defers to human review and asks citizen for details', () => {
+    const text = 'pichlay teen din se hamare area mein pata nahi bijli ka masla hai ya water supply ka kuch samajh nahi aa raha';
+    const res = classifyV11RelationAware(text);
+    expect(res.departments).toEqual([]);
+    expect(res.needsReview).toBe(true);
+    expect(res.reviewReason).toBe('UNCERTAIN_DEFECT');
+
+    const draft = assessComplaintDraft(text);
+    expect(draft.state === 'ask' || draft.state === 'review').toBe(true);
+  });
+
+  it('Case C.2 (control: affirmative water defect): routes to KWSC and citizen draft is ready', () => {
+    const text = 'Pata nahi wajah kya hai lekin do din se nal mein pani nahi aa raha';
+    const res = classifyV11RelationAware(text);
+    expect(res.departments).toEqual(['kwsc']);
+    expect(res.needsReview).toBe(false);
+
+    const draft = assessComplaintDraft(text);
+    expect(draft.state).toBe('ready');
+    if (draft.state === 'ready') {
+      expect(draft.departments).toEqual(['kwsc']);
+    }
+  });
+
+  it('Case D.1 (motor consequence of power cut): routes only to K-Electric and citizen draft is ready', () => {
+    const text = 'Bijli nahi hai isi liye motor nahi chal rahi aur ghar ki tanki khaali hai';
+    const res = classifyV11RelationAware(text);
+    expect(res.departments).toEqual(['kelectric']);
+    expect(res.needsReview).toBe(false);
+
+    const draft = assessComplaintDraft(text);
+    expect(draft.state).toBe('ready');
+    if (draft.state === 'ready') {
+      expect(draft.departments).toEqual(['kelectric']);
+    }
+  });
+
+  it('Case D.2 (independent power and water main burst): routes to both K-Electric and KWSC', () => {
+    const text = 'Bijli nahi hai aur doosri gali mein pani ki main line bhi phat gayi hai';
+    const res = classifyV11RelationAware(text);
+    expect([...res.departments].sort()).toEqual(['kelectric', 'kwsc']);
+    expect(res.needsReview).toBe(false);
+
+    const draft = assessComplaintDraft(text);
+    expect(draft.state).toBe('ready');
+    if (draft.state === 'ready') {
+      expect([...draft.departments].sort()).toEqual(['kelectric', 'kwsc']);
+    }
+  });
+
+  it('Case E.1 (road sink is consequence of water main burst): routes only to KWSC and citizen draft is ready', () => {
+    const text = 'Pani ki main line phat gayi jis ki wajah se sarak dhans gayi';
+    const res = classifyV11RelationAware(text);
+    expect(res.departments).toEqual(['kwsc']);
+    expect(res.needsReview).toBe(false);
+
+    const draft = assessComplaintDraft(text);
+    expect(draft.state).toBe('ready');
+    if (draft.state === 'ready') {
+      expect(draft.departments).toEqual(['kwsc']);
+    }
+  });
+
+  it('Case E.2 (water main burst and independent old road damage): routes to both KMC and KWSC', () => {
+    const text = 'Pani ki main line aaj phati hai aur doosre block ki sarak do hafton se tooti pari hai';
+    const res = classifyV11RelationAware(text);
+    expect([...res.departments].sort()).toEqual(['kmc', 'kwsc']);
+    expect(res.needsReview).toBe(false);
+
+    const draft = assessComplaintDraft(text);
+    expect(draft.state).toBe('ready');
+    if (draft.state === 'ready') {
+      expect([...draft.departments].sort()).toEqual(['kmc', 'kwsc']);
+    }
   });
 });

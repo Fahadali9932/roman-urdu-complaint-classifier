@@ -158,7 +158,7 @@ class CivicRelationResolver:
         # If electricity has strong fault and motor is mentioned as symptom, suppress KWSC
         if probs.get("kelectric", 0) > 0.40 and cls.MOTOR_CONSEQUENCE.search(text):
             # Check if there is an affirmative public water line fault
-            if not re.search(r"\b(?:sarkari|main|public)\s+water\s+line\b|\bpani\s+ki\s+supply\s+band\b", text, re.IGNORECASE):
+            if not re.search(r"\b(?:sarkari|main|public)\s+(?:water\s+)?(?:line|pipe|pipeline)\b|\bpani\s+ki\s+supply\s+band\b", text, re.IGNORECASE):
                 if probs.get("kwsc", 0) > 0.20:
                     probs["kwsc"] = min(probs.get("kwsc", 0), 0.15)
                     notes.append("Suppressed KWSC: Domestic water motor failure is downstream symptom of power outage")
