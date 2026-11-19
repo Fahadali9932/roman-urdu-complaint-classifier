@@ -266,6 +266,8 @@ export class SupabaseComplaintService implements IComplaintService {
         submitted_at: data.submitted_at,
         updated_at: data.updated_at,
         public_updates: data.public_updates,
+        is_multilabel: data.is_multilabel,
+        public_issues: data.public_issues,
       };
     } catch {
       return {
