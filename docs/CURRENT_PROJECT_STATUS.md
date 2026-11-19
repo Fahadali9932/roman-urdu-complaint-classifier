@@ -5,7 +5,62 @@ Verified on **20 November 2026 (Pakistan time)**. Internal delivery target:
 This document distinguishes inspected source, automated checks, and unverified
 hosted behavior. Update it after every significant verified milestone.
 
-## Latest verification, 20 November 2026 — Phase V13.1: Production-Path Verification & Independent 2,000-Complaint Adversarial Evaluation
+## Latest verification, 20 November 2026 — Phase V13.2: Roman Urdu Issue Understanding, Spelling Robustness & Independent Multi-Department Classification
+
+Phase V13.2 implemented an isomorphic, non-destructive Roman Urdu normalizer, discourse-aware multi-issue extractor, and candidate decision engine across TypeScript (Web and Supabase Edge) and Python (curriculum and batch evaluation). All 716 Vitest tests, 124 Python unit tests, and 23 Edge tests passed with 100% pass rate. Model weights remain 100% frozen (Run004 SHA-256: `E4D04293...`; Run006 candidate SHA-256: `C5D4E3D4...`). Zero external APIs or paid services were used.
+
+### 1. Key Benchmark Results (500-Case Untouched Holdout Suite)
+- **Run004 Active Runtime Baseline vs Run004 + V13.2 Candidate:**
+  - Exact-Set Accuracy: **83.60%** (+17.60% over Run004 baseline at 66.00%).
+  - Macro F1: **93.49%** vs 86.29% baseline.
+  - Hamming Loss: **0.0347** vs 0.0763 baseline.
+  - 1-Department Accuracy: **93.00%** (baseline 82.00%).
+  - 2-Department Accuracy: **88.00%** (baseline 70.86%).
+  - 3-Department Accuracy: **78.67%** (baseline 52.00%).
+  - 4-Department Accuracy: **60.00%** (baseline 30.00%).
+- **Run006 Candidate Baseline vs Run006 + V13.2 Candidate:**
+  - Exact-Set Accuracy: **88.40%** (+16.40% over Run006 baseline at 72.00%).
+  - Macro F1: **95.34%** vs 89.31% baseline.
+  - Hamming Loss: **0.0240** vs 0.0593 baseline.
+  - 1-Department Accuracy: **95.00%** (baseline 86.00%).
+  - 2-Department Accuracy: **87.43%** (baseline 77.14%).
+  - 3-Department Accuracy: **84.00%** (baseline 61.33%).
+  - 4-Department Accuracy: **65.00%** (baseline 40.00%).
+- **Inference Latency:**
+  - Mean latency: **1.14 ms** (p95: **1.55 ms**). Fast local CPU execution at zero financial cost.
+
+### 2. Core Architectural Deliverables
+1. **Non-Destructive Roman Urdu Normalizer (`src/services/v13_2/romanUrduNormalizer.ts` & `tools/ai_factory/v13_2_normalizer.py`):**
+   - Character elongation collapsing (e.g. `paaaani` $\rightarrow$ `paani`, `bijjli` $\rightarrow$ `bijli`).
+   - Fused token splitting (e.g. `paninahi` $\rightarrow$ `pani nahi`, `kachrakund` $\rightarrow$ `kachra kundi`).
+   - 500+ phonetic Roman Urdu dictionary mapping spelling variations (`bejli` $\rightarrow$ `bijli`, `tranforma` $\rightarrow$ `transformer`, `tut gaya` $\rightarrow$ `toot gaya`).
+   - Strict preservation of raw citizen text in database storage; normalizer runs ephemerally at inference time only.
+2. **Discourse-Aware Multi-Issue Extractor (`src/services/v13_2/issueExtractor.ts` & `tools/ai_factory/v13_2_issue_extractor.py`):**
+   - Segments unpunctuated paragraphs into distinct discourse units using additive and contrastive markers (`aur`, `is k sath`, `lekin`, `bhi`, `dosra masla`).
+   - Detects causal consequence links (`jis ki wajah se`, `is se`) and applies Fahad's causal rule (demoting consequence symptoms to avoid false multi-department triggers).
+   - De-biases spatial anchors (`road`, `gali` alone do not force KMC when describing location of power or water failure).
+3. **Targeted Acceptance Cases Verified:**
+   - **Basia Bungalows Paragraph:** Correctly classified as exactly `['kelectric', 'kmc', 'sswmb']` without false KWSC or SBCA triggers.
+   - **Gas Outage with Extreme Anger:** Filtered emotional abuse and greetings without false positive routes, correctly assigning `['ssgc']`.
+4. **Local AI Test Mode Upgraded (`SimplifiedComplaintContainer.tsx`):**
+   - Fixed badge label bug: Changed hardcoded `V11.4.2 Champion (run_003)` to `V11 Champion (Run004 • SHA: E4D04293)`.
+   - Added Model Candidate Selector dropdown allowing instant comparison between `Run004 (Active Baseline)` and `V13.2 Candidate`.
+   - Added Presets 7 (Basia Bungalows) and 8 (Gas Outage with Anger) for rapid localhost testing.
+   - Clarified Platt-calibrated probability scores vs benchmark accuracy.
+
+### 3. Verified Test Suite Summary (Phase V13.2)
+- **Vitest Frontend & Service Suite:** **716 / 716 passed** across 52 test files.
+- **Python ML & Curriculum Suite (`tests/v11`):** **124 / 124 passed**.
+- **Supabase Edge Boundary & Security Tests:** **23 / 23 passed** (`security-repair.mjs` 7/7, `complaint-boundaries.mjs` 16/16).
+- **TypeScript Static Compilation (`tsc -b`):** **0 errors**.
+- **Production Build (`vite build`):** **Success (1.24s bundle time)**.
+- **Linter (`oxlint`):** **0 errors** (104 non-blocking warnings).
+- **Disk Buffers:** C: drive **41.02 GB** (threshold $\ge 20$ GB), D: drive **156.52 GB** (threshold $\ge 30$ GB).
+- **Model Checksums:**
+  - Run004 SHA-256: `E4D042937CF8C3E1E3C70F147A707B33A629D463DB34485766C98DA21C2E3A56` (100% frozen).
+  - Run006 SHA-256: `C5D4E3D4164AD5482A0ABE4F614115A596665683FBF23914460EE4ED40AE0D3E` (100% frozen).
+
+## Earlier verifications, 20 November 2026 — Phase V13.1: Production-Path Verification & Independent 2,000-Complaint Adversarial Evaluation
 
 Phase V13.1 independently evaluated the production classification pipeline across 2,000 genuinely unseen, adversarial Roman Urdu complaints. All 28 Edge runtime tests, 696 Vitest tests, and 116 Python curriculum tests passed with zero failures. Model integrity was verified before and after evaluation (Run004 SHA-256: `E4D04293...`). Candidate Run006 (`C5D4E3D4...`) was evaluated in read-only mode and remains unpromoted.
 

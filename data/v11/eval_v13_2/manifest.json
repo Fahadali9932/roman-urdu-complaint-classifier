@@ -1,0 +1,16 @@
+{
+  "version": "v13.2",
+  "created_date": "2026-11-20",
+  "dev_suite_size": 200,
+  "dev_suite_sha256": "e6103b9426c5752f559a4fcf190199c233a184246ba903bca49e55ade35158af",
+  "holdout_suite_size": 500,
+  "holdout_suite_sha256": "44f806117050e67b41fc4d0cbb17e3fef28b00e53715fa270c72ac7cba62aa30",
+  "departments": [
+    "kmc",
+    "kwsc",
+    "kelectric",
+    "ssgc",
+    "sswmb",
+    "sbca"
+  ]
+}

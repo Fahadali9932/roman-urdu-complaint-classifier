@@ -1,0 +1,716 @@
+{
+  "timestamp": "2026-11-19T20:18:29.520Z",
+  "holdoutRun004Baseline": {
+    "systemName": "Run004 Baseline (V11)",
+    "totalCases": 500,
+    "exactMatches": 330,
+    "exactAccuracy": 66,
+    "macroF1": 86.29,
+    "deptMetrics": {
+      "kmc": {
+        "precision": 84.21,
+        "recall": 74.42,
+        "f1": 79.01
+      },
+      "kwsc": {
+        "precision": 100,
+        "recall": 100,
+        "f1": 100
+      },
+      "kelectric": {
+        "precision": 95.15,
+        "recall": 77.78,
+        "f1": 85.59
+      },
+      "ssgc": {
+        "precision": 100,
+        "recall": 78.86,
+        "f1": 88.18
+      },
+      "sswmb": {
+        "precision": 100,
+        "recall": 79.39,
+        "f1": 88.51
+      },
+      "sbca": {
+        "precision": 100,
+        "recall": 61.87,
+        "f1": 76.44
+      }
+    },
+    "complexityAccuracy": {
+      "1_dept": {
+        "total": 200,
+        "correct": 143,
+        "accuracy": 71.5
+      },
+      "2_dept": {
+        "total": 175,
+        "correct": 111,
+        "accuracy": 63.43
+      },
+      "3_dept": {
+        "total": 75,
+        "correct": 36,
+        "accuracy": 48
+      },
+      "causal": {
+        "total": 15,
+        "correct": 9,
+        "accuracy": 60
+      },
+      "negation": {
+        "total": 10,
+        "correct": 6,
+        "accuracy": 60
+      },
+      "ambiguous": {
+        "total": 25,
+        "correct": 25,
+        "accuracy": 100
+      }
+    },
+    "falseExtraRate": 4.6,
+    "missedDeptRate": 20.88,
+    "meanLatencyMs": 3,
+    "p95LatencyMs": 5.37,
+    "failureCount": 170,
+    "failuresSample": [
+      {
+        "id": "holdout_0014",
+        "category": "single_kmc",
+        "text": "Aoa sir North Karachi Sector 11 mein sth wali rod b tuti hoi he chalna dushwar hai.",
+        "expected": [
+          "kmc"
+        ],
+        "predicted": []
+      },
+      {
+        "id": "holdout_0022",
+        "category": "single_sbca",
+        "text": "Hello authority please help Basia Bungalows Gulshan mein deewar girne ke qareeb hai substandard material use ho raha hai. jaldi karo",
+        "expected": [
+          "sbca"
+        ],
+        "predicted": []
+      },
+      {
+        "id": "holdout_0023",
+        "category": "single_sbca",
+        "text": "Zulm ki inteha hai Keamari Dockyard mein baghair noc aur permit ke extra chhati manzil banayi ja rahi hai. koi kaam nahi karta",
+        "expected": [
+          "sbca"
+        ],
+        "predicted": []
+      },
+      {
+        "id": "holdout_0025",
+        "category": "single_kelectric",
+        "text": "Bohot afsos ki baat hai Basia Bungalows Gulshan mein bejli ka tranforma jal gya he kal rat se andhera he. kab theek hoga ye sab",
+        "expected": [
+          "kelectric"
+        ],
+        "predicted": [
+          "kmc"
+        ]
+      },
+      {
+        "id": "holdout_0026",
+        "category": "single_sbca",
+        "text": "Bohot afsos ki baat hai Clifton Block 2 mein deewar girne ke qareeb hai substandard material use ho raha hai. kab theek hoga ye sab",
+        "expected": [
+          "sbca"
+        ],
+        "predicted": []
+      },
+      {
+        "id": "holdout_0028",
+        "category": "single_sbca",
+        "text": "Lanat ho tum sab par Buffer Zone mein baghair noc aur permit ke extra chhati manzil banayi ja rahi hai. awam ko pagal samjha hai",
+        "expected": [
+          "sbca"
+        ],
+        "predicted": []
+      },
+      {
+        "id": "holdout_0032",
+        "category": "single_sbca",
+        "text": "Hello authority please help Malir Halt mein deewar girne ke qareeb hai substandard material use ho raha hai. jaldi karo",
+        "expected": [
+          "sbca"
+        ],
+        "predicted": []
+      },
+      {
+        "id": "holdout_0036",
+        "category": "single_sswmb",
+        "text": "Lanat ho tum sab par Shah Faisal Colony mein safai nahi ho rahi do maah se sweepers gayab hain. awam ko pagal samjha hai",
+        "expected": [
+          "sswmb"
+        ],
+        "predicted": []
+      },
+      {
+        "id": "holdout_0039",
+        "category": "single_ssgc",
+        "text": "Zulm ki inteha hai Orangi Town mein gas meter ke paas se leak ki awaz aur boo arahi hai. koi kaam nahi karta",
+        "expected": [
+          "ssgc"
+        ],
+        "predicted": []
+      },
+      {
+        "id": "holdout_0040",
+        "category": "single_sswmb",
+        "text": "Aoa sir Gulshan-e-Iqbal mein safai nahi ho rahi do maah se sweepers gayab hain.",
+        "expected": [
+          "sswmb"
+        ],
+        "predicted": []
+      }
+    ]
+  },
+  "holdoutRun004Candidate": {
+    "systemName": "Run004 + V13.2 Candidate",
+    "totalCases": 500,
+    "exactMatches": 418,
+    "exactAccuracy": 83.6,
+    "macroF1": 93.49,
+    "deptMetrics": {
+      "kmc": {
+        "precision": 82.44,
+        "recall": 83.72,
+        "f1": 83.08
+      },
+      "kwsc": {
+        "precision": 97.39,
+        "recall": 98.03,
+        "f1": 97.7
+      },
+      "kelectric": {
+        "precision": 84.33,
+        "recall": 89.68,
+        "f1": 86.92
+      },
+      "ssgc": {
+        "precision": 99.17,
+        "recall": 97.56,
+        "f1": 98.36
+      },
+      "sswmb": {
+        "precision": 90.91,
+        "recall": 99.24,
+        "f1": 94.89
+      },
+      "sbca": {
+        "precision": 100,
+        "recall": 100,
+        "f1": 100
+      }
+    },
+    "complexityAccuracy": {
+      "1_dept": {
+        "total": 200,
+        "correct": 186,
+        "accuracy": 93
+      },
+      "2_dept": {
+        "total": 175,
+        "correct": 154,
+        "accuracy": 88
+      },
+      "3_dept": {
+        "total": 75,
+        "correct": 59,
+        "accuracy": 78.67
+      },
+      "causal": {
+        "total": 15,
+        "correct": 5,
+        "accuracy": 33.33
+      },
+      "negation": {
+        "total": 10,
+        "correct": 6,
+        "accuracy": 60
+      },
+      "ambiguous": {
+        "total": 25,
+        "correct": 8,
+        "accuracy": 32
+      }
+    },
+    "falseExtraRate": 12.4,
+    "missedDeptRate": 5.13,
+    "meanLatencyMs": 1.08,
+    "p95LatencyMs": 1.42,
+    "failureCount": 82,
+    "failuresSample": [
+      {
+        "id": "holdout_0049",
+        "category": "single_kmc",
+        "text": "Korangi Sector 4 mein street light fuses hain raat ko andhera rehta hai.",
+        "expected": [
+          "kmc"
+        ],
+        "predicted": [
+          "kelectric"
+        ]
+      },
+      {
+        "id": "holdout_0051",
+        "category": "single_kmc",
+        "text": "Lanat ho tum sab par North Karachi Sector 11 mein street light fuses hain raat ko andhera rehta hai. awam ko pagal samjha hai",
+        "expected": [
+          "kmc"
+        ],
+        "predicted": [
+          "kelectric"
+        ]
+      },
+      {
+        "id": "holdout_0053",
+        "category": "single_kmc",
+        "text": "Bhai sharam karo Shah Faisal Colony mein street light fuses hain raat ko andhera rehta hai. koi sunne wala nahi yahan",
+        "expected": [
+          "kmc"
+        ],
+        "predicted": [
+          "kelectric"
+        ]
+      },
+      {
+        "id": "holdout_0058",
+        "category": "single_kmc",
+        "text": "Janab aala guzarish hai Federal B Area mein footpath par malba para hai pedestrians ke liye rasta band hai.",
+        "expected": [
+          "kmc"
+        ],
+        "predicted": [
+          "kmc",
+          "sswmb"
+        ]
+      },
+      {
+        "id": "holdout_0065",
+        "category": "single_kmc",
+        "text": "Zulm ki inteha hai Clifton Block 2 mein footpath par malba para hai pedestrians ke liye rasta band hai. koi kaam nahi karta",
+        "expected": [
+          "kmc"
+        ],
+        "predicted": [
+          "kmc",
+          "sswmb"
+        ]
+      },
+      {
+        "id": "holdout_0081",
+        "category": "single_kelectric",
+        "text": "Aoa sir Keamari Dockyard mein voltage bohot low hai 110 volt araha hai appliances jal rahi hain.",
+        "expected": [
+          "kelectric"
+        ],
+        "predicted": []
+      },
+      {
+        "id": "holdout_0084",
+        "category": "single_kmc",
+        "text": "Lanat ho tum sab par Orangi Town mein street light fuses hain raat ko andhera rehta hai. awam ko pagal samjha hai",
+        "expected": [
+          "kmc"
+        ],
+        "predicted": [
+          "kelectric"
+        ]
+      },
+      {
+        "id": "holdout_0093",
+        "category": "single_kelectric",
+        "text": "Hello authority please help Orangi Town mein voltage bohot low hai 110 volt araha hai appliances jal rahi hain. jaldi karo",
+        "expected": [
+          "kelectric"
+        ],
+        "predicted": []
+      },
+      {
+        "id": "holdout_0114",
+        "category": "single_kelectric",
+        "text": "Aoa sir Saddar Regal Chowk mein voltage bohot low hai 110 volt araha hai appliances jal rahi hain.",
+        "expected": [
+          "kelectric"
+        ],
+        "predicted": []
+      },
+      {
+        "id": "holdout_0135",
+        "category": "single_kmc",
+        "text": "Salam janab Nazimabad mein street light fuses hain raat ko andhera rehta hai.",
+        "expected": [
+          "kmc"
+        ],
+        "predicted": [
+          "kelectric"
+        ]
+      }
+    ]
+  },
+  "holdoutRun006Baseline": {
+    "systemName": "Run006 Baseline (V11)",
+    "totalCases": 500,
+    "exactMatches": 360,
+    "exactAccuracy": 72,
+    "macroF1": 89.31,
+    "deptMetrics": {
+      "kmc": {
+        "precision": 84.96,
+        "recall": 74.42,
+        "f1": 79.34
+      },
+      "kwsc": {
+        "precision": 100,
+        "recall": 100,
+        "f1": 100
+      },
+      "kelectric": {
+        "precision": 100,
+        "recall": 88.89,
+        "f1": 94.12
+      },
+      "ssgc": {
+        "precision": 100,
+        "recall": 81.3,
+        "f1": 89.69
+      },
+      "sswmb": {
+        "precision": 100,
+        "recall": 90.84,
+        "f1": 95.2
+      },
+      "sbca": {
+        "precision": 100,
+        "recall": 63.31,
+        "f1": 77.53
+      }
+    },
+    "complexityAccuracy": {
+      "1_dept": {
+        "total": 200,
+        "correct": 164,
+        "accuracy": 82
+      },
+      "2_dept": {
+        "total": 175,
+        "correct": 114,
+        "accuracy": 65.14
+      },
+      "3_dept": {
+        "total": 75,
+        "correct": 42,
+        "accuracy": 56
+      },
+      "causal": {
+        "total": 15,
+        "correct": 9,
+        "accuracy": 60
+      },
+      "negation": {
+        "total": 10,
+        "correct": 6,
+        "accuracy": 60
+      },
+      "ambiguous": {
+        "total": 25,
+        "correct": 25,
+        "accuracy": 100
+      }
+    },
+    "falseExtraRate": 3.4,
+    "missedDeptRate": 16.63,
+    "meanLatencyMs": 8,
+    "p95LatencyMs": 14.32,
+    "failureCount": 140,
+    "failuresSample": [
+      {
+        "id": "holdout_0014",
+        "category": "single_kmc",
+        "text": "Aoa sir North Karachi Sector 11 mein sth wali rod b tuti hoi he chalna dushwar hai.",
+        "expected": [
+          "kmc"
+        ],
+        "predicted": []
+      },
+      {
+        "id": "holdout_0022",
+        "category": "single_sbca",
+        "text": "Hello authority please help Basia Bungalows Gulshan mein deewar girne ke qareeb hai substandard material use ho raha hai. jaldi karo",
+        "expected": [
+          "sbca"
+        ],
+        "predicted": []
+      },
+      {
+        "id": "holdout_0023",
+        "category": "single_sbca",
+        "text": "Zulm ki inteha hai Keamari Dockyard mein baghair noc aur permit ke extra chhati manzil banayi ja rahi hai. koi kaam nahi karta",
+        "expected": [
+          "sbca"
+        ],
+        "predicted": []
+      },
+      {
+        "id": "holdout_0025",
+        "category": "single_kelectric",
+        "text": "Bohot afsos ki baat hai Basia Bungalows Gulshan mein bejli ka tranforma jal gya he kal rat se andhera he. kab theek hoga ye sab",
+        "expected": [
+          "kelectric"
+        ],
+        "predicted": []
+      },
+      {
+        "id": "holdout_0026",
+        "category": "single_sbca",
+        "text": "Bohot afsos ki baat hai Clifton Block 2 mein deewar girne ke qareeb hai substandard material use ho raha hai. kab theek hoga ye sab",
+        "expected": [
+          "sbca"
+        ],
+        "predicted": []
+      },
+      {
+        "id": "holdout_0028",
+        "category": "single_sbca",
+        "text": "Lanat ho tum sab par Buffer Zone mein baghair noc aur permit ke extra chhati manzil banayi ja rahi hai. awam ko pagal samjha hai",
+        "expected": [
+          "sbca"
+        ],
+        "predicted": []
+      },
+      {
+        "id": "holdout_0032",
+        "category": "single_sbca",
+        "text": "Hello authority please help Malir Halt mein deewar girne ke qareeb hai substandard material use ho raha hai. jaldi karo",
+        "expected": [
+          "sbca"
+        ],
+        "predicted": []
+      },
+      {
+        "id": "holdout_0039",
+        "category": "single_ssgc",
+        "text": "Zulm ki inteha hai Orangi Town mein gas meter ke paas se leak ki awaz aur boo arahi hai. koi kaam nahi karta",
+        "expected": [
+          "ssgc"
+        ],
+        "predicted": []
+      },
+      {
+        "id": "holdout_0057",
+        "category": "single_sbca",
+        "text": "Aoa sir Gulshan-e-Iqbal mein deewar girne ke qareeb hai substandard material use ho raha hai.",
+        "expected": [
+          "sbca"
+        ],
+        "predicted": []
+      },
+      {
+        "id": "holdout_0058",
+        "category": "single_kmc",
+        "text": "Janab aala guzarish hai Federal B Area mein footpath par malba para hai pedestrians ke liye rasta band hai.",
+        "expected": [
+          "kmc"
+        ],
+        "predicted": []
+      }
+    ]
+  },
+  "holdoutRun006Candidate": {
+    "systemName": "Run006 + V13.2 Candidate",
+    "totalCases": 500,
+    "exactMatches": 442,
+    "exactAccuracy": 88.4,
+    "macroF1": 95.34,
+    "deptMetrics": {
+      "kmc": {
+        "precision": 94.69,
+        "recall": 82.95,
+        "f1": 88.43
+      },
+      "kwsc": {
+        "precision": 94.9,
+        "recall": 98.03,
+        "f1": 96.44
+      },
+      "kelectric": {
+        "precision": 85.71,
+        "recall": 100,
+        "f1": 92.31
+      },
+      "ssgc": {
+        "precision": 99.19,
+        "recall": 100,
+        "f1": 99.6
+      },
+      "sswmb": {
+        "precision": 90.97,
+        "recall": 100,
+        "f1": 95.27
+      },
+      "sbca": {
+        "precision": 100,
+        "recall": 100,
+        "f1": 100
+      }
+    },
+    "complexityAccuracy": {
+      "1_dept": {
+        "total": 200,
+        "correct": 190,
+        "accuracy": 95
+      },
+      "2_dept": {
+        "total": 175,
+        "correct": 153,
+        "accuracy": 87.43
+      },
+      "3_dept": {
+        "total": 75,
+        "correct": 63,
+        "accuracy": 84
+      },
+      "causal": {
+        "total": 15,
+        "correct": 5,
+        "accuracy": 33.33
+      },
+      "negation": {
+        "total": 10,
+        "correct": 6,
+        "accuracy": 60
+      },
+      "ambiguous": {
+        "total": 25,
+        "correct": 25,
+        "accuracy": 100
+      }
+    },
+    "falseExtraRate": 9.8,
+    "missedDeptRate": 3.13,
+    "meanLatencyMs": 3.05,
+    "p95LatencyMs": 3.52,
+    "failureCount": 58,
+    "failuresSample": [
+      {
+        "id": "holdout_0049",
+        "category": "single_kmc",
+        "text": "Korangi Sector 4 mein street light fuses hain raat ko andhera rehta hai.",
+        "expected": [
+          "kmc"
+        ],
+        "predicted": [
+          "kelectric"
+        ]
+      },
+      {
+        "id": "holdout_0051",
+        "category": "single_kmc",
+        "text": "Lanat ho tum sab par North Karachi Sector 11 mein street light fuses hain raat ko andhera rehta hai. awam ko pagal samjha hai",
+        "expected": [
+          "kmc"
+        ],
+        "predicted": [
+          "kelectric"
+        ]
+      },
+      {
+        "id": "holdout_0053",
+        "category": "single_kmc",
+        "text": "Bhai sharam karo Shah Faisal Colony mein street light fuses hain raat ko andhera rehta hai. koi sunne wala nahi yahan",
+        "expected": [
+          "kmc"
+        ],
+        "predicted": [
+          "kelectric"
+        ]
+      },
+      {
+        "id": "holdout_0058",
+        "category": "single_kmc",
+        "text": "Janab aala guzarish hai Federal B Area mein footpath par malba para hai pedestrians ke liye rasta band hai.",
+        "expected": [
+          "kmc"
+        ],
+        "predicted": [
+          "kmc",
+          "sswmb"
+        ]
+      },
+      {
+        "id": "holdout_0065",
+        "category": "single_kmc",
+        "text": "Zulm ki inteha hai Clifton Block 2 mein footpath par malba para hai pedestrians ke liye rasta band hai. koi kaam nahi karta",
+        "expected": [
+          "kmc"
+        ],
+        "predicted": [
+          "kmc",
+          "sswmb"
+        ]
+      },
+      {
+        "id": "holdout_0084",
+        "category": "single_kmc",
+        "text": "Lanat ho tum sab par Orangi Town mein street light fuses hain raat ko andhera rehta hai. awam ko pagal samjha hai",
+        "expected": [
+          "kmc"
+        ],
+        "predicted": [
+          "kelectric"
+        ]
+      },
+      {
+        "id": "holdout_0135",
+        "category": "single_kmc",
+        "text": "Salam janab Nazimabad mein street light fuses hain raat ko andhera rehta hai.",
+        "expected": [
+          "kmc"
+        ],
+        "predicted": [
+          "kelectric"
+        ]
+      },
+      {
+        "id": "holdout_0147",
+        "category": "single_kmc",
+        "text": "Saddar Regal Chowk mein street light fuses hain raat ko andhera rehta hai.",
+        "expected": [
+          "kmc"
+        ],
+        "predicted": [
+          "kelectric"
+        ]
+      },
+      {
+        "id": "holdout_0174",
+        "category": "single_kmc",
+        "text": "Salam janab Basia Bungalows Gulshan mein footpath par malba para hai pedestrians ke liye rasta band hai.",
+        "expected": [
+          "kmc"
+        ],
+        "predicted": [
+          "kmc",
+          "sswmb"
+        ]
+      },
+      {
+        "id": "holdout_0186",
+        "category": "single_kmc",
+        "text": "Bhai sharam karo Liaquatabad No 4 mein street light fuses hain raat ko andhera rehta hai. koi sunne wala nahi yahan",
+        "expected": [
+          "kmc"
+        ],
+        "predicted": [
+          "kelectric"
+        ]
+      }
+    ]
+  }
+}

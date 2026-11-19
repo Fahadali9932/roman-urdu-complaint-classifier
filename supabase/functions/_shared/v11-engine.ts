@@ -2168,7 +2168,7 @@ export type UnderstandingResult =
 const MAX_WORDS = 200;
 const words = (text: string) => text.trim().split(/\s+/).filter(Boolean).length;
 
-const WATER_POWER: ClarificationQuestion = {
+export const WATER_POWER: ClarificationQuestion = {
   id: 'water_power_relation',
   kind: 'choice',
   prompt: {
@@ -2204,7 +2204,7 @@ const WATER_POWER: ClarificationQuestion = {
   ],
 };
 
-const INCOMPLETE_SECONDARY: ClarificationQuestion = {
+export const INCOMPLETE_SECONDARY: ClarificationQuestion = {
   id: 'incomplete_secondary_relation',
   kind: 'details',
   prompt: {
@@ -2214,7 +2214,7 @@ const INCOMPLETE_SECONDARY: ClarificationQuestion = {
   },
 };
 
-const DESCRIBE_ISSUE: ClarificationQuestion = {
+export const DESCRIBE_ISSUE: ClarificationQuestion = {
   id: 'describe_issue',
   kind: 'details',
   prompt: {
@@ -2224,7 +2224,7 @@ const DESCRIBE_ISSUE: ClarificationQuestion = {
   },
 };
 
-function buildLandmarkQuestion(dept: DepartmentId): ClarificationQuestion {
+export function buildLandmarkQuestion(dept: DepartmentId): ClarificationQuestion {
   const deptUpper = dept.toUpperCase();
   return {
     id: 'landmark_infrastructure_relation',
@@ -2264,7 +2264,7 @@ function buildLandmarkQuestion(dept: DepartmentId): ClarificationQuestion {
   };
 }
 
-function buildHistoricalQuestion(dept: DepartmentId): ClarificationQuestion {
+export function buildHistoricalQuestion(dept: DepartmentId): ClarificationQuestion {
   const deptUpper = dept.toUpperCase();
   return {
     id: 'resolved_historical_relation',
@@ -2304,7 +2304,7 @@ function buildHistoricalQuestion(dept: DepartmentId): ClarificationQuestion {
   };
 }
 
-function ambiguousWaterPower(text: string, prediction: V11RelationAwareResult): boolean {
+export function ambiguousWaterPower(text: string, prediction: V11RelationAwareResult): boolean {
   if (!prediction.ruleSelectedDepartments?.includes('kelectric') && !prediction.departments.includes('kelectric')) {
     return false;
   }
@@ -2319,7 +2319,7 @@ function ambiguousWaterPower(text: string, prediction: V11RelationAwareResult): 
   return !independent.test(normalized) && !separate.test(normalized) && !clearCause.test(normalized);
 }
 
-function ambiguousLandmarkAsset(prediction: V11RelationAwareResult): DepartmentId | null {
+export function ambiguousLandmarkAsset(prediction: V11RelationAwareResult): DepartmentId | null {
   for (const cand of prediction.issueCandidates) {
     if (
       cand.department &&
@@ -2335,7 +2335,7 @@ function ambiguousLandmarkAsset(prediction: V11RelationAwareResult): DepartmentI
   return null;
 }
 
-function ambiguousResolvedHistorical(prediction: V11RelationAwareResult): DepartmentId | null {
+export function ambiguousResolvedHistorical(prediction: V11RelationAwareResult): DepartmentId | null {
   for (const cand of prediction.issueCandidates) {
     if (
       cand.department &&
@@ -2375,7 +2375,7 @@ function hasRemainingUncertainty(
   return { hasUncertainty: false };
 }
 
-function ambiguousIncompleteSecondary(text: string, prediction: V11RelationAwareResult): boolean {
+export function ambiguousIncompleteSecondary(text: string, prediction: V11RelationAwareResult): boolean {
   if (prediction.reviewReason === 'INCOMPLETE_SECONDARY_ISSUE') return true;
   const normalized = normalizeRomanUrduText(text);
   return /\b(?:aur\s+alag(?:\s+se)?|alag\s+se|doosra\s+masla(?:\s+ye\s+hai\s+ke)?|is\s+ke\s+ilawa|lekin|magar)\W*$/i.test(

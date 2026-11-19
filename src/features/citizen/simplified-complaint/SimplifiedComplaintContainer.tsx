@@ -143,6 +143,26 @@ const PRESET_CASES: TestPreset[] = [
     address: 'House 204, Block 2, Clifton',
     description: 'Mohtaram afsaran, main Clifton Block 2 ka rehaishi hun aur nihayat adab se ap ki tawajjuh is ahem maslay ki taraf dilana chahta hun. Pichlay chand hafton se hamare ilaqay ki mukammal main sarak shadeed toot phoot ka shikar hai aur jaga jaga gehre khadday ban chukay hain jis se aam shehriyon aur traffic ko shaded mushkilaat ka samna hai. Barsat ke baad se halat mazeed kharab ho chuki hai aur footpath bhi toot phoot chuka hai. Hum barha ilaqay ke muaziz shehriyon ke sath mil kar guzarish kar chuke hain lekin abhi tak KMC ki taraf se koi amli iqdam nahi uthaya gaya. Rozana subah school jane wale bachay aur daftari mulazmeen is kharab sarak ki wajah se shadeed takleef uthate hain aur gaariyon ko bhi nuqsan pohanch raha hai. Baraye meherbani is shikayat ka fori notice liya jaye aur KMC ki engineering team bhej kar is sarak aur footpath ki jald az jald az-sar-e-nau taameer aur carpeting karwai jaye taake awam ko mazeed pareshani na ho. Shukriya.',
   },
+  {
+    id: 'v13_2_basia_typos',
+    label: '7. Basia Bungalows (KE+KMC+SSWMB Typos)',
+    category: 'V13.2 Spelling & Multi-Issue',
+    locality: 'Gulshan-e-Iqbal',
+    district: 'District East',
+    publicLocation: 'Basia Bungalows Block 4 Gulshan',
+    address: 'Bungalow 18, Block 4, Gulshan-e-Iqbal',
+    description: 'Salam janab Basia Banglows Block 4 Gulshan me bejli ka tranforma jal gya he kal rat se andhera he or sth wali rod b tuti hoi he kachra b para he',
+  },
+  {
+    id: 'v13_2_anger_gas',
+    label: '8. Gas Outage with Anger & Noise',
+    category: 'V13.2 Noise & Emotion Robustness',
+    locality: 'Liaquatabad',
+    district: 'District Central',
+    publicLocation: 'Liaquatabad No 4 Main Bazaar',
+    address: 'House 55, Street 2, Liaquatabad No 4',
+    description: 'Lanat ho tum sab pe gas nahi arahi subah se chulha nahi chala bache bhooke hain pagal samjha hai kya hume gas ka pressure bilkul zero hai',
+  },
 ];
 
 export const SimplifiedComplaintContainer: React.FC = () => {
@@ -160,6 +180,7 @@ export const SimplifiedComplaintContainer: React.FC = () => {
     const params = new URLSearchParams(window.location.search);
     return params.get('mode') === 'local-ai-test' || params.get('aiTest') === 'true';
   });
+  const [selectedEngine, setSelectedEngine] = useState<'run004_v11' | 'v13_2_candidate'>('run004_v11');
   const [activeClarification, setActiveClarification] = useState<{
     question: ClarificationQuestion;
   } | null>(null);
@@ -382,7 +403,10 @@ export const SimplifiedComplaintContainer: React.FC = () => {
     if (!validate(3)) return;
 
     if (!overrideAnswer) {
-      const preview = assessComplaintDraft(formData.complaint.description.trim());
+      const activeService = import.meta.env.DEV && isTestMode ? localV11ComplaintService : complaintService;
+      const preview = (activeService as any).previewComplaint
+        ? (activeService as any).previewComplaint(formData.complaint.description.trim())
+        : assessComplaintDraft(formData.complaint.description.trim());
       if (preview.state === 'ask') {
         setActiveClarification({ question: preview.question });
         setClarificationChoice('');
@@ -511,13 +535,36 @@ export const SimplifiedComplaintContainer: React.FC = () => {
                       <span className="text-xs font-black uppercase tracking-wider text-slate-900">
                         LOCAL AI TEST MODE
                       </span>
-                      <span className="text-[11px] font-mono bg-amber-100 text-amber-900 border border-amber-300 px-2 py-0.2 rounded-full font-bold">
-                        V11.4.2 Champion (run_003)
+                      <span className="text-[11px] font-mono bg-emerald-100 text-emerald-900 border border-emerald-300 px-2 py-0.5 rounded-full font-bold">
+                        V11 Champion (Run004 • SHA: E4D04293)
                       </span>
                     </div>
                     <p className="text-xs text-slate-600 mt-0.5">
-                      Executes V11.4.2 inference 100% locally in browser. Zero network calls to Supabase. Zero DB mutations.
+                      Executes inference 100% locally in browser. Zero network calls to Supabase. Zero DB mutations.
                     </p>
+                    {isTestMode && (
+                      <div className="mt-2.5 flex flex-wrap items-center gap-2">
+                        <label className="text-[11px] font-bold text-amber-950 uppercase tracking-wide">
+                          Model Candidate:
+                        </label>
+                        <select
+                          value={selectedEngine}
+                          onChange={(e) => {
+                            const val = e.target.value as 'run004_v11' | 'v13_2_candidate';
+                            setSelectedEngine(val);
+                            (localV11ComplaintService as any).setEngineMode?.(val);
+                          }}
+                          className="text-xs font-mono font-bold bg-white border border-amber-300 rounded-lg px-2.5 py-1 text-slate-800 shadow-2xs focus:ring-2 focus:ring-amber-500 cursor-pointer"
+                        >
+                          <option value="v13_2_candidate">
+                            V13.2 Candidate (Enhanced Issue Understanding & Normalization)
+                          </option>
+                          <option value="run004_v11">
+                            V11 Champion (Run004 - Active Runtime Baseline)
+                          </option>
+                        </select>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -543,7 +590,7 @@ export const SimplifiedComplaintContainer: React.FC = () => {
                 <div className="mt-4 pt-3.5 border-t border-amber-200">
                   <div className="flex items-center justify-between gap-2 mb-2">
                     <p className="text-[11px] font-bold uppercase tracking-wider text-amber-900">
-                      ⚡ Quick-Fill Phase V11.4.3 Test Complaints:
+                      ⚡ Quick-Fill Civic Test Complaints (Including V13.2 Basia Bungalows & Anger Cases):
                     </p>
                     <span className="text-[10px] text-amber-700 italic">
                       Click to auto-populate and jump to Step 3

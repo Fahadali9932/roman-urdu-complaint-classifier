@@ -4,8 +4,10 @@ import type {
   SubmissionResult,
   ComplaintStatus,
   ComplaintIssue,
+  ComplaintTimelineEvent,
   CitizenOverviewStats,
   DepartmentComplaintView,
+  DepartmentId,
 } from '../types';
 import type { IComplaintService } from './IComplaintService';
 import {
@@ -15,6 +17,17 @@ import {
 } from './v11InferenceAdapter';
 import { processComplaintPrivacy } from '../lib/privacy-engine';
 import { KARACHI_DEPARTMENTS } from '../mocks/complaints';
+import {
+  assessComplaintDraft,
+  resolveComplaintClarification,
+  type ClarificationAnswer,
+  type UnderstandingResult,
+} from './complaintUnderstanding';
+import {
+  classifyV13_2,
+  assessComplaintDraftV13_2,
+  resolveComplaintClarificationV13_2,
+} from './v13_2/v13_2_engine';
 
 export interface V11LocalAnalysisPayload extends V11RelationAwareResult {
   heading: string;
@@ -27,30 +40,232 @@ export interface V11LocalAnalysisPayload extends V11RelationAwareResult {
 }
 
 /**
- * AWAAZ-E-AWAM — Phase V11.4.3
+ * AWAAZ-E-AWAM — Phase V11.4.3 & V12.6
  * Isolated In-Memory Local V11 Complaint Service
  *
  * Guarantees:
- * - 100% Client-Side V11.4.2 Champion (run_003) Inference
+ * - Client-side inference using the frozen local artifact
  * - Zero Network Requests to Hosted Supabase
  * - Zero Database Mutations
- * - Zero PII Exposure
+ * - Single authoritative clarification-aware submission pipeline
+ * - Deterministic provenance: original model prediction vs final clarified routing
+ * - Idempotent submission: rapid double-submits produce exactly one complaint record
+ * - Department views use the sanitized narrative; this is not a security boundary
  * - Purely In-Memory Ephemeral Storage
  */
 export class LocalV11ComplaintService implements IComplaintService {
   private testComplaints: Complaint[] = [];
+  private recentSubmissions = new Map<string, { result: SubmissionResult; timestamp: number }>();
+  private engineMode: 'run004_v11' | 'v13_2_candidate' = 'run004_v11';
+
+  setEngineMode(mode: 'run004_v11' | 'v13_2_candidate') {
+    this.engineMode = mode;
+  }
+
+  getEngineMode(): 'run004_v11' | 'v13_2_candidate' {
+    return this.engineMode;
+  }
+
+  /** Preview-only contract for a citizen clarification UI. No record writes. */
+  previewComplaint(description: string): UnderstandingResult {
+    if (this.engineMode === 'v13_2_candidate') {
+      return assessComplaintDraftV13_2(description, championV11Model as any) as any;
+    }
+    return assessComplaintDraft(description, championV11Model);
+  }
+
+  resolvePreview(description: string, answer: ClarificationAnswer): UnderstandingResult {
+    if (this.engineMode === 'v13_2_candidate') {
+      return resolveComplaintClarificationV13_2(description, answer, championV11Model as any) as any;
+    }
+    return resolveComplaintClarification(description, answer, championV11Model);
+  }
 
   async submitComplaint(input: ComplaintSubmissionInput): Promise<SubmissionResult> {
     const start = performance.now();
-    const text = input.description.trim();
-    const words = text.split(/\s+/).filter(Boolean).length;
+    const rawDraft = input.description.trim();
 
-    // Run V11.4.2 Relation-Aware Champion Inference locally
-    const v11Result = classifyV11RelationAware(text, championV11Model);
+    // 1. Complaint Validation
+    if (!input.citizenName?.trim()) {
+      throw new Error('Citizen name is required.');
+    }
+    if (!input.district) {
+      throw new Error('District selection is required.');
+    }
+    if (!input.locality?.trim()) {
+      throw new Error('Locality is required.');
+    }
+    if (!rawDraft) {
+      throw new Error('Complaint description cannot be empty.');
+    }
+
+    const rawWords = rawDraft.split(/\s+/).filter(Boolean).length;
+    if (rawWords > 200) {
+      throw new Error('Complaint description cannot exceed 200 words.');
+    }
+
+    let finalStoredDescription = rawDraft;
+    let clarificationDetails: string | undefined;
+    if (input.clarificationAnswer && 'details' in input.clarificationAnswer) {
+      const details = input.clarificationAnswer.details.trim();
+      if (details) {
+        clarificationDetails = details;
+        const detailsWords = details.split(/\s+/).filter(Boolean).length;
+        if (rawWords + detailsWords > 200) {
+          throw new Error('Complaint description with additional details cannot exceed 200 words.');
+        }
+        finalStoredDescription = `${rawDraft}\n${details}`;
+      }
+    }
+
+    // 2. Idempotency & Concurrency Check
+    const subKey = `${input.citizenName.trim()}_${input.district}_${input.locality}_${rawDraft}_${
+      input.clarificationAnswer && 'choice' in input.clarificationAnswer
+        ? input.clarificationAnswer.choice
+        : input.clarificationAnswer && 'skip' in input.clarificationAnswer
+        ? 'skip'
+        : clarificationDetails || ''
+    }`;
+    const nowMs = Date.now();
+    const existing = this.recentSubmissions.get(subKey);
+    if (existing && nowMs - existing.timestamp < 3000) {
+      return existing.result;
+    }
+
+    // Clean up stale cache entries older than 10 seconds
+    for (const [k, v] of this.recentSubmissions.entries()) {
+      if (nowMs - v.timestamp > 10000) {
+        this.recentSubmissions.delete(k);
+      }
+    }
+
+    // 3. Draft Analysis
+    let initialPrediction: V11RelationAwareResult;
+    let preview: any;
+
+    if (this.engineMode === 'v13_2_candidate') {
+      const v13Res = classifyV13_2(rawDraft, championV11Model as any);
+      preview = assessComplaintDraftV13_2(rawDraft, championV11Model as any);
+      const relationType =
+        v13Res.departments.length > 1
+          ? 'INDEPENDENT'
+          : v13Res.extraction.causalChains.length > 0
+          ? 'CAUSES_CONTEXT_ONLY'
+          : 'SINGLE';
+
+      initialPrediction = {
+        departments: v13Res.departments,
+        probabilities: { ...v13Res.probabilities, unassigned: 0 } as Record<DepartmentId, number>,
+        rawProbabilities: { ...(v13Res.rawProbabilities || {}), unassigned: 0 } as Record<DepartmentId, number>,
+        relation: relationType as any,
+        needsReview: v13Res.needsReview,
+        reviewReason: v13Res.reviewReason || null,
+        notes: v13Res.notes,
+        issueCandidates: v13Res.issueCandidates,
+        ruleSelectedDepartments: v13Res.extraction.actionableDepartments,
+        edges: [],
+        missingPublicLocation: false,
+      };
+    } else {
+      initialPrediction = classifyV11RelationAware(rawDraft, championV11Model);
+      preview = assessComplaintDraft(rawDraft, championV11Model);
+    }
+
+    // 4. Clarification Evaluation & Resolution
+    let finalDepartments: DepartmentId[] = [];
+    let needsReview = false;
+    let reviewReason: string | undefined;
+    let clarificationStatus: 'none' | 'answered' | 'skipped' | 'uncertain' | 'stale' | 'review' = 'none';
+    let clarificationQuestionId: string | undefined;
+    let clarificationAnswerChoice: string | undefined;
+    let confirmedFact: string | undefined;
+
+    if (input.clarificationAnswer && input.clarificationAnswer.draftText !== rawDraft) {
+      finalDepartments = [];
+      needsReview = true;
+      reviewReason = 'STALE_CLARIFICATION';
+      clarificationStatus = 'stale';
+    } else if (preview.state === 'ready') {
+      finalDepartments = [...preview.departments];
+      needsReview = false;
+      clarificationStatus = 'none';
+    } else if (preview.state === 'ask') {
+      clarificationQuestionId = preview.question.id;
+      if (input.clarificationAnswer) {
+        // Validate answer against exact draft and question ID
+        if (
+          input.clarificationAnswer.draftText !== rawDraft ||
+          input.clarificationAnswer.questionId !== preview.question.id
+        ) {
+          finalDepartments = [];
+          needsReview = true;
+          reviewReason = 'STALE_CLARIFICATION';
+          clarificationStatus = 'stale';
+        } else {
+          if ('choice' in input.clarificationAnswer) {
+            clarificationAnswerChoice = input.clarificationAnswer.choice;
+          }
+          const resolution =
+            this.engineMode === 'v13_2_candidate'
+              ? (resolveComplaintClarificationV13_2(rawDraft, input.clarificationAnswer, championV11Model as any) as any)
+              : resolveComplaintClarification(rawDraft, input.clarificationAnswer, championV11Model);
+          if (resolution.state === 'ready') {
+            finalDepartments = [...resolution.departments];
+            needsReview = false;
+            clarificationStatus = 'answered';
+            confirmedFact = resolution.confirmedFact;
+          } else if (resolution.state === 'review') {
+            finalDepartments = [];
+            needsReview = true;
+            reviewReason = resolution.reason;
+            clarificationStatus =
+              resolution.reason === 'CLARIFICATION_SKIPPED'
+                ? 'skipped'
+                : resolution.reason === 'CLARIFICATION_UNCERTAIN'
+                ? 'uncertain'
+                : 'review';
+          } else {
+            const reason = 'reason' in resolution ? resolution.reason : 'INVALID';
+            throw new Error(
+              reason === 'WORD_LIMIT'
+                ? 'Complaint description exceeds word limit.'
+                : 'Invalid clarification answer.'
+            );
+          }
+        }
+      } else {
+        // Clarification was required by the classifier but skipped/missing at submission
+        finalDepartments = [];
+        needsReview = true;
+        reviewReason = 'CLARIFICATION_REQUIRED';
+        clarificationStatus = 'none';
+      }
+    } else if (preview.state === 'review') {
+      finalDepartments = [];
+      needsReview = true;
+      reviewReason = preview.reason;
+      clarificationStatus = 'none';
+    } else if (preview.state === 'invalid') {
+      throw new Error(
+        preview.reason === 'WORD_LIMIT'
+          ? 'Complaint description cannot exceed 200 words.'
+          : 'Invalid complaint description.'
+      );
+    }
+
+    // 5. Final Department Determination
+    const primaryDeptId: DepartmentId =
+      needsReview || finalDepartments.length === 0 ? 'unassigned' : finalDepartments[0];
+    const primaryDeptName =
+      primaryDeptId === 'unassigned' ? undefined : KARACHI_DEPARTMENTS[primaryDeptId]?.name || 'Municipal Agency';
+    const assignedDepartmentIds: DepartmentId[] = needsReview ? [] : finalDepartments;
+    const status: ComplaintStatus = needsReview ? 'under_review' : 'assigned';
+
     const latencyMs = Math.round((performance.now() - start) * 100) / 100;
+    const now = new Date().toISOString();
 
-    // Process Privacy and Truthful Summarization locally
-    const privacy = processComplaintPrivacy(text, {
+    // 6. Privacy & Truthful Summarization
+    const privacy = processComplaintPrivacy(finalStoredDescription, {
       citizenName: input.citizenName,
       citizenPhone: input.citizenPhone,
       citizenEmail: input.citizenEmail,
@@ -58,38 +273,120 @@ export class LocalV11ComplaintService implements IComplaintService {
       incidentDistrict: input.district,
       incidentLocality: input.locality,
       incidentPublicLocation: input.publicLocation,
-      departmentId: v11Result.departments[0] || 'kmc',
+      departmentId: primaryDeptId,
     });
 
     const randomSuffix = Math.random().toString(36).substring(2, 6).toUpperCase();
     const refNumber = `TEST-2026-V11-${randomSuffix}`;
-    const now = new Date().toISOString();
-    const status: ComplaintStatus = v11Result.needsReview ? 'under_review' : 'assigned';
-    const primaryDeptId = v11Result.departments[0] || 'kmc';
-    const primaryDeptName = KARACHI_DEPARTMENTS[primaryDeptId]?.name || 'Municipal Agency';
 
-    const issues: ComplaintIssue[] = v11Result.departments.map((d, idx) => ({
-      id: `iss-${d}-${Date.now()}-${idx + 1}`,
-      complaintId: `cmp-${refNumber}`,
-      departmentId: d,
-      departmentName: KARACHI_DEPARTMENTS[d]?.name,
-      issueType: `${d}.actionable_defect`,
-      confidence: v11Result.probabilities[d] ?? 0.85,
-      status: v11Result.needsReview ? 'under_review' : 'assigned',
-      updatedAt: now,
-    }));
+    // 7. Issue Records Creation (Only for assigned departments, or a review issue)
+    const issues: ComplaintIssue[] = needsReview
+      ? [
+          {
+            id: `iss-review-${Date.now()}-1`,
+            complaintId: `cmp-${refNumber}`,
+            departmentId: 'unassigned' as any,
+            departmentName: 'Review Queue',
+            issueType: reviewReason || 'manual_review_required',
+            confidence: 0,
+            status: 'under_review',
+            updatedAt: now,
+          },
+        ]
+      : finalDepartments.map((d, idx) => ({
+          id: `iss-${d}-${Date.now()}-${idx + 1}`,
+          complaintId: `cmp-${refNumber}`,
+          departmentId: d,
+          departmentName: KARACHI_DEPARTMENTS[d]?.name,
+          issueType: `${d}.actionable_defect`,
+          confidence: initialPrediction.probabilities[d] ?? 0.85,
+          status: 'assigned',
+          updatedAt: now,
+        }));
 
+    // 8. Timeline Event Composition
+    const timeline: ComplaintTimelineEvent[] = [
+      {
+        id: `t-${Date.now()}-1`,
+        status: 'submitted',
+        title: 'Test Complaint Analyzed (Local AI Test Mode)',
+        titleUrdu: 'ٹیسٹ شکایت کا مقامی تجزیہ',
+        description: `${championV11Model.version} processed complaint locally in ${latencyMs}ms.`,
+        descriptionUrdu: `وی ۱۱ ماڈل نے شکایت کا تجزیہ ${latencyMs} ملی سیکنڈ میں کیا۔`,
+        timestamp: now,
+        actorRole: 'citizen',
+      },
+    ];
+
+    if (clarificationStatus !== 'none') {
+      let clarificationTitle = 'Clarification Processed';
+      let clarificationTitleUrdu = 'وضاحت پر عمل درآمد';
+      let clarificationDesc = `Clarification status: ${clarificationStatus}.`;
+      let clarificationDescUrdu = `وضاحت کا نتیجہ: ${clarificationStatus}۔`;
+
+      if (clarificationStatus === 'answered') {
+        clarificationTitle = 'Clarification Confirmed by Citizen';
+        clarificationTitleUrdu = 'شہری کی جانب سے وضاحت کی تصدیق';
+        clarificationDesc = `Citizen confirmed: ${
+          confirmedFact || clarificationAnswerChoice || 'details provided'
+        }. Routed to ${finalDepartments.map((d) => d.toUpperCase()).join(' & ')}.`;
+        clarificationDescUrdu = `شہری کی تصدیق کے مطابق کارروائی: ${finalDepartments
+          .map((d) => d.toUpperCase())
+          .join(' اور ')}۔`;
+      } else if (clarificationStatus === 'skipped') {
+        clarificationTitle = 'Clarification Skipped by Citizen';
+        clarificationTitleUrdu = 'شہری نے وضاحت چھوڑ دی';
+        clarificationDesc =
+          'Citizen chose to skip clarification. Complaint routed to Review Queue for human triage.';
+        clarificationDescUrdu =
+          'شہری نے وضاحت چھوڑنے کا انتخاب کیا۔ شکایت دستی جائزے کے لیے بھیج دی گئی۔';
+      } else if (clarificationStatus === 'uncertain') {
+        clarificationTitle = 'Uncertain Clarification Answer';
+        clarificationTitleUrdu = 'غیر یقینی وضاحت';
+        clarificationDesc =
+          'Citizen indicated uncertainty ("I am not sure"). Routed to Review Queue for human triage.';
+        clarificationDescUrdu =
+          'شہری نے غیر یقینی کا اظہار کیا۔ شکایت دستی جائزے کے لیے بھیج دی گئی۔';
+      } else if (clarificationStatus === 'stale') {
+        clarificationTitle = 'Stale Clarification Rejected';
+        clarificationTitleUrdu = 'پرانی وضاحت مسترد';
+        clarificationDesc =
+          'Complaint text was modified after clarification question was generated. Routed to Review Queue.';
+        clarificationDescUrdu =
+          'وضاحتی سوال کے بعد شکایت کی عبارت تبدیل کر دی گئی تھی۔ دستی جائزے کے لیے بھیج دیا گیا۔';
+      }
+
+      timeline.push({
+        id: `t-${Date.now()}-2`,
+        status: needsReview ? 'under_review' : 'assigned',
+        title: clarificationTitle,
+        titleUrdu: clarificationTitleUrdu,
+        description: clarificationDesc,
+        descriptionUrdu: clarificationDescUrdu,
+        timestamp: now,
+        actorRole: 'citizen',
+      });
+    }
+
+    const totalWords = finalStoredDescription.split(/\s+/).filter(Boolean).length;
     const analysisPayload: V11LocalAnalysisPayload = {
-      ...v11Result,
+      ...initialPrediction,
+      departments: finalDepartments,
       heading: privacy.generatedHeading,
       factualSummary: privacy.factualSummary,
       sanitizedDescription: privacy.sanitizedDescription,
       latencyMs,
-      modelVersion: 'v11.4.2-champion-run_003',
-      wordCount: words,
+      modelVersion:
+        this.engineMode === 'v13_2_candidate'
+          ? 'V13.2 Candidate (Run004 • E4D04293)'
+          : championV11Model.version,
+      wordCount: totalWords,
       timestamp: now,
+      needsReview,
+      reviewReason: needsReview ? (reviewReason || 'UNDER_REVIEW') : null,
     };
 
+    // 9. Single Complaint Record Persistence
     const newComplaint: Complaint = {
       id: `cmp-${refNumber}`,
       citizenId: null,
@@ -99,57 +396,53 @@ export class LocalV11ComplaintService implements IComplaintService {
       locality: input.locality,
       publicLocation: input.publicLocation,
       title: privacy.generatedHeading,
-      description: text,
+      description: finalStoredDescription,
       sanitizedDescription: privacy.sanitizedDescription,
       generatedHeading: privacy.generatedHeading,
       factualSummary: privacy.factualSummary,
       detectedLanguage: 'roman_urdu',
       status,
-      assignedDepartmentId: (v11Result.needsReview ? 'unassigned' : primaryDeptId) as any,
-      assignedDepartmentName: v11Result.needsReview ? undefined : primaryDeptName,
-      assignedDepartmentIds: v11Result.needsReview ? [] : v11Result.departments,
-      predictedDepartmentId: primaryDeptId,
-      predictedDepartmentIds: v11Result.departments,
-      predictionConfidence: v11Result.probabilities[primaryDeptId] ?? 0.85,
-      isMultiLabel: v11Result.departments.length > 1,
+      assignedDepartmentId: primaryDeptId,
+      assignedDepartmentName: primaryDeptName,
+      assignedDepartmentIds,
+      predictedDepartmentId: initialPrediction.departments[0],
+      predictedDepartmentIds: initialPrediction.departments,
+      originalPredictedDepartmentIds: initialPrediction.departments,
+      predictionConfidence: initialPrediction.departments.length
+        ? initialPrediction.probabilities[initialPrediction.departments[0]]
+        : undefined,
+      isMultiLabel: assignedDepartmentIds.length > 1,
       hasHazard: false,
       issues,
       submittedAt: now,
       updatedAt: now,
       isDemonstration: true,
-      timeline: [
-        {
-          id: `t-${Date.now()}`,
-          status: 'submitted',
-          title: 'Test Complaint Analyzed (Local AI Test Mode)',
-          titleUrdu: 'ٹیسٹ شکایت کا مقامی تجزیہ',
-          description: `V11.4.2 Champion model processed complaint locally in ${latencyMs}ms.`,
-          descriptionUrdu: `وی ۱۱ ماڈل نے شکایت کا تجزیہ ${latencyMs} ملی سیکنڈ میں کیا۔`,
-          timestamp: now,
-          actorRole: 'citizen',
-        },
-      ],
+      timeline,
+      clarificationQuestionId,
+      clarificationAnswerChoice,
+      clarificationDetails,
+      clarificationStatus,
     };
 
-    // Store in isolated in-memory test store only
     this.testComplaints.unshift(newComplaint);
 
-    return {
+    const result: SubmissionResult = {
       referenceNumber: refNumber,
       isSimulated: true,
       isLocalTestMode: true,
       timestamp: now,
-      message: v11Result.needsReview
+      message: needsReview
         ? 'Test complaint placed in Review Queue for human classification inspection.'
-        : `Test complaint successfully routed to ${v11Result.departments.map((d) => d.toUpperCase()).join(' & ')}.`,
+        : `Test complaint successfully routed to ${finalDepartments.map((d) => d.toUpperCase()).join(' & ')}.`,
       departmentId: primaryDeptId,
-      departments: v11Result.departments,
+      departments: finalDepartments,
       status,
-      needsReview: v11Result.needsReview,
-      guestTrackingNumber: '9999 8888 7777 6666 5555 4444',
-      claimCode: `CLM-TEST-${randomSuffix}`,
+      needsReview,
       v11Analysis: analysisPayload,
     };
+
+    this.recentSubmissions.set(subKey, { result, timestamp: nowMs });
+    return result;
   }
 
   async getComplaints(): Promise<Complaint[]> {
@@ -218,32 +511,7 @@ export class LocalV11ComplaintService implements IComplaintService {
   }
 
   async getReviewQueueComplaints(): Promise<DepartmentComplaintView[]> {
-    return this.testComplaints
-      .filter((c) => c.status === 'under_review')
-      .map((c) => ({
-        id: c.id,
-        referenceNumber: c.referenceNumber,
-        district: c.district,
-        locality: c.locality,
-        publicLocation: c.publicLocation,
-        title: c.title,
-        description: c.sanitizedDescription || c.description,
-        status: c.status,
-        submittedAt: c.submittedAt,
-        updatedAt: c.updatedAt,
-        assignedDepartmentId: c.assignedDepartmentId || 'unassigned',
-        assignedDepartmentIds: c.assignedDepartmentIds || [],
-        detectedLanguage: c.detectedLanguage,
-        isDemonstration: c.isDemonstration,
-        timeline: c.timeline,
-        manualPriority: c.manualPriority,
-        manualPriorityReason: c.manualPriorityReason,
-        manualPriorityBy: c.manualPriorityBy,
-        manualPriorityAt: c.manualPriorityAt,
-        isMultiLabel: c.isMultiLabel,
-        hasHazard: c.hasHazard,
-        issues: c.issues,
-      }));
+    return []; // Local AI test mode has no authenticated administrator.
   }
 
   async updateComplaintStatus(
@@ -266,11 +534,11 @@ export class LocalV11ComplaintService implements IComplaintService {
     _targetDepartmentId: any,
     _reviewNotes?: string
   ): Promise<{ success: boolean; complaint?: DepartmentComplaintView; error?: string }> {
-    return { success: true };
+    return { success: false, error: 'Reassignment is not supported in Local AI Test Mode.' };
   }
 
-  async overrideComplaintPriority(): Promise<{ success: boolean }> {
-    return { success: true };
+  async overrideComplaintPriority(): Promise<{ success: boolean; error?: string }> {
+    return { success: false, error: 'Priority changes are not supported in Local AI Test Mode.' };
   }
 
   async claimComplaint(
@@ -280,29 +548,20 @@ export class LocalV11ComplaintService implements IComplaintService {
     return { success: false, error: 'Claiming is not supported in Local AI Test Mode.' };
   }
 
-  async trackGuestComplaint(): Promise<any> {
+  async trackGuestComplaint(): Promise<{ found: boolean; error?: string }> {
     return {
-      found: true,
-      public_status: 'assigned',
-      display_status: 'Local Test Mode Evaluation',
-      public_category: 'Local V11 Evaluation',
-      submitted_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      public_updates: [],
+      found: false,
+      error: 'Guest tracking is not supported in Local AI Test Mode.',
     };
   }
 
   async getCitizenOverviewStats(): Promise<CitizenOverviewStats> {
-    return {
-      totalComplaints: this.testComplaints.length,
-      pendingComplaints: this.testComplaints.filter((c) => c.status === 'under_review').length,
-      inProgressComplaints: this.testComplaints.filter((c) => c.status === 'assigned').length,
-      resolvedComplaints: 0,
-    };
+    return this.getOverviewStats();
   }
 
   clearTestStore(): void {
     this.testComplaints = [];
+    this.recentSubmissions.clear();
   }
 }
 
