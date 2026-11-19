@@ -79,6 +79,8 @@ export interface V11RelationAwareResult {
   ruleSelectedDepartments?: DepartmentId[];
   suppressedDepartments?: DepartmentId[];
   finalReason?: string;
+  thresholds?: Record<string, number>;
+  decisionRecords?: any[];
 }
 
 export interface V11ClassifierCalibratedFold {
@@ -315,7 +317,7 @@ export function resolveV11CivicRelations(
   // 3. Spatial location (wire on footpath/road) without road defect
   const electricalHazard = /\b(?:wire|taar|taaren|cable|pole|khamba|transformer|current|sparks?|snapping)\b/i;
   const roadStructuralDefect =
-    /\b(?:khadda|khadday|gadda|gadday|pothole|potholes|toota|tooti|damaged?|crater|dhans|asphalt|carpeting|encroachment|thela|vendor)\b/i;
+    /\b(?:khadda|khadday|gadda|gadday|pothole|potholes|toota|tooti|toote|tuta|tuti|tute|toot\s*phoot|tut\s*phut|damaged?|crater|dhans|asphalt|carpeting|encroachment|thela|vendor)\b|\b(?:road|sarak|sadak|rod|gali|foot\s*path)\b[^\.\,\;]{0,40}\b(?:toot|tut)\b|\b(?:toot|tut)\b[^\.\,\;]{0,40}\b(?:road|sarak|sadak|rod|gali|foot\s*path)\b/i;
 
   if (electricalHazard.test(low)) {
     if (!roadStructuralDefect.test(low)) {
@@ -818,10 +820,60 @@ export function classifyV11RelationAware(
     ? `Routed to [${finalDepartments.join(', ').toUpperCase()}] via hybrid ML-relation policy (ML: [${mlSelected.join(', ')}], Clause: [${clauseSelectedDepartments.join(', ')}], Rules: [${ruleSelected.join(', ')}])`
     : `Routing deferred to human review: ${reviewReason}`;
 
+  const allDepts: DepartmentId[] = ['kmc', 'kwsc', 'kelectric', 'ssgc', 'sswmb', 'sbca'];
+  const DEPT_NAMES_RECORD: Record<DepartmentId, string> = {
+    kelectric: 'K-Electric',
+    kmc: 'Karachi Metropolitan Corporation (KMC)',
+    kwsc: 'Karachi Water & Sewerage Corporation (KWSC)',
+    ssgc: 'Sui Southern Gas Company (SSGC)',
+    sswmb: 'Sindh Solid Waste Management Board (SSWMB)',
+    sbca: 'Sindh Building Control Authority (SBCA)',
+    unassigned: 'Review Queue',
+  };
+  const decisionRecords = allDepts.map((d) => {
+    const prob = calibratedProbs[d] ?? 0;
+    const thresh = artifact.thresholds[d] ?? 0.25;
+    const isSel = finalDepartments.includes(d);
+    const isSupp = suppressed.includes(d);
+    const status = isSel ? 'SELECTED' : isSupp ? 'SUPPRESSED' : 'REJECTED';
+    let source = 'STATISTICAL_ML';
+    let reason = '';
+    if (isSel) {
+      if (ruleSelected.includes(d) && mlSelected.includes(d)) {
+        source = 'HYBRID';
+        reason = `Grounded affirmative civic defect and model passed decision threshold (prob: ${prob.toFixed(2)} >= ${thresh.toFixed(2)})`;
+      } else if (ruleSelected.includes(d)) {
+        source = 'CIVIC_GROUNDING';
+        reason = `Grounded independent civic defect in complaint text`;
+      } else {
+        source = 'STATISTICAL_ML';
+        reason = `Statistical ML candidate passed decision threshold (prob: ${prob.toFixed(2)} >= ${thresh.toFixed(2)})`;
+      }
+    } else if (isSupp) {
+      source = 'CAUSAL_SUPPRESSION';
+      reason = `Suppressed ${d.toUpperCase()}: Causal symptom or contextual reference`;
+    } else {
+      source = 'THRESHOLD_FAIL';
+      reason = `Below decision threshold (prob: ${prob.toFixed(2)} < ${thresh.toFixed(2)})`;
+    }
+    return {
+      department: d,
+      departmentName: DEPT_NAMES_RECORD[d] || d.toUpperCase(),
+      status,
+      probability: prob,
+      threshold: thresh,
+      evidenceSpans: [],
+      decisionSource: source,
+      reason,
+    };
+  });
+
   return {
     departments: finalDepartments,
     probabilities: calibratedProbs,
     rawProbabilities,
+    thresholds: { ...artifact.thresholds },
+    decisionRecords,
     relation: finalDepartments.length > 1 && relationResult.relation_summary !== 'SAME_INCIDENT_DIFFERENT_REPAIRS'
       ? 'INDEPENDENT' : relationResult.relation_summary,
     issueCandidates: relationResult.issue_candidates,

@@ -9,6 +9,7 @@ import {
   Building2,
   Clock,
   X,
+  MapPin,
 } from 'lucide-react';
 import type { SubmissionResult, DepartmentId } from '../../../types';
 import type { V11LocalAnalysisPayload } from '../../../services/LocalV11ComplaintService';
@@ -71,6 +72,7 @@ export const V11AnalysisResultView: React.FC<V11AnalysisResultViewProps> = ({
   };
 
   const relInfo = getRelationBadge();
+  const activeThresholds = analysis.thresholds || DEPT_THRESHOLDS;
 
   return (
     <div
@@ -205,7 +207,7 @@ export const V11AnalysisResultView: React.FC<V11AnalysisResultViewProps> = ({
           </div>
         </div>
 
-        {/* Decoupled Location Completeness Alert */}
+        {/* Truthful Location Source Attribution Alert (V13.3) */}
         {analysis.missingPublicLocation ? (
           <div className="mt-4 rounded-xl border border-amber-300 bg-amber-50/70 p-3.5 flex items-start gap-2.5 text-xs text-amber-950">
             <Info className="h-4 w-4 text-amber-700 shrink-0 mt-0.5" />
@@ -215,16 +217,52 @@ export const V11AnalysisResultView: React.FC<V11AnalysisResultViewProps> = ({
               </p>
               <p className="mt-0.5 leading-relaxed text-amber-800">
                 The complaint contains an actionable defect, but the description text lacks specific public street, sector, or landmark details.
-                <span className="block mt-1 font-semibold text-amber-900">
-                  Separation Guarantee: This location check is evaluated independently and does NOT force valid civic issues into model review.
-                </span>
+              </p>
+              {analysis.locationAttribution?.source === 'FORM_METADATA' && (
+                <p className="mt-1 text-slate-700">
+                  <span className="font-semibold text-slate-900">Form Location: </span>
+                  Supplied via applicant form fields: <span className="font-semibold">"{analysis.locationAttribution.displayLocation}"</span> (not mentioned in complaint text).
+                </p>
+              )}
+              <p className="mt-1 font-semibold text-amber-900">
+                Separation Guarantee: This location check is evaluated independently and does NOT force valid civic issues into model review.
+              </p>
+            </div>
+          </div>
+        ) : analysis.locationAttribution?.source === 'COMPLAINT_TEXT' ? (
+          <div className="mt-4 rounded-xl border border-emerald-300 bg-emerald-50/70 p-3.5 flex items-start gap-2.5 text-xs text-emerald-950">
+            <CheckCircle2 className="h-4 w-4 text-emerald-700 shrink-0 mt-0.5" />
+            <div>
+              <p className="font-bold text-emerald-900">
+                Public Location Grounded in Complaint Narrative
+              </p>
+              <p className="mt-0.5 leading-relaxed text-emerald-800">
+                Specific street, locality, or landmark indicators detected directly in citizen text: <span className="font-semibold">"{analysis.locationAttribution.displayLocation}"</span>.
+              </p>
+              <p className="mt-1 text-[11px] text-emerald-700">
+                Separation Guarantee: Location completeness is evaluated independently and does NOT alter civic issue routing.
+              </p>
+            </div>
+          </div>
+        ) : analysis.locationAttribution?.source === 'FORM_METADATA' ? (
+          <div className="mt-4 rounded-xl border border-blue-200 bg-blue-50/70 p-3.5 flex items-start gap-2.5 text-xs text-blue-950">
+            <MapPin className="h-4 w-4 text-blue-700 shrink-0 mt-0.5" />
+            <div>
+              <p className="font-bold text-blue-900">
+                Location Supplied in Form Details (Not in Narrative Text)
+              </p>
+              <p className="mt-0.5 leading-relaxed text-blue-800">
+                Location provided via applicant form fields: <span className="font-semibold">"{analysis.locationAttribution.displayLocation}"</span>. Complaint narrative text did not explicitly name this landmark.
+              </p>
+              <p className="mt-1 text-[11px] text-blue-700">
+                Separation Guarantee: Location completeness is evaluated independently and does NOT force valid civic issues into model review.
               </p>
             </div>
           </div>
         ) : (
-          <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50/60 p-3 flex items-center gap-2 text-xs text-emerald-900">
-            <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
-            <span>Public Location Verified: Specific street/landmark indicators detected in complaint text.</span>
+          <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50/70 p-3 flex items-center gap-2 text-xs text-slate-800">
+            <Info className="h-4 w-4 text-slate-500 shrink-0" />
+            <span>Location Attribution: General civic municipal zone.</span>
           </div>
         )}
 
@@ -240,7 +278,7 @@ export const V11AnalysisResultView: React.FC<V11AnalysisResultViewProps> = ({
                 const deptName = (c.department || 'unassigned').toUpperCase();
                 const defectDesc = c.defect_evidence && c.defect_evidence.length > 0
                   ? c.defect_evidence.join(', ')
-                  : c.mention_type;
+                  : (c.mention_type === 'actionable_defect' ? 'Reported Civic Defect' : c.mention_type);
                 return (
                   <div
                     key={c.span_id || i}
@@ -253,12 +291,12 @@ export const V11AnalysisResultView: React.FC<V11AnalysisResultViewProps> = ({
                         </span>
                         <span className="font-medium text-slate-700">{defectDesc}</span>
                         {c.is_actionable ? (
-                          <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
+                          <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
                             Actionable Repair
                           </span>
                         ) : (
-                          <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
-                            {c.mention_type}
+                          <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200">
+                            Contextual Reference
                           </span>
                         )}
                       </div>
@@ -280,9 +318,9 @@ export const V11AnalysisResultView: React.FC<V11AnalysisResultViewProps> = ({
             <span className="font-mono text-[11px] text-slate-400 font-normal">Sigmoid Posterior P(D|X)</span>
           </p>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs">
-            {Object.keys(DEPT_THRESHOLDS).map((d) => {
+            {Object.keys(activeThresholds).map((d) => {
               const prob = analysis.probabilities[d as DepartmentId] ?? 0;
-              const thresh = DEPT_THRESHOLDS[d] ?? 0.25;
+              const thresh = activeThresholds[d] ?? 0.25;
               const isSelected = analysis.departments.includes(d as any);
               const pct = Math.min(Math.round(prob * 100), 100);
               const threshPct = Math.round(thresh * 100);
@@ -319,6 +357,65 @@ export const V11AnalysisResultView: React.FC<V11AnalysisResultViewProps> = ({
             })}
           </div>
         </div>
+
+        {/* Department Decisions & Threshold Audit Table (V13.3) */}
+        {analysis.decisionRecords && analysis.decisionRecords.length > 0 && (
+          <div className="mt-4 rounded-2xl border border-[#E6E3DF] p-4 bg-white overflow-hidden">
+            <p className="text-xs font-bold uppercase tracking-wider text-slate-600 mb-2.5 flex items-center justify-between">
+              <span>Department Decisions & Policy Audit Trace</span>
+              <span className="font-mono text-[11px] text-slate-400 font-normal">Single Authoritative Record</span>
+            </p>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="border-b border-slate-200 bg-slate-50/70 text-[11px] font-black uppercase tracking-wider text-slate-600 font-mono">
+                    <th className="py-2 px-2.5">Authority</th>
+                    <th className="py-2 px-2.5">Status</th>
+                    <th className="py-2 px-2.5">Probability</th>
+                    <th className="py-2 px-2.5">Threshold</th>
+                    <th className="py-2 px-2.5">Source</th>
+                    <th className="py-2 px-2.5">Reason / Determination</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 font-sans">
+                  {analysis.decisionRecords.map((rec: any) => {
+                    const isSel = rec.status === 'SELECTED';
+                    const isSupp = rec.status === 'SUPPRESSED';
+                    const badgeClass = isSel
+                      ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                      : isSupp
+                      ? 'bg-amber-100 text-amber-800 border-amber-300'
+                      : 'bg-slate-100 text-slate-600 border-slate-200';
+                    return (
+                      <tr key={rec.department} className={isSel ? 'bg-emerald-50/30' : ''}>
+                        <td className="py-2.5 px-2.5 font-mono font-bold text-[#681822]">
+                          {rec.department.toUpperCase()}
+                        </td>
+                        <td className="py-2.5 px-2.5">
+                          <span className={`inline-block font-mono text-[10px] font-bold px-2 py-0.5 rounded border ${badgeClass}`}>
+                            {rec.status}
+                          </span>
+                        </td>
+                        <td className="py-2.5 px-2.5 font-mono">
+                          {Math.round((rec.probability ?? 0) * 100)}%
+                        </td>
+                        <td className="py-2.5 px-2.5 font-mono text-slate-500">
+                          {Math.round((rec.threshold ?? 0.25) * 100)}%
+                        </td>
+                        <td className="py-2.5 px-2.5 font-mono text-[11px] text-slate-600">
+                          {rec.decisionSource}
+                        </td>
+                        <td className="py-2.5 px-2.5 text-slate-700 max-w-xs text-[11px] leading-relaxed">
+                          {rec.reason}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
 
         {/* Truthful Factual Summary & Original Complaint */}
         <div className="mt-4 rounded-2xl border border-[#E6E3DF] p-4 bg-[#FAF9F7] space-y-3 text-xs">

@@ -1,5 +1,5 @@
 /**
- * AWAAZ-E-AWAM — Phase V13.2 Authoritative Classification & Issue Understanding Engine
+ * AWAAZ-E-AWAM — Phase V13.2 / V13.3 Authoritative Classification & Issue Understanding Engine
  *
  * Combines:
  * 1. Non-destructive Roman Urdu Normalization (spelling robustness, missing spaces, letter repetition).
@@ -7,6 +7,7 @@
  * 3. Causal Consequence & Fahad's Routing Rule Enforcement (root fault vs consequence).
  * 4. Dual-Track TF-IDF + 3-Fold Platt Calibrated ML Inference (reusing frozen Run004/Run006 weights).
  * 5. Spatial Anchor De-biasing for KMC & Calibrated Thresholding for SBCA.
+ * 6. Single Authoritative Decision Record & Non-Contradictory Audit Trace (V13.3).
  */
 
 import { DepartmentId, extractMunicipalIssuesV13_2, ExtractionResult } from './issueExtractor';
@@ -31,12 +32,25 @@ import {
 const MAX_WORDS = 200;
 const words = (text: string) => text.trim().split(/\s+/).filter(Boolean).length;
 
+export interface DepartmentDecisionRecord {
+  department: DepartmentId;
+  departmentName: string;
+  status: 'SELECTED' | 'REJECTED' | 'SUPPRESSED';
+  probability: number;
+  threshold: number;
+  evidenceSpans: string[];
+  decisionSource: 'CIVIC_GROUNDING' | 'STATISTICAL_ML' | 'HYBRID' | 'THRESHOLD_FAIL' | 'CAUSAL_SUPPRESSION';
+  reason: string;
+}
+
 export interface V13_2Result {
   departments: DepartmentId[];
   probabilities: Record<DepartmentId, number>;
   rawProbabilities: Record<DepartmentId, number>;
+  thresholds: Record<DepartmentId, number>;
   extraction: ExtractionResult;
   issueCandidates: any[];
+  decisionRecords: DepartmentDecisionRecord[];
   needsReview: boolean;
   reviewReason: string | null;
   notes: string[];
@@ -50,10 +64,52 @@ export type V13_2UnderstandingResult =
   | { state: 'review'; reason: string; prediction: V13_2Result }
   | { state: 'invalid'; reason: 'EMPTY' | 'WORD_LIMIT' };
 
-export const V13_2_DECISION_POLICY = 'v13_2_discourse_and_spelling_robust_v1';
+export const V13_2_DECISION_POLICY = 'v13_3_reasoning_integrity_and_spelling_robust_v1';
+
+export function getHumanReadableDefect(dept: DepartmentId, span: string): string {
+  const low = span.toLowerCase();
+  switch (dept) {
+    case 'kelectric':
+      if (/transformer|blast|phat|dhamaka|khrab|kharab|jal/i.test(low)) return 'Damaged Transformer / Explosion';
+      if (/taar|wire|current|spark|snapping|aag/i.test(low)) return 'Sparking / Hazardous Electrical Wiring';
+      if (/voltage|dim|trip/i.test(low)) return 'Voltage Fluctuation / Feeder Tripping';
+      return 'Electricity Power Outage';
+    case 'kmc':
+      if (/street\s*lights?|batti|battiyan|bulb/i.test(low)) return 'Non-Functional Street Lights';
+      if (/footpath|foot\s*path/i.test(low)) return 'Broken Pedestrian Footpath';
+      if (/pothole|potholes|khadda|khadday|gaddha|gadday|crater/i.test(low)) return 'Road Potholes & Structural Cracks';
+      return 'Damaged Road Infrastructure';
+    case 'kwsc':
+      if (/dhakkan|open\s*manhole|khula/i.test(low)) return 'Missing / Open Manhole Cover';
+      if (/gutter|sewer|ubal|ganda\s*pani/i.test(low)) return 'Sewerage Line Overflow';
+      if (/pipe|pipeline|line\s*burst/i.test(low)) return 'Drinking Water Pipe Burst / Leak';
+      return 'Drinking Water Supply Disruption';
+    case 'ssgc':
+      if (/leak|badboo|smell|gas\s*boo/i.test(low)) return 'Gas Pipeline Leakage Hazard';
+      if (/chulha|stove/i.test(low)) return 'Low Gas Pressure (Stoves Non-Functional)';
+      return 'Low Natural Gas Pressure';
+    case 'sswmb':
+      if (/dumpster|kundi/i.test(low)) return 'Overflowing Garbage Dumpster';
+      return 'Uncollected Waste Accumulation';
+    case 'sbca':
+      if (/crack|darar|daraar|pillar/i.test(low)) return 'Dangerous Building Structural Cracks';
+      return 'Unauthorized Building Construction';
+    default:
+      return 'Civic Defect';
+  }
+}
+
+const DEPT_NAMES: Record<DepartmentId, string> = {
+  kelectric: 'K-Electric',
+  kmc: 'Karachi Metropolitan Corporation (KMC)',
+  kwsc: 'Karachi Water & Sewerage Corporation (KWSC)',
+  ssgc: 'Sui Southern Gas Company (SSGC)',
+  sswmb: 'Sindh Solid Waste Management Board (SSWMB)',
+  sbca: 'Sindh Building Control Authority (SBCA)',
+};
 
 /**
- * Classifies a natural Roman Urdu complaint using Phase V13.2 pipeline.
+ * Classifies a natural Roman Urdu complaint using Phase V13.2/V13.3 pipeline.
  */
 export function classifyV13_2(
   rawText: string,
@@ -65,15 +121,16 @@ export function classifyV13_2(
   // 1. Dual-Track TF-IDF extraction on normalized text
   const features = extractV11Features(normalizedText, artifact);
   const rawProbabilities = predictV11RawProbabilities(features, artifact);
-  const { resolvedProbs: civicProbs, notes: civicNotes } = resolveV11CivicRelations(normalizedText, rawProbabilities);
+  const { resolvedProbs: civicProbs } = resolveV11CivicRelations(normalizedText, rawProbabilities);
 
-  const notes = [...extraction.notes, ...civicNotes];
   const finalDepartmentsSet = new Set<DepartmentId>();
+  const groundedDepts = new Set<DepartmentId>();
+  const mlSelectedDepts = new Set<DepartmentId>();
 
   // 2. Add all departments grounded by affirmative independent issues
   for (const dept of extraction.actionableDepartments) {
     finalDepartmentsSet.add(dept);
-    notes.push(`Grounded independent fault: ${dept.toUpperCase()}`);
+    groundedDepts.add(dept);
   }
 
   // 3. Evaluate Statistical ML Candidates
@@ -90,22 +147,26 @@ export function classifyV13_2(
     if (prob >= thresh) {
       // Special gating for KMC: require affirmative defect, reject if road is merely spatial anchor
       if (dept === 'kmc') {
-        const hasRoadDefect = /\b(?:toot|tooti|khadda|khadday|gaddha|crater|pothole|dhans|asphalt|damaged|street\s*light\s*fuse)\b/i.test(normalizedText);
-        if (!hasRoadDefect && finalDepartmentsSet.size > 0) {
-          notes.push('Suppressed KMC: Road is purely location anchor for other utility defect');
+        const hasRoadDefect = /\b(?:toot|toota|tooti|toote|tut|tuta|tuti|tute|khadda|khadday|gaddha|crater|pothole|dhans|asphalt|damaged|street\s*light\s*fuse)\b/i.test(normalizedText);
+        if (!hasRoadDefect && finalDepartmentsSet.size > 0 && !groundedDepts.has('kmc')) {
           continue;
         }
       }
       finalDepartmentsSet.add(dept);
-      notes.push(`ML candidate passed threshold: ${dept.toUpperCase()} (prob: ${prob.toFixed(2)} >= ${thresh.toFixed(2)})`);
+      mlSelectedDepts.add(dept);
     }
   }
 
   // 4. Fahad's Rule: ensure demoted consequences are strictly eliminated
+  const demotedChains: { rootDept: DepartmentId; consequenceDept: DepartmentId; reason: string }[] = [];
   for (const chain of extraction.causalChains) {
     if (finalDepartmentsSet.has(chain.consequenceDept) && finalDepartmentsSet.has(chain.rootDept)) {
       finalDepartmentsSet.delete(chain.consequenceDept);
-      notes.push(`Enforced Fahad's Rule: Removed ${chain.consequenceDept.toUpperCase()} (caused by ${chain.rootDept.toUpperCase()})`);
+      demotedChains.push({
+        rootDept: chain.rootDept,
+        consequenceDept: chain.consequenceDept,
+        reason: chain.explanation,
+      });
     }
   }
 
@@ -131,11 +192,98 @@ export function classifyV13_2(
     reviewReason = 'NO_DEPARTMENT_MET_THRESHOLD';
   }
 
-  const issueCandidates = extraction.issues.map((iss) => ({
+  // 5. Authoritative Decision Records per Department (V13.3)
+  const decisionRecords: DepartmentDecisionRecord[] = artifact.departments.map((dept) => {
+    const thresh = artifact.thresholds[dept] ?? 0.50;
+    const prob = calibratedProbs[dept] ?? 0;
+    const isSelected = departments.includes(dept);
+    const isGrounded = groundedDepts.has(dept);
+    const passedML = mlSelectedDepts.has(dept);
+    const deptIssues = extraction.issues.filter((iss) => iss.department === dept);
+    const evidenceSpans = deptIssues.map((iss) => iss.evidenceSpan);
+
+    const demoted = demotedChains.find((c) => c.consequenceDept === dept);
+
+    if (isSelected) {
+      if (isGrounded && passedML) {
+        return {
+          department: dept,
+          departmentName: DEPT_NAMES[dept] || dept.toUpperCase(),
+          status: 'SELECTED',
+          probability: prob,
+          threshold: thresh,
+          evidenceSpans,
+          decisionSource: 'HYBRID',
+          reason: `Grounded affirmative civic defect and model passed decision threshold (prob: ${prob.toFixed(2)} >= ${thresh.toFixed(2)})`,
+        };
+      } else if (isGrounded) {
+        return {
+          department: dept,
+          departmentName: DEPT_NAMES[dept] || dept.toUpperCase(),
+          status: 'SELECTED',
+          probability: prob,
+          threshold: thresh,
+          evidenceSpans,
+          decisionSource: 'CIVIC_GROUNDING',
+          reason: `Grounded independent civic defect in complaint text: "${evidenceSpans[0] || 'direct defect'}"`,
+        };
+      } else {
+        return {
+          department: dept,
+          departmentName: DEPT_NAMES[dept] || dept.toUpperCase(),
+          status: 'SELECTED',
+          probability: prob,
+          threshold: thresh,
+          evidenceSpans,
+          decisionSource: 'STATISTICAL_ML',
+          reason: `Statistical ML candidate passed decision threshold (prob: ${prob.toFixed(2)} >= ${thresh.toFixed(2)})`,
+        };
+      }
+    } else if (demoted) {
+      return {
+        department: dept,
+        departmentName: DEPT_NAMES[dept] || dept.toUpperCase(),
+        status: 'SUPPRESSED',
+        probability: prob,
+        threshold: thresh,
+        evidenceSpans,
+        decisionSource: 'CAUSAL_SUPPRESSION',
+        reason: `Enforced Fahad's Rule: Suppressed ${dept.toUpperCase()} because issue is a causal consequence of ${demoted.rootDept.toUpperCase()} fault`,
+      };
+    } else {
+      return {
+        department: dept,
+        departmentName: DEPT_NAMES[dept] || dept.toUpperCase(),
+        status: 'REJECTED',
+        probability: prob,
+        threshold: thresh,
+        evidenceSpans,
+        decisionSource: 'THRESHOLD_FAIL',
+        reason: `Below decision threshold (prob: ${prob.toFixed(2)} < ${thresh.toFixed(2)}); no affirmative defect reported`,
+      };
+    }
+  });
+
+  // 6. Generate Single Authoritative Audit Trace Notes (V13.3)
+  // Ensure audit notes strictly match final decision records with ZERO contradictions!
+  const notes: string[] = [];
+  for (const rec of decisionRecords) {
+    if (rec.status === 'SELECTED') {
+      notes.push(`[SELECTED] ${rec.department.toUpperCase()}: ${rec.reason}`);
+    } else if (rec.status === 'SUPPRESSED') {
+      notes.push(`[SUPPRESSED] ${rec.department.toUpperCase()}: ${rec.reason}`);
+    }
+  }
+
+  // 7. Grounded Issue Candidates with human-readable defects
+  const issueCandidates = extraction.issues.map((iss, i) => ({
+    span_id: `iss-${iss.department}-${i + 1}`,
     department: iss.department,
     span_text: iss.evidenceSpan,
     normalized_text: iss.evidenceSpan,
-    mention_type: iss.status === 'LOCATION_ONLY' ? 'spatial_landmark' : 'direct_asset_defect',
+    defect_evidence: [getHumanReadableDefect(iss.department, iss.evidenceSpan)],
+    is_actionable: iss.status === 'INDEPENDENT_FAULT',
+    mention_type: iss.status === 'INDEPENDENT_FAULT' ? 'Actionable Repair' : (iss.status === 'LOCATION_ONLY' ? 'Spatial Landmark' : 'Contextual Reference'),
     is_contextual_landmark: iss.status === 'LOCATION_ONLY',
     is_historical_or_resolved: iss.status === 'HISTORICAL_RESOLVED',
   }));
@@ -144,12 +292,14 @@ export function classifyV13_2(
     departments,
     probabilities: calibratedProbs,
     rawProbabilities,
+    thresholds: { ...artifact.thresholds },
     extraction,
     issueCandidates,
+    decisionRecords,
     needsReview,
     reviewReason,
     notes,
-    modelVersion: `${artifact.version}-v13.2`,
+    modelVersion: `${artifact.version}-v13.3`,
     decisionPolicy: V13_2_DECISION_POLICY,
   };
 }

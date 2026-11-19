@@ -212,7 +212,7 @@ describe('AWAAZ-E-AWAM — Phase V11.4.3 Citizen Website Integration Suite', () 
 
       const analysis = result.v11Analysis!;
       expect(analysis.latencyMs).toBeLessThan(50);
-      expect(analysis.modelVersion).toBe('v11.4.2-champion-run_003');
+      expect(analysis.modelVersion).toBe('v11-candidate-1');
       expect(analysis.wordCount).toBe(15);
     });
 
@@ -224,6 +224,19 @@ describe('AWAAZ-E-AWAM — Phase V11.4.3 Citizen Website Integration Suite', () 
       expect(analysis.probabilities.kmc).toBeGreaterThan(0.70);
       expect(analysis.probabilities.kmc).toBeLessThan(0.95);
       expect(analysis.probabilities.kmc).not.toBe(0.85);
+    });
+
+    it('does not invent an agency or claim unsupported actions succeeded', async () => {
+      const result = await localService.submitComplaint({ ...input, description: 'mera mobile chori ho gaya' });
+      expect(result.departments).toEqual([]);
+      expect(result.departmentId).toBe('unassigned');
+      expect(result.needsReview).toBe(true);
+      const stored = await localService.getComplaintByReference(result.referenceNumber);
+      expect(stored?.predictedDepartmentId).toBeUndefined();
+      expect(stored?.predictionConfidence).toBeUndefined();
+      expect((await localService.trackGuestComplaint()).found).toBe(false);
+      expect((await localService.reviewAndAssignComplaint(result.referenceNumber, 'kmc')).success).toBe(false);
+      expect((await localService.overrideComplaintPriority()).success).toBe(false);
     });
 
     it('decouples missing_public_location from needsReview (allows automatic routing)', async () => {
@@ -282,7 +295,7 @@ describe('AWAAZ-E-AWAM — Phase V11.4.3 Citizen Website Integration Suite', () 
 
       // Verify Test Mode Banner & Badges
       expect(screen.getByText('LOCAL AI TEST MODE')).toBeInTheDocument();
-      expect(screen.getByText('v11.4.2-champion-run_003')).toBeInTheDocument();
+      expect(screen.getByText('v11-candidate-1')).toBeInTheDocument();
       expect(screen.getByText(new RegExp(submission.referenceNumber))).toBeInTheDocument();
 
       // Verify Assigned Department Badge

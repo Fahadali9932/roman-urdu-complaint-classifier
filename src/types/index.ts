@@ -143,6 +143,11 @@ export interface Complaint {
   predictedDepartmentId?: DepartmentId;
   predictedDepartmentIds?: DepartmentId[];
   predictionConfidence?: number;
+  originalPredictedDepartmentIds?: DepartmentId[];
+  clarificationQuestionId?: string;
+  clarificationAnswerChoice?: string;
+  clarificationDetails?: string;
+  clarificationStatus?: 'none' | 'answered' | 'skipped' | 'uncertain' | 'stale' | 'review';
   isMultiLabel?: boolean;
   issues?: ComplaintIssue[];
   hasHazard?: boolean;
@@ -177,6 +182,27 @@ export const DEMO_CITIZEN: CitizenProfile = {
   isFictionalDemoUser: true,
 };
 
+export type WaterRelationAnswer = 'independent_supply' | 'power_caused_motor' | 'unsure';
+export type LandmarkRelationAnswer = 'landmark_only' | 'asset_also_defective' | 'unsure';
+export type HistoricalRelationAnswer = 'already_resolved' | 'still_unresolved' | 'unsure';
+
+export type ClarificationAnswer = { draftText: string } & (
+  | { questionId: 'water_power_relation'; choice: WaterRelationAnswer }
+  | { questionId: 'landmark_infrastructure_relation'; choice: LandmarkRelationAnswer }
+  | { questionId: 'resolved_historical_relation'; choice: HistoricalRelationAnswer }
+  | { questionId: 'incomplete_secondary_relation'; details: string }
+  | { questionId: 'describe_issue'; details: string }
+  | {
+      questionId:
+        | 'water_power_relation'
+        | 'landmark_infrastructure_relation'
+        | 'resolved_historical_relation'
+        | 'incomplete_secondary_relation'
+        | 'describe_issue';
+      skip: true;
+    }
+);
+
 export interface ComplaintSubmissionInput {
   citizenName: string;
   citizenPhone?: string;
@@ -189,6 +215,8 @@ export interface ComplaintSubmissionInput {
   description: string;
   /** Explicit opt-in for fictional, controlled test submissions only. */
   isDemonstration?: boolean;
+  /** Optional clarification answer provided by citizen during preflight */
+  clarificationAnswer?: ClarificationAnswer;
 }
 
 /**

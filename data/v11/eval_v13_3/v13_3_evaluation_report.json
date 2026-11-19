@@ -1,0 +1,1407 @@
+{
+  "benchmark_name": "v13_3_holdout_1000",
+  "timestamp": "2026-11-19T21:27:24.621Z",
+  "totalCases": 1000,
+  "systems": {
+    "run004Baseline": {
+      "systemName": "Run004 Baseline (V11)",
+      "totalCases": 1000,
+      "exactMatches": 641,
+      "exactAccuracy": 64.1,
+      "macroF1": 84.58,
+      "deptMetrics": {
+        "kmc": {
+          "tp": 206,
+          "fp": 79,
+          "fn": 48,
+          "precision": 72.28,
+          "recall": 81.1,
+          "f1": 76.44
+        },
+        "kwsc": {
+          "tp": 252,
+          "fp": 9,
+          "fn": 11,
+          "precision": 96.55,
+          "recall": 95.82,
+          "f1": 96.18
+        },
+        "kelectric": {
+          "tp": 182,
+          "fp": 14,
+          "fn": 80,
+          "precision": 92.86,
+          "recall": 69.47,
+          "f1": 79.48
+        },
+        "ssgc": {
+          "tp": 219,
+          "fp": 0,
+          "fn": 39,
+          "precision": 100,
+          "recall": 84.88,
+          "f1": 91.82
+        },
+        "sswmb": {
+          "tp": 233,
+          "fp": 0,
+          "fn": 24,
+          "precision": 100,
+          "recall": 90.66,
+          "f1": 95.1
+        },
+        "sbca": {
+          "tp": 128,
+          "fp": 0,
+          "fn": 118,
+          "precision": 100,
+          "recall": 52.03,
+          "f1": 68.45
+        }
+      },
+      "complexityAccuracy": {
+        "single_department": {
+          "total": 400,
+          "correct": 309,
+          "accuracy": 77.25
+        },
+        "dual_department": {
+          "total": 300,
+          "correct": 166,
+          "accuracy": 55.33
+        },
+        "triple_department": {
+          "total": 150,
+          "correct": 68,
+          "accuracy": 45.33
+        },
+        "causal_consequence": {
+          "total": 50,
+          "correct": 16,
+          "accuracy": 32
+        },
+        "negation_suppressed": {
+          "total": 40,
+          "correct": 28,
+          "accuracy": 70
+        },
+        "out_of_scope": {
+          "total": 30,
+          "correct": 25,
+          "accuracy": 83.33
+        },
+        "ambiguous": {
+          "total": 30,
+          "correct": 29,
+          "accuracy": 96.67
+        }
+      },
+      "falseExtraRate": 10.2,
+      "missedDeptRate": 20.78,
+      "meanLatencyMs": 4.13,
+      "p95LatencyMs": 6.29,
+      "failureCount": 359,
+      "failuresSample": [
+        {
+          "id": "v13_3_holdout_0006",
+          "complexity": "single_department",
+          "category": "single_sbca",
+          "text": "Salam alaikum hamare area Clifton Block 5 mein commercial hall residential zone mein banaya ja raha hai baghair naqsha pass karwaye. Tax poora letay ho kaam dhang se nahi hota.",
+          "expected": [
+            "sbca"
+          ],
+          "predicted": [],
+          "needsReview": true,
+          "reviewReason": "UNCERTAIN_DEFECT",
+          "notes": [
+            "Suppressed SBCA: No affirmative building control tokens found",
+            "No actionable municipal department met confidence threshold or rule criteria (Needs Review)"
+          ]
+        },
+        {
+          "id": "v13_3_holdout_0009",
+          "complexity": "single_department",
+          "category": "single_kelectric",
+          "text": "Assalam o alaikum hamare area Landhi Industrial Area mein 10 din se bejli ni arhi tranforma khrab hai.",
+          "expected": [
+            "kelectric"
+          ],
+          "predicted": [],
+          "needsReview": true,
+          "reviewReason": "UNCERTAIN_DEFECT",
+          "notes": [
+            "Filtered unsupported ML candidate KELECTRIC: no domain asset or defect tokens present",
+            "No actionable municipal department met confidence threshold or rule criteria (Needs Review)"
+          ]
+        },
+        {
+          "id": "v13_3_holdout_0017",
+          "complexity": "single_department",
+          "category": "single_sswmb",
+          "text": "Aoa janab hamare area Shah Faisal Colony No 3 mein safai nahi ho rahi do maah se sweepers gayab hain. Hum shikayat kar kar ke thak gaye hain koi nahi sunta.",
+          "expected": [
+            "sswmb"
+          ],
+          "predicted": [],
+          "needsReview": true,
+          "reviewReason": "UNCERTAIN_DEFECT",
+          "notes": [
+            "Filtered unsupported ML candidate KMC: no domain asset or defect tokens present",
+            "No actionable municipal department met confidence threshold or rule criteria (Needs Review)"
+          ]
+        },
+        {
+          "id": "v13_3_holdout_0021",
+          "complexity": "single_department",
+          "category": "single_kelectric",
+          "text": "Guzarish yeh hai ke hamare area Malir Khokhrapar mein voltage bohot low hai 110 volt araha hai appliances jal rahi hain. Hum shikayat kar kar ke thak gaye hain koi nahi sunta.",
+          "expected": [
+            "kelectric"
+          ],
+          "predicted": [],
+          "needsReview": true,
+          "reviewReason": "UNCERTAIN_DEFECT",
+          "notes": [
+            "No actionable municipal department met confidence threshold or rule criteria (Needs Review)"
+          ]
+        },
+        {
+          "id": "v13_3_holdout_0024",
+          "complexity": "single_department",
+          "category": "single_sbca",
+          "text": "Bhai suno hamare area Baldia Town Saeedabad mein baghair noc aur permit ke extra chhati manzil banayi ja rahi hai. Bachon aur buzurgo ka jeena mushkil ho gaya hai.",
+          "expected": [
+            "sbca"
+          ],
+          "predicted": [],
+          "needsReview": true,
+          "reviewReason": "UNCERTAIN_DEFECT",
+          "notes": [
+            "No actionable municipal department met confidence threshold or rule criteria (Needs Review)"
+          ]
+        },
+        {
+          "id": "v13_3_holdout_0027",
+          "complexity": "single_department",
+          "category": "single_kelectric",
+          "text": "Janab aala hamare area Clifton Block 5 mein cable jal chuki hai meter ke paas se dhuan uth raha hai.",
+          "expected": [
+            "kelectric"
+          ],
+          "predicted": [],
+          "needsReview": true,
+          "reviewReason": "UNCERTAIN_DEFECT",
+          "notes": [
+            "Filtered unsupported ML candidate KELECTRIC: no domain asset or defect tokens present",
+            "No actionable municipal department met confidence threshold or rule criteria (Needs Review)"
+          ]
+        },
+        {
+          "id": "v13_3_holdout_0043",
+          "complexity": "single_department",
+          "category": "single_kmc",
+          "text": "Sir hamare area Korangi Sector 32-B mein street light fuses hain raat ko andhera rehta hai. Hum shikayat kar kar ke thak gaye hain koi nahi sunta.",
+          "expected": [
+            "kmc"
+          ],
+          "predicted": [
+            "kelectric",
+            "kmc"
+          ],
+          "needsReview": false,
+          "reviewReason": null,
+          "notes": [
+            "Actionable defect for KMC in span 'Sir hamare area Korangi Sector 32-B mein street light fuses hain raat ko andhera rehta hai'"
+          ]
+        },
+        {
+          "id": "v13_3_holdout_0047",
+          "complexity": "single_department",
+          "category": "single_sswmb",
+          "text": "Janab aala hamare area Keamari Jackson Bazar mein kooda daan toot chuka hai sara kachra sadak par bikhra rehta hai. Barish hoti hai to bohot kichar hota hai zindagi azaab ban chuki hai.",
+          "expected": [
+            "sswmb"
+          ],
+          "predicted": [
+            "kmc",
+            "sswmb"
+          ],
+          "needsReview": false,
+          "reviewReason": null,
+          "notes": [
+            "Actionable defect for KMC in span 'Janab aala hamare area Keamari Jackson Bazar mein kooda daan toot chuka hai sara kachra sadak par bikhra rehta hai'",
+            "Actionable defect for SSWMB in span 'Janab aala hamare area Keamari Jackson Bazar mein kooda daan toot chuka hai sara kachra sadak par bikhra rehta hai'",
+            "Complaint contains actionable defect but lacks specific public street/landmark details (INCOMPLETE_PUBLIC_LOCATION)"
+          ]
+        },
+        {
+          "id": "v13_3_holdout_0048",
+          "complexity": "single_department",
+          "category": "single_sbca",
+          "text": "Salam alaikum hamare area Malir Khokhrapar mein parosi baghair setback aur SBCA approval ke chhat daal raha hai. Hum shikayat kar kar ke thak gaye hain koi nahi sunta.",
+          "expected": [
+            "sbca"
+          ],
+          "predicted": [],
+          "needsReview": true,
+          "reviewReason": "UNCERTAIN_DEFECT",
+          "notes": [
+            "Suppressed SBCA: No affirmative building control tokens found",
+            "No actionable municipal department met confidence threshold or rule criteria (Needs Review)"
+          ]
+        },
+        {
+          "id": "v13_3_holdout_0052",
+          "complexity": "single_department",
+          "category": "single_ssgc",
+          "text": "Bohot zaroori masla hai hamare area Korangi Sector 32-B mein gas meter ke paas se leak ki awaz aur boo arahi hai. Awam ko pagal bana rakha hai sharam aani chahiye.",
+          "expected": [
+            "ssgc"
+          ],
+          "predicted": [],
+          "needsReview": true,
+          "reviewReason": "UNCERTAIN_DEFECT",
+          "notes": [
+            "Filtered unsupported ML candidate SSGC: no domain asset or defect tokens present",
+            "No actionable municipal department met confidence threshold or rule criteria (Needs Review)"
+          ]
+        },
+        {
+          "id": "v13_3_holdout_0053",
+          "complexity": "single_department",
+          "category": "single_sswmb",
+          "text": "Bhai suno hamare area Buffer Zone Sector 15B mein safai nahi ho rahi do maah se sweepers gayab hain. Hum shikayat kar kar ke thak gaye hain koi nahi sunta.",
+          "expected": [
+            "sswmb"
+          ],
+          "predicted": [],
+          "needsReview": true,
+          "reviewReason": "UNCERTAIN_DEFECT",
+          "notes": [
+            "Filtered unsupported ML candidate KMC: no domain asset or defect tokens present",
+            "No actionable municipal department met confidence threshold or rule criteria (Needs Review)"
+          ]
+        },
+        {
+          "id": "v13_3_holdout_0060",
+          "complexity": "single_department",
+          "category": "single_sbca",
+          "text": "hamare area Orangi Town Sector 11 mein deewar girne ke qareeb hai substandard material use ho raha hai. Barish hoti hai to bohot kichar hota hai zindagi azaab ban chuki hai.",
+          "expected": [
+            "sbca"
+          ],
+          "predicted": [],
+          "needsReview": true,
+          "reviewReason": "UNCERTAIN_DEFECT",
+          "notes": [
+            "No actionable municipal department met confidence threshold or rule criteria (Needs Review)"
+          ]
+        },
+        {
+          "id": "v13_3_holdout_0063",
+          "complexity": "single_department",
+          "category": "single_kelectric",
+          "text": "Bohot zaroori masla hai hamare area Orangi Town Sector 11 mein cable jal chuki hai meter ke paas se dhuan uth raha hai. Barish hoti hai to bohot kichar hota hai zindagi azaab ban chuki hai.",
+          "expected": [
+            "kelectric"
+          ],
+          "predicted": [],
+          "needsReview": true,
+          "reviewReason": "UNCERTAIN_DEFECT",
+          "notes": [
+            "Filtered unsupported ML candidate KELECTRIC: no domain asset or defect tokens present",
+            "No actionable municipal department met confidence threshold or rule criteria (Needs Review)"
+          ]
+        },
+        {
+          "id": "v13_3_holdout_0067",
+          "complexity": "single_department",
+          "category": "single_kmc",
+          "text": "Bohot zaroori masla hai hamare area Orangi Town Sector 11 mein sth wali rod b tuti hoi he chalna dushwar hai. Awam ko pagal bana rakha hai sharam aani chahiye.",
+          "expected": [
+            "kmc"
+          ],
+          "predicted": [],
+          "needsReview": true,
+          "reviewReason": "UNCERTAIN_DEFECT",
+          "notes": [
+            "Filtered unsupported ML candidate KMC: no domain asset or defect tokens present",
+            "No actionable municipal department met confidence threshold or rule criteria (Needs Review)"
+          ]
+        },
+        {
+          "id": "v13_3_holdout_0072",
+          "complexity": "single_department",
+          "category": "single_sbca",
+          "text": "Aoa janab hamare area Orangi Town Sector 11 mein baghair noc aur permit ke extra chhati manzil banayi ja rahi hai. Please take immediate action urgent basis pe.",
+          "expected": [
+            "sbca"
+          ],
+          "predicted": [],
+          "needsReview": true,
+          "reviewReason": "UNCERTAIN_DEFECT",
+          "notes": [
+            "No actionable municipal department met confidence threshold or rule criteria (Needs Review)"
+          ]
+        }
+      ]
+    },
+    "run004Candidate": {
+      "systemName": "Run004 + V13.3 Policy",
+      "totalCases": 1000,
+      "exactMatches": 640,
+      "exactAccuracy": 64,
+      "macroF1": 85.44,
+      "deptMetrics": {
+        "kmc": {
+          "tp": 222,
+          "fp": 100,
+          "fn": 32,
+          "precision": 68.94,
+          "recall": 87.4,
+          "f1": 77.08
+        },
+        "kwsc": {
+          "tp": 246,
+          "fp": 19,
+          "fn": 17,
+          "precision": 92.83,
+          "recall": 93.54,
+          "f1": 93.18
+        },
+        "kelectric": {
+          "tp": 231,
+          "fp": 67,
+          "fn": 31,
+          "precision": 77.52,
+          "recall": 88.17,
+          "f1": 82.5
+        },
+        "ssgc": {
+          "tp": 223,
+          "fp": 39,
+          "fn": 35,
+          "precision": 85.11,
+          "recall": 86.43,
+          "f1": 85.77
+        },
+        "sswmb": {
+          "tp": 226,
+          "fp": 14,
+          "fn": 31,
+          "precision": 94.17,
+          "recall": 87.94,
+          "f1": 90.95
+        },
+        "sbca": {
+          "tp": 175,
+          "fp": 0,
+          "fn": 71,
+          "precision": 100,
+          "recall": 71.14,
+          "f1": 83.14
+        }
+      },
+      "complexityAccuracy": {
+        "single_department": {
+          "total": 400,
+          "correct": 325,
+          "accuracy": 81.25
+        },
+        "dual_department": {
+          "total": 300,
+          "correct": 187,
+          "accuracy": 62.33
+        },
+        "triple_department": {
+          "total": 150,
+          "correct": 78,
+          "accuracy": 52
+        },
+        "causal_consequence": {
+          "total": 50,
+          "correct": 10,
+          "accuracy": 20
+        },
+        "negation_suppressed": {
+          "total": 40,
+          "correct": 29,
+          "accuracy": 72.5
+        },
+        "out_of_scope": {
+          "total": 30,
+          "correct": 6,
+          "accuracy": 20
+        },
+        "ambiguous": {
+          "total": 30,
+          "correct": 5,
+          "accuracy": 16.67
+        }
+      },
+      "falseExtraRate": 23.9,
+      "missedDeptRate": 14.09,
+      "meanLatencyMs": 1.18,
+      "p95LatencyMs": 1.62,
+      "failureCount": 360,
+      "failuresSample": [
+        {
+          "id": "v13_3_holdout_0006",
+          "complexity": "single_department",
+          "category": "single_sbca",
+          "text": "Salam alaikum hamare area Clifton Block 5 mein commercial hall residential zone mein banaya ja raha hai baghair naqsha pass karwaye. Tax poora letay ho kaam dhang se nahi hota.",
+          "expected": [
+            "sbca"
+          ],
+          "predicted": [],
+          "needsReview": true,
+          "reviewReason": "NO_DEPARTMENT_MET_THRESHOLD",
+          "notes": []
+        },
+        {
+          "id": "v13_3_holdout_0008",
+          "complexity": "single_department",
+          "category": "single_kwsc",
+          "text": "Janab aala hamare area P.E.C.H.S Block 2 mein peenay ka saaf pani do hafton se band hai pipeline dead ho chuki hai. Bachon aur buzurgo ka jeena mushkil ho gaya hai.",
+          "expected": [
+            "kwsc"
+          ],
+          "predicted": [
+            "kwsc",
+            "ssgc"
+          ],
+          "needsReview": false,
+          "reviewReason": null,
+          "notes": [
+            "[SELECTED] KWSC: Grounded affirmative civic defect and model passed decision threshold (prob: 0.67 >= 0.38)",
+            "[SELECTED] SSGC: Grounded independent civic defect in complaint text: \"s block 2 mein peenay ka saaf pani do hafton se band hai pipeline dead ho chuki hai\""
+          ]
+        },
+        {
+          "id": "v13_3_holdout_0014",
+          "complexity": "single_department",
+          "category": "single_kwsc",
+          "text": "Assalam o alaikum hamare area Liaquatabad Dak Khana mein peenay ka saaf pani do hafton se band hai pipeline dead ho chuki hai. Please take immediate action urgent basis pe.",
+          "expected": [
+            "kwsc"
+          ],
+          "predicted": [
+            "kwsc",
+            "ssgc"
+          ],
+          "needsReview": false,
+          "reviewReason": null,
+          "notes": [
+            "[SELECTED] KWSC: Grounded affirmative civic defect and model passed decision threshold (prob: 0.58 >= 0.38)",
+            "[SELECTED] SSGC: Grounded independent civic defect in complaint text: \"assalam o alaikum hamare area liaquatabad dak khana mein peenay ka saaf pani do hafton se band hai pipeline dead ho chuki hai\""
+          ]
+        },
+        {
+          "id": "v13_3_holdout_0021",
+          "complexity": "single_department",
+          "category": "single_kelectric",
+          "text": "Guzarish yeh hai ke hamare area Malir Khokhrapar mein voltage bohot low hai 110 volt araha hai appliances jal rahi hain. Hum shikayat kar kar ke thak gaye hain koi nahi sunta.",
+          "expected": [
+            "kelectric"
+          ],
+          "predicted": [],
+          "needsReview": true,
+          "reviewReason": "NO_DEPARTMENT_MET_THRESHOLD",
+          "notes": []
+        },
+        {
+          "id": "v13_3_holdout_0026",
+          "complexity": "single_department",
+          "category": "single_kwsc",
+          "text": "Bohot zaroori masla hai hamare area Liaquatabad Dak Khana mein pani ki line mein drainage ka ganda pani mix ho kar araha hai badboo dar pani. Authorities se darkhwast hai foran action liya jaye.",
+          "expected": [
+            "kwsc"
+          ],
+          "predicted": [
+            "kwsc",
+            "ssgc"
+          ],
+          "needsReview": false,
+          "reviewReason": null,
+          "notes": [
+            "[SELECTED] KWSC: Grounded affirmative civic defect and model passed decision threshold (prob: 0.95 >= 0.38)",
+            "[SELECTED] SSGC: Grounded independent civic defect in complaint text: \"bohot zaroori masla hai hamare area liaquatabad dak khana mein pani ki line mein drainage ka ganda pani mix ho kar aa raha hai boodar dar pani\""
+          ]
+        },
+        {
+          "id": "v13_3_holdout_0029",
+          "complexity": "single_department",
+          "category": "single_sswmb",
+          "text": "Bhai suno hamare area Shah Faisal Colony No 3 mein sweepers kachra gali ke beech mein chhod kar chale jate hain. Authorities se darkhwast hai foran action liya jaye.",
+          "expected": [
+            "sswmb"
+          ],
+          "predicted": [
+            "kmc",
+            "sswmb"
+          ],
+          "needsReview": false,
+          "reviewReason": null,
+          "notes": [
+            "[SELECTED] KMC: Statistical ML candidate passed decision threshold (prob: 0.29 >= 0.25)",
+            "[SELECTED] SSWMB: Statistical ML candidate passed decision threshold (prob: 0.52 >= 0.25)"
+          ]
+        },
+        {
+          "id": "v13_3_holdout_0036",
+          "complexity": "single_department",
+          "category": "single_sbca",
+          "text": "Hello authority hamare area Federal B Area Block 14 mein residential gali mein illegal multi-storey building ban rahi hai. Bachon aur buzurgo ka jeena mushkil ho gaya hai.",
+          "expected": [
+            "sbca"
+          ],
+          "predicted": [
+            "kelectric",
+            "sbca"
+          ],
+          "needsReview": false,
+          "reviewReason": null,
+          "notes": [
+            "[SELECTED] KELECTRIC: Statistical ML candidate passed decision threshold (prob: 0.25 >= 0.25)",
+            "[SELECTED] SBCA: Grounded affirmative civic defect and model passed decision threshold (prob: 0.47 >= 0.30)"
+          ]
+        },
+        {
+          "id": "v13_3_holdout_0043",
+          "complexity": "single_department",
+          "category": "single_kmc",
+          "text": "Sir hamare area Korangi Sector 32-B mein street light fuses hain raat ko andhera rehta hai. Hum shikayat kar kar ke thak gaye hain koi nahi sunta.",
+          "expected": [
+            "kmc"
+          ],
+          "predicted": [
+            "kelectric"
+          ],
+          "needsReview": false,
+          "reviewReason": null,
+          "notes": [
+            "[SELECTED] KELECTRIC: Grounded affirmative civic defect and model passed decision threshold (prob: 0.25 >= 0.25)"
+          ]
+        },
+        {
+          "id": "v13_3_holdout_0044",
+          "complexity": "single_department",
+          "category": "single_kwsc",
+          "text": "Aoa janab hamare area Korangi Sector 32-B mein pani ki line mein drainage ka ganda pani mix ho kar araha hai badboo dar pani. Tax poora letay ho kaam dhang se nahi hota.",
+          "expected": [
+            "kwsc"
+          ],
+          "predicted": [
+            "kwsc",
+            "ssgc"
+          ],
+          "needsReview": false,
+          "reviewReason": null,
+          "notes": [
+            "[SELECTED] KWSC: Grounded affirmative civic defect and model passed decision threshold (prob: 0.97 >= 0.38)",
+            "[SELECTED] SSGC: Grounded independent civic defect in complaint text: \"aoa janab hamare area korangi sector 32-b mein pani ki line mein drainage ka ganda pani mix ho kar aa raha hai boodar dar pani\""
+          ]
+        },
+        {
+          "id": "v13_3_holdout_0047",
+          "complexity": "single_department",
+          "category": "single_sswmb",
+          "text": "Janab aala hamare area Keamari Jackson Bazar mein kooda daan toot chuka hai sara kachra sadak par bikhra rehta hai. Barish hoti hai to bohot kichar hota hai zindagi azaab ban chuki hai.",
+          "expected": [
+            "sswmb"
+          ],
+          "predicted": [
+            "kmc",
+            "sswmb"
+          ],
+          "needsReview": false,
+          "reviewReason": null,
+          "notes": [
+            "[SELECTED] KMC: Statistical ML candidate passed decision threshold (prob: 0.45 >= 0.25)",
+            "[SELECTED] SSWMB: Grounded affirmative civic defect and model passed decision threshold (prob: 0.79 >= 0.25)"
+          ]
+        },
+        {
+          "id": "v13_3_holdout_0048",
+          "complexity": "single_department",
+          "category": "single_sbca",
+          "text": "Salam alaikum hamare area Malir Khokhrapar mein parosi baghair setback aur SBCA approval ke chhat daal raha hai. Hum shikayat kar kar ke thak gaye hain koi nahi sunta.",
+          "expected": [
+            "sbca"
+          ],
+          "predicted": [],
+          "needsReview": true,
+          "reviewReason": "NO_DEPARTMENT_MET_THRESHOLD",
+          "notes": []
+        },
+        {
+          "id": "v13_3_holdout_0049",
+          "complexity": "single_department",
+          "category": "single_kmc",
+          "text": "Salam alaikum hamare area P.E.C.H.S Block 2 mein underpass mein road toot gayi hai aur asphalt ukhad chuka hai. 10 din se zalil ho rahe hain koi hal nahi nikal raha.",
+          "expected": [
+            "kmc"
+          ],
+          "predicted": [
+            "kelectric",
+            "kmc"
+          ],
+          "needsReview": false,
+          "reviewReason": null,
+          "notes": [
+            "[SELECTED] KMC: Grounded affirmative civic defect and model passed decision threshold (prob: 0.60 >= 0.25)",
+            "[SELECTED] KELECTRIC: Statistical ML candidate passed decision threshold (prob: 0.36 >= 0.25)"
+          ]
+        },
+        {
+          "id": "v13_3_holdout_0056",
+          "complexity": "single_department",
+          "category": "single_kwsc",
+          "text": "hamare area Orangi Town Sector 11 mein peenay ka saaf pani do hafton se band hai pipeline dead ho chuki hai. Barish hoti hai to bohot kichar hota hai zindagi azaab ban chuki hai.",
+          "expected": [
+            "kwsc"
+          ],
+          "predicted": [
+            "kwsc",
+            "ssgc"
+          ],
+          "needsReview": false,
+          "reviewReason": null,
+          "notes": [
+            "[SELECTED] KWSC: Grounded affirmative civic defect and model passed decision threshold (prob: 0.50 >= 0.38)",
+            "[SELECTED] SSGC: Grounded independent civic defect in complaint text: \"hamare area orangi town sector 11 mein peenay ka saaf pani do hafton se band hai pipeline dead ho chuki hai\""
+          ]
+        },
+        {
+          "id": "v13_3_holdout_0065",
+          "complexity": "single_department",
+          "category": "single_sswmb",
+          "text": "Assalam o alaikum hamare area Gulshan-e-Iqbal Block 13D mein solid waste management ki gaari das din se nahi aayi badboo se dama ho raha hai. 10 din se zalil ho rahe hain koi hal nahi nikal raha.",
+          "expected": [
+            "sswmb"
+          ],
+          "predicted": [
+            "kelectric",
+            "sswmb"
+          ],
+          "needsReview": false,
+          "reviewReason": null,
+          "notes": [
+            "[SELECTED] KELECTRIC: Statistical ML candidate passed decision threshold (prob: 0.30 >= 0.25)",
+            "[SELECTED] SSWMB: Statistical ML candidate passed decision threshold (prob: 0.28 >= 0.25)"
+          ]
+        },
+        {
+          "id": "v13_3_holdout_0078",
+          "complexity": "single_department",
+          "category": "single_sbca",
+          "text": "Assalam o alaikum hamare area Landhi Industrial Area mein plinth beam toot chuka hai aur deewar baith rahi hai kisi waqt gir sakti hai.",
+          "expected": [
+            "sbca"
+          ],
+          "predicted": [
+            "kelectric",
+            "kmc"
+          ],
+          "needsReview": false,
+          "reviewReason": null,
+          "notes": [
+            "[SELECTED] KMC: Statistical ML candidate passed decision threshold (prob: 0.50 >= 0.25)",
+            "[SELECTED] KELECTRIC: Statistical ML candidate passed decision threshold (prob: 0.31 >= 0.25)"
+          ]
+        }
+      ]
+    },
+    "run006Baseline": {
+      "systemName": "Run006 Baseline (V11)",
+      "totalCases": 1000,
+      "exactMatches": 659,
+      "exactAccuracy": 65.9,
+      "macroF1": 85.43,
+      "deptMetrics": {
+        "kmc": {
+          "tp": 197,
+          "fp": 57,
+          "fn": 57,
+          "precision": 77.56,
+          "recall": 77.56,
+          "f1": 77.56
+        },
+        "kwsc": {
+          "tp": 244,
+          "fp": 8,
+          "fn": 19,
+          "precision": 96.83,
+          "recall": 92.78,
+          "f1": 94.76
+        },
+        "kelectric": {
+          "tp": 197,
+          "fp": 12,
+          "fn": 65,
+          "precision": 94.26,
+          "recall": 75.19,
+          "f1": 83.65
+        },
+        "ssgc": {
+          "tp": 215,
+          "fp": 0,
+          "fn": 43,
+          "precision": 100,
+          "recall": 83.33,
+          "f1": 90.91
+        },
+        "sswmb": {
+          "tp": 250,
+          "fp": 11,
+          "fn": 7,
+          "precision": 95.79,
+          "recall": 97.28,
+          "f1": 96.53
+        },
+        "sbca": {
+          "tp": 130,
+          "fp": 0,
+          "fn": 116,
+          "precision": 100,
+          "recall": 52.85,
+          "f1": 69.15
+        }
+      },
+      "complexityAccuracy": {
+        "single_department": {
+          "total": 400,
+          "correct": 315,
+          "accuracy": 78.75
+        },
+        "dual_department": {
+          "total": 300,
+          "correct": 166,
+          "accuracy": 55.33
+        },
+        "triple_department": {
+          "total": 150,
+          "correct": 76,
+          "accuracy": 50.67
+        },
+        "causal_consequence": {
+          "total": 50,
+          "correct": 17,
+          "accuracy": 34
+        },
+        "negation_suppressed": {
+          "total": 40,
+          "correct": 25,
+          "accuracy": 62.5
+        },
+        "out_of_scope": {
+          "total": 30,
+          "correct": 30,
+          "accuracy": 100
+        },
+        "ambiguous": {
+          "total": 30,
+          "correct": 30,
+          "accuracy": 100
+        }
+      },
+      "falseExtraRate": 8.8,
+      "missedDeptRate": 19.94,
+      "meanLatencyMs": 11,
+      "p95LatencyMs": 17.07,
+      "failureCount": 341,
+      "failuresSample": [
+        {
+          "id": "v13_3_holdout_0006",
+          "complexity": "single_department",
+          "category": "single_sbca",
+          "text": "Salam alaikum hamare area Clifton Block 5 mein commercial hall residential zone mein banaya ja raha hai baghair naqsha pass karwaye. Tax poora letay ho kaam dhang se nahi hota.",
+          "expected": [
+            "sbca"
+          ],
+          "predicted": [],
+          "needsReview": true,
+          "reviewReason": "UNCERTAIN_DEFECT",
+          "notes": [
+            "Suppressed SBCA: No affirmative building control tokens found",
+            "No actionable municipal department met confidence threshold or rule criteria (Needs Review)"
+          ]
+        },
+        {
+          "id": "v13_3_holdout_0009",
+          "complexity": "single_department",
+          "category": "single_kelectric",
+          "text": "Assalam o alaikum hamare area Landhi Industrial Area mein 10 din se bejli ni arhi tranforma khrab hai.",
+          "expected": [
+            "kelectric"
+          ],
+          "predicted": [],
+          "needsReview": true,
+          "reviewReason": "UNCERTAIN_DEFECT",
+          "notes": [
+            "Filtered unsupported ML candidate KELECTRIC: no domain asset or defect tokens present",
+            "No actionable municipal department met confidence threshold or rule criteria (Needs Review)"
+          ]
+        },
+        {
+          "id": "v13_3_holdout_0019",
+          "complexity": "single_department",
+          "category": "single_kmc",
+          "text": "Aoa janab hamare area Orangi Town Sector 11 mein hamari gali ki rod bhi tut gai hai bohot khrab haal hai. Authorities se darkhwast hai foran action liya jaye.",
+          "expected": [
+            "kmc"
+          ],
+          "predicted": [],
+          "needsReview": true,
+          "reviewReason": "UNCERTAIN_DEFECT",
+          "notes": [
+            "No actionable municipal department met confidence threshold or rule criteria (Needs Review)"
+          ]
+        },
+        {
+          "id": "v13_3_holdout_0024",
+          "complexity": "single_department",
+          "category": "single_sbca",
+          "text": "Bhai suno hamare area Baldia Town Saeedabad mein baghair noc aur permit ke extra chhati manzil banayi ja rahi hai. Bachon aur buzurgo ka jeena mushkil ho gaya hai.",
+          "expected": [
+            "sbca"
+          ],
+          "predicted": [],
+          "needsReview": true,
+          "reviewReason": "UNCERTAIN_DEFECT",
+          "notes": [
+            "Suppressed SBCA: No affirmative building control tokens found",
+            "No actionable municipal department met confidence threshold or rule criteria (Needs Review)"
+          ]
+        },
+        {
+          "id": "v13_3_holdout_0027",
+          "complexity": "single_department",
+          "category": "single_kelectric",
+          "text": "Janab aala hamare area Clifton Block 5 mein cable jal chuki hai meter ke paas se dhuan uth raha hai.",
+          "expected": [
+            "kelectric"
+          ],
+          "predicted": [],
+          "needsReview": true,
+          "reviewReason": "UNCERTAIN_DEFECT",
+          "notes": [
+            "Filtered unsupported ML candidate KELECTRIC: no domain asset or defect tokens present",
+            "No actionable municipal department met confidence threshold or rule criteria (Needs Review)"
+          ]
+        },
+        {
+          "id": "v13_3_holdout_0047",
+          "complexity": "single_department",
+          "category": "single_sswmb",
+          "text": "Janab aala hamare area Keamari Jackson Bazar mein kooda daan toot chuka hai sara kachra sadak par bikhra rehta hai. Barish hoti hai to bohot kichar hota hai zindagi azaab ban chuki hai.",
+          "expected": [
+            "sswmb"
+          ],
+          "predicted": [
+            "kmc",
+            "sswmb"
+          ],
+          "needsReview": false,
+          "reviewReason": null,
+          "notes": [
+            "Actionable defect for KMC in span 'Janab aala hamare area Keamari Jackson Bazar mein kooda daan toot chuka hai sara kachra sadak par bikhra rehta hai'",
+            "Actionable defect for SSWMB in span 'Janab aala hamare area Keamari Jackson Bazar mein kooda daan toot chuka hai sara kachra sadak par bikhra rehta hai'",
+            "Complaint contains actionable defect but lacks specific public street/landmark details (INCOMPLETE_PUBLIC_LOCATION)"
+          ]
+        },
+        {
+          "id": "v13_3_holdout_0048",
+          "complexity": "single_department",
+          "category": "single_sbca",
+          "text": "Salam alaikum hamare area Malir Khokhrapar mein parosi baghair setback aur SBCA approval ke chhat daal raha hai. Hum shikayat kar kar ke thak gaye hain koi nahi sunta.",
+          "expected": [
+            "sbca"
+          ],
+          "predicted": [],
+          "needsReview": true,
+          "reviewReason": "UNCERTAIN_DEFECT",
+          "notes": [
+            "Suppressed SBCA: No affirmative building control tokens found",
+            "No actionable municipal department met confidence threshold or rule criteria (Needs Review)"
+          ]
+        },
+        {
+          "id": "v13_3_holdout_0052",
+          "complexity": "single_department",
+          "category": "single_ssgc",
+          "text": "Bohot zaroori masla hai hamare area Korangi Sector 32-B mein gas meter ke paas se leak ki awaz aur boo arahi hai. Awam ko pagal bana rakha hai sharam aani chahiye.",
+          "expected": [
+            "ssgc"
+          ],
+          "predicted": [],
+          "needsReview": true,
+          "reviewReason": "UNCERTAIN_DEFECT",
+          "notes": [
+            "Filtered unsupported ML candidate SSGC: no domain asset or defect tokens present",
+            "No actionable municipal department met confidence threshold or rule criteria (Needs Review)"
+          ]
+        },
+        {
+          "id": "v13_3_holdout_0055",
+          "complexity": "single_department",
+          "category": "single_kmc",
+          "text": "Janab aala hamare area Baldia Town Saeedabad mein hamari gali ki rod bhi tut gai hai bohot khrab haal hai.",
+          "expected": [
+            "kmc"
+          ],
+          "predicted": [],
+          "needsReview": true,
+          "reviewReason": "UNCERTAIN_DEFECT",
+          "notes": [
+            "No actionable municipal department met confidence threshold or rule criteria (Needs Review)"
+          ]
+        },
+        {
+          "id": "v13_3_holdout_0060",
+          "complexity": "single_department",
+          "category": "single_sbca",
+          "text": "hamare area Orangi Town Sector 11 mein deewar girne ke qareeb hai substandard material use ho raha hai. Barish hoti hai to bohot kichar hota hai zindagi azaab ban chuki hai.",
+          "expected": [
+            "sbca"
+          ],
+          "predicted": [],
+          "needsReview": true,
+          "reviewReason": "UNCERTAIN_DEFECT",
+          "notes": [
+            "No actionable municipal department met confidence threshold or rule criteria (Needs Review)"
+          ]
+        },
+        {
+          "id": "v13_3_holdout_0063",
+          "complexity": "single_department",
+          "category": "single_kelectric",
+          "text": "Bohot zaroori masla hai hamare area Orangi Town Sector 11 mein cable jal chuki hai meter ke paas se dhuan uth raha hai. Barish hoti hai to bohot kichar hota hai zindagi azaab ban chuki hai.",
+          "expected": [
+            "kelectric"
+          ],
+          "predicted": [],
+          "needsReview": true,
+          "reviewReason": "UNCERTAIN_DEFECT",
+          "notes": [
+            "Suppressed KMC: Road/footpath is location of electrical hazard without structural road defect",
+            "No actionable municipal department met confidence threshold or rule criteria (Needs Review)"
+          ]
+        },
+        {
+          "id": "v13_3_holdout_0067",
+          "complexity": "single_department",
+          "category": "single_kmc",
+          "text": "Bohot zaroori masla hai hamare area Orangi Town Sector 11 mein sth wali rod b tuti hoi he chalna dushwar hai. Awam ko pagal bana rakha hai sharam aani chahiye.",
+          "expected": [
+            "kmc"
+          ],
+          "predicted": [],
+          "needsReview": true,
+          "reviewReason": "UNCERTAIN_DEFECT",
+          "notes": [
+            "No actionable municipal department met confidence threshold or rule criteria (Needs Review)"
+          ]
+        },
+        {
+          "id": "v13_3_holdout_0072",
+          "complexity": "single_department",
+          "category": "single_sbca",
+          "text": "Aoa janab hamare area Orangi Town Sector 11 mein baghair noc aur permit ke extra chhati manzil banayi ja rahi hai. Please take immediate action urgent basis pe.",
+          "expected": [
+            "sbca"
+          ],
+          "predicted": [],
+          "needsReview": true,
+          "reviewReason": "UNCERTAIN_DEFECT",
+          "notes": [
+            "Suppressed SBCA: No affirmative building control tokens found",
+            "No actionable municipal department met confidence threshold or rule criteria (Needs Review)"
+          ]
+        },
+        {
+          "id": "v13_3_holdout_0078",
+          "complexity": "single_department",
+          "category": "single_sbca",
+          "text": "Assalam o alaikum hamare area Landhi Industrial Area mein plinth beam toot chuka hai aur deewar baith rahi hai kisi waqt gir sakti hai.",
+          "expected": [
+            "sbca"
+          ],
+          "predicted": [],
+          "needsReview": true,
+          "reviewReason": "UNCERTAIN_DEFECT",
+          "notes": [
+            "No actionable municipal department met confidence threshold or rule criteria (Needs Review)"
+          ]
+        },
+        {
+          "id": "v13_3_holdout_0085",
+          "complexity": "single_department",
+          "category": "single_kmc",
+          "text": "Aoa janab hamare area Federal B Area Block 14 mein sth wali rod b tuti hoi he chalna dushwar hai.",
+          "expected": [
+            "kmc"
+          ],
+          "predicted": [],
+          "needsReview": true,
+          "reviewReason": "UNCERTAIN_DEFECT",
+          "notes": [
+            "No actionable municipal department met confidence threshold or rule criteria (Needs Review)"
+          ]
+        }
+      ]
+    },
+    "run006Candidate": {
+      "systemName": "Run006 + V13.3 Policy",
+      "totalCases": 1000,
+      "exactMatches": 719,
+      "exactAccuracy": 71.9,
+      "macroF1": 88.61,
+      "deptMetrics": {
+        "kmc": {
+          "tp": 219,
+          "fp": 38,
+          "fn": 35,
+          "precision": 85.21,
+          "recall": 86.22,
+          "f1": 85.71
+        },
+        "kwsc": {
+          "tp": 248,
+          "fp": 20,
+          "fn": 15,
+          "precision": 92.54,
+          "recall": 94.3,
+          "f1": 93.41
+        },
+        "kelectric": {
+          "tp": 240,
+          "fp": 46,
+          "fn": 22,
+          "precision": 83.92,
+          "recall": 91.6,
+          "f1": 87.59
+        },
+        "ssgc": {
+          "tp": 225,
+          "fp": 39,
+          "fn": 33,
+          "precision": 85.23,
+          "recall": 87.21,
+          "f1": 86.21
+        },
+        "sswmb": {
+          "tp": 254,
+          "fp": 22,
+          "fn": 3,
+          "precision": 92.03,
+          "recall": 98.83,
+          "f1": 95.31
+        },
+        "sbca": {
+          "tp": 176,
+          "fp": 0,
+          "fn": 70,
+          "precision": 100,
+          "recall": 71.54,
+          "f1": 83.41
+        }
+      },
+      "complexityAccuracy": {
+        "single_department": {
+          "total": 400,
+          "correct": 337,
+          "accuracy": 84.25
+        },
+        "dual_department": {
+          "total": 300,
+          "correct": 202,
+          "accuracy": 67.33
+        },
+        "triple_department": {
+          "total": 150,
+          "correct": 89,
+          "accuracy": 59.33
+        },
+        "causal_consequence": {
+          "total": 50,
+          "correct": 11,
+          "accuracy": 22
+        },
+        "negation_suppressed": {
+          "total": 40,
+          "correct": 26,
+          "accuracy": 65
+        },
+        "out_of_scope": {
+          "total": 30,
+          "correct": 25,
+          "accuracy": 83.33
+        },
+        "ambiguous": {
+          "total": 30,
+          "correct": 29,
+          "accuracy": 96.67
+        }
+      },
+      "falseExtraRate": 16.5,
+      "missedDeptRate": 11.56,
+      "meanLatencyMs": 3.04,
+      "p95LatencyMs": 3.37,
+      "failureCount": 281,
+      "failuresSample": [
+        {
+          "id": "v13_3_holdout_0006",
+          "complexity": "single_department",
+          "category": "single_sbca",
+          "text": "Salam alaikum hamare area Clifton Block 5 mein commercial hall residential zone mein banaya ja raha hai baghair naqsha pass karwaye. Tax poora letay ho kaam dhang se nahi hota.",
+          "expected": [
+            "sbca"
+          ],
+          "predicted": [],
+          "needsReview": true,
+          "reviewReason": "NO_DEPARTMENT_MET_THRESHOLD",
+          "notes": []
+        },
+        {
+          "id": "v13_3_holdout_0008",
+          "complexity": "single_department",
+          "category": "single_kwsc",
+          "text": "Janab aala hamare area P.E.C.H.S Block 2 mein peenay ka saaf pani do hafton se band hai pipeline dead ho chuki hai. Bachon aur buzurgo ka jeena mushkil ho gaya hai.",
+          "expected": [
+            "kwsc"
+          ],
+          "predicted": [
+            "kwsc",
+            "ssgc"
+          ],
+          "needsReview": false,
+          "reviewReason": null,
+          "notes": [
+            "[SELECTED] KWSC: Grounded affirmative civic defect and model passed decision threshold (prob: 0.65 >= 0.50)",
+            "[SELECTED] SSGC: Grounded independent civic defect in complaint text: \"s block 2 mein peenay ka saaf pani do hafton se band hai pipeline dead ho chuki hai\""
+          ]
+        },
+        {
+          "id": "v13_3_holdout_0014",
+          "complexity": "single_department",
+          "category": "single_kwsc",
+          "text": "Assalam o alaikum hamare area Liaquatabad Dak Khana mein peenay ka saaf pani do hafton se band hai pipeline dead ho chuki hai. Please take immediate action urgent basis pe.",
+          "expected": [
+            "kwsc"
+          ],
+          "predicted": [
+            "kwsc",
+            "ssgc"
+          ],
+          "needsReview": false,
+          "reviewReason": null,
+          "notes": [
+            "[SELECTED] KWSC: Grounded affirmative civic defect and model passed decision threshold (prob: 0.62 >= 0.50)",
+            "[SELECTED] SSGC: Grounded independent civic defect in complaint text: \"assalam o alaikum hamare area liaquatabad dak khana mein peenay ka saaf pani do hafton se band hai pipeline dead ho chuki hai\""
+          ]
+        },
+        {
+          "id": "v13_3_holdout_0026",
+          "complexity": "single_department",
+          "category": "single_kwsc",
+          "text": "Bohot zaroori masla hai hamare area Liaquatabad Dak Khana mein pani ki line mein drainage ka ganda pani mix ho kar araha hai badboo dar pani. Authorities se darkhwast hai foran action liya jaye.",
+          "expected": [
+            "kwsc"
+          ],
+          "predicted": [
+            "kwsc",
+            "ssgc"
+          ],
+          "needsReview": false,
+          "reviewReason": null,
+          "notes": [
+            "[SELECTED] KWSC: Grounded affirmative civic defect and model passed decision threshold (prob: 0.99 >= 0.50)",
+            "[SELECTED] SSGC: Grounded independent civic defect in complaint text: \"bohot zaroori masla hai hamare area liaquatabad dak khana mein pani ki line mein drainage ka ganda pani mix ho kar aa raha hai boodar dar pani\""
+          ]
+        },
+        {
+          "id": "v13_3_holdout_0043",
+          "complexity": "single_department",
+          "category": "single_kmc",
+          "text": "Sir hamare area Korangi Sector 32-B mein street light fuses hain raat ko andhera rehta hai. Hum shikayat kar kar ke thak gaye hain koi nahi sunta.",
+          "expected": [
+            "kmc"
+          ],
+          "predicted": [
+            "kelectric"
+          ],
+          "needsReview": false,
+          "reviewReason": null,
+          "notes": [
+            "[SELECTED] KELECTRIC: Grounded independent civic defect in complaint text: \"sir hamare area korangi sector 32-b mein gali light fuses hain raat ko andhera rehta hai\""
+          ]
+        },
+        {
+          "id": "v13_3_holdout_0044",
+          "complexity": "single_department",
+          "category": "single_kwsc",
+          "text": "Aoa janab hamare area Korangi Sector 32-B mein pani ki line mein drainage ka ganda pani mix ho kar araha hai badboo dar pani. Tax poora letay ho kaam dhang se nahi hota.",
+          "expected": [
+            "kwsc"
+          ],
+          "predicted": [
+            "kwsc",
+            "ssgc"
+          ],
+          "needsReview": false,
+          "reviewReason": null,
+          "notes": [
+            "[SELECTED] KWSC: Grounded affirmative civic defect and model passed decision threshold (prob: 0.99 >= 0.50)",
+            "[SELECTED] SSGC: Grounded independent civic defect in complaint text: \"aoa janab hamare area korangi sector 32-b mein pani ki line mein drainage ka ganda pani mix ho kar aa raha hai boodar dar pani\""
+          ]
+        },
+        {
+          "id": "v13_3_holdout_0047",
+          "complexity": "single_department",
+          "category": "single_sswmb",
+          "text": "Janab aala hamare area Keamari Jackson Bazar mein kooda daan toot chuka hai sara kachra sadak par bikhra rehta hai. Barish hoti hai to bohot kichar hota hai zindagi azaab ban chuki hai.",
+          "expected": [
+            "sswmb"
+          ],
+          "predicted": [
+            "kmc",
+            "sswmb"
+          ],
+          "needsReview": false,
+          "reviewReason": null,
+          "notes": [
+            "[SELECTED] KMC: Statistical ML candidate passed decision threshold (prob: 0.90 >= 0.62)",
+            "[SELECTED] SSWMB: Grounded affirmative civic defect and model passed decision threshold (prob: 0.87 >= 0.25)"
+          ]
+        },
+        {
+          "id": "v13_3_holdout_0048",
+          "complexity": "single_department",
+          "category": "single_sbca",
+          "text": "Salam alaikum hamare area Malir Khokhrapar mein parosi baghair setback aur SBCA approval ke chhat daal raha hai. Hum shikayat kar kar ke thak gaye hain koi nahi sunta.",
+          "expected": [
+            "sbca"
+          ],
+          "predicted": [],
+          "needsReview": true,
+          "reviewReason": "NO_DEPARTMENT_MET_THRESHOLD",
+          "notes": []
+        },
+        {
+          "id": "v13_3_holdout_0049",
+          "complexity": "single_department",
+          "category": "single_kmc",
+          "text": "Salam alaikum hamare area P.E.C.H.S Block 2 mein underpass mein road toot gayi hai aur asphalt ukhad chuka hai. 10 din se zalil ho rahe hain koi hal nahi nikal raha.",
+          "expected": [
+            "kmc"
+          ],
+          "predicted": [
+            "kelectric",
+            "kmc"
+          ],
+          "needsReview": false,
+          "reviewReason": null,
+          "notes": [
+            "[SELECTED] KMC: Grounded affirmative civic defect and model passed decision threshold (prob: 0.94 >= 0.62)",
+            "[SELECTED] KELECTRIC: Statistical ML candidate passed decision threshold (prob: 0.47 >= 0.45)"
+          ]
+        },
+        {
+          "id": "v13_3_holdout_0056",
+          "complexity": "single_department",
+          "category": "single_kwsc",
+          "text": "hamare area Orangi Town Sector 11 mein peenay ka saaf pani do hafton se band hai pipeline dead ho chuki hai. Barish hoti hai to bohot kichar hota hai zindagi azaab ban chuki hai.",
+          "expected": [
+            "kwsc"
+          ],
+          "predicted": [
+            "kwsc",
+            "ssgc"
+          ],
+          "needsReview": false,
+          "reviewReason": null,
+          "notes": [
+            "[SELECTED] KWSC: Grounded affirmative civic defect and model passed decision threshold (prob: 0.53 >= 0.50)",
+            "[SELECTED] SSGC: Grounded independent civic defect in complaint text: \"hamare area orangi town sector 11 mein peenay ka saaf pani do hafton se band hai pipeline dead ho chuki hai\""
+          ]
+        },
+        {
+          "id": "v13_3_holdout_0063",
+          "complexity": "single_department",
+          "category": "single_kelectric",
+          "text": "Bohot zaroori masla hai hamare area Orangi Town Sector 11 mein cable jal chuki hai meter ke paas se dhuan uth raha hai. Barish hoti hai to bohot kichar hota hai zindagi azaab ban chuki hai.",
+          "expected": [
+            "kelectric"
+          ],
+          "predicted": [],
+          "needsReview": true,
+          "reviewReason": "NO_DEPARTMENT_MET_THRESHOLD",
+          "notes": []
+        },
+        {
+          "id": "v13_3_holdout_0078",
+          "complexity": "single_department",
+          "category": "single_sbca",
+          "text": "Assalam o alaikum hamare area Landhi Industrial Area mein plinth beam toot chuka hai aur deewar baith rahi hai kisi waqt gir sakti hai.",
+          "expected": [
+            "sbca"
+          ],
+          "predicted": [],
+          "needsReview": true,
+          "reviewReason": "NO_DEPARTMENT_MET_THRESHOLD",
+          "notes": []
+        },
+        {
+          "id": "v13_3_holdout_0090",
+          "complexity": "single_department",
+          "category": "single_sbca",
+          "text": "Bohot zaroori masla hai hamare area Nazimabad No 2 mein commercial hall residential zone mein banaya ja raha hai baghair naqsha pass karwaye. 10 din se zalil ho rahe hain koi hal nahi nikal raha.",
+          "expected": [
+            "sbca"
+          ],
+          "predicted": [],
+          "needsReview": true,
+          "reviewReason": "NO_DEPARTMENT_MET_THRESHOLD",
+          "notes": []
+        },
+        {
+          "id": "v13_3_holdout_0091",
+          "complexity": "single_department",
+          "category": "single_kmc",
+          "text": "Guzarish yeh hai ke hamare area Orangi Town Sector 11 mein street light fuses hain raat ko andhera rehta hai. Barish hoti hai to bohot kichar hota hai zindagi azaab ban chuki hai.",
+          "expected": [
+            "kmc"
+          ],
+          "predicted": [
+            "kelectric"
+          ],
+          "needsReview": false,
+          "reviewReason": null,
+          "notes": [
+            "[SELECTED] KELECTRIC: Grounded independent civic defect in complaint text: \"guzarish yeh hai ke hamare area orangi town sector 11 mein gali light fuses hain raat ko andhera rehta hai\""
+          ]
+        },
+        {
+          "id": "v13_3_holdout_0095",
+          "complexity": "single_department",
+          "category": "single_sswmb",
+          "text": "Bhai suno hamare area Liaquatabad Dak Khana mein kooda daan toot chuka hai sara kachra sadak par bikhra rehta hai. Bachon aur buzurgo ka jeena mushkil ho gaya hai.",
+          "expected": [
+            "sswmb"
+          ],
+          "predicted": [
+            "kmc",
+            "sswmb"
+          ],
+          "needsReview": false,
+          "reviewReason": null,
+          "notes": [
+            "[SELECTED] KMC: Statistical ML candidate passed decision threshold (prob: 0.74 >= 0.62)",
+            "[SELECTED] SSWMB: Grounded affirmative civic defect and model passed decision threshold (prob: 0.91 >= 0.25)"
+          ]
+        }
+      ]
+    }
+  }
+}

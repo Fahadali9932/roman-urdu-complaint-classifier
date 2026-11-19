@@ -5,7 +5,66 @@ Verified on **20 November 2026 (Pakistan time)**. Internal delivery target:
 This document distinguishes inspected source, automated checks, and unverified
 hosted behavior. Update it after every significant verified milestone.
 
-## Latest verification, 20 November 2026 — Phase V13.2: Roman Urdu Issue Understanding, Spelling Robustness & Independent Multi-Department Classification
+## Latest verification, 20 November 2026 — Phase V13.3: AI Reasoning Integrity, Factual Explanations & Independent Accuracy Verification
+
+Phase V13.3 repaired reasoning integrity defects, established a single authoritative decision record across UI and backend, enforced dynamic model threshold reporting, implemented strict location source attribution, built a zero-cost rule-grounded multi-issue factual summary engine, cryptographically locked a 1,000-complaint untouched holdout evaluation benchmark, and performed full-stack responsive browser verification across 4 viewports.
+
+All 726 Vitest tests, 128 Python unit tests, and 23 Edge tests passed with 100% pass rate. Model weights remain 100% frozen (Run004 SHA-256: `E4D04293...`; Run006 candidate SHA-256: `C5D4E3D4...`). Zero external APIs or paid services were used.
+
+### 1. Key Benchmark Results (1,000-Case Untouched Holdout Suite)
+- **Holdout Dataset Integrity:**
+  - File: `data/v11/eval_v13_3/v13_3_holdout_1000.jsonl` (1,000 records).
+  - SHA-256 Lock: `499d0806fb81e2913fdc1ab1a660726002f5d427dab5abdf3ccd14d9cc42a8fd`.
+  - Zero Leakage: Cryptographically audited and verified 0 record overlaps against all 153 historical datasets and benchmark files in `data/v11/`.
+- **System Comparison (N = 1,000):**
+  - **Run004 Baseline (V11):** Exact Acc: **64.10%** | Macro F1: **84.58%** | 1-Dept: 77.25% | 2-Dept: 55.33% | 3-Dept: 45.33% | Latency: 4.13 ms.
+  - **Run004 + V13.3 Policy:** Exact Acc: **64.00%** | Macro F1: **85.44%** | 1-Dept: 81.25% | 2-Dept: 62.33% | 3-Dept: 52.00% | Latency: 1.18 ms.
+  - **Run006 Baseline (V11):** Exact Acc: **65.90%** | Macro F1: **85.43%** | 1-Dept: 78.75% | 2-Dept: 55.33% | 3-Dept: 50.67% | Latency: 11.00 ms.
+  - **Run006 + V13.3 Policy:** Exact Acc: **71.90%** | Macro F1: **88.61%** | 1-Dept: **84.25%** | 2-Dept: **67.33% (+12.0%)** | 3-Dept: **59.33% (+8.66%)** | Latency: **3.04 ms**.
+- **Per-Department F1 (Run006 + V13.3):**
+  - KWSC: **93.41%** | SSWMB: **95.31%** | K-Electric: **87.59%** | SSGC: **86.21%** | KMC: **85.71%** | SBCA: **83.41%** (100% precision).
+
+### 2. Core Architectural Deliverables
+1. **Single Authoritative Decision Record (`src/services/v13_2/v13_2_engine.ts`, `src/services/v11InferenceAdapter.ts`, `_shared/v13-2-engine.ts`):**
+   - Eliminated contradictory audit notes where a department showed as assigned while audit logs claimed suppression.
+   - Introduced `DepartmentDecisionRecord` tracking definitive state (`ASSIGNED`, `BELOW_THRESHOLD`, `FILTERED`, `SUPPRESSED`), model probability, active threshold, and single uncontradicted reason.
+2. **Truthful Dynamic Threshold Reporting (`V11AnalysisResultView.tsx`):**
+   - Replaced static `32%` constant with active model thresholds from `result.thresholds` (Run004 K-Electric: 25%, Run006 K-Electric: 28%).
+   - Displays dedicated Department Decisions & Threshold Audit table.
+3. **Strict Location Source Attribution (`src/services/v13_3/factualSummaryEngine.ts`):**
+   - Distinguishes narrative mentions (`COMPLAINT_TEXT`) from form dropdowns (`FORM_METADATA`) or unprovided status (`NOT_PROVIDED`).
+   - Replaced false "Public Location Verified" banners with truthful informational badges explaining when location details come solely from form metadata.
+4. **Zero-Cost Grounded Factual Summary Engine:**
+   - Synthesizes factual multi-issue summaries and headings without external paid LLMs or API costs ($0 budget preserved).
+   - Accurately extracts duration phrases (e.g. `"10 din"`) and links issues directly to verified candidate spans.
+5. **Clean Evidence Presentation:**
+   - Populated human-readable `defect_evidence` and filtered duplicate internal token identifiers (`direct_asset_defect`).
+6. **Reproduction Complaint Verified:**
+   - Text: *"Assalamualaikum hamare area mein 10 din se bejli ni arhi. Tranforma khrab hai aur hamari gali ki rod bhi tut gai hai. Barish hoti hai to bohot kichar hota hai. Hum shikayat kar kar ke thak gaye hain."*
+   - Routes to **`kelectric`** and **`kmc`** (dual independent civic issues; muddy conditions recognized as consequence of road damage).
+   - Status: `VERIFIED & AUTO-ASSIGNED`.
+
+### 3. Responsive Browser Verification (Chrome DevTools Protocol)
+- Tested at `http://localhost:5173/submit` in Local AI Test Mode.
+- 0 console exceptions across all viewports.
+- Screenshot artifacts preserved in `docs/v11/screenshots/`:
+  - Desktop 1280px: `v13_3_01_desktop_1280.png`
+  - Tablet 768px: `v13_3_02_tablet_768.png`
+  - Mobile 390px: `v13_3_03_mobile_390.png`
+  - Small Mobile 320px: `v13_3_04_small_mobile_320.png`
+
+### 4. Verified Test Suite Summary (Phase V13.3)
+- **Vitest Frontend & Service Suite:** **726 / 726 passed** across 54 test files.
+- **Python Unit & Pipeline Tests (`tests/v11`):** **128 / 128 passed**.
+- **Supabase Edge Boundary & Security Tests:** **23 / 23 passed** (`security-repair.mjs` 7/7, `complaint-boundaries.mjs` 16/16).
+- **TypeScript Static Compilation (`tsc -b`):** **0 errors**.
+- **Production Build (`vite build`):** **Success (1.19s bundle time)**.
+- **Linter (`oxlint`):** **0 errors**.
+- **Model Checksums:**
+  - Run004 SHA-256: `E4D042937CF8C3E1E3C70F147A707B33A629D463DB34485766C98DA21C2E3A56` (100% frozen).
+  - Run006 SHA-256: `C5D4E3D4164AD5482A0ABE4F614115A596665683FBF23914460EE4ED40AE0D3E` (100% frozen).
+
+## Earlier verifications, 20 November 2026 — Phase V13.2: Roman Urdu Issue Understanding, Spelling Robustness & Independent Multi-Department Classification
 
 Phase V13.2 implemented an isomorphic, non-destructive Roman Urdu normalizer, discourse-aware multi-issue extractor, and candidate decision engine across TypeScript (Web and Supabase Edge) and Python (curriculum and batch evaluation). All 716 Vitest tests, 124 Python unit tests, and 23 Edge tests passed with 100% pass rate. Model weights remain 100% frozen (Run004 SHA-256: `E4D04293...`; Run006 candidate SHA-256: `C5D4E3D4...`). Zero external APIs or paid services were used.
 

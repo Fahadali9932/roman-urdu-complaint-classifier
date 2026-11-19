@@ -65,8 +65,8 @@ describe('V13.2 Blank Screen & Route Rendering Regression Prevention', () => {
     });
 
     expect(screen.getByText(/PREDICTED MUNICIPAL AUTHORITIES \(3\)/i)).toBeInTheDocument();
-    expect(screen.getByText(/K-Electric/i)).toBeInTheDocument();
-    expect(screen.getByText(/Karachi Metropolitan Corporation/i)).toBeInTheDocument();
-    expect(screen.getByText(/Sindh Solid Waste Management Board/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/K-Electric/i)[0]).toBeInTheDocument();
+    expect(screen.getAllByText(/Karachi Metropolitan Corporation/i)[0]).toBeInTheDocument();
+    expect(screen.getAllByText(/Sindh Solid Waste Management Board/i)[0]).toBeInTheDocument();
   });
 });

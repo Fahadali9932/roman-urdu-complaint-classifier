@@ -28,6 +28,11 @@ import {
   assessComplaintDraftV13_2,
   resolveComplaintClarificationV13_2,
 } from './v13_2/v13_2_engine';
+import {
+  detectLocationAttribution,
+  generateGroundedFactualSummary,
+  type LocationAttribution,
+} from './v13_3/factualSummaryEngine';
 
 export interface V11LocalAnalysisPayload extends V11RelationAwareResult {
   heading: string;
@@ -37,6 +42,9 @@ export interface V11LocalAnalysisPayload extends V11RelationAwareResult {
   modelVersion: string;
   wordCount: number;
   timestamp: string;
+  locationAttribution?: LocationAttribution;
+  thresholds?: Record<string, number>;
+  decisionRecords?: any[];
 }
 
 /**
@@ -165,6 +173,8 @@ export class LocalV11ComplaintService implements IComplaintService {
         ruleSelectedDepartments: v13Res.extraction.actionableDepartments,
         edges: [],
         missingPublicLocation: false,
+        thresholds: v13Res.thresholds,
+        decisionRecords: v13Res.decisionRecords,
       };
     } else {
       initialPrediction = classifyV11RelationAware(rawDraft, championV11Model);
@@ -368,12 +378,31 @@ export class LocalV11ComplaintService implements IComplaintService {
       });
     }
 
+    // 8. Location Source Attribution & Grounded Factual Summary (V13.3)
+    const locationAttribution = detectLocationAttribution(
+      rawDraft,
+      input.locality,
+      input.publicLocation
+    );
+
+    const grounded = generateGroundedFactualSummary({
+      rawText: rawDraft,
+      normalizedText: (initialPrediction as any).extraction?.normalizedText || rawDraft,
+      departments: finalDepartments,
+      issues: (initialPrediction.issueCandidates || []).map((c: any) => ({
+        department: c.department as DepartmentId,
+        evidenceSpan: c.evidence_span || c.span_text || '',
+        status: c.is_actionable ? 'actionable' : 'contextual',
+      })),
+      locationInfo: locationAttribution,
+    });
+
     const totalWords = finalStoredDescription.split(/\s+/).filter(Boolean).length;
     const analysisPayload: V11LocalAnalysisPayload = {
       ...initialPrediction,
       departments: finalDepartments,
-      heading: privacy.generatedHeading,
-      factualSummary: privacy.factualSummary,
+      heading: grounded.heading,
+      factualSummary: grounded.factualSummary,
       sanitizedDescription: privacy.sanitizedDescription,
       latencyMs,
       modelVersion:
@@ -384,6 +413,9 @@ export class LocalV11ComplaintService implements IComplaintService {
       timestamp: now,
       needsReview,
       reviewReason: needsReview ? (reviewReason || 'UNDER_REVIEW') : null,
+      locationAttribution,
+      thresholds: initialPrediction.thresholds || { ...championV11Model.thresholds },
+      decisionRecords: initialPrediction.decisionRecords,
     };
 
     // 9. Single Complaint Record Persistence
@@ -395,11 +427,11 @@ export class LocalV11ComplaintService implements IComplaintService {
       district: input.district,
       locality: input.locality,
       publicLocation: input.publicLocation,
-      title: privacy.generatedHeading,
+      title: grounded.heading,
       description: finalStoredDescription,
       sanitizedDescription: privacy.sanitizedDescription,
-      generatedHeading: privacy.generatedHeading,
-      factualSummary: privacy.factualSummary,
+      generatedHeading: grounded.heading,
+      factualSummary: grounded.factualSummary,
       detectedLanguage: 'roman_urdu',
       status,
       assignedDepartmentId: primaryDeptId,

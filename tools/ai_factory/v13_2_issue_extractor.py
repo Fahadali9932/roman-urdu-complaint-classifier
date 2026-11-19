@@ -28,12 +28,12 @@ DEPARTMENT_LEXICONS = {
         "standalone": [r"\b(?:gutter\s+ubal|sewerage\s+overflow|dhakkan\s+gayab|main\s+line\s+phat|pani\s+band|water\s+supply\s+line\s+burst)\b"]
     },
     "kmc": {
-        "assets": [r"\b(?:road|sarak|footpath|bridge|pul|flyover|underpass|street\s*light|bulb|chowrangi|pavement)\b"],
+        "assets": [r"\b(?:road|sarak|sadak|rod|footpath|bridge|pul|flyover|underpass|street\s*light|bulb|chowrangi|pavement)\b"],
         "defects": [
-            r"\b(?:toot\s+gayi|toot\s+gaya|tooti|kharab|khadda|khadday|gaddha|crater|dhans\s+gayi|dhas|pothole|asphalt|tameer\s+adhoori|malba\s+para|bulb\s+fuse|andhera)\b",
-            r"\b(?:toota\s+phoota|tooti\s+phooti|gehre\s+khadday|road\s+damage)\b"
+            r"\b(?:toot\s*(?:gayi|gaya|gai|gya)?|toota|tooti|toote|tut\s*(?:gayi|gaya|gai|gya)?|tuta|tuti|tute|kharab|khadda|khadday|gaddha|crater|dhans\s*(?:gayi|gai)?|dhas|pothole|asphalt|tameer\s+adhoori|malba\s+para|bulb\s+fuse|andhera)\b",
+            r"\b(?:toota\s*phoota|tooti\s*phooti|toot\s*phoot|tut\s*phut|gehre\s+khadday|road\s+damage)\b"
         ],
-        "standalone": [r"\b(?:road\s+toot|sarak\s+tooti|gehre\s+khadday|street\s+lights?\s+band|potholes?)\b"]
+        "standalone": [r"\b(?:road\s*(?:toot|tut)|sarak\s*(?:tooti|tuti)|rod\s*(?:toot|tut)|gehre\s+khadday|street\s+lights?\s+band|potholes?)\b"]
     },
     "ssgc": {
         "assets": [r"\b(?:gas|sui\s*gas|pipeline|line|chulha|cylinder|gas\s*meter|flame|meter)\b"],
@@ -174,7 +174,7 @@ def extract_municipal_issues_v13_2(raw_text: str) -> Dict[str, Any]:
 
                 if dept == "kmc" and status == "INDEPENDENT_FAULT":
                     is_spatial = any(re.search(p, clause, flags=re.I) for p in LOCATION_ANCHOR_PATTERNS)
-                    has_road_dmg = bool(re.search(r"\b(?:toot|tooti|khadda|khadday|gaddha|crater|pothole|dhans|asphalt|damaged)\b", clause, flags=re.I))
+                    has_road_dmg = bool(re.search(r"\b(?:toot|toota|tooti|toote|tut|tuta|tuti|tute|toot\s*phoot|tut\s*phut|khadda|khadday|gaddha|crater|pothole|dhans|asphalt|damaged)\b", clause, flags=re.I))
                     if is_spatial and not has_road_dmg:
                         status = "LOCATION_ONLY"
                         notes.append("Suppressed KMC: Road is merely spatial location anchor")
