@@ -14,6 +14,7 @@ import type { MultiLabelModelArtifact } from './multiLabelClassifier';
 import candidateModelJson from '../models/v11_candidate_model.json';
 import {
   analyzeComplaintRelationAware,
+  DOMAIN_EVIDENCE,
   type IssueCandidate,
   type RelationEdge,
   type RelationType,
@@ -32,6 +33,12 @@ export interface V11RelationAwareResult {
   reviewReason: string | null;
   missingPublicLocation: boolean;
   notes: string[];
+  modelVersion?: string;
+  decisionPolicy?: string;
+  mlSelectedDepartments?: DepartmentId[];
+  ruleSelectedDepartments?: DepartmentId[];
+  suppressedDepartments?: DepartmentId[];
+  finalReason?: string;
 }
 
 export interface V11ClassifierCalibratedFold {
@@ -545,6 +552,15 @@ export function convertV11ToMultiLabelModelArtifact(
  * Executes issue-centric, relation-aware classification on Roman Urdu complaint text.
  * Integrates statistical TF-IDF features with affirmative domain defect evidence,
  * candidate span decomposition, and pairwise relation resolution.
+ *
+ * Implements Phase 1 Hybrid Decision Policy:
+ * 1. Evaluates calibrated ML probabilities and civic relation enhancements.
+ * 2. Evaluates relation engine candidate decomposition and defect grounding.
+ * 3. Enforces strict protections for out-of-scope complaints (routed to Needs Review).
+ * 4. Enforces causal consequence and negation suppression so secondary symptoms don't generate false tickets.
+ * 5. Empowers statistical ML to route valid complaints even when vocabulary is novel/colloquial.
+ * 6. Preserves multi-label assignments across all six municipal agencies.
+ * 7. Records rich diagnostic metadata for review and audit transparency.
  */
 export function classifyV11RelationAware(
   text: string,
@@ -553,33 +569,155 @@ export function classifyV11RelationAware(
 ): V11RelationAwareResult {
   const features = extractV11Features(text, artifact);
   const rawProbabilities = predictV11RawProbabilities(features, artifact);
+  const { resolvedProbs: civicProbs, notes: civicNotes } = resolveV11CivicRelations(text, rawProbabilities);
   const relationResult = analyzeComplaintRelationAware(text, complaintId);
 
-  // Preserve model's legitimate scoring and calibration behavior:
-  // - For grounded actionable departments, retain legitimate model probability (or ensure >= threshold)
-  // - For ungrounded or suppressed departments, cap probability safely below threshold
-  const calibratedProbs = { ...rawProbabilities };
+  const notes = [...relationResult.reason_trace, ...civicNotes];
+  const mlSelected: DepartmentId[] = [];
+  const ruleSelected: DepartmentId[] = [...relationResult.proposed_departments];
+  const suppressed: DepartmentId[] = [];
+
+  // Out-of-scope protection: private disputes, tenancy/rental, domestic issues
+  if (relationResult.needs_review && relationResult.review_reason === 'OUT_OF_SCOPE') {
+    return {
+      departments: [],
+      probabilities: { ...civicProbs },
+      rawProbabilities,
+      relation: relationResult.relation_summary,
+      issueCandidates: relationResult.issue_candidates,
+      edges: relationResult.edges,
+      needsReview: true,
+      reviewReason: 'OUT_OF_SCOPE',
+      missingPublicLocation: false,
+      notes: [...notes, 'Decision Policy: Protected out-of-scope non-municipal grievance from auto-routing'],
+      modelVersion: artifact.version,
+      decisionPolicy: 'v11_hybrid_ml_relation_v2',
+      mlSelectedDepartments: [],
+      ruleSelectedDepartments: [],
+      suppressedDepartments: [],
+      finalReason: 'Out-of-scope non-municipal grievance routed to administrative triage',
+    };
+  }
+
+  // Identify departments suppressed by explicit relation edges
+  for (const edge of relationResult.edges) {
+    if (edge.relation_type === 'CAUSES_CONTEXT_ONLY' && edge.target_id && edge.target_id !== 'consequence') {
+      const targetDept = edge.target_id as DepartmentId;
+      if (artifact.departments.includes(targetDept) && !suppressed.includes(targetDept)) {
+        suppressed.push(targetDept);
+        notes.push(`Suppressed ${targetDept.toUpperCase()} via relation edge: secondary consequence of ${edge.source_id.toUpperCase()}`);
+      }
+    }
+  }
+
+  // Identify departments suppressed by candidate mention types
+  for (const cand of relationResult.issue_candidates) {
+    if (cand.department && !suppressed.includes(cand.department)) {
+      if (cand.mention_type === 'consequence') {
+        suppressed.push(cand.department);
+        notes.push(`Suppressed ${cand.department.toUpperCase()}: candidate identified as causal consequence symptom`);
+      } else if (cand.mention_type === 'negated_mention' || cand.negation_scope) {
+        // Only suppress if there are NO active defects for this department
+        const hasActiveDefect = relationResult.issue_candidates.some(
+          (c) => c.department === cand.department && c.is_actionable && !c.negation_scope
+        );
+        if (!hasActiveDefect) {
+          suppressed.push(cand.department);
+          notes.push(`Suppressed ${cand.department.toUpperCase()}: explicitly negated or historically resolved defect`);
+        }
+      }
+    }
+  }
+
+  // Check which departments pass ML threshold
   for (const dept of artifact.departments) {
-    if (relationResult.proposed_departments.includes(dept)) {
-      const thresh = artifact.thresholds[dept] ?? 0.25;
+    const thresh = artifact.thresholds[dept] ?? 0.50;
+    if (civicProbs[dept] >= thresh) {
+      mlSelected.push(dept);
+    }
+  }
+
+function hasDomainKeywordSupport(lowText: string, dept: DepartmentId): boolean {
+  const lexicon = DOMAIN_EVIDENCE[dept as keyof typeof DOMAIN_EVIDENCE];
+  if (!lexicon) return true;
+  return lexicon.assets.some((p) => p.test(lowText)) || lexicon.defects.some((p) => p.test(lowText));
+}
+
+  // Combine ML and rule selections:
+  // Department is included if:
+  // 1. Not suppressed by causal or negation rule, AND
+  // 2. Either relation engine grounded affirmative defect (ruleSelected), OR
+  //    ML model passed threshold AND has supporting domain asset/defect keyword in the text
+  const finalDepartments: DepartmentId[] = [];
+  const lowText = text.toLowerCase();
+  for (const dept of artifact.departments) {
+    if (suppressed.includes(dept)) {
+      continue;
+    }
+    const mlPass = mlSelected.includes(dept);
+    const rulePass = ruleSelected.includes(dept);
+
+    if (rulePass) {
+      finalDepartments.push(dept);
+    } else if (mlPass) {
+      if (hasDomainKeywordSupport(lowText, dept)) {
+        finalDepartments.push(dept);
+      } else {
+        notes.push(`Filtered unsupported ML candidate ${dept.toUpperCase()}: no domain asset or defect tokens present`);
+      }
+    }
+  }
+
+  // Calibrate output probabilities:
+  // - Selected departments: ensure at least threshold
+  // - Unselected or suppressed departments: safely capped below threshold
+  const calibratedProbs: Record<DepartmentId, number> = { ...civicProbs };
+  for (const dept of artifact.departments) {
+    const thresh = artifact.thresholds[dept] ?? 0.50;
+    if (finalDepartments.includes(dept)) {
       calibratedProbs[dept] = Math.max(calibratedProbs[dept], thresh);
     } else {
-      // If no affirmative defect was grounded or relation suppressed it, cap probability below threshold
-      const maxPermitted = (artifact.thresholds[dept] ?? 0.5) * 0.4;
+      const maxPermitted = thresh * 0.4;
       calibratedProbs[dept] = Math.min(calibratedProbs[dept], maxPermitted);
     }
   }
 
+  // Determine Needs Review state
+  let needsReview = false;
+  let reviewReason: string | null = null;
+
+  if (finalDepartments.length === 0) {
+    needsReview = true;
+    reviewReason = relationResult.review_reason || 'UNCERTAIN_DEFECT';
+    notes.push('No actionable municipal department met confidence threshold or rule criteria (Needs Review)');
+  } else if (relationResult.needs_review && relationResult.review_reason === 'POSSIBLE_UNROUTED_SECONDARY_ISSUE') {
+    // If ML also routed additional departments beyond ruleSelected, secondary issue might already be addressed
+    if (finalDepartments.length <= ruleSelected.length) {
+      needsReview = true;
+      reviewReason = 'POSSIBLE_UNROUTED_SECONDARY_ISSUE';
+    }
+  }
+
+  const finalReason = finalDepartments.length > 0
+    ? `Routed to [${finalDepartments.join(', ').toUpperCase()}] via hybrid ML-relation policy (ML: [${mlSelected.join(', ')}], Rules: [${ruleSelected.join(', ')}])`
+    : `Routing deferred to human review: ${reviewReason}`;
+
   return {
-    departments: relationResult.proposed_departments,
+    departments: finalDepartments,
     probabilities: calibratedProbs,
     rawProbabilities,
-    relation: relationResult.relation_summary,
+    relation: finalDepartments.length > 1 ? 'INDEPENDENT' : relationResult.relation_summary,
     issueCandidates: relationResult.issue_candidates,
     edges: relationResult.edges,
-    needsReview: relationResult.needs_review,
-    reviewReason: relationResult.review_reason,
+    needsReview,
+    reviewReason,
     missingPublicLocation: relationResult.missing_public_location,
-    notes: relationResult.reason_trace,
+    notes,
+    modelVersion: artifact.version,
+    decisionPolicy: 'v11_hybrid_ml_relation_v2',
+    mlSelectedDepartments: mlSelected,
+    ruleSelectedDepartments: ruleSelected,
+    suppressedDepartments: suppressed,
+    finalReason,
   };
 }

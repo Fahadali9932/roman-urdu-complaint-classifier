@@ -2,10 +2,10 @@ import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../../context/LanguageContext';
 import { useAdminAuth } from '../../../context/AdminAuthContext';
-import { Shield, LogOut, Globe, LayoutGrid, FileText, UserCheck, Users } from 'lucide-react';
+import { Shield, LogOut, Globe, LayoutGrid, FileText, UserCheck, Users, Cpu } from 'lucide-react';
 
 interface AdminHeaderProps {
-  activeTab: 'overview' | 'complaints' | 'requests' | 'access';
+  activeTab: 'overview' | 'complaints' | 'requests' | 'access' | 'ai';
 }
 
 export const AdminHeader: React.FC<AdminHeaderProps> = ({ activeTab }) => {
@@ -105,6 +105,20 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ activeTab }) => {
             <Users className="w-4 h-4" />
             <span>
               {language === 'ur' ? 'محکمے اور رسائی' : 'Departments & Access'}
+            </span>
+          </NavLink>
+
+          <NavLink
+            to="/admin/ai"
+            className={`py-3 text-xs sm:text-sm font-semibold border-b-2 flex items-center gap-2 transition-colors whitespace-nowrap ${
+              activeTab === 'ai'
+                ? 'border-[#0F1E21] text-[#0F1E21]'
+                : 'border-transparent text-[#64748B] hover:text-[#0F1E21]'
+            }`}
+          >
+            <Cpu className="w-4 h-4" />
+            <span>
+              {language === 'ur' ? 'اے آئی کنٹرول سینٹر' : 'AI Control Center'}
             </span>
           </NavLink>
 

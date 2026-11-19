@@ -18,6 +18,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import re
 import shutil
 import sys
 import time
@@ -30,7 +31,7 @@ import numpy as np
 sys.path.insert(0, ".")
 
 from tools.ai_factory.curriculum.intent_graph import DEPARTMENTS
-from tools.ai_factory.curriculum.relation_engine import RelationAwareComplaintAnalyzer
+from tools.ai_factory.curriculum.relation_engine import RelationAwareComplaintAnalyzer, DOMAIN_EVIDENCE
 from tools.ai_factory.training import CivicRelationResolver
 from tools.ai_factory.evaluation import compute_metrics
 
@@ -68,6 +69,17 @@ class V1148Evaluator:
         self.out_dir = Path("data/v11/eval_v11_4_8")
         self.out_dir.mkdir(parents=True, exist_ok=True)
 
+    @staticmethod
+    def has_domain_keyword_support(low_text: str, dept: str) -> bool:
+        lex = DOMAIN_EVIDENCE.get(dept, {})
+        for p in lex.get("assets", []):
+            if re.search(p, low_text):
+                return True
+        for p in lex.get("defects", []):
+            if re.search(p, low_text):
+                return True
+        return False
+
     def evaluate_model_bundle(
         self,
         model_id: str,
@@ -102,15 +114,10 @@ class V1148Evaluator:
             t0 = time.perf_counter()
             vec = feature_union.transform([t])
             raw_p = model.predict_proba(vec)[0]
-            if mode == "relation_aware":
+            if mode in ("relation_aware", "hybrid"):
+                init_p = {d: float(raw_p[self.departments.index(d)]) for d in self.departments}
+                civic_p, _ = CivicRelationResolver.resolve(t, init_p)
                 analysis = self.analyzer.analyze(t)
-                for dept in self.departments:
-                    raw = float(raw_p[self.departments.index(dept)])
-                    th = thresholds.get(dept, 0.5)
-                    if dept in analysis.proposed_departments:
-                        _ = max(raw, 0.85)
-                    else:
-                        _ = min(raw, th * 0.4)
             else:
                 init_p = {d: float(raw_p[self.departments.index(d)]) for d in self.departments}
                 _ = CivicRelationResolver.resolve(t, init_p)
@@ -141,22 +148,63 @@ class V1148Evaluator:
             text = texts[i]
             pred_depts = []
 
-            if mode == "relation_aware":
+            if mode in ("relation_aware", "hybrid"):
+                init_p = {d: float(raw_probs[i, j]) for j, d in enumerate(self.departments)}
+                civic_p, _ = CivicRelationResolver.resolve(text, init_p)
                 analysis = self.analyzer.analyze(text)
+
+                if analysis.needs_review and analysis.review_reason == "OUT_OF_SCOPE":
+                    final_depts = []
+                    rel_type = analysis.relation_summary
+                    needs_review = True
+                    review_reason = "OUT_OF_SCOPE"
+                else:
+                    suppressed = set()
+                    for edge in analysis.edges:
+                        if edge.relation_type == "CAUSES_CONTEXT_ONLY" and edge.target_id and edge.target_id != "consequence":
+                            suppressed.add(edge.target_id)
+                    for cand in analysis.issue_candidates:
+                        if cand.department:
+                            if cand.mention_type == "consequence":
+                                suppressed.add(cand.department)
+                            elif cand.mention_type == "negated_mention" or cand.negation_scope:
+                                has_active = any(
+                                    c.department == cand.department and c.is_actionable and not c.negation_scope
+                                    for c in analysis.issue_candidates
+                                )
+                                if not has_active:
+                                    suppressed.add(cand.department)
+
+                    ml_selected = [d for d in self.departments if civic_p[d] >= thresholds.get(d, 0.5)]
+                    rule_selected = list(analysis.proposed_departments)
+
+                    final_depts = []
+                    low_text = text.lower()
+                    for dept in self.departments:
+                        if dept in suppressed:
+                            continue
+                        rule_pass = dept in rule_selected
+                        ml_pass = dept in ml_selected
+                        if rule_pass:
+                            final_depts.append(dept)
+                        elif ml_pass:
+                            if self.has_domain_keyword_support(low_text, dept):
+                                final_depts.append(dept)
+
+                    rel_type = "INDEPENDENT" if len(final_depts) > 1 else analysis.relation_summary
+                    needs_review = (len(final_depts) == 0)
+                    review_reason = analysis.review_reason if needs_review else None
+
                 for j, dept in enumerate(self.departments):
-                    raw = float(raw_probs[i, j])
                     th = thresholds.get(dept, 0.5)
-                    if dept in analysis.proposed_departments:
-                        p = max(raw, 0.85)
-                    else:
-                        p = min(raw, th * 0.4)
-                    resolved_probs[i, j] = p
-                    if p >= th:
+                    if dept in final_depts:
+                        p = max(civic_p[dept], th)
                         y_pred[i, j] = 1
-                        pred_depts.append(dept)
-                rel_type = analysis.relation_summary
-                needs_review = analysis.needs_review
-                review_reason = analysis.review_reason
+                    else:
+                        p = min(civic_p[dept], th * 0.4)
+                    resolved_probs[i, j] = p
+
+                pred_depts = sorted(final_depts)
             else:
                 init_p = {d: float(raw_probs[i, j]) for j, d in enumerate(self.departments)}
                 res_dict, notes = CivicRelationResolver.resolve(text, init_p)

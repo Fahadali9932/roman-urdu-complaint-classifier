@@ -301,6 +301,11 @@ const OUT_OF_SCOPE_PATTERNS = [
   /\bghar\s*ke\s*andar\s*mujhe\s*pareshan\b/i,
   /\bfamily\s*dispute\b/i,
   /\bshauhar\s*biwi\b/i,
+  /\b(?:makan\s*malik|kiraya|rent\s*barha|ghar\s*khali|tenant|landlord|bina\s*notice\s*rent)\b/i,
+  /\b(?:cyber\s*crime|fraud\s*caller|atm\s*se\s*paise|paise\s*deduct|bank\s*account)\b/i,
+  /\b(?:traffic\s*police|challan\s*kaat|mobile\s*cheen|snatching|dacoity|chori|wardatein)\b/i,
+  /\b(?:school\s*management|fees\s*barha|private\s*school\s*fees)\b/i,
+  /\b(?:padosi\s*ke\s*kuttay|kutte\s*ne\s*kaat)\b/i,
 ];
 
 const LOCATION_INDICATORS = [

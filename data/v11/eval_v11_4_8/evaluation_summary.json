@@ -4,166 +4,166 @@
     "pipeline_mode": "relation_aware",
     "joblib_path": "data/v11/curriculum_runs/run_004/champion_model.joblib",
     "sample_size": 2000,
-    "exact_set_accuracy": 0.442,
+    "exact_set_accuracy": 0.5255,
     "exact_set_ci_95": [
-      0.4204,
-      0.4639
+      0.5036,
+      0.5473
     ],
-    "correct_count": 884,
-    "incorrect_count": 1116,
-    "macro_f1": 0.6355,
-    "micro_f1": 0.6554,
-    "false_extra_department_rate": 0.1575,
-    "missed_department_rate": 0.4457,
+    "correct_count": 1051,
+    "incorrect_count": 949,
+    "macro_f1": 0.7283,
+    "micro_f1": 0.7349,
+    "false_extra_department_rate": 0.271,
+    "missed_department_rate": 0.2771,
     "multi_issue_accuracy": {
       "single_issue": {
         "sample_size": 1500,
-        "exact_accuracy": 0.462
+        "exact_accuracy": 0.542
       },
       "dual_issue": {
         "sample_size": 250,
-        "exact_accuracy": 0.272
+        "exact_accuracy": 0.424
       },
       "triple_issue": {
         "sample_size": 150,
-        "exact_accuracy": 0.1667
+        "exact_accuracy": 0.2133
       },
       "out_of_scope_protection": {
         "sample_size": 100,
-        "exact_accuracy": 0.98
+        "exact_accuracy": 1.0
       }
     },
     "category_slices": {
       "ABUSIVE_PROFANITY": {
         "sample_size": 200,
-        "correct": 99,
-        "exact_accuracy": 0.495
+        "correct": 112,
+        "exact_accuracy": 0.56
       },
       "ANGRY_AGGRESSIVE": {
         "sample_size": 200,
-        "correct": 113,
-        "exact_accuracy": 0.565
+        "correct": 119,
+        "exact_accuracy": 0.595
       },
       "CAUSAL_CONSEQUENCES": {
         "sample_size": 150,
-        "correct": 73,
-        "exact_accuracy": 0.4867
+        "correct": 104,
+        "exact_accuracy": 0.6933
       },
       "CORRUPTED_SPELLING_GRAMMAR": {
         "sample_size": 150,
-        "correct": 56,
-        "exact_accuracy": 0.3733
+        "correct": 76,
+        "exact_accuracy": 0.5067
       },
       "INDEPENDENT_DUAL": {
         "sample_size": 250,
-        "correct": 68,
-        "exact_accuracy": 0.272
+        "correct": 106,
+        "exact_accuracy": 0.424
       },
       "INDEPENDENT_TRIPLE": {
         "sample_size": 150,
-        "correct": 25,
-        "exact_accuracy": 0.1667
+        "correct": 32,
+        "exact_accuracy": 0.2133
       },
       "LONG_NARRATIVES": {
         "sample_size": 100,
-        "correct": 51,
-        "exact_accuracy": 0.51
+        "correct": 54,
+        "exact_accuracy": 0.54
       },
       "NEGATION_CONTRADICTION": {
         "sample_size": 200,
-        "correct": 37,
-        "exact_accuracy": 0.185
+        "correct": 32,
+        "exact_accuracy": 0.16
       },
       "NORMAL_EVERYDAY": {
         "sample_size": 300,
-        "correct": 155,
-        "exact_accuracy": 0.5167
+        "correct": 194,
+        "exact_accuracy": 0.6467
       },
       "OUT_OF_SCOPE_HARD_NEGATIVES": {
         "sample_size": 100,
-        "correct": 98,
-        "exact_accuracy": 0.98
+        "correct": 100,
+        "exact_accuracy": 1.0
       },
       "SLANG_CODESWITCH": {
         "sample_size": 200,
-        "correct": 109,
-        "exact_accuracy": 0.545
+        "correct": 122,
+        "exact_accuracy": 0.61
       }
     },
     "length_bracket_slices": {
       "5-35": {
         "sample_size": 189,
-        "correct": 123,
-        "exact_accuracy": 0.6508
+        "correct": 150,
+        "exact_accuracy": 0.7937
       },
       "36-80": {
         "sample_size": 555,
-        "correct": 254,
-        "exact_accuracy": 0.4577
+        "correct": 332,
+        "exact_accuracy": 0.5982
       },
       "81-125": {
         "sample_size": 480,
-        "correct": 207,
-        "exact_accuracy": 0.4313
+        "correct": 279,
+        "exact_accuracy": 0.5813
       },
       "126-165": {
         "sample_size": 409,
-        "correct": 154,
-        "exact_accuracy": 0.3765
+        "correct": 183,
+        "exact_accuracy": 0.4474
       },
       "166-200": {
         "sample_size": 367,
-        "correct": 146,
-        "exact_accuracy": 0.3978
+        "correct": 107,
+        "exact_accuracy": 0.2916
       }
     },
     "department_metrics": {
       "kmc": {
-        "precision": 0.7392,
-        "recall": 0.838,
-        "f1": 0.7855,
+        "precision": 0.5285,
+        "recall": 0.9537,
+        "f1": 0.6801,
         "support": 389,
-        "brier_score": 0.0774
+        "brier_score": 0.0921
       },
       "kwsc": {
-        "precision": 0.7964,
-        "recall": 0.8376,
-        "f1": 0.8165,
+        "precision": 0.7691,
+        "recall": 0.9718,
+        "f1": 0.8586,
         "support": 425,
-        "brier_score": 0.0746
+        "brier_score": 0.0597
       },
       "kelectric": {
-        "precision": 0.8565,
-        "recall": 0.4311,
-        "f1": 0.5735,
+        "precision": 0.9006,
+        "recall": 0.7133,
+        "f1": 0.7961,
         "support": 457,
-        "brier_score": 0.1261
+        "brier_score": 0.1143
       },
       "ssgc": {
-        "precision": 0.9188,
-        "recall": 0.4714,
-        "f1": 0.6231,
+        "precision": 0.9313,
+        "recall": 0.5651,
+        "f1": 0.7034,
         "support": 384,
-        "brier_score": 0.0905
+        "brier_score": 0.1144
       },
       "sswmb": {
-        "precision": 0.7102,
-        "recall": 0.3064,
-        "f1": 0.4281,
+        "precision": 0.7929,
+        "recall": 0.6005,
+        "f1": 0.6834,
         "support": 408,
-        "brier_score": 0.1402
+        "brier_score": 0.1176
       },
       "sbca": {
-        "precision": 0.8522,
-        "recall": 0.447,
-        "f1": 0.5864,
+        "precision": 0.8767,
+        "recall": 0.5142,
+        "f1": 0.6482,
         "support": 387,
-        "brier_score": 0.1024
+        "brier_score": 0.1211
       }
     },
     "latency": {
-      "mean_ms": 13.15,
-      "p95_ms": 31.8
+      "mean_ms": 12.98,
+      "p95_ms": 31.73
     }
   },
   "Run_004": {
@@ -171,166 +171,166 @@
     "pipeline_mode": "relation_aware",
     "joblib_path": "data/v11/curriculum_runs/run_004/champion_model.joblib",
     "sample_size": 2000,
-    "exact_set_accuracy": 0.442,
+    "exact_set_accuracy": 0.5255,
     "exact_set_ci_95": [
-      0.4204,
-      0.4639
+      0.5036,
+      0.5473
     ],
-    "correct_count": 884,
-    "incorrect_count": 1116,
-    "macro_f1": 0.6355,
-    "micro_f1": 0.6554,
-    "false_extra_department_rate": 0.1575,
-    "missed_department_rate": 0.4457,
+    "correct_count": 1051,
+    "incorrect_count": 949,
+    "macro_f1": 0.7283,
+    "micro_f1": 0.7349,
+    "false_extra_department_rate": 0.271,
+    "missed_department_rate": 0.2771,
     "multi_issue_accuracy": {
       "single_issue": {
         "sample_size": 1500,
-        "exact_accuracy": 0.462
+        "exact_accuracy": 0.542
       },
       "dual_issue": {
         "sample_size": 250,
-        "exact_accuracy": 0.272
+        "exact_accuracy": 0.424
       },
       "triple_issue": {
         "sample_size": 150,
-        "exact_accuracy": 0.1667
+        "exact_accuracy": 0.2133
       },
       "out_of_scope_protection": {
         "sample_size": 100,
-        "exact_accuracy": 0.98
+        "exact_accuracy": 1.0
       }
     },
     "category_slices": {
       "ABUSIVE_PROFANITY": {
         "sample_size": 200,
-        "correct": 99,
-        "exact_accuracy": 0.495
+        "correct": 112,
+        "exact_accuracy": 0.56
       },
       "ANGRY_AGGRESSIVE": {
         "sample_size": 200,
-        "correct": 113,
-        "exact_accuracy": 0.565
+        "correct": 119,
+        "exact_accuracy": 0.595
       },
       "CAUSAL_CONSEQUENCES": {
         "sample_size": 150,
-        "correct": 73,
-        "exact_accuracy": 0.4867
+        "correct": 104,
+        "exact_accuracy": 0.6933
       },
       "CORRUPTED_SPELLING_GRAMMAR": {
         "sample_size": 150,
-        "correct": 56,
-        "exact_accuracy": 0.3733
+        "correct": 76,
+        "exact_accuracy": 0.5067
       },
       "INDEPENDENT_DUAL": {
         "sample_size": 250,
-        "correct": 68,
-        "exact_accuracy": 0.272
+        "correct": 106,
+        "exact_accuracy": 0.424
       },
       "INDEPENDENT_TRIPLE": {
         "sample_size": 150,
-        "correct": 25,
-        "exact_accuracy": 0.1667
+        "correct": 32,
+        "exact_accuracy": 0.2133
       },
       "LONG_NARRATIVES": {
         "sample_size": 100,
-        "correct": 51,
-        "exact_accuracy": 0.51
+        "correct": 54,
+        "exact_accuracy": 0.54
       },
       "NEGATION_CONTRADICTION": {
         "sample_size": 200,
-        "correct": 37,
-        "exact_accuracy": 0.185
+        "correct": 32,
+        "exact_accuracy": 0.16
       },
       "NORMAL_EVERYDAY": {
         "sample_size": 300,
-        "correct": 155,
-        "exact_accuracy": 0.5167
+        "correct": 194,
+        "exact_accuracy": 0.6467
       },
       "OUT_OF_SCOPE_HARD_NEGATIVES": {
         "sample_size": 100,
-        "correct": 98,
-        "exact_accuracy": 0.98
+        "correct": 100,
+        "exact_accuracy": 1.0
       },
       "SLANG_CODESWITCH": {
         "sample_size": 200,
-        "correct": 109,
-        "exact_accuracy": 0.545
+        "correct": 122,
+        "exact_accuracy": 0.61
       }
     },
     "length_bracket_slices": {
       "5-35": {
         "sample_size": 189,
-        "correct": 123,
-        "exact_accuracy": 0.6508
+        "correct": 150,
+        "exact_accuracy": 0.7937
       },
       "36-80": {
         "sample_size": 555,
-        "correct": 254,
-        "exact_accuracy": 0.4577
+        "correct": 332,
+        "exact_accuracy": 0.5982
       },
       "81-125": {
         "sample_size": 480,
-        "correct": 207,
-        "exact_accuracy": 0.4313
+        "correct": 279,
+        "exact_accuracy": 0.5813
       },
       "126-165": {
         "sample_size": 409,
-        "correct": 154,
-        "exact_accuracy": 0.3765
+        "correct": 183,
+        "exact_accuracy": 0.4474
       },
       "166-200": {
         "sample_size": 367,
-        "correct": 146,
-        "exact_accuracy": 0.3978
+        "correct": 107,
+        "exact_accuracy": 0.2916
       }
     },
     "department_metrics": {
       "kmc": {
-        "precision": 0.7392,
-        "recall": 0.838,
-        "f1": 0.7855,
+        "precision": 0.5285,
+        "recall": 0.9537,
+        "f1": 0.6801,
         "support": 389,
-        "brier_score": 0.0774
+        "brier_score": 0.0921
       },
       "kwsc": {
-        "precision": 0.7964,
-        "recall": 0.8376,
-        "f1": 0.8165,
+        "precision": 0.7691,
+        "recall": 0.9718,
+        "f1": 0.8586,
         "support": 425,
-        "brier_score": 0.0746
+        "brier_score": 0.0597
       },
       "kelectric": {
-        "precision": 0.8565,
-        "recall": 0.4311,
-        "f1": 0.5735,
+        "precision": 0.9006,
+        "recall": 0.7133,
+        "f1": 0.7961,
         "support": 457,
-        "brier_score": 0.1261
+        "brier_score": 0.1143
       },
       "ssgc": {
-        "precision": 0.9188,
-        "recall": 0.4714,
-        "f1": 0.6231,
+        "precision": 0.9313,
+        "recall": 0.5651,
+        "f1": 0.7034,
         "support": 384,
-        "brier_score": 0.0905
+        "brier_score": 0.1144
       },
       "sswmb": {
-        "precision": 0.7102,
-        "recall": 0.3064,
-        "f1": 0.4281,
+        "precision": 0.7929,
+        "recall": 0.6005,
+        "f1": 0.6834,
         "support": 408,
-        "brier_score": 0.1402
+        "brier_score": 0.1176
       },
       "sbca": {
-        "precision": 0.8522,
-        "recall": 0.447,
-        "f1": 0.5864,
+        "precision": 0.8767,
+        "recall": 0.5142,
+        "f1": 0.6482,
         "support": 387,
-        "brier_score": 0.1024
+        "brier_score": 0.1211
       }
     },
     "latency": {
-      "mean_ms": 13.95,
-      "p95_ms": 32.36
+      "mean_ms": 15.01,
+      "p95_ms": 36.1
     }
   },
   "Run_005": {
@@ -338,166 +338,166 @@
     "pipeline_mode": "relation_aware",
     "joblib_path": "data/v11/curriculum_runs/run_005/champion_model.joblib",
     "sample_size": 2000,
-    "exact_set_accuracy": 0.442,
+    "exact_set_accuracy": 0.623,
     "exact_set_ci_95": [
-      0.4204,
-      0.4639
+      0.6015,
+      0.644
     ],
-    "correct_count": 884,
-    "incorrect_count": 1116,
-    "macro_f1": 0.6355,
-    "micro_f1": 0.6554,
-    "false_extra_department_rate": 0.1575,
-    "missed_department_rate": 0.4457,
+    "correct_count": 1246,
+    "incorrect_count": 754,
+    "macro_f1": 0.7925,
+    "micro_f1": 0.8009,
+    "false_extra_department_rate": 0.1965,
+    "missed_department_rate": 0.2151,
     "multi_issue_accuracy": {
       "single_issue": {
         "sample_size": 1500,
-        "exact_accuracy": 0.462
+        "exact_accuracy": 0.632
       },
       "dual_issue": {
         "sample_size": 250,
-        "exact_accuracy": 0.272
+        "exact_accuracy": 0.584
       },
       "triple_issue": {
         "sample_size": 150,
-        "exact_accuracy": 0.1667
+        "exact_accuracy": 0.3467
       },
       "out_of_scope_protection": {
         "sample_size": 100,
-        "exact_accuracy": 0.98
+        "exact_accuracy": 1.0
       }
     },
     "category_slices": {
       "ABUSIVE_PROFANITY": {
         "sample_size": 200,
-        "correct": 99,
-        "exact_accuracy": 0.495
+        "correct": 131,
+        "exact_accuracy": 0.655
       },
       "ANGRY_AGGRESSIVE": {
         "sample_size": 200,
-        "correct": 113,
-        "exact_accuracy": 0.565
+        "correct": 143,
+        "exact_accuracy": 0.715
       },
       "CAUSAL_CONSEQUENCES": {
         "sample_size": 150,
-        "correct": 73,
-        "exact_accuracy": 0.4867
+        "correct": 140,
+        "exact_accuracy": 0.9333
       },
       "CORRUPTED_SPELLING_GRAMMAR": {
         "sample_size": 150,
-        "correct": 56,
-        "exact_accuracy": 0.3733
+        "correct": 81,
+        "exact_accuracy": 0.54
       },
       "INDEPENDENT_DUAL": {
         "sample_size": 250,
-        "correct": 68,
-        "exact_accuracy": 0.272
+        "correct": 146,
+        "exact_accuracy": 0.584
       },
       "INDEPENDENT_TRIPLE": {
         "sample_size": 150,
-        "correct": 25,
-        "exact_accuracy": 0.1667
+        "correct": 52,
+        "exact_accuracy": 0.3467
       },
       "LONG_NARRATIVES": {
         "sample_size": 100,
-        "correct": 51,
-        "exact_accuracy": 0.51
+        "correct": 67,
+        "exact_accuracy": 0.67
       },
       "NEGATION_CONTRADICTION": {
         "sample_size": 200,
-        "correct": 37,
-        "exact_accuracy": 0.185
+        "correct": 32,
+        "exact_accuracy": 0.16
       },
       "NORMAL_EVERYDAY": {
         "sample_size": 300,
-        "correct": 155,
-        "exact_accuracy": 0.5167
+        "correct": 215,
+        "exact_accuracy": 0.7167
       },
       "OUT_OF_SCOPE_HARD_NEGATIVES": {
         "sample_size": 100,
-        "correct": 98,
-        "exact_accuracy": 0.98
+        "correct": 100,
+        "exact_accuracy": 1.0
       },
       "SLANG_CODESWITCH": {
         "sample_size": 200,
-        "correct": 109,
-        "exact_accuracy": 0.545
+        "correct": 139,
+        "exact_accuracy": 0.695
       }
     },
     "length_bracket_slices": {
       "5-35": {
         "sample_size": 189,
-        "correct": 123,
-        "exact_accuracy": 0.6508
+        "correct": 156,
+        "exact_accuracy": 0.8254
       },
       "36-80": {
         "sample_size": 555,
-        "correct": 254,
-        "exact_accuracy": 0.4577
+        "correct": 381,
+        "exact_accuracy": 0.6865
       },
       "81-125": {
         "sample_size": 480,
-        "correct": 207,
-        "exact_accuracy": 0.4313
+        "correct": 321,
+        "exact_accuracy": 0.6687
       },
       "126-165": {
         "sample_size": 409,
-        "correct": 154,
-        "exact_accuracy": 0.3765
+        "correct": 231,
+        "exact_accuracy": 0.5648
       },
       "166-200": {
         "sample_size": 367,
-        "correct": 146,
-        "exact_accuracy": 0.3978
+        "correct": 157,
+        "exact_accuracy": 0.4278
       }
     },
     "department_metrics": {
       "kmc": {
-        "precision": 0.7392,
-        "recall": 0.838,
-        "f1": 0.7855,
+        "precision": 0.7264,
+        "recall": 0.928,
+        "f1": 0.8149,
         "support": 389,
-        "brier_score": 0.0833
+        "brier_score": 0.0704
       },
       "kwsc": {
-        "precision": 0.7964,
-        "recall": 0.8376,
-        "f1": 0.8165,
+        "precision": 0.7897,
+        "recall": 0.9365,
+        "f1": 0.8568,
         "support": 425,
-        "brier_score": 0.0703
+        "brier_score": 0.0549
       },
       "kelectric": {
-        "precision": 0.8565,
-        "recall": 0.4311,
-        "f1": 0.5735,
+        "precision": 0.9093,
+        "recall": 0.8337,
+        "f1": 0.8699,
         "support": 457,
-        "brier_score": 0.1124
+        "brier_score": 0.0609
       },
       "ssgc": {
-        "precision": 0.9188,
-        "recall": 0.4714,
-        "f1": 0.6231,
+        "precision": 0.9325,
+        "recall": 0.5755,
+        "f1": 0.7118,
         "support": 384,
-        "brier_score": 0.077
+        "brier_score": 0.0807
       },
       "sswmb": {
-        "precision": 0.7102,
-        "recall": 0.3064,
-        "f1": 0.4281,
+        "precision": 0.7617,
+        "recall": 0.799,
+        "f1": 0.7799,
         "support": 408,
-        "brier_score": 0.1401
+        "brier_score": 0.0778
       },
       "sbca": {
-        "precision": 0.8522,
-        "recall": 0.447,
-        "f1": 0.5864,
+        "precision": 0.8839,
+        "recall": 0.6098,
+        "f1": 0.7217,
         "support": 387,
-        "brier_score": 0.1005
+        "brier_score": 0.1026
       }
     },
     "latency": {
-      "mean_ms": 13.96,
-      "p95_ms": 32.07
+      "mean_ms": 13.92,
+      "p95_ms": 32.33
     }
   },
   "Run_006": {
@@ -505,166 +505,166 @@
     "pipeline_mode": "relation_aware",
     "joblib_path": "data/v11/curriculum_runs/run_006/champion_model.joblib",
     "sample_size": 2000,
-    "exact_set_accuracy": 0.442,
+    "exact_set_accuracy": 0.6815,
     "exact_set_ci_95": [
-      0.4204,
-      0.4639
+      0.6608,
+      0.7016
     ],
-    "correct_count": 884,
-    "incorrect_count": 1116,
-    "macro_f1": 0.6355,
-    "micro_f1": 0.6554,
-    "false_extra_department_rate": 0.1575,
-    "missed_department_rate": 0.4457,
+    "correct_count": 1363,
+    "incorrect_count": 637,
+    "macro_f1": 0.8409,
+    "micro_f1": 0.8444,
+    "false_extra_department_rate": 0.19,
+    "missed_department_rate": 0.1469,
     "multi_issue_accuracy": {
       "single_issue": {
         "sample_size": 1500,
-        "exact_accuracy": 0.462
+        "exact_accuracy": 0.678
       },
       "dual_issue": {
         "sample_size": 250,
-        "exact_accuracy": 0.272
+        "exact_accuracy": 0.692
       },
       "triple_issue": {
         "sample_size": 150,
-        "exact_accuracy": 0.1667
+        "exact_accuracy": 0.4867
       },
       "out_of_scope_protection": {
         "sample_size": 100,
-        "exact_accuracy": 0.98
+        "exact_accuracy": 1.0
       }
     },
     "category_slices": {
       "ABUSIVE_PROFANITY": {
         "sample_size": 200,
-        "correct": 99,
-        "exact_accuracy": 0.495
+        "correct": 146,
+        "exact_accuracy": 0.73
       },
       "ANGRY_AGGRESSIVE": {
         "sample_size": 200,
-        "correct": 113,
-        "exact_accuracy": 0.565
+        "correct": 156,
+        "exact_accuracy": 0.78
       },
       "CAUSAL_CONSEQUENCES": {
+        "sample_size": 150,
+        "correct": 143,
+        "exact_accuracy": 0.9533
+      },
+      "CORRUPTED_SPELLING_GRAMMAR": {
+        "sample_size": 150,
+        "correct": 90,
+        "exact_accuracy": 0.6
+      },
+      "INDEPENDENT_DUAL": {
+        "sample_size": 250,
+        "correct": 173,
+        "exact_accuracy": 0.692
+      },
+      "INDEPENDENT_TRIPLE": {
         "sample_size": 150,
         "correct": 73,
         "exact_accuracy": 0.4867
       },
-      "CORRUPTED_SPELLING_GRAMMAR": {
-        "sample_size": 150,
-        "correct": 56,
-        "exact_accuracy": 0.3733
-      },
-      "INDEPENDENT_DUAL": {
-        "sample_size": 250,
-        "correct": 68,
-        "exact_accuracy": 0.272
-      },
-      "INDEPENDENT_TRIPLE": {
-        "sample_size": 150,
-        "correct": 25,
-        "exact_accuracy": 0.1667
-      },
       "LONG_NARRATIVES": {
         "sample_size": 100,
-        "correct": 51,
-        "exact_accuracy": 0.51
+        "correct": 72,
+        "exact_accuracy": 0.72
       },
       "NEGATION_CONTRADICTION": {
         "sample_size": 200,
-        "correct": 37,
-        "exact_accuracy": 0.185
+        "correct": 18,
+        "exact_accuracy": 0.09
       },
       "NORMAL_EVERYDAY": {
         "sample_size": 300,
-        "correct": 155,
-        "exact_accuracy": 0.5167
+        "correct": 237,
+        "exact_accuracy": 0.79
       },
       "OUT_OF_SCOPE_HARD_NEGATIVES": {
         "sample_size": 100,
-        "correct": 98,
-        "exact_accuracy": 0.98
+        "correct": 100,
+        "exact_accuracy": 1.0
       },
       "SLANG_CODESWITCH": {
         "sample_size": 200,
-        "correct": 109,
-        "exact_accuracy": 0.545
+        "correct": 155,
+        "exact_accuracy": 0.775
       }
     },
     "length_bracket_slices": {
       "5-35": {
         "sample_size": 189,
-        "correct": 123,
-        "exact_accuracy": 0.6508
+        "correct": 161,
+        "exact_accuracy": 0.8519
       },
       "36-80": {
         "sample_size": 555,
-        "correct": 254,
-        "exact_accuracy": 0.4577
+        "correct": 410,
+        "exact_accuracy": 0.7387
       },
       "81-125": {
         "sample_size": 480,
-        "correct": 207,
-        "exact_accuracy": 0.4313
+        "correct": 348,
+        "exact_accuracy": 0.725
       },
       "126-165": {
         "sample_size": 409,
-        "correct": 154,
-        "exact_accuracy": 0.3765
+        "correct": 253,
+        "exact_accuracy": 0.6186
       },
       "166-200": {
         "sample_size": 367,
-        "correct": 146,
-        "exact_accuracy": 0.3978
+        "correct": 191,
+        "exact_accuracy": 0.5204
       }
     },
     "department_metrics": {
       "kmc": {
-        "precision": 0.7392,
-        "recall": 0.838,
-        "f1": 0.7855,
+        "precision": 0.7536,
+        "recall": 0.9357,
+        "f1": 0.8349,
         "support": 389,
-        "brier_score": 0.0734
+        "brier_score": 0.0537
       },
       "kwsc": {
-        "precision": 0.7964,
-        "recall": 0.8376,
-        "f1": 0.8165,
+        "precision": 0.8024,
+        "recall": 0.9365,
+        "f1": 0.8643,
         "support": 425,
-        "brier_score": 0.064
+        "brier_score": 0.043
       },
       "kelectric": {
-        "precision": 0.8565,
-        "recall": 0.4311,
-        "f1": 0.5735,
+        "precision": 0.9133,
+        "recall": 0.8993,
+        "f1": 0.9063,
         "support": 457,
-        "brier_score": 0.11
+        "brier_score": 0.0414
       },
       "ssgc": {
-        "precision": 0.9188,
-        "recall": 0.4714,
-        "f1": 0.6231,
+        "precision": 0.9288,
+        "recall": 0.7812,
+        "f1": 0.8487,
         "support": 384,
-        "brier_score": 0.0726
+        "brier_score": 0.0441
       },
       "sswmb": {
-        "precision": 0.7102,
-        "recall": 0.3064,
-        "f1": 0.4281,
+        "precision": 0.7851,
+        "recall": 0.8775,
+        "f1": 0.8287,
         "support": 408,
-        "brier_score": 0.1382
+        "brier_score": 0.0483
       },
       "sbca": {
-        "precision": 0.8522,
-        "recall": 0.447,
-        "f1": 0.5864,
+        "precision": 0.887,
+        "recall": 0.6693,
+        "f1": 0.7629,
         "support": 387,
-        "brier_score": 0.1017
+        "brier_score": 0.0849
       }
     },
     "latency": {
-      "mean_ms": 14.74,
-      "p95_ms": 34.57
+      "mean_ms": 14.64,
+      "p95_ms": 33.8
     }
   },
   "Run_004_ML_Civic": {
@@ -830,8 +830,8 @@
       }
     },
     "latency": {
-      "mean_ms": 2.26,
-      "p95_ms": 3.29
+      "mean_ms": 2.28,
+      "p95_ms": 3.33
     }
   },
   "Run_005_ML_Civic": {
@@ -997,8 +997,8 @@
       }
     },
     "latency": {
-      "mean_ms": 2.4,
-      "p95_ms": 3.57
+      "mean_ms": 2.08,
+      "p95_ms": 2.96
     }
   },
   "Run_006_ML_Civic": {
@@ -1164,8 +1164,8 @@
       }
     },
     "latency": {
-      "mean_ms": 3.0,
-      "p95_ms": 4.7
+      "mean_ms": 2.34,
+      "p95_ms": 3.43
     }
   }
 }

@@ -266,6 +266,11 @@ OUT_OF_SCOPE_PATTERNS = [
     r"(?i)\bghar\s*ke\s*andar\s*mujhe\s*pareshan\b",
     r"(?i)\bfamily\s*dispute\b",
     r"(?i)\bshauhar\s*biwi\b",
+    r"(?i)\b(?:makan\s*malik|kiraya|rent\s*barha|ghar\s*khali|tenant|landlord|bina\s*notice\s*rent)\b",
+    r"(?i)\b(?:cyber\s*crime|fraud\s*caller|atm\s*se\s*paise|paise\s*deduct|bank\s*account)\b",
+    r"(?i)\b(?:traffic\s*police|challan\s*kaat|mobile\s*cheen|snatching|dacoity|chori|wardatein)\b",
+    r"(?i)\b(?:school\s*management|fees\s*barha|private\s*school\s*fees)\b",
+    r"(?i)\b(?:padosi\s*ke\s*kuttay|kutte\s*ne\s*kaat)\b",
 ]
 
 # Location completeness indicators (Karachi specific)

@@ -1,0 +1,44 @@
+{
+  "state": "IDLE",
+  "stage": "Standby",
+  "progress_current": 0,
+  "progress_target": 0,
+  "percent_complete": 0.0,
+  "current_cycle": 0,
+  "total_cycles": 0,
+  "active_task": "No training operation running",
+  "elapsed_seconds": 0.0,
+  "estimated_remaining_seconds": 0.0,
+  "resources": {
+    "C:": {
+      "total_gb": 281.1,
+      "used_gb": 234.23,
+      "free_gb": 46.88
+    },
+    "D:": {
+      "total_gb": 194.5,
+      "used_gb": 37.8,
+      "free_gb": 156.69
+    }
+  },
+  "latest_metrics": {
+    "exact_accuracy": 0.5255,
+    "macro_f1": 0.7283,
+    "false_extra_rate": 0.271,
+    "missed_rate": 0.2771
+  },
+  "recent_events": [
+    {
+      "timestamp": "2026-11-19 11:53:29",
+      "level": "INFO",
+      "message": "AI Control Center telemetry initialized in standby mode."
+    }
+  ],
+  "active_model": {
+    "version": "v11-candidate-run-004-champion",
+    "sha256": "e4d04293f9c6d4826b5c3ff3ec327e53f1947b198888e2cb2ad4cfcf7ef98457",
+    "status": "active_runtime"
+  },
+  "updated_at": 1795071209.2067103,
+  "updated_iso": "2026-11-19T06:53:29Z"
+}

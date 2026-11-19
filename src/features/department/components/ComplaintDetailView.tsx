@@ -11,9 +11,11 @@ import {
   ArrowLeft,
   AlertCircle,
   SlidersHorizontal,
+  Flag,
 } from 'lucide-react';
 import { formatPakistanDateParts, getStatusChipInfo } from './ComplaintInboxList';
 import { PriorityOverrideModal } from './PriorityOverrideModal';
+import { FlagIncorrectDepartmentModal } from './FlagIncorrectDepartmentModal';
 
 interface ComplaintDetailViewProps {
   complaint: DepartmentComplaintView | null;
@@ -22,6 +24,7 @@ interface ComplaintDetailViewProps {
   onBackToList?: () => void;
   onOpenReviewModal?: () => void;
   onOverridePriority?: (refNumber: string, newPriority: PriorityLevel, reason: string) => void;
+  onComplaintUpdated?: (updated: DepartmentComplaintView) => void;
 }
 
 const cleanPublicLandmark = (landmark?: string | null): string | null => {
@@ -39,9 +42,11 @@ export const ComplaintDetailView: React.FC<ComplaintDetailViewProps> = ({
   onBackToList,
   onOpenReviewModal,
   onOverridePriority,
+  onComplaintUpdated,
 }) => {
   const [activeTab, setActiveTab] = useState<'overview' | 'complaint' | 'progress' | 'priority'>('overview');
   const [isOverrideModalOpen, setIsOverrideModalOpen] = useState(false);
+  const [isFlagModalOpen, setIsFlagModalOpen] = useState(false);
 
   if (!complaint) {
     return (
@@ -327,6 +332,32 @@ export const ComplaintDetailView: React.FC<ComplaintDetailViewProps> = ({
                     </>
                   )}
 
+                  {complaint.status !== 'under_review' && (
+                    <button
+                      type="button"
+                      onClick={() => setIsFlagModalOpen(true)}
+                      className="overview-header-action"
+                      style={{
+                        width: '100%',
+                        height: '36px',
+                        color: '#b45309',
+                        borderColor: '#fde68a',
+                        backgroundColor: '#fffbeb',
+                        marginBottom: '14px',
+                        fontSize: '12.5px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '6px',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <Flag size={14} />
+                      <span>Flag Incorrect Department</span>
+                    </button>
+                  )}
+
                   <div style={{ borderTop: '1px solid var(--soft-line)', paddingTop: '14px' }}>
                     <button
                       type="button"
@@ -346,6 +377,32 @@ export const ComplaintDetailView: React.FC<ComplaintDetailViewProps> = ({
                   <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--success)', marginBottom: '14px' }}>
                     {chip.label}
                   </div>
+                  {complaint.status !== 'under_review' && (
+                    <button
+                      type="button"
+                      onClick={() => setIsFlagModalOpen(true)}
+                      className="overview-header-action"
+                      style={{
+                        width: '100%',
+                        height: '36px',
+                        color: '#b45309',
+                        borderColor: '#fde68a',
+                        backgroundColor: '#fffbeb',
+                        marginBottom: '14px',
+                        fontSize: '12.5px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '6px',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <Flag size={14} />
+                      <span>Flag Incorrect Department</span>
+                    </button>
+                  )}
+
                   <div style={{ borderTop: '1px solid var(--soft-line)', paddingTop: '14px' }}>
                     <button
                       type="button"
@@ -565,6 +622,20 @@ export const ComplaintDetailView: React.FC<ComplaintDetailViewProps> = ({
             setIsOverrideModalOpen(false);
           }}
           onClose={() => setIsOverrideModalOpen(false)}
+        />
+      )}
+
+      {/* Flag Incorrect Department Modal */}
+      {isFlagModalOpen && complaint && (
+        <FlagIncorrectDepartmentModal
+          isOpen={isFlagModalOpen}
+          onClose={() => setIsFlagModalOpen(false)}
+          complaint={complaint}
+          onFlagged={(updated) => {
+            if (onComplaintUpdated) {
+              onComplaintUpdated(updated);
+            }
+          }}
         />
       )}
     </div>

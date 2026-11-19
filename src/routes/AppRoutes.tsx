@@ -20,6 +20,7 @@ import { DepartmentLoginPage } from '../features/department/DepartmentLoginPage'
 import { AdminLoginPage } from '../features/auth/pages/AdminLoginPage';
 import { AdminRequestsPage } from '../features/auth/pages/AdminRequestsPage';
 import { AdminAccessPage } from '../features/auth/pages/AdminAccessPage';
+import { AiControlCenterPage } from '../features/admin/ai/AiControlCenterPage';
 
 export const AppRoutes: React.FC = () => {
   return (
@@ -49,6 +50,7 @@ export const AppRoutes: React.FC = () => {
       <Route path="/admin/login" element={<AdminLoginPage />} />
       <Route path="/admin/requests" element={<AdminRequestsPage />} />
       <Route path="/admin/access" element={<AdminAccessPage />} />
+      <Route path="/admin/ai" element={<AiControlCenterPage />} />
       <Route path="/admin/overview" element={<Navigate to="/admin/requests" replace />} />
       <Route path="/admin" element={<Navigate to="/admin/requests" replace />} />
 
