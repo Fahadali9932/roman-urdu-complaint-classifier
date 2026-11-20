@@ -223,22 +223,22 @@ export const ComplaintTracker: React.FC = () => {
   };
 
   return (
-    <div className="py-12 sm:py-16">
-      <Container size="sm">
-        <div className="rounded-3xl bg-white border border-[#E5E3E0] p-6 sm:p-10 shadow-[0_12px_36px_rgba(20,20,20,0.06)]">
-          <div className="flex items-center justify-between gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-[#FAF9F7] border border-[#E5E3E0] flex items-center justify-center text-[#681822]">
-              <FolderOpen className="w-7 h-7 stroke-[1.5]" />
+    <div className="py-5 sm:py-10 civic-kinetic-page">
+      <Container size="md">
+        <div data-scroll-depth className="rounded-[28px] sm:rounded-[36px] bg-white border-2 border-[#E5E3E0] p-6 sm:p-12 shadow-[0_14px_40px_rgba(20,20,20,0.055)]">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-[#F3ECE9] border border-[#E5D8D1] flex items-center justify-center text-[#681822]">
+              <FolderOpen className="w-8 h-8 sm:w-9 sm:h-9 stroke-[2]" />
             </div>
             {/* View Switcher Tabs */}
-            <div className="inline-flex rounded-xl bg-[#FAF9F7] p-1 border border-[#EAE7E2]">
+            <div className="inline-flex flex-wrap sm:flex-nowrap rounded-xl bg-[#FAF9F7] p-1 border border-[#EAE7E2] self-start sm:self-auto">
               <button
                 type="button"
                 onClick={() => {
                   setActiveTab('track');
                   setTrackResult(null);
                 }}
-                className={`rounded-lg px-3 py-1.5 text-xs font-bold transition cursor-pointer ${
+                className={`rounded-lg px-4 py-2.5 text-sm font-bold transition cursor-pointer ${
                   activeTab === 'track'
                     ? 'bg-white text-[#681822] shadow-xs'
                     : 'text-[#625D58] hover:text-[#141414]'
@@ -249,7 +249,7 @@ export const ComplaintTracker: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setActiveTab('claim')}
-                className={`rounded-lg px-3 py-1.5 text-xs font-bold transition cursor-pointer ${
+                className={`rounded-lg px-4 py-2.5 text-sm font-bold transition cursor-pointer ${
                   activeTab === 'claim'
                     ? 'bg-white text-[#681822] shadow-xs'
                     : 'text-[#625D58] hover:text-[#141414]'
@@ -260,25 +260,25 @@ export const ComplaintTracker: React.FC = () => {
             </div>
           </div>
 
-          <h1 className="mt-5 font-display font-black text-2xl sm:text-3xl text-[#141414] tracking-tight">
+          <h1 className="mt-7 font-display font-black text-[clamp(2.5rem,5vw,4.5rem)] leading-[1.08] text-[#141414] tracking-tight">
             {activeTab === 'track' ? 'Track Your Complaint' : 'Track Complaint'}
           </h1>
 
           {activeTab === 'track' ? (
             <div>
-              <p className="mt-2 text-sm text-[#5A554E] leading-relaxed">
+              <p className="mt-3 text-base sm:text-lg text-[#5A554E] leading-relaxed">
                 Enter the tracking number provided when you submitted your complaint.
               </p>
 
               {trackResult ? (
                 /* Public Safe Minimal Status Result */
-                <div className="mt-6 rounded-2xl border border-[#E5E3E0] bg-[#FAF9F7] p-5 sm:p-6 space-y-5 animate-in fade-in duration-200">
+                <div data-scroll-depth className="mt-8 rounded-[26px] border-2 border-[#E5E3E0] bg-[#FAF9F7] p-6 sm:p-8 space-y-6 animate-in fade-in duration-200">
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#681822]">
                         {trackResult.public_category || 'Municipal Service'}
                       </span>
-                      <h2 className="mt-0.5 text-xl font-bold text-[#141414]">
+                      <h2 className="mt-1 text-2xl sm:text-3xl font-black text-[#141414]">
                         {trackResult.display_status || 'Under review'}
                       </h2>
                     </div>
@@ -391,7 +391,7 @@ export const ComplaintTracker: React.FC = () => {
                         required
                         placeholder="8041 7263 9150 2846 0371 6628"
                         maxLength={29}
-                        className="w-full rounded-xl border border-[#D9D3CC] px-4 py-3 font-mono text-base tracking-wider placeholder:text-[#A8A29E] focus:border-[#681822] focus:outline-none focus:ring-1 focus:ring-[#681822]"
+                        className="w-full min-h-[64px] sm:min-h-[76px] rounded-xl border-2 border-[#D9D3CC] px-4 sm:px-6 py-4 font-mono text-base sm:text-xl font-bold tracking-wider placeholder:text-[#A8A29E] focus:border-[#681822] focus:outline-none focus:ring-2 focus:ring-[#681822]/15"
                       />
                     </div>
                     <p className="mt-1.5 text-[11px] text-[#625D58] flex items-center gap-1">
@@ -430,7 +430,7 @@ export const ComplaintTracker: React.FC = () => {
                     type="submit"
                     variant="primary"
                     size="md"
-                    className="w-full min-h-[48px]"
+                    className="w-full min-h-[58px] text-base font-bold"
                     isLoading={trackingLoading}
                     leftIcon={<Search className="w-4 h-4 text-white" />}
                   >

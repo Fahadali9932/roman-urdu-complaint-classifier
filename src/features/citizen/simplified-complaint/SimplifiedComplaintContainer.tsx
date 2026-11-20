@@ -1299,27 +1299,27 @@ const SubmissionModal: React.FC<{
 
   const modalContent = (
     <div
-      className="fixed inset-0 z-[100] grid place-items-center bg-[#141414]/60 p-4 backdrop-blur-xs font-ui text-start"
+      className="fixed inset-0 z-[100] grid place-items-center bg-[#141414]/60 p-2 sm:p-5 backdrop-blur-xs font-ui text-start"
       role="dialog"
       aria-modal="true"
       aria-labelledby="submission-title"
     >
-      <div className="w-full max-w-lg animate-in fade-in zoom-in-95 duration-200 rounded-[28px] bg-white p-6 shadow-2xl sm:p-8 max-h-[90vh] overflow-y-auto">
+      <div className="w-full max-w-2xl animate-in fade-in zoom-in-95 duration-200 rounded-[26px] sm:rounded-[36px] bg-white p-6 sm:p-10 shadow-2xl max-h-[94dvh] sm:max-h-[90dvh] overflow-y-auto">
         {/* Header: Emerald checkmark and single title */}
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center shrink-0 mt-0.5 text-emerald-600">
-              <CheckCircle2 className="h-6 w-6 stroke-[2]" />
+            <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center shrink-0 mt-0.5 text-emerald-600">
+              <CheckCircle2 className="h-7 w-7 sm:h-9 sm:w-9 stroke-[2.3]" />
             </div>
             <div>
               <h2
                 id="submission-title"
                 aria-label={ur ? 'شکایت موصول ہو گئی' : 'Complaint Received - Complaint Submitted Successfully'}
-                className="text-xl sm:text-2xl font-black text-[#141414] tracking-tight"
+                className="text-2xl sm:text-4xl font-black text-[#141414] tracking-tight leading-tight"
               >
                 {ur ? 'شکایت موصول ہو گئی' : 'Complaint Received'}
               </h2>
-              <p className="mt-1 text-xs sm:text-[13px] text-[#5A554E]">
+              <p className="mt-2 text-sm sm:text-base text-[#5A554E]">
                 {ur ? 'آپ کی شکایت کا باقاعدہ اندراج کر لیا گیا ہے۔' : 'Your complaint has been registered successfully.'}
               </p>
             </div>
@@ -1336,7 +1336,7 @@ const SubmissionModal: React.FC<{
 
         {/* 1. Primary Tracking / Reference Card */}
         {submission.guestTrackingNumber ? (
-          <div className="mt-5 rounded-2xl border-2 border-[#681822] bg-[#FAF6F6] p-4 sm:p-5">
+          <div className="mt-7 rounded-[24px] border-2 border-[#681822] bg-[#FAF6F6] p-5 sm:p-7">
             <div className="flex items-center justify-between gap-2">
               <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#681822] flex items-center gap-1.5">
                 <Lock className="h-3.5 w-3.5 text-[#681822]" />
@@ -1347,14 +1347,14 @@ const SubmissionModal: React.FC<{
               </span>
             </div>
 
-            <div className="mt-2.5 flex items-center justify-between gap-3">
-              <span className="font-mono text-lg sm:text-xl font-black tracking-wider text-[#141414] select-all">
+            <div className="mt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <span className="font-mono text-xl sm:text-2xl font-black tracking-wide text-[#141414] select-all break-words">
                 {formattedGuestTracking}
               </span>
               <button
                 type="button"
                 onClick={handleCopyTracking}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-[#681822] bg-white px-3 py-1.5 text-xs font-bold text-[#681822] hover:bg-[#F7EFF0] transition cursor-pointer shrink-0"
+                className="inline-flex min-h-[44px] items-center justify-center gap-1.5 rounded-lg border border-[#681822] bg-white px-4 py-2 text-sm font-bold text-[#681822] hover:bg-[#F7EFF0] transition cursor-pointer shrink-0"
                 aria-label="Copy tracking number"
               >
                 {copiedTracking ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5 text-[#681822]" />}
@@ -1362,7 +1362,7 @@ const SubmissionModal: React.FC<{
               </button>
             </div>
 
-            <p className="mt-2 text-xs leading-relaxed text-[#5A554E]">
+            <p className="mt-4 text-sm sm:text-base leading-relaxed text-[#5A554E]">
               {ur
                 ? 'یہ نمبر نجی رکھیں۔ اس 24 ہندسی نمبر سے آپ کسی بھی براؤزر پر بغیر لاگ ان کیے اپنی شکایت کی تازہ ترین صورتحال جانچ سکتے ہیں۔'
                 : 'Anyone with this number can check the status. Keep this number private. You can check status on any device without signing in.'}
@@ -1441,7 +1441,7 @@ const SubmissionModal: React.FC<{
         )}
 
         {/* 3. Department Routing & Progress Card */}
-        <div className="mt-4 rounded-2xl border border-[#E6E3DF] p-4 sm:p-5 space-y-2.5">
+        <div className="mt-5 rounded-[24px] border-2 border-[#E6E3DF] p-5 sm:p-7 space-y-3">
           {isUnderReview ? (
             <div>
               <div className="flex items-center justify-between gap-2">
@@ -1452,7 +1452,7 @@ const SubmissionModal: React.FC<{
                   {ur ? 'زیرِ جائزہ' : 'Under Review'}
                 </span>
               </div>
-              <p className="mt-2 text-xs leading-relaxed text-[#625D58]">
+              <p className="mt-2 text-sm sm:text-base leading-relaxed text-[#625D58]">
                 {ur
                   ? 'آپ کی شکایت موصول ہو چکی ہے اور جائزے کے منتظر ہے۔ تصدیق کے بعد متعلقہ محکمہ ظاہر ہو جائے گا۔'
                   : 'Your complaint has been received and is awaiting review. The responsible department will appear once confirmed.'}
@@ -1484,12 +1484,12 @@ const SubmissionModal: React.FC<{
                   })}
                 </div>
               ) : (
-                <div className="mt-1 font-display font-bold text-[#141414] text-sm sm:text-base">
+                <div className="mt-2 font-display font-black text-[#141414] text-lg sm:text-2xl">
                   {deptDisplayName}
                 </div>
               )}
 
-              <p className="mt-2 text-xs leading-relaxed text-[#625D58]">
+              <p className="mt-2 text-sm sm:text-base leading-relaxed text-[#625D58]">
                 {submission.departments && submission.departments.length > 1
                   ? ur
                     ? 'آپ کی شکایت متعلقہ بلدیاتی محکموں کو بھیج دی گئی ہے اور منظوری کے منتظر ہے۔'

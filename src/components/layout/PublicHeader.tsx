@@ -12,7 +12,9 @@ export const PublicHeader: React.FC = () => {
   const [scrollSection, setScrollSection] = useState<'home' | 'steps' | 'submit' | 'footer'>('home');
   const [darkHeaderActive, setDarkHeaderActive] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const isInfoPage = ['/about', '/contact', '/privacy-policy', '/terms-of-use', '/privacy', '/terms', '/faq'].includes(
+  // FAQ deliberately uses the light civic surface. Treating it as a dark
+  // information page made the wordmark and account controls white-on-white.
+  const isInfoPage = ['/about', '/contact', '/privacy-policy', '/terms-of-use', '/privacy', '/terms'].includes(
     location.pathname
   );
   const isDarkHeader = isInfoPage || darkHeaderActive;

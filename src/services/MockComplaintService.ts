@@ -145,6 +145,7 @@ export class MockComplaintService implements IComplaintService {
   }
 
   async getCitizenComplaints(citizenId: string = DEMO_CITIZEN.id): Promise<Complaint[]> {
+    this.loadFromStorage();
     await this.delay(100);
     return this.complaints.filter((c) => c.citizenId === citizenId);
   }

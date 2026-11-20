@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { WifiOff } from 'lucide-react';
+import { ScrollReveals } from '../../components/layout/ScrollReveals';
 
 export const DepartmentPortalLayout: React.FC = () => {
   const [isOnline, setIsOnline] = useState(() =>
@@ -38,6 +39,7 @@ export const DepartmentPortalLayout: React.FC = () => {
 
   return (
     <div className="min-h-screen w-full text-[#111827] selection:bg-[#111827] selection:text-white">
+      <ScrollReveals />
       {!isOnline && (
         <div
           role="status"

@@ -167,13 +167,13 @@ export const CitizenDashboard: React.FC = () => {
   }, [complaints, statusFilter, searchQuery, sortOrder]);
 
   return (
-    <div className="w-full text-start space-y-8 font-ui">
+    <div className="w-full text-start space-y-8 sm:space-y-10 font-ui civic-kinetic-page">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[#E5E3E0]">
+      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 pb-8 border-b-2 border-[#D9D3CC]">
         <div className="space-y-1.5">
           <h1
             aria-label={ur ? 'آپ کی شکایات' : 'My Complaints - Your Complaints'}
-            className="font-display font-black text-3xl sm:text-4xl text-[#141414] tracking-tight"
+            className="font-display font-black text-[clamp(2.7rem,5vw,4.9rem)] leading-[1.05] text-[#141414] tracking-tight"
           >
             {ur ? 'میری شکایات' : 'My Complaints'}
             {complaints.length > 0 && (
@@ -182,7 +182,7 @@ export const CitizenDashboard: React.FC = () => {
               </span>
             )}
           </h1>
-          <p className="text-xs sm:text-sm text-[#5A554E] leading-relaxed">
+          <p className="text-base sm:text-lg text-[#514A43] leading-relaxed">
             {ur
               ? 'اپنی درج شدہ تمام شکایات اور ان کی پیش رفت دیکھیں۔'
               : 'View your submitted complaints and follow their progress.'}
@@ -194,7 +194,7 @@ export const CitizenDashboard: React.FC = () => {
           <Link to="/track" className="flex-1 sm:flex-initial">
             <button
               type="button"
-              className="w-full sm:w-auto inline-flex min-h-[42px] items-center justify-center gap-2 rounded-xl border border-[#D9D3CC] bg-white px-4 text-xs font-bold text-[#141414] hover:bg-[#FAF9F7] transition cursor-pointer shadow-xs"
+              className="w-full sm:w-auto inline-flex min-h-[52px] items-center justify-center gap-2 rounded-xl border-2 border-[#D9D3CC] bg-white px-5 text-sm font-bold text-[#141414] hover:bg-[#FAF9F7] transition cursor-pointer shadow-xs"
             >
               <Search className="w-3.5 h-3.5 text-[#681822]" />
               <span>{ur ? 'شکایت ٹریک کریں' : 'Track Complaint'}</span>
@@ -208,7 +208,7 @@ export const CitizenDashboard: React.FC = () => {
               setClaimError('');
               setClaimSuccess('');
             }}
-            className="inline-flex min-h-[42px] items-center justify-center gap-2 rounded-xl border border-[#D9D3CC] bg-white px-4 text-xs font-bold text-[#141414] hover:bg-[#FAF9F7] transition cursor-pointer shadow-xs"
+            className="inline-flex min-h-[52px] items-center justify-center gap-2 rounded-xl border-2 border-[#D9D3CC] bg-white px-5 text-sm font-bold text-[#141414] hover:bg-[#FAF9F7] transition cursor-pointer shadow-xs"
           >
             <KeyRound className="w-3.5 h-3.5 text-[#681822]" />
             <span>{ur ? 'مہمان شکایت منسلک کریں' : 'Claim Guest Complaint'}</span>
@@ -219,7 +219,7 @@ export const CitizenDashboard: React.FC = () => {
               variant="primary"
               size="md"
               leftIcon={<PenTool className="w-4 h-4 text-white" />}
-              className="w-full tracking-wide text-xs font-bold min-h-[42px]"
+              className="w-full tracking-wide text-sm font-bold min-h-[52px] px-6"
             >
               {ur ? 'شکایت درج کریں' : 'New Complaint'}
             </Button>
@@ -243,43 +243,43 @@ export const CitizenDashboard: React.FC = () => {
       {!isLoading && complaints.length > 0 ? (
         <div className="space-y-6">
           {/* Compact Overview Metrics Bar */}
-          <div className="rounded-2xl bg-white border border-[#E5E3E0] p-3 sm:p-4 shadow-xs">
+          <div data-scroll-depth className="rounded-[24px] bg-white border-2 border-[#E5E3E0] p-4 sm:p-6 shadow-sm">
             <div className="grid grid-cols-2 sm:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-[#E5E3E0] rtl:divide-x-reverse">
-              <div className="p-3 text-start">
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-[#88827A] block">
+              <div className="p-3 sm:p-5 text-start">
+                <span className="text-xs sm:text-sm font-bold tracking-wide text-[#645C55] block">
                   {ur ? 'کل شکایات' : 'Total Complaints'}
                 </span>
-                <span className="text-xl sm:text-2xl font-black text-[#141414] mt-0.5 block">
+                <span className="text-3xl sm:text-5xl font-black text-[#141414] mt-2 block">
                   {stats.total}
                 </span>
               </div>
 
-              <div className="p-3 text-start">
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-amber-800 block flex items-center gap-1.5">
+              <div className="p-3 sm:p-5 text-start">
+                <span className="text-xs sm:text-sm font-bold tracking-wide text-amber-800 block flex items-center gap-1.5">
                   <Clock className="w-3.5 h-3.5 text-amber-600" />
                   {ur ? 'زیرِ جائزہ' : 'Pending Review'}
                 </span>
-                <span className="text-xl sm:text-2xl font-black text-amber-900 mt-0.5 block">
+                <span className="text-3xl sm:text-5xl font-black text-amber-900 mt-2 block">
                   {stats.pending}
                 </span>
               </div>
 
-              <div className="p-3 text-start">
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-blue-800 block flex items-center gap-1.5">
+              <div className="p-3 sm:p-5 text-start">
+                <span className="text-xs sm:text-sm font-bold tracking-wide text-blue-800 block flex items-center gap-1.5">
                   <RefreshCw className="w-3.5 h-3.5 text-blue-600" />
                   {ur ? 'زیرِ کارروائی' : 'In Progress'}
                 </span>
-                <span className="text-xl sm:text-2xl font-black text-blue-900 mt-0.5 block">
+                <span className="text-3xl sm:text-5xl font-black text-blue-900 mt-2 block">
                   {stats.inProgress}
                 </span>
               </div>
 
-              <div className="p-3 text-start">
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-emerald-800 block flex items-center gap-1.5">
+              <div className="p-3 sm:p-5 text-start">
+                <span className="text-xs sm:text-sm font-bold tracking-wide text-emerald-800 block flex items-center gap-1.5">
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                   {ur ? 'حل شدہ' : 'Resolved'}
                 </span>
-                <span className="text-xl sm:text-2xl font-black text-emerald-900 mt-0.5 block">
+                <span className="text-3xl sm:text-5xl font-black text-emerald-900 mt-2 block">
                   {stats.resolved}
                 </span>
               </div>
@@ -289,15 +289,15 @@ export const CitizenDashboard: React.FC = () => {
           {/* Search, Filter & Sort Controls */}
           <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 pt-1">
             {/* Search Input */}
-            <div className="relative flex-1 max-w-md">
+            <div className="relative flex-1 max-w-xl">
               <Search className={`w-4 h-4 text-[#88827A] absolute top-1/2 -translate-y-1/2 ${isRTL ? 'right-3.5' : 'left-3.5'}`} />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={ur ? 'حوالہ نمبر یا عنوان سے تلاش کریں…' : 'Search by reference or title…'}
-                className={`w-full rounded-xl border border-[#D9D3CC] bg-white py-2 text-xs placeholder:text-[#88827A] focus:border-[#681822] focus:outline-none focus:ring-1 focus:ring-[#681822] shadow-xs ${
-                  isRTL ? 'pr-9 pl-3' : 'pl-9 pr-3'
+                className={`w-full min-h-[52px] rounded-xl border-2 border-[#D9D3CC] bg-white py-3 text-base placeholder:text-[#88827A] focus:border-[#681822] focus:outline-none focus:ring-1 focus:ring-[#681822] shadow-xs ${
+                  isRTL ? 'pr-11 pl-4' : 'pl-11 pr-4'
                 }`}
               />
             </div>
@@ -310,7 +310,7 @@ export const CitizenDashboard: React.FC = () => {
                     key={status}
                     type="button"
                     onClick={() => setStatusFilter(status)}
-                    className={`px-3 py-1 rounded-lg text-xs font-semibold transition cursor-pointer select-none ${
+                    className={`px-4 py-2.5 rounded-lg text-sm font-bold transition cursor-pointer select-none ${
                       statusFilter === status
                         ? 'bg-[#681822] text-white shadow-xs'
                         : 'text-[#5A554E] hover:text-[#141414] hover:bg-[#FAF9F7]'
@@ -331,7 +331,7 @@ export const CitizenDashboard: React.FC = () => {
               <select
                 value={sortOrder}
                 onChange={(e) => setSortOrder(e.target.value as 'newest' | 'oldest')}
-                className="rounded-xl border border-[#D9D3CC] bg-white px-3 py-1.5 text-xs font-semibold text-[#141414] focus:border-[#681822] focus:outline-none shadow-xs cursor-pointer"
+                className="min-h-[46px] rounded-xl border-2 border-[#D9D3CC] bg-white px-3 py-2 text-sm font-bold text-[#141414] focus:border-[#681822] focus:outline-none shadow-xs cursor-pointer"
                 aria-label={ur ? 'ترتیب دیں' : 'Sort complaints'}
               >
                 <option value="newest">{ur ? 'تازہ ترین پہلے' : 'Newest First'}</option>
@@ -342,7 +342,7 @@ export const CitizenDashboard: React.FC = () => {
 
           {/* Complaints List Grid */}
           {filteredComplaints.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 pt-1">
+            <div className={`grid grid-cols-1 ${filteredComplaints.length > 1 ? 'lg:grid-cols-2' : ''} gap-5 sm:gap-7 pt-1`}>
               {filteredComplaints.map((c) => (
                 <ComplaintFolder
                   key={c.id}

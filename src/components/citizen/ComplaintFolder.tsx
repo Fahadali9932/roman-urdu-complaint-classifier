@@ -104,17 +104,18 @@ export const ComplaintFolder: React.FC<ComplaintFolderProps> = ({
           onClick();
         }
       }}
-      className={`group cursor-pointer select-none text-start rounded-2xl bg-white border border-[#E5E3E0] p-5 sm:p-6 transition-all duration-200 hover:border-[#681822]/40 hover:shadow-md outline-none focus-visible:ring-2 focus-visible:ring-[#681822] ${className}`}
+      data-scroll-depth
+      className={`civic-depth-card group cursor-pointer select-none text-start rounded-[24px] sm:rounded-[30px] bg-white border-2 border-[#E5E3E0] p-6 sm:p-9 transition-all duration-200 hover:border-[#681822]/40 hover:shadow-md outline-none focus-visible:ring-2 focus-visible:ring-[#681822] ${className}`}
       aria-label={`Complaint ${complaint.referenceNumber}: ${complaint.title}`}
     >
       {/* Top Meta Line: Reference, Dept & Status */}
       <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-[#F2EFEA]">
         <div className="flex items-center gap-2">
-          <span className="font-mono text-xs font-bold text-[#681822]">
+          <span className="font-mono text-sm font-bold text-[#681822]">
             #{complaint.referenceNumber}
           </span>
           <span className="text-[#D9D3CC]">•</span>
-          <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#5A554E]">
+          <span className="inline-flex items-center gap-1 text-sm font-semibold text-[#5A554E]">
             <Building2 className="w-3.5 h-3.5 text-[#88827A]" />
             <span>{departmentLabel}</span>
           </span>
@@ -124,17 +125,17 @@ export const ComplaintFolder: React.FC<ComplaintFolderProps> = ({
       </div>
 
       {/* Main Content: Title & Preview */}
-      <div className="py-3.5 space-y-2">
-        <h3 className="font-display font-bold text-base sm:text-lg text-[#141414] tracking-tight group-hover:text-[#681822] transition-colors">
+      <div className="py-6 sm:py-8 space-y-3">
+        <h3 className="font-display font-black text-xl sm:text-2xl lg:text-3xl leading-tight text-[#141414] tracking-tight group-hover:text-[#681822] transition-colors">
           {complaint.title}
         </h3>
-        <p className="text-xs sm:text-[13px] text-[#5A554E] line-clamp-2 leading-relaxed">
+        <p className="text-base sm:text-lg text-[#5A554E] line-clamp-2 leading-relaxed">
           {complaint.description}
         </p>
       </div>
 
       {/* Footer Meta & Call-To-Action */}
-      <div className="pt-3 border-t border-[#F2EFEA] flex items-center justify-between text-xs text-[#88827A]">
+      <div className="pt-5 border-t border-[#F2EFEA] flex flex-wrap items-center justify-between gap-4 text-sm text-[#645C55]">
         <div className="flex items-center gap-3">
           <span className="inline-flex items-center gap-1 text-[#5A554E] font-medium">
             <MapPin className="w-3.5 h-3.5 text-[#681822] shrink-0" />
@@ -148,7 +149,7 @@ export const ComplaintFolder: React.FC<ComplaintFolderProps> = ({
           </span>
         </div>
 
-        <div className="inline-flex items-center gap-1 font-bold text-xs text-[#681822] group-hover:underline">
+        <div className="inline-flex items-center gap-1 font-black text-sm sm:text-base text-[#681822] group-hover:underline">
           <span>{ur ? 'تفصیلات دیکھیں' : 'View Details'}</span>
           <span className="sr-only">Open Case</span>
           {isRTL ? (

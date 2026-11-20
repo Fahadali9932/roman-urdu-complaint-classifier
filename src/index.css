@@ -219,6 +219,55 @@
   -webkit-backface-visibility: hidden;
 }
 
+/* A restrained 3D entrance on everyday pages, with no dependency on WebGL.
+   Hidden-until-observed content is never used: below-fold items start at 78%
+   opacity only when JS confirms an observer is available. */
+.civic-reveal-pending {
+  opacity: 0.78;
+  transform: perspective(1400px) translate3d(0, 34px, -52px) rotateX(2.5deg);
+}
+
+.civic-reveal-visible {
+  opacity: 1;
+  transform: perspective(1400px) translate3d(0, 0, 0) rotateX(0);
+  transition: opacity 700ms ease, transform 850ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.civic-depth-card {
+  transform-style: preserve-3d;
+}
+
+.civic-depth-card.civic-reveal-visible {
+  transform: perspective(1400px)
+    translate3d(0, var(--civic-parallax-y, 0px), var(--civic-parallax-z, 0px))
+    rotateX(var(--civic-parallax-tilt, 0deg));
+  transition: opacity 700ms ease, transform 300ms ease-out;
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .civic-depth-card:not(.civic-reveal-pending):hover {
+    transform: perspective(1400px) translate3d(0, -4px, 12px) rotateX(-0.4deg);
+    box-shadow: 0 20px 40px rgba(20, 20, 20, 0.075);
+  }
+}
+
+@media (max-width: 767px) {
+  .civic-reveal-pending {
+    opacity: 0.88;
+    transform: perspective(1000px) translate3d(0, 19px, -16px) rotateX(0.8deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .civic-reveal-pending,
+  .civic-reveal-visible,
+  .civic-depth-card {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}
+
 @media (max-width: 767px) {
   .stacked-incoming-shadow {
     box-shadow: 0 -20px 48px -6px rgba(0, 0, 0, 0.45), 0 -6px 18px -3px rgba(0, 0, 0, 0.25);

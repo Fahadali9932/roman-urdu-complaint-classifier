@@ -150,14 +150,14 @@ export const ComplaintDetailModal: React.FC<ComplaintDetailModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#141414]/60 backdrop-blur-xs animate-in fade-in duration-200 text-start"
+      className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-5 bg-[#141414]/60 backdrop-blur-xs animate-in fade-in duration-200 text-start"
       role="dialog"
       aria-modal="true"
       aria-labelledby="complaint-details-title"
     >
-      <div className="w-full max-w-2xl bg-white border border-[#E5E3E0] rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+      <div className="w-full max-w-4xl bg-white border-2 border-[#E5E3E0] rounded-[22px] sm:rounded-[32px] shadow-2xl overflow-hidden flex flex-col max-h-[94dvh] sm:max-h-[90dvh]">
         {/* Modal Header */}
-        <div className="flex items-start justify-between gap-4 px-6 sm:px-8 py-5 border-b border-[#E5E3E0] bg-[#FAF9F7]">
+        <div className="flex items-start justify-between gap-4 px-5 sm:px-10 py-6 sm:py-8 border-b border-[#E5E3E0] bg-[#FAF9F7]">
           <div className="space-y-1">
             <div className="flex flex-wrap items-center gap-2">
               <span className="font-mono text-xs font-bold text-[#681822]">
@@ -178,7 +178,7 @@ export const ComplaintDetailModal: React.FC<ComplaintDetailModalProps> = ({
 
             <h2
               id="complaint-details-title"
-              className="font-display font-black text-xl sm:text-2xl text-[#141414] tracking-tight pt-1"
+              className="font-display font-black text-2xl sm:text-4xl text-[#141414] leading-tight tracking-tight pt-2"
             >
               {complaint.title}
             </h2>
@@ -195,29 +195,29 @@ export const ComplaintDetailModal: React.FC<ComplaintDetailModalProps> = ({
         </div>
 
         {/* Modal Scrollable Body */}
-        <div className="p-6 sm:p-8 space-y-6 overflow-y-auto font-ui text-sm">
+        <div className="p-5 sm:p-10 space-y-8 overflow-y-auto font-ui text-base">
           {/* Section 1: Complaint Information */}
           <div className="space-y-3">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-[#681822] flex items-center gap-1.5">
+            <h3 className="text-sm sm:text-base font-black tracking-wide text-[#681822] flex items-center gap-2">
               <Calendar className="w-3.5 h-3.5" />
               <span>{ur ? 'معلوماتِ شکایت' : 'Complaint Information'}</span>
             </h3>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 rounded-2xl bg-[#FAF9F7] border border-[#E5E3E0]">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 p-5 sm:p-7 rounded-[24px] bg-[#FAF9F7] border-2 border-[#E5E3E0]">
               <div>
-                <span className="block text-xs text-[#88827A] font-medium">
+                <span className="block text-sm text-[#645C55] font-bold">
                   {ur ? 'تاریخِ اندراج' : 'Submitted Date'}
                 </span>
-                <span className="font-semibold text-[#141414] text-xs sm:text-sm mt-0.5 block">
+                <span className="font-bold text-[#141414] text-base sm:text-lg mt-1 block">
                   {formattedDate}
                 </span>
               </div>
 
               <div>
-                <span className="block text-xs text-[#88827A] font-medium">
+                <span className="block text-sm text-[#645C55] font-bold">
                   {ur ? 'مقامِ واقعہ' : 'Incident Location'}
                 </span>
-                <span className="font-semibold text-[#141414] text-xs sm:text-sm mt-0.5 block flex items-center gap-1">
+                <span className="font-bold text-[#141414] text-base sm:text-lg mt-1 block flex items-center gap-2">
                   <MapPin className="w-3.5 h-3.5 text-[#681822] shrink-0" />
                   <span>
                     {complaint.locality}, {complaint.district}
@@ -226,7 +226,7 @@ export const ComplaintDetailModal: React.FC<ComplaintDetailModalProps> = ({
               </div>
 
               <div className="sm:col-span-2 pt-2 border-t border-[#EAE7E2]">
-                <span className="block text-xs text-[#88827A] font-medium mb-1">
+                <span className="block text-sm text-[#645C55] font-bold mb-2">
                   {ur ? 'متعلقہ بلدیاتی محکمہ' : 'Responsible Department'}
                 </span>
                 {assignedDepartments.length > 0 ? (
@@ -234,7 +234,7 @@ export const ComplaintDetailModal: React.FC<ComplaintDetailModalProps> = ({
                     {assignedDepartments.map((deptName, idx) => (
                       <span
                         key={idx}
-                        className="inline-flex items-center gap-1.5 rounded-lg bg-white border border-[#D9D3CC] px-3 py-1 font-semibold text-xs text-[#141414]"
+                        className="inline-flex items-center gap-1.5 rounded-lg bg-white border border-[#D9D3CC] px-4 py-2 font-bold text-base text-[#141414]"
                       >
                         <Building2 className="w-3.5 h-3.5 text-[#681822]" />
                         <span>{deptName}</span>
@@ -242,7 +242,7 @@ export const ComplaintDetailModal: React.FC<ComplaintDetailModalProps> = ({
                     ))}
                   </div>
                 ) : (
-                  <p className="text-xs text-[#625D58] leading-relaxed">
+                  <p className="text-base text-[#625D58] leading-relaxed">
                     {ur
                       ? 'آپ کی شکایت کا جائزہ لیا جا رہا ہے۔ تصدیق کے بعد متعلقہ محکمہ یہاں ظاہر ہوگا۔'
                       : 'Your complaint is being reviewed. The responsible department will appear here once confirmed.'}
@@ -254,7 +254,7 @@ export const ComplaintDetailModal: React.FC<ComplaintDetailModalProps> = ({
 
           {/* Section 2: Your Complaint */}
           <div className="space-y-2">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-[#681822] flex items-center gap-1.5">
+            <h3 className="text-sm sm:text-base font-black tracking-wide text-[#681822] flex items-center gap-2">
               <FileText className="w-3.5 h-3.5" />
               <span>{ur ? 'آپ کی شکایت' : 'Your Complaint'}</span>
               <span className="text-[11px] font-normal text-[#88827A]">
@@ -262,8 +262,8 @@ export const ComplaintDetailModal: React.FC<ComplaintDetailModalProps> = ({
               </span>
             </h3>
 
-            <div className="p-4 sm:p-5 rounded-2xl bg-[#FAF9F7] border border-[#E5E3E0]">
-              <p className="text-sm sm:text-base text-[#141414] leading-relaxed whitespace-pre-wrap font-sans">
+            <div className="p-5 sm:p-8 rounded-[24px] bg-[#FAF9F7] border-2 border-[#E5E3E0]">
+              <p className="text-base sm:text-lg text-[#141414] leading-[1.75] whitespace-pre-wrap font-sans">
                 {complaint.description}
               </p>
             </div>
@@ -271,13 +271,13 @@ export const ComplaintDetailModal: React.FC<ComplaintDetailModalProps> = ({
 
           {/* Section 3: Complaint Progress */}
           <div className="space-y-3 pt-2">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-[#681822] flex items-center gap-1.5">
+            <h3 className="text-sm sm:text-base font-black tracking-wide text-[#681822] flex items-center gap-2">
               <Clock className="w-3.5 h-3.5" />
               <span>{ur ? 'پیش رفت کا ٹائم لائن' : 'Complaint Progress'}</span>
             </h3>
 
             {/* Custom Simple Steps Tracker */}
-            <div className="rounded-2xl border border-[#E5E3E0] bg-[#FAF9F7] p-4 sm:p-5">
+            <div className="rounded-[24px] border-2 border-[#E5E3E0] bg-[#FAF9F7] p-5 sm:p-8">
               <ol className="space-y-3 relative border-s border-[#D9D3CC] ms-3 sm:ms-4">
                 {progressSteps.map((step) => (
                   <li key={step.key} className="ms-4">

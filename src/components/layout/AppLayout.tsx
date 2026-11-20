@@ -3,6 +3,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 import { PublicHeader } from './PublicHeader';
 import { PublicFooter } from './PublicFooter';
 import { StackedScrollContainer, StackedScrollSection } from './stacked-scroll';
+import { ScrollReveals } from './ScrollReveals';
 
 export const AppLayout: React.FC = () => {
   const location = useLocation();
@@ -33,6 +34,7 @@ export const AppLayout: React.FC = () => {
       }`}
     >
       <PublicHeader />
+      <ScrollReveals />
       <StackedScrollContainer as="div" className="flex-1 w-full flex flex-col">
         <StackedScrollSection
           depth={10}
@@ -46,10 +48,9 @@ export const AppLayout: React.FC = () => {
                 : 'bg-[#F7F6F3] pt-24 sm:pt-28 pb-16 sm:pb-24'
           }`}
         >
-          <div className={isSubmit ? 'w-full' : 'sticky bottom-0 z-10 motion-reduce:static'}>
+          <div className="w-full relative z-10">
             <Outlet />
           </div>
-          <div className="h-[40vh] sm:h-[45vh] lg:h-[50vh] pointer-events-none motion-reduce:hidden" aria-hidden="true" />
         </StackedScrollSection>
 
         <StackedScrollSection

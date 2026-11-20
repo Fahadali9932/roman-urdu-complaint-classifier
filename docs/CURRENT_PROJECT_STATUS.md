@@ -5,7 +5,60 @@ Verified on **20 November 2026 (Pakistan time)**. Internal delivery target:
 This document distinguishes inspected source, automated checks, and unverified
 hosted behavior. Update it after every significant verified milestone.
 
-## Current development update, 20 November 2026 — Phase V13.7: Professional Citizen Portal Redesign, Secure Guest Tracking & FAQ
+## Current development update, 20 November 2026 — Phase V13.8: Kinetic Civic Design & Responsive 3D Scroll Depth
+
+Phase V13.8 enlarged the civic typography and card scale across the citizen portal, eliminated artificial multi-viewport footer gaps, corrected navigation contrast on light informational surfaces, and integrated lightweight, accessible CSS/Observer-based 3D scroll depth transforms.
+
+### 1. Architectural & Visual Upgrades
+1. **Enlarged FAQ Page & Corrected Header Contrast (`FaqPage.tsx`, `PublicHeader.tsx`):**
+   - High-contrast typography: Excluded `/faq` from dark informational routes in `PublicHeader.tsx`, ensuring crisp dark neutral wordmark and navigation text (`rgb(20, 20, 20)`) against light civic sand background.
+   - Fluid display heading scaled with `clamp(2.6rem, 5.5vw, 5.3rem)` and tight line-height (`1.04`).
+   - Generous search bar with `min-h-[64px] sm:min-h-[76px]` and prominent placeholder styling.
+   - Accordion questions enlarged to `text-lg sm:text-2xl font-black` inside cards with `min-h-[88px] sm:min-h-[108px]` and `p-6 sm:px-9 sm:py-8`.
+2. **Artificial Footer Gap Elimination (`AppLayout.tsx`, `CitizenLayout.tsx`):**
+   - Removed legacy `h-[40vh] sm:h-[45vh] lg:h-[50vh]` empty spacers that caused artificial blank screens before the footer.
+   - Replaced with clean `relative z-10 w-full` containers that flow naturally to the footer.
+3. **Citizen Dashboard & Folder Cards (`CitizenDashboard.tsx`, `ComplaintFolder.tsx`):**
+   - Enlarged page heading `MY COMPLAINTS` to `text-[clamp(2.7rem,5vw,4.9rem)] font-black`.
+   - Action buttons scaled to `min-h-[52px]` with bold typography and touch targets.
+   - Metrics strip features bold counters (`text-3xl sm:text-5xl font-black`).
+   - `ComplaintFolder` cards updated to `rounded-[24px] sm:rounded-[30px] border-2 p-6 sm:p-9` with `font-black text-xl sm:text-2xl lg:text-3xl` titles.
+4. **Complaint Details Modal (`ComplaintDetailModal.tsx`):**
+   - Widened dialog to `max-w-4xl` with `rounded-[22px] sm:rounded-[32px] border-2` and `p-5 sm:p-10`.
+   - Title scaled to `text-2xl sm:text-4xl font-black`.
+   - Description and progress boxes enlarged with `rounded-[24px] border-2`.
+5. **Guest Complaint Tracking (`ComplaintTracker.tsx`):**
+   - Container widened to `size="md"`, card styled with `rounded-[28px] sm:rounded-[36px] border-2 p-6 sm:p-12`.
+   - Title scaled to `clamp(2.5rem, 5vw, 4.5rem) font-black`.
+   - Input scaled to `min-h-[64px] sm:min-h-[76px] text-base sm:text-xl font-bold`, and submit button to `min-h-[58px]`.
+6. **Kinetic 3D Scroll Depth & Reduced-Motion Accessibility (`ScrollReveals.tsx`, `index.css`):**
+   - Implemented zero-dependency `IntersectionObserver` scroll driver calculating CSS variables `--civic-parallax-y`, `--civic-parallax-z`, and `--civic-parallax-tilt`.
+   - Applies smooth physical depth tilt (`translate3d` and `rotateX`) to all `.civic-depth-card` and `[data-scroll-depth]` elements without any WebGL overhead.
+   - Strict `prefers-reduced-motion: reduce` media query suppression that clamps transforms to `none` for accessibility.
+
+### 2. Comprehensive Verification
+- **TypeScript:** `tsc -b` passes with 0 errors.
+- **Production Build:** `npm run build` (`tsc -b && vite build`) builds clean production bundle in 888ms.
+- **Vitest Suite:** 588 tests across 55 test files pass (including dedicated suite `V13_8_KineticCivicDesign.test.tsx` and all V13.7 suites).
+- **Python Regression Suite:** 106 tests in `tests/v11` pass.
+- **Edge Boundary Suite:** 16 tests in `tests/edge/complaint-boundaries.mjs` pass.
+- **Browser CDP Verification (12 Screenshots):** Captured across 1280px, 768px, 390px, and 320px in `docs/v11/screenshots/`:
+  - `v13_8_01_faq_desktop_1280.png`: High-contrast header, clamp title, broad accordion cards.
+  - `v13_8_02_faq_tablet_768.png`: Tablet 768px layout without overflow.
+  - `v13_8_03_faq_mobile_390.png`: Mobile 390px layout with zero horizontal overflow.
+  - `v13_8_04_faq_small_320.png`: Small mobile 320px layout with zero horizontal overflow.
+  - `v13_8_05_dashboard_desktop_1280.png`: My Complaints dashboard with large counters and 3D depth cards.
+  - `v13_8_06_dashboard_tablet_768.png`: Tablet 768px dashboard layout.
+  - `v13_8_07_dashboard_mobile_390.png`: Mobile 390px dashboard with 2x2 metric grid.
+  - `v13_8_08_dashboard_small_320.png`: Small mobile 320px dashboard without clipping or horizontal overflow.
+  - `v13_8_09_complaint_modal_desktop_1280.png`: 4xl complaint detail modal with large typography and timeline.
+  - `v13_8_10_complaint_modal_mobile_390.png`: Mobile complaint modal with touch-friendly layout.
+  - `v13_8_11_guest_tracker_desktop_1280.png`: Enlarged guest tracking card with 76px numeric input.
+  - `v13_8_12_reduced_motion_faq_1280.png`: Zero-transform flat layout when `prefers-reduced-motion: reduce` is active.
+- **Budget & Safety:** $0.00 budget, 0 external paid APIs/LLMs, 0 unapproved production database mutations.
+- **Model Frozen Weights:** Run004 (`E4D04293...`) and Run006 (`C5D4E3D4...`) remain 100% frozen.
+
+## Previous development update, 20 November 2026 — Phase V13.7: Professional Citizen Portal Redesign, Secure Guest Tracking & FAQ
 
 Phase V13.7 transformed the citizen-facing portal into a modern, trustworthy, and dignified civic platform for Karachi citizens, eliminating all technical jargon, securing guest tracking numbers against URL query leaks, and adding a comprehensive bilingual FAQ page.
 
