@@ -5,7 +5,38 @@ Verified on **20 November 2026 (Pakistan time)**. Internal delivery target:
 This document distinguishes inspected source, automated checks, and unverified
 hosted behavior. Update it after every significant verified milestone.
 
-## Current development update, 20 November 2026 — Phase V13.8.2: Demo Isolation and Responsive/Database Audit
+## Current development update, 20 November 2026 — Phase V13.9: Database Security Hardening & Release Gates
+
+Phase V13.9 integrated least-privilege RPC permissions, revoked anonymous execution on privileged functions, enforced strict identity caller predicates (`auth.uid()`) to eliminate arbitrary account probing, pinned function search paths to prevent schema hijacking, and established read-only SQL security invariant checks. See `docs/v11/V13_9_DATABASE_SECURITY_HARDENING.md`.
+
+### 1. Database Security Hardening Actions
+1. **Staging Database Hardening (`awaaz-e-awam-staging`):**
+   - Applied migration `20261127000000_harden_staff_access_rpc_permissions.sql`.
+   - Security-definer functions (`is_main_admin`, `get_active_staff_department`, `approve_access_request`, `reject_access_request`, `revoke_staff_access`) revoke `anon` execution and pin `search_path = ''`.
+   - Identity verification: `is_main_admin(p_user_id)` and `get_active_staff_department(p_user_id)` enforce `p_user_id = (SELECT auth.uid())`, preventing arbitrary user-id enumeration.
+   - Profile self-promotion prevention: Table-level UPDATE revoked from authenticated users; column-level grant restricted to `(full_name, email, updated_at)`. Citizens cannot update `profiles.role`.
+   - Requesters cannot forge reviewer metadata on `department_access_requests`.
+   - Supabase security advisors: **0 anonymous-definer warnings and 0 mutable-function-search-path warnings**.
+2. **Existing Database Public RPC Closure (`awaaz-e-awam-db`):**
+   - Applied migration `20261127000001_close_public_complaint_rpc_access.sql`.
+   - Revoked `anon` and `authenticated` execution from `submit_citizen_complaint`; retained `service_role` execution for `submit-classified-complaint` Edge Function.
+   - Revoked `anon` execution from `staff_review_and_assign_complaint`; retained `authenticated` and `service_role` with function-level authorization.
+   - Supabase security advisors: **0 anonymous-definer warnings**.
+   - Staff-access hardening on the existing production database was not applied due to an expired confirmation; awaiting explicit user approval.
+3. **Read-Only Security Invariant Query (`supabase/tests/v13_9_rpc_security_invariants.sql`):**
+   - Verified 6 security invariants: **6/6 PASS** on staging and **6/6 PASS** on existing database.
+
+### 2. Regression & Verification Results
+- **TypeScript:** `tsc -b` passes with 0 errors.
+- **Production Build:** `npm run build` compiles clean production bundle in 1.04s.
+- **Bundle Audit:** `node tools/ai_factory/v13_8_2_verify_production_bundle.mjs` confirms 0 dev harness routes or mock auth markers in production JavaScript.
+- **Vitest Suite:** 603 passed | 1 skipped across 57 test files.
+- **Python Regression Suite:** 106 tests in `tests/v11` pass.
+- **Edge Boundaries:** 16/16 tests pass.
+- **AI Models & Data:** Run004 (`E4D04293...`) and Run006 (`C5D4E3D4...`) remain 100% frozen. Citizen data untouched.
+- **Pre-Launch Guard:** Do not merge into `main` or deploy publicly until required staging complaint schema and real two-account tests are completed.
+
+## Previous development update, 20 November 2026 — Phase V13.8.2: Demo Isolation and Responsive/Database Audit
 
 Following V13.8.1, the unauthenticated dashboard demonstration now uses
 explicit, compiled-in fictional fixtures rather than the real complaint
