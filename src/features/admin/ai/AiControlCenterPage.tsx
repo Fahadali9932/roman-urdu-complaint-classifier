@@ -11,6 +11,7 @@ import {
   type ReviewQueueItem,
 } from '../../../services/aiReviewService';
 import type { DepartmentId } from '../../../types';
+import { isSupabaseConfigured } from '../../../lib/supabase';
 import {
   Cpu,
   Activity,
@@ -93,6 +94,7 @@ export const AiControlCenterPage: React.FC = () => {
   const [selectedDepts, setSelectedDepts] = useState<DepartmentId[]>([]);
   const [resolutionNotes, setResolutionNotes] = useState('');
   const [isResolving, setIsResolving] = useState(false);
+  const [reviewLoadError, setReviewLoadError] = useState<string | null>(null);
 
   // Subscribe to live telemetry updates (5-second polling, visibility-aware)
   useEffect(() => {
@@ -103,10 +105,26 @@ export const AiControlCenterPage: React.FC = () => {
     return () => unsubscribe();
   }, []);
 
-  // Load review queue
+  // Refresh shared review records for the administrator every 15 seconds.
+  // Never silently fall back to browser-local records when live mode fails.
   useEffect(() => {
-    setReviewQueue(aiReviewService.getReviewQueue());
-  }, []);
+    if (!isAuthenticated) return;
+    let disposed = false;
+    const refresh = async () => {
+      try {
+        const rows = await aiReviewService.refreshReviewQueue();
+        if (!disposed) {
+          setReviewQueue(rows);
+          setReviewLoadError(null);
+        }
+      } catch (error) {
+        if (!disposed) setReviewLoadError(error instanceof Error ? error.message : 'Review queue is unavailable.');
+      }
+    };
+    void refresh();
+    const interval = window.setInterval(() => void refresh(), 15000);
+    return () => { disposed = true; window.clearInterval(interval); };
+  }, [isAuthenticated]);
 
   const handleStartDiagnostic = async () => {
     setIsStartingSim(true);
@@ -144,8 +162,10 @@ export const AiControlCenterPage: React.FC = () => {
   const handleToggleDept = (dept: DepartmentId) => {
     if (selectedDepts.includes(dept)) {
       setSelectedDepts(selectedDepts.filter((d) => d !== dept));
-    } else {
+    } else if (selectedDepts.length < 2) {
       setSelectedDepts([...selectedDepts, dept]);
+    } else {
+      setControlFeedback('Only one or two departments can be directly assigned. Escalate three-department cases separately.');
     }
   };
 
@@ -161,7 +181,9 @@ export const AiControlCenterPage: React.FC = () => {
       });
       setReviewQueue(aiReviewService.getReviewQueue());
       setSelectedReviewItem(null);
-      setControlFeedback(`Complaint #${selectedReviewItem.referenceNumber} resolved and queued for training.`);
+      setControlFeedback(`Complaint #${selectedReviewItem.referenceNumber} corrected. Human-verified export is available; model retraining has NOT started.`);
+    } catch (error) {
+      setControlFeedback(error instanceof Error ? error.message : 'Review resolution failed.');
     } finally {
       setIsResolving(false);
     }
@@ -179,6 +201,8 @@ export const AiControlCenterPage: React.FC = () => {
       setReviewQueue(aiReviewService.getReviewQueue());
       setSelectedReviewItem(null);
       setControlFeedback(`Complaint #${selectedReviewItem.referenceNumber} flag dismissed.`);
+    } catch (error) {
+      setControlFeedback(error instanceof Error ? error.message : 'Flag dismissal failed.');
     } finally {
       setIsResolving(false);
     }
@@ -527,11 +551,21 @@ export const AiControlCenterPage: React.FC = () => {
                   <p className="text-xs text-slate-500">
                     Complaints flagged as misclassified by department staff or ungrounded by relation rules
                   </p>
+                  <p className="text-xs text-slate-500 mt-1">
+                    {isSupabaseConfigured()
+                      ? 'Shared, authenticated administrator queue · refreshes every 15 seconds'
+                      : 'Offline demonstration only · records are stored in this browser'}
+                  </p>
                 </div>
                 <span className="text-xs font-semibold px-2.5 py-1 bg-amber-50 text-amber-800 border border-amber-200 rounded-md">
                   {reviewQueue.filter((q) => q.status === 'pending').length} Pending Triage
                 </span>
               </div>
+              {reviewLoadError && (
+                <p role="alert" className="mb-4 rounded border border-red-300 bg-red-50 p-3 text-xs text-red-800">
+                  {reviewLoadError} No local fallback is used for live complaints.
+                </p>
+              )}
 
               {/* Review Queue Table */}
               <div className="overflow-x-auto">
@@ -635,7 +669,7 @@ export const AiControlCenterPage: React.FC = () => {
                   {/* Multi-Label Department Checkboxes */}
                   <div className="mb-4">
                     <span className="text-xs text-slate-700 font-bold block mb-2">
-                      Assign Confirmed Actionable Municipal Departments (Multi-Label):
+                      Assign One or Two Confirmed Municipal Departments (3+ requires separate triage):
                     </span>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                       {DEPARTMENTS.map((d) => (
@@ -684,10 +718,10 @@ export const AiControlCenterPage: React.FC = () => {
                     <button
                       type="button"
                       onClick={handleApproveReview}
-                      disabled={isResolving || selectedDepts.length === 0}
+                      disabled={isResolving || selectedDepts.length === 0 || selectedDepts.length > 2}
                       className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-xs font-semibold cursor-pointer disabled:opacity-50"
                     >
-                      {isResolving ? 'Recording...' : 'Approve & Record for Continuous Training'}
+                      {isResolving ? 'Recording...' : 'Verify Departments & Save Correction'}
                     </button>
                   </div>
                 </div>
@@ -706,7 +740,7 @@ export const AiControlCenterPage: React.FC = () => {
                     Human-Verified Training Corrections Log
                   </h3>
                   <p className="text-xs text-slate-500">
-                    Verified real-world municipal complaints ready for curriculum integration and model fine-tuning
+                    Manually verified corrections for optional export and offline audit. No automatic retraining or model promotion.
                   </p>
                 </div>
 

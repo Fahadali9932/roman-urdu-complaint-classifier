@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useDepartmentAuth } from '../../../context/DepartmentAuthContext';
 import { aiReviewService } from '../../../services/aiReviewService';
 import { complaintService } from '../../../services';
+import { isSupabaseConfigured } from '../../../lib/supabase';
 import {
   type DepartmentComplaintView,
   type DepartmentId,
@@ -60,17 +61,20 @@ export const FlagIncorrectDepartmentModal: React.FC<FlagIncorrectDepartmentModal
       const staffName = session.username || `Staff Member (${departmentId.toUpperCase()})`;
       const staffId = session.userId || 'local-staff-session';
 
-      // Confirm the status change before creating a browser-local review entry.
-      // The backend service remains responsible for authorization.
-      const updated = await complaintService.updateComplaintStatus(
-        departmentId,
-        complaint.referenceNumber,
-        'under_review',
-        `Flagged as misclassified by ${departmentId.toUpperCase()} staff: ${flagReason.trim()}`
-      );
-      if (!updated.success) throw new Error('The complaint could not be moved to review.');
+      // In live mode this single authenticated RPC creates the shared review
+      // entry and moves the complaint under review in one database transaction.
+      // Do not perform an independent status change before that RPC.
+      const liveMode = isSupabaseConfigured();
+      let locallyUpdated: DepartmentComplaintView | null = null;
+      if (!liveMode) {
+        const updated = await complaintService.updateComplaintStatus(
+          departmentId, complaint.referenceNumber, 'under_review',
+          `Flagged as misclassified by ${departmentId.toUpperCase()} staff: ${flagReason.trim()}`
+        );
+        if (!updated.success) throw new Error('The complaint could not be moved to review.');
+        locallyUpdated = updated.complaint;
+      }
 
-      // This local prototype does not create a shared administrator ledger.
       await aiReviewService.flagComplaintForReview({
         complaintId: complaint.id,
         referenceNumber: complaint.referenceNumber || complaint.id,
@@ -83,7 +87,11 @@ export const FlagIncorrectDepartmentModal: React.FC<FlagIncorrectDepartmentModal
         flagReason: flagReason.trim(),
       });
 
-      onFlagged(updated.complaint);
+      if (liveMode) {
+        onFlagged({ ...complaint, status: 'under_review', updatedAt: new Date().toISOString() });
+      } else {
+        onFlagged(locallyUpdated || { ...complaint, status: 'under_review' });
+      }
       onClose();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to flag complaint.';
@@ -209,9 +217,11 @@ export const FlagIncorrectDepartmentModal: React.FC<FlagIncorrectDepartmentModal
               lineHeight: 1.5,
             }}
           >
-            Flagging requests an <strong>Under Review</strong> status. The review copy is saved only
-            in this browser; sharing it with an administrator requires a separate handoff.
-            No model is retrained or complaint reassigned by this action.
+            Flagging requests an <strong>Under Review</strong> status.{' '}
+            {isSupabaseConfigured()
+              ? 'The authenticated review and status transition are saved together in the shared administrator queue.'
+              : 'Offline demonstration: the review copy is stored only in this browser.'}
+            {' '}No model is retrained or department reassigned by this action.
           </div>
 
           <div style={{ marginBottom: '18px' }}>
