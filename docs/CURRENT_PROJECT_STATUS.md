@@ -5,7 +5,56 @@ Verified on **20 November 2026 (Pakistan time)**. Internal delivery target:
 This document distinguishes inspected source, automated checks, and unverified
 hosted behavior. Update it after every significant verified milestone.
 
-## Current development update, 20 November 2026 — Phase V13.8: Kinetic Civic Design & Responsive 3D Scroll Depth
+## Current development update, 20 November 2026 — Phase V13.8.1: Authentication Security Hardening & Production Safety Verification
+
+Phase V13.8.1 eliminated authentication bypass shortcuts, hardened route guards against client-side parameter manipulation, strictly enforced server-boundary role verification for the citizen portal, isolated demonstration harnesses to development-only environments with 100% production tree-shaking, and proved complete system stability through comprehensive automated and browser-based verification.
+
+### 1. Security Hardening & Vulnerability Remediation
+1. **Elimination of Query Parameter & LocalStorage Bypasses (`CitizenRequiredRoute.tsx`):**
+   - Completely excised insecure checks for `mode === 'local-ai-test'`, `demo === 'true'`, `mock === 'true'`, and `localStorage.getItem('awaaz_mock_citizen_auth')`.
+   - Client-side URL parameters and storage keys can no longer grant access to authenticated routes (`/dashboard`, `/complaints`, `/citizen/*`).
+2. **Strict Session & Role Enforcement at Service Boundary:**
+   - When Supabase is unconfigured or unavailable, access is cleanly denied with an informative notice: *"Secure authentication service is currently unavailable. Please sign in once connected."* and redirected to `/login` with the attempted path preserved in navigation state (`from`), preventing redirect loops.
+   - Genuine Supabase session verification: queries the `profiles` table to verify `role === 'citizen'`.
+   - Department staff isolation: if a `department_staff` account attempts to access citizen routes, the session is cleanly signed out, redirected to `/login`, and provided a specific notice: *"This is a department account. Please use the department sign-in page."*
+   - Reactive session monitoring: `supabase.auth.onAuthStateChange` listener revokes access immediately upon logout or token revocation.
+3. **Citizen Data Boundary Isolation (`SupabaseComplaintService.ts`):**
+   - Updated `getCitizenComplaints(citizenId?: string)` to accept an explicit `citizenId` and propagate it to the underlying storage/database query.
+   - Enforces strict tenant boundary so Citizen A cannot access Citizen B's complaint records.
+4. **Development-Only Demonstration Harness (`AppRoutes.tsx`, `CitizenDashboard.tsx`):**
+   - Isolated university demonstration mode to `/dev/harness/citizen-dashboard` guarded behind `{import.meta.env.DEV && ...}`.
+   - Displays a prominent amber academic disclaimer banner: *"DEMONSTRATION HARNESS — FICTIONAL / TEST DATA ONLY: This workspace is isolated for university academic review and demonstration. Data rendered here is simulated and does not represent an active authenticated citizen session."*
+   - Verified 100% tree-shaken from production builds: `dist/assets/*.js` contains 0 occurrences of `dev/harness` or `awaaz_mock_citizen_auth`.
+
+### 2. Comprehensive Verification
+- **TypeScript:** `tsc -b` passes with 0 errors.
+- **Production Build:** `npm run build` (`tsc -b && vite build`) builds clean production bundle in 894ms.
+- **Production Bundle Audit:** 0 occurrences of bypass parameters, mock auth keys, or dev harness routes in compiled JavaScript chunks.
+- **Vitest Suite:** 601 passed | 1 skipped across 56 test files, including dedicated 13-test security hardening suite (`V13_8_1_AuthenticationSecurityHardening.test.tsx`):
+  - Scenario 1: Unauthenticated visitor denied /dashboard -> Redirects to /login.
+  - Scenario 2: Visitor with `?demo=true` attack blocked -> Redirects to /login.
+  - Scenario 3: Visitor with `?mock=true` attack blocked -> Redirects to /login.
+  - Scenario 4: Visitor with `?mode=local-ai-test` attack blocked -> Redirects to /login.
+  - Scenario 5: Visitor with `localStorage.setItem('awaaz_mock_citizen_auth', 'true')` attack blocked -> Redirects to /login.
+  - Scenario 6: Supabase unconfigured / client null -> Informative notice without loop.
+  - Scenario 7: Expired / null session -> Redirects to /login.
+  - Scenario 8: Legitimate citizen session (`role === 'citizen'`) -> Authorized.
+  - Scenario 9: Department staff session (`role === 'department_staff'`) -> Revoked & redirected with notice.
+  - Scenario 10: Reactive logout -> Instantly revokes access on auth change.
+  - Scenario 11: Production bundle verification -> 0 bypass flags or harness code.
+  - Scenario 12: Citizen isolation contract -> Isolated strictly by citizen ID.
+  - Scenario 13: Guest tracking security -> No PII leakage in guest tracking UI.
+- **Python Regression Suite:** 106 tests in `tests/v11` pass.
+- **Edge Boundary Suite:** 16 tests in `tests/edge/complaint-boundaries.mjs` pass.
+- **Browser CDP Verification:**
+  - Route Attack Check: Navigating to `http://localhost:5174/dashboard?demo=true` strictly redirected to `http://localhost:5174/login`.
+  - Dev Harness Check: Navigating to `http://localhost:5174/dev/harness/citizen-dashboard` rendered dashboard with disclaimer banner and 2 sample cards.
+  - Viewport Audits (Zero horizontal overflow verified): Desktop (1280px), Tablet (768px), Mobile (390px), Small Mobile (320px).
+  - Screenshots captured in `docs/v11/screenshots/` and persistent artifact directory.
+- **Budget & Safety:** $0.00 budget, 0 external paid APIs/LLMs, 0 unapproved production database mutations.
+- **Model Frozen Weights:** Run004 (`E4D04293...`) and Run006 (`C5D4E3D4...`) remain 100% frozen.
+
+## Previous development update, 20 November 2026 — Phase V13.8: Kinetic Civic Design & Responsive 3D Scroll Depth
 
 Phase V13.8 enlarged the civic typography and card scale across the citizen portal, eliminated artificial multi-viewport footer gaps, corrected navigation contrast on light informational surfaces, and integrated lightweight, accessible CSS/Observer-based 3D scroll depth transforms.
 

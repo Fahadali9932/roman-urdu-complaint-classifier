@@ -70,6 +70,13 @@ export const AppRoutes: React.FC = () => {
         <Route path="/dashboard" element={<CitizenRequiredRoute><CitizenDashboard /></CitizenRequiredRoute>} />
       </Route>
 
+      {/* Isolated development-only demonstration harness (stripped in production builds) */}
+      {import.meta.env.DEV && (
+        <Route element={<CitizenLayout />}>
+          <Route path="/dev/harness/citizen-dashboard" element={<CitizenDashboard isDevHarness={true} />} />
+        </Route>
+      )}
+
       {/* Fallback route */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

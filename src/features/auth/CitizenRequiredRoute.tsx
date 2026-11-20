@@ -16,19 +16,10 @@ export const CitizenRequiredRoute: React.FC<CitizenRequiredRouteProps> = ({ chil
     let active = true;
     const client = supabase;
     if (!isSupabaseConfigured() || !client) {
-      if (
-        typeof window !== 'undefined' &&
-        (window.location.search.includes('mode=local-ai-test') ||
-          window.location.search.includes('demo=true') ||
-          window.location.search.includes('mock=true') ||
-          localStorage.getItem('awaaz_mock_citizen_auth') === 'true')
-      ) {
-        setState('authenticated');
-        return () => {
-          active = false;
-        };
+      if (active) {
+        setNotice('Secure authentication service is currently unavailable. Please sign in once connected.');
+        setState('unauthenticated');
       }
-      setState('unauthenticated');
       return () => {
         active = false;
       };
@@ -100,7 +91,16 @@ export const CitizenRequiredRoute: React.FC<CitizenRequiredRouteProps> = ({ chil
     );
   }
   if (state === 'unauthenticated') {
-    return <Navigate to="/login" replace state={{ from: `${location.pathname}${location.search}` }} />;
+    return (
+      <Navigate
+        to="/login"
+        replace
+        state={{
+          from: `${location.pathname}${location.search}`,
+          error: notice || undefined,
+        }}
+      />
+    );
   }
   return children;
 };

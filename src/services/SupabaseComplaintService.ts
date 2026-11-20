@@ -129,13 +129,16 @@ export class SupabaseComplaintService implements IComplaintService {
     return this.getCitizenComplaints();
   }
 
-  async getCitizenComplaints(): Promise<Complaint[]> {
-    if (!isSupabaseConfigured() || !supabase) return fallback.getCitizenComplaints();
+  async getCitizenComplaints(citizenId?: string): Promise<Complaint[]> {
+    if (!isSupabaseConfigured() || !supabase) return fallback.getCitizenComplaints(citizenId);
     try {
-      const { data, error } = await supabase
+      let query: any = supabase
         .from('complaints')
-        .select(COMPLAINT_SELECT_QUERY)
-        .order('created_at', { ascending: false });
+        .select(COMPLAINT_SELECT_QUERY);
+      if (citizenId) {
+        query = query.eq('citizen_id', citizenId);
+      }
+      const { data, error } = await query.order('created_at', { ascending: false });
       if (error) throw error;
       return (data ?? []).map(mapComplaintRow);
     } catch {

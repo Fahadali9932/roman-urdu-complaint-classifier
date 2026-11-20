@@ -22,7 +22,11 @@ import { ComplaintFolder } from '../../components/citizen/ComplaintFolder';
 import { ComplaintDetailModal } from '../../components/citizen/ComplaintDetailModal';
 import { supabase, isSupabaseConfigured } from '../../lib/supabase';
 
-export const CitizenDashboard: React.FC = () => {
+export interface CitizenDashboardProps {
+  isDevHarness?: boolean;
+}
+
+export const CitizenDashboard: React.FC<CitizenDashboardProps> = ({ isDevHarness = false }) => {
   const { language, isRTL } = useLanguage();
   const ur = language === 'ur';
 
@@ -168,6 +172,27 @@ export const CitizenDashboard: React.FC = () => {
 
   return (
     <div className="w-full text-start space-y-8 sm:space-y-10 font-ui civic-kinetic-page">
+      {/* Isolated Development & Academic Demonstration Notice */}
+      {isDevHarness && (
+        <div
+          role="status"
+          aria-label="Demonstration mode notice"
+          className="rounded-2xl border-2 border-amber-300 bg-amber-50 p-4 sm:p-5 text-amber-950 flex items-start gap-3 shadow-xs"
+        >
+          <AlertCircle className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
+          <div className="space-y-1 text-start">
+            <p className="text-xs sm:text-sm font-black uppercase tracking-wider text-amber-900">
+              {ur ? 'آزمائشی نمائش — فرضی ڈیٹا' : 'Demonstration Harness — Fictional / Test Data Only'}
+            </p>
+            <p className="text-xs sm:text-sm text-amber-800 leading-relaxed">
+              {ur
+                ? 'یہ اسکرین صرف تعلیمی نمائش کے لیے ہے۔ یہ کوئی تصدیق شدہ سیشن نہیں ہے اور نہ ہی حقیقی شہری کا ڈیٹا ہے۔'
+                : 'This workspace is isolated for university academic demonstration. It does not represent an authenticated Supabase user session and displays local fictional test data only.'}
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Page Header */}
       <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 pb-8 border-b-2 border-[#D9D3CC]">
         <div className="space-y-1.5">
