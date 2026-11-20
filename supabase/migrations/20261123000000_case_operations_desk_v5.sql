@@ -181,7 +181,7 @@ CREATE OR REPLACE FUNCTION public.staff_accept_incident_case_reports(
 RETURNS JSONB
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public, auth, pg_temp
+SET search_path = ''
 AS $$
 DECLARE
     v_caller_id UUID := auth.uid();
@@ -199,16 +199,12 @@ BEGIN
         RAISE EXCEPTION 'Authentication required.';
     END IF;
 
-    -- 1. Idempotency Check
-    SELECT result_json INTO v_cached_result
-    FROM public.case_batch_operations
-    WHERE idempotency_key = p_idempotency_key;
-
-    IF v_cached_result IS NOT NULL THEN
-        RETURN v_cached_result;
+    IF p_idempotency_key IS NULL OR length(btrim(p_idempotency_key)) = 0
+       OR length(p_idempotency_key) > 128 THEN
+        RAISE EXCEPTION 'A valid idempotency key is required.';
     END IF;
 
-    -- 2. Load Case
+    -- 1. Load and lock the requested case before disclosing cached results.
     SELECT * INTO v_case
     FROM public.incident_cases
     WHERE id = p_case_id
@@ -218,7 +214,7 @@ BEGIN
         RAISE EXCEPTION 'Incident case not found: %', p_case_id;
     END IF;
 
-    -- 3. Authorization check
+    -- 2. Authorize this caller for this exact case *before* cache access.
     v_is_admin := public.is_main_admin(v_caller_id);
     IF NOT v_is_admin THEN
         SELECT EXISTS (
@@ -231,6 +227,16 @@ BEGIN
         IF NOT v_is_staff_active THEN
             RAISE EXCEPTION 'Unauthorized: You do not have active staff credentials for department %.', v_case.department_id;
         END IF;
+    END IF;
+
+    -- 3. Only an authorized caller can replay a cached result for this case.
+    SELECT result_json INTO v_cached_result
+    FROM public.case_batch_operations
+    WHERE case_id = p_case_id
+      AND idempotency_key = p_idempotency_key;
+
+    IF v_cached_result IS NOT NULL THEN
+        RETURN v_cached_result;
     END IF;
 
     -- 4. Fetch staff full name
@@ -341,5 +347,5 @@ END;
 $$;
 
 -- Revoke public execution and grant to authenticated only
-REVOKE EXECUTE ON FUNCTION public.staff_accept_incident_case_reports(UUID, TEXT, TEXT) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.staff_accept_incident_case_reports(UUID, TEXT, TEXT) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.staff_accept_incident_case_reports(UUID, TEXT, TEXT) TO authenticated;

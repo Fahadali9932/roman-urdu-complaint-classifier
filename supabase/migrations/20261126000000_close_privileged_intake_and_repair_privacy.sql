@@ -472,7 +472,7 @@ CREATE OR REPLACE FUNCTION public.get_guest_complaint_status(p_tracking_hash tex
 RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public, pg_temp
+SET search_path = ''
 AS $$
 DECLARE
   v_rec record;
@@ -482,12 +482,12 @@ DECLARE
   v_public_issues jsonb := '[]'::jsonb;
   v_issue record;
 BEGIN
-  IF p_tracking_hash IS NULL OR coalesce(length(trim(p_tracking_hash)), 0) != 64 THEN
+  IF p_tracking_hash IS NULL OR trim(p_tracking_hash) !~* '^[0-9a-f]{64}$' THEN
     RETURN jsonb_build_object('found', false);
   END IF;
 
   SELECT c.id, c.status, c.created_at, c.updated_at, c.predicted_department_id,
-         c.assigned_department_id, c.assigned_department_ids, c.is_multilabel, c.needs_review
+         c.assigned_department_id, c.assigned_department_ids, c.is_multilabel
   INTO v_rec
   FROM public.complaints c
   WHERE c.guest_tracking_hash = lower(trim(p_tracking_hash))

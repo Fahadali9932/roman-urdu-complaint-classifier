@@ -32,7 +32,7 @@ BEGIN
     RETURN jsonb_build_object('found', false);
   END IF;
 
-  SELECT c.id, c.status, c.created_at, c.updated_at, c.predicted_department_id, c.assigned_department_id, c.needs_review
+  SELECT c.id, c.status, c.created_at, c.updated_at, c.predicted_department_id, c.assigned_department_id
   INTO v_rec
   FROM public.complaints c
   WHERE c.guest_tracking_hash = lower(trim(p_tracking_hash))

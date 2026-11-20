@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS public.complaint_issues (
   issue_type TEXT NOT NULL,
   evidence_span TEXT,
   confidence NUMERIC(5, 4) NOT NULL DEFAULT 1.0,
-  status TEXT NOT NULL DEFAULT 'assigned' CHECK (status IN ('under_review', 'assigned', 'accepted', 'in_progress', 'completed', 'rejected', 'duplicate')),
+  status TEXT NOT NULL DEFAULT 'assigned' CHECK (status IN ('under_review', 'assigned', 'accepted', 'in_progress', 'completed', 'resolved', 'rejected', 'duplicate')),
   staff_notes TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
@@ -35,17 +35,22 @@ CREATE INDEX IF NOT EXISTS idx_complaint_issues_status ON public.complaint_issue
 -- 3. Row-Level Security for complaint_issues
 ALTER TABLE public.complaint_issues ENABLE ROW LEVEL SECURITY;
 
+-- RLS policies do not confer table privileges. Citizens and assigned staff
+-- require SELECT, while all direct writes remain server-side only.
+GRANT SELECT ON public.complaint_issues TO authenticated;
+
 -- Policy 3.1: Staff can SELECT issues assigned to their department
 CREATE POLICY staff_select_assigned_issues ON public.complaint_issues
   FOR SELECT
   TO authenticated
   USING (
     EXISTS (
-      SELECT 1 FROM public.staff_profiles sp
-      WHERE sp.user_id = auth.uid()
-        AND (sp.department_id = complaint_issues.department_id OR sp.role = 'admin')
-        AND sp.status = 'active'
+      SELECT 1 FROM public.department_memberships m
+      WHERE m.user_id = (SELECT auth.uid())
+        AND m.department_id = complaint_issues.department_id
+        AND m.status = 'active'
     )
+    OR public.is_main_admin((SELECT auth.uid()))
   );
 
 -- Policy 3.2: Staff can UPDATE issues assigned to their department
@@ -54,19 +59,21 @@ CREATE POLICY staff_update_assigned_issues ON public.complaint_issues
   TO authenticated
   USING (
     EXISTS (
-      SELECT 1 FROM public.staff_profiles sp
-      WHERE sp.user_id = auth.uid()
-        AND (sp.department_id = complaint_issues.department_id OR sp.role = 'admin')
-        AND sp.status = 'active'
+      SELECT 1 FROM public.department_memberships m
+      WHERE m.user_id = (SELECT auth.uid())
+        AND m.department_id = complaint_issues.department_id
+        AND m.status = 'active'
     )
+    OR public.is_main_admin((SELECT auth.uid()))
   )
   WITH CHECK (
     EXISTS (
-      SELECT 1 FROM public.staff_profiles sp
-      WHERE sp.user_id = auth.uid()
-        AND (sp.department_id = complaint_issues.department_id OR sp.role = 'admin')
-        AND sp.status = 'active'
+      SELECT 1 FROM public.department_memberships m
+      WHERE m.user_id = (SELECT auth.uid())
+        AND m.department_id = complaint_issues.department_id
+        AND m.status = 'active'
     )
+    OR public.is_main_admin((SELECT auth.uid()))
   );
 
 -- Policy 3.3: Citizen owner can view their complaint's issues
@@ -88,7 +95,7 @@ BEGIN
   NEW.updated_at = timezone('utc'::text, now());
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql SET search_path = '';
 
 DROP TRIGGER IF EXISTS trg_complaint_issues_updated_at ON public.complaint_issues;
 CREATE TRIGGER trg_complaint_issues_updated_at
