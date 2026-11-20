@@ -5,6 +5,12 @@ Verified on **20 November 2026 (Pakistan time)**. Internal delivery target:
 This document distinguishes inspected source, automated checks, and unverified
 hosted behavior. Update it after every significant verified milestone.
 
+## Current development update, 20 November 2026 — V13.6 experiment (not promoted)
+
+A V13.6 independent-issue recovery candidate is available **only as an opt-in Local AI Test Mode choice**. Run004 remains the default; no weights were retrained and no production deployments or hosted database writes occurred. On the **already-inspected** V13.5 2,000-case development benchmark, exact-set matches improved from 1,215 to 1,306, dual-issue matches from 137/500 to 242/500, and the known three-department safety fixtures escalated correctly in 50/50 cases. There is a material tradeoff: false-extra cases increased from 187 to 205 and causal accuracy fell from 217/250 to 210/250, so **V13.6 is not approved for live routing**. The known development benchmark is not a new independent test; see `docs/v11/V13_6_INDEPENDENT_ISSUE_RECOVERY_DIAGNOSTIC.md`.
+
+**Clean GitHub checkout limitation:** The current checked-in repository is missing `src/services/complaintUnderstanding.ts` and has additional pre-existing TypeScript errors. Full production builds and full Vitest suites **do not pass from a clean clone** despite V13.5's historical completion report; earlier historical verification does not replace fresh reproducibility. Focused V13.6/V13.4 tests and the 11 Python V11.4 regression tests passed. Synchronize the missing source/artifacts and repair these baseline blockers before an end-to-end website release.
+
 ## Latest verification, 20 November 2026 — Phase V13.5: 2,000-Complaint Human-Like Adversarial Challenge & Two-Department Reliability Assessment
 
 Phase V13.5 executed an independent adversarial evaluation of the system against 2,000 genuinely new, human-like Roman Urdu complaints and instituted the operational **Two-Department Routing Scope Policy**. Under this policy, automated dispatch is restricted to at most two independent departments; if three or more independent departments are detected, the system safely escalates to the human triage desk (`EXCEEDS_TWO_DEPARTMENTS_HUMAN_TRIAGE_REQUIRED`) while preserving all candidate evidence (`allDetectedDepartments`) and preventing arbitrary truncation or silent drops.

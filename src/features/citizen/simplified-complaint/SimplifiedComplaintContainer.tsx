@@ -181,7 +181,7 @@ export const SimplifiedComplaintContainer: React.FC = () => {
     return params.get('mode') === 'local-ai-test' || params.get('aiTest') === 'true';
   });
   const [selectedEngine, setSelectedEngine] = useState<
-    'run004_v11' | 'v13_2_candidate' | 'v13_4_candidate' | 'v13_5_candidate'
+    'run004_v11' | 'v13_2_candidate' | 'v13_4_candidate' | 'v13_5_candidate' | 'v13_6_candidate'
   >('run004_v11');
   const [activeClarification, setActiveClarification] = useState<{
     question: ClarificationQuestion;
@@ -556,12 +556,16 @@ export const SimplifiedComplaintContainer: React.FC = () => {
                               | 'run004_v11'
                               | 'v13_2_candidate'
                               | 'v13_4_candidate'
-                              | 'v13_5_candidate';
+                              | 'v13_5_candidate'
+                              | 'v13_6_candidate';
                             setSelectedEngine(val);
                             (localV11ComplaintService as any).setEngineMode?.(val);
                           }}
                           className="text-xs font-mono font-bold bg-white border border-amber-300 rounded-lg px-2.5 py-1 text-slate-800 shadow-2xs focus:ring-2 focus:ring-amber-500 cursor-pointer"
                         >
+                          <option value="v13_6_candidate">
+                            V13.6 Experimental (Independent Issue Recovery • 3+ Human Review)
+                          </option>
                           <option value="v13_5_candidate">
                             V13.5 Candidate (Two-Department Policy • 1-2 Dept Auto-Routing, 3+ Human Review)
                           </option>

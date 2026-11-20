@@ -39,6 +39,11 @@ import {
   resolveComplaintClarificationV13_5,
 } from './v13_5/v13_5_engine';
 import {
+  classifyV13_6,
+  assessComplaintDraftV13_6,
+  resolveComplaintClarificationV13_6,
+} from './v13_6/v13_6_engine';
+import {
   detectLocationAttribution,
   generateGroundedFactualSummary,
   type LocationAttribution,
@@ -55,6 +60,9 @@ export interface V11LocalAnalysisPayload extends V11RelationAwareResult {
   locationAttribution?: LocationAttribution;
   thresholds?: Record<string, number>;
   decisionRecords?: any[];
+  /** Preserved candidates during the 3+ department local safety escalation. */
+  allDetectedDepartments?: DepartmentId[];
+  twoDeptPolicyTriggered?: boolean;
 }
 
 /**
@@ -74,18 +82,21 @@ export interface V11LocalAnalysisPayload extends V11RelationAwareResult {
 export class LocalV11ComplaintService implements IComplaintService {
   private testComplaints: Complaint[] = [];
   private recentSubmissions = new Map<string, { result: SubmissionResult; timestamp: number }>();
-  private engineMode: 'run004_v11' | 'v13_2_candidate' | 'v13_4_candidate' | 'v13_5_candidate' = 'run004_v11';
+  private engineMode: 'run004_v11' | 'v13_2_candidate' | 'v13_4_candidate' | 'v13_5_candidate' | 'v13_6_candidate' = 'run004_v11';
 
-  setEngineMode(mode: 'run004_v11' | 'v13_2_candidate' | 'v13_4_candidate' | 'v13_5_candidate') {
+  setEngineMode(mode: 'run004_v11' | 'v13_2_candidate' | 'v13_4_candidate' | 'v13_5_candidate' | 'v13_6_candidate') {
     this.engineMode = mode;
   }
 
-  getEngineMode(): 'run004_v11' | 'v13_2_candidate' | 'v13_4_candidate' | 'v13_5_candidate' {
+  getEngineMode(): 'run004_v11' | 'v13_2_candidate' | 'v13_4_candidate' | 'v13_5_candidate' | 'v13_6_candidate' {
     return this.engineMode;
   }
 
   /** Preview-only contract for a citizen clarification UI. No record writes. */
   previewComplaint(description: string): UnderstandingResult {
+    if (this.engineMode === 'v13_6_candidate') {
+      return assessComplaintDraftV13_6(description, championV11Model as any) as any;
+    }
     if (this.engineMode === 'v13_5_candidate') {
       return assessComplaintDraftV13_5(description, championV11Model as any) as any;
     }
@@ -99,6 +110,9 @@ export class LocalV11ComplaintService implements IComplaintService {
   }
 
   resolvePreview(description: string, answer: ClarificationAnswer): UnderstandingResult {
+    if (this.engineMode === 'v13_6_candidate') {
+      return resolveComplaintClarificationV13_6(description, answer, championV11Model as any) as any;
+    }
     if (this.engineMode === 'v13_5_candidate') {
       return resolveComplaintClarificationV13_5(description, answer, championV11Model as any) as any;
     }
@@ -170,14 +184,19 @@ export class LocalV11ComplaintService implements IComplaintService {
     }
 
     // 3. Draft Analysis
-    let initialPrediction: V11RelationAwareResult;
+    let initialPrediction: V11RelationAwareResult & {
+      allDetectedDepartments?: DepartmentId[];
+      twoDeptPolicyTriggered?: boolean;
+    };
     let preview: any;
 
-    if (this.engineMode === 'v13_5_candidate') {
-      const v13_5Res = classifyV13_5(rawDraft, championV11Model as any);
+    if (this.engineMode === 'v13_6_candidate' || this.engineMode === 'v13_5_candidate') {
+      const v13_5Res = this.engineMode === 'v13_6_candidate'
+        ? classifyV13_6(rawDraft, championV11Model as any)
+        : classifyV13_5(rawDraft, championV11Model as any);
       preview = this.previewComplaint(rawDraft);
       const relationType =
-        v13_5Res.departments.length > 1
+        v13_5Res.allDetectedDepartments.length > 1
           ? 'INDEPENDENT'
           : v13_5Res.graph.causalChains.length > 0
           ? 'CAUSES_CONTEXT_ONLY'
@@ -197,6 +216,8 @@ export class LocalV11ComplaintService implements IComplaintService {
         missingPublicLocation: false,
         thresholds: v13_5Res.thresholds,
         decisionRecords: v13_5Res.decisionRecords,
+        allDetectedDepartments: v13_5Res.allDetectedDepartments,
+        twoDeptPolicyTriggered: v13_5Res.twoDeptPolicyTriggered,
       };
     } else if (this.engineMode === 'v13_4_candidate') {
       const v13_4Res = classifyV13_4(rawDraft, championV11Model as any);
@@ -288,7 +309,9 @@ export class LocalV11ComplaintService implements IComplaintService {
             clarificationAnswerChoice = input.clarificationAnswer.choice;
           }
           const resolution =
-            this.engineMode === 'v13_5_candidate'
+            this.engineMode === 'v13_6_candidate'
+              ? (resolveComplaintClarificationV13_6(rawDraft, input.clarificationAnswer, championV11Model as any) as any)
+              : this.engineMode === 'v13_5_candidate'
               ? (resolveComplaintClarificationV13_5(rawDraft, input.clarificationAnswer, championV11Model as any) as any)
               : this.engineMode === 'v13_4_candidate'
               ? (resolveComplaintClarificationV13_4(rawDraft, input.clarificationAnswer, championV11Model as any) as any)
@@ -482,7 +505,9 @@ export class LocalV11ComplaintService implements IComplaintService {
       sanitizedDescription: privacy.sanitizedDescription,
       latencyMs,
       modelVersion:
-        this.engineMode === 'v13_5_candidate'
+        this.engineMode === 'v13_6_candidate'
+          ? 'V13.6 Experimental (Independent Issue Recovery • Run004)'
+          : this.engineMode === 'v13_5_candidate'
           ? 'V13.5 Candidate (Two-Dept Policy • Run004)'
           : this.engineMode === 'v13_4_candidate'
           ? 'V13.4 Candidate (Causal & False-Extra Reduced • Run004)'
