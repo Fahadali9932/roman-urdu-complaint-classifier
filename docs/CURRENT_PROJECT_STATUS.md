@@ -5,7 +5,33 @@ Verified on **20 November 2026 (Pakistan time)**. Internal delivery target:
 This document distinguishes inspected source, automated checks, and unverified
 hosted behavior. Update it after every significant verified milestone.
 
-## Current development update, 20 November 2026 — Phase V13.9: Database Security Hardening & Release Gates
+## Current development update, 21 November 2026 — Phase V13.10: Staging Schema and Isolation Gate
+
+- **Staging integration completed:** The complaint, multi-department issue,
+  review-queue and case-operation schema is installed on staging. All 17 public
+  tables have RLS enabled. The original production database and `main` remain
+  untouched.
+- **Security gate:** V13.10 4/4 PASS; V13.9 RPC invariants 6/6 PASS. A
+  `SECURITY DEFINER` incident-case function's cache authorization flaw and a
+  broken guest-status lookup were corrected. The read-only staging advisor has
+  one intended anonymous guest-status RPC warning; authenticated definer RPCs
+  still require complete role-abuse review.
+- **Disposable database actors:** Six simulated Auth identities verified
+  cross-citizen isolation, KWSC/K-Electric department isolation, privacy,
+  administrator review/adjudication, three-department safeguards, and
+  incident-case idempotency. All fixtures were transactionally rolled back.
+  These are SQL role/JWT-claim simulations, **not genuine Auth HTTP sessions**.
+- **Code verification:** 603 Vitest tests pass (one skipped); 16 Edge boundary
+  tests pass; 11 Python V11.4 regressions pass; production bundle builds.
+  Full Python discovery was interrupted after prolonged inactivity.
+- **Open release gates:** Staging Edge Functions are not yet deployed, actual
+  Auth/Edge end-to-end tests remain outstanding, and staging migration history
+  must be reconciled before CLI-driven updates. No public launch authorization.
+
+See `docs/v11/V13_10_STAGING_SECURITY_GATE_STATUS.md` for the source fixes,
+test script and exact limits of this verification.
+
+## Previous development update, 20 November 2026 — Phase V13.9: Database Security Hardening & Release Gates
 
 Phase V13.9 integrated least-privilege RPC permissions, revoked anonymous execution on privileged functions, enforced strict identity caller predicates (`auth.uid()`) to eliminate arbitrary account probing, pinned function search paths to prevent schema hijacking, and established read-only SQL security invariant checks. See `docs/v11/V13_9_DATABASE_SECURITY_HARDENING.md`.
 
