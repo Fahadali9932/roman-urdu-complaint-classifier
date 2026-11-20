@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useLanguage } from '../../../context/LanguageContext';
 import { useAdminAuth } from '../../../context/AdminAuthContext';
 import { AdminHeader } from '../../auth/components/AdminHeader';
 import {
@@ -15,13 +14,9 @@ import type { DepartmentId } from '../../../types';
 import {
   Cpu,
   Activity,
-  CheckCircle2,
-  AlertTriangle,
   Play,
   Square,
   HardDrive,
-  Clock,
-  RotateCcw,
   Download,
   ShieldCheck,
   HelpCircle,
@@ -29,7 +24,6 @@ import {
   FileCheck,
   TrendingUp,
   Terminal,
-  Filter,
 } from 'lucide-react';
 
 const DEPARTMENTS: { id: DepartmentId; name: string }[] = [
@@ -42,7 +36,6 @@ const DEPARTMENTS: { id: DepartmentId; name: string }[] = [
 ];
 
 export const AiControlCenterPage: React.FC = () => {
-  const { language } = useLanguage();
   const { isAuthenticated, adminSession } = useAdminAuth();
   const navigate = useNavigate();
 
@@ -86,7 +79,7 @@ export const AiControlCenterPage: React.FC = () => {
     ],
     active_model: {
       version: 'v11-candidate-run-004-champion',
-      sha256: 'e4d04293f9c6d4826b5c3ff3ec327e53f1947b198888e2cb2ad4cfcf7ef98457',
+      sha256: 'e4d042937cf8c3e1e3c70f147a707b33a629d463db34485766c98da21c2e3a56',
       status: 'active_runtime',
     },
   });
@@ -325,7 +318,7 @@ export const AiControlCenterPage: React.FC = () => {
                 <div className="text-right">
                   <span className="text-xs text-slate-500 font-mono">SHA-256</span>
                   <div className="text-xs font-mono font-semibold text-slate-700 bg-slate-50 px-2 py-1 rounded border border-slate-200">
-                    e4d04293f9c6d4826b5c3ff3ec327e53f1947b198888e2cb2ad4cfcf7ef98457
+                    e4d042937cf8c3e1e3c70f147a707b33a629d463db34485766c98da21c2e3a56
                   </div>
                 </div>
               </div>
@@ -780,7 +773,7 @@ export const AiControlCenterPage: React.FC = () => {
                   {
                     name: 'Run 004 Champion (Active Website Model)',
                     version: 'v11-candidate-run-004-champion',
-                    sha: 'e4d04293f9c6d4826b5c3ff3ec327e53f1947b198888e2cb2ad4cfcf7ef98457',
+                    sha: 'e4d042937cf8c3e1e3c70f147a707b33a629d463db34485766c98da21c2e3a56',
                     exactAcc: '52.55%',
                     macroF1: '0.7283',
                     status: 'ACTIVE RUNTIME',

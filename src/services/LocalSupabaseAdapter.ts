@@ -1313,8 +1313,7 @@ export class LocalSupabaseAdapter {
       return this.state.complaints.filter(
         (c) =>
           c.assigned_department_id === activeMembership.department_id ||
-          (c.assigned_department_ids && c.assigned_department_ids.includes(activeMembership.department_id)) ||
-          (activeMembership.department_id === 'kmc' && c.status === 'under_review')
+          c.assigned_department_ids?.includes(activeMembership.department_id)
       );
     }
 
@@ -1322,11 +1321,7 @@ export class LocalSupabaseAdapter {
   }
 
   public selectReviewQueueComplaints(callerUserId: string): ComplaintRow[] {
-    const isAdmin = this.isMainAdmin(callerUserId);
-    const activeMembership = this.state.memberships.find(
-      (m) => m.user_id === callerUserId && m.status === 'active'
-    );
-    if (!isAdmin && (!activeMembership || activeMembership.department_id !== 'kmc')) {
+    if (!this.isMainAdmin(callerUserId)) {
       return [];
     }
     return this.state.complaints.filter((c) => c.status === 'under_review');
@@ -1619,7 +1614,7 @@ export class LocalSupabaseAdapter {
     complaintId: string,
     newDepartmentId: string,
     reason: string,
-    callerAdminId: string = SEED_ADMIN_ID
+    callerAdminId: string
   ): { success: boolean; error?: string } {
     if (!this.isMainAdmin(callerAdminId)) {
       return {
@@ -1635,6 +1630,10 @@ export class LocalSupabaseAdapter {
 
     const oldDept = complaint.assigned_department_id;
     const now = new Date().toISOString();
+    if (complaint.status === 'under_review') {
+      return this.staffReviewAndAssignComplaint(complaintId, newDepartmentId, reason, callerAdminId);
+    }
+    complaint.assigned_department_ids = [newDepartmentId];
     complaint.assigned_department_id = newDepartmentId;
     complaint.is_reviewed_by_admin = true;
     complaint.updated_at = now;
@@ -1658,23 +1657,18 @@ export class LocalSupabaseAdapter {
 
   // ---------------------------------------------------------------------------
   // RPC: staff_review_and_assign_complaint
-  // Allows authorized department staff to review ambiguous complaints and assign
+  // Only the main administrator may release unassigned cases.
   // ---------------------------------------------------------------------------
   public staffReviewAndAssignComplaint(
     complaintId: string,
     targetDepartmentId: string,
-    notes?: string,
+    _notes?: string,
     callerUserId?: string
   ): { success: boolean; error?: string } {
-    const callerId = callerUserId || this.state.memberships[0]?.user_id;
-    const callerMembership = this.state.memberships.find(
-      (m) => m.user_id === callerId && m.status === 'active'
-    );
-    const isAuthorized = this.isMainAdmin(callerId) || callerMembership?.department_id === 'kmc';
-    if (!isAuthorized) {
+    if (!callerUserId || !this.isMainAdmin(callerUserId)) {
       return {
         success: false,
-        error: 'Unauthorized: Only KMC clearinghouse staff or administrators are authorized to review and assign complaints.',
+        error: 'Unauthorized: Only administrators are authorized to review and assign complaints.',
       };
     }
 
@@ -1697,6 +1691,7 @@ export class LocalSupabaseAdapter {
 
     const now = new Date().toISOString();
     complaint.assigned_department_id = targetDepartmentId;
+    complaint.assigned_department_ids = [targetDepartmentId];
     complaint.status = 'assigned';
     complaint.is_reviewed_by_admin = true;
     complaint.updated_at = now;
@@ -1707,10 +1702,10 @@ export class LocalSupabaseAdapter {
       status: 'assigned',
       title: 'Classification Reviewed & Department Assigned',
       title_urdu: 'درجہ بندی کا جائزہ مکمل اور محکمہ تفویض',
-      description: `Complaint reviewed by staff officer and assigned to ${targetDept.name}.${notes ? ` Review note: ${notes}` : ''}`,
+      description: `Complaint reviewed by administrator and assigned to ${targetDept.name}.`,
       description_urdu: `محکمہ افسر نے شکایت کا جائزہ لے کر متعلقہ محکمے (${targetDept.name}) کے سپرد کر دیا۔`,
-      actor_role: 'department_staff',
-      actor_id: callerId,
+      actor_role: 'main_admin',
+      actor_id: callerUserId,
       created_at: now,
     });
 

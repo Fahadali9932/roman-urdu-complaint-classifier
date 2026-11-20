@@ -1,11 +1,9 @@
 /**
  * AWAAZ-E-AWAM (آوازِ عوام) — AI Human Review & Continuous Learning Service
  *
- * Implements Phase 4 Human-Verified Continuous Learning:
- * - Queues complaints flagged as misclassified or requiring human review.
- * - Enforces PII scrubbing before records are queued for training data.
- * - Provides authenticated approval, rejection, and multi-label correction workflows.
- * - Persists verified corrections for curriculum retraining.
+ * Browser-local prototype for review and manually verified correction export.
+ * This is not an authenticated shared ledger or automatic training pipeline.
+ * Regex redaction handles common phone/CNIC/email formats, not every identifier.
  */
 
 import type { DepartmentId } from '../types';
@@ -33,56 +31,15 @@ export interface ReviewQueueItem {
 const STORAGE_KEY = 'awaaz_ai_review_queue_v11';
 const VERIFIED_STORAGE_KEY = 'awaaz_ai_verified_corrections_v11';
 
-// Initial seed review items to allow immediate verification of the Human Review Queue
-const SEED_REVIEW_ITEMS: ReviewQueueItem[] = [
-  {
-    id: 'rev-001',
-    complaintId: 'comp-seed-101',
-    referenceNumber: 'AA-2026-881923',
-    text: 'bijli ki taar tooti hui zameen par pari hai aur sath hi sadak ka gaddha bhi gehra hai log gir rahe hain',
-    originalDepartments: ['kelectric'],
-    suggestedDepartment: 'kmc',
-    flaggedByStaffId: 'staff-ke-01',
-    flaggedByStaffName: 'Tariq Mehmood (KE Line Operations)',
-    flaggedByDepartment: 'kelectric',
-    flagReason: 'Complaint mentions both broken live wire AND deep road pothole causing injuries. Needs dual dispatch to KMC as well.',
-    flaggedAt: new Date(Date.now() - 3600000 * 3).toISOString(),
-    status: 'pending',
-    piiScrubbed: true,
-  },
-  {
-    id: 'rev-002',
-    complaintId: 'comp-seed-102',
-    referenceNumber: 'AA-2026-882044',
-    text: 'Makan malik bina notice diye rent 25 hazar barha raha hai aur dhamki de raha hai k ghar khali karo',
-    originalDepartments: ['kmc'],
-    suggestedDepartment: 'out_of_scope',
-    flaggedByStaffId: 'staff-kmc-02',
-    flaggedByStaffName: 'Nasir Khan (KMC Infrastructure)',
-    flaggedByDepartment: 'kmc',
-    flagReason: 'Private rental/landlord dispute mistakenly routed to KMC due to street mention. Out of municipal scope.',
-    flaggedAt: new Date(Date.now() - 3600000 * 8).toISOString(),
-    status: 'pending',
-    piiScrubbed: true,
-  },
-  {
-    id: 'rev-003',
-    complaintId: 'comp-seed-103',
-    referenceNumber: 'AA-2026-882190',
-    text: 'gutter ka ganda paani ubal kar gali me jama ho gaya hai aur kachra bhi pichle char din se nahi uthaya gaya',
-    originalDepartments: ['kwsc'],
-    suggestedDepartment: 'sswmb',
-    flaggedByStaffId: 'staff-kwsc-01',
-    flaggedByStaffName: 'Farhan Ali (KWSC Drainage)',
-    flaggedByDepartment: 'kwsc',
-    flagReason: 'Sewage overflow is accompanied by uncollected solid waste accumulating for 4 days. Dual assignment to KWSC + SSWMB needed.',
-    flaggedAt: new Date(Date.now() - 3600000 * 14).toISOString(),
-    status: 'pending',
-    piiScrubbed: true,
-  },
-];
+// These exact identifiers belonged to three fabricated V11.5 demo entries.
+// Remove only those entries during migration; preserve all genuine records.
+const LEGACY_DEMO_IDS = new Map([
+  ['rev-001', 'comp-seed-101'],
+  ['rev-002', 'comp-seed-102'],
+  ['rev-003', 'comp-seed-103'],
+]);
 
-class AiReviewService {
+export class AiReviewService {
   private queue: ReviewQueueItem[] = [];
 
   constructor() {
@@ -94,14 +51,23 @@ class AiReviewService {
       if (typeof window !== 'undefined' && window.localStorage) {
         const raw = localStorage.getItem(STORAGE_KEY);
         if (raw) {
-          this.queue = JSON.parse(raw);
+          const stored: unknown = JSON.parse(raw);
+          if (Array.isArray(stored)) {
+            this.queue = stored.filter((item: ReviewQueueItem) =>
+              item && !(LEGACY_DEMO_IDS.has(item.id) && LEGACY_DEMO_IDS.get(item.id) === item.complaintId)
+            );
+            if (this.queue.length !== stored.length) this.saveToStorage();
+            return;
+          }
+          // Retain malformed stored bytes for recovery rather than overwriting them.
           return;
         }
       }
     } catch {
-      // Fallback to in-memory seed
+      // Storage unavailable: use an empty local queue.
+      return;
     }
-    this.queue = [...SEED_REVIEW_ITEMS];
+    this.queue = [];
     this.saveToStorage();
   }
 
@@ -114,7 +80,7 @@ class AiReviewService {
   }
 
   /**
-   * PII Sanitization helper: scrubs phone numbers, CNIC, and personal patterns
+   * Partial sanitization: common phone numbers, CNIC and email; names/addresses may remain
    */
   public scrubPII(text: string): string {
     return text

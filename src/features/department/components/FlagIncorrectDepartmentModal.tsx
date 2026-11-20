@@ -6,7 +6,7 @@ import {
   type DepartmentComplaintView,
   type DepartmentId,
 } from '../../../types';
-import { X, AlertTriangle, ShieldCheck, Loader2, Flag } from 'lucide-react';
+import { X, AlertTriangle, Loader2, Flag } from 'lucide-react';
 
 interface FlagIncorrectDepartmentModalProps {
   isOpen: boolean;
@@ -47,36 +47,43 @@ export const FlagIncorrectDepartmentModal: React.FC<FlagIncorrectDepartmentModal
       setError('Please provide a brief reason explaining why this complaint is misclassified.');
       return;
     }
+    if (!session || !departmentId ||
+        !(complaint.assignedDepartmentIds ?? [complaint.assignedDepartmentId]).includes(departmentId)) {
+      setError('Sign in to the department assigned to this complaint before flagging it.');
+      return;
+    }
 
     setIsSubmitting(true);
     setError(null);
 
     try {
-      const staffName = session?.user?.name || `Staff Member (${currentDept.toUpperCase()})`;
-      const staffId = session?.userId || 'staff-session';
+      const staffName = session.username || `Staff Member (${departmentId.toUpperCase()})`;
+      const staffId = session.userId || 'local-staff-session';
 
-      // 1. Add to AI Continuous Learning Review Queue
+      // Confirm the status change before creating a browser-local review entry.
+      // The backend service remains responsible for authorization.
+      const updated = await complaintService.updateComplaintStatus(
+        departmentId,
+        complaint.referenceNumber,
+        'under_review',
+        `Flagged as misclassified by ${departmentId.toUpperCase()} staff: ${flagReason.trim()}`
+      );
+      if (!updated.success) throw new Error('The complaint could not be moved to review.');
+
+      // This local prototype does not create a shared administrator ledger.
       await aiReviewService.flagComplaintForReview({
         complaintId: complaint.id,
         referenceNumber: complaint.referenceNumber || complaint.id,
         text: complaint.sanitizedDescription || complaint.description || '',
-        originalDepartments: [currentDept],
+        originalDepartments: complaint.assignedDepartmentIds ?? [departmentId],
         suggestedDepartment: suggestedDept,
         flaggedByStaffId: staffId,
         flaggedByStaffName: staffName,
-        flaggedByDepartment: currentDept,
+        flaggedByDepartment: departmentId,
         flagReason: flagReason.trim(),
       });
 
-      // 2. Transition complaint status to 'under_review'
-      const updated = await complaintService.updateComplaintStatus(
-        complaint.id,
-        'under_review',
-        `Flagged as misclassified by ${currentDept.toUpperCase()} staff: ${flagReason.trim()}`,
-        staffName
-      );
-
-      onFlagged(updated as DepartmentComplaintView);
+      onFlagged(updated.complaint);
       onClose();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to flag complaint.';
@@ -202,9 +209,9 @@ export const FlagIncorrectDepartmentModal: React.FC<FlagIncorrectDepartmentModal
               lineHeight: 1.5,
             }}
           >
-            Flagging this complaint moves it to <strong>Under Review</strong> and queues it into the
-            central <strong>AI Human Review Queue</strong>. Administrators will reassign it and record
-            the human verification into the continuous learning pipeline.
+            Flagging requests an <strong>Under Review</strong> status. The review copy is saved only
+            in this browser; sharing it with an administrator requires a separate handoff.
+            No model is retrained or complaint reassigned by this action.
           </div>
 
           <div style={{ marginBottom: '18px' }}>

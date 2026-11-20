@@ -37,6 +37,7 @@ describe('AWAAZ-E-AWAM — Staff Classification Review Queue & Routing', () => {
     if (target) {
       target.status = 'under_review';
       target.assignedDepartmentId = undefined;
+      target.assignedDepartmentIds = [];
     }
 
     // Sign in as roads-01
@@ -68,7 +69,7 @@ describe('AWAAZ-E-AWAM — Staff Classification Review Queue & Routing', () => {
     });
   });
 
-  it('allows staff to review and assign an under_review complaint to KMC', async () => {
+  it('keeps unassigned review cases out of the KMC dashboard and denies assignment', async () => {
     // Seed an under_review complaint
     const submission = await mockService.submitComplaint({
       citizenName: 'Tariq Mehmood',
@@ -89,6 +90,7 @@ describe('AWAAZ-E-AWAM — Staff Classification Review Queue & Routing', () => {
     if (target) {
       target.status = 'under_review';
       target.assignedDepartmentId = undefined;
+      target.assignedDepartmentIds = [];
     }
 
     // Sign in as roads-01
@@ -120,38 +122,11 @@ describe('AWAAZ-E-AWAM — Staff Classification Review Queue & Routing', () => {
       fireEvent.click(reviewQueueBtn);
     });
 
-    // Click complaint in list
-    await waitFor(() => {
-      const refItems = screen.getAllByText(submission.referenceNumber);
-      expect(refItems.length).toBeGreaterThan(0);
-      fireEvent.click(refItems[0]);
-    });
-
-    // Verify "Assign Department" button is visible
-    await waitFor(() => {
-      const assignBtns = screen.getAllByRole('button', { name: /Assign Department/i });
-      expect(assignBtns.length).toBeGreaterThan(0);
-    });
-
-    // Open review modal
-    const openModalBtn = screen.getAllByRole('button', { name: /Assign Department/i })[0];
-    fireEvent.click(openModalBtn);
-
-    await waitFor(() => {
-      expect(screen.getByText('Karachi Metropolitan Corporation')).toBeInTheDocument();
-    });
-
-    // Select KMC and confirm
-    const kmcBtn = screen.getByText('Karachi Metropolitan Corporation').closest('button');
-    if (kmcBtn) fireEvent.click(kmcBtn);
-
-    const confirmBtn = screen.getByText('Confirm Assignment');
-    fireEvent.click(confirmBtn);
-
-    // Verify complaint transitions to assigned and shows Accept Complaint button
-    await waitFor(() => {
-      expect(screen.getByText('Accept Complaint')).toBeInTheDocument();
-    });
+    expect(await mockService.getReviewQueueComplaints()).toEqual([]);
+    expect(await mockService.getDepartmentComplaintByReference('kmc', submission.referenceNumber)).toBeNull();
+    expect((await mockService.reviewAndAssignComplaint(submission.referenceNumber, 'kmc')).success).toBe(false);
+    expect(screen.queryByText(submission.referenceNumber)).toBeNull();
+    expect(screen.queryByRole('button', { name: /Assign Department/i })).toBeNull();
   });
 
   it('verifies LocalSupabaseAdapter staffReviewAndAssignComplaint RPC behavior', () => {
@@ -195,11 +170,15 @@ describe('AWAAZ-E-AWAM — Staff Classification Review Queue & Routing', () => {
     expect(staffMember).toBeDefined();
     const staffUserId = staffMember!.user_id;
 
+    expect(localSupabaseAdapter.selectComplaints(staffUserId).some((row) => row.id === complaintId)).toBe(false);
+    expect(localSupabaseAdapter.selectReviewQueueComplaints(staffUserId)).toEqual([]);
+    expect(localSupabaseAdapter.staffReviewAndAssignComplaint(complaintId, 'kmc', '', staffUserId).success).toBe(false);
+    const admin = localSupabaseAdapter.getState().profiles.find((profile) => profile.role === 'main_admin')!;
     const successRes = localSupabaseAdapter.staffReviewAndAssignComplaint(
       complaintId,
       'kmc',
       'Confirmed road damage jurisdiction',
-      staffUserId
+      admin.id
     );
     expect(successRes.success).toBe(true);
 
@@ -213,7 +192,9 @@ describe('AWAAZ-E-AWAM — Staff Classification Review Queue & Routing', () => {
     const timeline = localSupabaseAdapter.getState().timelineEvents.filter((e) => e.complaint_id === complaintId);
     const lastEvent = timeline[timeline.length - 1];
     expect(lastEvent.status).toBe('assigned');
-    expect(lastEvent.actor_role).toBe('department_staff');
-    expect(lastEvent.description).toContain('Confirmed road damage jurisdiction');
+    expect(lastEvent.actor_role).toBe('main_admin');
+    expect(localSupabaseAdapter.selectComplaints(staffUserId).some((row) => row.id === complaintId)).toBe(true);
+    expect(localSupabaseAdapter.adminReassignComplaint(complaintId, 'kwsc', 'Transfer', admin.id).success).toBe(true);
+    expect(localSupabaseAdapter.selectComplaints(staffUserId).some((row) => row.id === complaintId)).toBe(false);
   });
 });

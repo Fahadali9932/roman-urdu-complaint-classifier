@@ -15,6 +15,7 @@ function json(body: unknown, status = 200) {
 }
 
 const DEPARTMENT_LABELS: Record<string, string> = {
+  kelectric: "K-Electric (Electricity Supply & Grid)",
   kmc: "Karachi Metropolitan Corporation (KMC / DMCs)",
   ke: "K-Electric (Electricity Supply & Grid)",
   kwsc: "Karachi Water & Sewerage Corporation (KW&SC)",
@@ -71,18 +72,41 @@ Deno.serve(async (req) => {
     return json({ error: "Invalid notification payload. complaintId and newStatus are required." }, 400);
   }
 
-  const { complaintId, newStatus, note, title } = payload;
+  const { complaintId, newStatus } = payload;
+  if (typeof complaintId !== "string" || typeof newStatus !== "string" || !Object.hasOwn(STATUS_TITLES, newStatus)) {
+    return json({ error: "Invalid status notification." }, 400);
+  }
+  const userId = callerData.user.id;
+  const { data: profile, error: profileError } = await admin.from("profiles")
+    .select("role").eq("id", userId).maybeSingle();
+  if (profileError || !profile || !["department_staff", "main_admin"].includes(profile.role)) {
+    return json({ error: "Staff access required." }, 403);
+  }
 
   // 1. Fetch complaint metadata
-  const { data: complaint, error: compError } = await admin
+  let complaintQuery = admin
     .from("complaints")
-    .select("id, reference_number, title, description, incident_district, incident_locality, assigned_department_id")
-    .eq("id", complaintId)
-    .maybeSingle();
+    .select("id, reference_number, status, incident_district, incident_locality, assigned_department_id")
+    .eq("id", complaintId);
+  if (profile.role === "department_staff") {
+    const { data: memberships, error } = await admin.from("department_memberships")
+      .select("department_id").eq("user_id", userId).eq("status", "active");
+    if (error || !memberships?.length) return json({ error: "Active staff membership required." }, 403);
+    complaintQuery = complaintQuery.in("assigned_department_id", memberships.map(row => row.department_id));
+  }
+  const { data: complaint, error: compError } = await complaintQuery.maybeSingle();
 
   if (compError || !complaint) {
     return json({ error: "Complaint not found." }, 404);
   }
+  if (complaint.status !== newStatus) return json({ error: "Status has changed." }, 409);
+  const { data: event, error: eventError } = await admin.from("complaint_timeline_events")
+    .select("id, status, description").eq("complaint_id", complaint.id)
+    .order("created_at", { ascending: false }).order("id", { ascending: false }).limit(1).maybeSingle();
+  if (eventError || !event || event.status !== newStatus) return json({ error: "Recorded status event required." }, 409);
+  const note = event.description;
+  const escapeHtml = (value: string) => value.replaceAll("&", "&amp;").replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#39;");
 
   // 2. Fetch citizen private contact info (Zero staff access via RLS)
   const { data: citizenPrivate, error: privateError } = await admin
@@ -102,15 +126,15 @@ Deno.serve(async (req) => {
   }
 
   const recipientEmail = citizenPrivate.citizen_email.trim();
-  const recipientName = citizenPrivate.citizen_name.trim() || "Citizen";
-  const deptName = DEPARTMENT_LABELS[complaint.assigned_department_id] || complaint.assigned_department_id.toUpperCase();
+  const recipientName = citizenPrivate.citizen_name?.trim() || "Citizen";
+  const deptName = DEPARTMENT_LABELS[complaint.assigned_department_id] || "Service Department";
   const statusInfo = STATUS_TITLES[newStatus] || {
     en: `Status Updated: ${newStatus}`,
     ur: "شکایت کی حیثیت تبدیل ہو گئی ہے",
   };
 
   const subject = `[Awaaz-e-Awam] Complaint ${complaint.reference_number}: ${statusInfo.en}`;
-  const trackingUrl = `https://awaaz-e-awam.pk/track/${complaint.referenceNumber || complaint.reference_number}`;
+  const trackingUrl = `https://awaaz-e-awam.pk/track/${encodeURIComponent(complaint.reference_number)}`;
 
   const htmlBody = `
     <!DOCTYPE html>
@@ -144,7 +168,7 @@ Deno.serve(async (req) => {
             <p>Karachi Municipal Complaint Routing System</p>
           </div>
           <div class="body">
-            <p>Mohtaram <strong>${recipientName}</strong>,</p>
+            <p>Mohtaram <strong>${escapeHtml(recipientName)}</strong>,</p>
             <p>Aap ki darj karda shikayat ka status update hua hai:</p>
             
             <div class="status-badge status-${newStatus}">
@@ -154,7 +178,7 @@ Deno.serve(async (req) => {
             <table class="details-table">
               <tr>
                 <td class="label">Reference Number</td>
-                <td><strong>${complaint.reference_number}</strong></td>
+                <td><strong>${escapeHtml(complaint.reference_number)}</strong></td>
               </tr>
               <tr>
                 <td class="label">Responsible Agency</td>
@@ -162,7 +186,7 @@ Deno.serve(async (req) => {
               </tr>
               <tr>
                 <td class="label">Location</td>
-                <td>${complaint.incident_locality}, ${complaint.incident_district}</td>
+                <td>${escapeHtml(complaint.incident_locality)}, ${escapeHtml(complaint.incident_district)}</td>
               </tr>
             </table>
 
@@ -170,7 +194,7 @@ Deno.serve(async (req) => {
               note
                 ? `<div class="note-box">
                     <strong>Department Remarks / Mehakmay Ka Paigham:</strong><br />
-                    ${note}
+                    ${escapeHtml(note)}
                   </div>`
                 : ""
             }
@@ -202,6 +226,7 @@ Deno.serve(async (req) => {
         method: "POST",
         headers: {
           Authorization: `Bearer ${resendApiKey}`,
+          "Idempotency-Key": `complaint-status-${event.id}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
@@ -243,7 +268,7 @@ Deno.serve(async (req) => {
         new_status: newStatus,
         subject,
         note: note || null,
-        title: title || statusInfo.en,
+        title: statusInfo.en,
       },
       delivery_status: deliveryStatus,
       delivery_error: deliveryError,

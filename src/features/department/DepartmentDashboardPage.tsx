@@ -688,10 +688,7 @@ export const DepartmentDashboardPage: React.FC = () => {
                   onBackToList={() => setSelectedReference(null)}
                   onOpenReviewModal={() => setIsReviewModalOpen(true)}
                   onOverridePriority={handleOverridePriority}
-                  onComplaintUpdated={(updated) => {
-                    setSelectedComplaint(updated);
-                    setComplaints((prev) => prev.map((c) => (c.id === updated.id ? updated : c)));
-                  }}
+                  onComplaintUpdated={handleComplaintUpdated}
                 />
               ) : currentSection === 'tasks' && (import.meta.env.MODE === 'test' || activeTaskFilter === 'under_review') ? (
                 /* FULL-WIDTH COMPLAINTS / REVIEW QUEUE LIST */
@@ -886,10 +883,7 @@ export const DepartmentDashboardPage: React.FC = () => {
                   onBackToList={() => setSelectedReference(null)}
                   onOpenReviewModal={() => setIsReviewModalOpen(true)}
                   onOverridePriority={handleOverridePriority}
-                  onComplaintUpdated={(updated) => {
-                    setSelectedComplaint(updated);
-                    setComplaints((prev) => prev.map((c) => (c.id === updated.id ? updated : c)));
-                  }}
+                  onComplaintUpdated={handleComplaintUpdated}
                 />
               ) : (
                 <PriorityQueuePage
