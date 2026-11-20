@@ -5,6 +5,20 @@ Verified on **20 November 2026 (Pakistan time)**. Internal delivery target:
 This document distinguishes inspected source, automated checks, and unverified
 hosted behavior. Update it after every significant verified milestone.
 
+## Current development update, 21 November 2026 — Phase V13.10.1: Intake Boundary Fixes
+
+- Fixed a public-request demonstration-mode injection and added streaming JSON
+  request-size limits in the authoritative Edge intake function.
+- Local HTTP integration: **9/9 PASS**; Edge classifier boundaries: **16/16
+  PASS**; TypeScript compile and production Vite build: **PASS**.
+- Read-only staging privileged-function inventory identified legacy
+  reassignment metadata inconsistency needing a separate transaction-safe
+  database repair. No hosted code or production database was changed.
+- **Not launch-ready:** Staging Edge deployment, anti-spam controls, genuine
+  Auth HTTP tests, and migration history reconciliation remain open.
+
+See `docs/v11/V13_10_1_EDGE_INTAKE_SECURITY_REVIEW.md` for exact findings.
+
 ## Current development update, 21 November 2026 — Phase V13.10: Staging Schema and Isolation Gate
 
 - **Staging integration completed:** The complaint, multi-department issue,

@@ -15,6 +15,9 @@ import {
 import { processComplaintPrivacy } from "./privacy-engine.ts";
 
 const classifier = model as unknown as V11ModelArtifact;
+// A 200-word complaint does not justify unbounded request bodies. This also
+// caps optional clarification answers and all other caller-controlled fields.
+const MAX_REQUEST_BYTES = 16 * 1024;
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -66,6 +69,39 @@ async function sha256Hex(text: string): Promise<string> {
     .join("");
 }
 
+async function parseBoundedJson(req: Request): Promise<{ input?: unknown; tooLarge?: boolean; invalid?: boolean }> {
+  const declaredLength = req.headers.get("content-length");
+  if (declaredLength !== null && Number(declaredLength) > MAX_REQUEST_BYTES) return { tooLarge: true };
+  if (!req.body) return { invalid: true };
+
+  const reader = req.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let length = 0;
+  try {
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      length += value.byteLength;
+      if (length > MAX_REQUEST_BYTES) {
+        await reader.cancel();
+        return { tooLarge: true };
+      }
+      chunks.push(value);
+    }
+    const bytes = new Uint8Array(length);
+    let offset = 0;
+    for (const chunk of chunks) {
+      bytes.set(chunk, offset);
+      offset += chunk.byteLength;
+    }
+    return { input: JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes)) };
+  } catch {
+    return { invalid: true };
+  } finally {
+    reader.releaseLock();
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "Method not allowed." }, 405);
@@ -90,7 +126,24 @@ Deno.serve(async (req) => {
       citizenId = identity.user.id;
     }
 
-    const input = await req.json();
+    const parsed = await parseBoundedJson(req);
+    if (parsed.tooLarge) {
+      return json({ error: "Complaint request is too large.", code: "PAYLOAD_TOO_LARGE" }, 413);
+    }
+    if (parsed.invalid || !parsed.input || typeof parsed.input !== "object" || Array.isArray(parsed.input)) {
+      return json({ error: "Invalid complaint payload.", code: "INVALID_COMPLAINT_PAYLOAD" }, 400);
+    }
+    const input = parsed.input as {
+      description: string;
+      incidentDistrict: string;
+      incidentLocality: string;
+      incidentPublicLocation: string;
+      citizenName: string;
+      citizenPhone: string;
+      citizenEmail?: string;
+      residentialAddress: string;
+      clarificationAnswer?: ClarificationAnswer;
+    };
     if (!input || typeof input.description !== "string") {
       return json({ error: "Invalid complaint payload.", code: "INVALID_COMPLAINT_PAYLOAD" }, 400);
     }
@@ -99,7 +152,9 @@ Deno.serve(async (req) => {
       input.citizenName, input.citizenPhone, input.residentialAddress,
     ];
     const words = input.description.trim().split(/\s+/).filter(Boolean);
-    if (words.length === 0 || words.length > 200 || requiredTextFields.some((value) => typeof value !== "string" || !value.trim())) {
+    if (words.length === 0 || words.length > 200 || input.description.length > 6000 ||
+      requiredTextFields.some((value) => typeof value !== "string" || !value.trim() || value.length > 240) ||
+      (input.citizenEmail !== undefined && (typeof input.citizenEmail !== "string" || input.citizenEmail.length > 254))) {
       return json({ error: "Please complete all required complaint fields (200 words max).", code: "INVALID_COMPLAINT_PAYLOAD" }, 400);
     }
 
@@ -243,7 +298,9 @@ Deno.serve(async (req) => {
       p_predicted_department_id: primaryDept,
       p_prediction_confidence: maxProb,
       p_needs_review: needsReview,
-      p_is_demonstration: input.isDemonstration === true,
+      // Public callers must never decide whether a persisted civic case is
+      // hidden as a demonstration record.
+      p_is_demonstration: false,
       p_claim_code_hash: claimCodeHash,
       p_guest_tracking_hash: guestTrackingHash,
     });

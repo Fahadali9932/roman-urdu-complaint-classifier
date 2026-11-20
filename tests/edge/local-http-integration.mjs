@@ -209,6 +209,53 @@ test('Local HTTP Server: Expired session returns 401 Unauthorized over real HTTP
   assert.equal(response.status, 401);
 });
 
+test('Local HTTP Server: Caller cannot forge demonstration mode', async () => {
+  const db = createMockDatabase();
+  const response = await fetch(`${baseUrl}/submit`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ...draftBase, description: 'Hamare ilaqe mein gas nahi aa rahi', isDemonstration: true }),
+  });
+  assert.equal(response.status, 200);
+  assert.equal(db.writes.length, 1);
+  assert.equal(db.writes[0].args.p_is_demonstration, false);
+});
+
+test('Local HTTP Server: Oversized payload rejected even under the 200-word limit', async () => {
+  const db = createMockDatabase();
+  const response = await fetch(`${baseUrl}/submit`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ...draftBase, description: 'gas' + 'a'.repeat(20_000) }),
+  });
+  assert.equal(response.status, 413);
+  assert.equal((await response.json()).code, 'PAYLOAD_TOO_LARGE');
+  assert.equal(db.writes.length, 0);
+});
+
+test('Local HTTP Server: Malformed JSON returns 400 without database writes', async () => {
+  const db = createMockDatabase();
+  const response = await fetch(`${baseUrl}/submit`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: '{"description":',
+  });
+  assert.equal(response.status, 400);
+  assert.equal((await response.json()).code, 'INVALID_COMPLAINT_PAYLOAD');
+  assert.equal(db.writes.length, 0);
+});
+
+test('Local HTTP Server: Missing spaces cannot bypass per-field length limits', async () => {
+  const db = createMockDatabase();
+  const response = await fetch(`${baseUrl}/submit`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ...draftBase, description: 'gas band hai', citizenName: 'X'.repeat(241) }),
+  });
+  assert.equal(response.status, 400);
+  assert.equal(db.writes.length, 0);
+});
+
 test.after(() => {
   server.close();
 });
