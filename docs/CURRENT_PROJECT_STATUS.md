@@ -5,7 +5,26 @@ Verified on **20 November 2026 (Pakistan time)**. Internal delivery target:
 This document distinguishes inspected source, automated checks, and unverified
 hosted behavior. Update it after every significant verified milestone.
 
-## Current development update, 20 November 2026 — Phase V13.8.1: Authentication Security Hardening & Production Safety Verification
+## Current development update, 20 November 2026 — Phase V13.8.2: Demo Isolation and Responsive/Database Audit
+
+Following V13.8.1, the unauthenticated dashboard demonstration now uses
+explicit, compiled-in fictional fixtures rather than the real complaint
+service, Supabase Realtime, or browser storage. The 320px complaint filters,
+heading typography, and reference metadata were adjusted to wrap, and a stricter width-gated
+browser verification script was executed and passed with 0 horizontal overflow. See
+`docs/v11/V13_8_2_DEMO_ISOLATION_AND_STAGING_AUDIT.md`.
+
+- **Demonstration Fixtures:** Compiled in `DevCitizenDashboard.tsx` (`DEMO-KHI-0001`, `DEMO-KHI-0002`) and rendered strictly with `isDemonstration: true`. Does not query `complaintService` or browser storage.
+- **Production Bundle Hygiene:** `npm run build && node tools/ai_factory/v13_8_2_verify_production_bundle.mjs` verifies 0 occurrences of demo fixtures, auth bypasses, or dev harness routes in production JavaScript output.
+- **Automated Tests:** 603 Vitest tests pass across 57 test files, including dedicated `V13_8_2_DemonstrationIsolation.test.tsx` (2/2 pass) and `V13_8_1_AuthenticationSecurityHardening.test.tsx` (13/13 pass).
+- **Responsive Browser CDP Verification:** Executed directly via headless Chrome (`tools/ai_factory/v13_8_2_browser_verification.mjs`) on Windows Antigravity:
+  - 1280px: `scrollWidth = 1265px`, 0 overflow, screenshot `v13_8_2_dashboard_1280.png`.
+  - 768px: `scrollWidth = 753px`, 0 overflow, screenshot `v13_8_2_dashboard_768.png`.
+  - 390px: `scrollWidth = 390px`, 0 overflow, screenshot `v13_8_2_dashboard_390.png`.
+  - 320px: `scrollWidth = 320px`, 0 overflow, screenshot `v13_8_2_dashboard_320.png`.
+- **Do not deploy yet:** The accessible Supabase staging project lacks complaint tables for genuine cross-account RLS tests, and its security advisor flags anonymous EXECUTE privileges on five `SECURITY DEFINER` functions. No remote database changes were made. Ready for team code review.
+
+## Previous development update, 20 November 2026 — Phase V13.8.1: Authentication Security Hardening & Production Safety Verification
 
 Phase V13.8.1 eliminated authentication bypass shortcuts, hardened route guards against client-side parameter manipulation, strictly enforced server-boundary role verification for the citizen portal, isolated demonstration harnesses to development-only environments with 100% production tree-shaking, and proved complete system stability through comprehensive automated and browser-based verification.
 

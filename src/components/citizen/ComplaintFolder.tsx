@@ -105,19 +105,19 @@ export const ComplaintFolder: React.FC<ComplaintFolderProps> = ({
         }
       }}
       data-scroll-depth
-      className={`civic-depth-card group cursor-pointer select-none text-start rounded-[24px] sm:rounded-[30px] bg-white border-2 border-[#E5E3E0] p-6 sm:p-9 transition-all duration-200 hover:border-[#681822]/40 hover:shadow-md outline-none focus-visible:ring-2 focus-visible:ring-[#681822] ${className}`}
+      className={`civic-depth-card group cursor-pointer select-none text-start rounded-[20px] sm:rounded-[30px] bg-white border-2 border-[#E5E3E0] p-4 sm:p-9 transition-all duration-200 hover:border-[#681822]/40 hover:shadow-md outline-none focus-visible:ring-2 focus-visible:ring-[#681822] ${className}`}
       aria-label={`Complaint ${complaint.referenceNumber}: ${complaint.title}`}
     >
       {/* Top Meta Line: Reference, Dept & Status */}
-      <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-[#F2EFEA]">
-        <div className="flex items-center gap-2">
-          <span className="font-mono text-sm font-bold text-[#681822]">
+      <div className="flex min-w-0 flex-wrap items-center justify-between gap-2 pb-3 border-b border-[#F2EFEA]">
+        <div className="flex min-w-0 max-w-full flex-wrap items-center gap-2">
+          <span className="min-w-0 max-w-full break-all font-mono text-sm font-bold text-[#681822] sm:break-normal">
             #{complaint.referenceNumber}
           </span>
           <span className="text-[#D9D3CC]">•</span>
-          <span className="inline-flex items-center gap-1 text-sm font-semibold text-[#5A554E]">
+          <span className="inline-flex min-w-0 items-center gap-1 text-sm font-semibold text-[#5A554E]">
             <Building2 className="w-3.5 h-3.5 text-[#88827A]" />
-            <span>{departmentLabel}</span>
+            <span className="min-w-0 break-words">{departmentLabel}</span>
           </span>
         </div>
 

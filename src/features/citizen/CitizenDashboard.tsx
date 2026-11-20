@@ -24,14 +24,18 @@ import { supabase, isSupabaseConfigured } from '../../lib/supabase';
 
 export interface CitizenDashboardProps {
   isDevHarness?: boolean;
+  /** Explicit fictional records; never populated from live services in the development harness. */
+  demoComplaints?: readonly Complaint[];
 }
 
-export const CitizenDashboard: React.FC<CitizenDashboardProps> = ({ isDevHarness = false }) => {
+export const CitizenDashboard: React.FC<CitizenDashboardProps> = ({ isDevHarness = false, demoComplaints }) => {
   const { language, isRTL } = useLanguage();
   const ur = language === 'ur';
 
-  const [complaints, setComplaints] = useState<Complaint[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [complaints, setComplaints] = useState<Complaint[]>(() =>
+    isDevHarness ? (demoComplaints?.filter((record) => record.isDemonstration === true) ?? []) : []
+  );
+  const [isLoading, setIsLoading] = useState(!isDevHarness);
   const [selectedComplaint, setSelectedComplaint] = useState<Complaint | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
 
@@ -50,6 +54,13 @@ export const CitizenDashboard: React.FC<CitizenDashboardProps> = ({ isDevHarness
 
   const loadComplaints = useCallback(async (silent = false) => {
     if (!silent) setIsLoading(true);
+    if (isDevHarness) {
+      // A demo must never read live Supabase data or browser-stored complaints,
+      // even if the developer happens to be signed in to a real project.
+      setComplaints(demoComplaints?.filter((record) => record.isDemonstration === true) ?? []);
+      if (!silent) setIsLoading(false);
+      return;
+    }
     try {
       const data = await complaintService.getCitizenComplaints();
       setComplaints(data);
@@ -60,9 +71,12 @@ export const CitizenDashboard: React.FC<CitizenDashboardProps> = ({ isDevHarness
         setIsLoading(false);
       }
     }
-  }, []);
+  }, [isDevHarness, demoComplaints]);
 
   useEffect(() => {
+    // No Realtime connections, background polling or local-storage reads in
+    // the unauthenticated, development-only demonstration page.
+    if (isDevHarness) return;
     loadComplaints();
 
     let channel: any = null;
@@ -93,7 +107,7 @@ export const CitizenDashboard: React.FC<CitizenDashboardProps> = ({ isDevHarness
       window.removeEventListener('focus', handleFocus);
       clearInterval(intervalId);
     };
-  }, [loadComplaints]);
+  }, [loadComplaints, isDevHarness]);
 
   const handleClaim = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -198,16 +212,16 @@ export const CitizenDashboard: React.FC<CitizenDashboardProps> = ({ isDevHarness
         <div className="space-y-1.5">
           <h1
             aria-label={ur ? 'آپ کی شکایات' : 'My Complaints - Your Complaints'}
-            className="font-display font-black text-[clamp(2.7rem,5vw,4.9rem)] leading-[1.05] text-[#141414] tracking-tight"
+            className="font-display font-black text-[clamp(1.85rem,5.5vw,4.9rem)] leading-[1.05] text-[#141414] tracking-tight break-words"
           >
             {ur ? 'میری شکایات' : 'My Complaints'}
             {complaints.length > 0 && (
-              <span className="ml-3 font-mono font-normal text-lg sm:text-xl text-[#681822]">
+              <span className="inline-block ml-2 sm:ml-3 font-mono font-normal text-base sm:text-xl text-[#681822]">
                 ({complaints.length})
               </span>
             )}
           </h1>
-          <p className="text-base sm:text-lg text-[#514A43] leading-relaxed">
+          <p className="text-base sm:text-lg text-[#514A43] leading-relaxed break-words">
             {ur
               ? 'اپنی درج شدہ تمام شکایات اور ان کی پیش رفت دیکھیں۔'
               : 'View your submitted complaints and follow their progress.'}
@@ -215,8 +229,8 @@ export const CitizenDashboard: React.FC<CitizenDashboardProps> = ({ isDevHarness
         </div>
 
         {/* Action Controls */}
-        <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
-          <Link to="/track" className="flex-1 sm:flex-initial">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full sm:w-auto">
+          <Link to="/track" className="w-full sm:w-auto">
             <button
               type="button"
               className="w-full sm:w-auto inline-flex min-h-[52px] items-center justify-center gap-2 rounded-xl border-2 border-[#D9D3CC] bg-white px-5 text-sm font-bold text-[#141414] hover:bg-[#FAF9F7] transition cursor-pointer shadow-xs"
@@ -226,20 +240,22 @@ export const CitizenDashboard: React.FC<CitizenDashboardProps> = ({ isDevHarness
             </button>
           </Link>
 
-          <button
-            type="button"
-            onClick={() => {
-              setIsClaimModalOpen(true);
-              setClaimError('');
-              setClaimSuccess('');
-            }}
-            className="inline-flex min-h-[52px] items-center justify-center gap-2 rounded-xl border-2 border-[#D9D3CC] bg-white px-5 text-sm font-bold text-[#141414] hover:bg-[#FAF9F7] transition cursor-pointer shadow-xs"
-          >
-            <KeyRound className="w-3.5 h-3.5 text-[#681822]" />
-            <span>{ur ? 'مہمان شکایت منسلک کریں' : 'Claim Guest Complaint'}</span>
-          </button>
+          {!isDevHarness && (
+            <button
+              type="button"
+              onClick={() => {
+                setIsClaimModalOpen(true);
+                setClaimError('');
+                setClaimSuccess('');
+              }}
+              className="w-full sm:w-auto inline-flex min-h-[52px] items-center justify-center gap-2 rounded-xl border-2 border-[#D9D3CC] bg-white px-5 text-sm font-bold text-[#141414] hover:bg-[#FAF9F7] transition cursor-pointer shadow-xs"
+            >
+              <KeyRound className="w-3.5 h-3.5 text-[#681822]" />
+              <span>{ur ? 'مہمان شکایت منسلک کریں' : 'Claim Guest Complaint'}</span>
+            </button>
+          )}
 
-          <Link to="/submit" className="flex-1 sm:flex-initial">
+          <Link to="/submit" className="w-full sm:w-auto">
             <Button
               variant="primary"
               size="md"
@@ -328,14 +344,14 @@ export const CitizenDashboard: React.FC<CitizenDashboardProps> = ({ isDevHarness
             </div>
 
             {/* Filter Pills & Sort Selector */}
-            <div className="flex flex-wrap items-center gap-2">
-              <div className="inline-flex rounded-xl bg-white border border-[#D9D3CC] p-1 shadow-xs">
+            <div className="flex min-w-0 flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-2 w-full sm:w-auto">
+              <div className="grid w-full min-w-0 grid-cols-2 gap-1 rounded-xl bg-white border border-[#D9D3CC] p-1 shadow-xs sm:inline-flex sm:w-auto">
                 {(['all', 'under_review', 'in_progress', 'resolved'] as const).map((status) => (
                   <button
                     key={status}
                     type="button"
                     onClick={() => setStatusFilter(status)}
-                    className={`px-4 py-2.5 rounded-lg text-sm font-bold transition cursor-pointer select-none ${
+                    className={`min-w-0 rounded-lg px-2 py-2.5 text-xs leading-snug font-bold transition cursor-pointer select-none sm:px-4 sm:text-sm ${
                       statusFilter === status
                         ? 'bg-[#681822] text-white shadow-xs'
                         : 'text-[#5A554E] hover:text-[#141414] hover:bg-[#FAF9F7]'
@@ -356,7 +372,7 @@ export const CitizenDashboard: React.FC<CitizenDashboardProps> = ({ isDevHarness
               <select
                 value={sortOrder}
                 onChange={(e) => setSortOrder(e.target.value as 'newest' | 'oldest')}
-                className="min-h-[46px] rounded-xl border-2 border-[#D9D3CC] bg-white px-3 py-2 text-sm font-bold text-[#141414] focus:border-[#681822] focus:outline-none shadow-xs cursor-pointer"
+                className="w-full sm:w-auto min-h-[46px] rounded-xl border-2 border-[#D9D3CC] bg-white px-3 py-2 text-sm font-bold text-[#141414] focus:border-[#681822] focus:outline-none shadow-xs cursor-pointer"
                 aria-label={ur ? 'ترتیب دیں' : 'Sort complaints'}
               >
                 <option value="newest">{ur ? 'تازہ ترین پہلے' : 'Newest First'}</option>

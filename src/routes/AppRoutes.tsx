@@ -23,6 +23,11 @@ import { AdminRequestsPage } from '../features/auth/pages/AdminRequestsPage';
 import { AdminAccessPage } from '../features/auth/pages/AdminAccessPage';
 import { AiControlCenterPage } from '../features/admin/ai/AiControlCenterPage';
 
+// Lazy, development-only chunk. The import is eliminated from production builds.
+const DevCitizenDashboard = import.meta.env.DEV
+  ? React.lazy(() => import('../features/citizen/dev/DevCitizenDashboard'))
+  : null;
+
 export const AppRoutes: React.FC = () => {
   return (
     <Routes>
@@ -71,9 +76,12 @@ export const AppRoutes: React.FC = () => {
       </Route>
 
       {/* Isolated development-only demonstration harness (stripped in production builds) */}
-      {import.meta.env.DEV && (
+      {import.meta.env.DEV && DevCitizenDashboard && (
         <Route element={<CitizenLayout />}>
-          <Route path="/dev/harness/citizen-dashboard" element={<CitizenDashboard isDevHarness={true} />} />
+          <Route
+            path="/dev/harness/citizen-dashboard"
+            element={<React.Suspense fallback={<div role="status">Loading demonstration…</div>}><DevCitizenDashboard /></React.Suspense>}
+          />
         </Route>
       )}
 
