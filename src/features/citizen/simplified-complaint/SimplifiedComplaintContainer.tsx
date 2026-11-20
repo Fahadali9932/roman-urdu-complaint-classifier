@@ -180,7 +180,9 @@ export const SimplifiedComplaintContainer: React.FC = () => {
     const params = new URLSearchParams(window.location.search);
     return params.get('mode') === 'local-ai-test' || params.get('aiTest') === 'true';
   });
-  const [selectedEngine, setSelectedEngine] = useState<'run004_v11' | 'v13_2_candidate' | 'v13_4_candidate'>('run004_v11');
+  const [selectedEngine, setSelectedEngine] = useState<
+    'run004_v11' | 'v13_2_candidate' | 'v13_4_candidate' | 'v13_5_candidate'
+  >('run004_v11');
   const [activeClarification, setActiveClarification] = useState<{
     question: ClarificationQuestion;
   } | null>(null);
@@ -550,12 +552,19 @@ export const SimplifiedComplaintContainer: React.FC = () => {
                         <select
                           value={selectedEngine}
                           onChange={(e) => {
-                            const val = e.target.value as 'run004_v11' | 'v13_2_candidate' | 'v13_4_candidate';
+                            const val = e.target.value as
+                              | 'run004_v11'
+                              | 'v13_2_candidate'
+                              | 'v13_4_candidate'
+                              | 'v13_5_candidate';
                             setSelectedEngine(val);
                             (localV11ComplaintService as any).setEngineMode?.(val);
                           }}
                           className="text-xs font-mono font-bold bg-white border border-amber-300 rounded-lg px-2.5 py-1 text-slate-800 shadow-2xs focus:ring-2 focus:ring-amber-500 cursor-pointer"
                         >
+                          <option value="v13_5_candidate">
+                            V13.5 Candidate (Two-Department Policy • 1-2 Dept Auto-Routing, 3+ Human Review)
+                          </option>
                           <option value="v13_4_candidate">
                             V13.4 Candidate (Causal Reasoning & False-Extra Reduced)
                           </option>

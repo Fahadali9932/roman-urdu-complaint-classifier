@@ -1,0 +1,27 @@
+{
+  "benchmark_version": "v13.5",
+  "timestamp": "2026-11-20T12:00:00Z",
+  "primary_benchmark": {
+    "path": "data/v11/eval_v13_5\\v13_5_holdout_2000.jsonl",
+    "count": 2000,
+    "sha256": "0CBABC2A68418E62540F1B99C86C14E87DC9E7C58CD12D48B3B26591054CE6F9",
+    "category_breakdown": {
+      "normal_polite": 400,
+      "informal_spelling_variation": 300,
+      "angry_aggressive_abusive": 250,
+      "two_independent_issues": 500,
+      "causal_dependent": 250,
+      "negation_historical": 150,
+      "out_of_scope": 100,
+      "genuinely_ambiguous": 50
+    }
+  },
+  "safety_suite": {
+    "path": "data/v11/eval_v13_5\\v13_5_three_dept_safety_50.jsonl",
+    "count": 50,
+    "sha256": "065E884A642966B90A7A519DA693FCB448282B7C06EBCD475B1870CC9F4858E0",
+    "policy": "EXCEEDS_TWO_DEPARTMENTS_HUMAN_TRIAGE_REQUIRED"
+  },
+  "zero_leakage_verified": true,
+  "scanned_historical_datasets_count": 22348
+}

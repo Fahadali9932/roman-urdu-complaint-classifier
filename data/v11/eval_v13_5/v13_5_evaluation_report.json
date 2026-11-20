@@ -1,0 +1,1294 @@
+{
+  "benchmark_name": "v13_5_holdout_2000",
+  "timestamp": "2026-11-20T07:46:14.138Z",
+  "primary_benchmark": {
+    "totalCases": 2000,
+    "systems": {
+      "system1_Run004Baseline": {
+        "systemName": "Run004 Baseline (V11 Relation Aware)",
+        "totalCases": 2000,
+        "exactMatches": 1248,
+        "exactAccuracy": 62.4,
+        "wilsonCI": [
+          60.26,
+          64.5
+        ],
+        "macroF1": 79.19,
+        "deptMetrics": {
+          "kmc": {
+            "tp": 267,
+            "fp": 134,
+            "fn": 78,
+            "precision": 66.58,
+            "recall": 77.39,
+            "f1": 71.58
+          },
+          "kwsc": {
+            "tp": 376,
+            "fp": 82,
+            "fn": 16,
+            "precision": 82.1,
+            "recall": 95.92,
+            "f1": 88.47
+          },
+          "kelectric": {
+            "tp": 288,
+            "fp": 20,
+            "fn": 104,
+            "precision": 93.51,
+            "recall": 73.47,
+            "f1": 82.29
+          },
+          "ssgc": {
+            "tp": 328,
+            "fp": 10,
+            "fn": 64,
+            "precision": 97.04,
+            "recall": 83.67,
+            "f1": 89.86
+          },
+          "sswmb": {
+            "tp": 215,
+            "fp": 26,
+            "fn": 175,
+            "precision": 89.21,
+            "recall": 55.13,
+            "f1": 68.15
+          },
+          "sbca": {
+            "tp": 242,
+            "fp": 16,
+            "fn": 147,
+            "precision": 93.8,
+            "recall": 62.21,
+            "f1": 74.81
+          }
+        },
+        "categoryBreakdown": {
+          "normal_polite": {
+            "total": 400,
+            "correct": 336,
+            "accuracy": 84
+          },
+          "informal_spelling_variation": {
+            "total": 300,
+            "correct": 209,
+            "accuracy": 69.67
+          },
+          "angry_aggressive_abusive": {
+            "total": 250,
+            "correct": 178,
+            "accuracy": 71.2
+          },
+          "two_independent_issues": {
+            "total": 500,
+            "correct": 202,
+            "accuracy": 40.4
+          },
+          "causal_dependent": {
+            "total": 250,
+            "correct": 154,
+            "accuracy": 61.6
+          },
+          "negation_historical": {
+            "total": 150,
+            "correct": 43,
+            "accuracy": 28.67
+          },
+          "out_of_scope": {
+            "total": 100,
+            "correct": 99,
+            "accuracy": 99
+          },
+          "genuinely_ambiguous": {
+            "total": 50,
+            "correct": 27,
+            "accuracy": 54
+          }
+        },
+        "totalExtraDepts": 288,
+        "falseExtraRate": 14.4,
+        "totalMissedDepts": 584,
+        "missedDeptRate": 29.2,
+        "latency": {
+          "meanMs": 4.07,
+          "medianMs": 4.09,
+          "p95Ms": 6.03
+        },
+        "failureCount": 752,
+        "failuresSample": [
+          {
+            "id": "v13_5_test_0001",
+            "category": "normal_polite",
+            "subcategory": "polite_kmc",
+            "text": "Hukumat-e-waqt se purzor darkhwast hai Keamari Jackson Bazaar (District Keamari) mein main road par shadeed khaday par chuke hain jis se aam raft-o-aamad mein shadeed rukawat pesh aa rahi hai. Aap ke taawun ke muntazir hain, duaon mein yaad rakhenge.",
+            "expected": [
+              "kmc"
+            ],
+            "predicted": [],
+            "reviewReason": "UNCERTAIN_DEFECT",
+            "notes": [
+              "Filtered unsupported ML candidate KELECTRIC: no domain asset or defect tokens present",
+              "No actionable municipal department met confidence threshold or rule criteria (Needs Review)"
+            ]
+          },
+          {
+            "id": "v13_5_test_0009",
+            "category": "normal_polite",
+            "subcategory": "polite_kmc",
+            "text": "Janab-e-Aali guzarish hai ke SITE Area Metro Chowrangi (District Keamari) mein main boulevard par traffic signal pichle teen din se band para hai aur rash ho jata hai. Umeed hai ke is maslay par fori karrawai farmai jaye gi, shukriya.",
+            "expected": [
+              "kmc"
+            ],
+            "predicted": [],
+            "reviewReason": "UNCERTAIN_DEFECT",
+            "notes": [
+              "Filtered unsupported ML candidate KMC: no domain asset or defect tokens present",
+              "No actionable municipal department met confidence threshold or rule criteria (Needs Review)"
+            ]
+          },
+          {
+            "id": "v13_5_test_0011",
+            "category": "normal_polite",
+            "subcategory": "polite_kmc",
+            "text": "Hum District Central ke ilaqa Liaquatabad No 4 ke rehaishi hain. Bara-e-meherbani hamari faryad suniye yahan main road par shadeed khaday par chuke hain jis se aam raft-o-aamad mein shadeed rukawat pesh aa rahi hai. Meherbani farma kar tawajjo dein.",
+            "expected": [
+              "kmc"
+            ],
+            "predicted": [],
+            "reviewReason": "UNCERTAIN_DEFECT",
+            "notes": [
+              "Filtered unsupported ML candidate KMC: no domain asset or defect tokens present",
+              "No actionable municipal department met confidence threshold or rule criteria (Needs Review)"
+            ]
+          },
+          {
+            "id": "v13_5_test_0019",
+            "category": "normal_polite",
+            "subcategory": "polite_kmc",
+            "text": "Hum District Central ke ilaqa Liaquatabad No 4 ke rehaishi hain. Janab-e-Aali guzarish hai ke yahan main boulevard par traffic signal pichle teen din se band para hai aur rash ho jata hai. Meherbani farma kar tawajjo dein.",
+            "expected": [
+              "kmc"
+            ],
+            "predicted": [],
+            "reviewReason": "UNCERTAIN_DEFECT",
+            "notes": [
+              "Filtered unsupported ML candidate KMC: no domain asset or defect tokens present",
+              "No actionable municipal department met confidence threshold or rule criteria (Needs Review)"
+            ]
+          },
+          {
+            "id": "v13_5_test_0021",
+            "category": "normal_polite",
+            "subcategory": "polite_kmc",
+            "text": "Janab-e-Aali guzarish hai ke Shah Faisal Colony No 3 (District Korangi) mein main road par shadeed khaday par chuke hain jis se aam raft-o-aamad mein shadeed rukawat pesh aa rahi hai. Baraye meherbani shehriyon ki pareshani par tars kha kar masla hal farmayen.",
+            "expected": [
+              "kmc"
+            ],
+            "predicted": [],
+            "reviewReason": "UNCERTAIN_DEFECT",
+            "notes": [
+              "Filtered unsupported ML candidate KMC: no domain asset or defect tokens present",
+              "No actionable municipal department met confidence threshold or rule criteria (Needs Review)"
+            ]
+          },
+          {
+            "id": "v13_5_test_0029",
+            "category": "normal_polite",
+            "subcategory": "polite_kmc",
+            "text": "Mohtaram administration ki tawajjo darkaar hai North Nazimabad Block H (District Central) mein main boulevard par traffic signal pichle teen din se band para hai aur rash ho jata hai. Is ahem maslay ka fori notice le kar hum par ehsaan farmayen.",
+            "expected": [
+              "kmc"
+            ],
+            "predicted": [],
+            "reviewReason": "UNCERTAIN_DEFECT",
+            "notes": [
+              "Filtered unsupported ML candidate KMC: no domain asset or defect tokens present",
+              "No actionable municipal department met confidence threshold or rule criteria (Needs Review)"
+            ]
+          },
+          {
+            "id": "v13_5_test_0031",
+            "category": "normal_polite",
+            "subcategory": "polite_kmc",
+            "text": "Hum District Korangi ke ilaqa Landhi Babar Market ke rehaishi hain. Hukumat-e-waqt se purzor darkhwast hai yahan main road par shadeed khaday par chuke hain jis se aam raft-o-aamad mein shadeed rukawat pesh aa rahi hai. Meherbani farma kar tawajjo dein.",
+            "expected": [
+              "kmc"
+            ],
+            "predicted": [],
+            "reviewReason": "UNCERTAIN_DEFECT",
+            "notes": [
+              "No actionable municipal department met confidence threshold or rule criteria (Needs Review)"
+            ]
+          },
+          {
+            "id": "v13_5_test_0039",
+            "category": "normal_polite",
+            "subcategory": "polite_kmc",
+            "text": "Hum District East ke ilaqa Safoora Chowrangi Scheme 33 ke rehaishi hain. Mohtaram administration ki tawajjo darkaar hai yahan main boulevard par traffic signal pichle teen din se band para hai aur rash ho jata hai. Meherbani farma kar tawajjo dein.",
+            "expected": [
+              "kmc"
+            ],
+            "predicted": [],
+            "reviewReason": "UNCERTAIN_DEFECT",
+            "notes": [
+              "Filtered unsupported ML candidate KMC: no domain asset or defect tokens present",
+              "No actionable municipal department met confidence threshold or rule criteria (Needs Review)"
+            ]
+          },
+          {
+            "id": "v13_5_test_0041",
+            "category": "normal_polite",
+            "subcategory": "polite_kmc",
+            "text": "Karachi ke puraman shehri ki haisiyat se arz hai Keamari Jackson Bazaar (District Keamari) mein main road par shadeed khaday par chuke hain jis se aam raft-o-aamad mein shadeed rukawat pesh aa rahi hai. Baraye meherbani shehriyon ki pareshani par tars kha kar masla hal farmayen.",
+            "expected": [
+              "kmc"
+            ],
+            "predicted": [],
+            "reviewReason": "UNCERTAIN_DEFECT",
+            "notes": [
+              "Filtered unsupported ML candidate KMC: no domain asset or defect tokens present",
+              "No actionable municipal department met confidence threshold or rule criteria (Needs Review)"
+            ]
+          },
+          {
+            "id": "v13_5_test_0049",
+            "category": "normal_polite",
+            "subcategory": "polite_kmc",
+            "text": "Hukumat-e-waqt se purzor darkhwast hai North Nazimabad Block H (District Central) mein main boulevard par traffic signal pichle teen din se band para hai aur rash ho jata hai. Umeed-e-wasiq hai ke hamari faryad ko nazar-andaz nahi kiya jaye ga.",
+            "expected": [
+              "kmc"
+            ],
+            "predicted": [],
+            "reviewReason": "UNCERTAIN_DEFECT",
+            "notes": [
+              "Filtered unsupported ML candidate KMC: no domain asset or defect tokens present",
+              "No actionable municipal department met confidence threshold or rule criteria (Needs Review)"
+            ]
+          }
+        ]
+      },
+      "system2_Run006Baseline": {
+        "systemName": "Run006 Baseline (V11 Relation Aware)",
+        "totalCases": 2000,
+        "exactMatches": 1354,
+        "exactAccuracy": 67.7,
+        "wilsonCI": [
+          65.62,
+          69.71
+        ],
+        "macroF1": 83.17,
+        "deptMetrics": {
+          "kmc": {
+            "tp": 230,
+            "fp": 68,
+            "fn": 115,
+            "precision": 77.18,
+            "recall": 66.67,
+            "f1": 71.54
+          },
+          "kwsc": {
+            "tp": 360,
+            "fp": 59,
+            "fn": 32,
+            "precision": 85.92,
+            "recall": 91.84,
+            "f1": 88.78
+          },
+          "kelectric": {
+            "tp": 309,
+            "fp": 20,
+            "fn": 83,
+            "precision": 93.92,
+            "recall": 78.83,
+            "f1": 85.71
+          },
+          "ssgc": {
+            "tp": 336,
+            "fp": 10,
+            "fn": 56,
+            "precision": 97.11,
+            "recall": 85.71,
+            "f1": 91.06
+          },
+          "sswmb": {
+            "tp": 252,
+            "fp": 28,
+            "fn": 138,
+            "precision": 90,
+            "recall": 64.62,
+            "f1": 75.22
+          },
+          "sbca": {
+            "tp": 310,
+            "fp": 16,
+            "fn": 79,
+            "precision": 95.09,
+            "recall": 79.69,
+            "f1": 86.71
+          }
+        },
+        "categoryBreakdown": {
+          "normal_polite": {
+            "total": 400,
+            "correct": 337,
+            "accuracy": 84.25
+          },
+          "informal_spelling_variation": {
+            "total": 300,
+            "correct": 222,
+            "accuracy": 74
+          },
+          "angry_aggressive_abusive": {
+            "total": 250,
+            "correct": 184,
+            "accuracy": 73.6
+          },
+          "two_independent_issues": {
+            "total": 500,
+            "correct": 237,
+            "accuracy": 47.4
+          },
+          "causal_dependent": {
+            "total": 250,
+            "correct": 180,
+            "accuracy": 72
+          },
+          "negation_historical": {
+            "total": 150,
+            "correct": 44,
+            "accuracy": 29.33
+          },
+          "out_of_scope": {
+            "total": 100,
+            "correct": 100,
+            "accuracy": 100
+          },
+          "genuinely_ambiguous": {
+            "total": 50,
+            "correct": 50,
+            "accuracy": 100
+          }
+        },
+        "totalExtraDepts": 201,
+        "falseExtraRate": 10.05,
+        "totalMissedDepts": 503,
+        "missedDeptRate": 25.15,
+        "latency": {
+          "meanMs": 10.45,
+          "medianMs": 10.75,
+          "p95Ms": 15.37
+        },
+        "failureCount": 646,
+        "failuresSample": [
+          {
+            "id": "v13_5_test_0001",
+            "category": "normal_polite",
+            "subcategory": "polite_kmc",
+            "text": "Hukumat-e-waqt se purzor darkhwast hai Keamari Jackson Bazaar (District Keamari) mein main road par shadeed khaday par chuke hain jis se aam raft-o-aamad mein shadeed rukawat pesh aa rahi hai. Aap ke taawun ke muntazir hain, duaon mein yaad rakhenge.",
+            "expected": [
+              "kmc"
+            ],
+            "predicted": [],
+            "reviewReason": "UNCERTAIN_DEFECT",
+            "notes": [
+              "No actionable municipal department met confidence threshold or rule criteria (Needs Review)"
+            ]
+          },
+          {
+            "id": "v13_5_test_0009",
+            "category": "normal_polite",
+            "subcategory": "polite_kmc",
+            "text": "Janab-e-Aali guzarish hai ke SITE Area Metro Chowrangi (District Keamari) mein main boulevard par traffic signal pichle teen din se band para hai aur rash ho jata hai. Umeed hai ke is maslay par fori karrawai farmai jaye gi, shukriya.",
+            "expected": [
+              "kmc"
+            ],
+            "predicted": [],
+            "reviewReason": "UNCERTAIN_DEFECT",
+            "notes": [
+              "Filtered unsupported ML candidate KMC: no domain asset or defect tokens present",
+              "No actionable municipal department met confidence threshold or rule criteria (Needs Review)"
+            ]
+          },
+          {
+            "id": "v13_5_test_0011",
+            "category": "normal_polite",
+            "subcategory": "polite_kmc",
+            "text": "Hum District Central ke ilaqa Liaquatabad No 4 ke rehaishi hain. Bara-e-meherbani hamari faryad suniye yahan main road par shadeed khaday par chuke hain jis se aam raft-o-aamad mein shadeed rukawat pesh aa rahi hai. Meherbani farma kar tawajjo dein.",
+            "expected": [
+              "kmc"
+            ],
+            "predicted": [],
+            "reviewReason": "UNCERTAIN_DEFECT",
+            "notes": [
+              "Filtered unsupported ML candidate KMC: no domain asset or defect tokens present",
+              "No actionable municipal department met confidence threshold or rule criteria (Needs Review)"
+            ]
+          },
+          {
+            "id": "v13_5_test_0019",
+            "category": "normal_polite",
+            "subcategory": "polite_kmc",
+            "text": "Hum District Central ke ilaqa Liaquatabad No 4 ke rehaishi hain. Janab-e-Aali guzarish hai ke yahan main boulevard par traffic signal pichle teen din se band para hai aur rash ho jata hai. Meherbani farma kar tawajjo dein.",
+            "expected": [
+              "kmc"
+            ],
+            "predicted": [],
+            "reviewReason": "UNCERTAIN_DEFECT",
+            "notes": [
+              "Filtered unsupported ML candidate KMC: no domain asset or defect tokens present",
+              "No actionable municipal department met confidence threshold or rule criteria (Needs Review)"
+            ]
+          },
+          {
+            "id": "v13_5_test_0021",
+            "category": "normal_polite",
+            "subcategory": "polite_kmc",
+            "text": "Janab-e-Aali guzarish hai ke Shah Faisal Colony No 3 (District Korangi) mein main road par shadeed khaday par chuke hain jis se aam raft-o-aamad mein shadeed rukawat pesh aa rahi hai. Baraye meherbani shehriyon ki pareshani par tars kha kar masla hal farmayen.",
+            "expected": [
+              "kmc"
+            ],
+            "predicted": [],
+            "reviewReason": "UNCERTAIN_DEFECT",
+            "notes": [
+              "Filtered unsupported ML candidate KMC: no domain asset or defect tokens present",
+              "No actionable municipal department met confidence threshold or rule criteria (Needs Review)"
+            ]
+          },
+          {
+            "id": "v13_5_test_0029",
+            "category": "normal_polite",
+            "subcategory": "polite_kmc",
+            "text": "Mohtaram administration ki tawajjo darkaar hai North Nazimabad Block H (District Central) mein main boulevard par traffic signal pichle teen din se band para hai aur rash ho jata hai. Is ahem maslay ka fori notice le kar hum par ehsaan farmayen.",
+            "expected": [
+              "kmc"
+            ],
+            "predicted": [],
+            "reviewReason": "UNCERTAIN_DEFECT",
+            "notes": [
+              "Filtered unsupported ML candidate KMC: no domain asset or defect tokens present",
+              "No actionable municipal department met confidence threshold or rule criteria (Needs Review)"
+            ]
+          },
+          {
+            "id": "v13_5_test_0031",
+            "category": "normal_polite",
+            "subcategory": "polite_kmc",
+            "text": "Hum District Korangi ke ilaqa Landhi Babar Market ke rehaishi hain. Hukumat-e-waqt se purzor darkhwast hai yahan main road par shadeed khaday par chuke hain jis se aam raft-o-aamad mein shadeed rukawat pesh aa rahi hai. Meherbani farma kar tawajjo dein.",
+            "expected": [
+              "kmc"
+            ],
+            "predicted": [],
+            "reviewReason": "UNCERTAIN_DEFECT",
+            "notes": [
+              "No actionable municipal department met confidence threshold or rule criteria (Needs Review)"
+            ]
+          },
+          {
+            "id": "v13_5_test_0039",
+            "category": "normal_polite",
+            "subcategory": "polite_kmc",
+            "text": "Hum District East ke ilaqa Safoora Chowrangi Scheme 33 ke rehaishi hain. Mohtaram administration ki tawajjo darkaar hai yahan main boulevard par traffic signal pichle teen din se band para hai aur rash ho jata hai. Meherbani farma kar tawajjo dein.",
+            "expected": [
+              "kmc"
+            ],
+            "predicted": [],
+            "reviewReason": "UNCERTAIN_DEFECT",
+            "notes": [
+              "Filtered unsupported ML candidate KMC: no domain asset or defect tokens present",
+              "No actionable municipal department met confidence threshold or rule criteria (Needs Review)"
+            ]
+          },
+          {
+            "id": "v13_5_test_0041",
+            "category": "normal_polite",
+            "subcategory": "polite_kmc",
+            "text": "Karachi ke puraman shehri ki haisiyat se arz hai Keamari Jackson Bazaar (District Keamari) mein main road par shadeed khaday par chuke hain jis se aam raft-o-aamad mein shadeed rukawat pesh aa rahi hai. Baraye meherbani shehriyon ki pareshani par tars kha kar masla hal farmayen.",
+            "expected": [
+              "kmc"
+            ],
+            "predicted": [],
+            "reviewReason": "UNCERTAIN_DEFECT",
+            "notes": [
+              "Filtered unsupported ML candidate KMC: no domain asset or defect tokens present",
+              "No actionable municipal department met confidence threshold or rule criteria (Needs Review)"
+            ]
+          },
+          {
+            "id": "v13_5_test_0049",
+            "category": "normal_polite",
+            "subcategory": "polite_kmc",
+            "text": "Hukumat-e-waqt se purzor darkhwast hai North Nazimabad Block H (District Central) mein main boulevard par traffic signal pichle teen din se band para hai aur rash ho jata hai. Umeed-e-wasiq hai ke hamari faryad ko nazar-andaz nahi kiya jaye ga.",
+            "expected": [
+              "kmc"
+            ],
+            "predicted": [],
+            "reviewReason": "UNCERTAIN_DEFECT",
+            "notes": [
+              "Filtered unsupported ML candidate KMC: no domain asset or defect tokens present",
+              "No actionable municipal department met confidence threshold or rule criteria (Needs Review)"
+            ]
+          }
+        ]
+      },
+      "system3_Run006V13_4": {
+        "systemName": "Run006 + V13.4 Engine",
+        "totalCases": 2000,
+        "exactMatches": 1265,
+        "exactAccuracy": 63.25,
+        "wilsonCI": [
+          61.11,
+          65.34
+        ],
+        "macroF1": 77.71,
+        "deptMetrics": {
+          "kmc": {
+            "tp": 121,
+            "fp": 18,
+            "fn": 224,
+            "precision": 87.05,
+            "recall": 35.07,
+            "f1": 50
+          },
+          "kwsc": {
+            "tp": 343,
+            "fp": 60,
+            "fn": 49,
+            "precision": 85.11,
+            "recall": 87.5,
+            "f1": 86.29
+          },
+          "kelectric": {
+            "tp": 306,
+            "fp": 12,
+            "fn": 86,
+            "precision": 96.23,
+            "recall": 78.06,
+            "f1": 86.2
+          },
+          "ssgc": {
+            "tp": 303,
+            "fp": 10,
+            "fn": 89,
+            "precision": 96.81,
+            "recall": 77.3,
+            "f1": 85.96
+          },
+          "sswmb": {
+            "tp": 247,
+            "fp": 23,
+            "fn": 143,
+            "precision": 91.48,
+            "recall": 63.33,
+            "f1": 74.85
+          },
+          "sbca": {
+            "tp": 287,
+            "fp": 16,
+            "fn": 102,
+            "precision": 94.72,
+            "recall": 73.78,
+            "f1": 82.95
+          }
+        },
+        "categoryBreakdown": {
+          "normal_polite": {
+            "total": 400,
+            "correct": 307,
+            "accuracy": 76.75
+          },
+          "informal_spelling_variation": {
+            "total": 300,
+            "correct": 238,
+            "accuracy": 79.33
+          },
+          "angry_aggressive_abusive": {
+            "total": 250,
+            "correct": 171,
+            "accuracy": 68.4
+          },
+          "two_independent_issues": {
+            "total": 500,
+            "correct": 138,
+            "accuracy": 27.6
+          },
+          "causal_dependent": {
+            "total": 250,
+            "correct": 220,
+            "accuracy": 88
+          },
+          "negation_historical": {
+            "total": 150,
+            "correct": 50,
+            "accuracy": 33.33
+          },
+          "out_of_scope": {
+            "total": 100,
+            "correct": 91,
+            "accuracy": 91
+          },
+          "genuinely_ambiguous": {
+            "total": 50,
+            "correct": 50,
+            "accuracy": 100
+          }
+        },
+        "totalExtraDepts": 139,
+        "falseExtraRate": 6.95,
+        "totalMissedDepts": 693,
+        "missedDeptRate": 34.65,
+        "latency": {
+          "meanMs": 3.01,
+          "medianMs": 2.96,
+          "p95Ms": 3.46
+        },
+        "failureCount": 735,
+        "failuresSample": [
+          {
+            "id": "v13_5_test_0001",
+            "category": "normal_polite",
+            "subcategory": "polite_kmc",
+            "text": "Hukumat-e-waqt se purzor darkhwast hai Keamari Jackson Bazaar (District Keamari) mein main road par shadeed khaday par chuke hain jis se aam raft-o-aamad mein shadeed rukawat pesh aa rahi hai. Aap ke taawun ke muntazir hain, duaon mein yaad rakhenge.",
+            "expected": [
+              "kmc"
+            ],
+            "predicted": [],
+            "reviewReason": "NO_DEPARTMENT_MET_THRESHOLD",
+            "notes": []
+          },
+          {
+            "id": "v13_5_test_0003",
+            "category": "normal_polite",
+            "subcategory": "polite_kmc",
+            "text": "Hum District South ke ilaqa Kharadar Mithadar ke rehaishi hain. Mohtaram administration ki tawajjo darkaar hai yahan barsati nala barishon ke baad band para hai aur paani raste par jama rehta hai. Meherbani farma kar tawajjo dein.",
+            "expected": [
+              "kmc"
+            ],
+            "predicted": [],
+            "reviewReason": "NO_DEPARTMENT_MET_THRESHOLD",
+            "notes": []
+          },
+          {
+            "id": "v13_5_test_0004",
+            "category": "normal_polite",
+            "subcategory": "polite_kmc",
+            "text": "Mohtaram administration ki tawajjo darkaar hai hamare mohallay Landhi Babar Market mein pichle kaafi arsay se flyover ke expansion joints kharab hain jis ki wajah se traffic mein shadeed jhatke lagte hain. Is baais aam shehri shadid aziyat mein hain. Is ahem maslay ka fori notice le kar hum par ehsaan farmayen.",
+            "expected": [
+              "kmc"
+            ],
+            "predicted": [],
+            "reviewReason": "NO_DEPARTMENT_MET_THRESHOLD",
+            "notes": []
+          },
+          {
+            "id": "v13_5_test_0006",
+            "category": "normal_polite",
+            "subcategory": "polite_kmc",
+            "text": "Bahadurabad Kokan Ground ke rehne walay nihayat adab se guzarish karte hain ke hamaray area mein underpass ki sari street lights band hain raat ke waqt andhera rehta hai. Baraye meherbani shehriyon ki pareshani par tars kha kar masla hal farmayen.",
+            "expected": [
+              "kmc"
+            ],
+            "predicted": [],
+            "reviewReason": "NO_DEPARTMENT_MET_THRESHOLD",
+            "notes": []
+          },
+          {
+            "id": "v13_5_test_0007",
+            "category": "normal_polite",
+            "subcategory": "polite_kmc",
+            "text": "Hum District Korangi ke ilaqa Korangi Crossing ke rehaishi hain. Hukumat-e-waqt se purzor darkhwast hai yahan chauraha par sarak dhas gayi hai aur gaariyan phans jati hain. Meherbani farma kar tawajjo dein.",
+            "expected": [
+              "kmc"
+            ],
+            "predicted": [],
+            "reviewReason": "NO_DEPARTMENT_MET_THRESHOLD",
+            "notes": []
+          },
+          {
+            "id": "v13_5_test_0009",
+            "category": "normal_polite",
+            "subcategory": "polite_kmc",
+            "text": "Janab-e-Aali guzarish hai ke SITE Area Metro Chowrangi (District Keamari) mein main boulevard par traffic signal pichle teen din se band para hai aur rash ho jata hai. Umeed hai ke is maslay par fori karrawai farmai jaye gi, shukriya.",
+            "expected": [
+              "kmc"
+            ],
+            "predicted": [],
+            "reviewReason": "NO_DEPARTMENT_MET_THRESHOLD",
+            "notes": []
+          },
+          {
+            "id": "v13_5_test_0011",
+            "category": "normal_polite",
+            "subcategory": "polite_kmc",
+            "text": "Hum District Central ke ilaqa Liaquatabad No 4 ke rehaishi hain. Bara-e-meherbani hamari faryad suniye yahan main road par shadeed khaday par chuke hain jis se aam raft-o-aamad mein shadeed rukawat pesh aa rahi hai. Meherbani farma kar tawajjo dein.",
+            "expected": [
+              "kmc"
+            ],
+            "predicted": [],
+            "reviewReason": "NO_DEPARTMENT_MET_THRESHOLD",
+            "notes": []
+          },
+          {
+            "id": "v13_5_test_0013",
+            "category": "normal_polite",
+            "subcategory": "polite_kmc",
+            "text": "Janab-e-Aali guzarish hai ke Shah Faisal Colony No 3 (District Korangi) mein barsati nala barishon ke baad band para hai aur paani raste par jama rehta hai. Aap ke taawun ke muntazir hain, duaon mein yaad rakhenge.",
+            "expected": [
+              "kmc"
+            ],
+            "predicted": [],
+            "reviewReason": "NO_DEPARTMENT_MET_THRESHOLD",
+            "notes": []
+          },
+          {
+            "id": "v13_5_test_0014",
+            "category": "normal_polite",
+            "subcategory": "polite_kmc",
+            "text": "Kharadar Mithadar ke rehne walay nihayat adab se guzarish karte hain ke hamaray area mein flyover ke expansion joints kharab hain jis ki wajah se traffic mein shadeed jhatke lagte hain. Janab se ilteja hai ke mutaalliqah team ko foran rawana kiya jaye.",
+            "expected": [
+              "kmc"
+            ],
+            "predicted": [],
+            "reviewReason": "NO_DEPARTMENT_MET_THRESHOLD",
+            "notes": []
+          },
+          {
+            "id": "v13_5_test_0016",
+            "category": "normal_polite",
+            "subcategory": "polite_kmc",
+            "text": "Janab-e-Aali guzarish hai ke hamare mohallay Keamari Jackson Bazaar mein pichle kaafi arsay se underpass ki sari street lights band hain raat ke waqt andhera rehta hai. Is baais aam shehri shadid aziyat mein hain. Baraye meherbani shehriyon ki pareshani par tars kha kar masla hal farmayen.",
+            "expected": [
+              "kmc"
+            ],
+            "predicted": [],
+            "reviewReason": "NO_DEPARTMENT_MET_THRESHOLD",
+            "notes": []
+          }
+        ]
+      },
+      "system4_Run006V13_5": {
+        "systemName": "Run006 + V13.5 Two-Department Policy",
+        "totalCases": 2000,
+        "exactMatches": 1265,
+        "exactAccuracy": 63.25,
+        "wilsonCI": [
+          61.11,
+          65.34
+        ],
+        "macroF1": 77.77,
+        "deptMetrics": {
+          "kmc": {
+            "tp": 121,
+            "fp": 18,
+            "fn": 224,
+            "precision": 87.05,
+            "recall": 35.07,
+            "f1": 50
+          },
+          "kwsc": {
+            "tp": 343,
+            "fp": 54,
+            "fn": 49,
+            "precision": 86.4,
+            "recall": 87.5,
+            "f1": 86.95
+          },
+          "kelectric": {
+            "tp": 304,
+            "fp": 12,
+            "fn": 88,
+            "precision": 96.2,
+            "recall": 77.55,
+            "f1": 85.88
+          },
+          "ssgc": {
+            "tp": 301,
+            "fp": 10,
+            "fn": 91,
+            "precision": 96.78,
+            "recall": 76.79,
+            "f1": 85.63
+          },
+          "sswmb": {
+            "tp": 247,
+            "fp": 17,
+            "fn": 143,
+            "precision": 93.56,
+            "recall": 63.33,
+            "f1": 75.54
+          },
+          "sbca": {
+            "tp": 285,
+            "fp": 16,
+            "fn": 104,
+            "precision": 94.68,
+            "recall": 73.26,
+            "f1": 82.61
+          }
+        },
+        "categoryBreakdown": {
+          "normal_polite": {
+            "total": 400,
+            "correct": 307,
+            "accuracy": 76.75
+          },
+          "informal_spelling_variation": {
+            "total": 300,
+            "correct": 238,
+            "accuracy": 79.33
+          },
+          "angry_aggressive_abusive": {
+            "total": 250,
+            "correct": 171,
+            "accuracy": 68.4
+          },
+          "two_independent_issues": {
+            "total": 500,
+            "correct": 138,
+            "accuracy": 27.6
+          },
+          "causal_dependent": {
+            "total": 250,
+            "correct": 220,
+            "accuracy": 88
+          },
+          "negation_historical": {
+            "total": 150,
+            "correct": 50,
+            "accuracy": 33.33
+          },
+          "out_of_scope": {
+            "total": 100,
+            "correct": 91,
+            "accuracy": 91
+          },
+          "genuinely_ambiguous": {
+            "total": 50,
+            "correct": 50,
+            "accuracy": 100
+          }
+        },
+        "totalExtraDepts": 127,
+        "falseExtraRate": 6.35,
+        "totalMissedDepts": 699,
+        "missedDeptRate": 34.95,
+        "latency": {
+          "meanMs": 2.94,
+          "medianMs": 2.96,
+          "p95Ms": 3.3
+        },
+        "failureCount": 735,
+        "failuresSample": [
+          {
+            "id": "v13_5_test_0001",
+            "category": "normal_polite",
+            "subcategory": "polite_kmc",
+            "text": "Hukumat-e-waqt se purzor darkhwast hai Keamari Jackson Bazaar (District Keamari) mein main road par shadeed khaday par chuke hain jis se aam raft-o-aamad mein shadeed rukawat pesh aa rahi hai. Aap ke taawun ke muntazir hain, duaon mein yaad rakhenge.",
+            "expected": [
+              "kmc"
+            ],
+            "predicted": [],
+            "reviewReason": "NO_DEPARTMENT_MET_THRESHOLD",
+            "notes": []
+          },
+          {
+            "id": "v13_5_test_0003",
+            "category": "normal_polite",
+            "subcategory": "polite_kmc",
+            "text": "Hum District South ke ilaqa Kharadar Mithadar ke rehaishi hain. Mohtaram administration ki tawajjo darkaar hai yahan barsati nala barishon ke baad band para hai aur paani raste par jama rehta hai. Meherbani farma kar tawajjo dein.",
+            "expected": [
+              "kmc"
+            ],
+            "predicted": [],
+            "reviewReason": "NO_DEPARTMENT_MET_THRESHOLD",
+            "notes": []
+          },
+          {
+            "id": "v13_5_test_0004",
+            "category": "normal_polite",
+            "subcategory": "polite_kmc",
+            "text": "Mohtaram administration ki tawajjo darkaar hai hamare mohallay Landhi Babar Market mein pichle kaafi arsay se flyover ke expansion joints kharab hain jis ki wajah se traffic mein shadeed jhatke lagte hain. Is baais aam shehri shadid aziyat mein hain. Is ahem maslay ka fori notice le kar hum par ehsaan farmayen.",
+            "expected": [
+              "kmc"
+            ],
+            "predicted": [],
+            "reviewReason": "NO_DEPARTMENT_MET_THRESHOLD",
+            "notes": []
+          },
+          {
+            "id": "v13_5_test_0006",
+            "category": "normal_polite",
+            "subcategory": "polite_kmc",
+            "text": "Bahadurabad Kokan Ground ke rehne walay nihayat adab se guzarish karte hain ke hamaray area mein underpass ki sari street lights band hain raat ke waqt andhera rehta hai. Baraye meherbani shehriyon ki pareshani par tars kha kar masla hal farmayen.",
+            "expected": [
+              "kmc"
+            ],
+            "predicted": [],
+            "reviewReason": "NO_DEPARTMENT_MET_THRESHOLD",
+            "notes": []
+          },
+          {
+            "id": "v13_5_test_0007",
+            "category": "normal_polite",
+            "subcategory": "polite_kmc",
+            "text": "Hum District Korangi ke ilaqa Korangi Crossing ke rehaishi hain. Hukumat-e-waqt se purzor darkhwast hai yahan chauraha par sarak dhas gayi hai aur gaariyan phans jati hain. Meherbani farma kar tawajjo dein.",
+            "expected": [
+              "kmc"
+            ],
+            "predicted": [],
+            "reviewReason": "NO_DEPARTMENT_MET_THRESHOLD",
+            "notes": []
+          },
+          {
+            "id": "v13_5_test_0009",
+            "category": "normal_polite",
+            "subcategory": "polite_kmc",
+            "text": "Janab-e-Aali guzarish hai ke SITE Area Metro Chowrangi (District Keamari) mein main boulevard par traffic signal pichle teen din se band para hai aur rash ho jata hai. Umeed hai ke is maslay par fori karrawai farmai jaye gi, shukriya.",
+            "expected": [
+              "kmc"
+            ],
+            "predicted": [],
+            "reviewReason": "NO_DEPARTMENT_MET_THRESHOLD",
+            "notes": []
+          },
+          {
+            "id": "v13_5_test_0011",
+            "category": "normal_polite",
+            "subcategory": "polite_kmc",
+            "text": "Hum District Central ke ilaqa Liaquatabad No 4 ke rehaishi hain. Bara-e-meherbani hamari faryad suniye yahan main road par shadeed khaday par chuke hain jis se aam raft-o-aamad mein shadeed rukawat pesh aa rahi hai. Meherbani farma kar tawajjo dein.",
+            "expected": [
+              "kmc"
+            ],
+            "predicted": [],
+            "reviewReason": "NO_DEPARTMENT_MET_THRESHOLD",
+            "notes": []
+          },
+          {
+            "id": "v13_5_test_0013",
+            "category": "normal_polite",
+            "subcategory": "polite_kmc",
+            "text": "Janab-e-Aali guzarish hai ke Shah Faisal Colony No 3 (District Korangi) mein barsati nala barishon ke baad band para hai aur paani raste par jama rehta hai. Aap ke taawun ke muntazir hain, duaon mein yaad rakhenge.",
+            "expected": [
+              "kmc"
+            ],
+            "predicted": [],
+            "reviewReason": "NO_DEPARTMENT_MET_THRESHOLD",
+            "notes": []
+          },
+          {
+            "id": "v13_5_test_0014",
+            "category": "normal_polite",
+            "subcategory": "polite_kmc",
+            "text": "Kharadar Mithadar ke rehne walay nihayat adab se guzarish karte hain ke hamaray area mein flyover ke expansion joints kharab hain jis ki wajah se traffic mein shadeed jhatke lagte hain. Janab se ilteja hai ke mutaalliqah team ko foran rawana kiya jaye.",
+            "expected": [
+              "kmc"
+            ],
+            "predicted": [],
+            "reviewReason": "NO_DEPARTMENT_MET_THRESHOLD",
+            "notes": []
+          },
+          {
+            "id": "v13_5_test_0016",
+            "category": "normal_polite",
+            "subcategory": "polite_kmc",
+            "text": "Janab-e-Aali guzarish hai ke hamare mohallay Keamari Jackson Bazaar mein pichle kaafi arsay se underpass ki sari street lights band hain raat ke waqt andhera rehta hai. Is baais aam shehri shadid aziyat mein hain. Baraye meherbani shehriyon ki pareshani par tars kha kar masla hal farmayen.",
+            "expected": [
+              "kmc"
+            ],
+            "predicted": [],
+            "reviewReason": "NO_DEPARTMENT_MET_THRESHOLD",
+            "notes": []
+          }
+        ]
+      },
+      "system5_Run004V13_5": {
+        "systemName": "Run004 + V13.5 Two-Department Policy",
+        "totalCases": 2000,
+        "exactMatches": 1215,
+        "exactAccuracy": 60.75,
+        "wilsonCI": [
+          58.59,
+          62.87
+        ],
+        "macroF1": 75.11,
+        "deptMetrics": {
+          "kmc": {
+            "tp": 122,
+            "fp": 18,
+            "fn": 223,
+            "precision": 87.14,
+            "recall": 35.36,
+            "f1": 50.31
+          },
+          "kwsc": {
+            "tp": 359,
+            "fp": 97,
+            "fn": 33,
+            "precision": 78.73,
+            "recall": 91.58,
+            "f1": 84.67
+          },
+          "kelectric": {
+            "tp": 294,
+            "fp": 34,
+            "fn": 98,
+            "precision": 89.63,
+            "recall": 75,
+            "f1": 81.67
+          },
+          "ssgc": {
+            "tp": 297,
+            "fp": 10,
+            "fn": 95,
+            "precision": 96.74,
+            "recall": 75.77,
+            "f1": 84.98
+          },
+          "sswmb": {
+            "tp": 225,
+            "fp": 17,
+            "fn": 165,
+            "precision": 92.98,
+            "recall": 57.69,
+            "f1": 71.2
+          },
+          "sbca": {
+            "tp": 258,
+            "fp": 16,
+            "fn": 131,
+            "precision": 94.16,
+            "recall": 66.32,
+            "f1": 77.83
+          }
+        },
+        "categoryBreakdown": {
+          "normal_polite": {
+            "total": 400,
+            "correct": 300,
+            "accuracy": 75
+          },
+          "informal_spelling_variation": {
+            "total": 300,
+            "correct": 233,
+            "accuracy": 77.67
+          },
+          "angry_aggressive_abusive": {
+            "total": 250,
+            "correct": 158,
+            "accuracy": 63.2
+          },
+          "two_independent_issues": {
+            "total": 500,
+            "correct": 137,
+            "accuracy": 27.4
+          },
+          "causal_dependent": {
+            "total": 250,
+            "correct": 217,
+            "accuracy": 86.8
+          },
+          "negation_historical": {
+            "total": 150,
+            "correct": 50,
+            "accuracy": 33.33
+          },
+          "out_of_scope": {
+            "total": 100,
+            "correct": 70,
+            "accuracy": 70
+          },
+          "genuinely_ambiguous": {
+            "total": 50,
+            "correct": 50,
+            "accuracy": 100
+          }
+        },
+        "totalExtraDepts": 192,
+        "falseExtraRate": 9.6,
+        "totalMissedDepts": 745,
+        "missedDeptRate": 37.25,
+        "latency": {
+          "meanMs": 1.13,
+          "medianMs": 1.13,
+          "p95Ms": 1.34
+        },
+        "failureCount": 785,
+        "failuresSample": [
+          {
+            "id": "v13_5_test_0001",
+            "category": "normal_polite",
+            "subcategory": "polite_kmc",
+            "text": "Hukumat-e-waqt se purzor darkhwast hai Keamari Jackson Bazaar (District Keamari) mein main road par shadeed khaday par chuke hain jis se aam raft-o-aamad mein shadeed rukawat pesh aa rahi hai. Aap ke taawun ke muntazir hain, duaon mein yaad rakhenge.",
+            "expected": [
+              "kmc"
+            ],
+            "predicted": [
+              "kelectric"
+            ],
+            "reviewReason": null,
+            "notes": [
+              "[SELECTED] KELECTRIC: Statistical ML candidate passed decision threshold (prob: 0.27 >= 0.25)"
+            ]
+          },
+          {
+            "id": "v13_5_test_0003",
+            "category": "normal_polite",
+            "subcategory": "polite_kmc",
+            "text": "Hum District South ke ilaqa Kharadar Mithadar ke rehaishi hain. Mohtaram administration ki tawajjo darkaar hai yahan barsati nala barishon ke baad band para hai aur paani raste par jama rehta hai. Meherbani farma kar tawajjo dein.",
+            "expected": [
+              "kmc"
+            ],
+            "predicted": [],
+            "reviewReason": "NO_DEPARTMENT_MET_THRESHOLD",
+            "notes": []
+          },
+          {
+            "id": "v13_5_test_0004",
+            "category": "normal_polite",
+            "subcategory": "polite_kmc",
+            "text": "Mohtaram administration ki tawajjo darkaar hai hamare mohallay Landhi Babar Market mein pichle kaafi arsay se flyover ke expansion joints kharab hain jis ki wajah se traffic mein shadeed jhatke lagte hain. Is baais aam shehri shadid aziyat mein hain. Is ahem maslay ka fori notice le kar hum par ehsaan farmayen.",
+            "expected": [
+              "kmc"
+            ],
+            "predicted": [],
+            "reviewReason": "NO_DEPARTMENT_MET_THRESHOLD",
+            "notes": []
+          },
+          {
+            "id": "v13_5_test_0006",
+            "category": "normal_polite",
+            "subcategory": "polite_kmc",
+            "text": "Bahadurabad Kokan Ground ke rehne walay nihayat adab se guzarish karte hain ke hamaray area mein underpass ki sari street lights band hain raat ke waqt andhera rehta hai. Baraye meherbani shehriyon ki pareshani par tars kha kar masla hal farmayen.",
+            "expected": [
+              "kmc"
+            ],
+            "predicted": [
+              "kelectric"
+            ],
+            "reviewReason": null,
+            "notes": [
+              "[SELECTED] KELECTRIC: Statistical ML candidate passed decision threshold (prob: 0.27 >= 0.25)"
+            ]
+          },
+          {
+            "id": "v13_5_test_0007",
+            "category": "normal_polite",
+            "subcategory": "polite_kmc",
+            "text": "Hum District Korangi ke ilaqa Korangi Crossing ke rehaishi hain. Hukumat-e-waqt se purzor darkhwast hai yahan chauraha par sarak dhas gayi hai aur gaariyan phans jati hain. Meherbani farma kar tawajjo dein.",
+            "expected": [
+              "kmc"
+            ],
+            "predicted": [],
+            "reviewReason": "NO_DEPARTMENT_MET_THRESHOLD",
+            "notes": []
+          },
+          {
+            "id": "v13_5_test_0009",
+            "category": "normal_polite",
+            "subcategory": "polite_kmc",
+            "text": "Janab-e-Aali guzarish hai ke SITE Area Metro Chowrangi (District Keamari) mein main boulevard par traffic signal pichle teen din se band para hai aur rash ho jata hai. Umeed hai ke is maslay par fori karrawai farmai jaye gi, shukriya.",
+            "expected": [
+              "kmc"
+            ],
+            "predicted": [],
+            "reviewReason": "NO_DEPARTMENT_MET_THRESHOLD",
+            "notes": []
+          },
+          {
+            "id": "v13_5_test_0011",
+            "category": "normal_polite",
+            "subcategory": "polite_kmc",
+            "text": "Hum District Central ke ilaqa Liaquatabad No 4 ke rehaishi hain. Bara-e-meherbani hamari faryad suniye yahan main road par shadeed khaday par chuke hain jis se aam raft-o-aamad mein shadeed rukawat pesh aa rahi hai. Meherbani farma kar tawajjo dein.",
+            "expected": [
+              "kmc"
+            ],
+            "predicted": [],
+            "reviewReason": "NO_DEPARTMENT_MET_THRESHOLD",
+            "notes": []
+          },
+          {
+            "id": "v13_5_test_0013",
+            "category": "normal_polite",
+            "subcategory": "polite_kmc",
+            "text": "Janab-e-Aali guzarish hai ke Shah Faisal Colony No 3 (District Korangi) mein barsati nala barishon ke baad band para hai aur paani raste par jama rehta hai. Aap ke taawun ke muntazir hain, duaon mein yaad rakhenge.",
+            "expected": [
+              "kmc"
+            ],
+            "predicted": [],
+            "reviewReason": "NO_DEPARTMENT_MET_THRESHOLD",
+            "notes": []
+          },
+          {
+            "id": "v13_5_test_0014",
+            "category": "normal_polite",
+            "subcategory": "polite_kmc",
+            "text": "Kharadar Mithadar ke rehne walay nihayat adab se guzarish karte hain ke hamaray area mein flyover ke expansion joints kharab hain jis ki wajah se traffic mein shadeed jhatke lagte hain. Janab se ilteja hai ke mutaalliqah team ko foran rawana kiya jaye.",
+            "expected": [
+              "kmc"
+            ],
+            "predicted": [],
+            "reviewReason": "NO_DEPARTMENT_MET_THRESHOLD",
+            "notes": []
+          },
+          {
+            "id": "v13_5_test_0016",
+            "category": "normal_polite",
+            "subcategory": "polite_kmc",
+            "text": "Janab-e-Aali guzarish hai ke hamare mohallay Keamari Jackson Bazaar mein pichle kaafi arsay se underpass ki sari street lights band hain raat ke waqt andhera rehta hai. Is baais aam shehri shadid aziyat mein hain. Baraye meherbani shehriyon ki pareshani par tars kha kar masla hal farmayen.",
+            "expected": [
+              "kmc"
+            ],
+            "predicted": [],
+            "reviewReason": "NO_DEPARTMENT_MET_THRESHOLD",
+            "notes": []
+          }
+        ]
+      }
+    }
+  },
+  "safety_suite": {
+    "totalCases": 50,
+    "systems": {
+      "safety_System1": {
+        "systemName": "Run004 Baseline (V11)",
+        "totalCases": 50,
+        "flaggedCount": 0,
+        "flaggedRate": 0,
+        "evidencePreservedCount": 9,
+        "evidencePreservedRate": 18,
+        "zeroTruncationVerified": 0,
+        "zeroTruncationRate": 0
+      },
+      "safety_System3": {
+        "systemName": "Run006 + V13.4 Engine",
+        "totalCases": 50,
+        "flaggedCount": 0,
+        "flaggedRate": 0,
+        "evidencePreservedCount": 4,
+        "evidencePreservedRate": 8,
+        "zeroTruncationVerified": 0,
+        "zeroTruncationRate": 0
+      },
+      "safety_System4": {
+        "systemName": "Run006 + V13.5 Two-Department Policy",
+        "totalCases": 50,
+        "flaggedCount": 4,
+        "flaggedRate": 8,
+        "evidencePreservedCount": 4,
+        "evidencePreservedRate": 8,
+        "zeroTruncationVerified": 4,
+        "zeroTruncationRate": 8
+      },
+      "safety_System5": {
+        "systemName": "Run004 + V13.5 Two-Department Policy",
+        "totalCases": 50,
+        "flaggedCount": 4,
+        "flaggedRate": 8,
+        "evidencePreservedCount": 4,
+        "evidencePreservedRate": 8,
+        "zeroTruncationVerified": 4,
+        "zeroTruncationRate": 8
+      }
+    }
+  }
+}

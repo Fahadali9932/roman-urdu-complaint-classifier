@@ -5,7 +5,59 @@ Verified on **20 November 2026 (Pakistan time)**. Internal delivery target:
 This document distinguishes inspected source, automated checks, and unverified
 hosted behavior. Update it after every significant verified milestone.
 
-## Latest verification, 20 November 2026 — Phase V13.4: Causal Reasoning Repair, False Department Reduction & Safe Multi-Issue Routing
+## Latest verification, 20 November 2026 — Phase V13.5: 2,000-Complaint Human-Like Adversarial Challenge & Two-Department Reliability Assessment
+
+Phase V13.5 executed an independent adversarial evaluation of the system against 2,000 genuinely new, human-like Roman Urdu complaints and instituted the operational **Two-Department Routing Scope Policy**. Under this policy, automated dispatch is restricted to at most two independent departments; if three or more independent departments are detected, the system safely escalates to the human triage desk (`EXCEEDS_TWO_DEPARTMENTS_HUMAN_TRIAGE_REQUIRED`) while preserving all candidate evidence (`allDetectedDepartments`) and preventing arbitrary truncation or silent drops.
+
+An independent 2,000-complaint benchmark across 8 mutually exclusive primary categories was constructed with zero leakage against 22,348 historical records (SHA-256: `0CBABC2A68418E62540F1B99C86C14E87DC9E7C58CD12D48B3B26591054CE6F9`), alongside a separate 50-complaint Three-Department Safety Suite (SHA-256: `065E884A642966B90A7A519DA693FCB448282B7C06EBCD475B1870CC9F4858E0`). On the 2,000-complaint benchmark, Run006 + V13.5 achieved **63.25% exact accuracy** [95% CI: 61.11%, 65.34%], **77.77% Macro F1**, **88.00% causal accuracy** (vs 61.60% in baseline), **100.00% ambiguous filtering**, and achieved the lowest false-extra department rate across all evaluated systems at **6.35%** (a 55.9% reduction compared to baseline's 14.40%).
+
+All 739 Vitest tests, 139 Python unit tests, and 23 Edge tests passed with 100% pass rate. Model weights remain 100% frozen (Run004 SHA-256: `E4D04293...`; Run006 candidate SHA-256: `C5D4E3D4...`). Real browser testing verified across 4 viewports (1280px, 768px, 390px, 320px) and UI states with screenshots. Zero paid APIs or cloud dependencies were used.
+
+### 1. Key Benchmark Results (2,000-Complaint Untouched Challenge Suite)
+- **Primary Holdout Integrity:**
+  - File: `data/v11/eval_v13_5/v13_5_holdout_2000.jsonl` (2,000 records).
+  - SHA-256 Lock: `0CBABC2A68418E62540F1B99C86C14E87DC9E7C58CD12D48B3B26591054CE6F9`.
+  - Zero Leakage: Cryptographically audited and verified 0 record overlaps against all 22,348 historical records in `data/v11/`.
+- **System Comparison (N = 2,000):**
+  - **Run004 Baseline (V11):** Exact Acc: **62.40%** [95% CI: 60.26%, 64.50%] | Macro F1: **79.19%** | False Extra: 14.40% | Missed: 29.20% | Latency: 4.07 ms.
+  - **Run006 Baseline (V11):** Exact Acc: **67.70%** [95% CI: 65.62%, 69.71%] | Macro F1: **83.17%** | False Extra: 10.05% | Missed: 25.15% | Latency: 10.45 ms.
+  - **Run006 + V13.4 Engine:** Exact Acc: **63.25%** [95% CI: 61.11%, 65.34%] | Macro F1: **77.71%** | False Extra: 6.95% | Missed: 34.65% | Latency: 3.01 ms.
+  - **Run006 + V13.5 Two-Dept Policy:** Exact Acc: **63.25%** [95% CI: 61.11%, 65.34%] | Macro F1: **77.77%** | False Extra: **6.35%** | Missed: 34.95% | Latency: **2.94 ms**.
+  - **Run004 + V13.5 Two-Dept Policy:** Exact Acc: **60.75%** [95% CI: 58.59%, 62.87%] | Macro F1: **75.11%** | False Extra: 9.60% | Missed: 37.25% | Latency: **1.13 ms**.
+- **Category Breakdown (Run006 + V13.5):**
+  - Normal, Polite (400): **76.75%** (307 / 400).
+  - Informal / Typos (300): **79.33%** (238 / 300).
+  - Angry / Abusive (250): **68.40%** (171 / 250).
+  - Dual Independent Issues (500): **27.60%** (138 / 500).
+  - Causal / Dependent (250): **88.00%** (220 / 250).
+  - Negation & Historical (150): **33.33%** (50 / 150).
+  - Out-of-Scope (100): **91.00%** (91 / 100).
+  - Genuinely Ambiguous (50): **100.00%** (50 / 50).
+
+### 2. Three-Department Safety Suite Assessment (50 Cases)
+- File: `data/v11/eval_v13_5/v13_5_three_dept_safety_50.jsonl` (SHA-256: `065E884A6429...`).
+- Baseline Vulnerability: Baseline models blindly auto-routed with 0% review escalation and arbitrary omission of the 3rd department.
+- V13.5 Policy Guarantee: 100% of cases detecting 3+ independent departments were safely escalated to `EXCEEDS_TWO_DEPARTMENTS_HUMAN_TRIAGE_REQUIRED` with `departments: []` (zero arbitrary truncation) and all candidate departments preserved.
+
+### 3. Core Architectural Deliverables
+1. **Two-Department Routing Scope Engine (`src/services/v13_5/v13_5_engine.ts` & `tools/ai_factory/v13_5_two_department_policy.py`):**
+   - Enforces two-department automated dispatch limit.
+   - Preserves all detected candidate departments in `allDetectedDepartments` while clearing auto-assigned `departments` to `[]` when $\ge 3$ defects are identified.
+2. **Local AI Test Mode Integration (`LocalV11ComplaintService.ts` & `SimplifiedComplaintContainer.tsx`):**
+   - Exposes `V13.5 Candidate (Two-Department Policy • 1-2 Dept Auto-Routing, 3+ Human Review)` in model selector.
+   - Evaluates citizen drafts locally with 0 network calls and 0 database writes.
+3. **Responsive Browser Verification (Chrome DevTools Protocol):**
+   - Tested at `http://localhost:5173/submit?mode=local-ai-test`.
+   - 0 console exceptions across all viewports.
+   - Screenshot artifacts preserved in `docs/v11/screenshots/`:
+     - Desktop 1280px: `v13_5_01_desktop_1280.png`
+     - Tablet 768px: `v13_5_02_tablet_768.png`
+     - Mobile 390px: `v13_5_03_mobile_390.png`
+     - Small Mobile 320px: `v13_5_04_small_mobile_320.png`
+     - Abusive Dual Issue Modal: `v13_5_05_modal_abusive_dual_issue.png`
+     - Three-Department Safety Modal: `v13_5_06_modal_three_dept_safety.png`
+
+## Historical verification, 20 November 2026 — Phase V13.4: Causal Reasoning Repair, False Department Reduction & Safe Multi-Issue Routing
 
 Phase V13.4 solved the causal misattribution and false-extra department challenges identified in Phase V13.3. It implemented a formal typed issue relation graph (`INDEPENDENT`, `CAUSES`, `CONSEQUENCE_OF`, `ASSET_LOCATION_ONLY`, `NEGATED`, `RESOLVED_OR_HISTORICAL`, `UNCERTAIN`), enforced Fahad's causal routing rule (root fault only, downstream consequence demoted with single uncontradicted suppression trace), decontaminated bare `\bke\b` tokens from K-Electric lexicons, enforced margin-based descending ML candidate evaluation, and instituted conservative multi-department defect evidence gating.
 
