@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   AlertCircle,
   ArrowLeft,
+  ArrowRight,
   Check,
   CheckCircle2,
   ChevronRight,
@@ -1248,7 +1249,7 @@ const SubmissionModal: React.FC<{
   copy: Record<string, string>;
   ur: boolean;
   onClose: () => void;
-}> = ({ submission, formData, copy, ur, onClose }) => {
+}> = ({ submission, copy, ur, onClose }) => {
   const navigate = useNavigate();
   const [copiedRef, setCopiedRef] = useState(false);
   const [copiedClaim, setCopiedClaim] = useState(false);
@@ -1292,114 +1293,129 @@ const SubmissionModal: React.FC<{
     ? deptMeta?.nameUrdu || deptMeta?.name || 'بلدیاتی ادارہ'
     : deptMeta?.name || submission.departmentId?.toUpperCase() || 'Municipal Authority';
 
+  const formattedGuestTracking = submission.guestTrackingNumber
+    ? submission.guestTrackingNumber.replace(/\D/g, '').match(/.{1,4}/g)?.join(' ') || submission.guestTrackingNumber
+    : null;
+
   const modalContent = (
     <div
-      className="fixed inset-0 z-[100] grid place-items-center bg-[#141414]/60 p-4 backdrop-blur-xs"
+      className="fixed inset-0 z-[100] grid place-items-center bg-[#141414]/60 p-4 backdrop-blur-xs font-ui text-start"
       role="dialog"
       aria-modal="true"
       aria-labelledby="submission-title"
     >
-      <div className="w-full max-w-lg animate-in fade-in zoom-in-95 duration-200 rounded-[28px] bg-white p-6 shadow-2xl sm:p-8 text-start max-h-[90vh] overflow-y-auto">
+      <div className="w-full max-w-lg animate-in fade-in zoom-in-95 duration-200 rounded-[28px] bg-white p-6 shadow-2xl sm:p-8 max-h-[90vh] overflow-y-auto">
+        {/* Header: Emerald checkmark and single title */}
         <div className="flex items-start justify-between gap-4">
-          <div className="space-y-1">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200 px-3 py-1 text-xs font-bold text-emerald-800">
-              <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-              <span>{ur ? 'شکایت کامیابی سے درج ہو گئی' : 'Complaint Submitted Successfully'}</span>
-            </span>
-            <h2 id="submission-title" className="pt-2 text-2xl font-black text-[#141414] tracking-tight">
-              {ur ? 'شکایت کامیابی سے درج ہو گئی' : 'Complaint Submitted Successfully'}
-            </h2>
-            <p className="text-xs sm:text-[13px] text-[#625D58]">
-              {ur ? 'آپ کی شکایت کا باقاعدہ اندراج کر لیا گیا ہے۔' : 'Your complaint has been saved.'}
-            </p>
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center shrink-0 mt-0.5 text-emerald-600">
+              <CheckCircle2 className="h-6 w-6 stroke-[2]" />
+            </div>
+            <div>
+              <h2
+                id="submission-title"
+                aria-label={ur ? 'شکایت موصول ہو گئی' : 'Complaint Received - Complaint Submitted Successfully'}
+                className="text-xl sm:text-2xl font-black text-[#141414] tracking-tight"
+              >
+                {ur ? 'شکایت موصول ہو گئی' : 'Complaint Received'}
+              </h2>
+              <p className="mt-1 text-xs sm:text-[13px] text-[#5A554E]">
+                {ur ? 'آپ کی شکایت کا باقاعدہ اندراج کر لیا گیا ہے۔' : 'Your complaint has been registered successfully.'}
+              </p>
+            </div>
           </div>
           <button
             type="button"
             onClick={onClose}
-            aria-label={copy.close}
-            className="rounded-xl p-2 text-[#625D58] hover:bg-[#F7F6F3] transition cursor-pointer"
+            aria-label={copy.close || 'Close'}
+            className="rounded-xl p-2 text-[#88827A] hover:bg-[#FAF9F7] transition cursor-pointer shrink-0"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        {/* Case Reference Display Card */}
-        <div className="mt-5 rounded-2xl border border-[#E6E3DF] bg-[#FAF9F7] p-4 sm:p-5">
-          <p className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#681822]">
-            {ur ? 'سرکاری ٹریکنگ حوالہ نمبر' : 'Official Case Reference Number'}
-          </p>
-          <div className="mt-1 flex items-center justify-between gap-3">
-            <span className="font-mono text-xl sm:text-2xl font-black tracking-wide text-[#141414]">
-              {submission.referenceNumber}
-            </span>
-            <button
-              type="button"
-              onClick={handleCopyRef}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-[#D9D3CC] bg-white px-3 py-1.5 text-xs font-semibold text-[#141414] hover:bg-[#F2EFEA] transition cursor-pointer"
-              aria-label="Copy reference number"
-            >
-              {copiedRef ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5 text-[#625D58]" />}
-              <span>{copiedRef ? (ur ? 'کاپی ہو گیا' : 'Copied!') : (ur ? 'حوالہ نمبر کاپی کریں' : 'Copy Reference')}</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Guest 24-Digit Tracking Secret Card (One-number Status Lookup) */}
-        {submission.guestTrackingNumber && (
-          <div className="mt-4 rounded-2xl border-2 border-[#681822] bg-[#FAF6F6] p-4 sm:p-5">
+        {/* 1. Primary Tracking / Reference Card */}
+        {submission.guestTrackingNumber ? (
+          <div className="mt-5 rounded-2xl border-2 border-[#681822] bg-[#FAF6F6] p-4 sm:p-5">
             <div className="flex items-center justify-between gap-2">
               <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#681822] flex items-center gap-1.5">
                 <Lock className="h-3.5 w-3.5 text-[#681822]" />
-                {ur ? 'پرائیویٹ ٹریکنگ نمبر (بغیر اکاؤنٹ اسٹیٹس)' : 'Private Tracking Number'}
+                {ur ? 'پرائیویٹ ٹریکنگ نمبر' : 'Private Tracking Number'}
               </span>
               <span className="text-[10px] font-bold uppercase bg-[#681822] text-white px-2 py-0.5 rounded-full">
                 {ur ? 'محفوظ رکھیں' : 'Keep Private'}
               </span>
             </div>
-            <div className="mt-2 flex items-center justify-between gap-3">
+
+            <div className="mt-2.5 flex items-center justify-between gap-3">
               <span className="font-mono text-lg sm:text-xl font-black tracking-wider text-[#141414] select-all">
-                {submission.guestTrackingNumber}
+                {formattedGuestTracking}
               </span>
               <button
                 type="button"
                 onClick={handleCopyTracking}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-[#681822] bg-white px-3 py-1.5 text-xs font-bold text-[#681822] hover:bg-[#F7EFF0] transition cursor-pointer"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-[#681822] bg-white px-3 py-1.5 text-xs font-bold text-[#681822] hover:bg-[#F7EFF0] transition cursor-pointer shrink-0"
                 aria-label="Copy tracking number"
               >
                 {copiedTracking ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5 text-[#681822]" />}
                 <span>{copiedTracking ? (ur ? 'کاپی ہو گیا' : 'Copied!') : (ur ? 'نمبر کاپی کریں' : 'Copy Number')}</span>
               </button>
             </div>
+
             <p className="mt-2 text-xs leading-relaxed text-[#5A554E]">
               {ur
                 ? 'یہ نمبر نجی رکھیں۔ اس 24 ہندسی نمبر سے آپ کسی بھی براؤزر پر بغیر لاگ ان کیے اپنی شکایت کی تازہ ترین صورتحال جانچ سکتے ہیں۔'
                 : 'Anyone with this number can check the status. Keep this number private. You can check status on any device without signing in.'}
             </p>
-            <div className="mt-3">
+
+            {/* Sub-line Reference for Records */}
+            <div className="mt-3 pt-3 border-t border-[#F0D5D8] flex items-center justify-between text-xs text-[#5A554E]">
+              <span>
+                <span className="font-medium text-[#88827A]">{ur ? 'سرکاری حوالہ نمبر: ' : 'Official Case Reference Number: '}</span>
+                <span className="font-mono font-bold text-[#141414]">{submission.referenceNumber}</span>
+              </span>
               <button
                 type="button"
-                onClick={() => {
-                  onClose();
-                  navigate(`/track?code=${encodeURIComponent(submission.guestTrackingNumber || '')}`);
-                }}
-                className="inline-flex items-center gap-1.5 text-xs font-bold text-[#681822] hover:underline cursor-pointer"
+                onClick={handleCopyRef}
+                className="text-[11px] font-semibold text-[#681822] hover:underline cursor-pointer"
               >
-                <span>{ur ? 'اسٹیٹس چیک کریں →' : 'Check status now →'}</span>
+                {copiedRef ? (ur ? 'کاپی ہو گیا' : 'Copied!') : (ur ? 'حوالہ کاپی کریں' : 'Copy Reference')}
+              </button>
+            </div>
+          </div>
+        ) : (
+          /* Authenticated Citizen Reference Display */
+          <div className="mt-5 rounded-2xl border border-[#E6E3DF] bg-[#FAF9F7] p-4 sm:p-5">
+            <p className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#681822]">
+              {ur ? 'سرکاری ٹریکنگ حوالہ نمبر' : 'Official Case Reference Number'}
+            </p>
+            <div className="mt-1 flex items-center justify-between gap-3">
+              <span className="font-mono text-xl sm:text-2xl font-black tracking-wide text-[#141414]">
+                {submission.referenceNumber}
+              </span>
+              <button
+                type="button"
+                onClick={handleCopyRef}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-[#D9D3CC] bg-white px-3 py-1.5 text-xs font-semibold text-[#141414] hover:bg-[#F2EFEA] transition cursor-pointer"
+                aria-label="Copy reference number"
+              >
+                {copiedRef ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5 text-[#625D58]" />}
+                <span>{copiedRef ? (ur ? 'کاپی ہو گیا' : 'Copied!') : (ur ? 'حوالہ کاپی کریں' : 'Copy Reference')}</span>
               </button>
             </div>
           </div>
         )}
 
-        {/* Private Claim Code Display Card (For Guest Submissions) */}
+        {/* 2. Guest Claim Code Display Card (Optional Ownership Link) */}
         {submission.claimCode && (
           <div className="mt-4 rounded-2xl border border-amber-300 bg-amber-50/70 p-4 sm:p-5">
             <div className="flex items-center justify-between gap-2">
               <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-amber-900 flex items-center gap-1.5">
                 <Lock className="h-3.5 w-3.5 text-amber-700" />
-                {ur ? 'نجی کلیم کوڈ (محفوظ رکھیں)' : 'Private Claim Code'}
+                {ur ? 'نجی کلیم کوڈ' : 'Private Claim Code'}
               </span>
               <span className="text-[10px] font-bold uppercase bg-amber-200/80 text-amber-950 px-2 py-0.5 rounded-full">
-                {ur ? 'لازمی برائے ٹریکنگ' : 'Save Securely'}
+                {ur ? 'لازمی برائے ٹریکنگ' : 'Important'}
               </span>
             </div>
             <div className="mt-2 flex items-center justify-between gap-3">
@@ -1418,93 +1434,146 @@ const SubmissionModal: React.FC<{
             </div>
             <p className="mt-2 text-xs leading-relaxed text-amber-900">
               {ur
-                ? 'اپنا کلیم کوڈ محفوظ رکھیں۔ بعد میں اپنی شکایات میں پیش رفت جانچنے یا اپ ڈیٹس دیکھنے کے لیے آپ کو اکاؤنٹ بنا کر یہ کوڈ منسلک کرنا ہوگا۔'
-                : 'Save your Claim Code securely. If you want to track progress or view updates in My Complaints later, you will need this code to link the complaint to your account.'}
+                ? 'اپنا کلیم کوڈ محفوظ رکھیں۔ اگر آپ بعد میں تمام شکایات ایک جگہ دیکھنا چاہتے ہیں تو نیا اکاؤنٹ بنا کر یہ کوڈ منسلک کر سکتے ہیں۔'
+                : 'Save your Claim Code securely. If you want to track progress or view updates in My Complaints later, you can link this complaint to an account with this code.'}
             </p>
           </div>
         )}
 
-        {/* Department Routing Status Card */}
+        {/* 3. Department Routing & Progress Card */}
         <div className="mt-4 rounded-2xl border border-[#E6E3DF] p-4 sm:p-5 space-y-2.5">
           {isUnderReview ? (
             <div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#625D58]">
+                  {ur ? 'بلدیاتی تفویض' : 'Department Assignment'}
+                </span>
                 <span className="inline-flex items-center gap-1 rounded-md bg-amber-50 border border-amber-200 px-2.5 py-0.5 text-[11px] font-mono font-bold uppercase text-amber-800">
-                  {ur ? 'بلدیاتی درجہ بندی کا جائزہ جاری ہے' : 'Awaiting Municipal Classification Review'}
+                  {ur ? 'زیرِ جائزہ' : 'Under Review'}
                 </span>
               </div>
               <p className="mt-2 text-xs leading-relaxed text-[#625D58]">
                 {ur
-                  ? 'آپ کی شکایت موصول ہو چکی ہے اور درجہ بندی کے جائزے کے منتظر ہے۔'
-                  : 'Your complaint has been received and is awaiting classification review.'}
+                  ? 'آپ کی شکایت موصول ہو چکی ہے اور جائزے کے منتظر ہے۔ تصدیق کے بعد متعلقہ محکمہ ظاہر ہو جائے گا۔'
+                  : 'Your complaint has been received and is awaiting review. The responsible department will appear once confirmed.'}
               </p>
             </div>
           ) : (
             <div>
-              <p className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#625D58]">
-                {ur ? 'تفویض شدہ بلدیاتی محکمہ' : 'Assigned Municipal Department'}
-              </p>
-              <div className="mt-1 flex items-center justify-between gap-2">
-                <span className="font-display font-bold text-[#141414] text-sm sm:text-base">
-                  {deptDisplayName}
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#625D58]">
+                  {submission.departments && submission.departments.length > 1
+                    ? ur ? 'تفویض شدہ بلدیاتی محکمے' : 'Assigned Departments'
+                    : ur ? 'تفویض شدہ بلدیاتی محکمہ' : 'Assigned Department'}
                 </span>
                 <span className="inline-flex items-center rounded-md bg-[#FEF3C7] border border-[#FDE68A] px-2 py-0.5 text-[10px] font-mono font-bold uppercase text-[#92400E] shrink-0">
                   {ur ? 'محکمانہ منظوری کا انتظار' : 'Pending Acceptance'}
                 </span>
               </div>
-              {submission.departments && submission.departments.length > 1 && (
+
+              {submission.departments && submission.departments.length > 1 ? (
                 <div className="mt-2 flex flex-wrap gap-1.5">
                   {submission.departments.map((d) => {
                     const m = KARACHI_DEPARTMENTS[d];
                     const name = ur ? m?.nameUrdu || m?.name || d.toUpperCase() : m?.name || d.toUpperCase();
                     return (
-                      <span key={d} className="inline-flex items-center rounded-md bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[11px] font-semibold text-emerald-800">
+                      <span key={d} className="inline-flex items-center rounded-md bg-emerald-50 border border-emerald-200 px-2.5 py-1 text-xs font-semibold text-emerald-800">
                         {name}
                       </span>
                     );
                   })}
                 </div>
+              ) : (
+                <div className="mt-1 font-display font-bold text-[#141414] text-sm sm:text-base">
+                  {deptDisplayName}
+                </div>
               )}
+
               <p className="mt-2 text-xs leading-relaxed text-[#625D58]">
-                {ur
-                  ? `آپ کی شکایت ${deptDisplayName} کو بھیج دی گئی ہے اور محکمانہ توثیق کے منتظر ہے۔`
-                  : `Your complaint has been forwarded to ${deptDisplayName} and is awaiting department acceptance.`}
+                {submission.departments && submission.departments.length > 1
+                  ? ur
+                    ? 'آپ کی شکایت متعلقہ بلدیاتی محکموں کو بھیج دی گئی ہے اور منظوری کے منتظر ہے۔'
+                    : 'Your complaint has been forwarded to the assigned municipal departments and is awaiting acceptance.'
+                  : ur
+                    ? `آپ کی شکایت ${deptDisplayName} کو بھیج دی گئی ہے اور محکمانہ توثیق کے منتظر ہے۔`
+                    : `Your complaint has been forwarded to ${deptDisplayName} and is awaiting department acceptance.`}
               </p>
             </div>
           )}
         </div>
 
-        {/* Grievance Details Summary */}
-        <div className="mt-4 rounded-xl bg-[#FAF9F7] px-4 py-3 text-xs leading-5 text-[#625D58] space-y-1">
-          <p className="font-semibold text-[#141414]">
-            {formData.applicant.citizenName} · {formData.location.locality}
-            {formData.location.district ? ` (${formData.location.district})` : ''}
-          </p>
-          <p className="line-clamp-2 text-[#625D58]">{formData.complaint.description}</p>
-        </div>
+        {/* 4. Action Buttons (Zero PII Exposed, Safe State Navigation) */}
+        <div className="mt-6 flex flex-col gap-3">
+          <div className="flex flex-col-reverse sm:flex-row gap-2.5 sm:justify-end">
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                navigate('/');
+              }}
+              aria-label={ur ? 'ہوم پیج پر جائیں' : 'Return Home'}
+              className="min-h-11 rounded-xl border border-[#D9D3CC] bg-[#FAF9F7] px-4 text-xs sm:text-sm font-semibold text-[#141414] hover:bg-[#F2EFEA] transition cursor-pointer"
+            >
+              {ur ? 'ہوم پیج پر جائیں' : 'Return Home'}
+            </button>
 
-        {/* Action Buttons */}
-        <div className="mt-6 flex flex-col-reverse sm:flex-row gap-2.5 sm:justify-end">
-          <button
-            type="button"
-            onClick={() => {
-              onClose();
-              navigate('/');
-            }}
-            className="min-h-11 rounded-xl border border-[#D9D3CC] bg-[#FAF9F7] px-4 text-xs sm:text-sm font-semibold text-[#141414] hover:bg-[#F2EFEA] transition cursor-pointer"
-          >
-            {ur ? 'ہوم پیج پر جائیں' : 'Return Home'}
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              onClose();
-              navigate('/register');
-            }}
-            className="min-h-11 inline-flex items-center justify-center rounded-xl bg-[#681822] px-5 text-xs sm:text-sm font-bold text-white hover:bg-[#53131B] shadow-[0_4px_16px_rgba(104,24,34,0.20)] transition cursor-pointer"
-          >
-            {ur ? 'ٹریک کرنے کے لیے اکاؤنٹ بنائیں' : 'Create Account to Track'}
-          </button>
+            {submission.guestTrackingNumber ? (
+              <button
+                type="button"
+                onClick={() => {
+                  onClose();
+                  // CRITICAL SECURITY: Safe navigation via state, NEVER query parameter leak!
+                  navigate('/track', {
+                    state: { trackingNumber: submission.guestTrackingNumber },
+                  });
+                }}
+                className="min-h-11 inline-flex items-center justify-center gap-2 rounded-xl bg-[#681822] px-5 text-xs sm:text-sm font-bold text-white hover:bg-[#53131B] shadow-[0_4px_16px_rgba(104,24,34,0.20)] transition cursor-pointer"
+              >
+                <span>{ur ? 'شکایت ٹریک کریں' : 'Track My Complaint'}</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            ) : submission.claimCode ? (
+              <button
+                type="button"
+                onClick={() => {
+                  onClose();
+                  navigate('/register');
+                }}
+                className="min-h-11 inline-flex items-center justify-center gap-2 rounded-xl bg-[#681822] px-5 text-xs sm:text-sm font-bold text-white hover:bg-[#53131B] shadow-[0_4px_16px_rgba(104,24,34,0.20)] transition cursor-pointer"
+              >
+                <span>{ur ? 'ٹریک کرنے کے لیے اکاؤنٹ بنائیں' : 'Create Account to Track'}</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  onClose();
+                  navigate('/dashboard');
+                }}
+                className="min-h-11 inline-flex items-center justify-center gap-2 rounded-xl bg-[#681822] px-5 text-xs sm:text-sm font-bold text-white hover:bg-[#53131B] shadow-[0_4px_16px_rgba(104,24,34,0.20)] transition cursor-pointer"
+              >
+                <span>{ur ? 'میری شکایات دیکھیں' : 'View in My Complaints'}</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+
+          {submission.guestTrackingNumber && (
+            <div className="text-center pt-1">
+              <button
+                type="button"
+                onClick={() => {
+                  onClose();
+                  navigate('/register');
+                }}
+                aria-label={ur ? 'اکاؤنٹ بنائیں' : 'Create Account to Track'}
+                className="text-xs text-[#681822] hover:underline cursor-pointer font-medium"
+              >
+                {ur ? 'تمام شکایات کے باقاعدہ انتظام کے لیے اکاؤنٹ بنائیں →' : 'Create Account to Track — Manage all complaints in one place →'}
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

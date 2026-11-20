@@ -5,7 +5,62 @@ Verified on **20 November 2026 (Pakistan time)**. Internal delivery target:
 This document distinguishes inspected source, automated checks, and unverified
 hosted behavior. Update it after every significant verified milestone.
 
-## Current development update, 20 November 2026 — V13.6 experiment (not promoted)
+## Current development update, 20 November 2026 — Phase V13.7: Professional Citizen Portal Redesign, Secure Guest Tracking & FAQ
+
+Phase V13.7 transformed the citizen-facing portal into a modern, trustworthy, and dignified civic platform for Karachi citizens, eliminating all technical jargon, securing guest tracking numbers against URL query leaks, and adding a comprehensive bilingual FAQ page.
+
+### 1. Citizen Portal Redesign & Improvements
+1. **My Complaints Dashboard (`CitizenDashboard.tsx`, `ComplaintFolder.tsx`):**
+   - Compact overview metrics bar replaces oversized stat cards (Total, Pending Review, In Progress, Resolved).
+   - Clean, dignified header "My Complaints" / "میری شکایات" with total count and primary actions (New Complaint, Track Complaint, Claim Guest Complaint).
+   - Rich complaint cards displaying official reference `#KHI-...`, responsible department, status badge, title, location, description preview, and "View Details" action.
+   - Interactive search, status filter pills (All, Under Review, In Progress, Resolved), and sort selector (Newest / Oldest).
+   - Honest civic empty state with zero fabricated cases, plus loading skeletons.
+2. **Complaint Details Modal (`ComplaintDetailModal.tsx`):**
+   - Clean dialog completely removing technical jargon ("CASE FILE", "MUNICIPAL TRIAGE", "Row-Level Security Protected").
+   - Header with title, reference, and status badge.
+   - Complaint Information section (Submitted date, Incident Location, Responsible Department).
+   - Honest department display: when unconfirmed, explicitly states *"Your complaint is being reviewed. The responsible department will appear here once confirmed."*
+   - Your Complaint statement container with original Roman Urdu / English text.
+   - Complaint Progress timeline tracking actual lifecycle milestones.
+3. **Submission Confirmation Dialog (`SimplifiedComplaintContainer.tsx`):**
+   - Single clean title ("Complaint Received" / "شکایت موصول ہو گئی") with emerald checkmark icon.
+   - Clean 24-digit grouped tracking number (`XXXX XXXX XXXX XXXX XXXX XXXX`) with one-click copy.
+   - Official reference number displayed cleanly with copy button.
+   - Department routing status (single department, multi-department, or under review).
+   - Zero PII exposed (applicant name, private phone/CNIC, and raw description removed from dialog).
+   - Primary action [Track My Complaint] navigates via state `navigate('/track', { state: { trackingNumber } })` with ZERO query parameter leak (`?code=...` eliminated from URL).
+   - Secondary action [Return Home] / [Done].
+4. **Secure Guest Complaint Tracking (`ComplaintTracker.tsx`):**
+   - Heading "Track Your Complaint" with clean 24-digit auto-formatting (grouped by 4).
+   - Auto-sanitizes legacy `?code=` query parameters via `window.history.replaceState` so tracking secrets never linger in address bars, history, or referrer headers.
+   - 10-attempt rate limiting protection against brute-force probing.
+   - Minimal public projection (status, category, dates, departments, timeline events; ZERO PII).
+5. **Professional Bilingual FAQ Page (`FaqPage.tsx` at `/faq`):**
+   - 12 comprehensive questions and answers in English and Urdu covering submissions, tracking numbers, AI routing, multi-department complaints, and privacy.
+   - Category filter pills, instant keyword search, and accessible accordion with keyboard navigation.
+   - Linked in `PublicHeader` and `PublicFooter`.
+
+### 2. Comprehensive Verification
+- **TypeScript:** `tsc -b` passes with 0 errors.
+- **Production Build:** `npm run build` (`tsc -b && vite build`) builds clean production bundle.
+- **Vitest Suite:** 586 tests across 54 test files pass (including dedicated suites `V13_7_CitizenPortalRedesign.test.tsx` and `V13_7_FaqPage.test.tsx`).
+- **Python Regression Suite:** 106 tests in `tests/v11` pass.
+- **Edge Boundary Suite:** 16 tests in `tests/edge/complaint-boundaries.mjs` pass.
+- **Browser CDP Screenshots:** 10 screenshots captured across desktop, tablet, and mobile viewports (1280px, 768px, 390px, 320px) preserved in `docs/v11/screenshots/`:
+  - `v13_7_01_my_complaints_desktop_1280.png`
+  - `v13_7_02_complaint_details_modal_1280.png`
+  - `v13_7_03_submission_success_modal_1280.png`
+  - `v13_7_04_guest_tracking_desktop_1280.png`
+  - `v13_7_05_guest_tracking_result_1280.png`
+  - `v13_7_06_faq_page_desktop_1280.png`
+  - `v13_7_07_dashboard_tablet_768.png`
+  - `v13_7_08_dashboard_mobile_390.png`
+  - `v13_7_09_dashboard_small_320.png`
+- **Budget & Safety:** $0.00 budget, 0 external paid APIs/LLMs, 0 unapproved production database mutations.
+- **Model Frozen Weights:** Run004 (`E4D04293...`) and Run006 (`C5D4E3D4...`) remain 100% frozen.
+
+## Previous development update, 20 November 2026 — V13.6 experiment (not promoted)
 
 A V13.6 independent-issue recovery candidate is available **only as an opt-in Local AI Test Mode choice**. Run004 remains the default; no weights were retrained and no production deployments or hosted database writes occurred. On the **already-inspected** V13.5 2,000-case development benchmark, exact-set matches improved from 1,215 to 1,306, dual-issue matches from 137/500 to 242/500, and the known three-department safety fixtures escalated correctly in 50/50 cases. There is a material tradeoff: false-extra cases increased from 187 to 205 and causal accuracy fell from 217/250 to 210/250, so **V13.6 is not approved for live routing**. The known development benchmark is not a new independent test; see `docs/v11/V13_6_INDEPENDENT_ISSUE_RECOVERY_DIAGNOSTIC.md`.
 

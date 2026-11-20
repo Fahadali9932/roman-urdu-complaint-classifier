@@ -2,8 +2,18 @@ import React from 'react';
 import { type Complaint } from '../../types';
 import { formatDateOnly } from '../../utils/dateFormatter';
 import { useLanguage } from '../../context/LanguageContext';
-import { X, Clock, MapPin, Building, ShieldCheck } from 'lucide-react';
-import { Button } from '../common/Button';
+import {
+  X,
+  Clock,
+  MapPin,
+  Building2,
+  CheckCircle2,
+  Copy,
+  Check,
+  FileText,
+  Calendar,
+} from 'lucide-react';
+import { KARACHI_DEPARTMENTS } from '../../mocks/complaints';
 
 interface ComplaintDetailModalProps {
   complaint: Complaint | null;
@@ -17,117 +27,330 @@ export const ComplaintDetailModal: React.FC<ComplaintDetailModalProps> = ({
   onClose,
 }) => {
   const { language } = useLanguage();
+  const ur = language === 'ur';
+  const [copiedRef, setCopiedRef] = React.useState(false);
 
   if (!isOpen || !complaint) return null;
 
   const formattedDate = formatDateOnly(complaint.submittedAt, language);
 
-  const departmentDisplay =
-    complaint.assignedDepartmentName ||
-    (complaint.assignedDepartmentId && complaint.assignedDepartmentId !== 'unassigned'
-      ? complaint.assignedDepartmentId.toUpperCase()
-      : 'MUNICIPAL TRIAGE');
+  const handleCopyRef = async () => {
+    try {
+      await navigator.clipboard.writeText(complaint.referenceNumber);
+      setCopiedRef(true);
+      setTimeout(() => setCopiedRef(false), 2000);
+    } catch {}
+  };
+
+  // Helper for department names
+  const getDepartmentNames = (): string[] => {
+    if (complaint.assignedDepartmentIds && complaint.assignedDepartmentIds.length > 0) {
+      return complaint.assignedDepartmentIds.map((id) => {
+        const d = KARACHI_DEPARTMENTS[id];
+        return ur ? d?.nameUrdu || d?.name || id.toUpperCase() : d?.name || id.toUpperCase();
+      });
+    }
+    if (
+      complaint.assignedDepartmentId &&
+      complaint.assignedDepartmentId !== 'unassigned' &&
+      complaint.assignedDepartmentId.toLowerCase() !== 'municipal triage'
+    ) {
+      const d = KARACHI_DEPARTMENTS[complaint.assignedDepartmentId];
+      const name = ur
+        ? d?.nameUrdu || complaint.assignedDepartmentName || d?.name || complaint.assignedDepartmentId.toUpperCase()
+        : complaint.assignedDepartmentName || d?.name || complaint.assignedDepartmentId.toUpperCase();
+      return [name];
+    }
+    return [];
+  };
+
+  const assignedDepartments = getDepartmentNames();
+
+  // Status Badge Configuration
+  const getStatusBadge = (status: Complaint['status']) => {
+    switch (status) {
+      case 'resolved':
+        return (
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
+            <span>{ur ? 'حل شدہ' : 'Resolved'}</span>
+          </span>
+        );
+      case 'in_progress':
+      case 'accepted':
+        return (
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-800 border border-blue-200">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-600" />
+            <span>{ur ? 'زیرِ کارروائی' : 'In Progress'}</span>
+          </span>
+        );
+      case 'assigned':
+        return (
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-600" />
+            <span>{ur ? 'محکمانہ قبولیت کا منتظر' : 'Awaiting Department Acceptance'}</span>
+          </span>
+        );
+      case 'rejected':
+        return (
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-800 border border-rose-200">
+            <span className="w-1.5 h-1.5 rounded-full bg-rose-600" />
+            <span>{ur ? 'مسترد شدہ' : 'Rejected'}</span>
+          </span>
+        );
+      case 'under_review':
+      default:
+        return (
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-600" />
+            <span>{ur ? 'زیرِ جائزہ' : 'Under Review'}</span>
+          </span>
+        );
+    }
+  };
+
+  // Build honest progress steps
+  const progressSteps = [
+    {
+      key: 'submitted',
+      labelEn: 'Complaint submitted',
+      labelUr: 'شکایت موصول ہو گئی',
+      completed: true,
+      current: complaint.status === 'submitted',
+    },
+    {
+      key: 'under_review',
+      labelEn: 'Under review',
+      labelUr: 'ابتدائی جانچ و جائزہ',
+      completed: complaint.status !== 'submitted',
+      current: complaint.status === 'under_review',
+    },
+    {
+      key: 'assigned',
+      labelEn: 'Department assigned',
+      labelUr: 'متعلقہ محکمے کو تفویض',
+      completed: ['assigned', 'accepted', 'in_progress', 'resolved'].includes(complaint.status),
+      current: complaint.status === 'assigned',
+    },
+    {
+      key: 'in_progress',
+      labelEn: 'In progress',
+      labelUr: 'کام جاری ہے',
+      completed: ['accepted', 'in_progress', 'resolved'].includes(complaint.status),
+      current: ['accepted', 'in_progress'].includes(complaint.status),
+    },
+    {
+      key: 'resolved',
+      labelEn: 'Resolved',
+      labelUr: 'مسئلہ حل ہو گیا',
+      completed: complaint.status === 'resolved',
+      current: complaint.status === 'resolved',
+    },
+  ];
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#111111]/70 backdrop-blur-xs animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#141414]/60 backdrop-blur-xs animate-in fade-in duration-200 text-start"
       role="dialog"
       aria-modal="true"
-      aria-labelledby="case-file-title"
+      aria-labelledby="complaint-details-title"
     >
-      <div className="w-full max-w-2xl bg-[#F1F1F0] border border-[#D5D5D3] rounded-xl shadow-2xl overflow-hidden text-start">
-        
-        {/* Case File Folder Tab Header */}
-        <div className="flex items-center justify-between px-6 py-4 bg-[#FAFAF9] border-b border-[#D5D5D3]">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#111111]">
-              CASE FILE
-            </span>
-            <span className="text-xs font-mono text-[#5B5B5B]">
-              #{complaint.referenceNumber}
-            </span>
+      <div className="w-full max-w-2xl bg-white border border-[#E5E3E0] rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+        {/* Modal Header */}
+        <div className="flex items-start justify-between gap-4 px-6 sm:px-8 py-5 border-b border-[#E5E3E0] bg-[#FAF9F7]">
+          <div className="space-y-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="font-mono text-xs font-bold text-[#681822]">
+                {complaint.referenceNumber}
+              </span>
+              <button
+                type="button"
+                onClick={handleCopyRef}
+                className="p-1 rounded text-[#88827A] hover:text-[#141414] transition cursor-pointer"
+                title={ur ? 'حوالہ نمبر کاپی کریں' : 'Copy reference number'}
+                aria-label={ur ? 'حوالہ نمبر کاپی کریں' : 'Copy reference number'}
+              >
+                {copiedRef ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+              </button>
+              <span className="text-[#D9D3CC]">•</span>
+              {getStatusBadge(complaint.status)}
+            </div>
+
+            <h2
+              id="complaint-details-title"
+              className="font-display font-black text-xl sm:text-2xl text-[#141414] tracking-tight pt-1"
+            >
+              {complaint.title}
+            </h2>
           </div>
 
           <button
+            type="button"
             onClick={onClose}
-            className="p-1.5 rounded-md text-[#5B5B5B] hover:text-[#111111] hover:bg-[#EAEAE8] transition-colors cursor-pointer"
-            aria-label="Close case file"
+            className="p-2 rounded-xl text-[#88827A] hover:text-[#141414] hover:bg-[#E5E3E0]/50 transition cursor-pointer shrink-0"
+            aria-label={ur ? 'بند کریں' : 'Close case file'}
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Case File Body */}
-        <div className="p-6 sm:p-8 space-y-6 max-h-[80vh] overflow-y-auto">
-          
-          {/* Title & Metadata */}
-          <div className="space-y-3 pb-6 border-b border-[#D5D5D3]">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <span className="text-[11px] font-mono font-bold uppercase tracking-widest text-[#5B5B5B]">
-                {departmentDisplay}
-              </span>
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded text-[11px] font-mono font-bold uppercase bg-[#111111] text-white">
-                {complaint.status.replace('_', ' ')}
-              </span>
-            </div>
+        {/* Modal Scrollable Body */}
+        <div className="p-6 sm:p-8 space-y-6 overflow-y-auto font-ui text-sm">
+          {/* Section 1: Complaint Information */}
+          <div className="space-y-3">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-[#681822] flex items-center gap-1.5">
+              <Calendar className="w-3.5 h-3.5" />
+              <span>{ur ? 'معلوماتِ شکایت' : 'Complaint Information'}</span>
+            </h3>
 
-            <h2 id="case-file-title" className="font-display font-black text-2xl sm:text-3xl text-[#111111] uppercase tracking-tight">
-              {complaint.title}
-            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 rounded-2xl bg-[#FAF9F7] border border-[#E5E3E0]">
+              <div>
+                <span className="block text-xs text-[#88827A] font-medium">
+                  {ur ? 'تاریخِ اندراج' : 'Submitted Date'}
+                </span>
+                <span className="font-semibold text-[#141414] text-xs sm:text-sm mt-0.5 block">
+                  {formattedDate}
+                </span>
+              </div>
 
-            <div className="flex flex-wrap items-center gap-y-2 gap-x-5 text-xs font-mono text-[#5B5B5B]">
-              <span className="flex items-center gap-1.5">
-                <MapPin className="w-3.5 h-3.5 text-[#111111]" />
-                <span>{complaint.locality}, {complaint.district}</span>
-              </span>
-              <span>•</span>
-              <span className="flex items-center gap-1.5">
-                <Clock className="w-3.5 h-3.5" />
-                <span>Submitted: {formattedDate}</span>
-              </span>
+              <div>
+                <span className="block text-xs text-[#88827A] font-medium">
+                  {ur ? 'مقامِ واقعہ' : 'Incident Location'}
+                </span>
+                <span className="font-semibold text-[#141414] text-xs sm:text-sm mt-0.5 block flex items-center gap-1">
+                  <MapPin className="w-3.5 h-3.5 text-[#681822] shrink-0" />
+                  <span>
+                    {complaint.locality}, {complaint.district}
+                  </span>
+                </span>
+              </div>
+
+              <div className="sm:col-span-2 pt-2 border-t border-[#EAE7E2]">
+                <span className="block text-xs text-[#88827A] font-medium mb-1">
+                  {ur ? 'متعلقہ بلدیاتی محکمہ' : 'Responsible Department'}
+                </span>
+                {assignedDepartments.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {assignedDepartments.map((deptName, idx) => (
+                      <span
+                        key={idx}
+                        className="inline-flex items-center gap-1.5 rounded-lg bg-white border border-[#D9D3CC] px-3 py-1 font-semibold text-xs text-[#141414]"
+                      >
+                        <Building2 className="w-3.5 h-3.5 text-[#681822]" />
+                        <span>{deptName}</span>
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-[#625D58] leading-relaxed">
+                    {ur
+                      ? 'آپ کی شکایت کا جائزہ لیا جا رہا ہے۔ تصدیق کے بعد متعلقہ محکمہ یہاں ظاہر ہوگا۔'
+                      : 'Your complaint is being reviewed. The responsible department will appear here once confirmed.'}
+                  </p>
+                )}
+              </div>
             </div>
           </div>
 
-          {/* Original Complaint Statement */}
+          {/* Section 2: Your Complaint */}
           <div className="space-y-2">
-            <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#5B5B5B] block">
-              Original Grievance Statement (Roman Urdu)
-            </span>
-            <div className="p-4 rounded-lg bg-[#FAFAF9] border border-[#D5D5D3]">
-              <p className="text-sm sm:text-base text-[#111111] leading-relaxed whitespace-pre-wrap font-sans">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-[#681822] flex items-center gap-1.5">
+              <FileText className="w-3.5 h-3.5" />
+              <span>{ur ? 'آپ کی شکایت' : 'Your Complaint'}</span>
+              <span className="text-[11px] font-normal text-[#88827A]">
+                {ur ? 'اصل بیان (رومن اردو)' : 'Original Grievance Statement (Roman Urdu)'}
+              </span>
+            </h3>
+
+            <div className="p-4 sm:p-5 rounded-2xl bg-[#FAF9F7] border border-[#E5E3E0]">
+              <p className="text-sm sm:text-base text-[#141414] leading-relaxed whitespace-pre-wrap font-sans">
                 {complaint.description}
               </p>
             </div>
           </div>
 
-          {/* Department Information & Progress */}
-          <div className="space-y-3 pt-4 border-t border-[#D5D5D3]">
-            <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#5B5B5B] block">
-              Assigned Municipal Department
-            </span>
-            <div className="p-4 rounded-lg bg-[#FAFAF9] border border-[#D5D5D3] flex items-start gap-3">
-              <Building className="w-5 h-5 text-[#111111] shrink-0 mt-0.5" />
-              <div>
-                <span className="text-xs font-bold uppercase text-[#111111] block">
-                  {departmentDisplay}
-                </span>
-                <p className="text-xs text-[#5B5B5B] mt-0.5">
-                  Grievance indexed under municipal case records. Updates from field engineers will populate here.
-                </p>
-              </div>
+          {/* Section 3: Complaint Progress */}
+          <div className="space-y-3 pt-2">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-[#681822] flex items-center gap-1.5">
+              <Clock className="w-3.5 h-3.5" />
+              <span>{ur ? 'پیش رفت کا ٹائم لائن' : 'Complaint Progress'}</span>
+            </h3>
+
+            {/* Custom Simple Steps Tracker */}
+            <div className="rounded-2xl border border-[#E5E3E0] bg-[#FAF9F7] p-4 sm:p-5">
+              <ol className="space-y-3 relative border-s border-[#D9D3CC] ms-3 sm:ms-4">
+                {progressSteps.map((step) => (
+                  <li key={step.key} className="ms-4">
+                    <span
+                      className={`absolute w-3 h-3 rounded-full -start-1.5 mt-1 border-2 border-white ${
+                        step.completed
+                          ? 'bg-emerald-600'
+                          : step.current
+                          ? 'bg-amber-600'
+                          : 'bg-[#D9D3CC]'
+                      }`}
+                    />
+                    <div className="flex items-center justify-between gap-2">
+                      <span
+                        className={`text-xs font-bold ${
+                          step.completed
+                            ? 'text-[#141414]'
+                            : step.current
+                            ? 'text-amber-800'
+                            : 'text-[#88827A]'
+                        }`}
+                      >
+                        {ur ? step.labelUr : step.labelEn}
+                      </span>
+                      {step.completed && (
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                      )}
+                    </div>
+                  </li>
+                ))}
+              </ol>
+
+              {/* Recorded Updates from Department/Admin Timeline */}
+              {complaint.timeline && complaint.timeline.length > 0 && (
+                <div className="mt-4 pt-4 border-t border-[#EAE7E2] space-y-2">
+                  <span className="block text-[11px] font-mono font-bold uppercase tracking-wider text-[#625D58]">
+                    {ur ? 'سرکاری ریکارڈ شدہ پیش رفت' : 'Official Timeline Events'}
+                  </span>
+                  <div className="space-y-2">
+                    {complaint.timeline.map((event) => (
+                      <div
+                        key={event.id}
+                        className="rounded-xl bg-white border border-[#E5E3E0] p-3 text-xs space-y-1"
+                      >
+                        <div className="flex items-center justify-between text-[#88827A]">
+                          <span className="font-semibold text-[#141414]">
+                            {ur && event.titleUrdu ? event.titleUrdu : event.title}
+                          </span>
+                          <span className="text-[11px] font-mono">
+                            {formatDateOnly(event.timestamp, language)}
+                          </span>
+                        </div>
+                        <p className="text-[#625D58] leading-relaxed">
+                          {ur && event.descriptionUrdu ? event.descriptionUrdu : event.description}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
+        </div>
 
-          {/* Privacy & Ownership Verification */}
-          <div className="pt-2 flex items-center justify-between text-xs font-mono text-[#5B5B5B]">
-            <span className="flex items-center gap-1.5">
-              <ShieldCheck className="w-4 h-4 text-[#111111]" />
-              <span>Row-Level Security Protected</span>
-            </span>
-            <Button variant="outline" size="sm" onClick={onClose}>
-              Close Case File
-            </Button>
-          </div>
+        {/* Modal Footer */}
+        <div className="px-6 sm:px-8 py-4 border-t border-[#E5E3E0] bg-[#FAF9F7] flex items-center justify-end gap-3">
+          <button
+            type="button"
+            onClick={onClose}
+            className="min-h-10 rounded-xl border border-[#D9D3CC] bg-white px-5 text-xs font-bold text-[#141414] hover:bg-[#F2EFEA] transition cursor-pointer"
+          >
+            {ur ? 'بند کریں' : 'Close'}
+          </button>
         </div>
       </div>
     </div>

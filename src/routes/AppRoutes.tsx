@@ -7,6 +7,7 @@ import { AboutPage } from '../features/information/pages/AboutPage';
 import { ContactPage } from '../features/information/pages/ContactPage';
 import { PrivacyPolicyPage } from '../features/information/pages/PrivacyPolicyPage';
 import { TermsOfUsePage } from '../features/information/pages/TermsOfUsePage';
+import { FaqPage } from '../features/information/pages/FaqPage';
 import { ComplaintForm } from '../features/citizen/ComplaintForm';
 import { ComplaintTracker } from '../features/citizen/ComplaintTracker';
 import { CitizenDashboard } from '../features/citizen/CitizenDashboard';
@@ -33,6 +34,7 @@ export const AppRoutes: React.FC = () => {
         <Route path="/privacy" element={<Navigate to="/privacy-policy" replace />} />
         <Route path="/terms-of-use" element={<TermsOfUsePage />} />
         <Route path="/terms" element={<Navigate to="/terms-of-use" replace />} />
+        <Route path="/faq" element={<FaqPage />} />
         <Route path="/contact" element={<ContactPage />} />
         {/* Keep the in-progress form available so a failed or expired session never
             discards entered details. Submission itself checks for a live session. */}

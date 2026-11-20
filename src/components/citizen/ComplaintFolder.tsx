@@ -2,7 +2,8 @@ import React from 'react';
 import { type Complaint } from '../../types';
 import { formatDateOnly } from '../../utils/dateFormatter';
 import { useLanguage } from '../../context/LanguageContext';
-import { ArrowUpRight, ArrowUpLeft, Clock, MapPin } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Clock, MapPin, Building2 } from 'lucide-react';
+import { KARACHI_DEPARTMENTS } from '../../mocks/complaints';
 
 interface ComplaintFolderProps {
   complaint: Complaint;
@@ -16,60 +17,81 @@ export const ComplaintFolder: React.FC<ComplaintFolderProps> = ({
   className = '',
 }) => {
   const { language, isRTL } = useLanguage();
+  const ur = language === 'ur';
   const formattedDate = formatDateOnly(complaint.submittedAt, language);
 
   const getStatusBadge = (status: Complaint['status']) => {
     switch (status) {
       case 'resolved':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[11px] font-mono font-bold uppercase bg-[#111111] text-white">
-            Resolved
-          </span>
-        );
-      case 'rejected':
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[11px] font-mono font-bold uppercase bg-[#B4233E] text-white">
-            Rejected
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
+            <span>{ur ? 'حل شدہ' : 'Resolved'}</span>
           </span>
         );
       case 'in_progress':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[11px] font-mono font-bold uppercase bg-[#EAEAE8] text-[#111111] border border-[#D5D5D3]">
-            In Progress
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-50 text-blue-800 border border-blue-200">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-600" />
+            <span>{ur ? 'زیرِ کارروائی' : 'In Progress'}</span>
           </span>
         );
       case 'accepted':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[11px] font-mono font-bold uppercase bg-[#E0F2FE] text-[#0369A1] border border-[#BAE6FD]">
-            Accepted
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-50 text-blue-800 border border-blue-200">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-600" />
+            <span>{ur ? 'قبول شدہ' : 'Accepted'}</span>
           </span>
         );
       case 'assigned':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[11px] font-mono font-bold uppercase bg-[#FEF3C7] text-[#92400E] border border-[#FDE68A]">
-            Pending Acceptance
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-600" />
+            <span>{ur ? 'قبولیت کا منتظر' : 'Pending Acceptance'}</span>
+          </span>
+        );
+      case 'rejected':
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-50 text-rose-800 border border-rose-200">
+            <span className="w-1.5 h-1.5 rounded-full bg-rose-600" />
+            <span>{ur ? 'مسترد شدہ' : 'Rejected'}</span>
           </span>
         );
       case 'under_review':
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[11px] font-mono font-bold uppercase bg-[#FAFAF9] text-[#5B5B5B] border border-[#D5D5D3]">
-            {language === 'ur' ? 'بلدیاتی جائزہ' : 'Awaiting Review'}
-          </span>
-        );
       default:
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[11px] font-mono font-bold uppercase bg-[#FAFAF9] text-[#5B5B5B] border border-[#D5D5D3]">
-            Submitted
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-600" />
+            <span>{ur ? 'زیرِ جائزہ' : 'Under Review'}</span>
           </span>
         );
     }
   };
 
-  const departmentDisplay =
-    complaint.assignedDepartmentName ||
-    (complaint.assignedDepartmentId && complaint.assignedDepartmentId !== 'unassigned'
-      ? complaint.assignedDepartmentId.toUpperCase()
-      : 'MUNICIPAL TRIAGE');
+  // Determine friendly department display
+  const getDepartmentLabel = (): string => {
+    if (complaint.assignedDepartmentIds && complaint.assignedDepartmentIds.length > 0) {
+      return complaint.assignedDepartmentIds
+        .map((id) => {
+          const d = KARACHI_DEPARTMENTS[id];
+          return ur ? d?.nameUrdu || d?.code || id.toUpperCase() : d?.code || d?.name || id.toUpperCase();
+        })
+        .join(ur ? ' اور ' : ' & ');
+    }
+    if (
+      complaint.assignedDepartmentId &&
+      complaint.assignedDepartmentId !== 'unassigned' &&
+      complaint.assignedDepartmentId.toLowerCase() !== 'municipal triage'
+    ) {
+      const d = KARACHI_DEPARTMENTS[complaint.assignedDepartmentId];
+      return ur
+        ? d?.nameUrdu || complaint.assignedDepartmentName || d?.code || complaint.assignedDepartmentId.toUpperCase()
+        : d?.code || complaint.assignedDepartmentName || d?.name || complaint.assignedDepartmentId.toUpperCase();
+    }
+    return ur ? 'جائزہ جاری ہے' : 'Awaiting Department';
+  };
+
+  const departmentLabel = getDepartmentLabel();
 
   return (
     <div
@@ -82,60 +104,58 @@ export const ComplaintFolder: React.FC<ComplaintFolderProps> = ({
           onClick();
         }
       }}
-      className={`group cursor-pointer select-none text-start transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-[#111111] ${className}`}
-      aria-label={`Case file ${complaint.referenceNumber}: ${complaint.title}`}
+      className={`group cursor-pointer select-none text-start rounded-2xl bg-white border border-[#E5E3E0] p-5 sm:p-6 transition-all duration-200 hover:border-[#681822]/40 hover:shadow-md outline-none focus-visible:ring-2 focus-visible:ring-[#681822] ${className}`}
+      aria-label={`Complaint ${complaint.referenceNumber}: ${complaint.title}`}
     >
-      {/* 1. Folder Silhouette Top Tab */}
-      <div className="flex items-end">
-        <div className="swiss-folder-tab px-4 py-1.5 text-[11px] font-mono font-bold uppercase tracking-wider text-[#5B5B5B] flex items-center gap-2">
-          <span className="text-[#111111]">CASE FILE</span>
-          <span>#{complaint.referenceNumber}</span>
+      {/* Top Meta Line: Reference, Dept & Status */}
+      <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-[#F2EFEA]">
+        <div className="flex items-center gap-2">
+          <span className="font-mono text-xs font-bold text-[#681822]">
+            #{complaint.referenceNumber}
+          </span>
+          <span className="text-[#D9D3CC]">•</span>
+          <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#5A554E]">
+            <Building2 className="w-3.5 h-3.5 text-[#88827A]" />
+            <span>{departmentLabel}</span>
+          </span>
         </div>
-        <div className="flex-1 border-b border-[#D5D5D3]" />
+
+        {getStatusBadge(complaint.status)}
       </div>
 
-      {/* 2. Main Folder Case Surface */}
-      <div className="swiss-folder-body p-6 sm:p-7 space-y-4 transition-all duration-200 group-hover:border-[#111111] group-hover:shadow-md">
-        
-        {/* Department & Status Header */}
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <span className="text-[11px] font-mono font-bold uppercase tracking-widest text-[#5B5B5B]">
-            {departmentDisplay}
+      {/* Main Content: Title & Preview */}
+      <div className="py-3.5 space-y-2">
+        <h3 className="font-display font-bold text-base sm:text-lg text-[#141414] tracking-tight group-hover:text-[#681822] transition-colors">
+          {complaint.title}
+        </h3>
+        <p className="text-xs sm:text-[13px] text-[#5A554E] line-clamp-2 leading-relaxed">
+          {complaint.description}
+        </p>
+      </div>
+
+      {/* Footer Meta & Call-To-Action */}
+      <div className="pt-3 border-t border-[#F2EFEA] flex items-center justify-between text-xs text-[#88827A]">
+        <div className="flex items-center gap-3">
+          <span className="inline-flex items-center gap-1 text-[#5A554E] font-medium">
+            <MapPin className="w-3.5 h-3.5 text-[#681822] shrink-0" />
+            <span className="truncate max-w-[150px] sm:max-w-[220px]">
+              {complaint.locality}, {complaint.district}
+            </span>
           </span>
-          {getStatusBadge(complaint.status)}
+          <span className="hidden sm:inline-flex items-center gap-1">
+            <Clock className="w-3.5 h-3.5 text-[#88827A]" />
+            <span>{formattedDate}</span>
+          </span>
         </div>
 
-        {/* Complaint Subject */}
-        <div>
-          <h3 className="font-display font-black text-lg sm:text-xl text-[#111111] uppercase tracking-tight group-hover:underline underline-offset-2">
-            {complaint.title}
-          </h3>
-          <p className="mt-1.5 text-xs sm:text-sm text-[#5B5B5B] line-clamp-2 leading-relaxed">
-            {complaint.description}
-          </p>
-        </div>
-
-        {/* Metadata Footer */}
-        <div className="pt-3 border-t border-[#D5D5D3] flex items-center justify-between text-xs font-mono text-[#5B5B5B]">
-          <div className="flex items-center gap-4">
-            <span className="flex items-center gap-1">
-              <MapPin className="w-3.5 h-3.5 text-[#111111]" />
-              <span>{complaint.locality}, {complaint.district}</span>
-            </span>
-            <span className="hidden sm:flex items-center gap-1">
-              <Clock className="w-3.5 h-3.5" />
-              <span>{formattedDate}</span>
-            </span>
-          </div>
-
-          <div className="inline-flex items-center gap-1 font-bold uppercase text-[#111111]">
-            <span className="text-[11px]">Open Case</span>
-            {isRTL ? (
-              <ArrowUpLeft className="w-3.5 h-3.5 transition-transform duration-200 group-hover:-translate-x-1 group-hover:-translate-y-1" />
-            ) : (
-              <ArrowUpRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-1 group-hover:-translate-y-1" />
-            )}
-          </div>
+        <div className="inline-flex items-center gap-1 font-bold text-xs text-[#681822] group-hover:underline">
+          <span>{ur ? 'تفصیلات دیکھیں' : 'View Details'}</span>
+          <span className="sr-only">Open Case</span>
+          {isRTL ? (
+            <ArrowLeft className="w-3.5 h-3.5 transition-transform duration-200 group-hover:-translate-x-1" />
+          ) : (
+            <ArrowRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-1" />
+          )}
         </div>
       </div>
     </div>

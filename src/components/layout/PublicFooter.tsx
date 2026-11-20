@@ -24,7 +24,7 @@ export const PublicFooter: React.FC<PublicFooterProps> = ({ isHomePage, showMonu
   const location = useLocation();
   const ur = language === 'ur';
   const isHome = isHomePage ?? (location.pathname === '/');
-  const isInfoPage = ['/about', '/contact', '/privacy-policy', '/terms-of-use', '/privacy', '/terms'].includes(
+  const isInfoPage = ['/about', '/contact', '/privacy-policy', '/terms-of-use', '/privacy', '/terms', '/faq'].includes(
     location.pathname
   );
   const isSubmit = location.pathname === '/submit' || location.pathname === '/write-complaint';
@@ -321,6 +321,9 @@ export const PublicFooter: React.FC<PublicFooterProps> = ({ isHomePage, showMonu
                 <nav className="footer-links-list" aria-label={ur ? 'معلوماتی روابط' : 'Information links'}>
                   <Link to="/about" className="footer-link">
                     {t('footerNavAbout')}
+                  </Link>
+                  <Link to="/faq" className="footer-link">
+                    {t('footerNavFaq')}
                   </Link>
                   <Link to="/contact" className="footer-link">
                     {t('footerNavContact')}

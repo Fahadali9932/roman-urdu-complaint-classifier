@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useSearchParams, useLocation } from 'react-router-dom';
 import { Container } from '../../components/layout/Container';
 import { Button } from '../../components/common/Button';
 import {
@@ -30,6 +30,7 @@ const readPendingClaim = (): PendingClaim | null => {
 
 export const ComplaintTracker: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { referenceNumber: routeRef } = useParams<{ referenceNumber?: string }>();
   const [searchParams] = useSearchParams();
   const routeReference = routeRef || searchParams.get('ref') || '';
@@ -75,21 +76,6 @@ export const ComplaintTracker: React.FC = () => {
   // Rate limiting tracker
   const [attemptCount, setAttemptCount] = useState(0);
 
-  useEffect(() => {
-    if (!isSupabaseConfigured() || !supabase) return;
-    let active = true;
-    supabase.auth
-      .getSession()
-      .then(({ data }) => active && setIsAuthenticated(Boolean(data.session)));
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) =>
-      setIsAuthenticated(Boolean(session))
-    );
-    return () => {
-      active = false;
-      listener.subscription.unsubscribe();
-    };
-  }, []);
-
   // Format 24 digits into groups of 4: XXXX XXXX XXXX XXXX XXXX XXXX
   const handleTrackingNumberChange = (value: string) => {
     setPastedCodeNotice('');
@@ -113,6 +99,61 @@ export const ComplaintTracker: React.FC = () => {
     const groups = digitsOnly.match(/.{1,4}/g);
     setTrackingNumber(groups ? groups.join(' ') : digitsOnly);
   };
+
+  const executeTracking = async (digits: string) => {
+    const rawDigits = digits.replace(/\D/g, '');
+    if (rawDigits.length !== 24) return;
+    setTrackingLoading(true);
+    setTrackingError('');
+    try {
+      const res = await complaintService.trackGuestComplaint(rawDigits);
+      if (res && res.found) {
+        setTrackResult(res);
+      } else {
+        setTrackingError(
+          res?.error || "We couldn't find a complaint with that number. Check it and try again."
+        );
+      }
+    } catch {
+      setTrackingError("We couldn't find a complaint with that number. Check it and try again.");
+    } finally {
+      setTrackingLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!isSupabaseConfigured() || !supabase) return;
+    let active = true;
+    supabase.auth
+      .getSession()
+      .then(({ data }) => active && setIsAuthenticated(Boolean(data.session)));
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) =>
+      setIsAuthenticated(Boolean(session))
+    );
+    return () => {
+      active = false;
+      listener.subscription.unsubscribe();
+    };
+  }, []);
+
+  // Secure auto-fill and URL sanitization
+  useEffect(() => {
+    // 1. Check if tracking number was passed via navigation state (secure, zero URL leak)
+    const stateTrackingNumber = (location.state as { trackingNumber?: string } | null)?.trackingNumber;
+    if (stateTrackingNumber) {
+      handleTrackingNumberChange(stateTrackingNumber);
+      executeTracking(stateTrackingNumber);
+      return;
+    }
+
+    // 2. Legacy / bookmark URL query parameter ?code=...
+    if (initialCodeParam) {
+      // Immediately sanitize the URL: strip the tracking secret from address bar and history
+      window.history.replaceState({}, '', window.location.pathname);
+      handleTrackingNumberChange(initialCodeParam);
+      executeTracking(initialCodeParam);
+    }
+  }, []);
 
   const handleTrackSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -219,14 +260,14 @@ export const ComplaintTracker: React.FC = () => {
             </div>
           </div>
 
-          <h1 className="mt-5 font-display font-black text-2xl sm:text-3xl text-[#141414] tracking-tight uppercase">
-            Track complaint
+          <h1 className="mt-5 font-display font-black text-2xl sm:text-3xl text-[#141414] tracking-tight">
+            {activeTab === 'track' ? 'Track Your Complaint' : 'Track Complaint'}
           </h1>
 
           {activeTab === 'track' ? (
             <div>
-              <p className="mt-2 text-sm text-[#323232] leading-relaxed">
-                Enter the 24-digit private tracking number from your submission receipt. Anyone with this number can check the minimal public status without an account.
+              <p className="mt-2 text-sm text-[#5A554E] leading-relaxed">
+                Enter the tracking number provided when you submitted your complaint.
               </p>
 
               {trackResult ? (

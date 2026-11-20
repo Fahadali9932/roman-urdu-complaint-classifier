@@ -12,7 +12,7 @@ export const PublicHeader: React.FC = () => {
   const [scrollSection, setScrollSection] = useState<'home' | 'steps' | 'submit' | 'footer'>('home');
   const [darkHeaderActive, setDarkHeaderActive] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const isInfoPage = ['/about', '/contact', '/privacy-policy', '/terms-of-use', '/privacy', '/terms'].includes(
+  const isInfoPage = ['/about', '/contact', '/privacy-policy', '/terms-of-use', '/privacy', '/terms', '/faq'].includes(
     location.pathname
   );
   const isDarkHeader = isInfoPage || darkHeaderActive;
@@ -405,6 +405,18 @@ export const PublicHeader: React.FC = () => {
                 }`}
               >
                 <span className="font-medium">{t('navWriteComplaint') || 'Write Complaint'}</span>
+              </Link>
+
+              <Link
+                to="/faq"
+                onClick={() => setMobileMenuOpen(false)}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-ui transition-colors ${
+                  location.pathname === '/faq'
+                    ? 'bg-[#681822] text-[#FFFFFF] font-medium'
+                    : 'text-[#141414] hover:bg-[#E5E3E0]/50 font-normal'
+                }`}
+              >
+                <span className="font-medium">{t('navFaq') || 'FAQ'}</span>
               </Link>
 
               <div className="pt-2 mt-1 border-t border-[#E5E3E0]/70">
