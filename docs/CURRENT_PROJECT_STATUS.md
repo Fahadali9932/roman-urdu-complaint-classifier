@@ -5,7 +5,34 @@ Verified on **21 November 2026 (Pakistan time)**. Internal delivery target:
 This document distinguishes inspected source, automated checks, and unverified
 hosted behavior. Update it after every significant verified milestone.
 
-## Current development update, 21 November 2026 — Phase V13.15.2: Citizen Mobile Experience, Truthful Guest Tracking, and Password Validation
+## Current development update, 21 November 2026 — Phase V13.15.3: Smooth Mobile Sections, Native Sticky Card Stack, and Monument Imagery Integration
+
+- **Mobile How It Works Redesign (`ComplaintJourney.tsx` & `StackedScrollContainer.tsx`):**
+  - Completely resolved the 393px/390px/375px/320px mobile blank whitespace defect: replaced oversized 135svh containers with compact, native sticky stages (`h-[92svh] -mt-[18svh]`, `top-[56px]`, min-height 200px).
+  - All four cards (Write, Review, Route, Track) remain 100% visible, fully legible, and stack smoothly sheet-over-sheet during native phone scrolling without scroll hijacking or jarring jumps.
+  - Verified `prefers-reduced-motion: reduce` fallback: disables sticky choreography and renders clean, standard document-flow cards with no transforms.
+- **Monument Artwork Integration (`RegistrationArtwork.tsx`):**
+  - Removed the flat burgundy promotional card from `/register`.
+  - Reused the authentic, evocative Mazar-e-Quaid monochrome imagery (`mazar-e-quaid-monochrome.jpg` / `mazar-e-quaid-mobile.jpg`) from the footer, layered with a high-contrast dark atmospheric gradient overlay (`from-black/85 via-black/40 to-black/30`).
+  - Elevated copy with sharp typography ("A SIMPLER WAY TO REPORT PUBLIC-SERVICE ISSUES. / Write your complaint in everyday language and follow its progress in one place.") and official Awaaz-e-Awam emblem.
+  - Verified across desktop (side-by-side card) and mobile (stacked below form) with full bilingual English & Urdu RTL support.
+- **Mobile Transitions & Global Responsive Polish:**
+  - Enhanced mobile route transitions (`PageTransition.tsx`) with gentle 3D perspective tilt that settles cleanly to `transform: none !important` and `will-change: auto !important` at rest, preserving sharp subpixel text rendering.
+  - Verified zero horizontal overflow (`scrollWidth <= viewportWidth`) across all 6 viewports: 1280px, 768px, 393px, 390px, 375px, and 320px.
+- **Comprehensive Quality Gates & Multi-Viewport Verification:**
+  - TypeScript Compiler `tsc -b`: 0 errors.
+  - Vitest Test Suite: **618 passed, 1 skipped (58 test files, 100% pass)**. Extended `V13_2_Benchmark.test.ts` holdout test timeout to 60,000ms to eliminate test runner contention flakes.
+  - Production Build `npm run build`: built in 1.07s.
+  - Python Backend Discovery Suite: **106 passed in 22.4s**.
+  - Edge Boundary Security Gate: **16 passed, 0 failed**.
+  - Browser Smoke & Motion Suite (`tools/ai_factory/v13_15_3_browser_qa.mjs`): 100% pass across 1280x900, 768x1024, 393x852, 390x844, 375x667, 320x640, English and Urdu RTL. Captured 54 verification screenshots in `docs/v11/screenshots/v13_15_3/`.
+- **Preserved Safety Boundaries:**
+  - Frozen Run004 (`E4D04293...`) and Run006 (`C5D4E3D4...`) remain 100% byte-for-byte identical. No training or promotion.
+  - Original primary workspace `D:\RomanUrdu_ComplaintClassifier_staff_auth` remains untouched with all dirty/untracked files preserved.
+  - Zero paid dependencies, $0.00 spent.
+  - No merge to `main`, no public deployment, no production database mutations.
+
+## Previous development update, 21 November 2026 — Phase V13.15.2: Citizen Mobile Experience, Truthful Guest Tracking, and Password Validation
 
 - **Truthful Guest Tracking (`ComplaintTracker.tsx` & `guestTrackingPresentation.ts`):**
   - Public `/track` route accepts ONLY the private 24-digit receipt number; entering legacy `KHI-` or `CLM-` codes triggers an explanatory prompt to use the 24-digit receipt code.

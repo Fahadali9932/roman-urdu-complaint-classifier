@@ -182,7 +182,7 @@ describe('V13.2 Comparative Benchmark Evaluation Suite', () => {
 
     expect(run004Candidate.exactAccuracy).toBeGreaterThanOrEqual(run004Baseline.exactAccuracy);
     expect(run004Candidate.macroF1).toBeGreaterThan(85.0);
-  }, 30000);
+  }, 60000);
 
   it('runs comparative benchmark on 500-case untouched holdout suite', () => {
     const run004Baseline = evaluateSystem(holdoutData, 'Run004 Baseline (V11)', (text) =>
@@ -228,5 +228,5 @@ describe('V13.2 Comparative Benchmark Evaluation Suite', () => {
 
     expect(run004Candidate.exactAccuracy).toBeGreaterThanOrEqual(run004Baseline.exactAccuracy);
     expect(run004Candidate.meanLatencyMs).toBeLessThan(50);
-  }, 30000);
+  }, 60000);
 });

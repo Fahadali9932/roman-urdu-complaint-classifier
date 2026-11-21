@@ -42,14 +42,24 @@ const viewport = async (width, height) => request('Emulation.setDeviceMetricsOve
 });
 const visit = async (route) => {
   await request('Page.navigate', { url: `${origin}${route}` });
-  await delay(950);
-  const result = await evaluate(`({
-    title:document.title,
-    width:document.documentElement.clientWidth,
-    overflow:Math.max(document.documentElement.scrollWidth, document.body.scrollWidth)-window.innerWidth,
-    content:document.querySelector('#root')?.textContent?.length||0,
-  })`);
-  assert(result.content > 60, `Blank or incomplete page: ${route}`);
+  let result;
+  for (let i = 0; i < 25; i++) {
+    await delay(200);
+    result = await evaluate(`({
+      title:document.title,
+      width:document.documentElement.clientWidth,
+      overflow:Math.max(document.documentElement.scrollWidth, document.body.scrollWidth)-window.innerWidth,
+      content:document.querySelector('#root')?.textContent?.length||0,
+      offenders: Array.from(document.querySelectorAll('*')).filter(el => el.getBoundingClientRect().right > window.innerWidth + 1).map(el => ({
+        tag: el.tagName,
+        cls: typeof el.className === 'string' ? el.className.slice(0, 40) : '',
+        right: el.getBoundingClientRect().right,
+        w: el.getBoundingClientRect().width
+      })).slice(0, 5)
+    })`);
+    if (result && result.content > 60) break;
+  }
+  assert(result && result.content > 60, `Blank or incomplete page: ${route}`);
   assert(result.overflow <= 2, `Horizontal overflow on ${route}: ${JSON.stringify(result)}`);
   return result;
 };
@@ -79,11 +89,11 @@ try {
   await request('Runtime.enable');
 
   const routes = ['/', '/about', '/faq', '/contact', '/submit', '/track', '/register', '/login'];
-  for (const [width, height] of [[1280, 900], [768, 1024], [390, 844], [320, 640]]) {
+  for (const [width, height] of [[1280, 900], [768, 1024], [393, 852], [390, 844], [375, 667], [320, 640]]) {
     await viewport(width, height);
     for (const route of routes) {
       await visit(route);
-      if (route === '/' || route === '/register' || route === '/track') {
+      if (['/', '/register', '/track', '/submit', '/login'].includes(route)) {
         await saveImage(`${route === '/' ? 'home' : route.slice(1)}_${width}.png`);
       }
       if (route === '/register') {
@@ -96,7 +106,7 @@ try {
       console.log(`PASS ${width}x${height} ${route}: no overflow`);
     }
 
-    if (width > 390) continue;
+    if (width > 393) continue;
     await visit('/#steps');
     const initial = await evaluate(`(() => {
       const stages=[...document.querySelectorAll('[data-mobile-journey-stage]')];
@@ -133,6 +143,15 @@ try {
     assert(reduced !== 'sticky', `Reduced motion still forces sticky choreography at ${width}px`);
     await saveImage(`mobile_reduced_motion_${width}.png`);
     await request('Emulation.setEmulatedMedia', { features: [] });
+  }
+
+  for (const width of [1280, 390]) {
+    await viewport(width, width === 1280 ? 900 : 844);
+    await visit('/?lang=ur');
+    await saveImage(`urdu_home_${width}.png`);
+    await visit('/register?lang=ur');
+    await saveImage(`urdu_register_${width}.png`);
+    console.log(`PASS ${width}px Urdu RTL: no overflow`);
   }
 
   console.log(`PASS V13.15.3 responsive browser smoke suite. Screenshots: ${output}`);
