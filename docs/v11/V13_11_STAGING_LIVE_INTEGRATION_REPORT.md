@@ -60,11 +60,14 @@ modified, and the site is not approved for public launch.**
 - V13.10 scenarios: **17/17 PASS**.
 - Full Vitest suite: **603 passed, 1 skipped** in 57 files.
 - Production Vite build: **PASS** (build bundle over 500 KiB warning persists).
-- Full Python discovery: **103 tests executed plus one setUpClass error**;
-  `test_v13_5_two_department_policy` requires
-  `data/v11/curriculum_runs/run_004/candidate_model.json`, which is absent
-  from this clean isolated Git checkout. This is an **artifact availability
-  blocker**, not a passing Python suite and not a model regression verdict.
+- Full Python discovery: **106/106 PASS** (`Ran 106 tests in 15.674s - OK`).
+  The missing Run004 artifact was investigated and resolved: `data/v11/curriculum_runs/`
+  was ignored by `.gitignore`, causing clean checkouts to lack the candidate file.
+  The authoritative frozen Run004 model artifact was verified byte-for-byte identical
+  (SHA-256 `E4D04293...`) to `supabase/functions/submit-classified-complaint/v11_model.json`.
+  `.gitignore` was updated to explicitly preserve frozen `run_004` and `run_006`
+  artifacts, and `test_v13_5_two_department_policy.py` was made robust with a
+  repo-relative fallback.
 - The original frozen Run004/Run006 model weights and runtime selectors were
   not touched, and training was not started.
 
@@ -84,9 +87,9 @@ modified, and the site is not approved for public launch.**
 4. **Security audit:** Supabase advisors still identify privileged functions
    requiring further role-abuse review. A private quota table with RLS and no
    user policies is deliberate: only the service role should reach it.
-5. **Build reproducibility:** Restore the frozen Run004 artifact to the proper
-   test location through the approved artifact workflow before asserting a
-   full Python pass. Do not retrain or invent a replacement artifact.
+5. **Build reproducibility:** Resolved without retraining. Frozen Run004
+   and Run006 artifacts are now explicitly preserved in the repository, and
+   all 106 Python tests pass.
 6. **No public release:** Production database migrations, production Edge
    deployment, Netlify publication, or merging into `main` remain separately
    gated by human review and a successful staging security matrix.

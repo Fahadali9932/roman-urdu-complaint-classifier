@@ -21,11 +21,12 @@ hosted behavior. Update it after every significant verified milestone.
 - **Verification:** Staging transactional SQL security suite passed. Local HTTP
   integration 11/11, Edge boundaries 16/16, V13.10 scenarios 17/17, Vitest
   603 passed/1 skipped, Vite production build passed. Full Python discovery
-  was **not fully green**: one V13.5 setUpClass error because a frozen Run004
-  JSON model artifact is absent in this isolated checkout.
+  passed **106/106 OK**; the Run004 artifact availability was resolved by
+  un-ignoring frozen candidate models in `.gitignore` and adding a robust path
+  fallback, without any retraining or model modification.
 - **Still not launch-ready:** Genuine authenticated multi-account hosted tests,
-  final privileged-RPC audit, migration-ledger reconciliation, and Python
-  artifact availability remain open. No public website deployment authorized.
+  final privileged-RPC audit, and migration-ledger reconciliation remain open release gates.
+  No public website deployment authorized.
 
 See `docs/v11/V13_11_STAGING_LIVE_INTEGRATION_REPORT.md` for precise evidence
 and release blockers. The V13.10.1 section below is historical; its older

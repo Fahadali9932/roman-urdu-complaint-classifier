@@ -11,7 +11,10 @@ from tools.ai_factory.v13_5_two_department_policy import classify_v13_5_python
 class TestV13_5TwoDepartmentPolicy(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        model_path = os.path.join("data", "v11", "curriculum_runs", "run_004", "candidate_model.json")
+        repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+        primary_path = os.path.join(repo_root, "data", "v11", "curriculum_runs", "run_004", "candidate_model.json")
+        fallback_path = os.path.join(repo_root, "supabase", "functions", "submit-classified-complaint", "v11_model.json")
+        model_path = primary_path if os.path.exists(primary_path) else fallback_path
         with open(model_path, "r", encoding="utf-8") as f:
             cls.model_artifact = json.load(f)
 

@@ -64,7 +64,13 @@ supabase/.temp/
 chrome_*
 
 # Curriculum runs & large training caches
-data/v11/curriculum_runs/
+data/v11/curriculum_runs/*
+!data/v11/curriculum_runs/run_004/
+data/v11/curriculum_runs/run_004/*
+!data/v11/curriculum_runs/run_004/candidate_model.json
+!data/v11/curriculum_runs/run_006/
+data/v11/curriculum_runs/run_006/*
+!data/v11/curriculum_runs/run_006/candidate_model.json
 data/v11/stress_test/
 data/v11/eval_v11_4_8/*.jsonl
 scratch/
