@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   type IncidentCaseSummary,
   type CaseReportRow,
@@ -55,6 +55,12 @@ export const CaseDetailPage: React.FC<CaseDetailPageProps> = ({
   const [preview, setPreview] = useState<BulkAcceptPreview | null>(null);
   const [isSubmittingAccept, setIsSubmittingAccept] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const pendingAcceptKey = useRef<string | null>(null);
+
+  useEffect(() => {
+    // An idempotency key belongs to one case and must never follow a navigation.
+    pendingAcceptKey.current = null;
+  }, [caseId]);
 
   // Load Case Item
   const loadCase = useCallback(async () => {
@@ -108,7 +114,9 @@ export const CaseDetailPage: React.FC<CaseDetailPageProps> = ({
     if (!caseItem) return;
     setIsSubmittingAccept(true);
     try {
-      const idempotencyKey = `idemp-${Date.now()}`;
+      // Retry the same transaction key after uncertain network failures.
+      const idempotencyKey = pendingAcceptKey.current ?? `idemp-${crypto.randomUUID()}`;
+      pendingAcceptKey.current = idempotencyKey;
       const result = await caseOperationsService.executeBulkAcceptance(
         caseItem.id,
         idempotencyKey
@@ -123,6 +131,7 @@ export const CaseDetailPage: React.FC<CaseDetailPageProps> = ({
       }
 
       setIsModalOpen(false);
+      pendingAcceptKey.current = null;
       setToastMessage(
         `${result.accepted} reports accepted · ${result.skippedIneligible} unchanged`
       );

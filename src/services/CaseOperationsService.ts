@@ -1267,13 +1267,16 @@ export class CaseOperationsService implements ICaseOperationsService {
       throw new Error(`Incident case ${caseId} not found.`);
     }
 
+    // Live staff acceptance is allowed only after authoritative assignment.
+    // Seeded offline examples may also contain pre-assignment submissions.
+    const live = isSupabaseConfigured() && Boolean(supabase);
     const eligible = found.reports.filter(
-      (r) => r.status === 'assigned' || r.status === 'submitted'
+      (r) => r.status === 'assigned' || (!live && r.status === 'submitted')
     ).length;
 
     const byExcludedStatus: Partial<Record<ComplaintStatus, number>> = {};
     found.reports.forEach((r) => {
-      if (r.status !== 'assigned' && r.status !== 'submitted') {
+      if (r.status !== 'assigned' && (live || r.status !== 'submitted')) {
         byExcludedStatus[r.status] = (byExcludedStatus[r.status] || 0) + 1;
       }
     });
@@ -1311,28 +1314,25 @@ export class CaseOperationsService implements ICaseOperationsService {
       throw new Error(`Incident case ${caseId} not found.`);
     }
 
+    const live = isSupabaseConfigured() && Boolean(supabase);
     const eligibleReports = found.reports.filter(
-      (report) => report.status === 'assigned' || report.status === 'submitted'
+      (report) => report.status === 'assigned' || (!live && report.status === 'submitted')
     );
 
-    // Do not report success before the database confirms status changes.
-    // A truly atomic multi-report transaction requires a dedicated server RPC;
-    // the existing single-report RPC is used sequentially until that exists.
-    if (isSupabaseConfigured() && supabase) {
-      let saved = 0;
-      for (const report of eligibleReports) {
-        const { error } = await supabase.rpc('staff_update_complaint_status', {
-          p_complaint_id: report.complaintId,
-          p_new_status: 'accepted',
-          p_title_en: 'Complaint Accepted by Department',
-          p_title_ur: 'شکایت محکمہ نے قبول کر لی',
-          p_note_en: `Acknowledged under incident case ${found.caseNumber}.`,
-          p_note_ur: `شکایت کو کیس نمبر ${found.caseNumber} کے تحت کارروائی کے لیے منظور کر لیا گیا ہے۔`,
-        });
-        if (error) {
-          throw new Error(`The secure update failed after ${saved} of ${eligibleReports.length} reports. Refresh the case and confirm the status before retrying.`);
-        }
-        saved += 1;
+    // A single database function owns authorization, row locks, all per-report
+    // status/timeline/outbox writes, and idempotency. A failed call rolls back
+    // the entire batch; never commit just the first N reports.
+    if (live && supabase) {
+      if (eligibleReports.length === 0) {
+        throw new Error('This case has no assigned reports awaiting acceptance.');
+      }
+      const { data, error } = await supabase.rpc('staff_accept_department_report_batch', {
+        p_department_id: found.departmentId,
+        p_complaint_ids: eligibleReports.map((report) => report.complaintId),
+        p_idempotency_key: idempotencyKey,
+      });
+      if (error || !data?.success || data.acceptedCount !== eligibleReports.length) {
+        throw new Error('Atomic acceptance was not confirmed. Refresh the case and retry with the same operation key.');
       }
     } else if (!this.isDemonstrationWorkspace()) {
       throw new Error('Secure case acceptance is unavailable without a live department connection.');
@@ -1344,7 +1344,7 @@ export class CaseOperationsService implements ICaseOperationsService {
 
     // Mutate reports atomically
     found.reports.forEach((r) => {
-      if (r.status === 'assigned' || r.status === 'submitted') {
+      if (r.status === 'assigned' || (!live && r.status === 'submitted')) {
         r.status = 'accepted';
         r.updatedAt = new Date().toISOString();
         acceptedCount++;
