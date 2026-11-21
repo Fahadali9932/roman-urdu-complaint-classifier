@@ -13,6 +13,8 @@ import {
   Check,
   Search,
   Loader2,
+  RefreshCw,
+  AlertCircle,
 } from 'lucide-react';
 
 interface CaseDetailPageProps {
@@ -29,6 +31,8 @@ export const CaseDetailPage: React.FC<CaseDetailPageProps> = ({
   const [caseItem, setCaseItem] = useState<IncidentCaseSummary | null>(null);
   const [activeTab, setActiveTab] = useState<'overview' | 'reports' | 'activity' | 'work'>('overview');
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [reportError, setReportError] = useState(false);
 
   // Reports tab state
   const [reportSearch, setReportSearch] = useState('');
@@ -55,13 +59,19 @@ export const CaseDetailPage: React.FC<CaseDetailPageProps> = ({
   // Load Case Item
   const loadCase = useCallback(async () => {
     setLoading(true);
-    const item = await caseOperationsService.getCaseDetail(caseId);
-    setCaseItem(item);
-    if (item) {
-      const prev = await caseOperationsService.previewBulkAcceptance(item.id);
-      setPreview(prev);
+    setLoadError(null);
+    try {
+      const item = await caseOperationsService.getCaseDetail(caseId);
+      setCaseItem(item);
+      if (item) {
+        const prev = await caseOperationsService.previewBulkAcceptance(item.id);
+        setPreview(prev);
+      }
+    } catch (error) {
+      setLoadError(error instanceof Error ? error.message : 'Please try again.');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }, [caseId]);
 
   useEffect(() => {
@@ -71,13 +81,13 @@ export const CaseDetailPage: React.FC<CaseDetailPageProps> = ({
   // Load Reports Tab Data
   const loadReports = useCallback(async () => {
     if (!caseItem) return;
-    const res = await caseOperationsService.listCaseReports(
-      caseItem.id,
-      reportSearch,
-      reportPageNum,
-      10
-    );
-    setReportsPage(res);
+    setReportError(false);
+    try {
+      const res = await caseOperationsService.listCaseReports(caseItem.id, reportSearch, reportPageNum, 10);
+      setReportsPage(res);
+    } catch {
+      setReportError(true);
+    }
   }, [caseItem, reportSearch, reportPageNum]);
 
   useEffect(() => {
@@ -89,7 +99,7 @@ export const CaseDetailPage: React.FC<CaseDetailPageProps> = ({
   // Load Activity Tab Data
   useEffect(() => {
     if (activeTab === 'activity' && caseItem) {
-      caseOperationsService.listCaseActivity(caseItem.id).then(setActivityEvents);
+      caseOperationsService.listCaseActivity(caseItem.id).then(setActivityEvents).catch(() => setActivityEvents([]));
     }
   }, [activeTab, caseItem]);
 
@@ -118,7 +128,7 @@ export const CaseDetailPage: React.FC<CaseDetailPageProps> = ({
       );
       setTimeout(() => setToastMessage(null), 4000);
     } catch (err: any) {
-      alert(`Bulk accept failed: ${err.message || 'Unknown error'}`);
+      setToastMessage(`Acceptance failed: ${err?.message || 'Please retry.'}`);
     } finally {
       setIsSubmittingAccept(false);
     }
@@ -154,6 +164,8 @@ export const CaseDetailPage: React.FC<CaseDetailPageProps> = ({
     );
   }
 
+  if (loadError) return <div className="ops-error-state" role="alert"><AlertCircle size={22} /><div><strong>Could not open the case</strong><p>{loadError}</p></div><button type="button" className="button" onClick={loadCase}><RefreshCw size={16} /> Retry</button></div>;
+
   if (!caseItem) {
     return (
       <div style={{ padding: 40, textAlign: 'center' }}>
@@ -179,6 +191,7 @@ export const CaseDetailPage: React.FC<CaseDetailPageProps> = ({
       {/* Page Header */}
       <div className="page-heading detail-heading">
         <div>
+          <div className="ops-eyebrow">OPERATIONS / INCIDENT DETAIL</div>
           <h1>{caseItem.title}</h1>
           <div className="detail-sub">
             <span className="tag">{caseItem.caseNumber}</span>
@@ -189,6 +202,7 @@ export const CaseDetailPage: React.FC<CaseDetailPageProps> = ({
         </div>
 
         <div className="detail-header-actions">
+          <button className="ops-icon-action" type="button" title="Refresh case" aria-label="Refresh case" onClick={loadCase}><RefreshCw size={17} /></button>
           {eligibleCount > 0 ? (
             <button
               type="button"
@@ -369,13 +383,15 @@ export const CaseDetailPage: React.FC<CaseDetailPageProps> = ({
               </label>
             </div>
 
-            {reportsPage.items.length > 0 ? (
+            {reportError && <div className="ops-error-state" role="alert"><AlertCircle size={18} /><div><strong>Reports could not be loaded</strong><p>Try again to view the linked submissions.</p></div><button className="button" type="button" onClick={loadReports}>Retry</button></div>}
+            {!reportError && (reportsPage.items.length > 0 ? (
               reportsPage.items.map((r) => (
-                <div
+                <button type="button"
                   key={r.complaintId}
                   className="report-line"
-                  style={onOpenReport ? { cursor: 'pointer' } : undefined}
+                  disabled={!onOpenReport}
                   onClick={() => onOpenReport?.(r.referenceNumber)}
+                  aria-label={`Open original report ${r.referenceNumber}`}
                 >
                   <div>
                     <div className="report-ref">
@@ -404,11 +420,11 @@ export const CaseDetailPage: React.FC<CaseDetailPageProps> = ({
                       ? 'Completed'
                       : r.status}
                   </span>
-                </div>
+                </button>
               ))
             ) : (
               <div className="empty-state">No linked reports match this search.</div>
-            )}
+            ))}
 
             <div className="list-footer">
               <span>

@@ -30,12 +30,23 @@ export class CaseOperationsService implements ICaseOperationsService {
   private batchOperations: Map<string, BulkAcceptResult> = new Map();
 
   constructor() {
-    this.seedAllDepartments();
+    // Synthetic cases are training/demo material, never production workload.
+    // A production bundle must build its department queue from authorized data.
+    if (import.meta.env.DEV || import.meta.env.MODE === 'test') {
+      this.seedAllDepartments();
+    }
   }
 
   public resetToDefault(): void {
     this.batchOperations.clear();
-    this.seedAllDepartments();
+    this.casesByDept.clear();
+    if (import.meta.env.DEV || import.meta.env.MODE === 'test') {
+      this.seedAllDepartments();
+    }
+  }
+
+  public isDemonstrationWorkspace(): boolean {
+    return import.meta.env.DEV || import.meta.env.MODE === 'test';
   }
 
   private seedAllDepartments() {
@@ -841,7 +852,12 @@ export class CaseOperationsService implements ICaseOperationsService {
   }
 
   private async syncWithSupabase(deptId: DepartmentId): Promise<void> {
-    if (!isSupabaseConfigured() || !supabase) return;
+    if (!isSupabaseConfigured() || !supabase) {
+      if (!this.isDemonstrationWorkspace()) {
+        throw new Error('Live case data is unavailable because the secure connection is not configured.');
+      }
+      return;
+    }
     try {
       const { data, error } = await supabase
         .from('complaints')
@@ -849,7 +865,8 @@ export class CaseOperationsService implements ICaseOperationsService {
         .select('id, citizen_id, reference_number, created_at, updated_at, status, sanitized_description, description, incident_public_location, incident_locality, generated_heading, title, predicted_department_id, assigned_department_id, assigned_department_ids, incident_district, manual_priority, manual_priority_reason, factual_summary')
         .or(`assigned_department_id.eq.${deptId},predicted_department_id.eq.${deptId}`);
 
-      if (error || !data || !Array.isArray(data)) return;
+      if (error) throw error;
+      if (!data || !Array.isArray(data)) throw new Error('The case service returned an invalid response.');
 
       const list = this.casesByDept.get(deptId) || [];
       const existingRefMap = new Map<string, { caseItem: StoredCase; report: CaseReportRow }>();
@@ -969,8 +986,10 @@ export class CaseOperationsService implements ICaseOperationsService {
           }
         }
       }
-    } catch {
-      // Non-blocking sync failure
+    } catch (error) {
+      // Local demonstrations can still show clearly labeled sample cases.
+      // Production must never disguise a failed secure fetch as an empty inbox.
+      if (!this.isDemonstrationWorkspace()) throw error;
     }
   }
 
@@ -1183,15 +1202,9 @@ export class CaseOperationsService implements ICaseOperationsService {
   async listAreaWorkload(deptId: DepartmentId): Promise<AreaWorkloadSummary[]> {
     await this.syncWithSupabase(deptId);
     const list = this.casesByDept.get(deptId) || [];
-    const areas = [
-      'Gulshan-e-Iqbal',
-      'Korangi',
-      'Gulberg',
-      'North Nazimabad',
-      'Saddar',
-      'Clifton',
-      'PECHS',
-    ];
+    // Use actual case localities. A static seven-area list hid real reports
+    // from any new Karachi locality and produced misleading zero rows.
+    const areas = [...new Set(list.map((item) => item.locality).filter(Boolean))];
 
     return areas
       .map((area) => {
@@ -1290,6 +1303,33 @@ export class CaseOperationsService implements ICaseOperationsService {
       throw new Error(`Incident case ${caseId} not found.`);
     }
 
+    const eligibleReports = found.reports.filter(
+      (report) => report.status === 'assigned' || report.status === 'submitted'
+    );
+
+    // Do not report success before the database confirms status changes.
+    // A truly atomic multi-report transaction requires a dedicated server RPC;
+    // the existing single-report RPC is used sequentially until that exists.
+    if (isSupabaseConfigured() && supabase) {
+      let saved = 0;
+      for (const report of eligibleReports) {
+        const { error } = await supabase.rpc('staff_update_complaint_status', {
+          p_complaint_id: report.complaintId,
+          p_new_status: 'accepted',
+          p_title_en: 'Complaint Accepted by Department',
+          p_title_ur: 'شکایت محکمہ نے قبول کر لی',
+          p_note_en: `Acknowledged under incident case ${found.caseNumber}.`,
+          p_note_ur: `شکایت کو کیس نمبر ${found.caseNumber} کے تحت کارروائی کے لیے منظور کر لیا گیا ہے۔`,
+        });
+        if (error) {
+          throw new Error(`The secure update failed after ${saved} of ${eligibleReports.length} reports. Refresh the case and confirm the status before retrying.`);
+        }
+        saved += 1;
+      }
+    } else if (!this.isDemonstrationWorkspace()) {
+      throw new Error('Secure case acceptance is unavailable without a live department connection.');
+    }
+
     let acceptedCount = 0;
     let skippedCount = 0;
     const unchangedRefs: string[] = [];
@@ -1348,28 +1388,6 @@ export class CaseOperationsService implements ICaseOperationsService {
     };
 
     this.batchOperations.set(opKey, result);
-
-    // Persist status updates to Supabase complaints if configured
-    if (isSupabaseConfigured() && supabase) {
-      const acceptedReports = found.reports.filter((r) => r.status === 'accepted');
-      for (const r of acceptedReports) {
-        supabase.rpc('staff_update_complaint_status', {
-          p_complaint_id: r.complaintId,
-          p_new_status: 'accepted',
-          p_title_en: 'Complaint Accepted by Department',
-          p_title_ur: 'شکایت محکمہ نے قبول کر لی',
-          p_note_en: `Acknowledged in batch operation under incident case ${found.caseNumber}.`,
-          p_note_ur: `شکایت کو کیس نمبر ${found.caseNumber} کے تحت کارروائی کے لیے منظور کر لیا گیا ہے۔`,
-        }).then(({ error }) => {
-          if (error && supabase) {
-            void supabase
-              .from('complaints')
-              .update({ status: 'accepted', updated_at: new Date().toISOString() })
-              .eq('id', r.complaintId);
-          }
-        });
-      }
-    }
 
     return result;
   }

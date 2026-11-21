@@ -2,7 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import type { DepartmentId, IncidentCaseSummary, AreaWorkloadSummary } from '../../../types';
 import type { WorkspaceSection } from './DepartmentSidebar';
 import { caseOperationsService } from '../../../services/CaseOperationsService';
-import { ArrowRight, ArrowUpRight, AlertTriangle, Clock } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, AlertTriangle, Clock, RefreshCw, AlertCircle } from 'lucide-react';
 
 interface OverviewPageProps {
   departmentId: DepartmentId;
@@ -43,9 +43,12 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
   const [nextUpCases, setNextUpCases] = useState<IncidentCaseSummary[]>([]);
   const [topAreas, setTopAreas] = useState<AreaWorkloadSummary[]>([]);
   const [lastRefreshed, setLastRefreshed] = useState<string>('');
+  const [loadState, setLoadState] = useState<'loading' | 'ready' | 'error'>('loading');
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     let active = true;
+    setLoadState('loading');
 
     Promise.all([
       caseOperationsService.getDepartmentWorkSummary(departmentId),
@@ -66,6 +69,7 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
         setSummary(workSummary);
         setNextUpCases(casesPage.items.slice(0, 4));
         setTopAreas(areas.slice(0, 4));
+        setLoadState('ready');
 
         const now = new Date();
         const pktTime = now.toLocaleTimeString('en-US', {
@@ -77,13 +81,16 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
         setLastRefreshed(`Updated today at ${pktTime} PKT`);
       })
       .catch((err) => {
-        console.warn('Overview data loading failed:', err);
+        if (active) {
+          setLoadState('error');
+          console.warn('Overview data loading failed:', err);
+        }
       });
 
     return () => {
       active = false;
     };
-  }, [departmentId]);
+  }, [departmentId, reloadKey]);
 
   // Stage percentages for progress bars
   const stageStats = useMemo(() => {
@@ -101,29 +108,37 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
       {/* 1. Page Heading */}
       <div className="overview-header">
         <div>
-          <div className="overview-eyebrow">{departmentName}</div>
-          <h1 className="overview-title">Overview</h1>
-          <p className="overview-subtitle">Work that needs a response from your team.</p>
+          <div className="overview-eyebrow">{departmentName} / OPERATIONS</div>
+          <h1 className="overview-title">Good work starts here.</h1>
+          <p className="overview-subtitle">Your team's current workload and the next cases to handle.</p>
         </div>
-        <button
-          type="button"
-          className="btn-overview-queue"
-          onClick={() => onNavigate('queue')}
-        >
-          <span>Open work queue</span>
-          <ArrowUpRight className="w-4 h-4" />
-        </button>
+        <div className="ops-heading-actions">
+          <button type="button" className="ops-icon-action" onClick={() => setReloadKey((key) => key + 1)} aria-label="Refresh department overview" title="Refresh overview"><RefreshCw size={17} /></button>
+          <button type="button" className="btn-overview-queue" onClick={() => onNavigate('queue')}>
+            <span>Open work queue</span><ArrowUpRight className="w-4 h-4" />
+          </button>
+        </div>
       </div>
+
+      {caseOperationsService.isDemonstrationWorkspace() && (
+        <div className="ops-demo-notice" role="note"><AlertCircle size={16} aria-hidden="true" /><span><strong>Local demonstration.</strong> Figures include seeded sample incidents and may not reflect production workload.</span></div>
+      )}
+      {loadState === 'error' && (
+        <div className="ops-error-state" role="alert"><AlertCircle size={20} /><div><strong>Overview unavailable</strong><p>We could not load the latest case summary. Existing counts have not been refreshed.</p></div><button type="button" className="button" onClick={() => setReloadKey((key) => key + 1)}>Try again</button></div>
+      )}
+      {loadState === 'loading' && <div className="ops-loading-state" role="status">Refreshing department summary…</div>}
+
+      {loadState === 'ready' && <>
 
       {/* 2. Response Needed Feature Band */}
       <div className="overview-feature-band">
         <div className="feature-band-left">
-          <div className="feature-band-eyebrow">First response</div>
-          <h2 className="feature-band-title">Cases waiting for a reply</h2>
+          <div className="feature-band-eyebrow">01 / ATTENTION REQUIRED</div>
+          <h2 className="feature-band-title">Needs a first response</h2>
           <div className="feature-band-figure">
             <span className="feature-band-number">{summary.casesNeedingResponse}</span>
             <div className="feature-band-note">
-              <strong>distinct cases needing action</strong>
+              <strong>cases awaiting action</strong>
               <span>
                 {summary.reportsAwaitingAck > 0
                   ? `${summary.reportsAwaitingAck.toLocaleString()} citizen reports waiting for acknowledgment.`
@@ -198,16 +213,16 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
         </div>
       </div>
 
-      {/* 3. Facts Strip (4 Distinct Case-Based Metrics) */}
+      {/* Three non-overlapping workload totals (stage counts live above). */}
       <div className="overview-facts-strip" role="group" aria-label="Department case summary metrics">
         <button
           type="button"
           className="fact-item"
           onClick={() => onNavigate('queue')}
         >
-          <span className="fact-label">Needs response</span>
-          <b className="fact-value fact-alert">{summary.casesNeedingResponse}</b>
-          <span className="fact-desc">cases awaiting action</span>
+          <span className="fact-label">Total incident cases</span>
+          <b className="fact-value">{summary.totalCases}</b>
+          <span className="fact-desc">unique public issues</span>
         </button>
 
         <button
@@ -215,9 +230,9 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
           className="fact-item"
           onClick={() => onNavigate('queue')}
         >
-          <span className="fact-label">Accepted</span>
-          <b className="fact-value">{summary.casesAccepted || 0}</b>
-          <span className="fact-desc">cases acknowledged</span>
+          <span className="fact-label">Citizen reports</span>
+          <b className="fact-value">{summary.totalReports.toLocaleString()}</b>
+          <span className="fact-desc">individually trackable submissions</span>
         </button>
 
         <button
@@ -225,19 +240,9 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
           className="fact-item"
           onClick={() => onNavigate('queue')}
         >
-          <span className="fact-label">In progress</span>
-          <b className="fact-value">{summary.casesInProgress}</b>
-          <span className="fact-desc">cases being worked on</span>
-        </button>
-
-        <button
-          type="button"
-          className="fact-item"
-          onClick={() => onNavigate('queue')}
-        >
-          <span className="fact-label">Completed</span>
-          <b className="fact-value fact-success">{summary.casesCompleted}</b>
-          <span className="fact-desc">cases closed</span>
+          <span className="fact-label">Unassigned cases</span>
+          <b className="fact-value fact-alert">{summary.casesUnassigned}</b>
+          <span className="fact-desc">need a responsible officer</span>
         </button>
       </div>
 
@@ -246,7 +251,7 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
         {/* Left Column: Work First */}
         <section className="overview-section" aria-labelledby="work-first-heading">
           <div className="overview-section-head">
-            <h2 id="work-first-heading">Work first</h2>
+            <h2 id="work-first-heading">Next in line</h2>
             <button
               type="button"
               className="section-link-btn"
@@ -295,7 +300,7 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
         {/* Right Column: Areas with Open Cases */}
         <section className="overview-section" aria-labelledby="areas-heading">
           <div className="overview-section-head">
-            <h2 id="areas-heading">Areas with open cases</h2>
+            <h2 id="areas-heading">Where help is needed</h2>
             <button
               type="button"
               className="section-link-btn"
@@ -334,9 +339,8 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
         </section>
       </div>
 
-      <div className="overview-data-note">
-        Total municipal workload: {summary.totalCases} physical cases representing {summary.totalReports.toLocaleString()} individual citizen submissions across Karachi.
-      </div>
+      <div className="overview-data-note">Each case represents one incident; its linked reports stay separately traceable.</div>
+      </>}
     </div>
   );
 };

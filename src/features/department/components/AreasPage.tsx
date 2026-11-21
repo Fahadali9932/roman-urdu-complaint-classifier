@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import type { DepartmentId, AreaWorkloadSummary } from '../../../types';
 import { caseOperationsService } from '../../../services/CaseOperationsService';
-import { ChevronRight, ArrowRight, Inbox, Loader2 } from 'lucide-react';
+import { ChevronRight, ArrowRight, Inbox, Loader2, Search, AlertCircle, RefreshCw } from 'lucide-react';
 
 interface AreasPageProps {
   departmentId: DepartmentId;
@@ -16,19 +16,38 @@ export const AreasPage: React.FC<AreasPageProps> = ({
 }) => {
   const [workloads, setWorkloads] = useState<AreaWorkloadSummary[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const [retry, setRetry] = useState(0);
+  const [search, setSearch] = useState('');
+  const [order, setOrder] = useState<'active' | 'oldest' | 'alphabetical'>('active');
 
   useEffect(() => {
     let mounted = true;
+    setError(false);
+    setLoading(true);
     caseOperationsService.listAreaWorkload(departmentId).then((res) => {
       if (mounted) {
         setWorkloads(res);
         setLoading(false);
       }
+    }).catch(() => {
+      if (mounted) { setError(true); setLoading(false); }
     });
     return () => {
       mounted = false;
     };
-  }, [departmentId]);
+  }, [departmentId, retry]);
+
+  const visibleWorkloads = useMemo(() => {
+    const filtered = workloads.filter((area) =>
+      `${area.area} ${area.topIssues.join(' ')}`.toLowerCase().includes(search.trim().toLowerCase())
+    );
+    return filtered.sort((a, b) => order === 'alphabetical'
+      ? a.area.localeCompare(b.area)
+      : order === 'oldest'
+      ? b.oldestWaitDays - a.oldestWaitDays
+      : b.activeCasesCount - a.activeCasesCount);
+  }, [workloads, search, order]);
 
   const totalActiveCases = workloads.reduce((sum, w) => sum + w.activeCasesCount, 0);
   const totalReports = workloads.reduce((sum, w) => sum + w.linkedReportsCount, 0);
@@ -42,15 +61,16 @@ export const AreasPage: React.FC<AreasPageProps> = ({
     );
   }
 
+  if (error) return <div className="ops-error-state" role="alert"><AlertCircle size={22} /><div><strong>Locality data unavailable</strong><p>Please retry. No figures are shown until this request succeeds.</p></div><button className="button" type="button" onClick={() => setRetry((value) => value + 1)}><RefreshCw size={16} /> Retry</button></div>;
+
   return (
     <div className="areas-page-container">
       {/* Header */}
       <div className="page-heading">
         <div>
+          <div className="ops-eyebrow">OPERATIONS / COVERAGE</div>
           <h1>Areas</h1>
-          <p>
-            See workload by locality. Area totals summarize cases — they never merge unrelated incidents.
-          </p>
+          <p>Find the localities carrying the heaviest unresolved workload.</p>
         </div>
         <button
           type="button"
@@ -63,6 +83,8 @@ export const AreasPage: React.FC<AreasPageProps> = ({
           <ArrowRight className="ico" style={{ width: 16, height: 16 }} />
         </button>
       </div>
+
+      {caseOperationsService.isDemonstrationWorkspace() && <div className="ops-demo-notice" role="note"><AlertCircle size={16} /><span><strong>Demonstration data.</strong> Locality totals include seeded incidents.</span></div>}
 
       {/* 3 Mini Stats */}
       <div className="mini-stats">
@@ -86,9 +108,8 @@ export const AreasPage: React.FC<AreasPageProps> = ({
       </div>
 
       {/* Locality Workload Section */}
-      <section className="section" style={{ marginTop: 24 }}>
-        <h2>Locality workload</h2>
-        <p>Select a locality to open its cases, issues and linked original reports.</p>
+      <section className="section area-section" style={{ marginTop: 24 }}>
+        <div className="ops-section-topline"><div><h2>Locality workload</h2><p>Choose an area to see its cases and linked citizen reports.</p></div><div className="ops-area-tools"><label className="ops-area-search"><Search size={16} /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Find an area" aria-label="Search localities" /></label><label className="ops-sort-label">Sort <select value={order} onChange={(event) => setOrder(event.target.value as typeof order)}><option value="active">Most cases</option><option value="oldest">Longest waiting</option><option value="alphabetical">A to Z</option></select></label></div></div>
 
         <div className="list-shell area-table">
           <div className="area-head">
@@ -100,7 +121,7 @@ export const AreasPage: React.FC<AreasPageProps> = ({
             <span />
           </div>
 
-          {workloads.map((g) => (
+          {visibleWorkloads.map((g) => (
             <button
               type="button"
               key={g.area}
@@ -133,6 +154,7 @@ export const AreasPage: React.FC<AreasPageProps> = ({
               <ChevronRight className="ico" style={{ width: 16, height: 16, color: 'var(--subtle)' }} />
             </button>
           ))}
+          {visibleWorkloads.length === 0 && <div className="empty-state"><strong>No matching areas</strong><p>Try a different locality name.</p><button type="button" className="button" onClick={() => setSearch('')}>Clear search</button></div>}
         </div>
       </section>
     </div>

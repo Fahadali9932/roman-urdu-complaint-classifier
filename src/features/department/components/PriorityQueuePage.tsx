@@ -7,6 +7,10 @@ import {
 } from '../../../lib/priority-engine';
 import {
   CheckCircle2,
+  ArrowUpRight,
+  Clock3,
+  MapPin,
+  Search,
 } from 'lucide-react';
 import { formatPakistanDateParts } from './ComplaintInboxList';
 
@@ -26,6 +30,7 @@ export const PriorityQueuePage: React.FC<PriorityQueuePageProps> = ({
   initialTab = 'urgent',
 }) => {
   const [activeTab, setActiveTab] = useState<QueueTabType>(initialTab);
+  const [search, setSearch] = useState('');
 
   // Evaluate priority for all complaints
   const evaluatedComplaints = useMemo(() => {
@@ -42,20 +47,20 @@ export const PriorityQueuePage: React.FC<PriorityQueuePageProps> = ({
 
   // Filter complaints based on activeTab
   const filteredList = useMemo(() => {
-    return evaluatedComplaints.filter(({ evaluation }) => {
-      return evaluation.queueTabs.includes(activeTab);
-    });
-  }, [evaluatedComplaints, activeTab]);
+    return evaluatedComplaints.filter(({ evaluation, complaint }) =>
+      evaluation.queueTabs.includes(activeTab) &&
+      `${complaint.referenceNumber} ${complaint.generatedHeading || complaint.title} ${complaint.locality} ${complaint.district}`.toLowerCase().includes(search.trim().toLowerCase())
+    ).sort((a, b) => new Date(a.complaint.submittedAt).getTime() - new Date(b.complaint.submittedAt).getTime());
+  }, [evaluatedComplaints, activeTab, search]);
 
   return (
     <div>
       {/* Page Heading */}
       <div className="page-heading">
         <div>
+          <div className="ops-eyebrow">OPERATIONS / ESCALATIONS</div>
           <h1>Priority queue</h1>
-          <p className="page-lead">
-            Cases that need attention outside the routine workflow.
-          </p>
+          <p className="page-lead">Handle urgent safety issues and overdue citizen reports first.</p>
         </div>
         {onViewAllComplaints && (
           <button
@@ -63,10 +68,11 @@ export const PriorityQueuePage: React.FC<PriorityQueuePageProps> = ({
             className="overview-header-action"
             onClick={onViewAllComplaints}
           >
-            All complaints →
+            View work queue <ArrowUpRight size={16} />
           </button>
         )}
       </div>
+      <div className="ops-priority-toolbar"><span>Ordered oldest report first</span><label className="ops-area-search"><Search size={16} /><input aria-label="Search priority complaints" placeholder="Search reference or place" value={search} onChange={(event) => setSearch(event.target.value)} /></label></div>
 
       {/* Priority Navigation Tabs */}
       <div className="tabbar" role="tablist" aria-label="Priority queue filters">
@@ -105,15 +111,15 @@ export const PriorityQueuePage: React.FC<PriorityQueuePageProps> = ({
       </div>
 
       {/* Category Section Heading */}
-      <div style={{ marginTop: '26px', marginBottom: '18px' }}>
-        <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 720, color: 'var(--faint)', marginBottom: '5px' }}>
+      <div className="ops-priority-description">
+        <div className="ops-eyebrow">
           {activeTab === 'urgent'
             ? 'URGENT CASES'
             : activeTab === 'overdue'
             ? 'OVERDUE CASES'
             : 'CASES NEEDING ASSESSMENT'}
         </div>
-        <p style={{ margin: 0, fontSize: '13px', color: 'var(--muted)' }}>
+        <p>
           {activeTab === 'urgent'
             ? 'These cases include an explicit report of immediate risk. Confirm the details before dispatch.'
             : activeTab === 'overdue'
@@ -130,12 +136,12 @@ export const PriorityQueuePage: React.FC<PriorityQueuePageProps> = ({
           </span>
           <h2>No cases in this queue</h2>
           <p>
-            There are no {activeTab === 'urgent' ? 'urgent' : activeTab === 'overdue' ? 'overdue' : 'assessment'} cases in this sample. Routine complaints are intentionally excluded.
+            {search ? 'No results match your search. Try another reference or locality.' : `There are currently no ${activeTab === 'urgent' ? 'urgent' : activeTab === 'overdue' ? 'overdue' : 'assessment'} reports in this queue.`}
           </p>
         </div>
       ) : (
-        <div className="priority-queue-cards" style={{ marginTop: '12px' }}>
-          {filteredList.map(({ complaint: c, evaluation }) => {
+        <div className="priority-queue-cards ops-priority-list">
+          {filteredList.map(({ complaint: c, evaluation }, index) => {
             const dt = formatPakistanDateParts(c.submittedAt);
             const localityStr = c.locality ? `${c.locality}, ${c.district}` : c.district || 'Karachi';
             const titleText = c.generatedHeading || c.title || 'Municipal Complaint';
@@ -146,69 +152,11 @@ export const PriorityQueuePage: React.FC<PriorityQueuePageProps> = ({
                 ? '● Overdue'
                 : '● Needs assessment';
 
-            const accentBorder =
-              activeTab === 'urgent'
-                ? 'var(--urgent)'
-                : activeTab === 'overdue'
-                ? '#d97706'
-                : 'var(--brand)';
-
             return (
-              <article
-                key={c.id}
-                className="priority-item"
-                style={{
-                  borderLeft: `4px solid ${accentBorder}`,
-                }}
-              >
-                <div>
-                  <div style={{ marginBottom: '12px' }}>
-                    <span
-                      className="priority-pill"
-                      style={
-                        activeTab !== 'urgent'
-                          ? { background: 'var(--hover)', color: 'var(--text)', border: '1px solid var(--line)' }
-                          : undefined
-                      }
-                    >
-                      {pillText}
-                    </span>
-                  </div>
-                  <h3 style={{ fontSize: '16px', fontWeight: 650, color: 'var(--text)', marginBottom: '5px' }}>
-                    {titleText}
-                  </h3>
-                  <div style={{ fontSize: '12.5px', color: 'var(--muted)', marginBottom: '14px' }}>
-                    {localityStr} · Reported {dt.date}, {dt.time}
-                  </div>
-
-                  <div style={{ fontSize: '12.5px', fontWeight: 600, color: 'var(--text)', marginBottom: '3px' }}>
-                    Why this case needs attention
-                  </div>
-                  <p style={{ fontSize: '13px', color: 'var(--body)', margin: '0 0 14px 0', lineHeight: 1.55 }}>
-                    {evaluation.priorityReason || evaluation.explanation || 'Priority assessment active.'}
-                  </p>
-
-                  <span className="ref-code">{c.referenceNumber}</span>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => onSelectComplaint(c.referenceNumber)}
-                  className="overview-header-action"
-                  style={{
-                    background: 'var(--brand)',
-                    color: '#fff',
-                    borderColor: 'var(--brand)',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    padding: '0 16px',
-                    height: '38px',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  Open case →
-                </button>
+              <article key={c.id} className="priority-item ops-priority-item" data-severity={activeTab}>
+                <div className="ops-priority-index" aria-hidden="true">{String(index + 1).padStart(2, '0')}</div>
+                <div className="ops-priority-main"><span className="priority-pill">{pillText.replace('● ', '')}</span><h3>{titleText}</h3><div className="ops-priority-meta"><span><MapPin size={14} /> {localityStr}</span><span><Clock3 size={14} /> {dt.date}, {dt.time}</span><code>{c.referenceNumber}</code></div><p>{evaluation.priorityReason || evaluation.explanation || 'Priority assessment is required.'}</p></div>
+                <button type="button" onClick={() => onSelectComplaint(c.referenceNumber)} className="ops-open-case">Review case <ArrowUpRight size={16} /></button>
               </article>
             );
           })}

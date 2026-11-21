@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import {
   type DepartmentId,
   type IncidentCaseSummary,
@@ -12,6 +12,8 @@ import {
   ChevronRight,
   ChevronDown,
   X,
+  AlertCircle,
+  RefreshCw,
 } from 'lucide-react';
 
 interface WorkQueuePageProps {
@@ -52,7 +54,11 @@ export const WorkQueuePage: React.FC<WorkQueuePageProps> = ({
   const pageSize = 25;
 
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
-  const [_loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [retry, setRetry] = useState(0);
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const requestId = useRef(0);
 
   // Data
   const [casePage, setCasePage] = useState<CursorPage<IncidentCaseSummary>>({
@@ -91,16 +97,24 @@ export const WorkQueuePage: React.FC<WorkQueuePageProps> = ({
   });
 
   // Areas list
-  const areaOptions = [
-    'All areas',
-    'Gulshan-e-Iqbal',
-    'Korangi',
-    'Gulberg',
-    'North Nazimabad',
-    'Saddar',
-    'Clifton',
-    'PECHS',
-  ];
+  const [areaOptions, setAreaOptions] = useState(['All areas']);
+
+  useEffect(() => {
+    let current = true;
+    caseOperationsService.listAreaWorkload(departmentId)
+      .then((areas) => {
+        if (current) setAreaOptions(['All areas', ...areas.map((area) => area.area)]);
+      })
+      .catch(() => {
+        // The queue is still usable without locality suggestions.
+      });
+    return () => { current = false; };
+  }, [departmentId, retry]);
+
+  useEffect(() => {
+    const timeout = window.setTimeout(() => setDebouncedSearch(searchQuery), 250);
+    return () => window.clearTimeout(timeout);
+  }, [searchQuery]);
 
   // Dynamic issue types based on loaded cases
   const issueOptions = useMemo(() => {
@@ -135,19 +149,23 @@ export const WorkQueuePage: React.FC<WorkQueuePageProps> = ({
           });
         }
       }
+    }).catch(() => {
+      // Loading errors are reported by the queue itself below.
     });
     return () => {
       mounted = false;
     };
-  }, [departmentId, onCountUpdate]);
+  }, [departmentId, onCountUpdate, retry]);
 
   // Fetch data
   const loadData = useCallback(async () => {
+    const thisRequest = ++requestId.current;
     setLoading(true);
+    setLoadError(null);
     const filter: WorkQueueFilter = {
       savedView,
       displayMode,
-      searchQuery,
+      searchQuery: debouncedSearch,
       area: selectedArea,
       issueType: selectedIssue,
       sort: selectedSort,
@@ -155,28 +173,37 @@ export const WorkQueuePage: React.FC<WorkQueuePageProps> = ({
       pageSize,
     };
 
-    if (displayMode === 'cases') {
-      const res = await caseOperationsService.listDepartmentCases(departmentId, filter);
-      setCasePage(res);
-    } else {
-      const res = await caseOperationsService.listDepartmentReports(departmentId, filter);
-      setReportPage(res);
+    try {
+      if (displayMode === 'cases') {
+        const res = await caseOperationsService.listDepartmentCases(departmentId, filter);
+        if (requestId.current === thisRequest) setCasePage(res);
+      } else {
+        const res = await caseOperationsService.listDepartmentReports(departmentId, filter);
+        if (requestId.current === thisRequest) setReportPage(res);
+      }
+    } catch (error) {
+      if (requestId.current === thisRequest) {
+        setLoadError(error instanceof Error ? error.message : 'The work queue could not be loaded.');
+      }
+    } finally {
+      if (requestId.current === thisRequest) setLoading(false);
     }
-    setLoading(false);
   }, [
     departmentId,
     savedView,
     displayMode,
-    searchQuery,
+    debouncedSearch,
     selectedArea,
     selectedIssue,
     selectedSort,
     page,
     pageSize,
+    retry,
   ]);
 
   useEffect(() => {
     loadData();
+    return () => { requestId.current += 1; };
   }, [loadData]);
 
   // Handle external initial area change
@@ -226,13 +253,21 @@ export const WorkQueuePage: React.FC<WorkQueuePageProps> = ({
       {/* Page Heading */}
       <div className="page-heading">
         <div>
+          <div className="ops-eyebrow">OPERATIONS / INTAKE</div>
           <h1>Work queue</h1>
-          <p>One place to manage incidents and all linked citizen reports.</p>
+          <p>Review incoming cases, assign a response, and follow every citizen report.</p>
         </div>
         <div className="small-counter">
           {summaryStats.totalCases} cases · {summaryStats.totalReports.toLocaleString()} reports
         </div>
       </div>
+
+      {caseOperationsService.isDemonstrationWorkspace() && (
+        <div className="ops-demo-notice" role="note">
+          <AlertCircle size={16} aria-hidden="true" />
+          <span><strong>Demonstration data.</strong> Example incidents are included in this local workspace; counts are not verified live totals.</span>
+        </div>
+      )}
 
       {/* Saved Views & Display Mode Switch */}
       <div className="viewbar">
@@ -532,6 +567,15 @@ export const WorkQueuePage: React.FC<WorkQueuePageProps> = ({
       </p>
 
       {/* Contiguous List Surface */}
+      {loadError && (
+        <div className="ops-error-state" role="alert">
+          <AlertCircle size={20} aria-hidden="true" />
+          <div><strong>Unable to load the work queue</strong><p>{loadError}</p></div>
+          <button type="button" className="button" onClick={() => setRetry((value) => value + 1)}><RefreshCw size={16} /> Retry</button>
+        </div>
+      )}
+      {loading && !loadError && <div className="ops-loading-state" role="status">Loading current work queue…</div>}
+      {!loading && !loadError && (
       <div className={`list-shell ${density === 'compact' ? 'density-compact' : 'density-comfortable'}`}>
         <div className="case-list-header">
           <span>
@@ -753,6 +797,7 @@ export const WorkQueuePage: React.FC<WorkQueuePageProps> = ({
           </div>
         </div>
       </div>
+      )}
     </div>
   );
 };

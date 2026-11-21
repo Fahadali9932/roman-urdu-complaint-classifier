@@ -40,6 +40,7 @@ import {
   CheckCircle2,
 } from 'lucide-react';
 import './department-theme.css';
+import './department-operations-v16.css';
 
 export const DepartmentDashboardPage: React.FC = () => {
   const { departmentId, departmentMeta, session, isAuthenticated, checkRevocationStatus, signOut } =
@@ -214,6 +215,8 @@ export const DepartmentDashboardPage: React.FC = () => {
   // Complaints State
   const [complaints, setComplaints] = useState<DepartmentComplaintView[]>([]);
   const [reviewComplaints, setReviewComplaints] = useState<DepartmentComplaintView[]>([]);
+  const [reviewLoadError, setReviewLoadError] = useState<string | null>(null);
+  const [reviewRetryKey, setReviewRetryKey] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
   // Active complaint detail selection
@@ -321,13 +324,16 @@ export const DepartmentDashboardPage: React.FC = () => {
             const reviewRows = await complaintService.getReviewQueueComplaints();
             if (!isCancelled) {
               setReviewComplaints(reviewRows);
+              setReviewLoadError(null);
             }
-          } catch {
-            // Ignore review queue failures for non-clearinghouse
+          } catch (error) {
+            if (!isCancelled) setReviewLoadError(error instanceof Error ? error.message : 'Unable to load review queue.');
           }
         }
-      } catch {
-        // Handled silently for polling
+      } catch (error) {
+        if (!isCancelled && !options?.silent) {
+          console.warn('Department report list could not load:', error);
+        }
       } finally {
         if (!isCancelled && !options?.silent) {
           setIsLoading(false);
@@ -368,7 +374,7 @@ export const DepartmentDashboardPage: React.FC = () => {
         supabase.removeChannel(channel);
       }
     };
-  }, [departmentId]);
+  }, [departmentId, reviewRetryKey]);
 
   // Deep-linking: Load requested complaint by reference number
   useEffect(() => {
@@ -696,6 +702,7 @@ export const DepartmentDashboardPage: React.FC = () => {
                   {/* Page Heading */}
                   <div className="page-heading">
                     <div>
+                      <div className="ops-eyebrow">OPERATIONS / {activeTaskFilter === 'under_review' ? 'ROUTING' : 'REPORTS'}</div>
                       <h1>{activeTaskFilter === 'under_review' ? 'Review Queue' : 'Complaints'}</h1>
                       <p className="page-lead">
                         {activeTaskFilter === 'under_review'
@@ -707,6 +714,10 @@ export const DepartmentDashboardPage: React.FC = () => {
                       {filteredComplaints.length} {activeTaskFilter === 'under_review' ? 'under review' : 'complaints'}
                     </div>
                   </div>
+
+                  {activeTaskFilter === 'under_review' && reviewLoadError && (
+                    <div className="ops-error-state" role="alert"><AlertCircle size={20} /><div><strong>Routing review is unavailable</strong><p>{reviewLoadError}</p></div><button className="button" type="button" onClick={() => setReviewRetryKey((value) => value + 1)}>Retry loading</button></div>
+                  )}
 
                   {/* Horizontal Status Tabs (For standard complaints view) */}
                   {activeTaskFilter !== 'under_review' && (
@@ -819,13 +830,13 @@ export const DepartmentDashboardPage: React.FC = () => {
                       <Loader2 className="w-8 h-8 animate-spin" style={{ margin: '0 auto 12px', color: 'var(--brand)' }} />
                       <p style={{ fontSize: '13px', fontWeight: 600 }}>Loading complaints...</p>
                     </div>
-                  ) : (
+                  ) : !(activeTaskFilter === 'under_review' && reviewLoadError) ? (
                     <ComplaintInboxList
                       complaints={filteredComplaints}
                       selectedReference={selectedReference}
                       onSelectComplaint={(ref) => setSelectedReference(ref)}
                     />
-                  )}
+                  ) : null}
                 </div>
               ) : (
                 /* CASE OPERATIONS WORK QUEUE */
