@@ -61,7 +61,7 @@ export const PageTransition: React.FC<PageTransitionProps> = ({ children }) => {
     }
 
     setAnimating(true);
-    const duration = isMobile ? 320 : 460;
+    const duration = isMobile ? 300 : 460;
     const timer = setTimeout(() => {
       setAnimating(false);
     }, duration);

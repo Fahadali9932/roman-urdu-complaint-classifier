@@ -66,11 +66,11 @@ describe('ComplaintJourney Component (Minimal Process Cards & Animated Arrows)',
   it('keeps desktop vector connectors and uses pinned full-screen stages on mobile', () => {
     renderComponent();
 
-    const svgs = document.querySelectorAll('#steps svg');
-    // Desktop still has its three connecting arrows; mobile now uses full-cover sheets.
-    expect(svgs.length).toBe(3);
-    svgs.forEach((svg) => {
-      const path = svg.querySelector('path');
+    const connectors = document.querySelectorAll('#steps svg path[stroke="#0B1421"]');
+    // Desktop still has its three vector connectors. Mobile also has small
+    // Lucide down arrows that should not count toward this assertion.
+    expect(connectors.length).toBe(3);
+    connectors.forEach((path) => {
       expect(path).toBeInTheDocument();
       expect(path).toHaveAttribute('stroke', '#0B1421');
       expect(path).toHaveAttribute('stroke-linecap', 'round');
@@ -79,6 +79,8 @@ describe('ComplaintJourney Component (Minimal Process Cards & Animated Arrows)',
     expect(mobileStages).toHaveLength(4);
     mobileStages.forEach((stage) => {
       expect(stage.firstElementChild?.className).toContain('sticky');
+      expect(stage.className).not.toContain('h-[135svh]');
+      expect(stage.firstElementChild?.className).toContain('h-[clamp(360px,68svh,580px)]');
     });
   });
 });

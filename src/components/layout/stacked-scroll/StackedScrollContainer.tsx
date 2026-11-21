@@ -85,6 +85,16 @@ export const StackedScrollContainer: React.FC<StackedScrollContainerProps> = ({
 
       if (!current.innerEl || !next.outerEl || !current.recedeOnScroll) continue;
 
+      // The mobile sheets already move over one another through native sticky
+      // positioning. Repeated perspective transforms of an entire text-heavy
+      // viewport caused jitter and blurry glyphs during touch scrolling.
+      if (isNarrow) {
+        current.innerEl.style.transform = 'none';
+        current.innerEl.style.filter = 'none';
+        current.innerEl.style.willChange = 'auto';
+        continue;
+      }
+
       const nextRect = next.outerEl.getBoundingClientRect();
 
       // How far has the incoming section moved into the viewport?
@@ -109,14 +119,7 @@ export const StackedScrollContainer: React.FC<StackedScrollContainerProps> = ({
         let translateZ: number;
         let rotateX: number;
 
-        if (isNarrow) {
-          // Narrow screens: subtle depth cue without shrinking readable text
-          scale = 1.0 - 0.022 * t;
-          translateY = 6 * t;
-          translateZ = -10 * t;
-          rotateX = 0.25 * t;
-          current.innerEl.style.transform = `perspective(900px) translate3d(0, ${translateY}px, ${translateZ}px) rotateX(${rotateX}deg) scale(${scale})`;
-        } else if (isMid) {
+        if (isMid) {
           // Tablet: restrained perspective, without image-style text filtering
           scale = 1.0 - 0.025 * t;
           translateY = 10 * t;

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { ArrowDown } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 
 interface ComplaintJourneyProps {
@@ -590,41 +591,43 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({
         </div>
       </div>
 
-      {/* On touch screens each full-viewport sheet pins briefly as the next sheet
-          physically covers it. Motion-reduced users receive normal document flow. */}
-      <div className="lg:hidden w-full px-3 sm:px-6">
-        <div className="flex min-h-[54svh] items-center justify-center text-center px-3">
-          <h2 className="font-display text-[clamp(2.6rem,11vw,5rem)] text-[#141414] uppercase tracking-tight leading-[0.95]">
+      {/* Touch devices use compact sticky cover sheets with native scrolling.
+          No scroll-driven transforms of text: this avoids stutter, blurry type,
+          and the giant empty cards of the earlier 135svh implementation. */}
+      <div className="lg:hidden w-full px-3 pb-8 sm:px-6 sm:pb-12">
+        <div className="flex items-center justify-center px-4 pb-8 pt-20 text-center sm:pb-12 sm:pt-24">
+          <h2 className="font-display text-[clamp(2.5rem,10vw,4.4rem)] text-[#141414] uppercase tracking-tight leading-[0.95]">
             {t('processHeading') || (language === 'ur' ? 'طریقہ کار' : 'How It Works')}
           </h2>
         </div>
-        <div className="relative">
+        <div className="relative isolate">
           {stepsData.map((step, index) => (
             <article
               key={step.key}
               data-mobile-journey-stage={step.key}
               style={{ zIndex: index + 1 }}
-              className={`relative ${prefersReducedMotion ? 'mb-5 h-auto' : 'h-[135svh] -mt-[35svh] first:mt-0'}`}
+              className={`relative ${prefersReducedMotion ? 'mb-5' : 'min-h-[105svh] last:min-h-[85svh]'}`}
             >
-              <div className={`${prefersReducedMotion ? 'relative min-h-[260px]' : 'sticky top-[64px] h-[calc(100svh-72px)]'} flex w-full flex-col justify-between overflow-hidden rounded-[26px] border-2 border-[#E3DCD6] bg-[#FAF9F7] p-6 shadow-[0_-20px_45px_rgba(24,13,14,0.09)] sm:p-10`}>
+              <div className={`${prefersReducedMotion ? 'relative min-h-[280px]' : 'sticky top-[84px] h-[clamp(360px,68svh,580px)]'} flex w-full flex-col overflow-hidden rounded-[24px] border border-[#DCD5CF] bg-[#FAF9F7] p-6 shadow-[0_-18px_42px_rgba(24,13,14,0.13)] sm:p-9`}>
                 <div className="flex items-center justify-between gap-4">
-                  <p className="font-mono text-xs font-extrabold uppercase tracking-[0.18em] text-[#681822]">
+                  <p className="font-mono text-[11px] font-bold uppercase tracking-[0.16em] text-[#681822]">
                     {language === 'ur' ? 'مرحلہ' : 'Step'} {String(index + 1).padStart(2, '0')}
                   </p>
-                  <span className="text-sm font-bold text-[#746A64]">{index + 1} / {stepsData.length}</span>
+                  <span className="text-xs font-semibold tabular-nums text-[#746A64]">{index + 1} / {stepsData.length}</span>
                 </div>
-                <div className="my-auto py-10">
-                  <div className="mb-7 h-1.5 w-14 rounded-full bg-[#681822]" aria-hidden="true" />
-                  <h3 className="font-display text-[clamp(2.9rem,14vw,6rem)] font-black uppercase leading-[0.9] tracking-[-0.04em] text-[#1B1717]">
+                <div className="flex flex-1 flex-col justify-center py-7 sm:py-10">
+                  <div className="mb-5 h-1 w-12 rounded-full bg-[#681822]" aria-hidden="true" />
+                  <h3 className="font-display text-[clamp(2.8rem,12.5vw,5rem)] font-black uppercase leading-[0.9] tracking-[-0.04em] text-[#1B1717]">
                     {step.title}
                   </h3>
-                  <p className="mt-5 max-w-prose text-lg font-semibold leading-relaxed text-[#3A3230] sm:text-2xl">{step.desc}</p>
+                  <p className="mt-4 max-w-prose text-base font-medium leading-relaxed text-[#3A3230] sm:text-xl">{step.desc}</p>
                 </div>
-                <p className="border-t border-[#DFD6D0] pt-4 text-xs font-bold uppercase tracking-wide text-[#635953]">
-                  {index === stepsData.length - 1
-                    ? (language === 'ur' ? 'اب شکایت درج کرنے کے لیے تیار ہیں' : 'You are ready to report an issue')
-                    : (language === 'ur' ? 'اگلا مرحلہ دیکھنے کے لیے اسکرول کریں' : 'Scroll for the next step')}
-                </p>
+                <div className="flex items-center justify-between gap-3 border-t border-[#DFD6D0] pt-4 text-xs font-semibold text-[#635953]">
+                  <span>{index === stepsData.length - 1
+                    ? (language === 'ur' ? 'اب شکایت درج کریں' : 'Ready to report an issue')
+                    : `${language === 'ur' ? 'اگلا' : 'Next'}: ${stepsData[index + 1].title}`}</span>
+                  {index !== stepsData.length - 1 && <ArrowDown className="h-4 w-4 shrink-0" aria-hidden="true" />}
+                </div>
               </div>
             </article>
           ))}

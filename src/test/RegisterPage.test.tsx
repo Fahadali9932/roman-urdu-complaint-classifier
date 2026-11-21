@@ -58,16 +58,16 @@ describe('RegisterPage Component (Two-Column Reference Redesign & Gate D Policy)
     expect(screen.getByText(/Guests can still track with their private number/i)).toBeInTheDocument();
   });
 
-  it('renders the atmospheric visual artwork panel with topic chips and value proposition', () => {
+  it('reuses the footer Mazar-e-Quaid artwork rather than a blank red card', () => {
     renderRegister();
 
-    // Artwork panel headline & copy
+    const photo = screen.getByTestId('registration-monument');
+    expect(photo).toHaveAttribute('src', expect.stringContaining('mazar-e-quaid'));
+    expect(photo).toHaveAttribute('alt', '');
+
     expect(screen.getByRole('heading', { level: 2, name: /A simpler way to report public-service issues/i })).toBeInTheDocument();
     expect(screen.getByText(/Write your complaint in everyday language and follow its progress in one place/i)).toBeInTheDocument();
-
-    // Topic chips
-    expect(screen.getByText(/Write a complaint/i)).toBeInTheDocument();
-    expect(screen.getByText(/Track progress/i)).toBeInTheDocument();
+    expect(screen.queryByText(/Describe the issue in your own words/i)).not.toBeInTheDocument();
   });
 
   it('toggles password visibility between password and text modes', () => {
