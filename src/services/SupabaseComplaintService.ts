@@ -71,7 +71,10 @@ const mapComplaintRow = (r: any): Complaint => {
   };
 };
 
-const COMPLAINT_SELECT_QUERY = '*, complaint_timeline_events(*)';
+// This is a browser-side, authenticated query. Never fetch the credential
+// digests (claim_code_hash and guest_tracking_hash) stored on complaints:
+// possessing a guest claim digest is sufficient to claim that case via RPC.
+const COMPLAINT_SELECT_QUERY = 'id,citizen_id,reference_number,incident_district,incident_locality,incident_public_location,title,description,sanitized_description,generated_heading,factual_summary,redaction_flags,redaction_needs_review,detected_language,status,assigned_department_id,assigned_department_ids,predicted_department_id,prediction_confidence,is_multilabel,has_hazard,created_at,updated_at,is_demonstration,manual_priority,manual_priority_reason,manual_priority_by,manual_priority_at,complaint_timeline_events(*)';
 
 export class ComplaintSubmissionError extends Error {
   constructor(

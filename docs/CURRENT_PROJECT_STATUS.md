@@ -5,6 +5,29 @@ Verified on **20 November 2026 (Pakistan time)**. Internal delivery target:
 This document distinguishes inspected source, automated checks, and unverified
 hosted behavior. Update it after every significant verified milestone.
 
+## Current development update, 21 November 2026 — Phase V13.13: Guest Credential Exposure Found and Repair Prepared
+
+- **Confirmed on hosted staging:** The authenticated Postgres role had
+  table-wide `SELECT` on `public.complaints`, including the guest claim and
+  tracking SHA-256 digests. The guest claim RPC accepts the stored claim digest
+  directly; staff able to view a guest case could potentially use a second
+  citizen account to take ownership. No real complaint was accessed or claimed.
+- Implemented **column-level SELECT restriction** in a new staging-first
+  migration and replaced the two browser wildcard complaint queries with
+  explicit safe projections. Extended the V13.12 real-user gate to test both
+  forbidden secret columns for all five roles.
+- Verified locally: **4/4** new static regression gates, TypeScript typecheck,
+  production build, **603 Vitest tests passed / 1 skipped**, **106 Python
+  tests passed**, Edge boundaries **16/16**, and V13.12 gate tests **7/7**.
+- The migration completed a real PostgreSQL **rollback rehearsal** on staging;
+  subsequent privilege checks proved the original grants were untouched.
+- **Not yet released:** GitHub connected integration rejected branch creation
+  with `403 Resource not accessible by integration`, despite account read
+  access. To avoid breaking older website clients, the migration has **not**
+  been applied to hosted staging. No production or model changes occurred.
+- The five-account genuine Auth/JWT test still requires an authorized
+  staging-only service-role credential. Public release remains blocked.
+
 ## Current development update, 21 November 2026 — Phase V13.12: Real Auth Gate Prepared, Awaiting Accounts
 
 - Confirmed directly from the **staging Auth service** that email confirmation

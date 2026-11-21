@@ -845,7 +845,8 @@ export class CaseOperationsService implements ICaseOperationsService {
     try {
       const { data, error } = await supabase
         .from('complaints')
-        .select('*')
+        // Staff must never request the guest claim/tracking credential digests.
+        .select('id, citizen_id, reference_number, created_at, updated_at, status, sanitized_description, description, incident_public_location, incident_locality, generated_heading, title, predicted_department_id, assigned_department_id, assigned_department_ids, incident_district, manual_priority, manual_priority_reason, factual_summary')
         .or(`assigned_department_id.eq.${deptId},predicted_department_id.eq.${deptId}`);
 
       if (error || !data || !Array.isArray(data)) return;

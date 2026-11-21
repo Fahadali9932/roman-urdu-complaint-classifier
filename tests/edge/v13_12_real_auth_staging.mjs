@@ -179,6 +179,17 @@ export async function runHostedMatrix(config) {
     }
   }
 
+  // A stored SHA-256 guest claim digest is itself accepted by the claim RPC.
+  // Every authenticated persona, including admins and staff, must be unable
+  // to fetch these digests from the public complaints API.
+  for (const [id] of PERSONAS) {
+    for (const secretColumn of ['claim_code_hash', 'guest_tracking_hash']) {
+      const leak = await fetchJson(config,
+        rest('complaints', byId(kmc), secretColumn), sessions[id].token);
+      assertForbiddenResponse(leak, `${id}: ${secretColumn} must be unreadable`);
+    }
+  }
+
   for (const issueId of [kmc, electric]) {
     assert.equal(await visibleCount(config, sessions.admin, 'complaints', 'id', issueId, 'id'), 1,
       'Admin cannot inspect staging fixture');
@@ -211,6 +222,7 @@ export async function runHostedMatrix(config) {
 
   return { passed: true, authenticatedUsers: 5, fixtures: 2,
     checked: ['real-jwt', 'profile-roles', 'citizen-isolation', 'department-isolation',
+      'guest-credential-column-denial',
       'private-data-isolation', 'staff-memberships', 'admin-rpc-denial', 'admin-queue'] };
 }
 
