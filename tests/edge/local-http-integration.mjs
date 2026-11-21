@@ -23,7 +23,7 @@ registerHooks({
 
 await import('../../supabase/functions/submit-classified-complaint/index.ts');
 
-function createMockDatabase(user = { id: 'test-user', role: 'citizen' }) {
+function createMockDatabase(user = { id: 'test-user', role: 'citizen' }, quota = { data: true, error: null }) {
   const writes = [];
   client = {
     auth: {
@@ -40,6 +40,9 @@ function createMockDatabase(user = { id: 'test-user', role: 'citizen' }) {
       };
     },
     rpc: async (fn, args) => {
+      if (fn === 'reserve_complaint_intake_quota') {
+        return quota;
+      }
       writes.push({ fn, args });
       return {
         data: {
@@ -253,6 +256,31 @@ test('Local HTTP Server: Missing spaces cannot bypass per-field length limits', 
     body: JSON.stringify({ ...draftBase, description: 'gas band hai', citizenName: 'X'.repeat(241) }),
   });
   assert.equal(response.status, 400);
+  assert.equal(db.writes.length, 0);
+});
+
+test('Local HTTP Server: Quota database outage fails closed without complaint writes', async () => {
+  const db = createMockDatabase(undefined, { data: null, error: { code: 'QUOTA_DB_OFFLINE' } });
+  const response = await fetch(`${baseUrl}/submit`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ...draftBase, description: 'Gas ki supply bilkul band hai' }),
+  });
+  assert.equal(response.status, 503);
+  assert.equal((await response.json()).code, 'INTAKE_QUOTA_UNAVAILABLE');
+  assert.equal(db.writes.length, 0);
+});
+
+test('Local HTTP Server: Shared quota denial returns Retry-After without classifier write', async () => {
+  const db = createMockDatabase(undefined, { data: false, error: null });
+  const response = await fetch(`${baseUrl}/submit`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ...draftBase, description: 'Gas ki supply bilkul band hai' }),
+  });
+  assert.equal(response.status, 429);
+  assert.equal((await response.json()).code, 'RATE_LIMITED');
+  assert.equal(response.headers.get('Retry-After'), '60');
   assert.equal(db.writes.length, 0);
 });
 

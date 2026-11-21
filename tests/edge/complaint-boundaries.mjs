@@ -41,7 +41,11 @@ function database(tables, user = { id: 'test-user' }) {
       };
       return query;
     },
-    rpc: async (_name, args) => { writes.push(args); return { data: {} }; },
+    rpc: async (_name, args) => {
+      if (_name === 'reserve_complaint_intake_quota') return { data: true, error: null };
+      writes.push(args);
+      return { data: {} };
+    },
   };
   return { reads, writes };
 }

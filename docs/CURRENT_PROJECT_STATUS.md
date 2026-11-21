@@ -5,6 +5,32 @@ Verified on **20 November 2026 (Pakistan time)**. Internal delivery target:
 This document distinguishes inspected source, automated checks, and unverified
 hosted behavior. Update it after every significant verified milestone.
 
+## Current development update, 21 November 2026 — Phase V13.11: Hosted Staging Intake Verified
+
+- **Staging only:** Deployed the actual AI-backed
+  `submit-classified-complaint` Supabase Edge Function. A fictional guest
+  complaint was classified, routed to SSGC, persisted, and found through the
+  hosted tracking RPC. It was then deleted; staging has **0 complaints and 0
+  Auth users**. `main`, production, and the original Windows worktree were
+  not changed.
+- **Security:** Corrected V13.10 reassignment audit-column and missing-issue
+  bugs. Applied durable Postgres-backed shared quotas with service-only RPC
+  access and a fail-closed Edge intake path (staging limit: 10 guest/client/min,
+  30 authenticated/client/min, 120 global/min, 600 global/day). Forwarded-IP
+  spoofing is only *bounded* by global caps, not eliminated.
+- **Verification:** Staging transactional SQL security suite passed. Local HTTP
+  integration 11/11, Edge boundaries 16/16, V13.10 scenarios 17/17, Vitest
+  603 passed/1 skipped, Vite production build passed. Full Python discovery
+  was **not fully green**: one V13.5 setUpClass error because a frozen Run004
+  JSON model artifact is absent in this isolated checkout.
+- **Still not launch-ready:** Genuine authenticated multi-account hosted tests,
+  final privileged-RPC audit, migration-ledger reconciliation, and Python
+  artifact availability remain open. No public website deployment authorized.
+
+See `docs/v11/V13_11_STAGING_LIVE_INTEGRATION_REPORT.md` for precise evidence
+and release blockers. The V13.10.1 section below is historical; its older
+in-memory rate limiter has been replaced by V13.11's shared durable quota.
+
 ## Current development update, 21 November 2026 — Phase V13.10.1: Intake Boundary Fixes & Abuse Controls
 
 - Fixed public-request demonstration-mode injection, added streaming JSON

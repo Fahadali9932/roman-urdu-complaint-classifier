@@ -57,28 +57,24 @@ BEGIN
         updated_at = v_now
     WHERE id = p_complaint_id;
 
-    -- Reconcile complaint_issues: reject non-matching issues, ensure target issue exists and is assigned
-    IF EXISTS (SELECT 1 FROM public.complaint_issues WHERE complaint_id = p_complaint_id) THEN
-        UPDATE public.complaint_issues
-        SET status = 'rejected',
-            updated_at = v_now
-        WHERE complaint_id = p_complaint_id
-          AND department_id <> p_new_department_id
-          AND status <> 'rejected';
+    -- Create a target issue even when the complaint previously had none.
+    UPDATE public.complaint_issues
+    SET status = 'rejected', updated_at = v_now
+    WHERE complaint_id = p_complaint_id
+      AND department_id <> p_new_department_id
+      AND status <> 'rejected';
 
-        UPDATE public.complaint_issues
-        SET status = 'assigned',
-            updated_at = v_now
-        WHERE complaint_id = p_complaint_id
-          AND department_id = p_new_department_id;
+    UPDATE public.complaint_issues
+    SET status = 'assigned', updated_at = v_now
+    WHERE complaint_id = p_complaint_id
+      AND department_id = p_new_department_id;
 
-        IF NOT FOUND THEN
-            INSERT INTO public.complaint_issues (
-                complaint_id, department_id, issue_type, status, created_at, updated_at
-            ) VALUES (
-                p_complaint_id, p_new_department_id, 'administrative_reassignment', 'assigned', v_now, v_now
-            );
-        END IF;
+    IF NOT FOUND THEN
+        INSERT INTO public.complaint_issues (
+            complaint_id, department_id, issue_type, status, created_at, updated_at
+        ) VALUES (
+            p_complaint_id, p_new_department_id, 'administrative_reassignment', 'assigned', v_now, v_now
+        );
     END IF;
 
     -- Record in timeline
@@ -109,17 +105,17 @@ BEGIN
         complaint_id,
         actor_user_id,
         action,
-        from_status,
-        to_status,
-        notes,
+        previous_state,
+        new_state,
+        details,
         created_at
     ) VALUES (
         p_complaint_id,
         v_caller_id,
         'department_reassigned',
-        v_complaint.status,
-        v_complaint.status,
-        format('Admin reassigned from %s to %s. Reason: %s', coalesce(v_old_department_id, 'none'), p_new_department_id, trim(p_reason)),
+        pg_catalog.jsonb_build_object('status', v_complaint.status, 'assigned_department_id', v_old_department_id),
+        pg_catalog.jsonb_build_object('status', v_complaint.status, 'assigned_department_id', p_new_department_id),
+        pg_catalog.jsonb_build_object('reason', p_reason, 'previousDepartment', v_old_department_id, 'newDepartment', p_new_department_id),
         v_now
     );
 
@@ -160,6 +156,7 @@ BEGIN
     INTO v_reviewer_dept_id
     FROM public.department_memberships m
     WHERE m.user_id = v_caller_id
+      AND m.department_id = 'kmc'
       AND m.status = 'active'
     LIMIT 1;
 
@@ -199,28 +196,24 @@ BEGIN
         updated_at = v_now
     WHERE id = p_complaint_id;
 
-    -- Reconcile complaint_issues rows
-    IF EXISTS (SELECT 1 FROM public.complaint_issues WHERE complaint_id = p_complaint_id) THEN
-        UPDATE public.complaint_issues
-        SET status = 'rejected',
-            updated_at = v_now
-        WHERE complaint_id = p_complaint_id
-          AND department_id <> p_target_department_id
-          AND status <> 'rejected';
+    -- Reconcile complaint_issues, including the zero-existing-issues case.
+    UPDATE public.complaint_issues
+    SET status = 'rejected', updated_at = v_now
+    WHERE complaint_id = p_complaint_id
+      AND department_id <> p_target_department_id
+      AND status <> 'rejected';
 
-        UPDATE public.complaint_issues
-        SET status = 'assigned',
-            updated_at = v_now
-        WHERE complaint_id = p_complaint_id
-          AND department_id = p_target_department_id;
+    UPDATE public.complaint_issues
+    SET status = 'assigned', updated_at = v_now
+    WHERE complaint_id = p_complaint_id
+      AND department_id = p_target_department_id;
 
-        IF NOT FOUND THEN
-            INSERT INTO public.complaint_issues (
-                complaint_id, department_id, issue_type, status, created_at, updated_at
-            ) VALUES (
-                p_complaint_id, p_target_department_id, 'classification_review_assignment', 'assigned', v_now, v_now
-            );
-        END IF;
+    IF NOT FOUND THEN
+        INSERT INTO public.complaint_issues (
+            complaint_id, department_id, issue_type, status, created_at, updated_at
+        ) VALUES (
+            p_complaint_id, p_target_department_id, 'classification_review_assignment', 'assigned', v_now, v_now
+        );
     END IF;
 
     -- Timeline event
@@ -252,17 +245,17 @@ BEGIN
         complaint_id,
         actor_user_id,
         action,
-        from_status,
-        to_status,
-        notes,
+        previous_state,
+        new_state,
+        details,
         created_at
     ) VALUES (
         p_complaint_id,
         v_caller_id,
         'classification_reviewed_and_assigned',
-        'under_review',
-        'assigned',
-        format('Assigned to %s. Notes: %s', p_target_department_id, coalesce(p_notes, 'none')),
+        pg_catalog.jsonb_build_object('status', 'under_review', 'assigned_department_id', v_complaint.assigned_department_id),
+        pg_catalog.jsonb_build_object('status', 'assigned', 'assigned_department_id', p_target_department_id),
+        pg_catalog.jsonb_build_object('notes', p_notes, 'target_department_id', p_target_department_id),
         v_now
     );
 

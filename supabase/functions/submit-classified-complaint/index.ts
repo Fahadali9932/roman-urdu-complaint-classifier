@@ -24,28 +24,6 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-interface RateLimitBucket {
-  count: number;
-  resetTime: number;
-}
-const ipBuckets = new Map<string, RateLimitBucket>();
-const RATE_LIMIT_WINDOW_MS = 60 * 1000;
-const MAX_GUEST_REQUESTS_PER_WINDOW = 30;
-
-function checkGuestRateLimit(ip: string): boolean {
-  const now = Date.now();
-  const bucket = ipBuckets.get(ip);
-  if (!bucket || now > bucket.resetTime) {
-    ipBuckets.set(ip, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
-    return true;
-  }
-  if (bucket.count >= MAX_GUEST_REQUESTS_PER_WINDOW) {
-    return false;
-  }
-  bucket.count++;
-  return true;
-}
-
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 }
@@ -148,25 +126,35 @@ Deno.serve(async (req) => {
       citizenId = identity.user.id;
     }
 
-    // Rate limit public unauthenticated (guest) submissions by client IP
-    if (!citizenId) {
-      const clientIp = req.headers.get("cf-connecting-ip")
-        || req.headers.get("x-real-ip")
-        || req.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
-        || "unknown-client";
-      if (!checkGuestRateLimit(clientIp)) {
-        return new Response(JSON.stringify({
-          error: "Too many complaint submissions. Please wait a moment before trying again.",
-          code: "RATE_LIMITED",
-        }), {
-          status: 429,
-          headers: {
-            ...corsHeaders,
-            "Content-Type": "application/json",
-            "Retry-After": "60",
-          },
-        });
-      }
+    // Reserve an atomic quota in Postgres BEFORE costly classifier work.
+    // No JS-isolate Map: every Edge instance shares the same counters. Client
+    // IP headers are imperfect identity signals, so the DB also enforces
+    // global per-minute/day caps to contain spoofing and resource exhaustion.
+    const clientIp = (req.headers.get("cf-connecting-ip")
+      || req.headers.get("x-real-ip")
+      || req.headers.get("x-forwarded-for")?.split(",")[0]
+      || "unknown-client").trim().slice(0, 128);
+    const clientHash = await sha256Hex(`${serviceKey}:${clientIp}`);
+    const { data: quotaGranted, error: quotaError } = await admin.rpc("reserve_complaint_intake_quota", {
+      p_client_hash: clientHash,
+      p_is_authenticated: citizenId !== null,
+    });
+    if (quotaError || typeof quotaGranted !== "boolean") {
+      console.error("Complaint rate limit service unavailable", quotaError?.code ?? "unexpected response");
+      return json({ error: "Submission service is temporarily unavailable.", code: "INTAKE_QUOTA_UNAVAILABLE" }, 503);
+    }
+    if (!quotaGranted) {
+      return new Response(JSON.stringify({
+        error: "Too many complaint submissions. Please wait before trying again.",
+        code: "RATE_LIMITED",
+      }), {
+        status: 429,
+        headers: {
+          ...corsHeaders,
+          "Content-Type": "application/json",
+          "Retry-After": "60",
+        },
+      });
     }
 
     const parsed = await parseBoundedJson(req);

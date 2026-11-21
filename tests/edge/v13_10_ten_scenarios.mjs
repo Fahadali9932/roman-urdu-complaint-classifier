@@ -6,6 +6,7 @@ import test from 'node:test';
 let client;
 let submitHandler;
 let notifyHandler;
+const quotaCounts = new Map();
 
 globalThis.Deno = {
   serve(fn) {
@@ -31,6 +32,7 @@ await import('../../supabase/functions/submit-classified-complaint/index.ts');
 // submitHandler now points to submit-classified-complaint
 
 function createMockDb({ user = null, role = 'citizen', tables = {} } = {}) {
+  quotaCounts.clear();
   const writes = [];
   const reads = [];
   client = {
@@ -56,6 +58,12 @@ function createMockDb({ user = null, role = 'citizen', tables = {} } = {}) {
       return query;
     },
     rpc: async (fn, args) => {
+      if (fn === 'reserve_complaint_intake_quota') {
+        const key = args.p_client_hash;
+        const next = (quotaCounts.get(key) ?? 0) + 1;
+        quotaCounts.set(key, next);
+        return { data: next <= (args.p_is_authenticated ? 30 : 10), error: null };
+      }
       writes.push({ fn, args });
       return {
         data: {
@@ -315,7 +323,7 @@ test('Abuse Protection: Excessive guest requests from same IP trigger HTTP 429 R
     'x-forwarded-for': testIp,
   });
   let lastStatus = 200;
-  for (let i = 0; i < 31; i++) {
+  for (let i = 0; i < 11; i++) {
     const res = await submitHandler(new Request('http://local.invalid/submit', {
       method: 'POST',
       headers,
@@ -329,6 +337,6 @@ test('Abuse Protection: Excessive guest requests from same IP trigger HTTP 429 R
       break;
     }
   }
-  assert.equal(lastStatus, 429, '31st request should be rate-limited to 429');
+  assert.equal(lastStatus, 429, '11th guest request should be rate-limited to 429');
 });
 
