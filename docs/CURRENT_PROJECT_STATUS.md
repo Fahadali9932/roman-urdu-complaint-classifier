@@ -5,7 +5,36 @@ Verified on **21 November 2026 (Pakistan time)**. Internal delivery target:
 This document distinguishes inspected source, automated checks, and unverified
 hosted behavior. Update it after every significant verified milestone.
 
-## Current development update, 21 November 2026 — Phase V13.16.1: Department Operations UI/UX Refinements, Strict Browser QA & Queue Reconciliation
+## Current development update, 22 November 2026 — Phase V13.16.2: Server-Atomic Department Acceptance & Staging Hardening
+
+- **Server-Atomic Department Batch Acceptance (`CaseOperationsService.ts`, `CaseDetailPage.tsx`, SQL Migrations):**
+  - **Single Transaction Guarantee:** `staff_accept_department_report_batch` authorizes the logged-in department member (or main admin), validates 1–100 assigned reports, locks report rows (`FOR UPDATE`), and executes all acceptance, timeline events, and notification outbox entries within a single PostgreSQL transaction.
+  - **Atomic Rollback & Idempotency:** Any invalid or wrong-status report triggers an immediate rollback of the entire batch. Duplicate requests using the same idempotency key and fingerprint return cached results (`idempotentReplay: true`), while differing payloads with reused keys are rejected.
+  - **Frontend Transaction Retention:** Case Detail sends a single RPC call for the batch and retains the idempotency key across network retries until the server explicitly confirms completion.
+- **Strict Database Security & Privilege Invariants:**
+  - `anon` role is strictly denied execute privilege on `staff_accept_department_report_batch` (PostgreSQL `28000 Authentication required`).
+  - Private ledger table `public.staff_batch_acceptance_requests` has RLS enabled with zero user policies; authenticated and anonymous direct reads/writes are completely revoked.
+  - Function enforces `SECURITY DEFINER` and pins `search_path = ''`.
+  - Multi-department complaints are rejected pending independent agency-by-agency workflow integration.
+- **Model Hash Provenance Reconciled:**
+  - **Run004:** SHA-256 is `E4D042937CF8C3E1E3C70F147A707B33A629D463DB34485766C98DA21C2E3A56` (Windows CRLF) and `bd3241e91f80780d72f43911c06be1b4d1f6edd67f3f2f3519e41d1dfcfd556d` (Linux LF).
+  - **Run006:** SHA-256 is `C5D4E3D4164AD5482A0ABE4F614115A596665683FBF23914460EE4ED40AE0D3E` (Windows CRLF) and `165b7c21b1a05f870116b35f93144f98ccce9ff8c821d15c66eac3e4f62b5c4c` (Linux LF).
+  - Both models are 100% byte-for-byte identical to the Git repository baseline, differing solely by standard Git line-ending normalization (`\r\n` vs `\n`).
+- **Comprehensive Quality Gates:**
+  - TypeScript Compiler `tsc -b`: **0 errors**.
+  - Production Build `npm run build`: compiled in 1.10s.
+  - Vitest Unit & Integration Suite: **627 passed, 1 skipped (60 test files, 100% pass)**.
+  - V13.16.2 Atomic Batch Edge Gate (`tests/edge/v13_16_2_atomic_batch_gate.mjs`): **5 passed, 0 failed**.
+  - Edge Security Boundaries (`tests/edge/complaint-boundaries.mjs`): **16 passed, 0 failed**.
+  - Python Backend Unittests (`tests/v11`): **106 passed in 16.7s**.
+  - Production Bundle Verification (`v13_8_2_verify_production_bundle.mjs`): **PASS** (zero demonstration fixtures or auth bypass markers).
+  - Code Linter `npm run lint`: **0 errors (140 pre-existing warnings)**.
+  - Real Google Chrome CDP Browser QA (`v13_16_department_browser_qa.mjs`): **100% pass across all 11 phases & 5 viewports** with dynamic port allocation and subprocess cleanup.
+- **Staging Reality & Release Gates:**
+  - Staging project `jvbulmmdwovtgaxojxhn` currently has 0 Auth users and 0 department memberships. Multi-account live testing remains blocked pending administrator provisioning.
+  - Production database `akbwiedtmxjxcjscgitw` was not modified.
+
+## Previous development update, 21 November 2026 — Phase V13.16.1: Department Operations UI/UX Refinements, Strict Browser QA & Queue Reconciliation
 
 - **Dark-Mode Layout Clipping & Horizontal Displacement Repair (`department-operations-v16.css`, `department-theme.css`):**
   - **Zero Horizontal Displacement:** Resolved horizontal clipping and displacement at 1440px, 1024px, 768px, 393px, and 320px by enforcing `box-sizing: border-box`, `overflow-x: hidden`, and `width: 100%` on `.app-shell`, `.main-shell`, and `.page`.
