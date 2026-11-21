@@ -5,7 +5,31 @@ Verified on **21 November 2026 (Pakistan time)**. Internal delivery target:
 This document distinguishes inspected source, automated checks, and unverified
 hosted behavior. Update it after every significant verified milestone.
 
-## Current development update, 21 November 2026 — Phase V13.15.5: Registration Card Height Matching & Mobile Order Realignment
+## Current development update, 21 November 2026 — Phase V13.15.6: Department Staff Login Diagnostics & Credential Boundaries
+
+- **Reliable Department Staff Authentication Diagnostics (`staffAuthService.ts`, `DepartmentAuthContext.tsx`, `ThemedDepartmentLoginScreen.tsx`):**
+  - **Single Authentication Attempt:** Department staff login authenticates known department usernames exactly once per form submission click, eliminating duplicate Supabase Auth requests.
+  - **Anti-Enumeration Generic Rejection:** An invalid password or non-existent staff account produces a generic denial (`Invalid username or access key.`), never disclosing whether the account exists in Supabase Auth.
+  - **Actionable Service Outage Notice:** Network disconnects, timeout, or invalid backend configuration display an actionable service error (`Authentication service is unavailable. Please check your network connection or try again later.`), rather than a misleading invalid-key alert.
+  - **Demo Fallback Blocked in Connected Mode:** When Supabase is configured (`isSupabaseConfigured() && supabase`), unknown or failed usernames are strictly blocked from falling back to the browser-local demonstration adapter.
+  - **Production Build Enforcement:** Production builds without Supabase configuration cannot accept demo staff credentials.
+  - **Departmental Isolation & Revocation Enforcement:** Staff must possess an active matching department membership in `public.department_memberships`. Revoked staff accounts display explicit revocation warnings, and cross-department attempts (e.g., K-Electric staff accessing KMC console) are strictly denied (`Access Denied: Your staff account is authorized for "K-Electric". You cannot access the Roads console.`).
+  - **Clear Local Demo Notice:** In local offline mode without Supabase credentials, the UI displays an explicit status badge: *"Local demonstration mode: this browser is not connected to Supabase. Live staff accounts and access keys will not work here."*
+  - **Live Sign-In Diagnostics (`roads-01`):** In connected staging mode targeting `https://akbwiedtmxjxcjscgitw.supabase.co`, `roads-01` maps to `roads-01@staff.awaaz.gov.pk`. Login returns generic rejection because the live Auth user/access key is unprovisioned or awaiting administrative password setup and membership confirmation in staging.
+- **Comprehensive Quality Gates:**
+  - TypeScript Compiler `tsc -b`: 0 errors.
+  - Vitest Unit & Integration Suite: **624 passed, 1 skipped (59 test files, 100% pass)**. Verified `DepartmentStaffAuthGateway.test.ts` (4 tests) and `DepartmentStaffCredentials.test.tsx` (16 tests).
+  - Production Build `npm run build`: compiled in 1.11s.
+  - Edge Security Boundaries (`tests/edge/complaint-boundaries.mjs`): **16 passed, 0 failed**.
+  - Production Bundle Verification (`v13_8_2_verify_production_bundle.mjs`): **PASS** (zero demonstration fixtures or auth bypass markers).
+  - Real Browser QA (`tools/ai_factory/v13_15_6_department_login_qa.mjs`): 100% pass across offline demonstration mode and live connected mode in real Google Chrome (port 5173). Captured screenshots in `docs/v11/screenshots/v13_15_6/`.
+- **Preserved Safety Boundaries:**
+  - Frozen Run004 (`E4D04293...`) and Run006 (`C5D4E3D4...`) remain 100% byte-for-byte identical. No retraining or promotion.
+  - Primary repository `D:\RomanUrdu_ComplaintClassifier_staff_auth` remains untouched with all dirty/untracked files preserved.
+  - Zero paid dependencies, $0.00 spent.
+  - No merge to `main`, no public deployment, no production database mutations.
+
+## Previous development update, 21 November 2026 — Phase V13.15.5: Registration Card Height Matching & Mobile Order Realignment
 
 - **Desktop Form / Artwork Height Alignment (`RegisterPage.tsx`, `RegistrationArtwork.tsx`):**
   - Resolved the desktop under-height card defect: replaced static minimum height with full-height flex column (`lg:h-full lg:flex-1`).
