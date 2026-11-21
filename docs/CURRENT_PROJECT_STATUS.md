@@ -5,6 +5,31 @@ Verified on **20 November 2026 (Pakistan time)**. Internal delivery target:
 This document distinguishes inspected source, automated checks, and unverified
 hosted behavior. Update it after every significant verified milestone.
 
+## Current development update, 21 November 2026 — Phase V13.12: Real Auth Gate Prepared, Awaiting Accounts
+
+- Confirmed directly from the **staging Auth service** that email confirmation
+  is enabled (`mailer_autoconfirm: false`). Staging has no disposable test
+  accounts yet. The connected tools do not expose Auth Admin user provisioning.
+- Added a **staging-host-locked, non-mutating real-JWT test runner** at
+  `tests/edge/v13_12_real_auth_staging.mjs`. It checks real citizen, staff,
+  and admin password sessions and their authenticated HTTP/RLS boundaries.
+  It explicitly rejects missing fixtures or any non-staging project URL.
+- Added `tests/edge/v13_12_one_pass_staging.mjs` for automated official Auth
+  Admin provisioning, two fictional Edge submissions, full real-JWT checks,
+  and exact-ID cleanup in one execution. It requires a staging-only
+  server-secret key, unavailable in this environment, and cannot run here.
+- Script unit gates **7/7 PASS**, full Vitest **603 passed/1 skipped**, Python
+  discovery exit **0**, Edge boundaries **16/16 PASS**, production build
+  **PASS**, production dependency audit **0 vulnerabilities** (at check time).
+- The hosted anonymous admin queue and reassignment endpoints both rejected
+  real HTTP requests with **401 / 42501**. **The real authenticated five-account matrix
+  has not been executed** because confirmed staging test accounts, passwords,
+  or a securely configured staging service-role credential are not available. Do not
+  describe V13.12 as an authenticated security pass until these are supplied
+  through an authorized secure staging workflow.
+- Refer to `docs/v11/V13_12_REAL_AUTH_TEST_GATE.md` for exact setup, verification,
+  privacy restrictions, and cleanup instructions. No production or model change.
+
 ## Current development update, 21 November 2026 — Phase V13.11: Hosted Staging Intake Verified
 
 - **Staging only:** Deployed the actual AI-backed
