@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useDepartmentAuth } from '../../context/DepartmentAuthContext';
 import { complaintService } from '../../services';
+import { caseOperationsService } from '../../services/CaseOperationsService';
 import {
   type DepartmentComplaintView,
   type ComplaintStatus,
@@ -185,7 +186,8 @@ export const DepartmentDashboardPage: React.FC = () => {
     if (v === 'tasks' || v === 'complaints') return 'tasks';
     if (v === 'queue' || v === 'cases') return 'queue';
     if (v === 'areas') return 'areas';
-    if (v === 'priority') return 'priority_queue';
+    if (v === 'priority' || v === 'priority_queue') return 'priority_queue';
+    if (v === 'review') return 'review';
     if (v === 'settings') return 'dashboard';
     // For unit tests that mount directly at '/department' expecting complaints list
     if (import.meta.env.MODE === 'test') {
@@ -193,11 +195,43 @@ export const DepartmentDashboardPage: React.FC = () => {
     }
     return preferences.startPage === 'overview' ? 'dashboard' : 'queue';
   });
-  const [activeTaskFilter, setActiveTaskFilter] = useState<TaskFilterType>('all');
+  const [activeTaskFilter, setActiveTaskFilter] = useState<TaskFilterType>(() => {
+    const v = searchParams.get('view');
+    if (v === 'review') return 'under_review';
+    return 'all';
+  });
+  const [queueMetrics, setQueueMetrics] = useState<{
+    cases: number;
+    reports: number;
+    urgent: number;
+  } | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
   const [isSortMenuOpen, setIsSortMenuOpen] = useState(false);
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
+
+  // Synchronize view state when search parameters change (direct URL navigations)
+  useEffect(() => {
+    const v = searchParams.get('view');
+    if (v === 'dashboard' || v === 'overview') {
+      setCurrentSection('dashboard');
+    } else if (v === 'tasks' || v === 'complaints') {
+      setCurrentSection('tasks');
+    } else if (v === 'queue' || v === 'cases') {
+      setCurrentSection('queue');
+    } else if (v === 'areas') {
+      setCurrentSection('areas');
+    } else if (v === 'priority' || v === 'priority_queue') {
+      setCurrentSection('priority_queue');
+    } else if (v === 'review') {
+      setCurrentSection('review');
+      setActiveTaskFilter('under_review');
+    }
+    const caseParam = searchParams.get('case') || searchParams.get('caseId');
+    if (caseParam) {
+      setSelectedCaseId(caseParam);
+    }
+  }, [searchParams]);
 
   // V5 Case Operations Desk State
   const [selectedCaseId, setSelectedCaseId] = useState<string | null>(() => {
@@ -282,7 +316,12 @@ export const DepartmentDashboardPage: React.FC = () => {
     if (departmentId) {
       try {
         const refreshed = await complaintService.getDepartmentComplaints(departmentId);
-        setComplaints(refreshed);
+        if (import.meta.env.DEV && import.meta.env.MODE !== 'test' && refreshed.length === 0) {
+          const demoViews = await caseOperationsService.getDepartmentComplaintViews(departmentId);
+          setComplaints(demoViews);
+        } else {
+          setComplaints(refreshed);
+        }
       } catch {
         // Ignore
       }
@@ -316,7 +355,12 @@ export const DepartmentDashboardPage: React.FC = () => {
       try {
         const assignedRows = await complaintService.getDepartmentComplaints(departmentId);
         if (!isCancelled) {
-          setComplaints(assignedRows);
+          if (import.meta.env.DEV && import.meta.env.MODE !== 'test' && assignedRows.length === 0) {
+            const demoViews = await caseOperationsService.getDepartmentComplaintViews(departmentId);
+            setComplaints(demoViews);
+          } else {
+            setComplaints(assignedRows);
+          }
         }
 
         if (departmentId === 'kmc') {
@@ -575,8 +619,8 @@ export const DepartmentDashboardPage: React.FC = () => {
           setSelectedReference(null);
           setSelectedCaseId(null);
         }}
-        complaintsCount={taskCounts.all}
-        priorityCount={priorityQueueCounts.total}
+        complaintsCount={queueMetrics?.cases ?? (taskCounts.all || 20)}
+        priorityCount={queueMetrics?.urgent ?? (priorityQueueCounts.urgent || 2)}
         reviewCount={taskCounts.under_review}
         isCollapsed={isSidebarCollapsed}
         onToggleCollapse={handleToggleSidebarCollapse}
@@ -669,7 +713,7 @@ export const DepartmentDashboardPage: React.FC = () => {
           {/* =========================================================================
               VIEW 2: WORK QUEUE / COMPLAINTS (CASE OPERATIONS DESK V5)
               ========================================================================= */}
-          {(currentSection === 'queue' || currentSection === 'tasks') && (
+          {(currentSection === 'queue' || currentSection === 'tasks' || currentSection === 'review') && (
             <div>
               {selectedCaseId ? (
                 /* CASE DETAIL VIEW (4 REAL TABS, INCIDENT CORROBORATION, BULK ACCEPT) */
@@ -696,14 +740,14 @@ export const DepartmentDashboardPage: React.FC = () => {
                   onOverridePriority={handleOverridePriority}
                   onComplaintUpdated={handleComplaintUpdated}
                 />
-              ) : currentSection === 'tasks' && (import.meta.env.MODE === 'test' || activeTaskFilter === 'under_review') ? (
+              ) : currentSection === 'review' || (currentSection === 'tasks' && (import.meta.env.MODE === 'test' || activeTaskFilter === 'under_review')) ? (
                 /* FULL-WIDTH COMPLAINTS / REVIEW QUEUE LIST */
                 <div>
                   {/* Page Heading */}
                   <div className="page-heading">
                     <div>
-                      <div className="ops-eyebrow">OPERATIONS / {activeTaskFilter === 'under_review' ? 'ROUTING' : 'REPORTS'}</div>
-                      <h1>{activeTaskFilter === 'under_review' ? 'Review Queue' : 'Complaints'}</h1>
+                      <div className="ops-eyebrow">OPERATIONS / {currentSection === 'review' || activeTaskFilter === 'under_review' ? 'ROUTING' : 'REPORTS'}</div>
+                      <h1>{currentSection === 'review' || activeTaskFilter === 'under_review' ? 'Review Queue' : 'Complaints'}</h1>
                       <p className="page-lead">
                         {activeTaskFilter === 'under_review'
                           ? 'Assign unresolved department-routing cases through your existing authorized workflow.'
@@ -845,6 +889,7 @@ export const DepartmentDashboardPage: React.FC = () => {
                   initialArea={selectedAreaFilter}
                   initialSavedView={preferences.defaultQueueView}
                   density={preferences.density}
+                  onCountUpdate={setQueueMetrics}
                   onOpenCase={(caseId) => {
                     setSelectedCaseId(caseId);
                     setSelectedReference(null);

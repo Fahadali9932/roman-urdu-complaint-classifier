@@ -868,14 +868,18 @@ export class CaseOperationsService implements ICaseOperationsService {
       if (error) throw error;
       if (!data || !Array.isArray(data)) throw new Error('The case service returned an invalid response.');
 
-      const list = this.casesByDept.get(deptId) || [];
-      const existingRefMap = new Map<string, { caseItem: StoredCase; report: CaseReportRow }>();
-      for (const c of list) {
-        for (const r of c.reports) {
-          existingRefMap.set(r.referenceNumber, { caseItem: c, report: r });
-          existingRefMap.set(r.complaintId, { caseItem: c, report: r });
+      // STRICT DATA INTEGRITY: Never mix seeded demo cases with live Supabase cases.
+      // If live records exist, the department queue is built strictly and solely from live data.
+      if (data.length === 0) {
+        if (!this.isDemonstrationWorkspace()) {
+          this.casesByDept.set(deptId, []);
         }
+        return;
       }
+
+      // Build cases exclusively from live Supabase complaints
+      const liveCases: StoredCase[] = [];
+      const existingRefMap = new Map<string, { caseItem: StoredCase; report: CaseReportRow }>();
 
       for (const row of data) {
         const ref = row.reference_number || row.id;
@@ -915,7 +919,7 @@ export class CaseOperationsService implements ICaseOperationsService {
           const rowPlace = row.incident_public_location || '';
 
           // Match against active cases: must match department, not completed, matching locality, AND matching corridor/landmark
-          const targetCase = list.find((c) => {
+          const targetCase = liveCases.find((c) => {
             if (c.workStatus === 'completed') return false;
             if (c.locality.trim().toLowerCase() !== locality.trim().toLowerCase()) return false;
             if (!rowPlace) return false;
@@ -935,7 +939,7 @@ export class CaseOperationsService implements ICaseOperationsService {
             }
           } else {
             let caseNum = `C-${(row.reference_number || row.id).slice(-4).toUpperCase()}`;
-            if (list.some((c) => c.id === caseNum)) {
+            if (liveCases.some((c) => c.id === caseNum)) {
               caseNum = `C-${row.id.replace(/-/g, '').slice(0, 4).toUpperCase()}`;
             }
 
@@ -982,10 +986,14 @@ export class CaseOperationsService implements ICaseOperationsService {
                 },
               ],
             };
-            list.unshift(newCase);
+            liveCases.unshift(newCase);
+            existingRefMap.set(newReport.referenceNumber, { caseItem: newCase, report: newReport });
+            existingRefMap.set(newReport.complaintId, { caseItem: newCase, report: newReport });
           }
         }
       }
+
+      this.casesByDept.set(deptId, liveCases);
     } catch (error) {
       // Local demonstrations can still show clearly labeled sample cases.
       // Production must never disguise a failed secure fetch as an empty inbox.
@@ -1455,6 +1463,54 @@ export class CaseOperationsService implements ICaseOperationsService {
       urgentCases,
       awaitingAcceptance,
     };
+  }
+
+  async getDepartmentComplaintViews(
+    deptId: DepartmentId
+  ): Promise<import('../types').DepartmentComplaintView[]> {
+    await this.syncWithSupabase(deptId);
+    const list = this.casesByDept.get(deptId) || [];
+    const views: import('../types').DepartmentComplaintView[] = [];
+
+    for (const c of list) {
+      for (const r of c.reports) {
+        const isUrgent = c.priority === 'critical' || c.priority === 'high';
+        let complaintStatus: ComplaintStatus = 'assigned';
+        if (r.status === 'in_progress') complaintStatus = 'in_progress';
+        else if (r.status === 'accepted') complaintStatus = 'accepted';
+        else if (r.status === 'resolved') complaintStatus = 'resolved';
+        else if (r.status === 'rejected') complaintStatus = 'rejected';
+        else if (r.status === 'under_review') complaintStatus = 'under_review';
+        else complaintStatus = 'assigned';
+
+        views.push({
+          id: r.complaintId,
+          referenceNumber: r.referenceNumber,
+          district: (c.district as any) || 'District East',
+          locality: c.locality,
+          publicLocation: r.publicLocation || c.publicPlace,
+          title: c.title,
+          description: r.sanitizedNarrativePreview,
+          sanitizedDescription: r.sanitizedNarrativePreview,
+          generatedHeading: c.title,
+          factualSummary: c.summary,
+          status: complaintStatus,
+          assignedDepartmentId: deptId,
+          assignedDepartmentIds: [deptId],
+          detectedLanguage: 'roman_urdu',
+          submittedAt: r.submittedAt,
+          updatedAt: r.updatedAt,
+          hasHazard: isUrgent,
+          manualPriority: isUrgent ? (c.priority as any) : undefined,
+          manualPriorityReason: isUrgent ? c.priorityReason : undefined,
+          timeline: [],
+          isDemonstration: this.isDemonstrationWorkspace(),
+        });
+      }
+    }
+
+    views.sort((a, b) => b.submittedAt.localeCompare(a.submittedAt));
+    return views;
   }
 }
 

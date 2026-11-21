@@ -61,4 +61,8 @@ export interface ICaseOperationsService {
     urgentCases: number;
     awaitingAcceptance: number;
   }>;
+
+  getDepartmentComplaintViews?(
+    deptId: DepartmentId
+  ): Promise<import('../types').DepartmentComplaintView[]>;
 }

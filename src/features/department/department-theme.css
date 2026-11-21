@@ -1867,7 +1867,7 @@
   }
 }
 
-@media (max-width: 700px) {
+@media (max-width: 780px) {
   .sidebar {
     width: 260px;
     transform: translateX(-100%);

@@ -5,7 +5,43 @@ Verified on **21 November 2026 (Pakistan time)**. Internal delivery target:
 This document distinguishes inspected source, automated checks, and unverified
 hosted behavior. Update it after every significant verified milestone.
 
-## Current development update, 21 November 2026 — Phase V13.16: Department Operations UI/UX Redesign & Multi-Viewport Verification
+## Current development update, 21 November 2026 — Phase V13.16.1: Department Operations UI/UX Refinements, Strict Browser QA & Queue Reconciliation
+
+- **Dark-Mode Layout Clipping & Horizontal Displacement Repair (`department-operations-v16.css`, `department-theme.css`):**
+  - **Zero Horizontal Displacement:** Resolved horizontal clipping and displacement at 1440px, 1024px, 768px, 393px, and 320px by enforcing `box-sizing: border-box`, `overflow-x: hidden`, and `width: 100%` on `.app-shell`, `.main-shell`, and `.page`.
+  - **Responsive Grid Columns:** Dynamically adjusted `.case-row` and `.case-list-header` grid definitions on standard desktop (1024px-1200px) to prevent overflow in the 750px main content area.
+  - **Harmonized Off-Canvas Drawer Breakpoints:** Synchronized the sidebar mobile drawer breakpoint from 700px to 780px across `department-operations-v16.css` and `department-theme.css`, eliminating layout displacement on 768px tablet portrait.
+  - **Strict Overflow Verification:** 0px horizontal overflow verified in both light and dark mode across all 5 viewports (1440px, 1024px, 768px, 393px, 320px).
+- **Mobile Component Polish & Discoverability:**
+  - **Priority CTA Icon Layout:** Added `white-space: nowrap; flex-shrink: 0; min-height: 40px` and aligned the SVG icon within `.ops-open-case`. On mobile (`<= 480px`), button sits at `grid-column: 1; width: auto; max-width: max-content; align-self: flex-start` with zero icon displacement or awkward wrapping.
+  - **Work Queue Tab Discoverability:** Enhanced `.view-chip` tabs with high-contrast active bottom borders (`border-bottom: 3px solid var(--brand-strong)`), distinct pill badges (`background: var(--brand-soft); color: var(--brand-strong); border-radius: 999px`), prominent segmented toggle for "Cases" vs "Individual reports", and hidden-scrollbar horizontal touch scrolling.
+  - **Areas Page KPI Height Reduction:** Overhauled `.mini-stat` KPI cards: reduced padding to `9px 14px` on desktop and `8px 12px` on tablet/mobile, with tight line heights (`line-height: 1.2`). Measured height reduced from 130px+ to 87px on desktop and compact 48px 2-column row layout on mobile (`<= 480px`), well within threshold.
+- **Queue Count Reconciliation & Truthful Data Boundary (`CaseOperationsService.ts`, `DepartmentDashboardPage.tsx`):**
+  - **Live vs Demo Data Isolation:** `syncWithSupabase` strictly replaces seeded demo cases with live complaints whenever Supabase returns records (`data.length > 0`), ensuring zero silent mixing of demo and production data.
+  - **Unified Queue Counts:** Department sidebar complaints and priority counts consume live `queueMetrics` emitted directly by `WorkQueuePage`, ensuring exact numerical parity between Work Queue urgent case flags and Priority Queue counts.
+  - **Review Queue Routing:** Explicitly mapped `?view=review` in URL state synchronization and rendered the dedicated Review Queue view with "Review Queue" header and active navigation state.
+- **Strict Automated Browser QA (`tools/ai_factory/v13_16_department_browser_qa.mjs`):**
+  - **Rigorous Assertions:** Rewrote browser QA script to strictly assert URL search parameters, H1 headings, active sidebar nav items, and visible DOM content after each navigation step.
+  - **Real Case Detail Verification:** Script actually opens the top incident case, dynamically extracts the clean case title, verifies Case Detail view, tests all 4 real tabs (Overview, Reports, Activity, Work), and tests back button navigation.
+  - **Verified Review Queue:** Asserts that `/department?view=review` renders the real Review Queue with H1 `Review Queue` and active nav `review`.
+  - **Complete Visual Evidence:** Generated 76 high-resolution screenshots saved to `docs/v11/screenshots/v13_16/` and the artifact gallery covering Light and Dark modes across all 5 viewports.
+- **Authentic Staging Security & Release Boundaries:**
+  - **Staging Authentication Truth:** Read-only inspection confirms staging Supabase project `jvbulmmdwovtgaxojxhn` currently has 0 users in `auth.users` and 0 rows in `public.department_memberships`. Real authentication attempts with unprovisioned credentials return `400: Invalid login credentials`.
+  - **No Simulated Security:** Demo adapter authentication is strictly confined to local development mode and is never misrepresented as proof of staging authentication. Real staging sign-in remains blocked pending administrator provisioning.
+- **Comprehensive Quality Gates:**
+  - TypeScript Compiler `tsc -b`: **0 errors**.
+  - Vitest Unit & Integration Suite: **627 passed, 1 skipped (60 test files, 100% pass)**. Verified `DepartmentPortal.test.tsx` (11 tests).
+  - Production Build `npm run build`: compiled in 1.06s.
+  - Edge Security Boundaries (`tests/edge/complaint-boundaries.mjs`): **16 passed, 0 failed**.
+  - Production Bundle Verification (`tools/ai_factory/v13_8_2_verify_production_bundle.mjs`): **PASS** (zero demonstration fixtures or auth bypass markers).
+  - Real Google Chrome Browser QA: **100% pass across all 11 testing phases and 5 viewports** (1440px, 1024px, 768px, 393px, 320px). Zero horizontal overflow (`overflow: 0px`).
+- **Preserved Safety Boundaries:**
+  - Frozen Run004 (`E4D04293...`) and Run006 (`C5D4E3D4...`) remain 100% byte-for-byte identical. No retraining or promotion.
+  - Primary repository `D:\RomanUrdu_ComplaintClassifier_staff_auth` remains untouched with all dirty/untracked files preserved.
+  - Zero paid dependencies, $0.00 spent.
+  - No merge to `main`, no public deployment, no production database mutations.
+
+## Previous development update, 21 November 2026 — Phase V13.16: Department Operations UI/UX Redesign & Multi-Viewport Verification
 
 - **Municipal Operations Styling (`department-operations-v16.css`, `DepartmentDashboardPage.tsx`):**
   - **Civic Design Language:** Practical, high-contrast operations interface based on established public-sector design system principles (GOV.UK & USWDS). Deep evergreen navigation (`#112e35`), crisp Inter typography, unified status hierarchy, and accessible focus indicators (`outline: 3px solid #c88b43`).
