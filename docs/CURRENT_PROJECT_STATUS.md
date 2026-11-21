@@ -5,7 +5,32 @@ Verified on **21 November 2026 (Pakistan time)**. Internal delivery target:
 This document distinguishes inspected source, automated checks, and unverified
 hosted behavior. Update it after every significant verified milestone.
 
-## Current development update, 21 November 2026 — Phase V13.15: Balanced Cinematic 3D Motion, Responsive Frontend Repair, Typography Sharpness, and Tracking Experience
+## Current development update, 21 November 2026 — Phase V13.15.2: Citizen Mobile Experience, Truthful Guest Tracking, and Password Validation
+
+- **Truthful Guest Tracking (`ComplaintTracker.tsx` & `guestTrackingPresentation.ts`):**
+  - Public `/track` route accepts ONLY the private 24-digit receipt number; entering legacy `KHI-` or `CLM-` codes triggers an explanatory prompt to use the 24-digit receipt code.
+  - Eliminated the redundant "Claim to Account" button from `/track`.
+  - Tracker displays real recorded civic status and next action; `assigned` and `accepted` do not claim work has started. No fabricated progress stages.
+  - Unconfirmed classifier results never display an unconfirmed department name; neutral message displayed until assignment is verified.
+- **Mobile Journey Sticky Cover System (`ComplaintJourney.tsx`):**
+  - Mobile *How It Works* journey implements 4 full-viewport sticky sheets (`h-[135svh] -mt-[35svh]`, `sticky top-[64px]`) where subsequent cards physically slide over previous cards.
+  - `prefers-reduced-motion: reduce` fallback verified: converts sticky sheets to clean, accessible document-flow cards (`relative mb-5 h-auto`).
+- **Registration Security & Validation (`RegisterPage.tsx`):**
+  - Minimum 8-character password policy enforced with uppercase letter, number, and special character required. Form inputs and submit validation are aligned.
+  - Replaced oversized artwork on desktop with compact service-information panel; mobile input fields use 16px font to prevent iOS/browser auto-zoom.
+- **Multi-Viewport & RTL Quality Gates:**
+  - TypeScript `tsc -b`: 0 errors
+  - Vitest Unit & Integration: **618 passed, 1 skipped (58 test files, 100% pass)**
+  - Python Backend: **106 passed in 18.8s**
+  - Edge Boundary Security Gate: **16 passed**
+  - Production Build: built in 1.33s
+  - Browser Verification (`v13_15_2_browser_qa.mjs` and extended suite): verified 0px horizontal overflow across 1280px, 768px, 390px, 320px in English and Urdu RTL.
+- **Safety Boundaries:**
+  - Frozen Run004 (`E4D04293...`) and Run006 (`C5D4E3D4...`) remain 100% untouched.
+  - Primary workspace `D:\RomanUrdu_ComplaintClassifier_staff_auth` remains 100% untouched.
+  - $0.00 budget, zero paid dependencies, no production DB mutations or merge to `main`.
+
+## Previous development update, 21 November 2026 — Phase V13.15: Balanced Cinematic 3D Motion, Responsive Frontend Repair, Typography Sharpness, and Tracking Experience
 
 - **Balanced Cinematic 3D Motion & Zero Drift:**
   - **Homepage Scroll-Linked 3D:** Removed permanent `perspective: 1400px` from root container style in `StackedScrollContainer.tsx`, eliminating the Chromium root compositing bug that caused blurry/soft text across all descendant pages. In `StackedScrollSection.tsx`, replaced static `willChange: 'transform, filter'` with dynamic assignment active only during active scrolling, settling to `willChange: 'auto'` at rest.
