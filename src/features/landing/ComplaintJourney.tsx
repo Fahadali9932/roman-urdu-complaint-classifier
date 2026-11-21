@@ -590,56 +590,44 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({
         </div>
       </div>
 
-      {/* ========================================================
-          MOBILE / TABLET VERTICAL PROGRESSION (< 1024px)
-          Vertical stack with downward vector arrows
-          ======================================================== */}
-      <div className="lg:hidden py-16 sm:py-24 px-4 sm:px-8 w-full max-w-md mx-auto">
-        <div className="mb-10 sm:mb-14 text-center">
-          <h2 className="font-display text-4xl sm:text-5xl text-[#141414] uppercase tracking-tight leading-tight">
+      {/* On touch screens each full-viewport sheet pins briefly as the next sheet
+          physically covers it. Motion-reduced users receive normal document flow. */}
+      <div className="lg:hidden w-full px-3 sm:px-6">
+        <div className="flex min-h-[54svh] items-center justify-center text-center px-3">
+          <h2 className="font-display text-[clamp(2.6rem,11vw,5rem)] text-[#141414] uppercase tracking-tight leading-[0.95]">
             {t('processHeading') || (language === 'ur' ? 'طریقہ کار' : 'How It Works')}
           </h2>
         </div>
-
-        <div className="flex flex-col items-center w-full">
-          {stepsData.map((stg, index) => {
-            return (
-              <React.Fragment key={stg.key}>
-                <div
-                  className={`w-full p-5 sm:p-6 rounded-xl bg-[#FAF9F7] border border-[#E5E3E0] shadow-none transition-all duration-500 ease-out text-start ${
-                    'opacity-100 translate-y-0'
-                  }`}
-                >
-                  <div className="w-6 h-0.5 bg-[#681822] mb-2.5" />
-                  <h3 className="font-display text-xl sm:text-2xl text-[#141414] tracking-tight uppercase leading-none">
-                    {stg.title}
-                  </h3>
-                  <p className="font-ui text-xs sm:text-sm text-[#323232] mt-2 leading-relaxed font-normal">
-                    {stg.desc}
+        <div className="relative">
+          {stepsData.map((step, index) => (
+            <article
+              key={step.key}
+              data-mobile-journey-stage={step.key}
+              style={{ zIndex: index + 1 }}
+              className={`relative ${prefersReducedMotion ? 'mb-5 h-auto' : 'h-[135svh] -mt-[35svh] first:mt-0'}`}
+            >
+              <div className={`${prefersReducedMotion ? 'relative min-h-[260px]' : 'sticky top-[64px] h-[calc(100svh-72px)]'} flex w-full flex-col justify-between overflow-hidden rounded-[26px] border-2 border-[#E3DCD6] bg-[#FAF9F7] p-6 shadow-[0_-20px_45px_rgba(24,13,14,0.09)] sm:p-10`}>
+                <div className="flex items-center justify-between gap-4">
+                  <p className="font-mono text-xs font-extrabold uppercase tracking-[0.18em] text-[#681822]">
+                    {language === 'ur' ? 'مرحلہ' : 'Step'} {String(index + 1).padStart(2, '0')}
                   </p>
+                  <span className="text-sm font-bold text-[#746A64]">{index + 1} / {stepsData.length}</span>
                 </div>
-
-                {index < stepsData.length - 1 && (
-                  <div className="py-2.5 sm:py-3 flex items-center justify-center" aria-hidden="true">
-                    <svg viewBox="0 0 24 56" className="w-5 sm:w-6 h-9 sm:h-11 overflow-visible" fill="none">
-                      <path
-                        d="M 12 2 L 12 46 M 4 34 L 12 46 L 20 34"
-                        stroke="#0B1421"
-                        strokeWidth="4.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        style={{
-                          strokeDasharray: 70,
-                          strokeDashoffset: 0,
-                          transition: 'stroke-dashoffset 400ms ease-out',
-                        }}
-                      />
-                    </svg>
-                  </div>
-                )}
-              </React.Fragment>
-            );
-          })}
+                <div className="my-auto py-10">
+                  <div className="mb-7 h-1.5 w-14 rounded-full bg-[#681822]" aria-hidden="true" />
+                  <h3 className="font-display text-[clamp(2.9rem,14vw,6rem)] font-black uppercase leading-[0.9] tracking-[-0.04em] text-[#1B1717]">
+                    {step.title}
+                  </h3>
+                  <p className="mt-5 max-w-prose text-lg font-semibold leading-relaxed text-[#3A3230] sm:text-2xl">{step.desc}</p>
+                </div>
+                <p className="border-t border-[#DFD6D0] pt-4 text-xs font-bold uppercase tracking-wide text-[#635953]">
+                  {index === stepsData.length - 1
+                    ? (language === 'ur' ? 'اب شکایت درج کرنے کے لیے تیار ہیں' : 'You are ready to report an issue')
+                    : (language === 'ur' ? 'اگلا مرحلہ دیکھنے کے لیے اسکرول کریں' : 'Scroll for the next step')}
+                </p>
+              </div>
+            </article>
+          ))}
         </div>
       </div>
     </section>

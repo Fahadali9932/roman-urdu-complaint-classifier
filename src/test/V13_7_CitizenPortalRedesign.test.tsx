@@ -94,8 +94,8 @@ describe('V13.7 Citizen Portal Redesign & Secure Tracking', () => {
         // Clean heading "My Complaints"
         expect(screen.getByRole('heading', { name: /my complaints/i })).toBeInTheDocument();
         // Action buttons
-        expect(screen.getByRole('button', { name: /track complaint/i })).toBeInTheDocument();
-        expect(screen.getByRole('button', { name: /claim guest complaint/i })).toBeInTheDocument();
+        expect(screen.getAllByRole('button', { name: /track complaint/i }).length).toBeGreaterThan(0);
+        expect(screen.queryByRole('button', { name: /claim guest complaint/i })).not.toBeInTheDocument();
         expect(screen.getByRole('button', { name: /new complaint/i })).toBeInTheDocument();
       });
 
@@ -256,7 +256,7 @@ describe('V13.7 Citizen Portal Redesign & Secure Tracking', () => {
 
       expect(screen.getByRole('heading', { name: /track your complaint/i })).toBeInTheDocument();
 
-      const input = screen.getByPlaceholderText('8041 7263 9150 2846 0371 6628');
+      const input = screen.getByPlaceholderText('0000 0000 0000 0000 0000 0000');
       fireEvent.change(input, { target: { value: '804172639150284603716628' } });
 
       // Check auto-grouping by 4
@@ -313,16 +313,16 @@ describe('V13.7 Citizen Portal Redesign & Secure Tracking', () => {
         </MemoryRouter>
       );
 
-      const input = screen.getByPlaceholderText('8041 7263 9150 2846 0371 6628');
+      const input = screen.getByPlaceholderText('0000 0000 0000 0000 0000 0000');
       fireEvent.change(input, { target: { value: '804172639150284603716628' } });
 
       const form = input.closest('form')!;
       fireEvent.submit(form);
 
       await waitFor(() => {
-        expect(screen.getByText('Water & Sewerage')).toBeInTheDocument();
-        expect(screen.getByText('Under review')).toBeInTheDocument();
-        expect(screen.getByText('Complaint recorded in public registry.')).toBeInTheDocument();
+        expect(screen.getByRole('heading', { name: /Under review/i })).toBeInTheDocument();
+        expect(screen.queryByText('Water & Sewerage')).not.toBeInTheDocument();
+        expect(screen.getByText(/View official updates/i)).toBeInTheDocument();
         // Verify ZERO PII exposed
         expect(screen.queryByText(/0300/)).not.toBeInTheDocument();
         expect(screen.queryByText(/cnic/i)).not.toBeInTheDocument();

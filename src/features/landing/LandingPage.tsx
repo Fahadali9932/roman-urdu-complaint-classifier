@@ -27,7 +27,7 @@ export const LandingPage: React.FC = () => {
         recedeOnScroll={true}
         className="w-full bg-[#F7F6F3] overflow-hidden"
       >
-        <div className="h-screen w-full flex flex-col items-center justify-center px-4 sm:px-8 lg:px-16 pt-20 sm:pt-24 pb-20 sm:pb-24 text-center select-none overflow-hidden relative">
+        <div className="min-h-[100svh] w-full flex flex-col items-center justify-center px-4 sm:px-8 lg:px-16 pt-20 sm:pt-24 pb-20 sm:pb-24 text-center select-none overflow-hidden relative">
           {/* Soft atmospheric paper texture overlay */}
           <div
             className="absolute inset-0 pointer-events-none opacity-40 bg-[radial-gradient(circle_at_50%_40%,rgba(255,255,255,0.8)_0%,rgba(247,246,243,0)_70%)]"
@@ -140,8 +140,8 @@ export const LandingPage: React.FC = () => {
       <StackedScrollSection
         id="write-intro-panel"
         depth={30}
-        stickyMode="top-desktop"
-        trackHeight="140vh"
+        stickyMode="top"
+        trackHeight="130svh"
         recedeOnScroll={true}
         hasIncomingShadow={true}
         className="w-full bg-[#FAF9F7] border-t border-[#E5E3E0]"

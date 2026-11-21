@@ -999,8 +999,8 @@ export const SimplifiedComplaintContainer: React.FC = () => {
                           </p>
                           <p className="text-xs leading-relaxed text-[#625D58]">
                             {ur
-                              ? 'آپ اپنی شکایت براہ راست جمع کروا سکتے ہیں۔ بعد میں اس کی پیش رفت جانچنے یا اپ ڈیٹس دیکھنے کے لیے آپ کو اکاؤنٹ بنانا ہوگا۔'
-                              : 'You can submit your complaint directly. To track its progress or view updates later, you\'ll need to create an account.'}
+                              ? 'شکایت درج ہونے کے بعد ملنے والا 24 ہندسوں کا نجی ٹریکنگ نمبر محفوظ رکھیں۔ اس نمبر سے بغیر اکاؤنٹ کے پیش رفت دیکھ سکتے ہیں۔'
+                              : 'After submitting, save the private 24-digit tracking number on your receipt. Use it to check progress without creating an account.'}
                           </p>
                         </div>
                       </div>
@@ -1284,7 +1284,12 @@ const SubmissionModal: React.FC<{
   };
 
   const deptMeta = submission.departmentId ? KARACHI_DEPARTMENTS[submission.departmentId] : null;
-  const isUnderReview = submission.needsReview || submission.status === 'under_review';
+  // A classifier candidate is not proof that the department accepted an assignment.
+  // Never display a predicted name when the case is held for human routing.
+  const confirmedRouting = ['assigned', 'accepted', 'in_progress', 'resolved', 'partly_resolved'].includes(submission.status || '');
+  const verifiedDepartments = (submission.departments || []).filter((d) => Boolean(KARACHI_DEPARTMENTS[d]));
+  const isUnderReview = submission.needsReview || !confirmedRouting ||
+    (verifiedDepartments.length === 0 && !deptMeta);
   const deptDisplayName = ur
     ? deptMeta?.nameUrdu || deptMeta?.name || 'بلدیاتی ادارہ'
     : deptMeta?.name || submission.departmentId?.toUpperCase() || 'Municipal Authority';
@@ -1300,7 +1305,7 @@ const SubmissionModal: React.FC<{
       aria-modal="true"
       aria-labelledby="submission-title"
     >
-      <div className="w-full max-w-2xl animate-in fade-in zoom-in-95 duration-200 rounded-[26px] sm:rounded-[36px] bg-white p-6 sm:p-10 shadow-2xl max-h-[94dvh] sm:max-h-[90dvh] overflow-y-auto">
+      <div className="w-full max-w-[660px] animate-in fade-in zoom-in-95 duration-200 rounded-[26px] sm:rounded-[30px] bg-white p-5 sm:p-9 shadow-2xl max-h-[94dvh] sm:max-h-[90dvh] overflow-y-auto">
         {/* Header: Emerald checkmark and single title */}
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-3">
@@ -1315,7 +1320,7 @@ const SubmissionModal: React.FC<{
               >
                 {ur ? 'شکایت موصول ہو گئی' : 'Complaint Received'}
               </h2>
-              <p className="mt-2 text-sm sm:text-base text-[#5A554E]">
+              <p className="mt-2 text-base font-medium text-[#514A45]">
                 {ur ? 'آپ کی شکایت کا باقاعدہ اندراج کر لیا گیا ہے۔' : 'Your complaint has been registered successfully.'}
               </p>
             </div>
@@ -1332,7 +1337,7 @@ const SubmissionModal: React.FC<{
 
         {/* 1. Primary Code Display: ONE Secret Tracking Card for Guests */}
         {submission.guestTrackingNumber ? (
-          <div className="mt-6 rounded-[24px] border-2 border-[#681822] bg-[#FAF6F6] p-5 sm:p-7 shadow-xs">
+          <div className="mt-6 rounded-[22px] border-2 border-[#681822] bg-[#FCF8F8] p-5 sm:p-6 shadow-xs">
             <div className="flex items-center justify-between gap-2">
               <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#681822] flex items-center gap-1.5">
                 <Lock className="h-3.5 w-3.5 text-[#681822]" />
@@ -1344,7 +1349,7 @@ const SubmissionModal: React.FC<{
             </div>
 
             <div className="mt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <span className="font-mono text-xl sm:text-2xl md:text-3xl font-black tracking-wide text-[#141414] select-all break-words">
+              <span className="font-mono text-[clamp(1.15rem,4.1vw,1.65rem)] font-black tracking-[0.04em] leading-snug text-[#141414] select-all break-words">
                 {formattedGuestTracking}
               </span>
               <button
@@ -1358,7 +1363,7 @@ const SubmissionModal: React.FC<{
               </button>
             </div>
 
-            <p className="mt-4 text-xs sm:text-sm leading-relaxed text-[#5A554E]">
+            <p className="mt-4 text-sm font-medium leading-relaxed text-[#4C4541]">
               {ur
                 ? 'اس 24 ہندسی نمبر کو محفوظ رکھیں۔ آپ کسی بھی ڈیوائس پر بغیر لاگ ان کیے اس کوڈ کے ذریعے اپنی شکایت کی پیش رفت دیکھ سکتے ہیں۔'
                 : 'Keep this 24-digit code private. You can track your complaint progress on any device at /track without signing in or creating an account.'}
@@ -1393,28 +1398,31 @@ const SubmissionModal: React.FC<{
         )}
 
         {/* 2. Department Routing & Progress Card */}
-        <div className="mt-5 rounded-[24px] border-2 border-[#E6E3DF] p-5 sm:p-7 space-y-3">
+        <div className="mt-5 rounded-[22px] border border-[#DDD4D0] bg-[#FAF9F7] p-5 sm:p-6 space-y-3">
           {isUnderReview ? (
             <div>
               <div className="flex items-center justify-between gap-2">
                 <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#625D58]">
                   {ur ? 'بلدیاتی تفویض' : 'Department Assignment'}
                 </span>
-                <span className="inline-flex items-center gap-1 rounded-md bg-amber-50 border border-amber-200 px-2.5 py-0.5 text-[11px] font-mono font-bold uppercase text-amber-800">
-                  {ur ? 'زیرِ جائزہ' : 'Under Review'}
+                <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 border border-amber-200 px-3 py-1 text-xs font-bold text-amber-900">
+                  {ur ? 'محکمے کی تصدیق باقی ہے' : 'Assignment pending'}
                 </span>
               </div>
-              <p className="mt-2 text-sm sm:text-base leading-relaxed text-[#625D58]">
+              <h3 className="mt-3 text-xl sm:text-2xl font-black text-[#191515]">
+                {ur ? 'متعلقہ محکمے کو بھیجی جا رہی ہے' : 'Being directed to the relevant department'}
+              </h3>
+              <p className="mt-2 text-base leading-relaxed text-[#4C4541]">
                 {ur
-                  ? 'آپ کی شکایت موصول ہو چکی ہے اور جائزے کے منتظر ہے۔ تصدیق کے بعد متعلقہ محکمہ ظاہر ہو جائے گا۔'
-                  : 'Your complaint has been received and is awaiting review. The responsible department will appear once confirmed.'}
+                  ? 'آپ کی شکایت درج کر لی گئی ہے۔ متعلقہ محکمے کی تصدیق ہوتے ہی یہاں نام ظاہر ہوگا۔'
+                  : 'Your complaint has been received. The department name will appear once the assignment is confirmed.'}
               </p>
             </div>
           ) : (
             <div>
               <div className="flex items-center justify-between gap-2">
                 <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#625D58]">
-                  {submission.departments && submission.departments.length > 1
+                  {verifiedDepartments.length > 1
                     ? ur ? 'تفویض شدہ بلدیاتی محکمے' : 'Assigned Departments'
                     : ur ? 'تفویض شدہ بلدیاتی محکمہ' : 'Assigned Department'}
                 </span>
@@ -1423,9 +1431,9 @@ const SubmissionModal: React.FC<{
                 </span>
               </div>
 
-              {submission.departments && submission.departments.length > 1 ? (
+              {verifiedDepartments.length > 1 ? (
                 <div className="mt-2 flex flex-wrap gap-1.5">
-                  {submission.departments.map((d) => {
+                  {verifiedDepartments.map((d) => {
                     const m = KARACHI_DEPARTMENTS[d];
                     const name = ur ? m?.nameUrdu || m?.name || d.toUpperCase() : m?.name || d.toUpperCase();
                     return (
@@ -1441,8 +1449,8 @@ const SubmissionModal: React.FC<{
                 </div>
               )}
 
-              <p className="mt-2 text-sm sm:text-base leading-relaxed text-[#625D58]">
-                {submission.departments && submission.departments.length > 1
+              <p className="mt-2 text-base font-medium leading-relaxed text-[#4C4541]">
+                {verifiedDepartments.length > 1
                   ? ur
                     ? 'آپ کی شکایت متعلقہ بلدیاتی محکموں کو بھیج دی گئی ہے اور منظوری کے منتظر ہے۔'
                     : 'Your complaint has been forwarded to the assigned municipal departments and is awaiting acceptance.'
@@ -1508,10 +1516,10 @@ const SubmissionModal: React.FC<{
                   onClose();
                   navigate('/register');
                 }}
-                aria-label={ur ? 'اکاؤنٹ بنائیں' : 'Create Account to Track'}
-                className="text-xs text-[#681822] hover:underline cursor-pointer font-medium"
+                aria-label={ur ? 'اکاؤنٹ بنائیں' : 'Create an optional citizen account'}
+                className="text-sm text-[#681822] hover:underline cursor-pointer font-semibold"
               >
-                {ur ? 'تمام شکایات کے باقاعدہ انتظام کے لیے اکاؤنٹ بنائیں →' : 'Create Account to Track — Manage all complaints in one place →'}
+                {ur ? 'اختیاری: اپنی شکایات ایک جگہ رکھنے کے لیے اکاؤنٹ بنائیں →' : 'Optional: Create an account to manage future complaints →'}
               </button>
             </div>
           )}

@@ -55,7 +55,7 @@ describe('RegisterPage Component (Two-Column Reference Redesign & Gate D Policy)
     expect(screen.getByRole('button', { name: /Create Account/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /Log in/i })).toBeInTheDocument();
 
-    expect(screen.getByText(/Create a secure citizen account to claim a guest complaint/i)).toBeInTheDocument();
+    expect(screen.getByText(/Guests can still track with their private number/i)).toBeInTheDocument();
   });
 
   it('renders the atmospheric visual artwork panel with topic chips and value proposition', () => {
@@ -88,7 +88,7 @@ describe('RegisterPage Component (Two-Column Reference Redesign & Gate D Policy)
     expect(passwordInput).toHaveAttribute('type', 'password');
   });
 
-  it('AUTH-06: rejects invalid email syntax, password < 15 chars, and mismatched confirmation', async () => {
+  it('AUTH-06: rejects invalid email, password < 8 chars, missing character types and mismatched confirmation', async () => {
     const { container } = renderRegister();
 
     const nameInput = screen.getByLabelText(/Full Name/i);
@@ -111,17 +111,25 @@ describe('RegisterPage Component (Two-Column Reference Redesign & Gate D Policy)
       expect(screen.getByText(/Please enter a valid email address/i)).toBeInTheDocument();
     });
 
-    // 2. Short password (< 15 chars)
+    // 2. Short password (< 8 chars)
     fireEvent.change(emailInput, { target: { value: 'ahmed@example.com' } });
-    fireEvent.change(passwordInput, { target: { value: 'ShortPass1!' } });
-    fireEvent.change(confirmInput, { target: { value: 'ShortPass1!' } });
+    fireEvent.change(passwordInput, { target: { value: 'Ab1!xyz' } });
+    fireEvent.change(confirmInput, { target: { value: 'Ab1!xyz' } });
     fireEvent.submit(form);
 
     await waitFor(() => {
-      expect(screen.getByText(/Passphrase must be at least 15 characters long/i)).toBeInTheDocument();
+      expect(screen.getByText(/Password must be at least 8 characters long/i)).toBeInTheDocument();
     });
 
-    // 3. Mismatched confirmation
+    // 3. Require uppercase, number and symbol.
+    fireEvent.change(passwordInput, { target: { value: 'lowercase123' } });
+    fireEvent.change(confirmInput, { target: { value: 'lowercase123' } });
+    fireEvent.submit(form);
+    await waitFor(() => {
+      expect(screen.getByText(/Include an uppercase letter, a number and a special symbol/i)).toBeInTheDocument();
+    });
+
+    // 4. Mismatched confirmation
     fireEvent.change(passwordInput, { target: { value: 'KarachiPassphrase2026!' } });
     fireEvent.change(confirmInput, { target: { value: 'DifferentPassphrase2026!' } });
     fireEvent.submit(form);

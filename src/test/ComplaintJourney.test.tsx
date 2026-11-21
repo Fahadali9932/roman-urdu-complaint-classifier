@@ -63,17 +63,22 @@ describe('ComplaintJourney Component (Minimal Process Cards & Animated Arrows)',
     expect(screen.queryByText(/مرحلہ وار طریقہ کار/i)).not.toBeInTheDocument();
   });
 
-  it('renders thick vector arrow SVG connectors between the cards', () => {
+  it('keeps desktop vector connectors and uses pinned full-screen stages on mobile', () => {
     renderComponent();
 
     const svgs = document.querySelectorAll('#steps svg');
-    // Desktop has 3 horizontal arrows, mobile has 3 vertical arrows = total 6 SVG elements
-    expect(svgs.length).toBe(6);
+    // Desktop still has its three connecting arrows; mobile now uses full-cover sheets.
+    expect(svgs.length).toBe(3);
     svgs.forEach((svg) => {
       const path = svg.querySelector('path');
       expect(path).toBeInTheDocument();
       expect(path).toHaveAttribute('stroke', '#0B1421');
       expect(path).toHaveAttribute('stroke-linecap', 'round');
+    });
+    const mobileStages = document.querySelectorAll('[data-mobile-journey-stage]');
+    expect(mobileStages).toHaveLength(4);
+    mobileStages.forEach((stage) => {
+      expect(stage.firstElementChild?.className).toContain('sticky');
     });
   });
 });

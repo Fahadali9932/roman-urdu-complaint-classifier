@@ -20,10 +20,10 @@ describe('AWAAZ-E-AWAM — Gate C: One-Number 24-Digit Guest Tracking', () => {
       </MemoryRouter>
     );
 
-    expect(screen.getByLabelText(/Tracking number \(24 digits\)/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Check status/i })).toBeInTheDocument();
+    expect(screen.getByLabelText(/24-digit tracking number/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Check Complaint Status/i })).toBeInTheDocument();
     expect(
-      screen.getByText(/Your personal details are never exposed/i)
+      screen.getByText(/Keep your number private/i)
     ).toBeInTheDocument();
   });
 
@@ -40,12 +40,12 @@ describe('AWAAZ-E-AWAM — Gate C: One-Number 24-Digit Guest Tracking', () => {
     fireEvent.change(input, { target: { value: '804172639150' } });
     expect(input.value).toBe('8041 7263 9150');
 
-    const submitBtn = screen.getByRole('button', { name: /Check status/i });
+    const submitBtn = screen.getByRole('button', { name: /Check Complaint Status/i });
     fireEvent.click(submitBtn);
 
     await waitFor(() => {
       expect(
-        screen.getByText(/Please enter a complete 24-digit tracking number/i)
+        screen.getByText(/Enter all 24 digits from your receipt/i)
       ).toBeInTheDocument();
     });
   });
@@ -63,7 +63,7 @@ describe('AWAAZ-E-AWAM — Gate C: One-Number 24-Digit Guest Tracking', () => {
     fireEvent.change(input, { target: { value: 'CLM-ABCD-EFGH-JKLM' } });
 
     expect(
-      screen.getByText(/This looks like a private claim code/i)
+      screen.getByText(/Use the private 24-digit tracking number from your receipt/i)
     ).toBeInTheDocument();
   });
 
@@ -92,13 +92,12 @@ describe('AWAAZ-E-AWAM — Gate C: One-Number 24-Digit Guest Tracking', () => {
     const input = screen.getByLabelText(/Tracking number/i);
     fireEvent.change(input, { target: { value: '804172639150284603716628' } });
 
-    const submitBtn = screen.getByRole('button', { name: /Check status/i });
+    const submitBtn = screen.getByRole('button', { name: /Check Complaint Status/i });
     fireEvent.click(submitBtn);
 
     await waitFor(() => {
-      expect(screen.getByText('Work started')).toBeInTheDocument();
-      expect(screen.getByText('Roads & Infrastructure')).toBeInTheDocument();
-      expect(screen.getByText('The department has started work.')).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: /Work in progress/i })).toBeInTheDocument();
+      expect(screen.getByText(/View official updates/i)).toBeInTheDocument();
     });
 
     // Zero PII audit: ensure no sensitive keys are rendered in the document

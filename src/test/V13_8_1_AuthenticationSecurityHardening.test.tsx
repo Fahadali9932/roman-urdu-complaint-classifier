@@ -521,7 +521,7 @@ describe('AWAAZ-E-AWAM — PHASE V13.8.1: Authentication Security Hardening', ()
     // Title is present
     expect(screen.getByRole('heading', { name: /track.*complaint/i })).toBeInTheDocument();
     // Input is purely 24-digit tracking number
-    expect(screen.getByPlaceholderText('8041 7263 9150 2846 0371 6628')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('0000 0000 0000 0000 0000 0000')).toBeInTheDocument();
     // PII fields like phone, cnic, applicant address MUST NOT exist on tracking page
     expect(screen.queryByPlaceholderText(/phone/i)).toBeNull();
     expect(screen.queryByPlaceholderText(/cnic/i)).toBeNull();

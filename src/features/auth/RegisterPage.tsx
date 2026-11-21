@@ -36,8 +36,14 @@ export const RegisterPage: React.FC = () => {
       return;
     }
 
-    if (password.length < 15) {
-      setError('Passphrase must be at least 15 characters long (spaces and symbols allowed).');
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters long.');
+      setSubmitted(false);
+      return;
+    }
+
+    if (!/[A-Z]/.test(password) || !/\d/.test(password) || !/[^A-Za-z0-9\s]/.test(password)) {
+      setError('Include an uppercase letter, a number and a special symbol.');
       setSubmitted(false);
       return;
     }
@@ -66,12 +72,12 @@ export const RegisterPage: React.FC = () => {
   };
 
   return (
-    <div className="w-full bg-[#F7F6F3] min-h-[calc(100vh-80px)] flex flex-col justify-center items-center py-5 sm:py-7 md:py-8 px-4">
+    <div className="w-full bg-[#F7F6F3] min-h-[calc(100svh-80px)] flex flex-col justify-center items-center py-6 sm:py-8 px-4">
       {/* Balanced editorial registration layout; remain single-column on mobile. */}
-      <div className="w-full max-w-[980px] bg-white rounded-[24px] border border-[#EAE7E2] shadow-[0_16px_48px_rgba(20,20,20,0.06)] overflow-hidden flex flex-col lg:flex-row items-stretch">
+      <div className="w-full max-w-[1060px] bg-white rounded-[24px] border border-[#EAE7E2] shadow-[0_16px_48px_rgba(20,20,20,0.06)] overflow-hidden grid grid-cols-1 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] items-start lg:items-stretch">
         {/* LEFT COLUMN: 43% Form Section */}
-        <div className="w-full lg:w-[43%] p-5 sm:px-8 sm:py-7 lg:px-10 lg:py-8 flex flex-col justify-between text-start">
-          <div className="max-w-[355px] w-full mx-auto lg:mx-0">
+        <div className="w-full min-w-0 p-5 sm:px-9 sm:py-8 lg:px-10 lg:py-10 flex flex-col justify-between text-start">
+          <div className="max-w-[460px] w-full mx-auto lg:mx-0">
             {/* Brand Mark */}
             <div className="flex items-center gap-2 mb-3">
               <CivicEmblem size="sm" />
@@ -81,15 +87,15 @@ export const RegisterPage: React.FC = () => {
             </div>
 
             {/* Main Heading & Subtitle */}
-            <h1 className="font-display font-black text-[26px] sm:text-[29px] text-[#171717] tracking-[-0.035em] leading-[1.12] mb-1.5">
+            <h1 className="font-display font-black text-[clamp(1.85rem,5.8vw,2.45rem)] text-[#171717] tracking-[-0.035em] leading-[1.12] mb-2">
               {t('authRegisterTitle')}
             </h1>
-            <p className="text-sm text-[#625D58] leading-relaxed mb-4 sm:mb-5">
+            <p className="text-base text-[#514B46] leading-relaxed mb-5 sm:mb-6">
               {t('authRegisterSubtitle')}
             </p>
 
             {/* Registration Form */}
-            <form onSubmit={handleSubmit} className="space-y-3">
+            <form onSubmit={handleSubmit} className="space-y-4">
               {error && <p role="alert" className="rounded-lg border border-red-200 bg-red-50 p-3 text-xs text-red-700">{error}</p>}
               {/* Full Name */}
               <div className="space-y-1">
@@ -188,7 +194,7 @@ export const RegisterPage: React.FC = () => {
                     type={showPassword ? 'text' : 'password'}
                     dir="ltr"
                     required
-                    minLength={15}
+                    minLength={8}
                     placeholder={t('authPasswordPlaceholder')}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
@@ -207,10 +213,10 @@ export const RegisterPage: React.FC = () => {
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
-                <p className="text-[11px] text-[#817A73]">
+                <p className="text-xs font-medium leading-relaxed text-[#625D58]">
                   {isRTL
-                    ? 'کم از کم 15 حروف، عام الفاظ اور خالی جگہیں قابل قبول ہیں۔'
-                    : '15+ characters passphrase (spaces and phrases allowed).'}
+                    ? 'کم از کم 8 حروف، ایک بڑا انگریزی حرف، ایک عدد اور ایک خاص علامت۔'
+                    : '8+ characters, one uppercase letter, one number and one special symbol.'}
                 </p>
               </div>
 
@@ -231,7 +237,7 @@ export const RegisterPage: React.FC = () => {
                     type={showConfirmPassword ? 'text' : 'password'}
                     dir="ltr"
                     required
-                    minLength={15}
+                    minLength={8}
                     placeholder={t('authConfirmPasswordPlaceholder')}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
@@ -257,7 +263,7 @@ export const RegisterPage: React.FC = () => {
                 <button
                   type="submit"
                   disabled={submitted}
-                  className="w-full h-[44px] rounded-[9px] bg-[#681822] hover:bg-[#52131b] active:scale-[0.99] text-white font-semibold text-[13px] font-ui transition-all duration-200 cursor-pointer shadow-xs hover:shadow focus:ring-2 focus:ring-[#681822]/30 outline-none flex items-center justify-center gap-2"
+                  className="w-full min-h-[50px] rounded-xl bg-[#681822] hover:bg-[#52131b] active:scale-[0.99] text-white font-bold text-[15px] font-ui transition-all duration-200 cursor-pointer shadow-xs hover:shadow focus:ring-2 focus:ring-[#681822]/30 outline-none flex items-center justify-center gap-2"
                 >
                   {submitted ? (
                     <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -296,18 +302,18 @@ export const RegisterPage: React.FC = () => {
           </div>
 
           {/* Account security note */}
-          <div className="max-w-[355px] w-full mx-auto lg:mx-0 mt-3.5 pt-2.5 border-t border-[#F4F3F0]">
+          <div className="max-w-[460px] w-full mx-auto lg:mx-0 mt-5 pt-3 border-t border-[#F4F3F0]">
             <div className="flex items-start gap-2 text-[11px] text-[#74706C] font-ui">
               <Shield className="w-3.5 h-3.5 text-[#681822] shrink-0 mt-0.5" />
               <span>
-                Create a secure citizen account to claim a guest complaint and view its private progress history.
+                Your account keeps complaints together. Guests can still track with their private number without signing up.
               </span>
             </div>
           </div>
         </div>
 
-        {/* RIGHT COLUMN: 57% Artwork-Led Panel */}
-        <div className="w-full lg:w-[57%] p-3.5 sm:p-4.5 lg:p-5 flex flex-col">
+        {/* Compact contextual service panel; never a second, oversized blank artwork. */}
+        <div className="w-full min-w-0 p-3 sm:p-5 lg:p-6 flex flex-col">
           <RegistrationArtwork />
         </div>
       </div>

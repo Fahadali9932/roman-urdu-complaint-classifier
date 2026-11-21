@@ -45,7 +45,7 @@ describe('AWAAZ-E-AWAM — Guest Complaint Submission & Ownership Claiming', () 
     expect(screen.getByText(/no account required to submit a complaint\./i)).toBeInTheDocument();
     expect(
       screen.getByText(
-        /you can submit your complaint directly\. to track its progress or view updates later, you'll need to create an account\./i
+        /save the private 24-digit tracking number on your receipt/i
       )
     ).toBeInTheDocument();
 
@@ -80,7 +80,7 @@ describe('AWAAZ-E-AWAM — Guest Complaint Submission & Ownership Claiming', () 
     expect(screen.getByText(/شکایت درج کرنے کے لیے اکاؤنٹ بنانا لازمی نہیں ہے۔/i)).toBeInTheDocument();
     expect(
       screen.getByText(
-        /آپ اپنی شکایت براہ راست جمع کروا سکتے ہیں۔ بعد میں اس کی پیش رفت جانچنے یا اپ ڈیٹس دیکھنے کے لیے آپ کو اکاؤنٹ بنانا ہوگا۔/i
+        /24 ہندسوں کا نجی ٹریکنگ نمبر محفوظ رکھیں/i
       )
     ).toBeInTheDocument();
   });
@@ -115,12 +115,11 @@ describe('AWAAZ-E-AWAM — Guest Complaint Submission & Ownership Claiming', () 
     expect(screen.queryByText(/official case reference number/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/private claim code/i)).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: /copy code/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /track complaint/i })).toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: /track complaint/i }).length).toBeGreaterThan(0);
     expect(screen.getByRole('button', { name: /return home/i })).toBeInTheDocument();
   });
 
-  it('renders Claim Guest Complaint modal on Citizen Dashboard and successfully links complaint', async () => {
-    // Submit a fresh complaint to mock service
+  it('keeps the old claim-code API for historical data but removes the unusable citizen claim modal', async () => {
     const submission = await complaintService.submitComplaint({
       citizenName: 'Zainab Bibi',
       citizenPhone: '03211234567',
@@ -136,30 +135,12 @@ describe('AWAAZ-E-AWAM — Guest Complaint Submission & Ownership Claiming', () 
     expect(submission.claimCode).toBeDefined();
 
     renderWithContext(<CitizenDashboard />);
+    expect(screen.queryByRole('button', { name: /claim guest complaint/i })).not.toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: /track complaint/i }).length).toBeGreaterThan(0);
 
-    // Verify Claim button is present
-    const claimButton = await screen.findByRole('button', { name: /claim guest complaint/i });
-    expect(claimButton).toBeInTheDocument();
-
-    // Open claim modal
-    fireEvent.click(claimButton);
-    expect(await screen.findByRole('heading', { name: /claim guest complaint/i })).toBeInTheDocument();
-
-    // Enter reference number and claim code
-    fireEvent.change(screen.getByLabelText(/reference number/i), {
-      target: { value: submission.referenceNumber },
-    });
-    fireEvent.change(screen.getByLabelText(/private claim code/i), {
-      target: { value: submission.claimCode },
-    });
-
-    // Submit claim
-    fireEvent.click(screen.getByRole('button', { name: /claim & link complaint/i }));
-
-    // Verify success message
-    await waitFor(() => {
-      expect(screen.getByText(/complaint linked to your account successfully!/i)).toBeInTheDocument();
-    });
+    // The service contract is intentionally kept for old claims, not offered as a new guest flow.
+    const claim = await complaintService.claimComplaint(submission.referenceNumber, submission.claimCode!);
+    expect(claim.success).toBe(true);
 
     // Verify trying to claim again fails
     const reClaim = await complaintService.claimComplaint(submission.referenceNumber, submission.claimCode!);

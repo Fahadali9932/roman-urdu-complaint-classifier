@@ -5,7 +5,7 @@ import { LanguageProvider } from '../context/LanguageContext';
 import { ComplaintTracker } from '../features/citizen/ComplaintTracker';
 
 describe('ComplaintTracker Component', () => {
-  it('requires the private claim code and account sign-in before tracking a guest complaint', () => {
+  it('keeps only one 24-digit tracking method, even on legacy reference URLs', () => {
     render(
       <MemoryRouter initialEntries={['/track/KHI-2026-7842']}>
         <LanguageProvider>
@@ -16,9 +16,9 @@ describe('ComplaintTracker Component', () => {
       </MemoryRouter>
     );
 
-    expect(screen.getByRole('heading', { name: /track complaint/i })).toBeInTheDocument();
-    expect(screen.getByLabelText(/complaint reference number/i)).toHaveValue('KHI-2026-7842');
-    expect(screen.getByLabelText(/private claim code/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /sign in to claim and track/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /track your complaint/i })).toBeInTheDocument();
+    expect(screen.getByLabelText(/24-digit tracking number/i)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /claim to account/i })).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/private claim code/i)).not.toBeInTheDocument();
   });
 });
