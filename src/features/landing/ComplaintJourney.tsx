@@ -228,7 +228,9 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({
 
   // Authoritative RAF scroll listener with buttery smooth damping
   const handleScroll = useCallback(() => {
-    if (prefersReducedMotion) return;
+    // Mobile has its own native sticky cards. Do not run the desktop RAF
+    // damping loop or even attach its scroll handler on touch-sized screens.
+    if (prefersReducedMotion || isMobile) return;
 
     const scrollY = window.scrollY;
     const { containerTop, scrollableDistance } = layoutMetricsRef.current;
@@ -270,7 +272,7 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({
   useEffect(() => {
     measureLayout();
 
-    if (prefersReducedMotion) return;
+    if (prefersReducedMotion || isMobile) return;
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     window.addEventListener('resize', handleScroll, { passive: true });
@@ -286,7 +288,7 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({
         rafId.current = null;
       }
     };
-  }, [handleScroll, measureLayout, prefersReducedMotion]);
+  }, [handleScroll, isMobile, measureLayout, prefersReducedMotion]);
 
   // Essential Stage Content (strictly minimal, no numbering, no badges, no fake data)
   const stepsData = [
@@ -591,9 +593,8 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({
         </div>
       </div>
 
-      {/* Touch devices use compact sticky cover sheets with native scrolling.
-          No scroll-driven transforms of text: this avoids stutter, blurry type,
-          and the giant empty cards of the earlier 135svh implementation. */}
+      {/* Mobile uses native overlapping sticky sheets: close spacing, no JS
+          scroll hijacking, and a tiny optional CSS-only arrival motion. */}
       <div className="lg:hidden w-full px-3 pb-8 sm:px-6 sm:pb-12">
         <div className="flex items-center justify-center px-4 pb-8 pt-20 text-center sm:pb-12 sm:pt-24">
           <h2 className="font-display text-[clamp(2.5rem,10vw,4.4rem)] text-[#141414] uppercase tracking-tight leading-[0.95]">
@@ -606,9 +607,9 @@ export const ComplaintJourney: React.FC<ComplaintJourneyProps> = ({
               key={step.key}
               data-mobile-journey-stage={step.key}
               style={{ zIndex: index + 1 }}
-              className={`relative ${prefersReducedMotion ? 'mb-5' : 'min-h-[105svh] last:min-h-[85svh]'}`}
+              className={`mobile-journey-stage relative ${prefersReducedMotion ? 'mb-5' : 'min-h-[92svh] -mt-[18svh] first:mt-0 last:min-h-[78svh]'}`}
             >
-              <div className={`${prefersReducedMotion ? 'relative min-h-[280px]' : 'sticky top-[84px] h-[clamp(360px,68svh,580px)]'} flex w-full flex-col overflow-hidden rounded-[24px] border border-[#DCD5CF] bg-[#FAF9F7] p-6 shadow-[0_-18px_42px_rgba(24,13,14,0.13)] sm:p-9`}>
+              <div className={`mobile-journey-card ${prefersReducedMotion ? 'relative min-h-[280px]' : 'sticky top-[76px] h-[clamp(345px,65svh,555px)]'} flex w-full flex-col overflow-hidden rounded-[24px] border border-[#DCD5CF] bg-[#FAF9F7] p-6 shadow-[0_-12px_32px_rgba(24,13,14,0.12)] sm:p-9`}>
                 <div className="flex items-center justify-between gap-4">
                   <p className="font-mono text-[11px] font-bold uppercase tracking-[0.16em] text-[#681822]">
                     {language === 'ur' ? 'مرحلہ' : 'Step'} {String(index + 1).padStart(2, '0')}

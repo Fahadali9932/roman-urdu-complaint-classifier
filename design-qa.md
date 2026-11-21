@@ -1,26 +1,42 @@
-# Design QA — V13.15.3
+# Design QA — V13.15.4 registration image / mobile scroll polish
 
 ## Source evidence
 
-- User screenshot: mobile How It Works heading and huge blank first card.
-- User screenshot: desktop registration with flat burgundy promotional card.
+- Current user screenshot: 1920 × 1200 browser capture of `/register`
+  (`upload/image(20261121-160030).png`). The 455-pixel-wide monument panel has
+  a huge white headline covering the tomb, obscuring the intended photo.
+- Previous mobile screenshot: 393 × 852 CSS viewport with lengthy card gaps.
 - Reference: existing `mazar-e-quaid-monochrome.jpg` and
   `mazar-e-quaid-mobile.jpg` used by the site footer.
 
 ## Changes to verify
 
-- Mobile four-step cards: no giant empty area; heading and short description
-  remain visible at 320 and 390 widths; native sticky sheet transitions do not
-  jump, trap scrolling, or cause side-to-side movement.
-- Register: original Mazar-e-Quaid photo renders behind readable copy on desktop
-  and mobile, with correct crop and no competing red illustration panel.
+- Mobile four-step cards: 92svh sections overlap by 18svh and hold a 65svh
+  card; confirm native transitions stay smooth at 320, 375, 390, 393 widths.
+- Register: original Mazar-e-Quaid image occupies its own unobstructed photo
+  region; heading is in a separate dark caption panel underneath.
 - All citizen routes: no horizontal overflow, white screens, clipped navigation
   or fuzzy perspective-transformed text at 320/390/768/1280 widths.
 - Reduced motion: static readable flow without forced sticky staging.
 
 ## Evidence status
 
-- Source screenshots supplied by user: yes.
+- Source screenshot supplied by user: 1920 × 1200 overall; registration panel
+  at approximately 455 × 568 CSS pixels. Density: browser 1x capture.
+- New implementation screenshot: **none captured** (the cloud browser reports
+  Site Unavailable for the sandbox's Vite server). Target: `/register` at
+  1280 × 900 desktop plus 393 × 852 and 320 × 640 mobile, DPR 1.
+- Full-view comparison: blocked pending matching source and implementation
+  screenshot. Focused panel comparison: blocked pending rendered crop.
+- Typography: code now limits panel heading to about 33px on desktop versus
+  previous ~45px, and moves it below the image; browser comparison pending.
+- Spacing: photo 335px high on desktop; caption 210px minimum. Mobile photo
+  235px high; screenshot verification pending.
+- Colors: existing monochrome photograph and #141414 dark caption preserved.
+- Image: exact footer raster assets reused, not regenerated or replaced.
+- Copy: existing localized heading/subtitle unchanged.
+- Interaction/accessibility: no changes to form controls, RTL, or passwords;
+  reduced-motion override disables mobile card animation. Browser proof pending.
 - Code and unit tests: passed; see project handoff document.
 - Headless browser screenshots from this workspace: **not available**. Local
   Vite started, but Chrome could not launch in the sandbox and the cloud browser
@@ -29,4 +45,5 @@
   `node tools/ai_factory/v13_15_3_browser_qa.mjs` against Vite; inspect output
   screenshots and mobile touch-scroll movement before GitHub push.
 
-**Final result: blocked — browser rendering and mobile motion not yet verified.**
+**Final result: blocked — real-browser image crop, motion smoothness, and
+mobile screenshots must be reviewed in Antigravity before GitHub push.**

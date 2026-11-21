@@ -99,9 +99,17 @@ try {
       if (route === '/register') {
         const photo = await evaluate(`(() => {
           const img=document.querySelector('[data-testid="registration-monument"]');
-          return {loaded:!!img?.complete && img.naturalWidth>0, width:img?.getBoundingClientRect().width||0};
+          const imageRegion=img?.closest('picture')?.parentElement;
+          const caption=imageRegion?.nextElementSibling?.querySelector('h2');
+          const imageBox=imageRegion?.getBoundingClientRect();
+          const headingBox=caption?.getBoundingClientRect();
+          return {loaded:!!img?.complete && img.naturalWidth>0, width:img?.getBoundingClientRect().width||0,
+            captionSeparated:!!imageBox && !!headingBox && headingBox.top>=imageBox.bottom-2,
+            imageHeight:imageBox?.height||0};
         })()`);
         assert(photo.loaded && photo.width > 150, `Registration monument missing at ${width}px: ${JSON.stringify(photo)}`);
+        assert(photo.captionSeparated && photo.imageHeight >= 200,
+          `Registration type obscures monument at ${width}px: ${JSON.stringify(photo)}`);
       }
       console.log(`PASS ${width}x${height} ${route}: no overflow`);
     }
@@ -111,11 +119,13 @@ try {
     const initial = await evaluate(`(() => {
       const stages=[...document.querySelectorAll('[data-mobile-journey-stage]')];
       const card=stages[0]?.firstElementChild;
+      const gap=stages.length>1 ? (stages[1].getBoundingClientRect().top-stages[0].getBoundingClientRect().top) : 0;
       return {count:stages.length, position:card && getComputedStyle(card).position,
-        cardHeight:card?.getBoundingClientRect().height||0, screenHeight:innerHeight};
+        cardHeight:card?.getBoundingClientRect().height||0, screenHeight:innerHeight, gap};
     })()`);
     assert(initial.count===4 && initial.position==='sticky', `Four native sticky stages missing at ${width}px`);
     assert(initial.cardHeight < height * 0.86, `Oversized mobile journey card: ${JSON.stringify(initial)}`);
+    assert(initial.gap < height * 0.84, `Mobile journey still has excessive dead scrolling: ${JSON.stringify(initial)}`);
 
     for (const key of ['write', 'review', 'route', 'track']) {
       const result = await evaluate(`(() => {

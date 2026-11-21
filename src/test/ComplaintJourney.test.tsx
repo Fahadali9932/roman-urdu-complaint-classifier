@@ -80,7 +80,9 @@ describe('ComplaintJourney Component (Minimal Process Cards & Animated Arrows)',
     mobileStages.forEach((stage) => {
       expect(stage.firstElementChild?.className).toContain('sticky');
       expect(stage.className).not.toContain('h-[135svh]');
-      expect(stage.firstElementChild?.className).toContain('h-[clamp(360px,68svh,580px)]');
+      expect(stage.className).toContain('min-h-[92svh]');
+      expect(stage.className).toContain('-mt-[18svh]');
+      expect(stage.firstElementChild?.className).toContain('h-[clamp(345px,65svh,555px)]');
     });
   });
 });

@@ -65,7 +65,13 @@ describe('RegisterPage Component (Two-Column Reference Redesign & Gate D Policy)
     expect(photo).toHaveAttribute('src', expect.stringContaining('mazar-e-quaid'));
     expect(photo).toHaveAttribute('alt', '');
 
-    expect(screen.getByRole('heading', { level: 2, name: /A simpler way to report public-service issues/i })).toBeInTheDocument();
+    const message = screen.getByRole('heading', { level: 2, name: /A simpler way to report public-service issues/i });
+    expect(message).toBeInTheDocument();
+    // The monument is the subject: the large heading must live below the
+    // photography rather than obscure the center of the picture.
+    const imageRegion = photo.closest('picture')?.parentElement;
+    expect(imageRegion).not.toContainElement(message);
+    expect(imageRegion?.nextElementSibling).toContainElement(message);
     expect(screen.getByText(/Write your complaint in everyday language and follow its progress in one place/i)).toBeInTheDocument();
     expect(screen.queryByText(/Describe the issue in your own words/i)).not.toBeInTheDocument();
   });

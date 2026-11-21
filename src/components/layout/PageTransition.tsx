@@ -9,7 +9,7 @@ interface PageTransitionProps {
  * Coordinated 3D Route Transition (Objective 1 B):
  * - Incoming page advances with subtle perspective tilt and depth advance.
  * - Outgoing page subtly recedes.
- * - Once animation settles (~450ms desktop, ~300ms mobile), all transforms,
+ * - Once animation settles (~450ms desktop, ~380ms mobile), all transforms,
  *   perspective, and will-change are completely removed to guarantee 100% native
  *   subpixel font rendering and razor-sharp typography at rest.
  * - Respects prefers-reduced-motion: reduce.
@@ -61,7 +61,7 @@ export const PageTransition: React.FC<PageTransitionProps> = ({ children }) => {
     }
 
     setAnimating(true);
-    const duration = isMobile ? 300 : 460;
+    const duration = isMobile ? 380 : 460;
     const timer = setTimeout(() => {
       setAnimating(false);
     }, duration);

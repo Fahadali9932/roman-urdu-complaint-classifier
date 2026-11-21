@@ -259,7 +259,7 @@
 
 @media (max-width: 767px) {
   .stacked-incoming-shadow {
-    box-shadow: 0 -20px 48px -6px rgba(0, 0, 0, 0.45), 0 -6px 18px -3px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 -12px 30px -10px rgba(0, 0, 0, 0.25);
   }
 
   /* Native mobile browsers zoom tiny form fields and make the page feel blurry.
@@ -274,10 +274,36 @@
   }
 }
 
+/* A short scroll-linked arrival on the *mobile* How It Works sheets.
+   No scale, 3D rotation, sticky JS polling, or scroll snapping. Browsers
+   without view timelines keep the fully visible, native sticky layout. */
+@media (max-width: 1023px) and (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .mobile-journey-card {
+      animation: mobile-journey-arrival 1ms ease-out both;
+      animation-timeline: view(block);
+      animation-range: entry 0% entry 48%;
+    }
+  }
+}
+
+@keyframes mobile-journey-arrival {
+  from { opacity: 0.94; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mobile-journey-card {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
 /* ==========================================================================
    COORDINATED 3D ROUTE TRANSITIONS (Objective 1 B & Objective 2)
    Desktop: 460ms subtle perspective tilt (2.5deg), depth advance (scale 0.985 -> 1.0, translateZ -32px -> 0px)
-   Mobile: 300ms crisp fade + vertical settle, without perspective on live text
+   Mobile: 380ms soft fade + vertical settle, without perspective on live text
    Settled: 100% transform: none, perspective: none, will-change: auto for native subpixel text sharpness
    ========================================================================== */
 
@@ -294,8 +320,8 @@
 
 @keyframes page3dEnterMobile {
   0% {
-    opacity: 0.65;
-    transform: translateY(10px);
+    opacity: 0.78;
+    transform: translateY(8px);
   }
   100% {
     opacity: 1;
@@ -310,7 +336,7 @@
 }
 
 .page-transition-enter-mobile {
-  animation: page3dEnterMobile 300ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: page3dEnterMobile 380ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
   will-change: transform, opacity;
   transform-origin: 50% 20%;
 }

@@ -164,6 +164,14 @@ export const StackedScrollContainer: React.FC<StackedScrollContainerProps> = ({
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
+    // On phones the stacked sheets already overlap through CSS sticky.
+    // Register/cleanup once, but skip resize observers, layout reads and
+    // requestAnimationFrame writes on every touch-scroll event.
+    if (isMobile || prefersReducedMotion) {
+      updateTransforms();
+      return;
+    }
+
     const onScroll = () => requestTransformUpdate();
 
     if (typeof ResizeObserver !== 'undefined') {
@@ -194,7 +202,7 @@ export const StackedScrollContainer: React.FC<StackedScrollContainerProps> = ({
         rafId.current = null;
       }
     };
-  }, [requestTransformUpdate, updateTransforms]);
+  }, [isMobile, prefersReducedMotion, requestTransformUpdate, updateTransforms]);
 
   return (
     <StackedScrollContext.Provider
