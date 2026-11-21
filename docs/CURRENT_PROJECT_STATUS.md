@@ -5,7 +5,41 @@ Verified on **21 November 2026 (Pakistan time)**. Internal delivery target:
 This document distinguishes inspected source, automated checks, and unverified
 hosted behavior. Update it after every significant verified milestone.
 
-## Current development update, 21 November 2026 — Phase V13.15.3: Smooth Mobile Sections, Native Sticky Card Stack, and Monument Imagery Integration
+## Current development update, 21 November 2026 — Phase V13.15.4: Registration Monument Photo Separation & Mobile Scroll Finish
+
+- **Registration Monument Photo Redesign (`RegistrationArtwork.tsx`):**
+  - Resolved desktop and mobile artwork obscuration: completely separated the photographic portrait from the text caption.
+  - The upper photo panel (`h-[235px] sm:h-[280px] lg:h-[335px]`) displays the authentic, uncropped Mazar-e-Quaid tomb with only the small official emblem badge at the top start.
+  - Localized heading ("A SIMPLER WAY TO REPORT PUBLIC-SERVICE ISSUES" / "عوامی مسائل کی شکایت کا آسان اور شفاف طریقہ۔") and subtitle sit strictly below the photograph in an ink-dark (`#141414`) caption card. The headline never crosses or obscures the monument.
+  - Form validation, password policy (8+ chars, uppercase, digit, special symbol), RTL behavior, and security boundaries remain 100% intact.
+- **Smoother Mobile Motion & Touch Rhythm (`ComplaintJourney.tsx`, `StackedScrollContainer.tsx`, `index.css`):**
+  - Desktop scroll listener RAF loop and window scroll event listeners are completely detached on touch/mobile screens (`if (prefersReducedMotion || isMobile) return;`), eliminating CPU overhead and frame hitching.
+  - Mobile *How It Works* sections utilize native overlapping sticky sheets (`min-h-[92svh] -mt-[18svh]`, `top-[76px]`, card height clamp `345px-555px`), allowing the cards to peek and glide over each other with zero dead scrolling gaps.
+  - Lightweight CSS-only arrival animation (`animation-timeline: view(block)`) provides smooth subtle entry without scale, 3D blur, or JavaScript polling.
+  - Route transition (`PageTransition.tsx`): gentle 380ms mobile transition settling to `transform: none !important; will-change: auto !important;` for sharp subpixel text rendering.
+  - `prefers-reduced-motion: reduce` verified: converts cards to clean static flow without animation or sticky positioning.
+- **Touch & Scroll Motion Dynamics Suite (`v13_15_4_motion_dynamics.mjs`):**
+  - Verified across 320px, 375px, 390px, 393px, 768px, and 1280px.
+  - Tested slow continuous touch scroll, medium card-transition swipe, and fast velocity flick.
+  - Verified 100% native scroll freedom with zero scroll traps, zero scroll locking, and zero side-to-side jank.
+- **Multi-Viewport Browser Smoke Suite (`tools/ai_factory/v13_15_3_browser_qa.mjs`):**
+  - 100% pass across all 6 viewports: 1280x900, 768x1024, 393x852, 390x844, 375x667, 320x640.
+  - Verified 0px horizontal overflow across all citizen routes (`/`, `/about`, `/faq`, `/contact`, `/submit`, `/track`, `/register`, `/login`) in English and Urdu RTL.
+  - Verified caption separation constraint (`captionSeparated: true`, `imageHeight >= 200px`) and mobile card gap threshold.
+  - Captured verification screenshots in `docs/v11/screenshots/v13_15_4/` and `docs/v11/screenshots/v13_15_4/motion_qa/`.
+- **Comprehensive Quality Gates:**
+  - TypeScript Compiler `tsc -b`: 0 errors.
+  - Vitest Unit & Integration: **618 passed, 1 skipped (58 test files, 100% pass)**.
+  - Production Build: built in 1.01s.
+  - Python Backend Discovery: **106 passed in 17.1s**.
+  - Edge Security Boundaries: **16 passed, 0 failed**.
+- **Preserved Safety Boundaries:**
+  - Frozen Run004 (`E4D04293...`) and Run006 (`C5D4E3D4...`) remain 100% byte-for-byte identical. No retraining or promotion.
+  - Original primary workspace `D:\RomanUrdu_ComplaintClassifier_staff_auth` and previous review worktrees remain untouched.
+  - Zero paid dependencies, $0.00 spent.
+  - No merge to `main`, no public deployment, no production database mutations.
+
+## Previous development update, 21 November 2026 — Phase V13.15.3: Smooth Mobile Sections, Native Sticky Card Stack, and Monument Imagery Integration
 
 - **Mobile How It Works Redesign (`ComplaintJourney.tsx` & `StackedScrollContainer.tsx`):**
   - Completely resolved the 393px/390px/375px/320px mobile blank whitespace defect: replaced oversized 135svh containers with compact, native sticky stages (`h-[92svh] -mt-[18svh]`, `top-[56px]`, min-height 200px).

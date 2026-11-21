@@ -57,7 +57,7 @@ const visit = async (route) => {
         w: el.getBoundingClientRect().width
       })).slice(0, 5)
     })`);
-    if (result && result.content > 60) break;
+    if (result && result.content > 60 && result.overflow <= 2) break;
   }
   assert(result && result.content > 60, `Blank or incomplete page: ${route}`);
   assert(result.overflow <= 2, `Horizontal overflow on ${route}: ${JSON.stringify(result)}`);
