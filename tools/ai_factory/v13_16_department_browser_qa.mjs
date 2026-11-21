@@ -2,17 +2,33 @@ import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import net from 'node:net';
+import { fileURLToPath } from 'node:url';
 
-const ROOT_DIR = 'D:\\RomanUrdu_V13_16_Department';
-const SCREENSHOT_DIR = path.join(ROOT_DIR, 'docs', 'v11', 'screenshots', 'v13_16');
-const ARTIFACT_DIR = 'C:\\Users\\Annihilation\\.gemini\\antigravity\\brain\\3caaefa1-3615-4655-86f5-c95c17bc0aa2\\screenshots\\v13_16';
-const PORT = 5173;
-const ORIGIN = `http://127.0.0.1:${PORT}`;
-const BROWSER_PORT = 9399;
-const CHROME_PATH = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
+const ROOT_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
+const SCREENSHOT_DIR = process.env.AWAAZ_QA_SCREENSHOT_DIR || path.join(ROOT_DIR, 'docs', 'v11', 'screenshots', 'v13_16');
+const ARTIFACT_DIR = process.env.AWAAZ_QA_ARTIFACT_DIR;
+let PORT;
+let ORIGIN;
+let BROWSER_PORT;
+const CHROME_PATH = process.env.CHROME_PATH || (process.platform === 'win32'
+  ? 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'
+  : '/usr/bin/chromium');
+// No test-account username or access key is committed to source control.
+const QA_STAFF_USERNAME = process.env.AWAAZ_QA_STAFF_USERNAME;
+const QA_STAFF_ACCESS_KEY = process.env.AWAAZ_QA_STAFF_ACCESS_KEY;
 
 fs.mkdirSync(SCREENSHOT_DIR, { recursive: true });
-fs.mkdirSync(ARTIFACT_DIR, { recursive: true });
+if (ARTIFACT_DIR) fs.mkdirSync(ARTIFACT_DIR, { recursive: true });
+
+const freePort = () => new Promise((resolve, reject) => {
+  const server = net.createServer();
+  server.once('error', reject);
+  server.listen(0, '127.0.0.1', () => {
+    const { port } = server.address();
+    server.close(() => resolve(port));
+  });
+});
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -42,7 +58,7 @@ const saveImage = async (name) => {
   const { data } = await request('Page.captureScreenshot', { format: 'png' });
   const buf = Buffer.from(data, 'base64');
   fs.writeFileSync(path.join(SCREENSHOT_DIR, name), buf);
-  fs.writeFileSync(path.join(ARTIFACT_DIR, name), buf);
+  if (ARTIFACT_DIR) fs.writeFileSync(path.join(ARTIFACT_DIR, name), buf);
   console.log(`    [Screenshot saved] ${name}`);
 };
 
@@ -82,7 +98,7 @@ async function waitForServer(url, timeoutMs = 20000) {
 async function startViteServer() {
   console.log('[Vite] Starting server on port', PORT, '...');
   const viteBin = path.join(ROOT_DIR, 'node_modules', 'vite', 'bin', 'vite.js');
-  const viteProc = spawn(process.execPath, [viteBin, '--port', String(PORT), '--host', '127.0.0.1'], {
+  const viteProc = spawn(process.execPath, [viteBin, '--strictPort', '--port', String(PORT), '--host', '127.0.0.1'], {
     cwd: ROOT_DIR,
     stdio: 'inherit',
   });
@@ -91,10 +107,13 @@ async function startViteServer() {
   return viteProc;
 }
 
-async function killProcessTree(pid) {
-  try {
-    spawn('taskkill', ['/PID', String(pid), '/T', '/F'], { stdio: 'ignore' });
-  } catch {}
+async function stopProcess(proc) {
+  if (!proc || !proc.pid || proc.exitCode !== null) return;
+  if (process.platform === 'win32') {
+    spawn('taskkill', ['/PID', String(proc.pid), '/T', '/F'], { stdio: 'ignore' });
+  } else {
+    proc.kill('SIGTERM');
+  }
 }
 
 const checkOverflow = async (label, width) => {
@@ -102,12 +121,22 @@ const checkOverflow = async (label, width) => {
     ({
       docScroll: document.documentElement.scrollWidth,
       bodyScroll: document.body.scrollWidth,
-      windowWidth: window.innerWidth
+      windowWidth: window.innerWidth,
+      heading: (() => {
+        const el = document.querySelector('h1');
+        if (!el) return null;
+        const r = el.getBoundingClientRect();
+        return { left: r.left, right: r.right, width: r.width };
+      })()
     })
   `);
   const overflow = Math.max(0, info.docScroll - info.windowWidth, info.bodyScroll - info.windowWidth);
   console.log(`    [${label} @ ${width}px] window: ${info.windowWidth}px, docScroll: ${info.docScroll}px, overflow: ${overflow}px`);
   assert(overflow <= 2, `Horizontal overflow detected on ${label} @ ${width}px: ${overflow}px exceeds 2px tolerance`);
+  if (info.heading) {
+    assert(info.heading.left >= -2 && info.heading.right <= info.windowWidth + 2,
+      `Heading clipped or displaced on ${label} @ ${width}px: ${JSON.stringify(info.heading)}`);
+  }
   return overflow;
 };
 
@@ -165,14 +194,24 @@ async function setTheme(mode) {
 
 async function main() {
   console.log('=== V13.16.1 DEPARTMENT OPERATIONS REDESIGN REFINED BROWSER QA ===\n');
+  if (!QA_STAFF_USERNAME || !QA_STAFF_ACCESS_KEY) {
+    throw new Error('Provide AWAAZ_QA_STAFF_USERNAME and AWAAZ_QA_STAFF_ACCESS_KEY in your local environment. Do not commit or print these values.');
+  }
 
-  const viteProc = await startViteServer();
+  PORT = await freePort();
+  ORIGIN = `http://127.0.0.1:${PORT}`;
+  BROWSER_PORT = await freePort();
+  let viteProc;
+  let chromeProc;
+  try {
+  viteProc = await startViteServer();
 
   const chromeProfile = fs.mkdtempSync(path.join(os.tmpdir(), 'awaaz-v13161-qa-'));
-  const chromeProc = spawn(CHROME_PATH, [
+  chromeProc = spawn(CHROME_PATH, [
     '--headless=new',
     '--disable-gpu',
     '--disable-dev-shm-usage',
+    ...(process.platform !== 'win32' ? ['--no-sandbox'] : []),
     `--remote-debugging-port=${BROWSER_PORT}`,
     `--user-data-dir=${chromeProfile}`,
     'about:blank',
@@ -211,7 +250,7 @@ async function main() {
   await waitForSelector('form');
   await delay(500);
 
-  // Authenticate using demo key
+  // Authenticate with credentials supplied by the local QA operator.
   await evaluate(`
     (() => {
       const setVal = (el, val) => {
@@ -222,8 +261,8 @@ async function main() {
       };
       const u = document.querySelector('input[type="text"]');
       const p = document.querySelector('input[type="password"]');
-      setVal(u, 'roads-01');
-      setVal(p, 'DemoAccessKey2026!Secure');
+      setVal(u, ${JSON.stringify(QA_STAFF_USERNAME)});
+      setVal(p, ${JSON.stringify(QA_STAFF_ACCESS_KEY)});
       document.querySelector('form button[type="submit"]').click();
     })()
   `);
@@ -668,11 +707,12 @@ async function main() {
   `);
   await delay(300);
 
-  // Clean shutdown
-  if (viteProc.pid) await killProcessTree(viteProc.pid);
-  if (chromeProc.pid) await killProcessTree(chromeProc.pid);
-
   console.log('\n=== ALL V13.16.1 REAL BROWSER QA TESTS & STRICT ASSERTIONS PASSED ===');
+  } finally {
+    if (websocket) websocket.close();
+    await stopProcess(chromeProc);
+    await stopProcess(viteProc);
+  }
 }
 
 main().catch(async (err) => {
