@@ -5,17 +5,21 @@ Verified on **20 November 2026 (Pakistan time)**. Internal delivery target:
 This document distinguishes inspected source, automated checks, and unverified
 hosted behavior. Update it after every significant verified milestone.
 
-## Current development update, 21 November 2026 — Phase V13.10.1: Intake Boundary Fixes
+## Current development update, 21 November 2026 — Phase V13.10.1: Intake Boundary Fixes & Abuse Controls
 
-- Fixed a public-request demonstration-mode injection and added streaming JSON
-  request-size limits in the authoritative Edge intake function.
-- Local HTTP integration: **9/9 PASS**; Edge classifier boundaries: **16/16
-  PASS**; TypeScript compile and production Vite build: **PASS**.
-- Read-only staging privileged-function inventory identified legacy
-  reassignment metadata inconsistency needing a separate transaction-safe
-  database repair. No hosted code or production database was changed.
-- **Not launch-ready:** Staging Edge deployment, anti-spam controls, genuine
-  Auth HTTP tests, and migration history reconciliation remain open.
+- Fixed public-request demonstration-mode injection, added streaming JSON
+  request-size limits (16 KiB ceiling), IP sliding window rate limiting (30 req/min for guests),
+  and bot honeypot detection in the authoritative Edge intake function.
+- Created forward migration `supabase/migrations/20261129000000_v13_10_reconcile_reassignment_consistency.sql`
+  to reconcile `assigned_department_id`, `assigned_department_ids`, and `complaint_issues` atomically
+  across `admin_reassign_complaint` and `staff_review_and_assign_complaint`, with `search_path = ''`.
+- Executed 10 complaint scenario tests in `tests/edge/v13_10_ten_scenarios.mjs`: **17/17 PASS**.
+- Local HTTP integration: **9/9 PASS**; Edge classifier boundaries: **16/16 PASS**;
+  Full Vitest suite: **603 passed, 1 skipped (57 files)**; Python V11 suite: **106/106 PASS**;
+  TypeScript compile (`tsc -b`) and production Vite build: **PASS**.
+- AI models Run004 (`E4D04293...`) and Run006 (`C5D4E3D4...`) remain 100% frozen.
+- **Not launch-ready:** Hosted staging Edge deployment, genuine multi-account Auth HTTP tests,
+  and migration history reconciliation remain open release gates before any production rollout.
 
 See `docs/v11/V13_10_1_EDGE_INTAKE_SECURITY_REVIEW.md` for exact findings.
 

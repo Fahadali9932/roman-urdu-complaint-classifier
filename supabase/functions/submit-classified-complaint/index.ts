@@ -24,6 +24,28 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
+interface RateLimitBucket {
+  count: number;
+  resetTime: number;
+}
+const ipBuckets = new Map<string, RateLimitBucket>();
+const RATE_LIMIT_WINDOW_MS = 60 * 1000;
+const MAX_GUEST_REQUESTS_PER_WINDOW = 30;
+
+function checkGuestRateLimit(ip: string): boolean {
+  const now = Date.now();
+  const bucket = ipBuckets.get(ip);
+  if (!bucket || now > bucket.resetTime) {
+    ipBuckets.set(ip, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
+    return true;
+  }
+  if (bucket.count >= MAX_GUEST_REQUESTS_PER_WINDOW) {
+    return false;
+  }
+  bucket.count++;
+  return true;
+}
+
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 }
@@ -126,12 +148,42 @@ Deno.serve(async (req) => {
       citizenId = identity.user.id;
     }
 
+    // Rate limit public unauthenticated (guest) submissions by client IP
+    if (!citizenId) {
+      const clientIp = req.headers.get("cf-connecting-ip")
+        || req.headers.get("x-real-ip")
+        || req.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
+        || "unknown-client";
+      if (!checkGuestRateLimit(clientIp)) {
+        return new Response(JSON.stringify({
+          error: "Too many complaint submissions. Please wait a moment before trying again.",
+          code: "RATE_LIMITED",
+        }), {
+          status: 429,
+          headers: {
+            ...corsHeaders,
+            "Content-Type": "application/json",
+            "Retry-After": "60",
+          },
+        });
+      }
+    }
+
     const parsed = await parseBoundedJson(req);
     if (parsed.tooLarge) {
       return json({ error: "Complaint request is too large.", code: "PAYLOAD_TOO_LARGE" }, 413);
     }
     if (parsed.invalid || !parsed.input || typeof parsed.input !== "object" || Array.isArray(parsed.input)) {
       return json({ error: "Invalid complaint payload.", code: "INVALID_COMPLAINT_PAYLOAD" }, 400);
+    }
+
+    // Bot / spam honeypot rejection
+    const rawInput = parsed.input as Record<string, unknown>;
+    if (
+      ("website" in rawInput && Boolean(rawInput.website)) ||
+      ("hp_bot_field" in rawInput && Boolean(rawInput.hp_bot_field))
+    ) {
+      return json({ error: "Automated submission rejected.", code: "BOT_DETECTED" }, 400);
     }
     const input = parsed.input as {
       description: string;

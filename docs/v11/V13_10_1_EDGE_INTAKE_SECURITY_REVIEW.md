@@ -20,6 +20,18 @@ verified checks from work still required for an honest launch decision.
    HTTP 400, and an additional complaint character cap (6,000) and required
    field limits (240 chars, optional email 254) prevent unusual single-token or
    metadata attacks. The original 200-word limit remains in effect.
+3. **Public guest submission rate limiting:** Edge intake now enforces an
+   in-memory sliding window rate limiter per client IP (30 requests/minute
+   per IP for unauthenticated guest complaints), returning HTTP 429 `RATE_LIMITED`
+   with `Retry-After: 60`.
+4. **Bot and spam honeypot defense:** Hidden bot-trap fields (`hp_bot_field`,
+   `website`) trigger immediate HTTP 400 `BOT_DETECTED` without invoking
+   the classifier or writing to the database.
+5. **Department reassignment reconciliation:** Added migration
+   `supabase/migrations/20261129000000_v13_10_reconcile_reassignment_consistency.sql`
+   to atomically reconcile `assigned_department_id`, `assigned_department_ids`,
+   and `complaint_issues` across `admin_reassign_complaint` and
+   `staff_review_and_assign_complaint`, while pinning `search_path = ''`.
 
 ## Verified checks
 
@@ -27,6 +39,9 @@ verified checks from work still required for an honest launch decision.
 | --- | --- |
 | Real local HTTP/socket integration (guest and citizen flows, spoofed demo, oversized and malformed requests) | **9/9 PASS** |
 | Edge authorization/classifier boundary tests | **16/16 PASS** |
+| 10 specific complaint scenarios test suite (`tests/edge/v13_10_ten_scenarios.mjs`) | **17/17 PASS** |
+| Full Vitest suite | **603 passed | 1 skipped** (57 files) |
+| Python V11 regression suite (`tests/v11`) | **106/106 PASS** |
 | `npx tsc -b` | **PASS** |
 | `npm run build` | **PASS**, existing large-bundle advisory |
 | Staging privileged RPC inventory (read-only) | 20 `SECURITY DEFINER` functions; 1 anonymous-callable guest-status function; others restricted to `authenticated` or `service_role` |
