@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, type ReactNode }
 import { type DepartmentId, type Department } from '../types';
 import { KARACHI_DEPARTMENTS } from '../mocks/complaints';
 import { staffAuthService } from '../services/staffAuthService';
+import { isSupabaseConfigured, supabase } from '../lib/supabase';
 
 export interface DepartmentAuthSession {
   userId?: string;
@@ -26,7 +27,7 @@ export interface DepartmentAuthContextType {
     expectedDeptId?: DepartmentId
   ) => Promise<{
     success: boolean;
-    status: 'approved' | 'pending' | 'rejected' | 'revoked' | 'not_found' | 'invalid_password' | 'wrong_department';
+    status: 'approved' | 'pending' | 'rejected' | 'revoked' | 'not_found' | 'invalid_password' | 'wrong_department' | 'unavailable';
     rejectionReason?: string | null;
     error?: string;
   }>;
@@ -132,7 +133,7 @@ export const DepartmentAuthProvider: React.FC<{ children: ReactNode }> = ({ chil
     expectedDeptId?: DepartmentId
   ): Promise<{
     success: boolean;
-    status: 'approved' | 'pending' | 'rejected' | 'revoked' | 'not_found' | 'invalid_password' | 'wrong_department';
+    status: 'approved' | 'pending' | 'rejected' | 'revoked' | 'not_found' | 'invalid_password' | 'wrong_department' | 'unavailable';
     rejectionReason?: string | null;
     error?: string;
   }> => {
@@ -144,13 +145,29 @@ export const DepartmentAuthProvider: React.FC<{ children: ReactNode }> = ({ chil
     );
 
     // Fallback to legacy email sign-in if not resolved as username and contains @
-    if (!res.success && identifier.includes('@')) {
+    if (
+      !res.success &&
+      identifier.includes('@') &&
+      (res.status === 'invalid_password' || res.status === 'not_found')
+    ) {
       const emailRes = await staffAuthService.signInDepartmentStaff(identifier, passwordAttempt);
       res = emailRes;
     }
 
     if (res.success && res.session && res.session.departmentId) {
       const deptId = res.session.departmentId as DepartmentId;
+      // The legacy email path is also required to obey the selected department.
+      if (expectedDeptId && deptId !== expectedDeptId) {
+        staffAuthService.signOutStaff();
+        if (isSupabaseConfigured() && supabase) {
+          await supabase.auth.signOut();
+        }
+        return {
+          success: false,
+          status: 'wrong_department',
+          error: 'This staff account is not authorized for the selected department.',
+        };
+      }
       const dept = KARACHI_DEPARTMENTS[deptId];
       const newSession: DepartmentAuthSession = {
         userId: res.session.userId,

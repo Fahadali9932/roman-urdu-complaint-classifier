@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import React from 'react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
@@ -24,6 +24,8 @@ describe('AWAAZ-E-AWAM — Department Staff Credentials & Municipal Boundaries',
     localStorage.clear();
     localSupabaseAdapter.resetToDefault();
   });
+
+  afterEach(() => vi.restoreAllMocks());
 
   const renderDepartmentPortal = (initialRoute: string) => {
     return render(
@@ -121,6 +123,22 @@ describe('AWAAZ-E-AWAM — Department Staff Credentials & Municipal Boundaries',
         expect(res.session?.role).toBe('department_staff');
       });
     });
+  });
+
+  it('authenticates exactly once when the department login form succeeds', async () => {
+    const authenticate = vi.spyOn(staffAuthService, 'signInDepartmentStaffWithUsername');
+    renderDepartmentPortal('/department/login?dept=kmc');
+
+    fireEvent.change(screen.getByLabelText(/Username/i), {
+      target: { value: 'roads-01' },
+    });
+    fireEvent.change(screen.getByLabelText(/Access Key/i), {
+      target: { value: TEST_ACCESS_KEY },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /^Sign In$/i }));
+
+    expect(await screen.findByTestId('department-workspace')).toBeInTheDocument();
+    expect(authenticate).toHaveBeenCalledTimes(1);
   });
 
   describe('3. Credential Security & Anti-Enumeration Protection', () => {

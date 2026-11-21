@@ -43,6 +43,18 @@ export interface AdminSession {
 const STAFF_SESSION_KEY = 'awaaz_staff_session_v2';
 const ADMIN_SESSION_KEY = 'awaaz_admin_session_v2';
 
+const staffAuthUnavailable = (error: {
+  name?: string;
+  status?: number;
+  code?: string;
+  message?: string;
+}): boolean =>
+  error.name === 'AuthRetryableFetchError' ||
+  error.status === 0 ||
+  (typeof error.status === 'number' && error.status >= 500) ||
+  error.code === 'invalid_api_key' ||
+  /network|failed to fetch|fetch failed|timed out|invalid api key/i.test(error.message || '');
+
 class StaffAuthService {
   // ---------------------------------------------------------------------------
   // Departments
@@ -285,13 +297,30 @@ class StaffAuthService {
     expectedDeptId?: string
   ): Promise<{
     success: boolean;
-    status: 'approved' | 'pending' | 'rejected' | 'revoked' | 'not_found' | 'invalid_password' | 'wrong_department';
+    status: 'approved' | 'pending' | 'rejected' | 'revoked' | 'not_found' | 'invalid_password' | 'wrong_department' | 'unavailable';
     session?: StaffSession;
     rejectionReason?: string | null;
     error?: string;
   }> {
     const identity = resolveDepartmentIdentity(rawUsername);
+    // Never authenticate against browser-only demonstration records when a
+    // real backend is configured, or when serving a production build.
+    if (!isSupabaseConfigured() && import.meta.env.PROD) {
+      return {
+        success: false,
+        status: 'unavailable',
+        error: 'Staff sign-in is not configured. Contact the administrator to connect the authentication service.',
+      };
+    }
+
     if (!identity) {
+      if (isSupabaseConfigured()) {
+        return {
+          success: false,
+          status: 'invalid_password',
+          error: 'Invalid username or access key.',
+        };
+      }
       // Fallback for test suites or legacy accounts
       const result = localSupabaseAdapter.authenticateStaffWithUsername(
         rawUsername,
@@ -343,14 +372,16 @@ class StaffAuthService {
         if (authErr) {
           return {
             success: false,
-            status: 'invalid_password',
-            error: 'Invalid username or access key.',
+            status: staffAuthUnavailable(authErr) ? 'unavailable' : 'invalid_password',
+            error: staffAuthUnavailable(authErr)
+              ? 'Authentication service is unavailable. Check your connection or Supabase configuration, then try again.'
+              : 'Invalid username or access key.',
           };
         }
 
         const user = authData.user;
         if (!user) {
-          return { success: false, status: 'not_found', error: 'User not found.' };
+          return { success: false, status: 'invalid_password', error: 'Invalid username or access key.' };
         }
 
         // Check active membership
@@ -360,13 +391,19 @@ class StaffAuthService {
           .eq('user_id', user.id);
 
         if (memErr) {
-          return { success: false, status: 'not_found', error: memErr.message };
+          await supabase.auth.signOut();
+          return {
+            success: false,
+            status: 'unavailable',
+            error: 'Unable to verify department access. Please try again later or contact the administrator.',
+          };
         }
 
         const revokedMembership = memberships?.find(
           (m) => m.department_id === identity.departmentId && m.status === 'revoked'
         );
         if (revokedMembership) {
+          await supabase.auth.signOut();
           return {
             success: false,
             status: 'revoked',
@@ -416,16 +453,17 @@ class StaffAuthService {
           };
         }
 
+        await supabase.auth.signOut();
         return {
           success: false,
           status: 'not_found',
-          error: 'No active department membership found for this account.',
+          error: 'No active department membership. Ask the main administrator to approve your staff access.',
         };
-      } catch (err: unknown) {
+      } catch {
         return {
           success: false,
-          status: 'not_found',
-          error: err instanceof Error ? err.message : 'Authentication service error',
+          status: 'unavailable',
+          error: 'Authentication service is unavailable. Please try again later.',
         };
       }
     }

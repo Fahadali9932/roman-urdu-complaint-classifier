@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ArrowLeft, ShieldAlert, KeyRound, User, ArrowRight } from 'lucide-react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useDepartmentAuth } from '../../context/DepartmentAuthContext';
-import { staffAuthService } from '../../services/staffAuthService';
+import { isSupabaseConfigured } from '../../lib/supabase';
 import { type DepartmentId } from '../../types';
 import { DEPARTMENT_THEMES } from './design-system/tokens';
 import { DepartmentArtwork } from './design-system/DepartmentArtwork';
@@ -35,6 +35,8 @@ export const ThemedDepartmentLoginScreen: React.FC<ThemedDepartmentLoginScreenPr
   const isRoads = departmentId === 'kmc';
   const defaultIdentity = getIdentityByDepartmentId(departmentId);
   const defaultUsername = defaultIdentity?.username || 'roads-01';
+  const isLocalDemonstration = !isSupabaseConfigured() && !import.meta.env.PROD;
+  const isLiveAuthMissing = !isSupabaseConfigured() && import.meta.env.PROD;
 
   // Real-time Revocation Query Parameter Detection
   const isRevokedParam = searchParams.get('revoked') === 'true';
@@ -73,8 +75,9 @@ export const ThemedDepartmentLoginScreen: React.FC<ThemedDepartmentLoginScreenPr
     setIsLoading(true);
 
     try {
-      // 1. Authenticate with backend service using Username + Access Key & strict department check
-      const res = await staffAuthService.signInDepartmentStaffWithUsername(
+      // Authenticate once. Context handles department verification and session
+      // creation; calling the service separately would repeat the Auth request.
+      const res = await signInWithCredentials(
         trimmedUsername,
         accessKey,
         departmentId
@@ -95,25 +98,7 @@ export const ThemedDepartmentLoginScreen: React.FC<ThemedDepartmentLoginScreenPr
         return;
       }
 
-      // 2. Strict Server-Side Department Verification
-      const authenticatedDeptId = res.session?.departmentId;
-      if (authenticatedDeptId !== departmentId) {
-        staffAuthService.signOutStaff();
-        const otherDeptName =
-          res.session?.departmentName || authenticatedDeptId?.toUpperCase() || 'another agency';
-        setErrorMessage(
-          `Access Denied: Your staff account is authorized for "${otherDeptName}". You cannot access the ${theme.shortName} console with these credentials. Please return to Department Selection.`
-        );
-        return;
-      }
-
-      // 3. Establish Context Session and navigate to workspace
-      const contextRes = await signInWithCredentials(trimmedUsername, accessKey, departmentId);
-      if (contextRes.success) {
-        navigate('/department', { replace: true });
-      } else {
-        setErrorMessage(contextRes.error || 'Failed to establish departmental session.');
-      }
+      navigate('/department', { replace: true });
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Unexpected authentication error.';
       setErrorMessage(msg);
@@ -189,6 +174,19 @@ export const ThemedDepartmentLoginScreen: React.FC<ThemedDepartmentLoginScreenPr
                 {theme.name} • {theme.subtitleEn}
               </p>
             </div>
+
+            {isLocalDemonstration && (
+              <p className="mb-5 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs leading-relaxed text-slate-700" role="status">
+                Local demonstration mode: this browser is not connected to Supabase.
+                Live staff accounts and access keys will not work here.
+              </p>
+            )}
+
+            {isLiveAuthMissing && (
+              <p className="mb-5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs leading-relaxed text-amber-900" role="status">
+                Department sign-in is not configured. Contact the administrator to connect the authentication service.
+              </p>
+            )}
 
             {/* Revocation Warning Alert */}
             {revocationNotice && (
