@@ -30,6 +30,15 @@ export const ComplaintDetailModal: React.FC<ComplaintDetailModalProps> = ({
   const ur = language === 'ur';
   const [copiedRef, setCopiedRef] = React.useState(false);
 
+  React.useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen || !complaint) return null;
 
   const formattedDate = formatDateOnly(complaint.submittedAt, language);
@@ -154,6 +163,9 @@ export const ComplaintDetailModal: React.FC<ComplaintDetailModalProps> = ({
       role="dialog"
       aria-modal="true"
       aria-labelledby="complaint-details-title"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
     >
       <div className="w-full max-w-4xl bg-white border-2 border-[#E5E3E0] rounded-[22px] sm:rounded-[32px] shadow-2xl overflow-hidden flex flex-col max-h-[94dvh] sm:max-h-[90dvh]">
         {/* Modal Header */}

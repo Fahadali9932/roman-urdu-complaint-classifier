@@ -308,7 +308,7 @@ export const PublicFooter: React.FC<PublicFooterProps> = ({ isHomePage, showMonu
                     {t('footerNavSubmit')}
                   </Link>
                   <Link to="/track" className="footer-link">
-                    {t('navTrack') || 'Track Complaint'}
+                    {ur ? 'شکایت کا پتہ لگائیں' : 'Track Complaint'}
                   </Link>
                   <Link to="/dashboard" className="footer-link">
                     {t('footerNavDashboard')}

@@ -5,7 +5,47 @@ Verified on **21 November 2026 (Pakistan time)**. Internal delivery target:
 This document distinguishes inspected source, automated checks, and unverified
 hosted behavior. Update it after every significant verified milestone.
 
-## Current development update, 21 November 2026 — Phase V13.14: Citizen Portal Redesign, Cinematic Motion, and One-Code Guest Tracking
+## Current development update, 21 November 2026 — Phase V13.15: Balanced Cinematic 3D Motion, Responsive Frontend Repair, Typography Sharpness, and Tracking Experience
+
+- **Balanced Cinematic 3D Motion & Zero Drift:**
+  - **Homepage Scroll-Linked 3D:** Removed permanent `perspective: 1400px` from root container style in `StackedScrollContainer.tsx`, eliminating the Chromium root compositing bug that caused blurry/soft text across all descendant pages. In `StackedScrollSection.tsx`, replaced static `willChange: 'transform, filter'` with dynamic assignment active only during active scrolling, settling to `willChange: 'auto'` at rest.
+  - **Panel 3 to Footer Transition:** Integrated an atmospheric vignette gradient overlay between Panel 3 (`#write-intro`) and Panel 4 (`#footer`), eliminating the abrupt black edge cutoff.
+  - **Forward & Reverse Continuity:** Dynamic smooth dampening tracks user wheel/touch events forward and in reverse with zero scroll hijacking, zero trapping, and zero post-scroll drift.
+  - **3D Route Transitions (`PageTransition.tsx`):** Implemented balanced 3D page transitions on route changes. Desktop applies 460ms subtle perspective tilt (`rotateX(2.5deg)`, `translate3d(0, 16px, -32px)` -> `rotateX(0deg)`, `translate3d(0,0,0)`, `scale(1)`). Mobile applies 320ms subtle tilt (`rotateX(1deg)`, `translate3d(0, 10px, -16px)` -> `0deg`, `0px`). Once the entrance completes, the container settles to `transform: none !important; perspective: none !important; will-change: auto !important; animation: none !important;`, ensuring sharp subpixel font rendering. Respects `prefers-reduced-motion: reduce`. Global floating navigation remains outside the transition container, completely stable.
+- **Shared Navigation Sequence & Visual Priority (`PublicHeader.tsx`):**
+  - Enforced exact 5-item shared navigation order across both desktop floating pill dock and mobile drawer:
+    1. Home (`#hero`, `/`)
+    2. How It Works (`#steps`, `/#steps`)
+    3. Write Your Complaint (`/submit`)
+    4. My Complaints (`/dashboard`)
+    5. Track Your Complaint (`/track`)
+  - Restored single maroon `#681822` active pill indicator; removed secondary yellow badges or competing accent dots.
+  - Added accessible language toggle and account link with responsive spacing.
+- **Disciplined Page Compositions & Card Hierarchy:**
+  - **Citizen Login (`/login`):** Constrained desktop card container from 768px (`max-w-3xl`) to 500px (`max-w-[500px]`), inner form 468px. Maintained authentic `AlertCircle` security warning for unconfigured backend.
+  - **Write Your Complaint (`/submit`):** Constrained container from 1024px (`max-w-5xl`) to 780px (`max-w-[780px]`). Eliminated `LOCAL AI TEST MODE` banner from normal citizen view and production bundle; test tools remain accessible via `?dev=true` or during automated test runner.
+  - **Track Your Complaint (`/track`):** Constrained container from 1024px to 720px (`max-w-[720px]`). Replaced oversized 72px typography with responsive `text-2xl sm:text-3xl font-display font-black`.
+  - **Verified Civic Document Presentation (`/track`):** Redesigned tracking result into an official civic-service document card featuring verified status badge, assigned department(s), filing and last updated dates, and chronological progress timeline. Multi-agency complaints display linked department cards; single-department complaints display cleanly in the metadata grid without duplicate status badges.
+  - **Complaint Detail Modal:** Added Escape key listener and backdrop click handling for clean close and scroll restoration.
+- **Automated Real-Browser Verification (`v13_15_browser_verification.mjs`):**
+  - Drove real Chrome browser via Chrome DevTools Protocol across 5 viewports (1920x1080, 1280x900, 768x1024, 390x844, 320x640) in both English and Urdu (RTL).
+  - Verified 0px horizontal overflow (`scrollWidth <= width`) across all 5 viewports in both English and Urdu.
+  - Verified 3D scroll active transform during scroll and complete return to `transform: none` at rest.
+  - Verified 3D route transition active transform and settled state.
+  - Verified full 3-step complaint submission flow, modal receipt with single 24-digit code, and navigation to `/track` with pre-filled state.
+  - Captured 40 evidence screenshots in `docs/v11/screenshots/`.
+- **Test Matrix & Quality Gates:**
+  - TypeScript `npx tsc -b`: 0 errors
+  - Production Build `npm run build`: built in 1.09s
+  - Bundle Audit `v13_8_2_verify_production_bundle.mjs`: PASS (0 dev fixtures, 0 auth bypass markers)
+  - Vitest Unit & Integration Suite: **604 passed, 1 skipped (57 test files, 100% pass)**
+  - Python Regression Suite: **106 passed in 17.6s**
+- **Safety Boundaries:**
+  - Frozen Run004 Champion SHA-256 (`E4D04293...`) and Run006 Candidate SHA-256 (`C5D4E3D4...`) remain 100% untouched.
+  - Original primary workspace (`D:\RomanUrdu_ComplaintClassifier_staff_auth`) remains 100% untouched.
+  - Zero paid dependencies, $0.00 spent. No production database mutations or merge to `main`.
+
+## Previous development update, 21 November 2026 — Phase V13.14: Citizen Portal Redesign, Cinematic Motion, and One-Code Guest Tracking
 
 - **Corrected Reference Problems & Visual Design:**
   - **Homepage & Footer (`/#hero`):** Preserved the iconic Mazar-e-Quaid cover and black editorial footer columns. Removed the tiny bottom academic affiliation line (`Academic project · Greenwich University, Karachi`) from the footer presentation while preserving legitimate academic disclosures on About/Terms. Verified that the green overlay seen in external screenshots is not injected by application code (traced to browser/IDE dev tooling).

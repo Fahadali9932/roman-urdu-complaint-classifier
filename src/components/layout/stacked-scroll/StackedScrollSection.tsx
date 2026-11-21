@@ -80,7 +80,6 @@ export const StackedScrollSection: React.FC<StackedScrollSectionProps> = ({
             ref={innerRef}
             style={{
               transformOrigin: '50% 25%',
-              willChange: prefersReducedMotion ? 'auto' : 'transform, filter',
             }}
             className={`stacked-scroll-inner w-full ${innerClassName}`}
           >
@@ -108,7 +107,6 @@ export const StackedScrollSection: React.FC<StackedScrollSectionProps> = ({
             ref={innerRef}
             style={{
               transformOrigin: '50% 75%',
-              willChange: prefersReducedMotion ? 'auto' : 'transform, filter',
             }}
             className={`stacked-scroll-inner w-full ${innerClassName}`}
           >
@@ -134,7 +132,6 @@ export const StackedScrollSection: React.FC<StackedScrollSectionProps> = ({
         ref={innerRef}
         style={{
           transformOrigin: '50% 25%',
-          willChange: prefersReducedMotion ? 'auto' : 'transform, filter',
         }}
         className={`stacked-scroll-inner w-full h-full ${innerClassName}`}
       >
@@ -143,3 +140,5 @@ export const StackedScrollSection: React.FC<StackedScrollSectionProps> = ({
     </Component>
   );
 };
+
+export default StackedScrollSection;

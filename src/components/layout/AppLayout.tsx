@@ -4,6 +4,7 @@ import { PublicHeader } from './PublicHeader';
 import { PublicFooter } from './PublicFooter';
 import { StackedScrollContainer, StackedScrollSection } from './stacked-scroll';
 import { ScrollReveals } from './ScrollReveals';
+import { PageTransition } from './PageTransition';
 
 export const AppLayout: React.FC = () => {
   const location = useLocation();
@@ -19,7 +20,9 @@ export const AppLayout: React.FC = () => {
       <div className="min-h-screen flex flex-col w-full bg-[#F7F6F3] text-[#141414] overflow-visible selection:bg-[#681822] selection:text-[#FFFFFF]">
         <PublicHeader />
         <main className="flex-1 w-full overflow-visible p-0 m-0">
-          <Outlet />
+          <PageTransition>
+            <Outlet />
+          </PageTransition>
         </main>
       </div>
     );
@@ -49,7 +52,9 @@ export const AppLayout: React.FC = () => {
           }`}
         >
           <div className="w-full relative z-10">
-            <Outlet />
+            <PageTransition>
+              <Outlet />
+            </PageTransition>
           </div>
         </StackedScrollSection>
 
@@ -66,3 +71,5 @@ export const AppLayout: React.FC = () => {
     </div>
   );
 };
+
+export default AppLayout;

@@ -7,12 +7,13 @@ export const translations = {
 
     // Navigation
     navHome: 'Home',
-    navSubmit: 'Write Complaint',
-    navTrack: 'Track Complaint',
+    navHowItWorks: 'How It Works',
+    navSubmit: 'Write Your Complaint',
+    navTrack: 'Track Your Complaint',
     navFaq: 'FAQ',
     navDashboard: 'My Complaints',
     navMyComplaints: 'My Complaints',
-    navWriteComplaint: 'Write Complaint',
+    navWriteComplaint: 'Write Your Complaint',
     navSignIn: 'Sign In',
     navAccount: 'Account',
     navRegister: 'Register',
@@ -452,12 +453,13 @@ export const translations = {
 
     // Navigation
     navHome: 'مرکزی صفحہ',
-    navSubmit: 'شکایت لکھیں',
-    navTrack: 'شکایت ٹریک کریں',
+    navHowItWorks: 'طریقہ کار',
+    navSubmit: 'شکایت درج کریں',
+    navTrack: 'شکایت کا پتہ لگائیں',
     navFaq: 'عمومی سوالات',
     navDashboard: 'میری شکایات',
     navMyComplaints: 'میری شکایات',
-    navWriteComplaint: 'شکایت لکھیں',
+    navWriteComplaint: 'شکایت درج کریں',
     navSignIn: 'لاگ ان',
     navAccount: 'اکاؤنٹ',
     navRegister: 'اکاؤنٹ بنائیں',

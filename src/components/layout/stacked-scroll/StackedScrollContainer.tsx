@@ -68,6 +68,7 @@ export const StackedScrollContainer: React.FC<StackedScrollContainerProps> = ({
         if (s.innerEl) {
           s.innerEl.style.transform = 'none';
           s.innerEl.style.filter = 'none';
+          s.innerEl.style.willChange = 'auto';
         }
       });
       return;
@@ -97,7 +98,10 @@ export const StackedScrollContainer: React.FC<StackedScrollContainerProps> = ({
       if (t <= 0) {
         current.innerEl.style.transform = 'none';
         current.innerEl.style.filter = 'none';
+        current.innerEl.style.willChange = 'auto';
       } else {
+        current.innerEl.style.willChange = 'transform, filter';
+
         // Calculate physics parameters based on screen tier
         let scale: number;
         let translateY: number;
@@ -106,7 +110,7 @@ export const StackedScrollContainer: React.FC<StackedScrollContainerProps> = ({
         let brightness: number;
 
         if (isNarrow) {
-          // Keep the physical-depth cue on narrow screens without shrinking the readable canvas.
+          // Narrow screens: subtle depth cue without shrinking readable text
           scale = 1.0 - 0.022 * t;
           translateY = 6 * t;
           translateZ = -10 * t;
@@ -206,16 +210,19 @@ export const StackedScrollContainer: React.FC<StackedScrollContainerProps> = ({
         isRTL,
       }}
     >
+      {/*
+        Notice: Static perspective is intentionally omitted here to prevent Chromium
+        from degrading font subpixel anti-aliasing into blurry textures.
+        Perspective is cleanly applied per-section via individual transform strings.
+      */}
       <Component
         ref={containerRef as any}
         className={`stacked-scroll-container relative w-full ${className}`}
-        style={{
-          perspective: prefersReducedMotion ? 'none' : '1400px',
-          perspectiveOrigin: '50% 25%',
-        }}
       >
         {children}
       </Component>
     </StackedScrollContext.Provider>
   );
 };
+
+export default StackedScrollContainer;

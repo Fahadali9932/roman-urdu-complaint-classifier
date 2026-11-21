@@ -1,8 +1,72 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../context/LanguageContext';
+import { type TranslationKey } from '../../i18n/translations';
 import { LanguageToggle } from '../common/LanguageToggle';
 import { Menu, X, User, Home, HelpCircle, FolderOpen, PenTool, Search } from 'lucide-react';
+
+export interface NavItemConfig {
+  id: 'home' | 'steps' | 'submit' | 'dashboard' | 'track';
+  labelKey: TranslationKey;
+  defaultLabelEn: string;
+  defaultLabelUr: string;
+  path: string;
+  hashTarget?: string;
+  icon: React.ComponentType<{ className?: string }>;
+}
+
+/**
+ * Strictly required navigation order (Objective 3):
+ * 1. Home
+ * 2. How It Works
+ * 3. Write Your Complaint
+ * 4. My Complaints
+ * 5. Track Your Complaint
+ */
+export const SHARED_NAV_ITEMS: readonly NavItemConfig[] = [
+  {
+    id: 'home',
+    labelKey: 'navHome',
+    defaultLabelEn: 'Home',
+    defaultLabelUr: 'ہوم',
+    path: '/',
+    hashTarget: 'hero',
+    icon: Home,
+  },
+  {
+    id: 'steps',
+    labelKey: 'navHowItWorks',
+    defaultLabelEn: 'How It Works',
+    defaultLabelUr: 'طریقہ کار',
+    path: '/#steps',
+    hashTarget: 'steps',
+    icon: HelpCircle,
+  },
+  {
+    id: 'submit',
+    labelKey: 'navWriteComplaint',
+    defaultLabelEn: 'Write Your Complaint',
+    defaultLabelUr: 'شکایت درج کریں',
+    path: '/submit',
+    icon: PenTool,
+  },
+  {
+    id: 'dashboard',
+    labelKey: 'navMyComplaints',
+    defaultLabelEn: 'My Complaints',
+    defaultLabelUr: 'میری شکایات',
+    path: '/dashboard',
+    icon: FolderOpen,
+  },
+  {
+    id: 'track',
+    labelKey: 'navTrack',
+    defaultLabelEn: 'Track Your Complaint',
+    defaultLabelUr: 'شکایت کا پتہ لگائیں',
+    path: '/track',
+    icon: Search,
+  },
+] as const;
 
 export const PublicHeader: React.FC = () => {
   const { t, language } = useLanguage();
@@ -12,8 +76,7 @@ export const PublicHeader: React.FC = () => {
   const [scrollSection, setScrollSection] = useState<'home' | 'steps' | 'submit' | 'footer'>('home');
   const [darkHeaderActive, setDarkHeaderActive] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  // FAQ deliberately uses the light civic surface. Treating it as a dark
-  // information page made the wordmark and account controls white-on-white.
+
   const isInfoPage = ['/about', '/contact', '/privacy-policy', '/terms-of-use', '/privacy', '/terms'].includes(
     location.pathname
   );
@@ -42,7 +105,7 @@ export const PublicHeader: React.FC = () => {
           setDarkHeaderActive(false);
         }
 
-        // Objective 9: When footer is visible on screen on homepage, set neutral dock state (no pill active)
+        // When footer is visible on screen on homepage, set neutral dock state (no pill active)
         if (location.pathname === '/' && fRect.top <= vh * 0.45 && fRect.bottom > 72) {
           setScrollSection('footer');
           return;
@@ -145,15 +208,13 @@ export const PublicHeader: React.FC = () => {
     };
   }, [mobileMenuOpen]);
 
-  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, targetId: string, fallbackPath: string) => {
-    if (location.pathname === '/') {
+  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, targetId?: string, fallbackPath: string = '/') => {
+    if (targetId && location.pathname === '/') {
       e.preventDefault();
       const el = document.getElementById(targetId);
       if (el) {
         const isMobile = window.innerWidth < 640;
-        // On mobile, keep comfortable header clearance.
-        // On desktop, full-screen sticky stages (like #steps) align flush at top: 0.
-        const headerOffset = isMobile ? 72 : (targetId === 'steps' ? 0 : 0);
+        const headerOffset = isMobile ? 72 : 0;
         const top = Math.max(0, el.getBoundingClientRect().top + window.scrollY - headerOffset);
         window.scrollTo({ top, behavior: 'smooth' });
         window.history.pushState(null, '', `#${targetId}`);
@@ -167,19 +228,43 @@ export const PublicHeader: React.FC = () => {
     }
   };
 
-  // Exactly one active item state helper
-  const isHomeActive = location.pathname === '/' && scrollSection === 'home';
-  const isStepsActive = location.pathname === '/' && scrollSection === 'steps';
-  const isTrackActive = location.pathname.startsWith('/track');
-  const isDashboardActive = location.pathname === '/dashboard';
-  const isSubmitActive = location.pathname === '/submit' || (location.pathname === '/' && scrollSection === 'submit');
+  const isItemActive = (item: NavItemConfig): boolean => {
+    if (scrollSection === 'footer' && location.pathname === '/') {
+      return false;
+    }
+    switch (item.id) {
+      case 'home':
+        return location.pathname === '/' && scrollSection === 'home';
+      case 'steps':
+        return location.pathname === '/' && scrollSection === 'steps';
+      case 'submit':
+        return (
+          location.pathname === '/submit' ||
+          location.pathname === '/write-complaint' ||
+          (location.pathname === '/' && scrollSection === 'submit')
+        );
+      case 'dashboard':
+        return location.pathname === '/dashboard';
+      case 'track':
+        return location.pathname.startsWith('/track');
+      default:
+        return false;
+    }
+  };
+
+  const getItemLabel = (item: NavItemConfig): string => {
+    if (language === 'ur') {
+      return item.defaultLabelUr;
+    }
+    const translated = t(item.labelKey);
+    return translated || item.defaultLabelEn;
+  };
 
   return (
     <>
       {/* ========================================================
           TOP HEADER: Brand (Left), Centered Pill Dock (Center),
           Language & Account Controls (Right)
-          Features dynamic contrast inversion on dark background
           ======================================================== */}
       <header
         className={`fixed top-0 left-0 right-0 z-50 py-3 sm:py-4 px-4 sm:px-8 lg:px-12 transition-all duration-300 ${
@@ -218,81 +303,53 @@ export const PublicHeader: React.FC = () => {
           </Link>
 
           {/* CENTER: Floating Pill Navigation Dock (Viewport-Centered)
-              Only ONE item selected at a time with #681822 Blood Maroon highlight */}
+              Strict Order: 1. Home, 2. How It Works, 3. Write Your Complaint, 4. My Complaints, 5. Track Your Complaint
+              Exactly ONE item selected at a time with #681822 Blood Maroon highlight */}
           <nav
             aria-label="Desktop primary navigation"
             className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 hidden lg:flex items-center p-1 sm:p-1.5 rounded-full bg-[#FAF9F7]/95 backdrop-blur-md border border-[#E5E3E0] shadow-[0_8px_24px_rgba(20,20,20,0.08)] select-none z-10"
           >
-            {/* Home Link */}
-            <a
-              href="#hero"
-              onClick={(e) => handleNavClick(e, 'hero', '/')}
-              className={`flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 rounded-full text-[13px] font-ui transition-all duration-300 whitespace-nowrap cursor-pointer select-none ${
-                isHomeActive
-                  ? 'bg-[#681822] text-[#FFFFFF] font-medium shadow-sm'
-                  : 'text-[#171717] hover:text-[#141414] hover:bg-[#E5E3E0]/40 font-normal'
-              }`}
-            >
-              <Home className="w-3.5 h-3.5 shrink-0" />
-              <span>{t('navHome') || 'Home'}</span>
-            </a>
+            {SHARED_NAV_ITEMS.map((item) => {
+              const active = isItemActive(item);
+              const Icon = item.icon;
+              const label = getItemLabel(item);
 
-            {/* How It Works Link */}
-            <a
-              href="#steps"
-              onClick={(e) => handleNavClick(e, 'steps', '/#steps')}
-              className={`flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 rounded-full text-[13px] font-ui transition-all duration-300 whitespace-nowrap cursor-pointer select-none ${
-                isStepsActive
-                  ? 'bg-[#681822] text-[#FFFFFF] font-medium shadow-sm'
-                  : 'text-[#171717] hover:text-[#141414] hover:bg-[#E5E3E0]/40 font-normal'
-              }`}
-            >
-              <HelpCircle className="w-3.5 h-3.5 shrink-0" />
-              <span>{language === 'ur' ? 'طریقہ کار' : 'How It Works'}</span>
-            </a>
+              if (item.hashTarget) {
+                return (
+                  <a
+                    key={item.id}
+                    href={`#${item.hashTarget}`}
+                    onClick={(e) => handleNavClick(e, item.hashTarget, item.path)}
+                    className={`flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 rounded-full text-[13px] font-ui transition-all duration-200 whitespace-nowrap cursor-pointer select-none ${
+                      active
+                        ? 'bg-[#681822] text-[#FFFFFF] font-medium shadow-sm'
+                        : 'text-[#171717] hover:text-[#141414] hover:bg-[#E5E3E0]/40 font-normal'
+                    }`}
+                  >
+                    <Icon className="w-3.5 h-3.5 shrink-0" />
+                    <span>{label}</span>
+                  </a>
+                );
+              }
 
-            {/* Track Complaint Link */}
-            <Link
-              to="/track"
-              className={`flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 rounded-full text-[13px] font-ui transition-all duration-300 whitespace-nowrap cursor-pointer select-none ${
-                isTrackActive
-                  ? 'bg-[#681822] text-[#FFFFFF] font-medium shadow-sm'
-                  : 'text-[#171717] hover:text-[#141414] hover:bg-[#E5E3E0]/40 font-normal'
-              }`}
-            >
-              <Search className="w-3.5 h-3.5 shrink-0" />
-              <span>{t('navTrack') || 'Track Complaint'}</span>
-            </Link>
-
-            {/* My Complaints Link */}
-            <Link
-              to="/dashboard"
-              className={`flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 rounded-full text-[13px] font-ui transition-all duration-300 whitespace-nowrap cursor-pointer select-none ${
-                isDashboardActive
-                  ? 'bg-[#681822] text-[#FFFFFF] font-medium shadow-sm'
-                  : 'text-[#171717] hover:text-[#141414] hover:bg-[#E5E3E0]/40 font-normal'
-              }`}
-            >
-              <FolderOpen className="w-3.5 h-3.5 shrink-0" />
-              <span>{t('navMyComplaints') || 'My Complaints'}</span>
-            </Link>
-
-            {/* Write Complaint Link (Identical pill geometry, exactly ONE maroon highlight when active) */}
-            <Link
-              to="/submit"
-              className={`flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 rounded-full text-[13px] font-ui transition-all duration-300 whitespace-nowrap cursor-pointer select-none ${
-                isSubmitActive
-                  ? 'bg-[#681822] text-[#FFFFFF] font-medium shadow-sm'
-                  : 'text-[#171717] hover:text-[#141414] hover:bg-[#E5E3E0]/40 font-normal'
-              }`}
-            >
-              <PenTool className="w-3.5 h-3.5 shrink-0" />
-              <span>{t('navWriteComplaint') || 'Write Complaint'}</span>
-            </Link>
+              return (
+                <Link
+                  key={item.id}
+                  to={item.path}
+                  className={`flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 rounded-full text-[13px] font-ui transition-all duration-200 whitespace-nowrap cursor-pointer select-none ${
+                    active
+                      ? 'bg-[#681822] text-[#FFFFFF] font-medium shadow-sm'
+                      : 'text-[#171717] hover:text-[#141414] hover:bg-[#E5E3E0]/40 font-normal'
+                  }`}
+                >
+                  <Icon className="w-3.5 h-3.5 shrink-0" />
+                  <span>{label}</span>
+                </Link>
+              );
+            })}
           </nav>
 
-          {/* RIGHT: Controls (Language Toggle, Account Link, Mobile Menu Trigger)
-              Dynamically turns white on dark footer scene */}
+          {/* RIGHT: Controls (Language Toggle, Account Link, Mobile Menu Trigger) */}
           <div className="flex items-center gap-2 sm:gap-3 z-20 shrink-0">
             <LanguageToggle isDark={isDarkHeader} />
 
@@ -338,6 +395,8 @@ export const PublicHeader: React.FC = () => {
 
       {/* ========================================================
           ACCESSIBLE MOBILE NAVIGATION DRAWER
+          Exact Shared Sequence: 1. Home, 2. How It Works, 3. Write Your Complaint,
+          4. My Complaints, 5. Track Your Complaint, then FAQ and Account
           ======================================================== */}
       {mobileMenuOpen && (
         <>
@@ -362,7 +421,7 @@ export const PublicHeader: React.FC = () => {
           >
             <div className="flex items-center justify-between pb-3 border-b border-[#E5E3E0]/70 mb-3">
               <span className="text-[11px] font-mono uppercase tracking-widest text-[#323232]">
-                Navigation Menu
+                {language === 'ur' ? 'نیویگیشن مینو' : 'Navigation Menu'}
               </span>
               <button
                 type="button"
@@ -375,66 +434,45 @@ export const PublicHeader: React.FC = () => {
             </div>
 
             <nav className="flex flex-col gap-1.5" aria-label="Mobile links">
-              <a
-                href="#hero"
-                onClick={(e) => handleNavClick(e, 'hero', '/')}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-ui transition-colors ${
-                  isHomeActive
-                    ? 'bg-[#681822] text-[#FFFFFF] font-medium'
-                    : 'text-[#141414] hover:bg-[#E5E3E0]/50 font-normal'
-                }`}
-              >
-                <span className="font-medium">{t('navHome') || 'Home'}</span>
-              </a>
+              {SHARED_NAV_ITEMS.map((item) => {
+                const active = isItemActive(item);
+                const Icon = item.icon;
+                const label = getItemLabel(item);
 
-              <a
-                href="#steps"
-                onClick={(e) => handleNavClick(e, 'steps', '/#steps')}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-ui transition-colors ${
-                  isStepsActive
-                    ? 'bg-[#681822] text-[#FFFFFF] font-medium'
-                    : 'text-[#141414] hover:bg-[#E5E3E0]/50 font-normal'
-                }`}
-              >
-                <span className="font-medium">{language === 'ur' ? 'طریقہ کار' : 'How It Works'}</span>
-              </a>
+                if (item.hashTarget) {
+                  return (
+                    <a
+                      key={item.id}
+                      href={`#${item.hashTarget}`}
+                      onClick={(e) => handleNavClick(e, item.hashTarget, item.path)}
+                      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-ui transition-colors ${
+                        active
+                          ? 'bg-[#681822] text-[#FFFFFF] font-medium'
+                          : 'text-[#141414] hover:bg-[#E5E3E0]/50 font-normal'
+                      }`}
+                    >
+                      <Icon className="w-4 h-4 shrink-0" />
+                      <span className="font-medium">{label}</span>
+                    </a>
+                  );
+                }
 
-              <Link
-                to="/track"
-                onClick={() => setMobileMenuOpen(false)}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-ui transition-colors ${
-                  isTrackActive
-                    ? 'bg-[#681822] text-[#FFFFFF] font-medium'
-                    : 'text-[#141414] hover:bg-[#E5E3E0]/50 font-normal'
-                }`}
-              >
-                <Search className="w-4 h-4" />
-                <span className="font-medium">{t('navTrack') || 'Track Complaint'}</span>
-              </Link>
-
-              <Link
-                to="/dashboard"
-                onClick={() => setMobileMenuOpen(false)}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-ui transition-colors ${
-                  isDashboardActive
-                    ? 'bg-[#681822] text-[#FFFFFF] font-medium'
-                    : 'text-[#141414] hover:bg-[#E5E3E0]/50 font-normal'
-                }`}
-              >
-                <span className="font-medium">{t('navMyComplaints') || 'My Complaints'}</span>
-              </Link>
-
-              <Link
-                to="/submit"
-                onClick={() => setMobileMenuOpen(false)}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-ui transition-colors ${
-                  isSubmitActive
-                    ? 'bg-[#681822] text-[#FFFFFF] font-medium'
-                    : 'text-[#141414] hover:bg-[#E5E3E0]/50 font-normal'
-                }`}
-              >
-                <span className="font-medium">{t('navWriteComplaint') || 'Write Complaint'}</span>
-              </Link>
+                return (
+                  <Link
+                    key={item.id}
+                    to={item.path}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-ui transition-colors ${
+                      active
+                        ? 'bg-[#681822] text-[#FFFFFF] font-medium'
+                        : 'text-[#141414] hover:bg-[#E5E3E0]/50 font-normal'
+                    }`}
+                  >
+                    <Icon className="w-4 h-4 shrink-0" />
+                    <span className="font-medium">{label}</span>
+                  </Link>
+                );
+              })}
 
               <Link
                 to="/faq"
@@ -445,6 +483,7 @@ export const PublicHeader: React.FC = () => {
                     : 'text-[#141414] hover:bg-[#E5E3E0]/50 font-normal'
                 }`}
               >
+                <HelpCircle className="w-4 h-4 shrink-0" />
                 <span className="font-medium">{t('navFaq') || 'FAQ'}</span>
               </Link>
 

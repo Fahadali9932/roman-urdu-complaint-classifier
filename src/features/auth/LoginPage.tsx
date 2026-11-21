@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Container } from '../../components/layout/Container';
 import { Input } from '../../components/common/Input';
 import { Button } from '../../components/common/Button';
 import { CivicEmblem } from '../../components/common/CivicEmblem';
@@ -72,21 +71,21 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="py-10 sm:py-16">
-      <Container size="sm">
-        <div className="text-center space-y-2.5 mb-8">
+    <div className="py-6 sm:py-10">
+      <div className="w-full max-w-[500px] mx-auto px-4">
+        <div className="text-center space-y-2 mb-6">
           <div className="inline-flex justify-center mb-1">
             <CivicEmblem size="md" />
           </div>
-          <h1 className="font-display font-black text-2xl sm:text-4xl text-[#141414] uppercase tracking-tight">
+          <h1 className="font-display font-black text-2xl sm:text-3xl text-[#141414] uppercase tracking-tight">
             {t('authSignInTitle')}
           </h1>
-          <p className="text-sm sm:text-base text-[#5A554E] max-w-sm mx-auto font-ui">
+          <p className="text-xs sm:text-sm text-[#5A554E] max-w-sm mx-auto font-ui">
             {t('authSignInSubtitle')}
           </p>
         </div>
 
-        <div className="bg-white border border-[#D9D3CC] rounded-[24px] sm:rounded-[28px] p-6 sm:p-10 text-start space-y-6 shadow-[0_16px_48px_rgba(20,20,20,0.06)]">
+        <div className="bg-white border border-[#D9D3CC] rounded-[24px] p-6 sm:p-8 text-start space-y-5 shadow-[0_12px_36px_rgba(20,20,20,0.05)]">
           <form onSubmit={handleSubmit} className="space-y-5">
             {error && (
               <div role="alert" className="rounded-xl border border-red-200 bg-red-50/90 p-4 text-xs sm:text-[13px] text-red-900 flex items-start gap-3">
@@ -191,7 +190,7 @@ export const LoginPage: React.FC = () => {
             </p>
           </div>
         </div>
-      </Container>
+      </div>
     </div>
   );
 };

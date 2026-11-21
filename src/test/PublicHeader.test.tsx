@@ -30,8 +30,9 @@ describe('PublicHeader Component', () => {
     // Navigation links in desktop navigation
     const desktopNav = screen.getByLabelText(/desktop primary navigation/i);
     expect(desktopNav).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /write.*complaint/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /my complaints/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /write complaint/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /track.*complaint/i })).toBeInTheDocument();
 
     // Language toggle and account link
     expect(screen.getByLabelText(/toggle interface language/i)).toBeInTheDocument();
@@ -109,5 +110,17 @@ describe('PublicHeader Component', () => {
 
     const brand = screen.getByText('Awaaz-e-Awam');
     expect(brand).toBeInTheDocument();
+  });
+
+  it('renders navigation links in the exact required sequence: Home, How It Works, Write, My Complaints, Track', () => {
+    renderWithProviders();
+    const desktopNav = screen.getByLabelText(/desktop primary navigation/i);
+    const links = Array.from(desktopNav.querySelectorAll('a'));
+    expect(links).toHaveLength(5);
+    expect(links[0].getAttribute('href')).toBe('#hero');
+    expect(links[1].getAttribute('href')).toBe('#steps');
+    expect(links[2].getAttribute('href')).toBe('/submit');
+    expect(links[3].getAttribute('href')).toBe('/dashboard');
+    expect(links[4].getAttribute('href')).toBe('/track');
   });
 });

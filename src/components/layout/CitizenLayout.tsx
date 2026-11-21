@@ -4,6 +4,7 @@ import { PublicHeader } from './PublicHeader';
 import { PublicFooter } from './PublicFooter';
 import { StackedScrollContainer, StackedScrollSection } from './stacked-scroll';
 import { ScrollReveals } from './ScrollReveals';
+import { PageTransition } from './PageTransition';
 
 export const CitizenLayout: React.FC = () => {
   return (
@@ -18,7 +19,9 @@ export const CitizenLayout: React.FC = () => {
           className="flex-1 w-full bg-[#F7F6F3] relative"
         >
           <div className="relative z-10 w-full max-w-[1360px] mx-auto px-4 sm:px-8 pt-24 sm:pt-28 pb-16 sm:pb-24">
-            <Outlet />
+            <PageTransition>
+              <Outlet />
+            </PageTransition>
           </div>
         </StackedScrollSection>
 
@@ -35,3 +38,5 @@ export const CitizenLayout: React.FC = () => {
     </div>
   );
 };
+
+export default CitizenLayout;

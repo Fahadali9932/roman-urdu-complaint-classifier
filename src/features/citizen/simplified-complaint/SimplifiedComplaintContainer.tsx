@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   AlertCircle,
   ArrowLeft,
@@ -176,11 +176,19 @@ export const SimplifiedComplaintContainer: React.FC = () => {
   const isSubmittingRef = useRef(false);
   const [submission, setSubmission] = useState<SubmissionResult | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [searchParams] = useSearchParams();
   const [isTestMode, setIsTestMode] = useState<boolean>(() => {
     if (typeof window === 'undefined') return false;
     const params = new URLSearchParams(window.location.search);
     return params.get('mode') === 'local-ai-test' || params.get('aiTest') === 'true';
   });
+  const showDevTools = import.meta.env.DEV && (
+    import.meta.env.MODE === 'test' ||
+    searchParams.get('dev') === 'true' ||
+    searchParams.get('mode') === 'local-ai-test' ||
+    searchParams.get('aiTest') === 'true' ||
+    isTestMode
+  );
   const [selectedEngine, setSelectedEngine] = useState<
     'run004_v11' | 'v13_2_candidate' | 'v13_4_candidate' | 'v13_5_candidate' | 'v13_6_candidate'
   >('run004_v11');
@@ -513,9 +521,9 @@ export const SimplifiedComplaintContainer: React.FC = () => {
       dir={isRTL ? 'rtl' : 'ltr'}
     >
       <div className="write-complaint-viewport sticky bottom-0 z-10 w-full px-4 pt-28 pb-12 sm:px-6 sm:pt-32 sm:pb-16 lg:pt-36 lg:pb-20 motion-reduce:static">
-        <div className="mx-auto max-w-5xl">
-          {/* Development-Only Local AI Test Mode Banner & Presets */}
-          {import.meta.env.DEV && (
+        <div className="mx-auto max-w-[780px] w-full">
+          {/* Development-Only Local AI Test Mode Banner & Presets (Accessible via ?dev=true or test mode) */}
+          {showDevTools && (
             <div
               className={`mb-6 rounded-2xl border p-4 sm:p-5 shadow-sm text-start transition ${
                 isTestMode

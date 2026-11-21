@@ -179,6 +179,12 @@ export const LandingPage: React.FC = () => {
             </div>
 
           </div>
+
+          {/* Atmospheric lower vignette preparing for seamless black footer rise */}
+          <div
+            className="absolute bottom-0 left-0 right-0 h-36 bg-gradient-to-b from-transparent via-transparent to-[#141414]/15 pointer-events-none"
+            aria-hidden="true"
+          />
         </section>
       </StackedScrollSection>
 
@@ -192,7 +198,7 @@ export const LandingPage: React.FC = () => {
         depth={40}
         recedeOnScroll={false}
         hasIncomingShadow={true}
-        className="w-full bg-[#141414] border-t border-[#323232]"
+        className="w-full bg-[#141414] border-t border-[#262626]"
       >
         <PublicFooter isHomePage={true} />
       </StackedScrollSection>
