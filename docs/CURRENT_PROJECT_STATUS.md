@@ -5,7 +5,37 @@ Verified on **21 November 2026 (Pakistan time)**. Internal delivery target:
 This document distinguishes inspected source, automated checks, and unverified
 hosted behavior. Update it after every significant verified milestone.
 
-## Current development update, 21 November 2026 — Phase V13.15.6: Department Staff Login Diagnostics & Credential Boundaries
+## Current development update, 21 November 2026 — Phase V13.16: Department Operations UI/UX Redesign & Multi-Viewport Verification
+
+- **Municipal Operations Styling (`department-operations-v16.css`, `DepartmentDashboardPage.tsx`):**
+  - **Civic Design Language:** Practical, high-contrast operations interface based on established public-sector design system principles (GOV.UK & USWDS). Deep evergreen navigation (`#112e35`), crisp Inter typography, unified status hierarchy, and accessible focus indicators (`outline: 3px solid #c88b43`).
+  - **Full Theme & Accessibility Support:** Complete support for light mode and dark mode (`[data-theme="dark"]`), high contrast tokens, accessible `aria-current` indicators, keyboard focus management, and `prefers-reduced-motion: reduce` styling.
+  - **Multi-Viewport Responsiveness:** Custom breakpoints at 1150px, 780px, and 480px. Tables maintain internal horizontal scrolling containers (`.table-wrap`) while the page frame preserves 0px horizontal overflow across 1440px, 1024px, 768px, 393px, and 320px.
+- **Dedicated Department Section Enhancements:**
+  - **Overview Page (`OverviewPage.tsx`):** Prioritizes single first-response action, case stage distribution bars (Needs Assessment, Accepted, In Progress, Completed), 3 distinct operational totals, next cases and localities, refresh button, and actionable failure/retry handling.
+  - **Work Queue (`WorkQueuePage.tsx`):** 300ms debounced search, dynamically derived locality options from actual records, stale response protection, explicit error vs. empty result handling with Retry action, saved views, and seamless toggling between Cases and Individual Reports modes.
+  - **Area Coverage (`AreasPage.tsx`):** Data-driven localities replacing hardcoded lists, search filtering, multi-factor sorting (volume, age, name), and failure/retry states.
+  - **Priority Queue (`PriorityQueuePage.tsx`):** Compact, scannable escalation rows with severity badges, timestamps, locations, complaint references, oldest-first ordering, and inline escalation actions.
+  - **Case Detail (`CaseDetailPage.tsx`):** 4 real tabs (Overview, Reports, Activity, Work), inline error banners replacing browser `alert()`, accessible report action buttons, and reliable back navigation.
+  - **KMC Review Queue:** Truthful load failure notice and retry button, eliminating false empty-inbox presentation on network or server error.
+- **Truthful Live-Data Boundary & Acceptance Workflow:**
+  - **Sanitized Production Bundle:** Synthetic training/demo incident cases are isolated to `DEV` and `test` environments (`CaseOperationsService.isDemonstrationWorkspace()`). Verified with `tools/ai_factory/v13_8_2_verify_production_bundle.mjs` (0 bypass markers or demo fixtures).
+  - **Awaited RPCs:** Staff status update calls await server response before mutating UI state, removing optimistic unverified writes.
+  - **Remaining Release Limitation:** Multi-report acceptance currently executes via sequential client-side RPC calls and is not yet a server-atomic PostgreSQL transaction. Real staging JWT multi-account verification requires administrator provisioning on staging project `jvbulmmdwovtgaxojxhn`.
+- **Comprehensive Quality Gates & Browser Verification:**
+  - TypeScript Compiler `tsc -b`: 0 errors.
+  - Vitest Unit & Integration Suite: **627 passed, 1 skipped (60 test files, 100% pass)**. Verified new `V13_16_DepartmentOperations.test.tsx` (3 tests).
+  - Production Build `npm run build`: compiled in 3.47s.
+  - Edge Security Boundaries (`tests/edge/complaint-boundaries.mjs`): **16 passed, 0 failed**.
+  - Production Bundle Verification: **PASS** (zero demonstration fixtures or auth bypass markers).
+  - Real Google Chrome CDP QA (`tools/ai_factory/v13_16_department_browser_qa.mjs`): **100% pass across all 5 viewports** (1440px, 1024px, 768px, 393px, 320px). Zero horizontal overflow (`overflow: 0px`). Captured 42 screenshots across Overview, Queue (Cases/Reports), Case Detail (4 tabs), Areas, Priority, Review Queue, Dark Mode, and Mobile Drawer.
+- **Preserved Safety Boundaries:**
+  - Frozen Run004 (`E4D04293...`) and Run006 (`C5D4E3D4...`) remain 100% byte-for-byte identical. No retraining or promotion.
+  - Primary repository `D:\RomanUrdu_ComplaintClassifier_staff_auth` remains untouched with all dirty/untracked files preserved.
+  - Zero paid dependencies, $0.00 spent.
+  - No merge to `main`, no public deployment, no production database mutations.
+
+## Previous development update, 21 November 2026 — Phase V13.15.6: Department Staff Login Diagnostics & Credential Boundaries
 
 - **Reliable Department Staff Authentication Diagnostics (`staffAuthService.ts`, `DepartmentAuthContext.tsx`, `ThemedDepartmentLoginScreen.tsx`):**
   - **Single Authentication Attempt:** Department staff login authenticates known department usernames exactly once per form submission click, eliminating duplicate Supabase Auth requests.
