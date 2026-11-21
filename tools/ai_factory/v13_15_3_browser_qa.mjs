@@ -110,6 +110,21 @@ try {
         assert(photo.loaded && photo.width > 150, `Registration monument missing at ${width}px: ${JSON.stringify(photo)}`);
         assert(photo.captionSeparated && photo.imageHeight >= 200,
           `Registration type obscures monument at ${width}px: ${JSON.stringify(photo)}`);
+
+        const registrationLayout = await evaluate(`(() => {
+          const form=document.querySelector('[data-testid="registration-form-column"]')?.getBoundingClientRect();
+          const artwork=document.querySelector('[data-testid="registration-artwork-column"] aside')?.getBoundingClientRect();
+          return {formTop:form?.top,formBottom:form?.bottom,formHeight:form?.height,
+            artworkTop:artwork?.top,artworkBottom:artwork?.bottom,artworkHeight:artwork?.height};
+        })()`);
+        if (width < 1024) {
+          assert(registrationLayout.artworkBottom <= registrationLayout.formTop + 2,
+            `Monument must appear before the registration form at ${width}px: ${JSON.stringify(registrationLayout)}`);
+        } else {
+          assert(registrationLayout.artworkBottom >= registrationLayout.formBottom - 30 &&
+            registrationLayout.artworkHeight >= registrationLayout.formHeight - 55,
+          `Desktop monument panel does not match form height at ${width}px: ${JSON.stringify(registrationLayout)}`);
+        }
       }
       console.log(`PASS ${width}x${height} ${route}: no overflow`);
     }

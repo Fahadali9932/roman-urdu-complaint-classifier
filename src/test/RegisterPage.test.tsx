@@ -76,6 +76,21 @@ describe('RegisterPage Component (Two-Column Reference Redesign & Gate D Policy)
     expect(screen.queryByText(/Describe the issue in your own words/i)).not.toBeInTheDocument();
   });
 
+  it('places the monument before the form on mobile and stretches the artwork on desktop', () => {
+    renderRegister();
+
+    const formColumn = screen.getByTestId('registration-form-column');
+    const artworkColumn = screen.getByTestId('registration-artwork-column');
+    const artwork = artworkColumn.querySelector('aside');
+
+    expect(formColumn.className).toContain('order-2');
+    expect(formColumn.className).toContain('lg:order-1');
+    expect(artworkColumn.className).toContain('order-1');
+    expect(artworkColumn.className).toContain('lg:order-2');
+    expect(artwork).toHaveClass('lg:h-full', 'lg:flex-1');
+    expect(screen.getByTestId('registration-monument')).toBeInTheDocument();
+  });
+
   it('toggles password visibility between password and text modes', () => {
     renderRegister();
 

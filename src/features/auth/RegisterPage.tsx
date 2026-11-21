@@ -73,10 +73,10 @@ export const RegisterPage: React.FC = () => {
 
   return (
     <div className="w-full bg-[#F7F6F3] min-h-[calc(100svh-80px)] flex flex-col justify-center items-center py-6 sm:py-8 px-4">
-      {/* Balanced editorial registration layout; remain single-column on mobile. */}
+      {/* The monument leads on phones; the full-height form/art columns sit side by side on desktop. */}
       <div className="w-full max-w-[1060px] bg-white rounded-[24px] border border-[#EAE7E2] shadow-[0_16px_48px_rgba(20,20,20,0.06)] overflow-hidden grid grid-cols-1 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] items-start lg:items-stretch">
-        {/* LEFT COLUMN: 43% Form Section */}
-        <div className="w-full min-w-0 p-5 sm:px-9 sm:py-8 lg:px-10 lg:py-10 flex flex-col justify-between text-start">
+        {/* Form follows the monument on phones; desktop layout keeps the form on the left. */}
+        <div data-testid="registration-form-column" className="order-2 lg:order-1 w-full min-w-0 p-5 sm:px-9 sm:py-8 lg:px-10 lg:py-10 flex flex-col justify-between text-start">
           <div className="max-w-[460px] w-full mx-auto lg:mx-0">
             {/* Brand Mark */}
             <div className="flex items-center gap-2 mb-3">
@@ -312,8 +312,8 @@ export const RegisterPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Compact contextual service panel; never a second, oversized blank artwork. */}
-        <div className="w-full min-w-0 p-3 sm:p-5 lg:p-6 flex flex-col">
+        {/* Stretch to the form's height on desktop; show the monument before the form on phones. */}
+        <div data-testid="registration-artwork-column" className="order-1 lg:order-2 w-full min-w-0 p-3 sm:p-5 lg:p-6 flex flex-col lg:h-full">
           <RegistrationArtwork />
         </div>
       </div>

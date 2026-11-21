@@ -9,9 +9,9 @@ export const RegistrationArtwork: React.FC = () => {
   const { t, isRTL } = useLanguage();
 
   return (
-    <aside className="flex w-full flex-col overflow-hidden rounded-[22px] bg-[#141414] text-start text-white lg:min-h-[550px]">
+    <aside className="flex w-full flex-col overflow-hidden rounded-[22px] bg-[#141414] text-start text-white lg:h-full lg:flex-1">
       {/* Keep the subject clear: no giant type printed across the actual monument. */}
-      <div className="relative h-[235px] w-full shrink-0 overflow-hidden sm:h-[280px] lg:h-[335px]">
+      <div className="relative h-[210px] w-full shrink-0 overflow-hidden sm:h-[280px] lg:h-auto lg:min-h-[385px] lg:flex-1">
         <picture className="absolute inset-0 block h-full w-full" aria-hidden="true">
           <source media="(max-width: 1023px)" srcSet={mazarMobile} />
           <img
@@ -29,7 +29,7 @@ export const RegistrationArtwork: React.FC = () => {
         </p>
       </div>
 
-      <div className="flex flex-1 flex-col justify-center gap-3 px-6 py-7 sm:px-8 sm:py-9 lg:px-9">
+      <div className="flex flex-col justify-center gap-3 px-6 py-6 sm:px-8 sm:py-9 lg:shrink-0 lg:px-9 lg:py-10">
         <h2 className="max-w-[28ch] font-display text-[clamp(1.55rem,2.3vw,2.05rem)] font-black uppercase leading-[1.06] tracking-[-0.025em] text-white">
           {t('authArtworkHeading') || (isRTL ? 'عوامی مسائل کی شکایت کا آسان اور شفاف طریقہ۔' : 'A simpler way to report public-service issues.')}
         </h2>
