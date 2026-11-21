@@ -5,7 +5,30 @@ Verified on **21 November 2026 (Pakistan time)**. Internal delivery target:
 This document distinguishes inspected source, automated checks, and unverified
 hosted behavior. Update it after every significant verified milestone.
 
-## Current development update, 21 November 2026 — Phase V13.15.4: Registration Monument Photo Separation & Mobile Scroll Finish
+## Current development update, 21 November 2026 — Phase V13.15.5: Registration Card Height Matching & Mobile Order Realignment
+
+- **Desktop Form / Artwork Height Alignment (`RegisterPage.tsx`, `RegistrationArtwork.tsx`):**
+  - Resolved the desktop under-height card defect: replaced static minimum height with full-height flex column (`lg:h-full lg:flex-1`).
+  - The upper Mazar-e-Quaid photographic portrait panel expands (`lg:h-auto lg:min-h-[385px] lg:flex-1`) while keeping the bottom caption compact (`lg:shrink-0`).
+  - Verified across desktop (1280px): the right monument artwork card reaches the bottom of the registration form column (`registrationLayout.artworkBottom >= registrationLayout.formBottom - 30`), eliminating any awkward dark blanks or unequal heights.
+- **Mobile & Tablet Visual Order Realignment (`RegisterPage.tsx`):**
+  - Realigned visual flow on mobile (320px, 375px, 390px, 393px) and tablet (768px): the civic monument artwork card renders FIRST (`order-1 lg:order-2`), followed by the "CREATE AN ACCOUNT" form below (`order-2 lg:order-1`).
+  - Verified in Google Chrome via CDP assertions: `artworkBottom <= formTop + 2` across all viewports < 1024px.
+  - No horizontal overflow, no image distortion, and full bilingual English and Urdu RTL layout verified.
+- **Comprehensive Quality Gates:**
+  - TypeScript Compiler `tsc -b`: 0 errors.
+  - Vitest Unit & Integration Suite: **619 passed, 1 skipped (58 test files, 100% pass)**. Added layout contract tests for order classes and desktop stretch.
+  - Production Build: compiled in 1.13s.
+  - Python Backend Discovery: **106 passed in 17.8s**.
+  - Edge Security Boundaries: **16 passed, 0 failed**.
+  - Browser QA Suite (`tools/ai_factory/v13_15_3_browser_qa.mjs`): 100% pass across 1280x900, 768x1024, 393x852, 390x844, 375x667, 320x640, English and Urdu RTL. Captured screenshots in `docs/v11/screenshots/v13_15_5/`.
+- **Preserved Safety Boundaries:**
+  - Frozen Run004 (`E4D04293...`) and Run006 (`C5D4E3D4...`) remain 100% byte-for-byte identical. No retraining or promotion.
+  - Primary repository `D:\RomanUrdu_ComplaintClassifier_staff_auth` remains untouched with all dirty/untracked files preserved.
+  - Strict $0 budget; no new paid dependencies.
+  - No merge to `main`, no public deployment, no production database mutations.
+
+## Previous development update, 21 November 2026 — Phase V13.15.4: Registration Monument Photo Separation & Mobile Scroll Finish
 
 - **Registration Monument Photo Redesign (`RegistrationArtwork.tsx`):**
   - Resolved desktop and mobile artwork obscuration: completely separated the photographic portrait from the text caption.

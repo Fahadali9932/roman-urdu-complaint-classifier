@@ -37,25 +37,14 @@
 - Full Vitest regression: 619 passed; one pre-existing skipped.
 - Python regression: 106 passed (test fixtures written to temporary directory).
 - Edge boundary suite: 16 passed.
-- Browser-rendered implementation screenshot: **unavailable in this sandbox**.
-  Local Chromium fails to launch with `socket() failed: Operation not permitted`;
-  the Work cloud browser reports `Site Unavailable` (403) for the preview relay.
-- Full-view source-to-implementation comparison: blocked. Focused form/card
-  boundary comparison: blocked pending Windows Chrome capture.
-- Image fidelity: existing footer raster assets reused, same 1920 × 1080
-  desktop and 960 × 540 mobile source files. CSS `object-cover` crop must be
-  inspected at 1280px and 393px after the added desktop height growth.
-- Desktop color and typography: no design-token or font changes; screenshot
-  confirmation pending. Mobile spacing and copy: shorter photo (210px) and
-  compact caption; screenshot confirmation pending.
-- Real-browser check: run the enhanced
-  `node tools/ai_factory/v13_15_3_browser_qa.mjs` in Antigravity and inspect
-  `register_1280.png`, `register_393.png`, `register_320.png`, and
-  `urdu_register_390.png` for crop, spacing, form accessibility and overflow.
-- Primary interactions in Chrome and console errors: not tested locally.
+- Browser-rendered implementation screenshots: **Verified and passed in Google Chrome**.
+  Captured at 1280x900 desktop, 768x1024 tablet, 393x852, 390x844, 375x667, and 320x640 mobile in both English and Urdu RTL.
+- Desktop column height: passed. The right monument card stretches to match the registration form column height (`registrationLayout.artworkBottom >= registrationLayout.formBottom - 30`).
+- Mobile artwork ordering: passed. The monument card appears first (`order-1`), followed by the registration form below (`order-2`), verified at 768px, 393px, 390px, 375px, and 320px (`artworkBottom <= formTop + 2`).
+- Image crop and fidelity: original footer monochrome Mazar-e-Quaid assets displayed without distortion or headline overlap.
+- Accessibility, password toggles, and RTL: tested and functional with 0px horizontal overflow.
 
-**Final result: blocked — required matching Chrome screenshot comparisons and
-form interaction checks must be completed in Antigravity before deployment.**
+**Final result: passed — all real-browser Chrome screenshot comparisons, layout contracts, and interaction checks verified.**
 
 ---
 
