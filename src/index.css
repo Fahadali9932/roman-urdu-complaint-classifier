@@ -233,6 +233,12 @@
   transition: opacity 700ms ease, transform 850ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+.civic-reveal-settled {
+  transform: none !important;
+  perspective: none !important;
+  will-change: auto !important;
+}
+
 .civic-depth-card {
   transform-style: preserve-3d;
 }

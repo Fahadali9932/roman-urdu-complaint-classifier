@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../context/LanguageContext';
 import { LanguageToggle } from '../common/LanguageToggle';
-import { Menu, X, User, Home, HelpCircle, FolderOpen, PenTool } from 'lucide-react';
+import { Menu, X, User, Home, HelpCircle, FolderOpen, PenTool, Search } from 'lucide-react';
 
 export const PublicHeader: React.FC = () => {
   const { t, language } = useLanguage();
@@ -170,6 +170,7 @@ export const PublicHeader: React.FC = () => {
   // Exactly one active item state helper
   const isHomeActive = location.pathname === '/' && scrollSection === 'home';
   const isStepsActive = location.pathname === '/' && scrollSection === 'steps';
+  const isTrackActive = location.pathname.startsWith('/track');
   const isDashboardActive = location.pathname === '/dashboard';
   const isSubmitActive = location.pathname === '/submit' || (location.pathname === '/' && scrollSection === 'submit');
 
@@ -249,6 +250,19 @@ export const PublicHeader: React.FC = () => {
               <HelpCircle className="w-3.5 h-3.5 shrink-0" />
               <span>{language === 'ur' ? 'طریقہ کار' : 'How It Works'}</span>
             </a>
+
+            {/* Track Complaint Link */}
+            <Link
+              to="/track"
+              className={`flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 rounded-full text-[13px] font-ui transition-all duration-300 whitespace-nowrap cursor-pointer select-none ${
+                isTrackActive
+                  ? 'bg-[#681822] text-[#FFFFFF] font-medium shadow-sm'
+                  : 'text-[#171717] hover:text-[#141414] hover:bg-[#E5E3E0]/40 font-normal'
+              }`}
+            >
+              <Search className="w-3.5 h-3.5 shrink-0" />
+              <span>{t('navTrack') || 'Track Complaint'}</span>
+            </Link>
 
             {/* My Complaints Link */}
             <Link
@@ -384,6 +398,19 @@ export const PublicHeader: React.FC = () => {
               >
                 <span className="font-medium">{language === 'ur' ? 'طریقہ کار' : 'How It Works'}</span>
               </a>
+
+              <Link
+                to="/track"
+                onClick={() => setMobileMenuOpen(false)}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-ui transition-colors ${
+                  isTrackActive
+                    ? 'bg-[#681822] text-[#FFFFFF] font-medium'
+                    : 'text-[#141414] hover:bg-[#E5E3E0]/50 font-normal'
+                }`}
+              >
+                <Search className="w-4 h-4" />
+                <span className="font-medium">{t('navTrack') || 'Track Complaint'}</span>
+              </Link>
 
               <Link
                 to="/dashboard"

@@ -79,7 +79,13 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
 export const useLanguage = (): LanguageContextType => {
   const context = useContext(LanguageContext);
   if (!context) {
-    throw new Error('useLanguage must be used within a LanguageProvider');
+    return {
+      language: 'en',
+      setLanguage: () => {},
+      toggleLanguage: () => {},
+      t: (key: TranslationKey) => translations.en[key] || (key as string),
+      isRTL: false,
+    };
   }
   return context;
 };

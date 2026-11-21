@@ -22,13 +22,14 @@ describe('PublicFooter Component', () => {
     const primaryCtas = container.querySelectorAll('.footer-cta-primary');
     expect(primaryCtas.length).toBe(0);
 
-    // Asserts minimal navigation links exist
+    // Asserts navigation links exist including Track Complaint
     expect(screen.getByRole('link', { name: /about us/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /how it works/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /my complaints/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /track complaint/i })).toBeInTheDocument();
 
-    // Asserts concise academic attribution
-    expect(screen.getByText(/greenwich university/i)).toBeInTheDocument();
-    expect(screen.getByText(/academic project · greenwich university/i)).toBeInTheDocument();
+    // V13.14: Asserts tiny bottom academic affiliation line was removed from footer presentation
+    expect(screen.queryByText(/academic project · greenwich university/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/greenwich university/i)).not.toBeInTheDocument();
   });
 });

@@ -109,11 +109,13 @@ describe('AWAAZ-E-AWAM — Guest Complaint Submission & Ownership Claiming', () 
 
     // Verify modal
     await waitFor(() => expect(screen.getByRole('dialog')).toBeInTheDocument());
-    expect(screen.getByRole('heading', { level: 2, name: /complaint submitted successfully/i })).toBeInTheDocument();
-    expect(screen.getByText(/official case reference number/i)).toBeInTheDocument();
-    expect(screen.getByText(/private claim code/i)).toBeInTheDocument();
-    expect(screen.getByText(/save your claim code securely/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /create account to track/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: /complaint received/i })).toBeInTheDocument();
+    // V13.14 single-code guest receipt: ONE private tracking code, no KHI or CLM codes
+    expect(screen.getByText(/your private tracking code/i)).toBeInTheDocument();
+    expect(screen.queryByText(/official case reference number/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/private claim code/i)).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /copy code/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /track complaint/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /return home/i })).toBeInTheDocument();
   });
 

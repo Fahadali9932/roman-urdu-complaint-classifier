@@ -156,6 +156,8 @@ export interface Complaint {
   updatedAt: string;
   timeline: ComplaintTimelineEvent[];
   isDemonstration: boolean;
+  guestTrackingNumber?: string;
+  guestTrackingFormatted?: string;
   claimCodeHash?: string | null;
   claimedAt?: string | null;
   manualPriority?: 'critical' | 'high' | 'normal' | 'low';

@@ -307,6 +307,9 @@ export const PublicFooter: React.FC<PublicFooterProps> = ({ isHomePage, showMonu
                   <Link to="/submit" className="footer-link">
                     {t('footerNavSubmit')}
                   </Link>
+                  <Link to="/track" className="footer-link">
+                    {t('navTrack') || 'Track Complaint'}
+                  </Link>
                   <Link to="/dashboard" className="footer-link">
                     {t('footerNavDashboard')}
                   </Link>
@@ -339,14 +342,10 @@ export const PublicFooter: React.FC<PublicFooterProps> = ({ isHomePage, showMonu
 
             </div>
 
-            {/* Bottom Row: Restrained Copyright, Academic Attribution & Back to Top */}
+            {/* Bottom Row: Restrained Copyright & Back to Top */}
             <div className="footer-bottom-bar">
               <div className="footer-copyright">
                 © {copyrightYear} <bdi>Awaaz-e-Awam</bdi>
-              </div>
-
-              <div className="footer-academic">
-                {t('footerAcademicConcise')}
               </div>
 
               <div className="footer-actions">

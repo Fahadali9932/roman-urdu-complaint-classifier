@@ -95,7 +95,7 @@ export const StackedScrollContainer: React.FC<StackedScrollContainerProps> = ({
       const t = clamp01(rawProgress);
 
       if (t <= 0) {
-        current.innerEl.style.transform = 'scale(1) translate3d(0, 0, 0)';
+        current.innerEl.style.transform = 'none';
         current.innerEl.style.filter = 'none';
       } else {
         // Calculate physics parameters based on screen tier

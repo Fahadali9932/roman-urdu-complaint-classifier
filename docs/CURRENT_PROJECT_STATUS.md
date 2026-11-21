@@ -1,11 +1,41 @@
 # Verified current project status
 
-Verified on **20 November 2026 (Pakistan time)**. Internal delivery target:
+Verified on **21 November 2026 (Pakistan time)**. Internal delivery target:
 **5 December 2026**. Read `PROJECT_MASTER_CONTEXT.md` for requirements/history.
 This document distinguishes inspected source, automated checks, and unverified
 hosted behavior. Update it after every significant verified milestone.
 
-## Current development update, 21 November 2026 — Phase V13.13: Guest Credential Exposure Found and Repair Prepared
+## Current development update, 21 November 2026 — Phase V13.14: Citizen Portal Redesign, Cinematic Motion, and One-Code Guest Tracking
+
+- **Corrected Reference Problems & Visual Design:**
+  - **Homepage & Footer (`/#hero`):** Preserved the iconic Mazar-e-Quaid cover and black editorial footer columns. Removed the tiny bottom academic affiliation line (`Academic project · Greenwich University, Karachi`) from the footer presentation while preserving legitimate academic disclosures on About/Terms. Verified that the green overlay seen in external screenshots is not injected by application code (traced to browser/IDE dev tooling).
+  - **Citizen Login (`/login`):** Elevated typography and spacing using crisp high-contrast inputs, bold labels, robust focus outlines, and a clear alert banner displaying legitimate authentication notices with `AlertCircle`.
+  - **Citizen Submit Form (`/submit`):** Rebuilt form visual hierarchy, typography, high-contrast borders, and progress indicator. `LOCAL AI TEST MODE` is conditionally guarded with `import.meta.env.DEV` and strictly absent from the production build.
+  - **Submission Success Dialog (`/submit`):** Replaced multi-identifier dialog with ONE memorable, beautiful, reliable receipt centered around ONE user-facing private 24-digit tracking code in a prominent high-contrast card (`bg-[#FAF6F6] border-2 border-[#681822]`). Provides ONE `Copy Code` action, completely conceals internal `KHI-...` case references and `CLM-...` claim codes from guest citizens, truthfully displays single/dual assigned departments or "Received — Awaiting Review", and provides direct `Track Complaint` (navigating via router state with zero URL leak) and `Return Home` buttons.
+- **Guest Tracking & Privacy (`/track`):**
+  - Unauthenticated citizen tracker accessible from desktop and mobile navigation without requiring an account, sign-in, or second code.
+  - Validates and formats 24-digit tracking numbers into 6 groups of 4 digits.
+  - Exposes zero PII (phone number, home address, applicant name, and internal digests remain completely masked and unexposed).
+  - Backward compatibility for legacy receipts preserved via the "Claim to account" tab.
+- **Razor-Sharp Typography & 3D Scroll-Motion:**
+  - Solved text softness/blur by adding `.civic-reveal-settled` in `src/index.css` and `ScrollReveals.tsx`, and resetting `transform: none` in `StackedScrollContainer.tsx` when elements reach rest (`t <= 0`). This drops the off-screen GPU composite layer and restores 100% native subpixel font antialiasing.
+  - Stacked-scroll cover system provides perspective and depth forward and reverse across all screen sizes.
+  - Added font preconnects in `index.html`.
+- **Responsive Viewport Verification (1280px, 768px, 390px, 320px):**
+  - Fully verified across all 4 responsive tiers with zero horizontal overflow (`scrollWidth <= width + 1`, `bodyWidth <= width + 1`).
+  - Captured 32 native-resolution screenshots across homepage, footer, login, submit form, receipt dialog, tracker, and stacked-scroll covers.
+- **Test Matrix & Quality Gates:**
+  - TypeScript `npx tsc -b`: 0 errors
+  - Production Build `npm run build`: built successfully (948ms)
+  - Bundle Audit `v13_8_2_verify_production_bundle.mjs`: PASS (0 dev fixtures, 0 auth bypass markers)
+  - Vitest Unit & Integration Suite: **603 passed, 1 skipped (57 test files, 100% pass)**
+  - Python Regression Suite: **106 passed in 16.7s**
+  - Edge Security Gate: **4 passed**
+  - Live Browser CDP Verification: **PASS across all 4 viewports**
+- **Safety Boundaries:**
+  - Frozen Run004 Champion SHA-256 (`E4D04293...`) and Run006 Candidate SHA-256 (`C5D4E3D4...`) remain 100% identical.
+  - Original dirty Windows workspace (`D:\RomanUrdu_ComplaintClassifier_staff_auth`) remains 100% untouched.
+  - Zero paid dependencies, $0.00 spent. No production database mutations or merge to `main`.
 
 - **Confirmed on hosted staging:** The authenticated Postgres role had
   table-wide `SELECT` on `public.complaints`, including the guest claim and

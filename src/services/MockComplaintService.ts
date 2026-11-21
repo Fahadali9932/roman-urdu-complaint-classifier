@@ -12,7 +12,7 @@ import {
 } from '../types';
 import { IComplaintService } from './IComplaintService';
 import { KARACHI_DEPARTMENTS } from '../mocks/complaints';
-import { generateMockReference } from '../utils/referenceGenerator';
+import { generateMockReference, generateGuestTrackingNumber } from '../utils/referenceGenerator';
 import { classifyV11RelationAware, championV11Model, type V11RelationAwareResult } from './v11InferenceAdapter';
 import { assessComplaintDraft, resolveComplaintClarification, type UnderstandingResult } from './complaintUnderstanding';
 
@@ -214,6 +214,7 @@ export class MockComplaintService implements IComplaintService {
 
     const probValues = Object.values(prediction.probabilities || {});
     const maxProb = probValues.length > 0 ? Math.max(...probValues) : 0.85;
+    const guestTracking = generateGuestTrackingNumber();
 
     const newComplaint: Complaint = {
       id: complaintId,
@@ -239,6 +240,8 @@ export class MockComplaintService implements IComplaintService {
       submittedAt: now,
       updatedAt: now,
       isDemonstration: false,
+      guestTrackingNumber: guestTracking.raw,
+      guestTrackingFormatted: guestTracking.formatted,
       claimCodeHash: claimCode,
       timeline: [
         {
@@ -283,6 +286,7 @@ export class MockComplaintService implements IComplaintService {
       status,
       needsReview,
       claimCode,
+      guestTrackingNumber: guestTracking.formatted,
     };
   }
 
@@ -665,7 +669,7 @@ export class MockComplaintService implements IComplaintService {
       rejected: 'Closed',
     };
 
-    const complaint = this.complaints[0];
+    const complaint = this.complaints.find((c) => c.guestTrackingNumber === normalized) || this.complaints[0];
     const deptMeta = complaint?.assignedDepartmentId
       ? KARACHI_DEPARTMENTS[complaint.assignedDepartmentId]
       : KARACHI_DEPARTMENTS['kmc'];

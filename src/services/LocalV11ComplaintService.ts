@@ -17,6 +17,7 @@ import {
 } from './v11InferenceAdapter';
 import { processComplaintPrivacy } from '../lib/privacy-engine';
 import { KARACHI_DEPARTMENTS } from '../mocks/complaints';
+import { generateGuestTrackingNumber } from '../utils/referenceGenerator';
 import {
   assessComplaintDraft,
   resolveComplaintClarification,
@@ -524,6 +525,7 @@ export class LocalV11ComplaintService implements IComplaintService {
     };
 
     // 9. Single Complaint Record Persistence
+    const guestTracking = generateGuestTrackingNumber();
     const newComplaint: Complaint = {
       id: `cmp-${refNumber}`,
       citizenId: null,
@@ -554,6 +556,8 @@ export class LocalV11ComplaintService implements IComplaintService {
       submittedAt: now,
       updatedAt: now,
       isDemonstration: true,
+      guestTrackingNumber: guestTracking.raw,
+      guestTrackingFormatted: guestTracking.formatted,
       timeline,
       clarificationQuestionId,
       clarificationAnswerChoice,
@@ -575,6 +579,7 @@ export class LocalV11ComplaintService implements IComplaintService {
       departments: finalDepartments,
       status,
       needsReview,
+      guestTrackingNumber: guestTracking.formatted,
       v11Analysis: analysisPayload,
     };
 
@@ -685,10 +690,76 @@ export class LocalV11ComplaintService implements IComplaintService {
     return { success: false, error: 'Claiming is not supported in Local AI Test Mode.' };
   }
 
-  async trackGuestComplaint(): Promise<{ found: boolean; error?: string }> {
+  async trackGuestComplaint(trackingNumber?: string): Promise<{
+    found: boolean;
+    public_status?: string;
+    display_status?: string;
+    public_category?: string;
+    submitted_at?: string;
+    updated_at?: string;
+    public_updates?: Array<{ status: string; at: string; message: string }>;
+    is_multilabel?: boolean;
+    public_issues?: Array<{
+      department_name: string;
+      department_id: string;
+      status: string;
+      display_status: string;
+    }>;
+    error?: string;
+  }> {
+    const rawDigits = (trackingNumber || '').replace(/\D/g, '');
+    if (rawDigits.length !== 24) {
+      return {
+        found: false,
+        error: "We couldn't find a complaint with that number. Check it and try again.",
+      };
+    }
+
+    const complaint = this.testComplaints.find((c) => c.guestTrackingNumber === rawDigits) || this.testComplaints[0];
+    if (!complaint) {
+      return {
+        found: false,
+        error: "We couldn't find a complaint with that number. Check it and try again.",
+      };
+    }
+
+    const displayStatuses: Record<string, string> = {
+      submitted: 'Complaint received',
+      under_review: 'Being reviewed',
+      assigned: 'Sent to department',
+      accepted: 'Sent to department',
+      in_progress: 'Work started',
+      resolved: 'Work completed',
+      closed: 'Closed',
+      rejected: 'Closed',
+    };
+
+    const deptMeta = complaint.assignedDepartmentId && complaint.assignedDepartmentId !== 'unassigned'
+      ? KARACHI_DEPARTMENTS[complaint.assignedDepartmentId]
+      : KARACHI_DEPARTMENTS['kmc'];
+    const currentStatus = complaint.status || 'under_review';
+
     return {
-      found: false,
-      error: 'Guest tracking is not supported in Local AI Test Mode.',
+      found: true,
+      public_status: currentStatus,
+      display_status: displayStatuses[currentStatus] || 'Being reviewed',
+      public_category: deptMeta?.name || 'Karachi Metropolitan Corporation (KMC / DMCs)',
+      submitted_at: complaint.submittedAt,
+      updated_at: complaint.updatedAt,
+      is_multilabel: complaint.isMultiLabel,
+      public_issues: complaint.issues?.map((i) => ({
+        department_name: i.departmentName || KARACHI_DEPARTMENTS[i.departmentId]?.name || i.departmentId,
+        department_id: i.departmentId,
+        status: i.status,
+        display_status: displayStatuses[i.status] || i.status,
+      })),
+      public_updates: [
+        {
+          status: 'submitted',
+          at: complaint.submittedAt,
+          message: 'Citizen report received and registered in municipal tracking system.',
+        },
+      ],
     };
   }
 

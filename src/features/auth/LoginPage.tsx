@@ -5,7 +5,7 @@ import { Input } from '../../components/common/Input';
 import { Button } from '../../components/common/Button';
 import { CivicEmblem } from '../../components/common/CivicEmblem';
 import { useLanguage } from '../../context/LanguageContext';
-import { Mail, Lock, LogIn, ArrowRight, Eye, EyeOff, Shield } from 'lucide-react';
+import { Mail, Lock, LogIn, ArrowRight, Eye, EyeOff, Shield, AlertCircle } from 'lucide-react';
 import { isSupabaseConfigured, supabase } from '../../lib/supabase';
 
 export const LoginPage: React.FC = () => {
@@ -72,23 +72,31 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="py-12 sm:py-16">
+    <div className="py-10 sm:py-16">
       <Container size="sm">
-        <div className="text-center space-y-2 mb-6">
+        <div className="text-center space-y-2.5 mb-8">
           <div className="inline-flex justify-center mb-1">
             <CivicEmblem size="md" />
           </div>
-          <h1 className="font-display font-black text-2xl sm:text-3xl text-[#141414] uppercase tracking-tight">
+          <h1 className="font-display font-black text-2xl sm:text-4xl text-[#141414] uppercase tracking-tight">
             {t('authSignInTitle')}
           </h1>
-          <p className="text-xs sm:text-sm text-[#323232] max-w-xs mx-auto font-ui">
+          <p className="text-sm sm:text-base text-[#5A554E] max-w-sm mx-auto font-ui">
             {t('authSignInSubtitle')}
           </p>
         </div>
 
-        <div className="bg-white border border-[#E5E3E0] rounded-2xl p-5 sm:p-10 text-start space-y-5 shadow-[0_12px_36px_rgba(20,20,20,0.06)]">
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {error && <p role="alert" className="rounded-lg border border-red-200 bg-red-50 p-3 text-xs text-red-700">{error}</p>}
+        <div className="bg-white border border-[#D9D3CC] rounded-[24px] sm:rounded-[28px] p-6 sm:p-10 text-start space-y-6 shadow-[0_16px_48px_rgba(20,20,20,0.06)]">
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {error && (
+              <div role="alert" className="rounded-xl border border-red-200 bg-red-50/90 p-4 text-xs sm:text-[13px] text-red-900 flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
+                <div className="space-y-0.5">
+                  <span className="font-bold text-red-950 block">Authentication Notice</span>
+                  <p className="leading-relaxed">{error}</p>
+                </div>
+              </div>
+            )}
             <Input
               label={t('authEmail')}
               type="email"
@@ -97,18 +105,18 @@ export const LoginPage: React.FC = () => {
               placeholder={t('authEmailPlaceholder')}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              leftIcon={<Mail className="w-4 h-4 text-[#323232]" />}
+              leftIcon={<Mail className="w-4 h-4 text-[#625D58]" />}
             />
 
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               <div className="flex items-center justify-between">
                 <label
                   htmlFor="password"
-                  className="block text-xs font-semibold text-[#141414] uppercase tracking-wider"
+                  className="block text-xs sm:text-[13px] font-bold text-[#141414] uppercase tracking-wider"
                 >
                   {t('authPassword')} <span className="text-[#681822]">*</span>
                 </label>
-                <button type="button" onClick={handlePasswordReset} className="text-xs text-[#323232] hover:text-[#681822] hover:underline cursor-pointer">
+                <button type="button" onClick={handlePasswordReset} className="text-xs sm:text-sm font-semibold text-[#625D58] hover:text-[#681822] hover:underline cursor-pointer">
                   {t('authForgotPassword')}
                 </button>
               </div>
@@ -119,13 +127,13 @@ export const LoginPage: React.FC = () => {
                 placeholder={t('authPasswordPlaceholder')}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                leftIcon={<Lock className="w-4 h-4 text-[#323232]" />}
+                leftIcon={<Lock className="w-4 h-4 text-[#625D58]" />}
                 rightAction={
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     aria-label={showPassword ? t('passwordHide') : t('passwordShow')}
-                    className="p-1.5 text-[#323232] hover:text-[#141414] focus:outline-none min-w-[36px] min-h-[36px] flex items-center justify-center rounded transition-colors cursor-pointer"
+                    className="p-1.5 text-[#625D58] hover:text-[#141414] focus:outline-none min-w-[36px] min-h-[36px] flex items-center justify-center rounded transition-colors cursor-pointer"
                   >
                     {showPassword ? (
                       <EyeOff className="w-4 h-4" aria-hidden="true" />
@@ -137,21 +145,21 @@ export const LoginPage: React.FC = () => {
               />
             </div>
 
-            <div className="flex items-center justify-between text-xs text-[#323232]">
-              <label className="flex items-center gap-2 cursor-pointer">
+            <div className="flex items-center justify-between text-xs sm:text-sm text-[#5A554E]">
+              <label className="flex items-center gap-2 cursor-pointer select-none">
                 <input
                   type="checkbox"
-                  className="rounded border-[#E5E3E0] bg-white text-[#141414] focus:ring-[#681822]"
+                  className="rounded border-[#D9D3CC] bg-white text-[#681822] focus:ring-[#681822] h-4 w-4"
                 />
-                <span>{t('authRememberMe')}</span>
+                <span className="font-medium">{t('authRememberMe')}</span>
               </label>
             </div>
 
             <Button
               type="submit"
               variant="primary"
-              size="md"
-              className="w-full"
+              size="lg"
+              className="w-full min-h-[50px] sm:min-h-[54px] rounded-xl text-base font-bold"
               isLoading={submitted}
               leftIcon={<LogIn className="w-4 h-4 text-[#FFFFFF]" />}
             >
@@ -159,10 +167,10 @@ export const LoginPage: React.FC = () => {
             </Button>
             {resetMessage && <p role="status" className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-700">{resetMessage}</p>}
 
-            <div className="text-center pt-2 border-t border-[#E5E3E0]">
+            <div className="text-center pt-3 border-t border-[#EAE7E2]">
               <Link
                 to="/register"
-                className="text-xs font-semibold text-[#141414] hover:text-[#681822] inline-flex items-center gap-1"
+                className="text-xs sm:text-sm font-bold text-[#141414] hover:text-[#681822] inline-flex items-center gap-1.5"
               >
                 <span>{t('authNoAccount')}</span>
                 <ArrowRight className={`w-3.5 h-3.5 ${isRTL ? 'rotate-180' : ''}`} />
@@ -172,14 +180,14 @@ export const LoginPage: React.FC = () => {
         </div>
 
         {/* Account security note */}
-        <div className="mt-5 p-3.5 rounded-xl bg-[#FAF9F7] border border-[#E5E3E0] text-start flex items-start gap-2.5 text-xs text-[#323232]">
-          <Shield className="w-4 h-4 text-[#681822] shrink-0 mt-0.5" />
+        <div className="mt-6 p-4 rounded-2xl bg-[#FAF9F7] border border-[#D9D3CC] text-start flex items-start gap-3 text-xs sm:text-sm text-[#5A554E]">
+          <Shield className="w-5 h-5 text-[#681822] shrink-0 mt-0.5" />
           <div className="space-y-0.5">
-            <span className="font-semibold text-[#141414] block">
+            <span className="font-bold text-[#141414] block">
               Secure citizen access
             </span>
-            <p className="text-[11px] leading-relaxed">
-              Sign in to view private complaint details or claim a guest complaint with its reference number and private claim code.
+            <p className="text-xs leading-relaxed">
+              Sign in to view your complaint history, receive real-time updates, or claim previous complaints.
             </p>
           </div>
         </div>

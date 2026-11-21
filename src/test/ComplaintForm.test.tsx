@@ -71,7 +71,8 @@ describe('Simplified Write your complaint flow', () => {
     expect(screen.getByTestId('word-count-display')).toHaveTextContent('8');
     fireEvent.click(screen.getByRole('button', { name: /submit complaint/i }));
     await waitFor(() => expect(screen.getByRole('dialog')).toBeInTheDocument());
-    expect(screen.getByText(/case reference number/i)).toBeInTheDocument();
+    expect(screen.getByText(/tracking code/i)).toBeInTheDocument();
+    expect(screen.queryByText(/case reference number/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/no real complaint was delivered/i)).not.toBeInTheDocument();
     expect(screen.queryByText('03129876543')).not.toBeInTheDocument();
     expect(screen.queryByText('House 42-A, Street 26, Phase 6')).not.toBeInTheDocument();

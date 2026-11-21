@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { complaintService } from '../../services';
 import { isSupabaseConfigured, supabase } from '../../lib/supabase';
+import { useLanguage } from '../../context/LanguageContext';
 
 type PendingClaim = { referenceNumber: string; claimCode: string };
 const PENDING_CLAIM_KEY = 'awaaz-pending-complaint-claim';
@@ -29,6 +30,8 @@ const readPendingClaim = (): PendingClaim | null => {
 };
 
 export const ComplaintTracker: React.FC = () => {
+  const { language, isRTL } = useLanguage();
+  const ur = language === 'ur';
   const navigate = useNavigate();
   const location = useLocation();
   const { referenceNumber: routeRef } = useParams<{ referenceNumber?: string }>();
@@ -223,7 +226,7 @@ export const ComplaintTracker: React.FC = () => {
   };
 
   return (
-    <div className="py-5 sm:py-10 civic-kinetic-page">
+    <div className="py-5 sm:py-10 civic-kinetic-page" dir={isRTL ? 'rtl' : 'ltr'}>
       <Container size="md">
         <div data-scroll-depth className="rounded-[28px] sm:rounded-[36px] bg-white border-2 border-[#E5E3E0] p-6 sm:p-12 shadow-[0_14px_40px_rgba(20,20,20,0.055)]">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5">
@@ -244,7 +247,7 @@ export const ComplaintTracker: React.FC = () => {
                     : 'text-[#625D58] hover:text-[#141414]'
                 }`}
               >
-                Tracking number
+                {ur ? 'ٹریکنگ نمبر' : 'Tracking number'}
               </button>
               <button
                 type="button"
@@ -255,19 +258,23 @@ export const ComplaintTracker: React.FC = () => {
                     : 'text-[#625D58] hover:text-[#141414]'
                 }`}
               >
-                Claim to account
+                {ur ? 'اکاؤنٹ سے منسلک کریں' : 'Claim to account'}
               </button>
             </div>
           </div>
 
           <h1 className="mt-7 font-display font-black text-[clamp(2.5rem,5vw,4.5rem)] leading-[1.08] text-[#141414] tracking-tight">
-            {activeTab === 'track' ? 'Track Your Complaint' : 'Track Complaint'}
+            {activeTab === 'track'
+              ? (ur ? 'شکایت کی صورتحال معلوم کریں' : 'Track Your Complaint')
+              : (ur ? 'شکایت اکاؤنٹ سے منسلک کریں' : 'Track Complaint')}
           </h1>
 
           {activeTab === 'track' ? (
             <div>
               <p className="mt-3 text-base sm:text-lg text-[#5A554E] leading-relaxed">
-                Enter the tracking number provided when you submitted your complaint.
+                {ur
+                  ? 'شکایت درج کرواتے وقت ملا ہوا 24 ہندسوں پر مشتمل ٹریکنگ نمبر درج کریں۔'
+                  : 'Enter the 24-digit tracking number provided when you submitted your complaint.'}
               </p>
 
               {trackResult ? (
@@ -369,7 +376,7 @@ export const ComplaintTracker: React.FC = () => {
                       className="inline-flex items-center gap-1.5 text-xs font-bold text-[#681822] hover:underline cursor-pointer"
                     >
                       <RotateCcw className="w-3.5 h-3.5" />
-                      <span>Track another complaint</span>
+                      <span>{ur ? 'دوسری شکایت تلاش کریں' : 'Track another complaint'}</span>
                     </button>
                   </div>
                 </div>
@@ -381,7 +388,7 @@ export const ComplaintTracker: React.FC = () => {
                       htmlFor="tracking-number-input"
                       className="block text-xs font-bold text-[#141414] uppercase tracking-wider mb-1.5"
                     >
-                      Tracking number (24 digits)
+                      {ur ? 'ٹریکنگ نمبر (24 ہندسے)' : 'Tracking number (24 digits)'}
                     </label>
                     <div className="relative">
                       <input
@@ -396,7 +403,11 @@ export const ComplaintTracker: React.FC = () => {
                     </div>
                     <p className="mt-1.5 text-[11px] text-[#625D58] flex items-center gap-1">
                       <ShieldCheck className="w-3.5 h-3.5 text-[#681822]" />
-                      <span>Spaces are added automatically. Your personal details are never exposed.</span>
+                      <span>
+                        {ur
+                          ? 'خالی جگہیں خودکار شامل ہو جاتی ہیں۔ آپ کی ذاتی معلومات محفوظ رکھی جاتی ہیں۔'
+                          : 'Spaces are added automatically. Your personal details are never exposed.'}
+                      </span>
                     </p>
                   </div>
 
@@ -410,7 +421,7 @@ export const ComplaintTracker: React.FC = () => {
                           onClick={() => setActiveTab('claim')}
                           className="block mt-1 font-bold text-blue-800 underline cursor-pointer"
                         >
-                          Switch to Claim to account →
+                          {ur ? 'اکاؤنٹ سے منسلک کرنے والے ٹیب پر جائیں ←' : 'Switch to Claim to account →'}
                         </button>
                       </div>
                     </div>
@@ -434,7 +445,7 @@ export const ComplaintTracker: React.FC = () => {
                     isLoading={trackingLoading}
                     leftIcon={<Search className="w-4 h-4 text-white" />}
                   >
-                    Check status
+                    {ur ? 'معلومات دیکھیں' : 'Check status'}
                   </Button>
                 </form>
               )}
@@ -500,14 +511,14 @@ export const ComplaintTracker: React.FC = () => {
 
           <div className="mt-5 flex flex-wrap gap-3">
             <Link to="/register" className="text-xs font-semibold text-[#681822] hover:underline">
-              Create a citizen account
+              {ur ? 'نیا شہری اکاؤنٹ بنائیں' : 'Create a citizen account'}
             </Link>
             <Link
               to="/submit"
               className="inline-flex items-center gap-1 text-xs font-semibold text-[#323232] hover:text-[#681822]"
             >
               <PenTool className="w-3.5 h-3.5" />
-              Write a complaint
+              {ur ? 'نئی شکایت درج کریں' : 'Write a complaint'}
             </Link>
           </div>
         </div>

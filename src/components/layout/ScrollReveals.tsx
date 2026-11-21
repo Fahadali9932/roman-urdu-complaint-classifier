@@ -47,6 +47,16 @@ export const ScrollReveals = () => {
         element.classList.remove('civic-reveal-pending');
         element.classList.add('civic-reveal-visible');
         observer.unobserve(element);
+
+        // When transition completes, settle to none for 100% native subpixel sharpness
+        const onSettled = () => {
+          element.removeEventListener('transitionend', onSettled);
+          if (!element.hasAttribute('data-scroll-depth')) {
+            element.classList.add('civic-reveal-settled');
+          }
+        };
+        element.addEventListener('transitionend', onSettled);
+        setTimeout(onSettled, 900);
       }
       requestParallax();
     }, { threshold: 0.05, rootMargin: '0px 0px -5% 0px' });
