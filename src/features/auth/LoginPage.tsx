@@ -71,24 +71,24 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="py-6 sm:py-10">
-      <div className="w-full max-w-[500px] mx-auto px-4">
-        <div className="text-center space-y-2 mb-6">
+    <div className="py-4 sm:py-6">
+      <div className="w-full max-w-[540px] mx-auto px-4">
+        <div className="text-center space-y-2 mb-5">
           <div className="inline-flex justify-center mb-1">
             <CivicEmblem size="md" />
           </div>
-          <h1 className="font-display font-black text-2xl sm:text-3xl text-[#141414] uppercase tracking-tight">
+          <h1 className="font-display font-black text-2xl sm:text-[1.8rem] text-[#141414] uppercase tracking-tight">
             {t('authSignInTitle')}
           </h1>
-          <p className="text-xs sm:text-sm text-[#5A554E] max-w-sm mx-auto font-ui">
+          <p className="text-sm sm:text-[15px] text-[#5A554E] max-w-sm mx-auto font-ui leading-relaxed">
             {t('authSignInSubtitle')}
           </p>
         </div>
 
-        <div className="bg-white border border-[#D9D3CC] rounded-[24px] p-6 sm:p-8 text-start space-y-5 shadow-[0_12px_36px_rgba(20,20,20,0.05)]">
+        <div className="bg-white border border-[#D9D3CC] rounded-[20px] p-5 sm:p-7 text-start space-y-5 shadow-[0_8px_28px_rgba(20,20,20,0.04)]">
           <form onSubmit={handleSubmit} className="space-y-5">
             {error && (
-              <div role="alert" className="rounded-xl border border-red-200 bg-red-50/90 p-4 text-xs sm:text-[13px] text-red-900 flex items-start gap-3">
+              <div role="alert" className="rounded-xl border border-red-200 bg-red-50/90 p-4 text-sm text-red-900 flex items-start gap-3">
                 <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
                 <div className="space-y-0.5">
                   <span className="font-bold text-red-950 block">Authentication Notice</span>
@@ -179,13 +179,13 @@ export const LoginPage: React.FC = () => {
         </div>
 
         {/* Account security note */}
-        <div className="mt-6 p-4 rounded-2xl bg-[#FAF9F7] border border-[#D9D3CC] text-start flex items-start gap-3 text-xs sm:text-sm text-[#5A554E]">
+        <div className="mt-4 p-4 rounded-xl bg-[#FAF9F7] border border-[#D9D3CC] text-start flex items-start gap-3 text-sm text-[#5A554E]">
           <Shield className="w-5 h-5 text-[#681822] shrink-0 mt-0.5" />
           <div className="space-y-0.5">
             <span className="font-bold text-[#141414] block">
               Secure citizen access
             </span>
-            <p className="text-xs leading-relaxed">
+            <p className="text-sm leading-relaxed">
               Sign in to view your complaint history, receive real-time updates, or claim previous complaints.
             </p>
           </div>

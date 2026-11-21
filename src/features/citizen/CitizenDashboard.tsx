@@ -212,7 +212,7 @@ export const CitizenDashboard: React.FC<CitizenDashboardProps> = ({ isDevHarness
         <div className="space-y-1.5">
           <h1
             aria-label={ur ? 'آپ کی شکایات' : 'My Complaints - Your Complaints'}
-            className="font-display font-black text-[clamp(1.85rem,5.5vw,4.9rem)] leading-[1.05] text-[#141414] tracking-tight break-words"
+            className="font-display font-black text-[clamp(1.9rem,3.2vw,3.4rem)] leading-[1.08] text-[#141414] tracking-tight break-words"
           >
             {ur ? 'میری شکایات' : 'My Complaints'}
             {complaints.length > 0 && (
@@ -290,7 +290,7 @@ export const CitizenDashboard: React.FC<CitizenDashboardProps> = ({ isDevHarness
                 <span className="text-xs sm:text-sm font-bold tracking-wide text-[#645C55] block">
                   {ur ? 'کل شکایات' : 'Total Complaints'}
                 </span>
-                <span className="text-3xl sm:text-5xl font-black text-[#141414] mt-2 block">
+                <span className="text-3xl sm:text-4xl font-black text-[#141414] mt-2 block">
                   {stats.total}
                 </span>
               </div>
@@ -300,7 +300,7 @@ export const CitizenDashboard: React.FC<CitizenDashboardProps> = ({ isDevHarness
                   <Clock className="w-3.5 h-3.5 text-amber-600" />
                   {ur ? 'زیرِ جائزہ' : 'Pending Review'}
                 </span>
-                <span className="text-3xl sm:text-5xl font-black text-amber-900 mt-2 block">
+                <span className="text-3xl sm:text-4xl font-black text-amber-900 mt-2 block">
                   {stats.pending}
                 </span>
               </div>
@@ -310,7 +310,7 @@ export const CitizenDashboard: React.FC<CitizenDashboardProps> = ({ isDevHarness
                   <RefreshCw className="w-3.5 h-3.5 text-blue-600" />
                   {ur ? 'زیرِ کارروائی' : 'In Progress'}
                 </span>
-                <span className="text-3xl sm:text-5xl font-black text-blue-900 mt-2 block">
+                <span className="text-3xl sm:text-4xl font-black text-blue-900 mt-2 block">
                   {stats.inProgress}
                 </span>
               </div>
@@ -320,7 +320,7 @@ export const CitizenDashboard: React.FC<CitizenDashboardProps> = ({ isDevHarness
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                   {ur ? 'حل شدہ' : 'Resolved'}
                 </span>
-                <span className="text-3xl sm:text-5xl font-black text-emerald-900 mt-2 block">
+                <span className="text-3xl sm:text-4xl font-black text-emerald-900 mt-2 block">
                   {stats.resolved}
                 </span>
               </div>

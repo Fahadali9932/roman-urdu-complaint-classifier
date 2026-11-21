@@ -520,7 +520,7 @@ export const SimplifiedComplaintContainer: React.FC = () => {
       className="write-complaint-wrapper relative w-full bg-[#F7F6F3] text-[#171717]"
       dir={isRTL ? 'rtl' : 'ltr'}
     >
-      <div className="write-complaint-viewport sticky bottom-0 z-10 w-full px-4 pt-28 pb-12 sm:px-6 sm:pt-32 sm:pb-16 lg:pt-36 lg:pb-20 motion-reduce:static">
+      <div className="write-complaint-viewport sticky bottom-0 z-10 w-full px-4 pt-20 pb-10 sm:px-6 sm:pt-24 sm:pb-14 lg:pt-28 lg:pb-16 motion-reduce:static">
         <div className="mx-auto max-w-[780px] w-full">
           {/* Development-Only Local AI Test Mode Banner & Presets (Accessible via ?dev=true or test mode) */}
           {showDevTools && (
@@ -648,7 +648,7 @@ export const SimplifiedComplaintContainer: React.FC = () => {
             <p className="mb-2 text-xs font-bold uppercase tracking-[0.16em] text-[#681822]">
               Awaaz-e-Awam
             </p>
-            <h1 className="font-display text-3xl font-extrabold tracking-tight text-[#141414] sm:text-4xl lg:text-[40px] lg:leading-[1.15]">
+            <h1 className="font-display text-[1.65rem] font-extrabold tracking-tight text-[#141414] sm:text-[2rem] lg:text-[2.25rem] lg:leading-[1.15]">
               {copy.title}
             </h1>
             <p className="mx-auto mt-2.5 max-w-xl text-sm leading-6 text-[#625D58] sm:text-base">

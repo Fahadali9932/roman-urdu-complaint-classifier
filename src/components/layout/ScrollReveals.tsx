@@ -2,9 +2,10 @@ import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 
 /**
- * Lightweight scroll-linked depth cues for ordinary pages. The homepage has its
- * own cinematic stacked-scroll scene; this only animates content below the fold
- * on the other routes. Content stays readable without JavaScript or observers.
+ * One-time entrances for below-the-fold content on ordinary pages.
+ * Static reading surfaces must not retain parallax transforms: they soften
+ * body copy and force unnecessary compositing after motion has finished.
+ * The homepage's separate stacked-scroll system provides continuous 3D motion.
  */
 export const ScrollReveals = () => {
   const { pathname } = useLocation();
@@ -17,28 +18,7 @@ export const ScrollReveals = () => {
     if (!main) return;
 
     const observed = new Set<HTMLElement>();
-    let scrollFrame: number | null = null;
-
-    const updateParallax = () => {
-      scrollFrame = null;
-      const viewportHeight = Math.max(window.innerHeight, 1);
-      const narrow = window.innerWidth < 768;
-      observed.forEach((element) => {
-        if (!element.hasAttribute('data-scroll-depth') || !element.classList.contains('civic-reveal-visible')) return;
-        const rect = element.getBoundingClientRect();
-        if (rect.bottom < 0 || rect.top > viewportHeight) return;
-        const centerDistance = (rect.top + rect.height / 2 - viewportHeight / 2) / viewportHeight;
-        const distance = Math.max(-1, Math.min(1, centerDistance));
-        element.style.setProperty('--civic-parallax-y', `${(-distance * (narrow ? 5 : 12)).toFixed(1)}px`);
-        element.style.setProperty('--civic-parallax-z', `${((1 - Math.abs(distance)) * (narrow ? 3 : 18)).toFixed(1)}px`);
-        element.style.setProperty('--civic-parallax-tilt', `${(-distance * (narrow ? 0.25 : 1.0)).toFixed(2)}deg`);
-      });
-    };
-
-    const requestParallax = () => {
-      if (scrollFrame !== null) return;
-      scrollFrame = window.requestAnimationFrame(updateParallax);
-    };
+    const settleTimers = new Set<ReturnType<typeof setTimeout>>();
 
     const observer = new IntersectionObserver((entries) => {
       for (const entry of entries) {
@@ -48,17 +28,13 @@ export const ScrollReveals = () => {
         element.classList.add('civic-reveal-visible');
         observer.unobserve(element);
 
-        // When transition completes, settle to none for 100% native subpixel sharpness
-        const onSettled = () => {
-          element.removeEventListener('transitionend', onSettled);
-          if (!element.hasAttribute('data-scroll-depth')) {
-            element.classList.add('civic-reveal-settled');
-          }
-        };
-        element.addEventListener('transitionend', onSettled);
-        setTimeout(onSettled, 900);
+        // Even depth cards become genuinely untransformed once visible.
+        const timer = setTimeout(() => {
+          element.classList.add('civic-reveal-settled');
+          settleTimers.delete(timer);
+        }, 850);
+        settleTimers.add(timer);
       }
-      requestParallax();
     }, { threshold: 0.05, rootMargin: '0px 0px -5% 0px' });
 
     const registerNew = () => {
@@ -80,12 +56,9 @@ export const ScrollReveals = () => {
     };
 
     registerNew();
-    requestParallax();
     // Search results, FAQ category changes and async data can add new content.
     const mutationObserver = new MutationObserver(registerNew);
     mutationObserver.observe(main, { childList: true, subtree: true });
-    window.addEventListener('scroll', requestParallax, { passive: true });
-    window.addEventListener('resize', requestParallax, { passive: true });
 
     const onMotionPreference = (event: MediaQueryListEvent) => {
       if (!event.matches) return;
@@ -98,15 +71,11 @@ export const ScrollReveals = () => {
     return () => {
       observer.disconnect();
       mutationObserver.disconnect();
-      window.removeEventListener('scroll', requestParallax);
-      window.removeEventListener('resize', requestParallax);
-      if (scrollFrame !== null) window.cancelAnimationFrame(scrollFrame);
+      settleTimers.forEach(clearTimeout);
       motionPreference?.removeEventListener?.('change', onMotionPreference);
       observed.forEach((element) => {
         element.classList.remove('civic-reveal-pending', 'civic-reveal-visible');
-        element.style.removeProperty('--civic-parallax-y');
-        element.style.removeProperty('--civic-parallax-z');
-        element.style.removeProperty('--civic-parallax-tilt');
+        element.classList.remove('civic-reveal-settled');
       });
     };
   }, [pathname]);

@@ -264,10 +264,10 @@ export const ComplaintTracker: React.FC = () => {
   };
 
   return (
-    <div className="py-6 sm:py-10 civic-kinetic-page" dir={isRTL ? 'rtl' : 'ltr'}>
+    <div className="py-4 sm:py-6 civic-kinetic-page" dir={isRTL ? 'rtl' : 'ltr'}>
       {/* Target Content Area: ~680–760px desktop width */}
-      <div className="w-full max-w-[720px] mx-auto px-4">
-        <div className="rounded-[24px] sm:rounded-[28px] bg-white border border-[#E5E3E0] p-6 sm:p-9 shadow-[0_12px_36px_rgba(20,20,20,0.04)]">
+      <div className="w-full max-w-[760px] mx-auto px-4">
+        <div className="rounded-[20px] sm:rounded-[24px] bg-white border border-[#E5E3E0] p-5 sm:p-8 shadow-[0_8px_28px_rgba(20,20,20,0.035)]">
 
           {/* Top Bar: Icon Badge & Tab Switcher */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-[#EAE7E2]">
@@ -317,12 +317,12 @@ export const ComplaintTracker: React.FC = () => {
 
           {/* Main Heading: Disciplined & Restrained */}
           <div className="mt-5 mb-6">
-            <h1 className="font-display font-black text-2xl sm:text-3xl text-[#141414] tracking-tight leading-tight">
+            <h1 className="font-display font-black text-2xl sm:text-[1.85rem] text-[#141414] tracking-tight leading-tight">
               {activeTab === 'track'
                 ? (ur ? 'شکایت کی صورتحال معلوم کریں' : 'Track Your Complaint')
                 : (ur ? 'شکایت اکاؤنٹ سے منسلک کریں' : 'Track Complaint')}
             </h1>
-            <p className="mt-1.5 text-xs sm:text-sm text-[#5A554E] leading-relaxed">
+            <p className="mt-1.5 text-sm sm:text-[15px] text-[#5A554E] leading-relaxed">
               {activeTab === 'track'
                 ? (ur
                     ? 'شکایت درج کرواتے وقت ملا ہوا 24 ہندسوں پر مشتمل ٹریکنگ نمبر درج کریں۔'

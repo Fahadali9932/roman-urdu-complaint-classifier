@@ -14,11 +14,12 @@ export const CitizenLayout: React.FC = () => {
       <StackedScrollContainer as="div" className="flex-1 w-full flex flex-col">
         <StackedScrollSection
           depth={10}
-          recedeOnScroll={true}
+          // Do not turn complaint forms into scaled GPU textures near the footer.
+          recedeOnScroll={false}
           as="main"
-          className="flex-1 w-full bg-[#F7F6F3] relative"
+          className="flex-1 w-full min-h-[100svh] bg-[#F7F6F3] relative"
         >
-          <div className="relative z-10 w-full max-w-[1360px] mx-auto px-4 sm:px-8 pt-24 sm:pt-28 pb-16 sm:pb-24">
+          <div className="relative z-10 w-full max-w-[1180px] mx-auto px-4 sm:px-8 pt-20 sm:pt-24 pb-12 sm:pb-16">
             <PageTransition>
               <Outlet />
             </PageTransition>

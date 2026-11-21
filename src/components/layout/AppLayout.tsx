@@ -41,14 +41,16 @@ export const AppLayout: React.FC = () => {
       <StackedScrollContainer as="div" className="flex-1 w-full flex flex-col">
         <StackedScrollSection
           depth={10}
-          recedeOnScroll={true}
+          // Keep long-form text and input fields at native scale while reading.
+          // The homepage owns continuous 3D; inner pages use settled entrances.
+          recedeOnScroll={false}
           as="main"
-          className={`flex-1 w-full relative ${
+          className={`flex-1 w-full relative min-h-[100svh] ${
             isInfoPage
               ? 'p-0 m-0'
               : isSubmit
                 ? 'p-0 m-0 overflow-visible'
-                : 'bg-[#F7F6F3] pt-24 sm:pt-28 pb-16 sm:pb-24'
+                : 'bg-[#F7F6F3] pt-20 sm:pt-24 pb-12 sm:pb-16'
           }`}
         >
           <div className="w-full relative z-10">

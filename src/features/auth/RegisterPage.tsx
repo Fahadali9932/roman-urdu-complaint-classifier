@@ -66,9 +66,9 @@ export const RegisterPage: React.FC = () => {
   };
 
   return (
-    <div className="w-full bg-[#F7F6F3] min-h-[calc(100vh-80px)] flex flex-col justify-center items-center py-6 sm:py-8 md:py-10 px-4">
-      {/* Main Registration Container (1100px desktop, 28px radius, two columns 43/57) */}
-      <div className="w-full max-w-[1100px] bg-white rounded-[28px] border border-[#EAE7E2] shadow-[0_28px_75px_rgba(20,20,20,0.08)] overflow-hidden flex flex-col lg:flex-row items-stretch transition-all duration-300">
+    <div className="w-full bg-[#F7F6F3] min-h-[calc(100vh-80px)] flex flex-col justify-center items-center py-5 sm:py-7 md:py-8 px-4">
+      {/* Balanced editorial registration layout; remain single-column on mobile. */}
+      <div className="w-full max-w-[980px] bg-white rounded-[24px] border border-[#EAE7E2] shadow-[0_16px_48px_rgba(20,20,20,0.06)] overflow-hidden flex flex-col lg:flex-row items-stretch">
         {/* LEFT COLUMN: 43% Form Section */}
         <div className="w-full lg:w-[43%] p-5 sm:px-8 sm:py-7 lg:px-10 lg:py-8 flex flex-col justify-between text-start">
           <div className="max-w-[355px] w-full mx-auto lg:mx-0">
@@ -84,7 +84,7 @@ export const RegisterPage: React.FC = () => {
             <h1 className="font-display font-black text-[26px] sm:text-[29px] text-[#171717] tracking-[-0.035em] leading-[1.12] mb-1.5">
               {t('authRegisterTitle')}
             </h1>
-            <p className="text-xs text-[#74706C] leading-[1.45] mb-4 sm:mb-5">
+            <p className="text-sm text-[#625D58] leading-relaxed mb-4 sm:mb-5">
               {t('authRegisterSubtitle')}
             </p>
 

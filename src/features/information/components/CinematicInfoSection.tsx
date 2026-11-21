@@ -42,14 +42,14 @@ export const CinematicInfoSection: React.FC<CinematicInfoSectionProps> = ({
       ref={elementRef}
       id={section.id}
       tabIndex={-1}
-      className={`scroll-mt-28 outline-none transition-all duration-700 ease-out ${
+      className={`scroll-mt-28 outline-none transition-opacity duration-500 ease-out ${
         prefersReducedMotion || isVisible
-          ? 'opacity-100 translate-y-0'
-          : 'opacity-0 translate-y-8'
+          ? 'opacity-100'
+          : 'opacity-0'
       }`}
     >
       {/* 2-Column Responsive Editorial Grid (Heading Left | Content Right) */}
-      <div className="grid grid-cols-1 md:grid-cols-[260px_1fr] lg:grid-cols-[300px_1fr] gap-6 md:gap-12 lg:gap-16 items-start">
+      <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] lg:grid-cols-[240px_1fr] gap-6 md:gap-9 lg:gap-12 items-start">
         {/* Left Column: Sticky Section Heading with Baseline Alignment */}
         <div className="md:sticky md:top-28">
           <h2 className="font-display font-bold text-xl sm:text-2xl text-white uppercase tracking-tight leading-snug">
@@ -70,7 +70,7 @@ export const CinematicInfoSection: React.FC<CinematicInfoSectionProps> = ({
               )}
 
               {/* Level 2: Prominent Lead Developer Display Heading */}
-              <h3 className="font-display font-black text-3xl sm:text-4xl lg:text-5xl text-white tracking-tight uppercase leading-none">
+              <h3 className="font-display font-black text-2xl sm:text-3xl lg:text-4xl text-white tracking-tight uppercase leading-tight">
                 {section.leadCredit.name}
               </h3>
 

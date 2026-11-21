@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../../../context/LanguageContext';
-import { Container } from '../../../components/layout/Container';
 import { Button } from '../../../components/common/Button';
 import {
   HelpCircle,
@@ -175,18 +174,18 @@ export const FaqPage: React.FC = () => {
   });
 
   return (
-    <div className="py-5 sm:py-10 text-start civic-kinetic-page">
-      <Container size="lg">
+    <div className="py-4 sm:py-7 text-start civic-kinetic-page">
+      <div className="w-full max-w-[1000px] mx-auto px-4 sm:px-6 lg:px-8">
         {/* Page Header */}
-        <div className="space-y-5 sm:space-y-6 pb-8 sm:pb-12 border-b-2 border-[#D9D3CC]">
-          <div className="inline-flex items-center gap-2 rounded-full bg-[#F1E8E6] border border-[#E4D0CE] px-4 py-2 text-sm font-extrabold text-[#681822]">
+        <div className="space-y-3 sm:space-y-4 pb-6 sm:pb-8 border-b border-[#D9D3CC]">
+          <div className="inline-flex items-center gap-2 rounded-full bg-[#F1E8E6] border border-[#E4D0CE] px-3.5 py-1.5 text-xs sm:text-sm font-bold text-[#681822]">
             <HelpCircle className="w-4 h-4" />
             <span>{ur ? 'رہنمائی اور مدد' : 'Help & Information'}</span>
           </div>
-          <h1 className="font-display font-black text-[clamp(2.6rem,5.5vw,5.3rem)] leading-[1.04] text-[#141414] tracking-[-0.055em] max-w-[1100px]">
+          <h1 className="font-display font-black text-[clamp(2rem,3.4vw,3.4rem)] leading-[1.08] text-[#141414] tracking-[-0.035em] max-w-[950px]">
             {ur ? 'اکثر پوچھے جانے والے سوالات' : 'Frequently Asked Questions'}
           </h1>
-          <p className="text-base sm:text-xl text-[#4A453E] max-w-3xl leading-[1.6] font-medium">
+          <p className="text-sm sm:text-base text-[#4A453E] max-w-2xl leading-[1.6] font-medium">
             {ur
               ? 'شکایات درج کروانے، ٹریکنگ نمبرز، خودکار بلدیاتی تفویض اور ذاتی کوائف کے تحفظ سے متعلق اہم سوالات کے جوابات۔'
               : 'Find answers about submitting civic complaints, guest tracking numbers, departmental assignment, and personal data protection.'}
@@ -194,7 +193,7 @@ export const FaqPage: React.FC = () => {
         </div>
 
         {/* Search & Category Filter Bar */}
-        <div className="pt-8 sm:pt-12 space-y-5">
+        <div className="pt-6 sm:pt-8 space-y-4">
           <div className="relative">
             <Search className={`w-5 h-5 text-[#6A625C] absolute top-1/2 -translate-y-1/2 ${isRTL ? 'right-5' : 'left-5'}`} />
             <input
@@ -202,19 +201,19 @@ export const FaqPage: React.FC = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={ur ? 'سوال یا موضوع تلاش کریں…' : 'Search questions or keywords…'}
-              className={`w-full min-h-[64px] sm:min-h-[76px] rounded-[22px] border-2 border-[#D9D3CC] bg-white py-4 font-ui text-base sm:text-lg font-semibold placeholder:font-medium placeholder:text-[#78716B] focus:border-[#681822] focus:outline-none focus:ring-2 focus:ring-[#681822]/15 shadow-sm ${
+              className={`w-full min-h-[52px] sm:min-h-[56px] rounded-2xl border border-[#D9D3CC] bg-white py-3 font-ui text-sm sm:text-base font-medium placeholder:font-normal placeholder:text-[#78716B] focus:border-[#681822] focus:outline-none focus:ring-2 focus:ring-[#681822]/15 ${
                 isRTL ? 'pr-14 pl-5' : 'pl-14 pr-5'
               }`}
             />
           </div>
 
-          <div className="flex flex-wrap gap-2 sm:gap-3 pt-1">
+          <div className="flex flex-wrap gap-2 pt-0.5">
             {categories.map((cat) => (
               <button
                 key={cat.id}
                 type="button"
                 onClick={() => setSelectedCategory(cat.id)}
-                className={`rounded-full px-4 sm:px-6 py-2.5 sm:py-3 text-sm sm:text-base font-bold transition cursor-pointer select-none ${
+                className={`rounded-full px-3.5 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold transition cursor-pointer select-none ${
                   selectedCategory === cat.id
                     ? 'bg-[#681822] text-white shadow-xs'
                     : 'bg-[#FAF9F7] text-[#5A554E] border border-[#E5E3E0] hover:bg-white hover:text-[#141414]'
@@ -227,7 +226,7 @@ export const FaqPage: React.FC = () => {
         </div>
 
         {/* FAQ Accordion List */}
-        <div className="pt-7 sm:pt-10 space-y-4 sm:space-y-5">
+        <div className="pt-6 sm:pt-7 space-y-3">
           {filteredItems.length > 0 ? (
             filteredItems.map((item) => {
               const isOpen = openIds.includes(item.id);
@@ -235,20 +234,20 @@ export const FaqPage: React.FC = () => {
                 <div
                   key={item.id}
                   data-scroll-depth
-                  className="civic-depth-card rounded-[22px] sm:rounded-[28px] border-2 border-[#E5E3E0] bg-white overflow-hidden shadow-[0_8px_28px_rgba(20,20,20,0.035)] transition-colors duration-300 hover:border-[#BA9698]"
+                  className="civic-depth-card rounded-2xl sm:rounded-[20px] border border-[#E5E3E0] bg-white overflow-hidden shadow-[0_4px_18px_rgba(20,20,20,0.025)] transition-colors duration-300 hover:border-[#BA9698]"
                 >
                   <button
                     type="button"
                     onClick={() => toggleItem(item.id)}
                     aria-expanded={isOpen}
                     aria-controls={`${item.id}-answer`}
-                    className="w-full min-h-[88px] sm:min-h-[108px] flex items-center justify-between gap-5 p-6 sm:px-9 sm:py-8 text-start cursor-pointer hover:bg-[#FAF9F7]/70 transition select-none"
+                    className="w-full min-h-[64px] sm:min-h-[76px] flex items-center justify-between gap-4 p-4 sm:px-6 sm:py-5 text-start cursor-pointer hover:bg-[#FAF9F7]/70 transition select-none"
                   >
-                    <span className="font-black text-[#141414] text-lg sm:text-2xl leading-snug tracking-tight">
+                    <span className="font-bold text-[#141414] text-base sm:text-lg leading-snug tracking-tight">
                       {ur ? item.questionUr : item.questionEn}
                     </span>
                     <span
-                      className={`shrink-0 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-[#FAF9F7] border-2 border-[#E5E3E0] flex items-center justify-center text-[#5A554E] transition-transform duration-300 ${
+                      className={`shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#FAF9F7] border border-[#E5E3E0] flex items-center justify-center text-[#5A554E] transition-transform duration-300 ${
                         isOpen ? 'rotate-180 bg-[#F7EFF0] text-[#681822] border-[#F0D5D8]' : ''
                       }`}
                     >
@@ -259,7 +258,7 @@ export const FaqPage: React.FC = () => {
                   {isOpen && (
                     <div
                       id={`${item.id}-answer`}
-                      className="px-6 sm:px-9 pb-7 sm:pb-9 pt-5 sm:pt-7 text-base sm:text-lg text-[#423C37] leading-[1.75] border-t border-[#F2EFEA] bg-[#FCFBF9]"
+                      className="px-4 sm:px-6 pb-5 sm:pb-6 pt-4 sm:pt-5 text-sm sm:text-base text-[#423C37] leading-[1.7] border-t border-[#F2EFEA] bg-[#FCFBF9]"
                     >
                       <p>{ur ? item.answerUr : item.answerEn}</p>
                     </div>
@@ -292,12 +291,12 @@ export const FaqPage: React.FC = () => {
         </div>
 
         {/* Quick Action Box */}
-        <div data-scroll-depth className="civic-depth-card mt-10 sm:mt-14 rounded-[28px] sm:rounded-[36px] bg-[#EFEAE5] border-2 border-[#E2D9D1] p-7 sm:p-12 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-7 shadow-sm">
+        <div data-scroll-depth className="civic-depth-card mt-8 sm:mt-10 rounded-2xl sm:rounded-[24px] bg-[#EFEAE5] border border-[#E2D9D1] p-5 sm:p-8 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-5 shadow-sm">
           <div className="space-y-2 text-start">
-            <h3 className="font-black text-2xl sm:text-3xl text-[#141414] tracking-tight">
+            <h3 className="font-bold text-xl sm:text-2xl text-[#141414] tracking-tight">
               {ur ? 'کیا آپ بلدیاتی مسئلہ درج کروانا چاہتے ہیں؟' : 'Ready to submit a civic complaint?'}
             </h3>
-            <p className="text-base sm:text-lg text-[#5A554E] leading-relaxed">
+            <p className="text-sm sm:text-base text-[#5A554E] leading-relaxed">
               {ur
                 ? 'اپنے علاقے کا مسئلہ روزمرہ رومن اردو میں درج کروائیں اور فوری ٹریکنگ حاصل کریں۔'
                 : 'Describe your neighborhood issue in Roman Urdu and receive instant tracking.'}
@@ -327,7 +326,7 @@ export const FaqPage: React.FC = () => {
             </Link>
           </div>
         </div>
-      </Container>
+      </div>
     </div>
   );
 };

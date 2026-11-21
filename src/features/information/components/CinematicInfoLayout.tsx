@@ -23,8 +23,6 @@ export const CinematicInfoLayout: React.FC<CinematicInfoLayoutProps> = ({
   const doc = content[language] || content.en;
   const ur = language === 'ur';
 
-  const [scrollY, setScrollY] = useState(0);
-
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(() => {
     if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false;
     return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -56,20 +54,6 @@ export const CinematicInfoLayout: React.FC<CinematicInfoLayoutProps> = ({
     window.scrollTo({ top: 0, behavior: 'instant' });
   }, [doc.title, prefersReducedMotion]);
 
-  // Track scroll position for hero title motion
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrollY(window.scrollY || window.pageYOffset || 0);
-    };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  // Scroll-driven hero title kinematics
-  // Pure natural document scroll with graceful opacity fade; zero upward velocity into navbar
-  const titleOpacity = prefersReducedMotion ? 1 : Math.max(0.15, 1 - scrollY / 420);
-  const titleScale = prefersReducedMotion ? 1 : Math.max(0.96, 1 - (scrollY / 420) * 0.04);
-
   return (
     <div
       dir={isRTL ? 'rtl' : 'ltr'}
@@ -80,7 +64,7 @@ export const CinematicInfoLayout: React.FC<CinematicInfoLayoutProps> = ({
           Gracefully fades to serene #141414 before the reading zone
           ======================================================== */}
       <div
-        className="absolute top-0 inset-x-0 h-[65vh] min-h-[480px] pointer-events-none z-0 overflow-hidden"
+        className="absolute top-0 inset-x-0 h-[58vh] min-h-[400px] pointer-events-none z-0 overflow-hidden"
         aria-hidden="true"
       >
         <picture>
@@ -119,27 +103,20 @@ export const CinematicInfoLayout: React.FC<CinematicInfoLayoutProps> = ({
           Generous top padding ensures safe clearance beneath fixed navbar pill
           ======================================================== */}
       <section
-        className="relative z-10 w-full flex flex-col justify-center items-center text-center px-4 sm:px-10 lg:px-12 pt-36 sm:pt-40 lg:pt-44 pb-12 sm:pb-16"
+        className="relative z-10 w-full flex flex-col justify-center items-center text-center px-4 sm:px-10 lg:px-12 pt-28 sm:pt-32 lg:pt-36 pb-10 sm:pb-12"
         aria-labelledby="cinematic-page-title"
       >
-        <div
-          style={{
-            transform: `scale(${titleScale})`,
-            opacity: titleOpacity,
-            willChange: prefersReducedMotion ? 'auto' : 'transform, opacity',
-          }}
-          className="max-w-4xl mx-auto space-y-4 transition-transform ease-out duration-75"
-        >
+        <div className="max-w-3xl mx-auto space-y-3">
           {/* Main Title in Fluid Heavy Display Font */}
           <h1
             id="cinematic-page-title"
             tabIndex={-1}
             className={`font-display font-black tracking-tight text-white uppercase outline-none select-none ${
               ur
-                ? 'text-4xl sm:text-6xl md:text-7xl lg:text-8xl leading-tight'
+                ? 'text-3xl sm:text-4xl md:text-5xl lg:text-6xl leading-tight'
                 : doc.title.length >= 14
-                  ? 'text-3xl sm:text-5xl md:text-6xl lg:text-7xl leading-[1.0]'
-                  : 'text-4xl sm:text-6xl md:text-7xl lg:text-8xl leading-[0.95]'
+                  ? 'text-3xl sm:text-4xl md:text-5xl lg:text-[3.6rem] leading-[1.06]'
+                  : 'text-3xl sm:text-4xl md:text-5xl lg:text-6xl leading-[1.04]'
             }`}
           >
             {doc.title}
@@ -147,7 +124,7 @@ export const CinematicInfoLayout: React.FC<CinematicInfoLayoutProps> = ({
 
           {/* Refined, Human Subtitle */}
           {doc.subtitle && (
-            <p className="font-ui text-base sm:text-lg md:text-xl text-[#D1D0CD] max-w-2xl mx-auto leading-relaxed font-normal">
+            <p className="font-ui text-sm sm:text-base md:text-lg text-[#D1D0CD] max-w-2xl mx-auto leading-relaxed font-normal">
               {doc.subtitle}
             </p>
           )}
@@ -159,8 +136,8 @@ export const CinematicInfoLayout: React.FC<CinematicInfoLayoutProps> = ({
           Professional responsive editorial grid (~1140px container)
           Quiet, controlled reading surface in pure #141414
           ======================================================== */}
-      <div className="relative z-10 w-full max-w-[1140px] mx-auto px-4 sm:px-10 lg:px-12 pb-16 sm:pb-20">
-        <article className="space-y-16 sm:space-y-20">
+      <div className="relative z-10 w-full max-w-[1000px] mx-auto px-4 sm:px-8 lg:px-10 pb-14 sm:pb-16">
+        <article className="space-y-12 sm:space-y-14">
           {doc.sections.map((section) => (
             <CinematicInfoSection
               key={section.id}
@@ -172,7 +149,7 @@ export const CinematicInfoLayout: React.FC<CinematicInfoLayoutProps> = ({
 
           {/* Bottom Document Peer Navigation (Aligned precisely with content reading measure) */}
           {doc.otherDocumentPath && doc.otherDocumentTitle && (
-            <div className="grid grid-cols-1 md:grid-cols-[260px_1fr] lg:grid-cols-[300px_1fr] gap-6 md:gap-12 lg:gap-16 pt-4 sm:pt-6">
+            <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] lg:grid-cols-[240px_1fr] gap-6 md:gap-9 lg:gap-12 pt-4 sm:pt-6">
               <div className="hidden md:block" aria-hidden="true" />
               <div className="max-w-[720px] pt-6 border-t border-white/10 flex justify-end">
                 <Link

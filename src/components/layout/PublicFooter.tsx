@@ -24,12 +24,10 @@ export const PublicFooter: React.FC<PublicFooterProps> = ({ isHomePage, showMonu
   const location = useLocation();
   const ur = language === 'ur';
   const isHome = isHomePage ?? (location.pathname === '/');
-  const isInfoPage = ['/about', '/contact', '/privacy-policy', '/terms-of-use', '/privacy', '/terms', '/faq'].includes(
-    location.pathname
-  );
   const isSubmit = location.pathname === '/submit' || location.pathname === '/write-complaint';
-  // Show monument hero only when on home or explicitly requested; informational pages share the page's single continuous architectural backdrop
-  const showMonumentHero = explicitShowHero ?? (!isInfoPage);
+  // The full-height architectural scene is a homepage feature. Inner pages
+  // should end in a compact functional footer, not another giant hero.
+  const showMonumentHero = explicitShowHero ?? isHome;
 
   const containerRef = useRef<HTMLElement>(null);
   const backdropRef = useRef<HTMLImageElement>(null);

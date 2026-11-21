@@ -100,14 +100,14 @@ export const StackedScrollContainer: React.FC<StackedScrollContainerProps> = ({
         current.innerEl.style.filter = 'none';
         current.innerEl.style.willChange = 'auto';
       } else {
-        current.innerEl.style.willChange = 'transform, filter';
+        current.innerEl.style.willChange = 'transform';
+        current.innerEl.style.filter = 'none';
 
         // Calculate physics parameters based on screen tier
         let scale: number;
         let translateY: number;
         let translateZ: number;
         let rotateX: number;
-        let brightness: number;
 
         if (isNarrow) {
           // Narrow screens: subtle depth cue without shrinking readable text
@@ -115,27 +115,21 @@ export const StackedScrollContainer: React.FC<StackedScrollContainerProps> = ({
           translateY = 6 * t;
           translateZ = -10 * t;
           rotateX = 0.25 * t;
-          brightness = 1.0 - 0.06 * t;
           current.innerEl.style.transform = `perspective(900px) translate3d(0, ${translateY}px, ${translateZ}px) rotateX(${rotateX}deg) scale(${scale})`;
-          current.innerEl.style.filter = `brightness(${brightness})`;
         } else if (isMid) {
-          // Tablet: 2.5% scale reduction, 8% atmospheric dimming, moderate depth
+          // Tablet: restrained perspective, without image-style text filtering
           scale = 1.0 - 0.025 * t;
           translateY = 10 * t;
           translateZ = -18 * t;
           rotateX = 0.4 * t;
-          brightness = 1.0 - 0.08 * t;
           current.innerEl.style.transform = `perspective(1400px) translate3d(0, ${translateY}px, ${translateZ}px) rotateX(${rotateX}deg) scale(${scale})`;
-          current.innerEl.style.filter = `brightness(${brightness})`;
         } else {
-          // Desktop: 3.0% scale reduction, 10% atmospheric dimming, perspective + 0.8deg tilt
+          // Desktop: 3% recede and a subtle 0.8deg tilt for cinematic scenes
           scale = 1.0 - 0.030 * t;
           translateY = 14 * t;
           translateZ = -32 * t;
           rotateX = 0.8 * t;
-          brightness = 1.0 - 0.10 * t;
           current.innerEl.style.transform = `perspective(1400px) translate3d(0, ${translateY}px, ${translateZ}px) rotateX(${rotateX}deg) scale(${scale})`;
-          current.innerEl.style.filter = `brightness(${brightness})`;
         }
       }
     }
