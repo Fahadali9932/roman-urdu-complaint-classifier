@@ -1,11 +1,57 @@
 # Verified current project status
 
-Verified on **21 November 2026 (Pakistan time)**. Internal delivery target:
+Verified on **22 November 2026 (Pakistan time)**. Internal delivery target:
 **5 December 2026**. Read `PROJECT_MASTER_CONTEXT.md` for requirements/history.
 This document distinguishes inspected source, automated checks, and unverified
 hosted behavior. Update it after every significant verified milestone.
 
-## Current development update, 22 November 2026 — Phase V13.16.2: Server-Atomic Department Acceptance & Staging Hardening
+## Current development update, 22 November 2026 — Phase V13.17: Private Issue Evidence, Public Karachi Density Map & Completed-Case Archive
+
+- **Department Completed Cases Archive (`DepartmentSidebar.tsx`, `DepartmentDashboardPage.tsx`, `WorkQueuePage.tsx`):**
+  - **Read-Only Historical Workspace:** Added dedicated "Completed cases" navigation item (`data-view="archive"`) to `DepartmentSidebar`. Navigates to `/department?view=archive`, rendering the Work Queue in `completed` mode with H1 "Completed cases", eyebrow "OPERATIONS / RECORDS", and active filter chip "Archived resolutions".
+  - **Strict Active Work Isolation:** Historical completed cases are removed from active queue noise but remain fully searchable by locality, street landmark, or case reference. No records are deleted.
+  - **Truthful Department Scope & Counts:** Work Queue category dropdowns dynamically reflect actual department issue types; selected-area filters persist across user clicks; "My cases" strictly excludes unassigned work; current workload badges display accurate totals without mixing demo and live counts.
+  - **Disconnection & Error Guardrails:** Password updates require active connectivity; priority change failures display explicit error banners (`.ops-error-state`) rather than falsely masquerading as saved updates.
+- **Citizen Geo-Pinning & Privacy Protection (`IncidentPinPicker.tsx`, `SimplifiedComplaintContainer.tsx`):**
+  - **Opt-In Incident Pinning:** Step 2 includes an interactive Leaflet (OpenStreetMap) pin picker with Karachi boundary validation (`24.45 <= lat <= 25.65`, `66.25 <= lon <= 67.85`).
+  - **Zero Auto-Location Invariant:** Geolocation is strictly user-initiated via an explicit "Use my location" button; browser GPS is never requested on mount.
+  - **Privacy Boundary:** Incident coordinates are strictly decoupled from citizen residential address fields and are completely excluded from local storage/session storage drafts.
+- **Citizen Private Issue Evidence (`SimplifiedComplaintContainer.tsx`, `supabase/functions/upload-complaint-photo/index.ts`):**
+  - **Post-Intake Photo Upload:** Citizens can optionally attach a photograph (JPEG, PNG, WebP <= 1 MiB).
+  - **Fault-Tolerant Sequence:** File upload initiates strictly **after** the core complaint is accepted and the 24-digit tracking receipt is generated. Photo upload failure never invalidates or duplicates the registered complaint; in-receipt retry uploads against the existing reference without resubmission.
+  - **Server-Side Verification:** Edge function `upload-complaint-photo` validates MIME type magic bytes (file signature verification), enforces the 1 MiB hard ceiling, and verifies caller authorization via HMAC-SHA256 tracking token hash or authenticated citizen UID. Photos reside in the private bucket `complaint-evidence`.
+- **Public Karachi Civic Issue Density Map (`KarachiIssuesMapPage.tsx`, `/karachi-map`):**
+  - **K-Anonymity Aggregation:** Anonymous public map RPC `public_karachi_issue_cells` groups incidents into coarse ~10 km geographic grid cells (`floor(latitude / 0.09)`).
+  - **Privacy Ceiling (8+ Complaints):** Only cells containing at least 8 confirmed, geolocated active reports are exposed. No individual coordinates, markers, citizen identities, or tracking numbers are publicly accessible.
+  - **Truthful Empty State:** An empty map on staging is documented and expected behavior when fewer than 8 reports exist per cell; synthetic incidents are never seeded into production.
+  - **Civic Citizen Tracker Integration (`ComplaintTracker.tsx`):** Added high-contrast pill link to `/karachi-map` directly above the 24-digit tracking input.
+- **Edge Security & RLS Database Migrations (`20261202000000_v13_17_private_issue_evidence_and_public_map.sql`):**
+  - **Table Isolation:** Separate add-on tables `public.complaint_geo_points` and `public.complaint_evidence` with RLS strictly enabled.
+  - **Municipal Boundary Enforcement:** `can_view_complaint_evidence` helper rejects unauthenticated users, foreign municipal agencies, revoked personnel, and unrelated citizens. Only assigned department staff and the main administrator can inspect incident coordinates and generate signed photo download URLs.
+- **Automated Quality Gates & Security Verification:**
+  - TypeScript Compiler `tsc -b`: **0 errors**.
+  - Production Build `npm run build`: built in **1.12s**.
+  - Vitest Test Suite: **629 passed, 1 skipped (61 test files, 100% pass)**, including `V13_17_Archive.test.ts` (2 tests).
+  - Edge Security Boundaries (`tests/edge/complaint-boundaries.mjs`): **16 passed, 0 failed**.
+  - V13.16.2 Atomic Batch Gate (`tests/edge/v13_16_2_atomic_batch_gate.mjs`): **5 passed, 0 failed**.
+  - V13.17 Geo Evidence Security Gate (`tests/edge/v13_17_geo_evidence_security_gate.mjs`): **4 passed, 0 failed**.
+  - Production Bundle Verification (`v13_8_2_verify_production_bundle.mjs`): **PASS** (zero demonstration fixtures or auth bypass markers).
+  - Python Backend Unittests (`tests/v11`): **106 passed in 17.29s**.
+  - Code Linter `npm run lint`: **0 errors (143 warnings)**.
+  - Git Diff Check `git diff --check`: **0 errors**.
+  - Multi-Viewport Real Google Chrome CDP Browser QA (`v13_16_department_browser_qa.mjs` and `v13_17_browser_qa.mjs`): **100% pass across all 5 viewports (1440px, 1024px, 768px, 393px, 320px) in light and dark modes**. 0px horizontal overflow across all screens (`overflow: 0px`). Generated 29 new screenshots saved to `docs/v11/screenshots/v13_17/` and brain artifacts.
+- **Preserved Model Provenance & Repository Safety:**
+  - **Run004:** Windows CRLF = `E4D042937CF8C3E1E3C70F147A707B33A629D463DB34485766C98DA21C2E3A56` / Linux LF = `bd3241e91f80780d72f43911c06be1b4d1f6edd67f3f2f3519e41d1dfcfd556d`.
+  - **Run006:** Windows CRLF = `C5D4E3D4164AD5482A0ABE4F614115A596665683FBF23914460EE4ED40AE0D3E` / Linux LF = `165b7c21b1a05f870116b35f93144f98ccce9ff8c821d15c66eac3e4f62b5c4c`.
+  - Both classification models are untouched and byte-identical to baseline. Zero autonomous retraining.
+  - Primary workspace `D:\RomanUrdu_ComplaintClassifier_staff_auth` preserved with zero modifications.
+  - OpenStreetMap tiles used with standard attribution and zero paid dependencies ($0.00 budget).
+- **Staging Reality & Release Gates:**
+  - **Code Complete & Locally Verified:** All code, migrations, tests, edge security gates, and visual assets are verified in worktree `D:\RomanUrdu_V13_17_Review`.
+  - **Hosted Staging Release Gate:** Hosted database migrations on staging project `jvbulmmdwovtgaxojxhn` and Edge function deployments (`submit-classified-complaint` and `upload-complaint-photo`) require separate administrator execution. Real 5-account multi-agency JWT testing remains pending disposable staging account provisioning.
+  - **Production Boundary:** Production project `akbwiedtmxjxcjscgitw` remains completely untouched. No merge to `main`.
+
+## Previous development update, 22 November 2026 — Phase V13.16.2: Server-Atomic Department Acceptance & Staging Hardening
 
 - **Server-Atomic Department Batch Acceptance (`CaseOperationsService.ts`, `CaseDetailPage.tsx`, SQL Migrations):**
   - **Single Transaction Guarantee:** `staff_accept_department_report_batch` authorizes the logged-in department member (or main admin), validates 1–100 assigned reports, locks report rows (`FOR UPDATE`), and executes all acceptance, timeline events, and notification outbox entries within a single PostgreSQL transaction.
