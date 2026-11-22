@@ -4,7 +4,7 @@ You are working on `Fahadali9932/roman-urdu-complaint-classifier` and MUST prese
 
 ## Authoritative source
 
-Use the **already implemented and reviewed** feature branch `feature/v13-18-verified-field-operations`, based on `930f209f84a9258673fc075a75d6b82f065bd14c` (`feature/v13-17-evidence-geo-archive-map`). Do not write the same feature again with another AI. Apply the supplied `Awaaz_e_Awam_V13_18_Field_Operations.patch` **only if the branch was not fetched and only on that exact base commit**. Never apply both; it would duplicate commits.
+Use the **already implemented and pushed** feature branch `feature/v13-18-verified-field-operations`, remote commit `2a4f1a703831dbd9ec1cfbdfa7449c17d0c4ad7c`, based on `930f209f84a9258673fc075a75d6b82f065bd14c` (`feature/v13-17-evidence-geo-archive-map`). The review is [draft PR #2](https://github.com/Fahadali9932/roman-urdu-complaint-classifier/pull/2), targeted to V13.17 so only these 31 files are in scope; main has 204 earlier unmerged commits. Do not reimplement the same feature with another AI. Apply the supplied `Awaaz_e_Awam_V13_18_Field_Operations.patch` **only if the remote branch is unavailable and only on that exact base commit**. Never apply both; it would duplicate commits.
 
 Read `docs/V13_18_VERIFIED_FIELD_OPERATIONS.md` fully before doing anything. First run `git status --short`, `git branch -vv`, `git remote -v`, `git log -1 --oneline`, `git worktree list`. If there are existing changes, preserve them and use a new isolated worktree; never reset, force-push, wipe files, delete the user's changed work, or merge straight into main.
 
@@ -38,7 +38,7 @@ python -m unittest discover -s tests/v11 -q
 git diff --check
 ```
 
-If the branch does not exist on origin yet, use **exactly one** isolated worktree based on V13.17, verify the base SHA and apply the downloaded patch:
+Only if that remote branch is unavailable, use **exactly one** isolated worktree based on V13.17, verify the base SHA and apply the downloaded patch:
 
 ```powershell
 git fetch origin
@@ -56,6 +56,6 @@ The intended staging project `jvbulmmdwovtgaxojxhn` currently has zero Auth user
 ## Finish and report
 
 - Report build, Vitest totals, Python results, lint, Edge, bundle audit, real browser results, untested release gates and any legitimate issues discovered. Do not invent passed browser or live-Supabase tests.
-- If changes needed, use a new follow-up commit on this feature branch and retest. Show the exact commit SHA and remote URL, and open a **PR** into main; do **not** merge or deploy without the user's approval.
+- If changes are needed, use a new follow-up commit on this feature branch and retest. Update **draft PR #2** for focused review against V13.17. Only after V13.17 is reviewed and integrated should maintainers plan the final PR chain into main; do **not** merge or deploy without Fahad's approval.
 - Supply an updated `git format-patch` and concise summary with what changed, how to run `npm run dev -- --host 127.0.0.1 --port 5173` to inspect `/department`, `/admin/access` and `/my-complaints`.
 - Keep the private citizen photos, precise GPS, 2FA secrets, and Supabase keys out of screenshots, build artifacts and Git history.

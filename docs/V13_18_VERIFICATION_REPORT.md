@@ -7,6 +7,8 @@
 **Base:** V13.17 `930f209f84a9258673fc075a75d6b82f065bd14c`
 **Date:** 22 November 2026 (Pakistan)
 
+**Pushed review commit:** `2a4f1a703831dbd9ec1cfbdfa7449c17d0c4ad7c` on `feature/v13-18-verified-field-operations`; [draft PR #2](https://github.com/Fahadali9932/roman-urdu-complaint-classifier/pull/2) against V13.17 (31 changed files). The final documentation-only follow-up may appear as a further review commit. The main branch and production remain unchanged.
+
 ## Completed
 
 - Introduced real, department-linked work orders rather than a generic admin mock-up. Department heads assign real complaint-linked incidents to an officer with instructions, deadlines and controlled extension requests.
