@@ -5,6 +5,44 @@ Verified on **22 November 2026 (Pakistan time)**. Internal delivery target:
 This document distinguishes inspected source, automated checks, and unverified
 hosted behavior. Update it after every significant verified milestone.
 
+## Development update, 22 November 2026 — Phase V13.20: Distinct Staff Entry Points, Server Boundary Role Enforcement, In-Flow Deadline Picker & 40-Assertion Chrome QA
+
+- **Distinct Staff Sign-In & Landing Portals (`AppRoutes.tsx`, `DepartmentLoginPage.tsx`, `ThemedDepartmentLoginScreen.tsx`):**
+  - **Separate Entry Routes:**
+    - Department Head Login: `/department/head/login?dept=kmc` (demo `roads-01`, landing `/department/head`).
+    - Field Officer Login: `/department/officer/login?dept=kmc` (demo `roads-02`, landing `/department/officer`).
+    - Central Administrator Login: `/admin/login` (demo `admin@example.org`, landing `/admin/requests`).
+  - **Login UX & Workspace Switcher:** Role-specific login pages render a clear segmented tab switcher ("Department Head" vs "Field Officer"), display contextual role titles and subtitles, and reveal temporary local access keys. Existing `/department` and `/department/login` remain fully compatible.
+- **Negative Access Separation & Server Boundary Enforcement (`DepartmentRoleBoundary.tsx`, `ThemedDepartmentLoginScreen.tsx`):**
+  - **Negative Sign-In Checks:** Attempting to use Head credentials (`roads-01`) on Officer login is rejected with clear guidance: *"This sign-in is for Field Officers. Your account belongs to the Department Head workspace. Use the correct staff login."* Inverse check for Officer credentials on Head login is similarly rejected.
+  - **Boundary Tampering Guard:** When authenticated as Head, navigating directly to `/department/officer` renders the *"Different staff workspace"* screen explaining the restriction (*"You are signed in as Department Head. This address is reserved for Field Officers."*), offering a 1-click recovery button (*"Open my workspace"* -> `/department/head`) and a sign-out button. Same guard protects `/department/head` from Officer accounts.
+  - **Database Authority:** Privileges derive from `department_memberships` via `fieldOperations.getMyRole`; client routing is a usability boundary, not an authorization substitute.
+- **In-Flow Work Deadline Picker (`DepartmentDeadlinePicker.tsx`, `department-deadline-picker.css`):**
+  - **Eliminated Native Popup Overlap:** Completely replaced Chrome's native `datetime-local` popup that hovered awkwardly and occluded the instructions textarea below it.
+  - **Normal Document Flow:** The inline calendar expands inside the form (`panelBottom <= textareaTop` verified via real CDP coordinates), pushing subsequent controls down with zero occlusion.
+  - **Feature Suite:**
+    - Quick presets: "Tomorrow, 5 PM", "In 3 days", "Next week".
+    - Month navigation with disabled past months/dates (`min` boundary).
+    - Day grid with accessible keyboard selection, `aria-pressed`, and clear hover states.
+    - Side-by-side time selects: Hour (1–12), Minute (00, 15, 30, 45, custom), and AM/PM period.
+    - Strict validation rejecting past timestamps (`Select a future deadline.`).
+    - "Done" button to collapse the panel back into the trigger.
+  - **Dual Deployment:** Integrated into both Head Dispatch Desk (`#field-due`) and Officer Request Extra Time modal (`#field-extension-date`).
+- **Comprehensive Quality Gates & Multi-Viewport Chrome QA:**
+  - TypeScript Compiler `tsc -b`: **0 errors**.
+  - Production Build `npm run build`: compiled in **1.06s**.
+  - Vitest Unit & Integration Suite: **659 passed, 1 skipped (66 test files, 100% pass)**, including all 7 dedicated tests in `V13_20_DepartmentRoleAndDeadlinePicker.test.tsx`.
+  - Edge Security Gates (scenarios A–M, work orders, citizen review, geo evidence, atomic batch, municipal boundaries): **49 passed, 0 failed**.
+  - Production Bundle Hygiene (`tools/ai_factory/v13_8_2_verify_production_bundle.mjs`): **PASS** (0 auth bypass markers or demonstration fixtures).
+  - Python Backend Unittests (`tests/v11`): **106 passed in 15.56s**.
+  - Code Linter (`oxlint`): **0 errors (150 pre-existing warnings)**.
+  - Git Diff Check (`git diff --check`): **0 errors**.
+  - Real Google Chrome CDP Browser QA (`tools/ai_factory/v13_20_browser_qa.mjs`): **40 viewport assertions verified across 5 viewports (1440, 1024, 768, 393, 320 px) in Light & Dark modes with 0px horizontal overflow**. Captured 46 screenshots saved to `docs/qa/v13_20/` and brain artifacts.
+- **Preserved Invariants & Model Provenance:**
+  - Frozen Run004 (`E4D04293...` / `bd3241e9...`) 100% byte-for-byte verified identical to baseline. Zero autonomous retraining.
+  - Primary dirty workspace `D:\RomanUrdu_ComplaintClassifier_staff_auth` preserved with zero modifications.
+  - Zero budget consumed ($0.00 spent). No paid dependencies.
+
 ## Development update, 22 November 2026 — Phase V13.19: Complete Administration & Field-Operations Refinement, Municipal UX, Genuine Admin Dark Theme, 20 Pen-Test Audit & 85-Assertion Browser QA
 
 - **Municipal Operations Console & Restrained UX (`FieldOperationsDesk.tsx`, `DepartmentSidebar.tsx`, `field-operations-v18.css`):**

@@ -19,6 +19,7 @@ import { CitizenRequiredRoute } from '../features/auth/CitizenRequiredRoute';
 import { DepartmentPortalLayout } from '../features/department/DepartmentPortalLayout';
 import { DepartmentDashboardPage } from '../features/department/DepartmentDashboardPage';
 import { DepartmentLoginPage } from '../features/department/DepartmentLoginPage';
+import { DepartmentRoleBoundary } from '../features/department/DepartmentRoleBoundary';
 import { AdminLoginPage } from '../features/auth/pages/AdminLoginPage';
 import { AdminRequestsPage } from '../features/auth/pages/AdminRequestsPage';
 import { AdminAccessPage } from '../features/auth/pages/AdminAccessPage';
@@ -67,6 +68,10 @@ export const AppRoutes: React.FC = () => {
       <Route element={<DepartmentPortalLayout />}>
         <Route path="/department" element={<DepartmentDashboardPage />} />
         <Route path="/department/login" element={<DepartmentLoginPage />} />
+        <Route path="/department/head/login" element={<DepartmentLoginPage targetRole="head" />} />
+        <Route path="/department/officer/login" element={<DepartmentLoginPage targetRole="officer" />} />
+        <Route path="/department/head" element={<DepartmentRoleBoundary expectedRole="head" />} />
+        <Route path="/department/officer" element={<DepartmentRoleBoundary expectedRole="officer" />} />
         <Route path="/department/settings" element={<Navigate to="/department?view=overview" replace />} />
         <Route path="/department/complaints/:referenceNumber" element={<DepartmentDashboardPage />} />
         <Route path="/department/:referenceNumber" element={<DepartmentDashboardPage />} />

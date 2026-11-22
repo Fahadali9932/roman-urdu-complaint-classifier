@@ -697,7 +697,7 @@ export const DepartmentDashboardPage: React.FC = () => {
           onOpenPasswordModal={() => setIsPasswordModalOpen(true)}
           onSignOut={() => {
             signOut();
-            navigate('/department/login');
+            navigate(staffPosition ? `/department/${staffPosition}/login?dept=${departmentId}` : '/department/login');
           }}
         />
 

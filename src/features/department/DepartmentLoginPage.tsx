@@ -4,6 +4,7 @@ import { type DepartmentId } from '../../types';
 import { DepartmentSelectionScreen } from './DepartmentSelectionScreen';
 import { ThemedDepartmentLoginScreen } from './ThemedDepartmentLoginScreen';
 import { DepartmentSelectionModal } from './design-system/DepartmentSelectionModal';
+import type { StaffPosition } from './services/fieldOperations';
 
 const VALID_DEPARTMENT_IDS: Record<string, DepartmentId> = {
   kmc: 'kmc',
@@ -21,7 +22,7 @@ const VALID_DEPARTMENT_IDS: Record<string, DepartmentId> = {
   building: 'sbca',
 };
 
-export const DepartmentLoginPage: React.FC = () => {
+export const DepartmentLoginPage: React.FC<{ targetRole?: StaffPosition }> = ({ targetRole }) => {
   const [searchParams, setSearchParams] = useSearchParams();
   const deptParam = searchParams.get('dept')?.toLowerCase() || null;
 
@@ -65,7 +66,9 @@ export const DepartmentLoginPage: React.FC = () => {
     return (
       <>
         <ThemedDepartmentLoginScreen
+          key={targetRole ?? 'department'}
           departmentId={selectedDept}
+          targetRole={targetRole}
           onBackToDepartmentSelection={handleOpenModal}
           isOnline={isOnline}
         />

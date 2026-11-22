@@ -1,0 +1,62 @@
+.deadline-picker{display:grid;gap:9px;min-width:0;color:var(--field-ink)}
+.deadline-picker-label{font-size:12px;font-weight:700}
+.deadline-picker-trigger{min-height:48px;width:100%;display:flex;align-items:center;gap:12px;text-align:left;border:1px solid var(--field-line);border-radius:9px;background:var(--field-paper);padding:10px 13px;color:var(--field-ink);font-size:13px;transition:border-color 150ms ease,background 150ms ease}
+.deadline-picker-trigger span{flex:1}
+.deadline-picker-trigger svg{color:var(--field-teal);flex:none;transition:transform 150ms cubic-bezier(0.32, 0.72, 0, 1)}
+.deadline-picker-rotated{transform:rotate(180deg)}
+.deadline-picker-panel{position:relative;border:1px solid var(--field-line);background:var(--field-paper);border-radius:12px;padding:15px;display:grid;gap:14px;box-shadow:0 4px 17px #0824210b}
+.deadline-picker-presets{display:flex;gap:6px;flex-wrap:wrap}
+.deadline-picker-presets button{min-height:35px;padding:6px 10px;border:1px solid var(--field-line);border-radius:7px;background:transparent;font-size:11px;color:var(--field-teal);font-weight:700;transition:background 150ms ease,color 150ms ease}
+.deadline-picker-presets button:hover{background:#e7f3f0;color:#075f57}
+.deadline-picker-month{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.deadline-picker-month strong{font-size:13px;font-weight:700}
+.deadline-picker-month button{width:40px;height:40px;display:grid;place-items:center;border:1px solid var(--field-line);border-radius:8px;background:transparent;color:var(--field-ink);transition:background 150ms ease,color 150ms ease}
+.deadline-picker-month button:hover:not(:disabled){background:#e5f1ee;color:#075f57}
+.deadline-picker-calendar{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}
+.deadline-picker-weekday{text-align:center;font-size:10px;font-weight:700;color:var(--field-muted);padding:8px 0}
+.deadline-picker-calendar button{border:0;background:transparent;border-radius:7px;min-height:39px;min-width:0;font-size:12px;color:var(--field-ink);font-weight:600;transition:background 150ms ease,color 150ms ease}
+.deadline-picker-calendar button:hover:not(:disabled){background:#e5f1ee;color:#075f57}
+.deadline-picker-calendar button[aria-pressed="true"]{background:#075f57;color:#fff}
+.deadline-picker-calendar button:disabled{opacity:.33;cursor:not-allowed}
+.deadline-picker-time{display:flex;align-items:center;gap:8px;padding:12px 0;border-top:1px solid var(--field-line);font-size:12px;color:var(--field-muted)}
+.deadline-picker-time>span:first-of-type{flex:1;font-weight:700}
+.field-form .deadline-picker-time select,.field-dialog .deadline-picker-time select{width:auto;flex:none;min-width:56px;min-height:42px;border:1px solid var(--field-line);border-radius:7px;background:var(--field-paper);color:var(--field-ink);padding:7px 5px;font-size:12px}
+.deadline-picker-done{min-height:44px;border:0;border-radius:8px;background:#075f57;color:#fff;font-size:12px;font-weight:700;transition:background 150ms ease}
+.deadline-picker-done:hover{background:#064d46}
+.deadline-picker-error{font-size:12px;color:#ab3b32!important;margin:0!important}
+.deadline-picker button:focus-visible,.deadline-picker select:focus-visible{outline:3px solid #bc883f;outline-offset:2px}
+.app-shell[data-theme="dark"] .deadline-picker-panel{box-shadow:0 4px 20px rgba(0,0,0,0.35)}
+.app-shell[data-theme="dark"] .deadline-picker-month button:hover:not(:disabled){background:#2b4746;color:var(--field-ink)}
+.app-shell[data-theme="dark"] .deadline-picker-presets button:hover,.app-shell[data-theme="dark"] .deadline-picker-calendar button:hover:not(:disabled){background:#2b4746;color:var(--field-ink)}
+.app-shell[data-theme="dark"] .deadline-picker-calendar button[aria-pressed="true"]{background:#0a7067;color:#fff}
+.app-shell[data-theme="dark"] .deadline-picker-done{background:#0a7067}
+.app-shell[data-theme="dark"] .deadline-picker-done:hover{background:#0e8a7f}
+
+/* Role Boundary Dark Theme */
+[data-theme="dark"] .role-boundary-main { background: #0f181b !important; color: #edf6f5 !important; }
+[data-theme="dark"] .role-boundary-card { background: #1b2c32 !important; border-color: #3b5359 !important; box-shadow: 0 4px 20px rgba(0,0,0,0.4) !important; }
+[data-theme="dark"] .role-boundary-kicker { color: #a6dfd0 !important; }
+[data-theme="dark"] .role-boundary-title { color: #edf6f5 !important; }
+[data-theme="dark"] .role-boundary-text { color: #bbcdcd !important; }
+[data-theme="dark"] .role-boundary-signout { background: #243c3f !important; border-color: #3b5359 !important; color: #edf6f5 !important; }
+[data-theme="dark"] .role-boundary-signout:hover { background: #2c4947 !important; }
+
+/* Department Login Screen Dark Theme */
+[data-theme="dark"] .dept-login-screen { background-color: #0c1518 !important; color: #edf6f5 !important; }
+[data-theme="dark"] .dept-login-back { background-color: rgba(27, 44, 50, 0.85) !important; border-color: rgba(255, 255, 255, 0.15) !important; color: #edf6f5 !important; }
+[data-theme="dark"] .dept-login-back:hover { background-color: rgba(36, 60, 68, 0.95) !important; }
+[data-theme="dark"] .dept-login-mark { color: #edf6f5 !important; }
+[data-theme="dark"] .dept-login-title { color: #edf6f5 !important; }
+[data-theme="dark"] .dept-login-jurisdiction { color: #bbcdcd !important; }
+[data-theme="dark"] .dept-login-card { background-color: rgba(23, 39, 44, 0.88) !important; border-color: rgba(255, 255, 255, 0.12) !important; box-shadow: 0 24px 50px rgba(0, 0, 0, 0.5) !important; }
+[data-theme="dark"] .dept-login-card h2 { color: #edf6f5 !important; }
+[data-theme="dark"] .dept-login-card p { color: #bbcdcd !important; }
+[data-theme="dark"] .dept-login-nav { background-color: #142226 !important; border-color: #294247 !important; }
+[data-theme="dark"] .dept-login-nav a:not([aria-current="page"]) { color: #a4bebe !important; }
+[data-theme="dark"] .dept-login-nav a:not([aria-current="page"]):hover { background-color: #1f333a !important; color: #edf6f5 !important; }
+[data-theme="dark"] .dept-login-demo { background-color: #1a2a30 !important; border-color: #3b5359 !important; color: #edf6f5 !important; }
+[data-theme="dark"] .dept-login-demo summary { color: #a6dfd0 !important; }
+[data-theme="dark"] .dept-login-demo code { background-color: #101c20 !important; color: #f2cb8b !important; }
+
+@media(max-width:440px){.deadline-picker-panel{padding:10px}.deadline-picker-presets button{flex:1}.deadline-picker-time{gap:5px}.field-form .deadline-picker-time select,.field-dialog .deadline-picker-time select{min-width:49px;padding:6px 3px}.deadline-picker-calendar button{min-height:38px}}
+@media(prefers-reduced-motion:reduce){.deadline-picker *{transition:none!important}}

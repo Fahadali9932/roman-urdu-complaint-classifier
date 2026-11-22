@@ -131,7 +131,7 @@ export const DepartmentSidebar: React.FC<DepartmentSidebarProps> = ({
         </div>
         <div className="brand-copy">
           <strong>Awaaz-e-Awam</strong>
-          <span>Department operations</span>
+          <span>{staffPosition === 'head' ? 'Department Head console' : staffPosition === 'officer' ? 'Field Officer workspace' : 'Department operations'}</span>
         </div>
         {onToggleCollapse && (
           <button

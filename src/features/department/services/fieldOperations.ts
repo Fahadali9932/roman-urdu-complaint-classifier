@@ -79,7 +79,27 @@ const devTeam: DepartmentOfficer[] = import.meta.env.PROD ? [] : [
   { user_id: 'local-officer-b', display_name: 'Field Officer B', staff_role: 'officer', active_cases: 4, verified_cases: 9, on_time_cases: 7, overdue_cases: 1, disputed_cases: 1 },
   { user_id: 'local-officer-c', display_name: 'Field Officer C', staff_role: 'officer', active_cases: 1, verified_cases: 6, on_time_cases: 5, overdue_cases: 0, disputed_cases: 0 },
 ];
-const devOrders: DepartmentWorkOrder[] = [];
+const devOrders: DepartmentWorkOrder[] = import.meta.env.PROD ? [] : [
+  {
+    id: 'local-dev-order-01',
+    department_id: 'kmc',
+    anchor_complaint_id: 'local-complaint-anchor-01',
+    case_label: 'Main University Road — Broken Asphalt & Deep Pothole',
+    officer_id: 'local-officer-a',
+    assigned_by: 'local-demonstration',
+    status: 'assigned',
+    instructions: 'Inspect damaged road surface near NED gate and submit photo proof.',
+    assigned_at: new Date().toISOString(),
+    original_due_at: new Date(Date.now() + 2 * 86400000).toISOString(),
+    due_at: new Date(Date.now() + 2 * 86400000).toISOString(),
+    started_at: null,
+    extension_requested_due_at: null,
+    extension_reason: null,
+    reviewed_at: null,
+    review_note: null,
+    citizen_dispute_pending: false,
+  },
+];
 
 function requireSupabase() {
   if (!isSupabaseConfigured() || !supabase) throw new Error('A verified staging Supabase connection is required for live work management.');

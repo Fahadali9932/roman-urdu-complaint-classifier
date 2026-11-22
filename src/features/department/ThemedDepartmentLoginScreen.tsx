@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ArrowLeft, ShieldAlert, KeyRound, User, ArrowRight } from 'lucide-react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { useDepartmentAuth } from '../../context/DepartmentAuthContext';
 import { isSupabaseConfigured, supabase } from '../../lib/supabase';
 import { type DepartmentId } from '../../types';
@@ -9,21 +9,25 @@ import { DepartmentArtwork } from './design-system/DepartmentArtwork';
 import { GlassCard } from './design-system/GlassCard';
 import { GlassInput } from './design-system/GlassInput';
 import { GlassButton } from './design-system/GlassButton';
-import { getIdentityByDepartmentId } from './auth/departmentIdentities';
+import { getAllDepartmentIdentities, getIdentityByDepartmentId } from './auth/departmentIdentities';
 import { getLocalDemoCredentials } from '../../services/localDemoCredentials';
+import { staffAuthService } from '../../services/staffAuthService';
+import { fieldOperations, type StaffPosition } from './services/fieldOperations';
 
 interface ThemedDepartmentLoginScreenProps {
   departmentId: DepartmentId;
+  targetRole?: StaffPosition;
   onBackToDepartmentSelection: () => void;
   isOnline?: boolean;
 }
 
 export const ThemedDepartmentLoginScreen: React.FC<ThemedDepartmentLoginScreenProps> = ({
   departmentId,
+  targetRole,
   onBackToDepartmentSelection,
   isOnline = true,
 }) => {
-  const { signInWithCredentials, completeMfaSignIn } = useDepartmentAuth();
+  const { signInWithCredentials, completeMfaSignIn, signOut } = useDepartmentAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
@@ -40,7 +44,9 @@ export const ThemedDepartmentLoginScreen: React.FC<ThemedDepartmentLoginScreenPr
   const theme = DEPARTMENT_THEMES[departmentId] || DEPARTMENT_THEMES.kmc;
   const isRoads = departmentId === 'kmc';
   const defaultIdentity = getIdentityByDepartmentId(departmentId);
-  const defaultUsername = defaultIdentity?.username || 'roads-01';
+  const roleIdentity = targetRole && getAllDepartmentIdentities().find((identity) => identity.departmentId === departmentId && (identity.demoRole ?? 'head') === targetRole);
+  const defaultUsername = roleIdentity?.username || defaultIdentity?.username || 'roads-01';
+  const roleTitle = targetRole === 'head' ? 'Department Head' : targetRole === 'officer' ? 'Field Officer' : null;
   const isLocalDemonstration = !isSupabaseConfigured() && !import.meta.env.PROD;
   const isLiveAuthMissing = !isSupabaseConfigured() && import.meta.env.PROD;
 
@@ -56,6 +62,30 @@ export const ThemedDepartmentLoginScreen: React.FC<ThemedDepartmentLoginScreenPr
           reasonParam || 'Access withdrawn by Main Administrator.'
         }`
       : null);
+
+  const enterRoleWorkspace = async (): Promise<boolean> => {
+    if (!targetRole) { navigate('/department', { replace: true }); return true; }
+    const current = staffAuthService.getCurrentStaffSession();
+    if (!current?.userId) {
+      signOut();
+      setErrorMessage('Your individual staff identity could not be verified. Please sign in again.');
+      return false;
+    }
+    try {
+      const actualRole = await fieldOperations.getMyRole(departmentId, current.userId);
+      if (actualRole !== targetRole) {
+        signOut();
+        setErrorMessage(`This sign-in is for ${roleTitle}s. Your account belongs to ${actualRole === 'head' ? 'the Department Head workspace' : actualRole === 'officer' ? 'the Field Officer workspace' : 'neither approved workspace'}. Use the correct staff login.`);
+        return false;
+      }
+      navigate(`/department/${targetRole}`, { replace: true });
+      return true;
+    } catch (error) {
+      signOut();
+      setErrorMessage(error instanceof Error ? error.message : 'Unable to verify your staff responsibility.');
+      return false;
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -119,7 +149,7 @@ export const ThemedDepartmentLoginScreen: React.FC<ThemedDepartmentLoginScreenPr
         return;
       }
 
-      navigate('/department', { replace: true });
+      await enterRoleWorkspace();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Unexpected authentication error.';
       setErrorMessage(msg);
@@ -136,13 +166,13 @@ export const ThemedDepartmentLoginScreen: React.FC<ThemedDepartmentLoginScreenPr
       if (result.error) { setErrorMessage(result.error.message); return; }
       const finished = await completeMfaSignIn();
       if (!finished.success) { setErrorMessage(finished.error || 'Verification failed.'); return; }
-      navigate('/department', {replace:true});
+      await enterRoleWorkspace();
     } catch(err) { setErrorMessage(err instanceof Error ? err.message : 'Authenticator could not be verified.'); }
     finally { setIsLoading(false); }
   };
 
   return (
-    <div className="relative min-h-screen w-full overflow-hidden bg-[#FAF8F5] text-[#111827] flex flex-col justify-between selection:bg-[#111827] selection:text-white">
+    <div className="dept-login-screen relative min-h-screen w-full overflow-hidden bg-[#FAF8F5] text-[#111827] flex flex-col justify-between selection:bg-[#111827] selection:text-white">
       {/* 1. Flowing Sculptural Vector Artwork across the Canvas */}
       <DepartmentArtwork departmentId={departmentId} />
 
@@ -152,7 +182,7 @@ export const ThemedDepartmentLoginScreen: React.FC<ThemedDepartmentLoginScreenPr
           <button
             type="button"
             onClick={onBackToDepartmentSelection}
-            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/80 hover:bg-white border border-black/10 text-xs font-bold text-[#111827] shadow-sm transition-all cursor-pointer group focus:outline-none focus:ring-2 focus:ring-black/20"
+            className="dept-login-back flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/80 hover:bg-white border border-black/10 text-xs font-bold text-[#111827] shadow-sm transition-all cursor-pointer group focus:outline-none focus:ring-2 focus:ring-black/20"
           >
             <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-0.5" />
             <span>Back to Department Selection</span>
@@ -178,17 +208,17 @@ export const ThemedDepartmentLoginScreen: React.FC<ThemedDepartmentLoginScreenPr
         {/* Left Side: Monumental Bold Typographic Anchor */}
         <div className="w-full lg:w-1/2 flex flex-col items-center lg:items-start text-center lg:text-left select-none">
           <div className="flex items-center gap-2 mb-2">
-            <span className="font-serif font-black text-xl text-[#111827]">a.</span>
+            <span className="dept-login-mark font-serif font-black text-xl text-[#111827]">a.</span>
             <span className="text-xs font-bold tracking-wider uppercase text-slate-500">
               {theme.name}
             </span>
           </div>
 
-          <h1 className="text-[clamp(4.5rem,13vw,11.5rem)] font-black tracking-tighter text-[#111827] leading-[0.85] uppercase">
-            {theme.monumentalTitle}
+          <h1 className={roleTitle ? 'dept-login-title text-[clamp(2.6rem,6vw,5.5rem)] font-semibold tracking-tight text-[#111827] leading-[1.05]' : 'dept-login-title text-[clamp(4.5rem,13vw,11.5rem)] font-black tracking-tighter text-[#111827] leading-[0.85] uppercase'}>
+            {roleTitle || theme.monumentalTitle}
           </h1>
 
-          <p className="mt-3 text-sm sm:text-base font-medium text-slate-600 max-w-md">
+          <p className="dept-login-jurisdiction mt-3 text-sm sm:text-base font-medium text-slate-600 max-w-md">
             {theme.jurisdiction}
           </p>
         </div>
@@ -197,21 +227,25 @@ export const ThemedDepartmentLoginScreen: React.FC<ThemedDepartmentLoginScreenPr
         <div className="w-full lg:w-auto lg:min-w-[420px] lg:max-w-[460px] self-center">
           <GlassCard
             variant="light"
-            className="p-7 sm:p-9 bg-white/75 backdrop-blur-2xl border border-black/[0.08] shadow-[0_24px_50px_rgba(0,0,0,0.08)]"
+            className="dept-login-card p-7 sm:p-9 bg-white/75 backdrop-blur-2xl border border-black/[0.08] shadow-[0_24px_50px_rgba(0,0,0,0.08)]"
           >
             {/* Header inside Card */}
             <div className="space-y-1 mb-6">
-              <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-[#111827]">
-                {theme.titleEn}
+              <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-[#111827]">
+                {roleTitle ? `${roleTitle} sign in` : theme.titleEn}
               </h2>
               <p className="text-xs sm:text-sm text-slate-500">
-                {theme.name} • {theme.subtitleEn}
+                {roleTitle ? `${theme.name} · Individual ${targetRole} account` : `${theme.name} • ${theme.subtitleEn}`}
               </p>
             </div>
+            <nav className="dept-login-nav mb-6 flex gap-2 rounded-lg border border-slate-200 bg-slate-50 p-1" aria-label="Staff workspace type">
+              <Link to={`/department/head/login?dept=${departmentId}`} aria-current={targetRole === 'head' ? 'page' : undefined} className={`flex-1 rounded-md px-3 py-2.5 text-center text-xs font-semibold ${targetRole === 'head' ? 'bg-[#102e30] text-white' : 'text-slate-600 hover:bg-white'}`}>Department Head</Link>
+              <Link to={`/department/officer/login?dept=${departmentId}`} aria-current={targetRole === 'officer' ? 'page' : undefined} className={`flex-1 rounded-md px-3 py-2.5 text-center text-xs font-semibold ${targetRole === 'officer' ? 'bg-[#102e30] text-white' : 'text-slate-600 hover:bg-white'}`}>Field Officer</Link>
+            </nav>
 
             {isLocalDemonstration && (
-              <div className="mb-5 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs leading-relaxed text-slate-700" role="status">
-                <p>Local demonstration mode: this browser is not connected to Supabase. Live staff accounts will not work here.</p>
+              <div className="dept-login-demo mb-5 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs leading-relaxed text-slate-700" role="status">
+                <p>Local demonstration mode: this browser is not connected to Supabase. {roleTitle ? `Use the ${roleTitle} account (${defaultUsername}). ` : ''}Live staff accounts will not work here.</p>
                 <details className="mt-2">
                   <summary className="cursor-pointer font-semibold">Show temporary local access key</summary>
                   <code className="mt-2 block select-all break-all">{getLocalDemoCredentials().staffPassword}</code>
