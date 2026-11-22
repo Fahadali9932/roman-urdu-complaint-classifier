@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { isLocalFieldDemo, officerRating, workDeadline } from '../features/department/services/fieldOperations';
+import { fieldOperations, isLocalFieldDemo, officerRating, workDeadline } from '../features/department/services/fieldOperations';
+import { localSupabaseAdapter } from '../services/LocalSupabaseAdapter';
+import { getLocalDemoCredentials } from '../services/localDemoCredentials';
 
 describe('V13.18 field operations calculations and isolation', () => {
   it('does not rank officers with fewer than five verified assignments', () => {
@@ -25,5 +27,20 @@ describe('V13.18 field operations calculations and isolation', () => {
   });
   it('marks demo-only helpers only in test/development unconfigured environments', () => {
     expect(isLocalFieldDemo()).toBe(true);
+  });
+  it('gives the two KMC demo logins distinct roles without granting role by URL', async () => {
+    expect(await fieldOperations.getMyRole('kmc', 'staff-kmc-demo-01')).toBe('head');
+    expect(await fieldOperations.getMyRole('kmc', 'local-officer-a')).toBe('officer');
+    expect(await fieldOperations.getMyRole('kelectric', 'local-officer-a')).toBeNull();
+    expect(await fieldOperations.getMyRole('kmc', 'unknown-user')).toBeNull();
+  });
+  it('authenticates the KMC officer demo under the same department with its own identity', async () => {
+    const result = localSupabaseAdapter.authenticateStaffWithUsername(
+      'roads-02', getLocalDemoCredentials().staffPassword, 'kmc',
+    );
+    expect(result.success).toBe(true);
+    expect(result.user?.id).toBe('local-officer-a');
+    expect(result.membership?.staff_role).toBe('officer');
+    expect(await fieldOperations.getMyRole('kmc', result.user!.id)).toBe('officer');
   });
 });

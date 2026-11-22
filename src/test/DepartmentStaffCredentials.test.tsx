@@ -49,12 +49,13 @@ describe('AWAAZ-E-AWAM — Department Staff Credentials & Municipal Boundaries',
   };
 
   describe('1. Department Identities & Recovery Email Configuration', () => {
-    it('configures exactly six demonstration identities with correct departments and usernames', () => {
+    it('configures six department heads and a separate KMC field officer demo identity', () => {
       const identities = getAllDepartmentIdentities();
-      expect(identities).toHaveLength(6);
+      expect(identities).toHaveLength(7);
 
       const expectedMap: Record<string, { deptId: DepartmentId; code: string }> = {
         'roads-01': { deptId: 'kmc', code: 'KMC' },
+        'roads-02': { deptId: 'kmc', code: 'KMC' },
         'electricity-01': { deptId: 'kelectric', code: 'KE' },
         'water-01': { deptId: 'kwsc', code: 'KWSC' },
         'gas-01': { deptId: 'ssgc', code: 'SSGC' },
@@ -67,7 +68,8 @@ describe('AWAAZ-E-AWAM — Department Staff Credentials & Municipal Boundaries',
         expect(expected).toBeDefined();
         expect(identity.departmentId).toBe(expected.deptId);
         expect(identity.departmentCode).toBe(expected.code);
-        expect(identity.authEmail).toBe(
+        expect(identity.authEmail).toBe(identity.username === 'roads-02'
+          ? 'fahadmalik030121+roads-officer@gmail.com' :
           `${VERIFICATION_RECOVERY_EMAIL.replace('@gmail.com', '')}+${
             identity.departmentId === 'kelectric'
               ? 'electricity'

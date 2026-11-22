@@ -1,4 +1,5 @@
 import { isSupabaseConfigured, supabase } from '../../../lib/supabase';
+import { getLocalDemoStaffRole } from '../auth/departmentIdentities';
 
 export type WorkState = 'assigned' | 'in_progress' | 'pending_review' | 'verified' | 'returned';
 export type StaffPosition = 'head' | 'officer';
@@ -109,7 +110,7 @@ export function officerRating(officer: Pick<DepartmentOfficer,'verified_cases'|'
 
 class FieldOperationsService {
   async getMyRole(departmentId: string, userId: string): Promise<StaffPosition | null> {
-    if (isLocalFieldDemo()) return 'head';
+    if (isLocalFieldDemo()) return getLocalDemoStaffRole(departmentId, userId);
     const client = requireSupabase();
     const result = await client.from('department_memberships')
       .select('staff_role').eq('department_id', departmentId).eq('user_id', userId)

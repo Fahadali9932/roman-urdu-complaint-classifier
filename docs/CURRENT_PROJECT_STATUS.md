@@ -5,6 +5,35 @@ Verified on **22 November 2026 (Pakistan time)**. Internal delivery target:
 This document distinguishes inspected source, automated checks, and unverified
 hosted behavior. Update it after every significant verified milestone.
 
+## Staging follow-up, 22 November 2026 — V13.18 migrations, real database tests and separate officer demo
+
+- **Existing staging only:** Project `jvbulmmdwovtgaxojxhn` is healthy.
+  Applied the previously missing V13.13 privacy, V13.17 geo/evidence and
+  V13.18 work-order migrations. Deployed staging Edge Functions
+  `upload-complaint-photo`, `upload-department-work-proof` and
+  `provision-department-staff`; all report ACTIVE.
+- **Verified regression repair:** A hosted transactional test exposed an
+  evidence-version ordering collision when `now()` assigned the same timestamp
+  to the disputed and replacement proof. The newly applied forward migration
+  `20261204000000_v13_18_monotonic_evidence_timestamps.sql` establishes
+  per-upload clock timestamps and per-order uniqueness.
+- **Real PostgreSQL integration:** `supabase/tests/v13_18_staging_field_operations_transaction.sql`
+  successfully covered Head dispatch, Officer assignment/isolation and MFA,
+  extension, proof, supervisor review, citizen dispute and rework, confirmation,
+  72-hour denial and reasoned closure, and legacy-RPC closure protection. Test
+  fixtures used fake `example.invalid` identities with simulated JWT claims
+  inside a transaction; final `ROLLBACK` left **0 Auth users, 0 work orders,
+  0 feedback rows, 0 proof objects**. This is not real signed-JWT/browser E2E.
+- **Local Head/Officer preview:** In unconfigured local development only,
+  `roads-01` is the KMC Head and newly added `roads-02` is an independent
+  KMC Field Officer (`local-officer-a`). Both use a session-generated key;
+  never a checked-in password. Production role checks remain database-backed.
+- **Remaining release gate:** Real approved staging email accounts, individual
+  TOTP, signed-token login, photo upload and browser E2E are not yet tested.
+  Staging contains no Auth identities; external invitations require the owner's
+  intended addresses. Production `akbwiedtmxjxcjscgitw` was untouched.
+  Detailed evidence: `docs/V13_18_STAGING_VERIFICATION_2026_11_22.md`.
+
 ## Current development update, 22 November 2026 — Phase V13.18: Verified Field Operations, 72-Hour Citizen Review & Real Multi-Viewport QA
 
 - **Verified Field Operations & Work Orders (`FieldOperationsDesk.tsx`, `fieldOperations.ts`, `field-operations-v18.css`):**

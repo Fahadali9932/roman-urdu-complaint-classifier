@@ -574,13 +574,17 @@ export class LocalSupabaseAdapter {
     if (import.meta.env.PROD) return;
     const identity = resolveDepartmentIdentity(username);
     if (!identity) return;
+    const demoUserId = identity.demoUserId ?? `staff-${identity.departmentId}-demo-01`;
+    const demoMembershipId = identity.demoUserId
+      ? `mem-${identity.departmentId}-${identity.username}-demo`
+      : `mem-${identity.departmentId}-demo-01`;
 
     let profile = this.state.profiles.find(
       (p) => p.email.toLowerCase() === identity.authEmail.toLowerCase()
     );
     if (!profile) {
       profile = {
-        id: `staff-${identity.departmentId}-demo-01`,
+        id: demoUserId,
         full_name: identity.defaultTitle,
         email: identity.authEmail,
         role: 'department_staff',
@@ -595,9 +599,10 @@ export class LocalSupabaseAdapter {
     );
     if (!membership) {
       membership = {
-        id: `mem-${identity.departmentId}-demo-01`,
+        id: demoMembershipId,
         user_id: profile.id,
         department_id: identity.departmentId,
+        staff_role: identity.demoRole ?? 'head',
         status: 'active',
         approved_by: SEED_ADMIN_ID,
         approved_at: new Date().toISOString(),

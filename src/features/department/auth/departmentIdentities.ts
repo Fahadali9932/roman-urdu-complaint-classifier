@@ -7,6 +7,9 @@ export interface DepartmentStaffIdentity {
   departmentName: string;
   authEmail: string;
   defaultTitle: string;
+  /** Local-only role and identity for offline presentations; never used for live authorization. */
+  demoRole?: 'head' | 'officer';
+  demoUserId?: string;
 }
 
 export const VERIFICATION_RECOVERY_EMAIL = 'fahadmalik030121@gmail.com';
@@ -19,6 +22,17 @@ export const DEPARTMENT_STAFF_IDENTITIES: Record<string, DepartmentStaffIdentity
     departmentName: 'Karachi Metropolitan Corporation (KMC / DMCs)',
     authEmail: 'fahadmalik030121+roads@gmail.com',
     defaultTitle: 'Executive Engineer — Roads & Infrastructure',
+  },
+  'roads-02': {
+    username: 'roads-02',
+    departmentId: 'kmc',
+    departmentCode: 'KMC',
+    departmentName: 'Karachi Metropolitan Corporation (KMC / DMCs)',
+    authEmail: 'fahadmalik030121+roads-officer@gmail.com',
+    defaultTitle: 'Field Officer — Roads & Infrastructure',
+    demoRole: 'officer',
+    // Matches the local dispatch roster so a head can assign work to this login.
+    demoUserId: 'local-officer-a',
   },
   'electricity-01': {
     username: 'electricity-01',
@@ -92,5 +106,17 @@ export const getIdentityByDepartmentId = (
  */
 export const getAllDepartmentIdentities = (): DepartmentStaffIdentity[] => {
   return Object.values(DEPARTMENT_STAFF_IDENTITIES);
+};
+
+/** Demo-only mapping. Production roles always come from Supabase memberships. */
+export const getLocalDemoStaffRole = (
+  departmentId: string,
+  userId: string,
+): 'head' | 'officer' | null => {
+  const identity = getAllDepartmentIdentities().find((item) =>
+    item.departmentId === departmentId &&
+    (item.demoUserId ?? `staff-${item.departmentId}-demo-01`) === userId
+  );
+  return identity ? identity.demoRole ?? 'head' : null;
 };
 
