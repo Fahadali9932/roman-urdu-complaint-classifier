@@ -9,6 +9,7 @@ import { DepartmentPortalLayout } from '../features/department/DepartmentPortalL
 import { DepartmentHeader } from '../features/department/components/DepartmentHeader';
 import { staffAuthService } from '../services/staffAuthService';
 import { localSupabaseAdapter } from '../services/LocalSupabaseAdapter';
+import { getLocalDemoCredentials } from '../services/localDemoCredentials';
 import {
   resolveDepartmentIdentity,
   getAllDepartmentIdentities,
@@ -17,7 +18,7 @@ import {
 import { type DepartmentId } from '../types';
 
 describe('AWAAZ-E-AWAM — Department Staff Credentials & Municipal Boundaries', () => {
-  const TEST_ACCESS_KEY = 'DemoAccessKey2026!Secure';
+  const TEST_ACCESS_KEY = getLocalDemoCredentials().staffPassword;
 
   beforeEach(() => {
     sessionStorage.clear();
@@ -145,7 +146,7 @@ describe('AWAAZ-E-AWAM — Department Staff Credentials & Municipal Boundaries',
     it('rejects invalid access key with generic error message', async () => {
       const res = await staffAuthService.signInDepartmentStaffWithUsername(
         'roads-01',
-        'WrongPassword999!',
+        'incorrect-demo-key',
         'kmc'
       );
 

@@ -7,6 +7,7 @@ import {
   type ComplaintStatus,
 } from '../../../types';
 import { X, AlertCircle, Loader2, CheckCircle2, Lock } from 'lucide-react';
+import { isSupabaseConfigured } from '../../../lib/supabase';
 
 interface StatusUpdateModalProps {
   isOpen: boolean;
@@ -135,7 +136,7 @@ export const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({
   const isTerminal = allowedNextStatuses.length === 0;
 
   const availableOptions = STATUS_OPTIONS.filter((opt) =>
-    allowedNextStatuses.includes(opt.status)
+    allowedNextStatuses.includes(opt.status) && !(isSupabaseConfigured() && opt.status === 'resolved')
   );
 
   const handleSubmit = async (e: React.FormEvent) => {

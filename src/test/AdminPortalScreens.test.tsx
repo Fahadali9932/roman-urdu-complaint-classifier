@@ -8,6 +8,7 @@ import { DepartmentAuthProvider } from '../context/DepartmentAuthContext';
 import { AdminRequestsPage } from '../features/auth/pages/AdminRequestsPage';
 import { AdminAccessPage } from '../features/auth/pages/AdminAccessPage';
 import { staffAuthService } from '../services/staffAuthService';
+import { getLocalDemoCredentials } from '../services/localDemoCredentials';
 
 describe('Main Administrator Management Screens (Figma 35:1041 & 35:1105)', () => {
   beforeEach(async () => {
@@ -16,7 +17,7 @@ describe('Main Administrator Management Screens (Figma 35:1041 & 35:1105)', () =
     staffAuthService.resetLocalDatabase();
 
     // Authenticate as Main Admin
-    await staffAuthService.signInMainAdmin('admin@example.org', 'AdminPass123!');
+    await staffAuthService.signInMainAdmin('admin@example.org', getLocalDemoCredentials().adminPassword);
   });
 
   const renderWithProviders = (initialRoute: string) => {
@@ -43,7 +44,7 @@ describe('Main Administrator Management Screens (Figma 35:1041 & 35:1105)', () =
       departmentId: 'kelectric',
       fullName: 'Tariq Mansoor',
       workEmail: 'tariq.mansoor@ke.com.pk',
-      password: 'SecurePassword123!',
+      password: getLocalDemoCredentials().staffPassword,
     });
 
     renderWithProviders('/admin/requests');
@@ -88,7 +89,7 @@ describe('Main Administrator Management Screens (Figma 35:1041 & 35:1105)', () =
       departmentId: 'kwsc',
       fullName: 'Invalid Candidate',
       workEmail: 'candidate@fake-mail.invalid',
-      password: 'SamplePassword123!',
+      password: getLocalDemoCredentials().staffPassword,
     });
 
     renderWithProviders('/admin/requests');
@@ -128,7 +129,7 @@ describe('Main Administrator Management Screens (Figma 35:1041 & 35:1105)', () =
       departmentId: 'sswmb',
       fullName: 'Kamran Akram',
       workEmail: 'kamran.akram@sswmb.gos.pk',
-      password: 'CleanKarachi123!',
+      password: getLocalDemoCredentials().staffPassword,
     });
     await staffAuthService.approveDepartmentRequest(req.requestId!);
 

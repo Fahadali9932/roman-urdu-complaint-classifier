@@ -6,6 +6,10 @@ import {
   Flame,
   Layers,
   Archive,
+  ClipboardList,
+  HardHat,
+  Users,
+  FileCheck2,
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react';
@@ -23,7 +27,12 @@ export type WorkspaceSection =
   | 'review'
   | 'settings'
   | 'case'
-  | 'home';
+  | 'home'
+  | 'dispatch'
+  | 'field'
+  | 'team'
+  | 'verification'
+  | 'field_archive';
 
 export type TaskFilterType =
   | 'all'
@@ -46,6 +55,7 @@ interface DepartmentSidebarProps {
   isCollapsed?: boolean;
   onToggleCollapse?: () => void;
   isMobileOpen?: boolean;
+  staffPosition?: 'head' | 'officer' | null;
 }
 
 export const DepartmentSidebar: React.FC<DepartmentSidebarProps> = ({
@@ -60,6 +70,7 @@ export const DepartmentSidebar: React.FC<DepartmentSidebarProps> = ({
   isCollapsed = false,
   onToggleCollapse,
   isMobileOpen = false,
+  staffPosition = null,
 }) => {
   const { session, departmentMeta, departmentId } = useDepartmentAuth();
 
@@ -141,6 +152,14 @@ export const DepartmentSidebar: React.FC<DepartmentSidebarProps> = ({
 
       <div className="nav-label">WORKSPACE</div>
       <nav className="navigation" aria-label="Main navigation">
+        {staffPosition === 'head' && <>
+          <button type="button" data-view="dispatch" onClick={() => handleNavClick('dispatch')} className={`nav-item ${currentSection === 'dispatch' ? 'active' : ''}`} aria-current={currentSection === 'dispatch' ? 'page' : undefined} data-tooltip="Dispatch desk"><ClipboardList className="ico" /><span>Dispatch desk</span></button>
+          <button type="button" data-view="verification" onClick={() => handleNavClick('verification')} className={`nav-item ${currentSection === 'verification' ? 'active' : ''}`} aria-current={currentSection === 'verification' ? 'page' : undefined} data-tooltip="Proof verification"><FileCheck2 className="ico"/><span>Proof verification</span></button>
+          <button type="button" data-view="team" onClick={() => handleNavClick('team')} className={`nav-item ${currentSection === 'team' ? 'active' : ''}`} aria-current={currentSection === 'team' ? 'page' : undefined} data-tooltip="Officer roster"><Users className="ico"/><span>Officer roster</span></button>
+        </>}
+        {staffPosition === 'officer' && <button type="button" data-view="field" onClick={() => handleNavClick('field')} className={`nav-item ${currentSection === 'field' ? 'active' : ''}`} aria-current={currentSection === 'field' ? 'page' : undefined} data-tooltip="My field work"><HardHat className="ico"/><span>My field work</span></button>}
+        {staffPosition && <button type="button" data-view="field_archive" onClick={() => handleNavClick('field_archive')} className={`nav-item ${currentSection === 'field_archive' ? 'active' : ''}`} aria-current={currentSection === 'field_archive' ? 'page' : undefined} data-tooltip="Verified work archive"><Archive className="ico"/><span>Verified work</span></button>}
+        {staffPosition !== 'officer' && <>
         {/* Overview */}
         <button
           type="button"
@@ -229,6 +248,7 @@ export const DepartmentSidebar: React.FC<DepartmentSidebarProps> = ({
             </b>
           </button>
         )}
+        </>}
       </nav>
 
       {/* Bottom Account Card */}

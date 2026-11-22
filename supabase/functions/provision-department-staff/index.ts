@@ -35,6 +35,13 @@ Deno.serve(async (request) => {
   if (callerError || !callerData.user)
     return json({ error: "Invalid session." }, 401);
 
+  // The JWT was verified by auth.getUser; elevation also requires step-up MFA.
+  const claims = (() => {
+    try { return JSON.parse(atob(authHeader.slice(7).split(".")[1].replace(/-/g,"+").replace(/_/g,"/"))); }
+    catch { return {}; }
+  })();
+  if (claims.aal !== "aal2") return json({error:"Authenticator verification is required."},403);
+
   const admin = createClient(url, serviceRoleKey, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
@@ -47,7 +54,7 @@ Deno.serve(async (request) => {
     return json({ error: "Main Administrator access required." }, 403);
   }
 
-  let payload: { email?: unknown; fullName?: unknown; departmentId?: unknown };
+  let payload: { email?: unknown; fullName?: unknown; departmentId?: unknown; staffRole?: unknown };
   try {
     payload = await request.json();
   } catch {
@@ -60,11 +67,12 @@ Deno.serve(async (request) => {
     typeof payload.fullName === "string" ? payload.fullName.trim() : "";
   const departmentId =
     typeof payload.departmentId === "string" ? payload.departmentId.trim() : "";
+  const staffRole = payload.staffRole === "head" ? "head" : payload.staffRole === "officer" ? "officer" : null;
   if (
-    !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email) ||
+    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ||
     fullName.length < 2 ||
     fullName.length > 120 ||
-    !departmentId
+    !departmentId || !staffRole
   ) {
     return json({ error: "Invalid staff invitation details." }, 400);
   }
@@ -95,8 +103,9 @@ Deno.serve(async (request) => {
     updated_at: new Date().toISOString(),
   });
   if (profileWriteError) {
-    await admin.auth.admin.deleteUser(staffId);
-    return json({ error: "Unable to provision staff profile." }, 500);
+    // Do not delete an Auth identity on a partial failure: the address might
+    // belong to an existing invited account. Administrator can safely retry.
+    return json({ error: "Invitation created but profile activation failed. Please reconcile this account before retrying." }, 500);
   }
 
   const { error: membershipError } = await admin
@@ -106,6 +115,7 @@ Deno.serve(async (request) => {
         user_id: staffId,
         department_id: departmentId,
         status: "active",
+        staff_role: staffRole,
         approved_by: callerData.user.id,
         approved_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
@@ -113,9 +123,7 @@ Deno.serve(async (request) => {
       { onConflict: "user_id,department_id" },
     );
   if (membershipError) {
-    await admin.from("profiles").delete().eq("id", staffId);
-    await admin.auth.admin.deleteUser(staffId);
-    return json({ error: "Unable to provision staff membership." }, 500);
+    return json({ error: "Invitation created but membership activation failed. Administrator reconciliation is required." }, 500);
   }
 
   await admin.from("access_audit_log").insert({
@@ -124,7 +132,7 @@ Deno.serve(async (request) => {
     target_email: email,
     department_id: departmentId,
     actor_id: callerData.user.id,
-    details: { source: "provision-department-staff Edge Function" },
+    details: { source: "provision-department-staff Edge Function", staffRole },
   });
 
   return json({ success: true, staffUserId: staffId }, 201);

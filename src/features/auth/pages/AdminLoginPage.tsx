@@ -4,6 +4,8 @@ import { useLanguage } from '../../../context/LanguageContext';
 import { useAdminAuth } from '../../../context/AdminAuthContext';
 import { StaffAuthLayout } from '../components/StaffAuthLayout';
 import { Eye, EyeOff, ArrowRight, ArrowLeft, Shield, AlertCircle, Info } from 'lucide-react';
+import { isSupabaseConfigured } from '../../../lib/supabase';
+import { getLocalDemoCredentials } from '../../../services/localDemoCredentials';
 
 export const AdminLoginPage: React.FC = () => {
   const { language, isRTL } = useLanguage();
@@ -38,16 +40,6 @@ export const AdminLoginPage: React.FC = () => {
         language === 'ur'
           ? 'براہ کرم اپنا پاس ورڈ درج کریں۔'
           : 'Please enter your password.'
-      );
-      return;
-    }
-
-    // Honest prototype preview feedback for Phase 1 verification test
-    if (password === 'SecretAdminPass123') {
-      setNotice(
-        language === 'ur'
-          ? 'پروٹوٹائپ موڈ: مین ایڈمنسٹریٹر کا محفوظ بیک اینڈ تصدیقی نظام اگلے مرحلے میں فعال کیا جائے گا۔ اس پریویو میں کوئی پاس ورڈ محفوظ نہیں کیا جا رہا۔'
-          : 'Prototype Preview: Live backend authentication for Main Administrators is scheduled for Phase 2. No credentials are stored or authenticated in this UI milestone.'
       );
       return;
     }
@@ -114,6 +106,15 @@ export const AdminLoginPage: React.FC = () => {
             <Info className="w-4 h-4 shrink-0 text-amber-600 mt-0.5" />
             <span>{notice}</span>
           </div>
+        )}
+
+        {!import.meta.env.PROD && !isSupabaseConfigured() && (
+          <details className="rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] p-3 text-xs text-[#475569]">
+            <summary className="cursor-pointer font-semibold">Temporary local demo access</summary>
+            <p className="mt-2">Offline mock account only; this key never authorizes a real database.</p>
+            <p className="mt-2 font-mono break-all">admin@example.org</p>
+            <code className="block mt-1 select-all break-all">{getLocalDemoCredentials().adminPassword}</code>
+          </details>
         )}
 
         {/* Sign-In Form (Figma Frame 35:1302 - 35:1310) */}

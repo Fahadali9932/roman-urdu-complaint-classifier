@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import React from 'react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { LanguageProvider } from '../context/LanguageContext';
@@ -74,22 +74,21 @@ describe('Staff & Administrator Access Screens (Figma 35:1282, 35:1332, 35:1363,
       expect(screen.getByText(/Please enter your password/i)).toBeInTheDocument();
     });
 
-    it('shows honest prototype feedback without saving password', () => {
+    it('rejects an incorrect local administrator password without storing it', async () => {
       renderWithProviders('/admin/login');
 
       fireEvent.change(screen.getByLabelText(/Work email/i), {
         target: { value: 'admin@example.org' },
       });
       fireEvent.change(screen.getByLabelText(/^Password$/i), {
-        target: { value: 'SecretAdminPass123' },
+        target: { value: 'incorrect-local-password' },
       });
 
       fireEvent.click(screen.getByRole('button', { name: /^Sign in/i }));
 
-      // Honest prototype feedback
-      expect(
-        screen.getByText(/Prototype Preview: Live backend authentication for Main Administrators/i)
-      ).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByRole('alert')).toHaveTextContent(/Invalid|incorrect|credentials|password/i);
+      });
 
       // Verify ZERO passwords in storage
       expect(localStorage.getItem('password')).toBeNull();

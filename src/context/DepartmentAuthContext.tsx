@@ -19,6 +19,7 @@ export interface DepartmentAuthContextType {
   departmentMeta: Department | null;
   availableDepartments: Department[];
   isAuthenticated: boolean;
+  isCheckingSession: boolean;
   session: DepartmentAuthSession | null;
   signIn: (deptId: DepartmentId, accessKey?: string) => { success: boolean; error?: string };
   signInWithCredentials: (
@@ -27,10 +28,11 @@ export interface DepartmentAuthContextType {
     expectedDeptId?: DepartmentId
   ) => Promise<{
     success: boolean;
-    status: 'approved' | 'pending' | 'rejected' | 'revoked' | 'not_found' | 'invalid_password' | 'wrong_department' | 'unavailable';
+    status: 'approved' | 'mfa_required' | 'pending' | 'rejected' | 'revoked' | 'not_found' | 'invalid_password' | 'wrong_department' | 'unavailable';
     rejectionReason?: string | null;
     error?: string;
   }>;
+  completeMfaSignIn: () => Promise<{ success: boolean; error?: string }>;
   checkRevocationStatus: () => { authorized: boolean; reason?: string };
   signOut: () => void;
 }
@@ -51,6 +53,9 @@ export const DepartmentAuthContext = createContext<DepartmentAuthContextType | u
 );
 
 export const DepartmentAuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const [liveVerified, setLiveVerified] = useState(!isSupabaseConfigured() && !import.meta.env.PROD);
+  const [isCheckingSession, setIsCheckingSession] = useState(isSupabaseConfigured());
+  const [pendingMfa, setPendingMfa] = useState<DepartmentAuthSession | null>(null);
   const [session, setSession] = useState<DepartmentAuthSession | null>(() => {
     try {
       if (typeof window !== 'undefined' && window.sessionStorage) {
@@ -88,7 +93,31 @@ export const DepartmentAuthProvider: React.FC<{ children: ReactNode }> = ({ chil
       ? KARACHI_DEPARTMENTS[departmentId]
       : null;
 
-  const isAuthenticated = Boolean(session && session.departmentId);
+  const isAuthenticated = Boolean(session && session.departmentId && liveVerified);
+
+  useEffect(() => {
+    if (!isSupabaseConfigured() || !supabase) return;
+    let canceled = false;
+    (async () => {
+      try {
+      const auth = await supabase.auth.getUser();
+      const assurance = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+      if (canceled) return;
+      if (auth.error || !auth.data.user || assurance.error || assurance.data?.currentLevel !== 'aal2') {
+        setLiveVerified(false);
+        setIsCheckingSession(false);
+        return;
+      }
+      if (session?.userId !== auth.data.user.id) { setLiveVerified(false); setIsCheckingSession(false); return; }
+      const { data } = await supabase.from('department_memberships').select('id')
+        .eq('user_id', auth.data.user.id).eq('department_id', session.departmentId).eq('status','active').maybeSingle();
+      if (!canceled) {setLiveVerified(Boolean(data));setIsCheckingSession(false);}
+      } catch {
+        if (!canceled) { setLiveVerified(false); setIsCheckingSession(false); }
+      }
+    })();
+    return () => { canceled = true; };
+  }, [session?.userId,session?.departmentId]);
 
   const checkRevocationStatus = (): { authorized: boolean; reason?: string } => {
     if (!session?.userId) {
@@ -103,6 +132,7 @@ export const DepartmentAuthProvider: React.FC<{ children: ReactNode }> = ({ chil
   };
 
   const signIn = (deptId: DepartmentId, _accessKey?: string): { success: boolean; error?: string } => {
+    if (import.meta.env.PROD || isSupabaseConfigured()) return {success:false,error:'Live staff access requires invited email, password and authenticator verification.'};
     if (!VALID_DEPARTMENT_IDS.includes(deptId)) {
       return { success: false, error: 'Invalid department identifier.' };
     }
@@ -133,20 +163,22 @@ export const DepartmentAuthProvider: React.FC<{ children: ReactNode }> = ({ chil
     expectedDeptId?: DepartmentId
   ): Promise<{
     success: boolean;
-    status: 'approved' | 'pending' | 'rejected' | 'revoked' | 'not_found' | 'invalid_password' | 'wrong_department' | 'unavailable';
+    status: 'approved' | 'mfa_required' | 'pending' | 'rejected' | 'revoked' | 'not_found' | 'invalid_password' | 'wrong_department' | 'unavailable';
     rejectionReason?: string | null;
     error?: string;
   }> => {
-    // Try username authentication first
-    let res = await staffAuthService.signInDepartmentStaffWithUsername(
-      identifier,
-      passwordAttempt,
-      expectedDeptId
-    );
+    if (import.meta.env.PROD && !isSupabaseConfigured()) {
+      return { success:false,status:'unavailable',error:'Secure department authentication is not configured.' };
+    }
+    // Live staff sign in with their unique invited email. Legacy demo usernames
+    // are permitted only in the explicitly unconfigured local demonstration.
+    let res = isSupabaseConfigured()
+      ? await staffAuthService.signInDepartmentStaff(identifier, passwordAttempt)
+      : await staffAuthService.signInDepartmentStaffWithUsername(identifier, passwordAttempt, expectedDeptId);
 
     // Fallback to legacy email sign-in if not resolved as username and contains @
     if (
-      !res.success &&
+      !isSupabaseConfigured() && !res.success &&
       identifier.includes('@') &&
       (res.status === 'invalid_password' || res.status === 'not_found')
     ) {
@@ -179,7 +211,17 @@ export const DepartmentAuthProvider: React.FC<{ children: ReactNode }> = ({ chil
         authenticatedAt: res.session.authenticatedAt,
       };
 
+      if (isSupabaseConfigured() && supabase) {
+        const assurance = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+        if (assurance.error || assurance.data?.currentLevel !== 'aal2') {
+          setPendingMfa(newSession);
+          setLiveVerified(false);
+          return { success:false,status:'mfa_required',error:'Complete your authenticator verification to enter the department workspace.' };
+        }
+      }
+
       setSession(newSession);
+      setLiveVerified(true);
       try {
         if (typeof window !== 'undefined' && window.sessionStorage) {
           sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(newSession));
@@ -199,8 +241,28 @@ export const DepartmentAuthProvider: React.FC<{ children: ReactNode }> = ({ chil
     };
   };
 
+  const completeMfaSignIn = async () => {
+    if (!pendingMfa || !supabase) return { success:false,error:'Start staff sign-in again.' };
+    const assurance = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+    const user = await supabase.auth.getUser();
+    if (assurance.error || assurance.data?.currentLevel !== 'aal2' || user.data.user?.id !== pendingMfa.userId) {
+      return { success:false,error:'Authenticator verification is still required.' };
+    }
+    const { data, error } = await supabase.from('department_memberships').select('id')
+      .eq('user_id',pendingMfa.userId).eq('department_id',pendingMfa.departmentId).eq('status','active').maybeSingle();
+    if (error || !data) return { success:false,error:'Department authorization could not be verified.' };
+    setSession(pendingMfa); setLiveVerified(true);
+    sessionStorage.setItem(SESSION_STORAGE_KEY,JSON.stringify(pendingMfa));
+    setPendingMfa(null);
+    setIsCheckingSession(false);
+    return { success:true };
+  };
+
   const signOut = () => {
     setSession(null);
+    setPendingMfa(null);
+    setLiveVerified(!isSupabaseConfigured() && !import.meta.env.PROD);
+    if (isSupabaseConfigured()) void supabase?.auth.signOut();
     staffAuthService.signOutStaff();
     try {
       if (typeof window !== 'undefined' && window.sessionStorage) {
@@ -218,9 +280,11 @@ export const DepartmentAuthProvider: React.FC<{ children: ReactNode }> = ({ chil
         departmentMeta,
         availableDepartments,
         isAuthenticated,
+        isCheckingSession,
         session,
         signIn,
         signInWithCredentials,
+        completeMfaSignIn,
         checkRevocationStatus,
         signOut,
       }}

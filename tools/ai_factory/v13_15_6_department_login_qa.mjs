@@ -10,6 +10,9 @@ const PORT = 5173;
 const ORIGIN = `http://127.0.0.1:${PORT}`;
 const BROWSER_PORT = 9398;
 const CHROME_PATH = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
+const QA_STAFF_ACCESS_KEY = process.env.AWAAZ_QA_STAFF_ACCESS_KEY;
+
+if (!QA_STAFF_ACCESS_KEY) throw new Error('Set AWAAZ_QA_STAFF_ACCESS_KEY to your local demo key before QA.');
 
 fs.mkdirSync(SCREENSHOT_DIR, { recursive: true });
 fs.mkdirSync(ARTIFACT_DIR, { recursive: true });
@@ -204,7 +207,7 @@ async function main() {
       const u = document.querySelector('input[type="text"]');
       const p = document.querySelector('input[type="password"]');
       setVal(u, 'electricity-01');
-      setVal(p, 'DemoAccessKey2026!Secure');
+      setVal(p, ${JSON.stringify(QA_STAFF_ACCESS_KEY)});
       document.querySelector('form button[type="submit"]').click();
     })()
   `);
@@ -231,7 +234,7 @@ async function main() {
       const u = document.querySelector('input[type="text"]');
       const p = document.querySelector('input[type="password"]');
       setVal(u, 'roads-01');
-      setVal(p, 'DemoAccessKey2026!Secure');
+      setVal(p, ${JSON.stringify(QA_STAFF_ACCESS_KEY)});
       document.querySelector('form button[type="submit"]').click();
     })()
   `);

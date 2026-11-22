@@ -16,7 +16,7 @@ const CHROME_PATH = process.env.CHROME_PATH || (process.platform === 'win32'
   : '/usr/bin/chromium');
 
 const QA_STAFF_USERNAME = process.env.AWAAZ_QA_STAFF_USERNAME || 'roads-01';
-const QA_STAFF_ACCESS_KEY = process.env.AWAAZ_QA_STAFF_ACCESS_KEY || 'DemoAccessKey2026!Secure';
+const QA_STAFF_ACCESS_KEY = process.env.AWAAZ_QA_STAFF_ACCESS_KEY;
 
 fs.mkdirSync(SCREENSHOT_DIR, { recursive: true });
 if (ARTIFACT_DIR) fs.mkdirSync(ARTIFACT_DIR, { recursive: true });
@@ -189,6 +189,7 @@ async function setTheme(mode) {
 }
 
 async function main() {
+  if (!QA_STAFF_ACCESS_KEY) throw new Error('Set AWAAZ_QA_STAFF_ACCESS_KEY to your temporary local demo key before browser QA.');
   console.log('=== V13.17 GEO EVIDENCE, PUBLIC MAP & COMPLETED CASES ARCHIVE BROWSER QA ===\n');
 
   PORT = await freePort();

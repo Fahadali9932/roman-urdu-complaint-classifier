@@ -13,6 +13,7 @@
 import {
   resolveDepartmentIdentity,
 } from '../features/department/auth/departmentIdentities';
+import { getLocalDemoCredentials } from './localDemoCredentials';
 
 export interface DepartmentRow {
   id: string;
@@ -50,6 +51,7 @@ export interface DepartmentMembershipRow {
   id: string;
   user_id: string;
   department_id: string;
+  staff_role?: 'head' | 'officer';
   status: 'active' | 'revoked';
   approved_by: string;
   approved_at: string;
@@ -237,7 +239,7 @@ const SEED_DEPARTMENTS: DepartmentRow[] = [
 
 const SEED_ADMIN_ID = 'admin-seed-uuid-001';
 const SEED_ADMIN_EMAIL = 'admin@example.org';
-// In-memory hash equivalent for AdminPass123!
+// In-memory demo only; never suitable for production password storage.
 const hashPassword = (pwd: string): string => `sha256_emulated_${btoa(pwd)}`;
 
 const generateId = (prefix: string): string =>
@@ -304,16 +306,16 @@ export class LocalSupabaseAdapter {
       updated_at: new Date().toISOString(),
     };
 
-    const adminCredential: StoredUserCredential = {
+    const adminCredential: StoredUserCredential | null = import.meta.env.PROD ? null : {
       userId: SEED_ADMIN_ID,
       email: SEED_ADMIN_EMAIL.toLowerCase(),
-      passwordHash: hashPassword('AdminPass123!'),
+      passwordHash: hashPassword(getLocalDemoCredentials().adminPassword),
     };
 
     return {
       departments: [...SEED_DEPARTMENTS],
       profiles: [adminProfile],
-      credentials: [adminCredential],
+      credentials: adminCredential ? [adminCredential] : [],
       requests: [],
       memberships: [],
       auditLogs: [
@@ -569,6 +571,7 @@ export class LocalSupabaseAdapter {
    * Ensures that a specific department demonstration identity is provisioned in local state on demand.
    */
   public ensureDemonstrationAccount(username: string): void {
+    if (import.meta.env.PROD) return;
     const identity = resolveDepartmentIdentity(username);
     if (!identity) return;
 
@@ -611,7 +614,7 @@ export class LocalSupabaseAdapter {
       cred = {
         userId: profile.id,
         email: identity.authEmail.toLowerCase(),
-        passwordHash: hashPassword('DemoAccessKey2026!Secure'),
+        passwordHash: hashPassword(getLocalDemoCredentials().staffPassword),
       };
       this.state.credentials.push(cred);
     }
