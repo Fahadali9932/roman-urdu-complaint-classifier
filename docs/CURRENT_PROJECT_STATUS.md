@@ -5,7 +5,48 @@ Verified on **22 November 2026 (Pakistan time)**. Internal delivery target:
 This document distinguishes inspected source, automated checks, and unverified
 hosted behavior. Update it after every significant verified milestone.
 
-## Current development update, 22 November 2026 — Phase V13.17: Private Issue Evidence, Public Karachi Density Map & Completed-Case Archive
+## Current development update, 22 November 2026 — Phase V13.18: Verified Field Operations, 72-Hour Citizen Review & Real Multi-Viewport QA
+
+- **Verified Field Operations & Work Orders (`FieldOperationsDesk.tsx`, `fieldOperations.ts`, `field-operations-v18.css`):**
+  - **Department Head Dispatch Desk (`?view=dispatch`):** Allows supervisors to search incoming case groups, assign a responsible officer with a deadline and written instructions, and review pending extensions. Assignments link durable complaint UUIDs rather than ephemeral group IDs.
+  - **Officer Field Workspace (`?view=field`):** Officers see only their assigned work orders, can begin work, track normal / approaching / overdue deadline states, request extensions with documented reasons, capture on-site GPS and photographic proof, and submit for supervisor approval.
+  - **Officer Team Roster & Transparent Ratings (`?view=team`):** Displays team roster with verified, active, overdue, and disputed case counts. Features an encouraging 1–5 star rating (`officerRating`) displayed only after an officer completes at least 5 verified cases, weighted towards punctuality (70%) and low citizen disputes (30%).
+  - **Supervisor Proof Verification Inbox (`?view=verification`):** Supervisors inspect officer-submitted photos with original citizen pin distance comparison, GPS accuracy, and duplicate image hash warnings before approving or returning work.
+  - **Verified Work Archive & Citizen Case Closure (`?view=field_archive`):** Verified work orders are archived and remain searchable. Primary department heads can initiate final citizen case closure with auditable status transitions.
+- **Fahad-Approved 72-Hour Citizen Review Contract (`CitizenProofPanel.tsx`, SQL Migrations):**
+  - **Private Owner Review:** Approved field proof is surfaced exclusively in the authenticated citizen's private My Complaints detail via temporary signed URLs from the private bucket `department-work-proof-private`.
+  - **Versioned Feedback Cycle:** Citizen feedback (`confirmed` / `disputed`) is tied to the exact approved evidence version. A citizen dispute immediately returns the work order to `returned` status for officer rework and logs an audit event.
+  - **72-Hour Response Window:** Citizens have exactly 72 hours after supervisor approval to confirm or dispute.
+  - **Protected Case Closure:** Final complaint closure requires proof from every assigned municipal department. Nonresponse closure before 72 hours is rejected by server triggers; nonresponse closure after 72 hours requires a documented 20–1200 character supervisor rationale stored in a protected review record.
+- **Security & Authorization Hardening:**
+  - **Database Authority:** Head and officer privileges derive from active `department_memberships` rows, not editable client tokens. Sensitive operations require verified Supabase JWT AAL2 TOTP MFA.
+  - **Storage Privacy:** The evidence bucket `department-work-proof-private` is non-public; signed download URLs are granted only to assigned personnel and verified complaint owners.
+  - **Edge Functions:** Deployed `upload-department-work-proof` (file signature magic-byte check, 1 MiB limit, Karachi bounding) and `provision-department-staff` (invitations, role designation).
+  - **Sanitized Demonstration Authentication:** Removed all hardcoded staff and admin demonstration passwords. Local development generates per-session credentials or reads private ignored `.env.local` variables (`VITE_AWAAZ_LOCAL_STAFF_PASSWORD`, `VITE_AWAAZ_LOCAL_ADMIN_PASSWORD`).
+- **Comprehensive Quality Gates & Multi-Viewport Browser QA:**
+  - TypeScript Compiler `tsc -b`: **0 errors**.
+  - Production Build `npm run build`: compiled in **1.07s**.
+  - Vitest Unit & Integration Suite: **644 passed, 1 skipped (63 test files, 100% pass)**.
+  - V13.18 Work Orders Security Gate (`tests/edge/v13_18_work_orders_security_gate.mjs`): **6 passed, 0 failed**.
+  - V13.18 Citizen Review Security Gate (`tests/edge/v13_18_citizen_review_security_gate.mjs`): **5 passed, 0 failed**.
+  - V13.17 Geo Evidence Security Gate (`tests/edge/v13_17_geo_evidence_security_gate.mjs`): **4 passed, 0 failed**.
+  - V13.16.2 Atomic Batch Gate (`tests/edge/v13_16_2_atomic_batch_gate.mjs`): **5 passed, 0 failed**.
+  - Edge Security Boundaries (`tests/edge/complaint-boundaries.mjs`): **16 passed, 0 failed**.
+  - Production Bundle Verification (`v13_8_2_verify_production_bundle.mjs`): **PASS** (zero demonstration fixtures or auth bypass markers).
+  - Python Backend Unittests (`tests/v11`): **106 passed in 16.59s**.
+  - Code Linter `npm run lint`: **0 errors (146 pre-existing warnings)**.
+  - Git Diff Check `git diff --check`: **0 errors**.
+  - Real Google Chrome CDP Browser QA (`tools/ai_factory/v13_18_browser_qa.mjs`): **100% pass across all 5 viewports (1440px, 1024px, 768px, 393px, 320px) in light and dark modes**. 0px horizontal overflow across all tested routes (`overflow: 0px`). Generated 70 screenshots saved to `docs/v11/screenshots/v13_18/` and brain artifacts.
+- **Preserved Model Provenance & Invariants:**
+  - Frozen Run004 (`E4D04293...` / `bd3241e9...`) and Run006 (`C5D4E3D4...` / `165b7c21...`) are 100% byte-for-byte identical to baseline. Zero autonomous retraining.
+  - Primary workspace `D:\RomanUrdu_ComplaintClassifier_staff_auth` preserved with zero modifications.
+  - Zero paid dependencies ($0.00 spent).
+- **Staging Reality & Release Gates:**
+  - **Code Complete & Locally Verified:** All code, migrations, tests, edge security gates, and visual assets verified in worktree `D:\RomanUrdu_V13_18_Field`.
+  - **Hosted Staging Release Gate:** Hosted database migrations on staging project `jvbulmmdwovtgaxojxhn` (V13.17 prerequisites and V13.18 work orders) require separate administrator execution. Real multi-account JWT testing remains pending disposable staging account provisioning.
+  - **Production Boundary:** Production project `akbwiedtmxjxcjscgitw` was not modified. No merge to `main`.
+
+## Previous development update, 22 November 2026 — Phase V13.17: Private Issue Evidence, Public Karachi Density Map & Completed-Case Archive
 
 - **Department Completed Cases Archive (`DepartmentSidebar.tsx`, `DepartmentDashboardPage.tsx`, `WorkQueuePage.tsx`):**
   - **Read-Only Historical Workspace:** Added dedicated "Completed cases" navigation item (`data-view="archive"`) to `DepartmentSidebar`. Navigates to `/department?view=archive`, rendering the Work Queue in `completed` mode with H1 "Completed cases", eyebrow "OPERATIONS / RECORDS", and active filter chip "Archived resolutions".
