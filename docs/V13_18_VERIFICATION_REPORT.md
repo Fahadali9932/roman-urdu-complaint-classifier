@@ -7,7 +7,7 @@
 **Base:** V13.17 `930f209f84a9258673fc075a75d6b82f065bd14c`
 **Date:** 22 November 2026 (Pakistan)
 
-**Pushed review commit:** `2a4f1a703831dbd9ec1cfbdfa7449c17d0c4ad7c` on `feature/v13-18-verified-field-operations`; [draft PR #2](https://github.com/Fahadali9932/roman-urdu-complaint-classifier/pull/2) against V13.17 (31 changed files). The final documentation-only follow-up may appear as a further review commit. The main branch and production remain unchanged.
+**Published branch:** `feature/v13-18-verified-field-operations`; [draft PR #2](https://github.com/Fahadali9932/roman-urdu-complaint-classifier/pull/2) against V13.17. The completed citizen-review source milestone was pushed as `9092906d9e755c1e1e9ad35e19dac9fd72543de9`; verify the PR head for later documentation-only updates. The main branch and production remain unchanged.
 
 ## Completed
 

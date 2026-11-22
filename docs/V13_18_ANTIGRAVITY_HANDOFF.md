@@ -4,7 +4,7 @@ You are working on `Fahadali9932/roman-urdu-complaint-classifier` and MUST prese
 
 ## Authoritative source
 
-Use the **already implemented and pushed** feature branch `feature/v13-18-verified-field-operations`, remote commit `2a4f1a703831dbd9ec1cfbdfa7449c17d0c4ad7c`, based on `930f209f84a9258673fc075a75d6b82f065bd14c` (`feature/v13-17-evidence-geo-archive-map`). The review is [draft PR #2](https://github.com/Fahadali9932/roman-urdu-complaint-classifier/pull/2), targeted to V13.17 so only these 31 files are in scope; main has 204 earlier unmerged commits. Do not reimplement the same feature with another AI. Apply the supplied `Awaaz_e_Awam_V13_18_Field_Operations.patch` **only if the remote branch is unavailable and only on that exact base commit**. Never apply both; it would duplicate commits.
+Use the **already implemented and pushed** feature branch `feature/v13-18-verified-field-operations`, based on `930f209f84a9258673fc075a75d6b82f065bd14c` (`feature/v13-17-evidence-geo-archive-map`). Verify its current head with `git rev-parse HEAD`; the current source milestone includes the approved 72-hour citizen review policy. The review is [draft PR #2](https://github.com/Fahadali9932/roman-urdu-complaint-classifier/pull/2), targeted to V13.17 for a focused diff; main has 204 earlier unmerged commits. Do not reimplement the same feature with another AI. Apply the supplied `Awaaz_e_Awam_V13_18_FINAL_Complete.patch` **only if the remote branch is unavailable and only on that exact base commit**. Never apply both; it would duplicate commits.
 
 Read `docs/V13_18_VERIFIED_FIELD_OPERATIONS.md` fully before doing anything. First run `git status --short`, `git branch -vv`, `git remote -v`, `git log -1 --oneline`, `git worktree list`. If there are existing changes, preserve them and use a new isolated worktree; never reset, force-push, wipe files, delete the user's changed work, or merge straight into main.
 
@@ -45,7 +45,7 @@ Only if that remote branch is unavailable, use **exactly one** isolated worktree
 git fetch origin
 git worktree add -b feature/v13-18-verified-field-operations "D:\RomanUrdu_V13_18_Field" 930f209f84a9258673fc075a75d6b82f065bd14c
 Set-Location "D:\RomanUrdu_V13_18_Field"
-git am "$env:USERPROFILE\Downloads\Awaaz_e_Awam_V13_18_Field_Operations.patch"
+git am "$env:USERPROFILE\Downloads\Awaaz_e_Awam_V13_18_FINAL_Complete.patch"
 ```
 
 **Staging deployment requires an explicit real-staging project and safe administrator access.** On a disposable staging Supabase project, inspect and then apply migration `20261203000000_v13_18_verified_department_work_orders.sql` only after V13.17, and deploy `upload-department-work-proof` and `provision-department-staff`. Configure actual SMTP, service-role secret in Edge Function environment only, and bootstrap approved head/officer email accounts and TOTP. Test multiple identities, RLS access denial, cross-department isolation, full evidence lifecycle, status closure and no citizen-image leakage. Do NOT use development passwords as proof that staging auth works. Rehearse rollback and obtain human approval before applying SQL to production or publishing.
