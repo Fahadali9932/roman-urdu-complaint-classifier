@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../../context/LanguageContext';
 import { useAdminAuth } from '../../../context/AdminAuthContext';
-import { Shield, LogOut, Globe, FileText, UserCheck, Users, Cpu } from 'lucide-react';
+import { Shield, LogOut, Globe, FileText, UserCheck, Users, Cpu, Moon, Sun } from 'lucide-react';
+import '../admin-portal.css';
 
 interface AdminHeaderProps {
   activeTab: 'overview' | 'complaints' | 'requests' | 'access' | 'ai';
@@ -13,6 +14,25 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ activeTab }) => {
   const { adminSession, signOut } = useAdminAuth();
   const navigate = useNavigate();
 
+  const [themeMode, setThemeMode] = useState<'light' | 'dark'>(() => {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const saved = localStorage.getItem('awaaz_dept_theme_mode') || localStorage.getItem('aawaaz-demo-theme');
+      if (saved === 'dark' || saved === 'light') return saved;
+    }
+    return 'light';
+  });
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('awaaz_dept_theme_mode') || localStorage.getItem('aawaaz-demo-theme');
+      const mode = (saved === 'dark' || saved === 'light') ? saved : 'light';
+      setThemeMode(mode);
+      document.documentElement.setAttribute('data-theme', mode);
+      const shells = document.querySelectorAll('.admin-shell');
+      shells.forEach((s) => s.setAttribute('data-theme', mode));
+    }
+  }, []);
+
   const handleSignOut = () => {
     signOut();
     navigate('/admin/login');
@@ -20,6 +40,18 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ activeTab }) => {
 
   const toggleLanguage = () => {
     setLanguage(language === 'en' ? 'ur' : 'en');
+  };
+
+  const toggleTheme = () => {
+    const next = themeMode === 'light' ? 'dark' : 'light';
+    setThemeMode(next);
+    if (typeof window !== 'undefined' && window.localStorage) {
+      localStorage.setItem('awaaz_dept_theme_mode', next);
+      localStorage.setItem('aawaaz-demo-theme', next);
+      document.documentElement.setAttribute('data-theme', next);
+      const shells = document.querySelectorAll('.admin-shell');
+      shells.forEach((s) => s.setAttribute('data-theme', next));
+    }
   };
 
   return (
@@ -49,8 +81,19 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ activeTab }) => {
             </div>
           </div>
 
-          {/* Controls: Language toggle & Sign out */}
+          {/* Controls: Theme toggle, Language toggle & Sign out */}
           <div className="flex items-center gap-2 sm:gap-3">
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#E2E8F0] hover:bg-[#F8FAFC] text-xs font-semibold text-[#0F1E21] transition-colors cursor-pointer"
+              title={themeMode === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+              aria-label={themeMode === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+            >
+              {themeMode === 'light' ? <Moon className="w-3.5 h-3.5 text-[#64748B]" /> : <Sun className="w-3.5 h-3.5 text-amber-400" />}
+              <span className="hidden sm:inline">{themeMode === 'light' ? 'Dark' : 'Light'}</span>
+            </button>
+
             <button
               type="button"
               onClick={toggleLanguage}

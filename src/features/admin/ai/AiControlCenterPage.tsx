@@ -196,17 +196,17 @@ export const AiControlCenterPage: React.FC = () => {
   const stateBadgeStyle = {
     LIVE: { bg: '#ecfdf5', text: '#059669', border: '#a7f3d0', label: 'LIVE SIMULATION' },
     RUNNING: { bg: '#ecfdf5', text: '#059669', border: '#a7f3d0', label: 'TRAINING IN PROGRESS' },
-    IDLE: { bg: '#f1f5f9', text: '#475569', border: '#cbd5e1', label: 'IDLE (STANDBY)' },
+    IDLE: { bg: '#f1f5f9', text: '#475569', border: '#cbd5e1', label: 'Disconnected (Offline benchmark)' },
     STALE: { bg: '#fffbeb', text: '#b45309', border: '#fde68a', label: 'STALE HEARTBEAT' },
     COMPLETED: { bg: '#eff6ff', text: '#1d4ed8', border: '#bfdbfe', label: 'DIAGNOSTIC COMPLETED' },
     FAILED: { bg: '#fef2f2', text: '#b91c1c', border: '#fecaca', label: 'FAILED / INTERRUPTED' },
-  }[telemetry.state] || { bg: '#f1f5f9', text: '#475569', border: '#cbd5e1', label: telemetry.state };
+  }[telemetry.state] || { bg: '#f1f5f9', text: '#475569', border: '#cbd5e1', label: 'Disconnected (Offline benchmark)' };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC]">
+    <div className="admin-shell min-h-screen flex flex-col font-sans overflow-x-hidden w-full max-w-full">
       <AdminHeader activeTab="ai" />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="flex-1 max-w-7xl w-full min-w-0 mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Page Top Header */}
         <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
@@ -263,7 +263,7 @@ export const AiControlCenterPage: React.FC = () => {
         )}
 
         {/* Navigation Segment Pills */}
-        <div className="flex items-center gap-2 border-b border-[#E2E8F0] pb-2 mb-6 overflow-x-auto">
+        <div className="flex items-center gap-2 border-b border-[#E2E8F0] pb-2 mb-6 overflow-x-auto max-w-full">
           {[
             { id: 'overview', label: 'Model snapshot', icon: Layers },
             { id: 'live', label: 'Training telemetry', icon: Activity },
@@ -279,7 +279,7 @@ export const AiControlCenterPage: React.FC = () => {
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveSegment(tab.id as any)}
-                className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-colors whitespace-nowrap cursor-pointer ${
+                className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-colors whitespace-nowrap cursor-pointer shrink-0 ${
                   isActive
                     ? 'bg-[#0F1E21] text-white shadow-xs'
                     : 'bg-white text-[#64748B] hover:text-[#0F1E21] hover:bg-slate-100 border border-[#E2E8F0]'
@@ -297,7 +297,7 @@ export const AiControlCenterPage: React.FC = () => {
           <div className="space-y-6">
             {/* Active Model Snapshot Card */}
             <div className="bg-white rounded-xl border border-[#E2E8F0] p-6 shadow-xs">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-4 border-b border-slate-100 gap-3">
+              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between pb-4 border-b border-slate-100 gap-3">
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
@@ -306,12 +306,12 @@ export const AiControlCenterPage: React.FC = () => {
                     <span className="text-xs text-slate-400 font-mono">v11-candidate-run-004-champion</span>
                   </div>
                   <h2 className="text-lg font-bold text-slate-900 mt-1">
-                    Run004 classifier — historical local evaluation
+                    Run004 classifier — Historical local evaluation
                   </h2>
                 </div>
-                <div className="text-right">
+                <div className="text-left lg:text-right">
                   <span className="text-xs text-slate-500 font-mono">SHA-256</span>
-                  <div className="text-xs font-mono font-semibold text-slate-700 bg-slate-50 px-2 py-1 rounded border border-slate-200">
+                  <div className="text-xs font-mono font-semibold text-slate-700 bg-slate-50 px-2 py-1 rounded border border-slate-200 break-all max-w-xs sm:max-w-sm">
                     e4d042937cf8c3e1e3c70f147a707b33a629d463db34485766c98da21c2e3a56
                   </div>
                 </div>
@@ -349,7 +349,7 @@ export const AiControlCenterPage: React.FC = () => {
                 <h4 className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-3">
                   Calibrated Department Decision Thresholds
                 </h4>
-                <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
                   {[
                     { dept: 'kmc', label: 'KMC', thresh: '0.25' },
                     { dept: 'kwsc', label: 'KWSC', thresh: '0.38' },

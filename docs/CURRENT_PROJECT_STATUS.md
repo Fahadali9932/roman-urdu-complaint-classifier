@@ -5,29 +5,47 @@ Verified on **22 November 2026 (Pakistan time)**. Internal delivery target:
 This document distinguishes inspected source, automated checks, and unverified
 hosted behavior. Update it after every significant verified milestone.
 
-## Development update, 22 November 2026 — Phase V13.19: Administration & Field-Operations Review, Municipal UX, CSPRNG Security & Visual QA
+## Development update, 22 November 2026 — Phase V13.19: Complete Administration & Field-Operations Refinement, Municipal UX, Genuine Admin Dark Theme, 20 Pen-Test Audit & 85-Assertion Browser QA
 
 - **Municipal Operations Console & Restrained UX (`FieldOperationsDesk.tsx`, `DepartmentSidebar.tsx`, `field-operations-v18.css`):**
   - **Quiet Editorial Hierarchy:** Replaced generic slogans with compact, contextual headings ("Dispatch desk", "Officer roster", "Proof verification", "Verified work archive"). Suppressed repeated 4-metric KPI strips on non-dispatch views (team roster, proof verification, completed archive).
   - **Grouped Staff Sidebar:** Navigation cleanly separated into "FIELD OPERATIONS" (or "MY WORKSPACE" for officers) and "COMPLAINT RECORDS", maintaining compact 44px+ hit targets with session demo badge.
-  - **Dispatch Usability:** Added case count badge, responsive search, 35-case paging with explicit "Show more", and an actionable 3-step assignment brief in the empty state.
+  - **Dispatch Usability:** Added case count badge, responsive search, 35-case paging with explicit "Show more", and an actionable 3-step assignment brief in the empty state. Candidate counter displays filtered vs total count (`X of Y`).
   - **Native Dark Theme:** High-contrast overrides with CSS variables for work order cards, inputs, dialogs, badges, and feedback banners.
-- **Central Administrator Portal Simplification (`AdminHeader.tsx`, `AdminAccessPage.tsx`, `AdminRequestsPage.tsx`):**
-  - **Clean 3-Tab Rail:** Removed dead/nonfunctional "Overview" tab; streamlined to "Department Requests", "People & permissions", and "Model review".
-  - **Access & Invitation Order:** Approved department staff are displayed prominently first; employee invitation form is collapsed inside a clean disclosure.
-- **Model Governance & Telemetry Honesty (`AiControlCenterPage.tsx`, `aiTelemetryService.ts`):**
-  - **Truthful Telemetry:** Differentiates historical offline benchmark results from disconnected live telemetry without inventing disk usage or runtime stats. Unreachable endpoints report "unavailable" and "STALE".
-- **Cryptographic Randomness & Security Hygiene (`referenceGenerator.ts`, `SimplifiedComplaintContainer.tsx`, `MockComplaintService.ts`):**
+- **Genuine Central Administrator Dark Theme & Simplification (`admin-portal.css`, `AdminHeader.tsx`, `AdminAccessPage.tsx`, `AdminRequestsPage.tsx`):**
+  - **True High-Contrast Dark Console:** Implemented purpose-built `.admin-shell` scoped design tokens (`admin-portal.css`). Dark mode renders rich slate/ink surfaces (`#0B1117` canvas, `#141C24` surfaces, `#263544` borders, `#F0F4F8` primary text) with zero white-card clipping.
+  - **Header Controls & Theme Switcher:** Added interactive Sun/Moon theme toggle in `AdminHeader` syncing with `localStorage`. Streamlined admin navigation to a 3-tab rail: "Department Requests", "People & permissions", and "Model review".
+  - **Access & Invitation Order:** Approved department staff records display prominently first; employee invitation form is collapsed inside a clean disclosure.
+- **Truthful Model Governance & Telemetry (`AiControlCenterPage.tsx`, `aiTelemetryService.ts`):**
+  - **Truthful Telemetry:** Differentiates historical offline benchmark results from disconnected live telemetry without inventing disk usage or runtime stats. Unreachable endpoints report "Disconnected (Offline benchmark)" and "STALE".
+- **Functional Lifecycle Scenarios A through M Gate (`tests/edge/v13_19_scenarios_a_to_m_gate.mjs`):**
+  - All 13 lifecycle scenarios automated and verified:
+    - Scenario A: Head dispatches case to officer (PASS)
+    - Scenario B: Officer sees assigned case in field workspace (PASS)
+    - Scenario C: Officer marks work in progress (PASS)
+    - Scenario D: Officer requests deadline extension with reason (PASS)
+    - Scenario E: Head decides on extension request (PASS)
+    - Scenario F: Officer submits completion proof with bounding & telemetry (PASS)
+    - Scenario G: Head reviews completion proof (PASS)
+    - Scenario H: Head verifies or returns for rework (PASS)
+    - Scenario I: Citizen sees updated status and submits feedback (PASS)
+    - Scenario J: Head views archive and closes verified records (PASS)
+    - Scenario K: Central admin reviews staff access and role assignments (PASS)
+    - Scenario L: Central admin invites new staff member with strict validation (PASS)
+    - Scenario M: Non-admin citizen attempts admin URL access (denied at boundary) (PASS)
+- **Cryptographic Randomness & Security Hygiene (`referenceGenerator.ts`, `SimplifiedComplaintContainer.tsx`):**
   - **CSPRNG Enforced:** Replaced all `Math.random()` usage for 24-digit guest tracking numbers and local claim secrets with `crypto.getRandomValues()`. Tested to fail closed when cryptographic entropy is absent.
-  - **20 Pen-Test Scope Audit:** Documented explicit PASS / NOT TESTED / NOT APPLICABLE analysis for all 20 security assessment categories.
+  - **20 Pen-Test Scope Audit:** Formally classified all 20 security categories using the strict 5-tier taxonomy (PASS — EXECUTED TEST, PASS — STATIC/POLICY CHECK ONLY, FAIL, NOT TESTED, NOT APPLICABLE).
 - **Automated Verification & Multi-Viewport Chrome QA:**
-  - TypeScript + Vite build: PASS in 1.23s.
+  - TypeScript + Vite build: PASS in 1.06s.
   - Vitest suite: **652 passed, 1 skipped** across 65 test files.
-  - 4 Edge security gates (work orders, citizen review, geo evidence, atomic batch): **20 passed**.
-  - Municipal boundaries: **16 passed**.
+  - 5 Edge security gates (scenarios A–M, work orders, citizen review, geo evidence, atomic batch): **33 passed, 0 failed**.
+  - Municipal boundaries: **16 passed, 0 failed**.
   - Production bundle hygiene: PASS (0 auth bypass markers or fixtures).
-  - Python backend unittest: **106 passed**.
-  - Real Chrome Visual QA (`tools/ai_factory/v13_19_browser_qa.mjs`): **85 screenshots verified across 5 viewports (1440, 1024, 768, 393, 320 px) in Light & Dark modes with 0px horizontal overflow**.
+  - Python backend unittest: **106 passed in 16.31s**.
+  - Code Linter (oxlint): **0 errors (146 pre-existing warnings)**.
+  - Git Diff Check (`git diff --check`): **0 errors**.
+  - Real Google Chrome Visual QA (`tools/ai_factory/v13_19_browser_qa.mjs`): **85 screenshots verified across 5 viewports (1440, 1024, 768, 393, 320 px) in Light & Dark modes with 0px horizontal overflow**. Verified that dark-mode admin screenshots are distinct from light-mode screenshots (`Identical: false`).
 
 
 ## Staging follow-up, 22 November 2026 — V13.18 migrations, real database tests and separate officer demo

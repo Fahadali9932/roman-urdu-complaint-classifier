@@ -1,0 +1,330 @@
+/* ==============================================================================
+   AWAAZ-E-AWAM — CENTRAL ADMINISTRATOR OPERATIONS PORTAL DESIGN SYSTEM
+   Professional Civic Console Design with WCAG AA Contrast in Light & Dark Modes
+   ============================================================================== */
+
+:root {
+  --admin-canvas: #f8fafc;
+  --admin-surface: #ffffff;
+  --admin-surface-subtle: #f1f5f9;
+  --admin-surface-hover: #f8fafc;
+  --admin-border: #e2e8f0;
+  --admin-border-strong: #cbd5e1;
+  --admin-text-primary: #0f1e21;
+  --admin-text-secondary: #334155;
+  --admin-text-muted: #64748b;
+  --admin-text-faint: #94a3b8;
+  --admin-header-bg: #ffffff;
+  --admin-accent: #0f1e21;
+  --admin-accent-contrast: #ffffff;
+}
+
+.admin-shell {
+  background-color: var(--admin-canvas);
+  color: var(--admin-text-primary);
+  min-height: 100vh;
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+  box-sizing: border-box;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.admin-shell main {
+  width: 100%;
+  max-width: 80rem;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+/* ==============================================================================
+   DARK THEME: PURPOSE-BUILT CIVIC CONSOLE PALETTE
+   High-contrast, non-reflective surfaces for continuous operations oversight.
+   ============================================================================== */
+
+[data-theme="dark"] .admin-shell,
+.admin-shell[data-theme="dark"],
+html[data-theme="dark"] .admin-shell {
+  --admin-canvas: #0b1117;
+  --admin-surface: #141c24;
+  --admin-surface-subtle: #1a2530;
+  --admin-surface-hover: #22303e;
+  --admin-border: #263544;
+  --admin-border-strong: #384b5e;
+  --admin-text-primary: #f0f4f8;
+  --admin-text-secondary: #cbd5e1;
+  --admin-text-muted: #94a3b8;
+  --admin-text-faint: #64748b;
+  --admin-header-bg: #101720;
+  --admin-accent: #38bdf8;
+  --admin-accent-contrast: #0b1117;
+}
+
+/* Header & Navigation Bar in Dark Mode */
+[data-theme="dark"] .admin-shell header,
+.admin-shell[data-theme="dark"] header,
+html[data-theme="dark"] .admin-shell header {
+  background-color: var(--admin-header-bg) !important;
+  border-bottom-color: var(--admin-border) !important;
+  color: var(--admin-text-primary) !important;
+}
+
+[data-theme="dark"] .admin-shell header nav a,
+.admin-shell[data-theme="dark"] header nav a,
+html[data-theme="dark"] .admin-shell header nav a {
+  color: var(--admin-text-muted) !important;
+}
+
+[data-theme="dark"] .admin-shell header nav a:hover,
+.admin-shell[data-theme="dark"] header nav a:hover,
+html[data-theme="dark"] .admin-shell header nav a:hover {
+  color: var(--admin-text-primary) !important;
+}
+
+[data-theme="dark"] .admin-shell header nav a.active,
+.admin-shell[data-theme="dark"] header nav a.active,
+html[data-theme="dark"] .admin-shell header nav a.active,
+[data-theme="dark"] .admin-shell header nav a[class*="border-[#0F1E21]"],
+.admin-shell[data-theme="dark"] header nav a[class*="border-[#0F1E21]"],
+html[data-theme="dark"] .admin-shell header nav a[class*="border-[#0F1E21]"] {
+  color: #38bdf8 !important;
+  border-bottom-color: #38bdf8 !important;
+}
+
+/* Surfaces, Cards, Sections in Dark Mode */
+[data-theme="dark"] .admin-shell section,
+.admin-shell[data-theme="dark"] section,
+html[data-theme="dark"] .admin-shell section,
+[data-theme="dark"] .admin-shell .bg-white,
+.admin-shell[data-theme="dark"] .bg-white,
+html[data-theme="dark"] .admin-shell .bg-white {
+  background-color: var(--admin-surface) !important;
+  border-color: var(--admin-border) !important;
+  color: var(--admin-text-primary) !important;
+}
+
+/* Inset / Subtle Card Panels */
+[data-theme="dark"] .admin-shell .bg-slate-50,
+.admin-shell[data-theme="dark"] .bg-slate-50,
+html[data-theme="dark"] .admin-shell .bg-slate-50,
+[data-theme="dark"] .admin-shell .bg-\[\#F8FAFC\],
+.admin-shell[data-theme="dark"] .bg-\[\#F8FAFC\],
+html[data-theme="dark"] .admin-shell .bg-\[\#F8FAFC\] {
+  background-color: var(--admin-surface-subtle) !important;
+  border-color: var(--admin-border) !important;
+  color: var(--admin-text-secondary) !important;
+}
+
+/* Typography Overrides in Dark Mode */
+[data-theme="dark"] .admin-shell h1,
+.admin-shell[data-theme="dark"] h1,
+html[data-theme="dark"] .admin-shell h1,
+[data-theme="dark"] .admin-shell h2,
+.admin-shell[data-theme="dark"] h2,
+html[data-theme="dark"] .admin-shell h2,
+[data-theme="dark"] .admin-shell h3,
+.admin-shell[data-theme="dark"] h3,
+html[data-theme="dark"] .admin-shell h3,
+[data-theme="dark"] .admin-shell .text-\[\#0F1E21\],
+.admin-shell[data-theme="dark"] .text-\[\#0F1E21\],
+html[data-theme="dark"] .admin-shell .text-\[\#0F1E21\],
+[data-theme="dark"] .admin-shell .text-\[\#102E30\],
+.admin-shell[data-theme="dark"] .text-\[\#102E30\],
+html[data-theme="dark"] .admin-shell .text-\[\#102E30\],
+[data-theme="dark"] .admin-shell .text-\[\#14272A\],
+.admin-shell[data-theme="dark"] .text-\[\#14272A\],
+html[data-theme="dark"] .admin-shell .text-\[\#14272A\],
+[data-theme="dark"] .admin-shell .text-slate-900,
+.admin-shell[data-theme="dark"] .text-slate-900,
+html[data-theme="dark"] .admin-shell .text-slate-900 {
+  color: var(--admin-text-primary) !important;
+}
+
+[data-theme="dark"] .admin-shell .text-\[\#64748B\],
+.admin-shell[data-theme="dark"] .text-\[\#64748B\],
+html[data-theme="dark"] .admin-shell .text-\[\#64748B\],
+[data-theme="dark"] .admin-shell .text-slate-500,
+.admin-shell[data-theme="dark"] .text-slate-500,
+html[data-theme="dark"] .admin-shell .text-slate-500,
+[data-theme="dark"] .admin-shell .text-slate-600,
+.admin-shell[data-theme="dark"] .text-slate-600,
+html[data-theme="dark"] .admin-shell .text-slate-600 {
+  color: var(--admin-text-muted) !important;
+}
+
+[data-theme="dark"] .admin-shell .text-\[\#334155\],
+.admin-shell[data-theme="dark"] .text-\[\#334155\],
+html[data-theme="dark"] .admin-shell .text-\[\#334155\],
+[data-theme="dark"] .admin-shell .text-slate-700,
+.admin-shell[data-theme="dark"] .text-slate-700,
+html[data-theme="dark"] .admin-shell .text-slate-700 {
+  color: var(--admin-text-secondary) !important;
+}
+
+/* Borders in Dark Mode */
+[data-theme="dark"] .admin-shell .border-\[\#E2E8F0\],
+.admin-shell[data-theme="dark"] .border-\[\#E2E8F0\],
+html[data-theme="dark"] .admin-shell .border-\[\#E2E8F0\],
+[data-theme="dark"] .admin-shell .border-\[\#CBD5E1\],
+.admin-shell[data-theme="dark"] .border-\[\#CBD5E1\],
+html[data-theme="dark"] .admin-shell .border-\[\#CBD5E1\],
+[data-theme="dark"] .admin-shell .border-\[\#D8E0DE\],
+.admin-shell[data-theme="dark"] .border-\[\#D8E0DE\],
+html[data-theme="dark"] .admin-shell .border-\[\#D8E0DE\],
+[data-theme="dark"] .admin-shell .border-slate-100,
+.admin-shell[data-theme="dark"] .border-slate-100,
+html[data-theme="dark"] .admin-shell .border-slate-100,
+[data-theme="dark"] .admin-shell .border-slate-200,
+.admin-shell[data-theme="dark"] .border-slate-200,
+html[data-theme="dark"] .admin-shell .border-slate-200,
+[data-theme="dark"] .admin-shell .border-slate-300,
+.admin-shell[data-theme="dark"] .border-slate-300,
+html[data-theme="dark"] .admin-shell .border-slate-300 {
+  border-color: var(--admin-border) !important;
+}
+
+/* Form Inputs, Selects, Textareas */
+[data-theme="dark"] .admin-shell input,
+.admin-shell[data-theme="dark"] input,
+html[data-theme="dark"] .admin-shell input,
+[data-theme="dark"] .admin-shell select,
+.admin-shell[data-theme="dark"] select,
+html[data-theme="dark"] .admin-shell select,
+[data-theme="dark"] .admin-shell textarea,
+.admin-shell[data-theme="dark"] textarea,
+html[data-theme="dark"] .admin-shell textarea {
+  background-color: var(--admin-surface-subtle) !important;
+  color: var(--admin-text-primary) !important;
+  border-color: var(--admin-border-strong) !important;
+}
+
+[data-theme="dark"] .admin-shell input::placeholder,
+.admin-shell[data-theme="dark"] input::placeholder,
+html[data-theme="dark"] .admin-shell input::placeholder,
+[data-theme="dark"] .admin-shell textarea::placeholder,
+.admin-shell[data-theme="dark"] textarea::placeholder,
+html[data-theme="dark"] .admin-shell textarea::placeholder {
+  color: var(--admin-text-faint) !important;
+}
+
+/* Tables in Dark Mode */
+[data-theme="dark"] .admin-shell thead,
+.admin-shell[data-theme="dark"] thead,
+html[data-theme="dark"] .admin-shell thead,
+[data-theme="dark"] .admin-shell thead tr,
+.admin-shell[data-theme="dark"] thead tr,
+html[data-theme="dark"] .admin-shell thead tr {
+  background-color: var(--admin-surface-subtle) !important;
+  border-color: var(--admin-border) !important;
+  color: var(--admin-text-muted) !important;
+}
+
+[data-theme="dark"] .admin-shell tbody tr,
+.admin-shell[data-theme="dark"] tbody tr,
+html[data-theme="dark"] .admin-shell tbody tr {
+  border-color: var(--admin-border) !important;
+}
+
+[data-theme="dark"] .admin-shell tbody tr:hover,
+.admin-shell[data-theme="dark"] tbody tr:hover,
+html[data-theme="dark"] .admin-shell tbody tr:hover,
+[data-theme="dark"] .admin-shell tbody tr[class*="hover:bg-"]:hover,
+.admin-shell[data-theme="dark"] tbody tr[class*="hover:bg-"]:hover,
+html[data-theme="dark"] .admin-shell tbody tr[class*="hover:bg-"]:hover {
+  background-color: var(--admin-surface-hover) !important;
+}
+
+[data-theme="dark"] .admin-shell tbody tr[class*="border-l-emerald"],
+.admin-shell[data-theme="dark"] tbody tr[class*="border-l-emerald"],
+html[data-theme="dark"] .admin-shell tbody tr[class*="border-l-emerald"] {
+  background-color: #0d281e !important;
+  border-left-color: #10b981 !important;
+}
+
+/* Segment Navigation Buttons in Dark Mode */
+[data-theme="dark"] .admin-shell button[class*="bg-white"],
+.admin-shell[data-theme="dark"] button[class*="bg-white"],
+html[data-theme="dark"] .admin-shell button[class*="bg-white"] {
+  background-color: var(--admin-surface) !important;
+  color: var(--admin-text-muted) !important;
+  border-color: var(--admin-border) !important;
+}
+
+[data-theme="dark"] .admin-shell button[class*="bg-white"]:hover,
+.admin-shell[data-theme="dark"] button[class*="bg-white"]:hover,
+html[data-theme="dark"] .admin-shell button[class*="bg-white"]:hover {
+  background-color: var(--admin-surface-hover) !important;
+  color: var(--admin-text-primary) !important;
+}
+
+[data-theme="dark"] .admin-shell button[class*="bg-[#0F1E21]"],
+.admin-shell[data-theme="dark"] button[class*="bg-[#0F1E21]"],
+html[data-theme="dark"] .admin-shell button[class*="bg-[#0F1E21]"] {
+  background-color: #164e44 !important;
+  color: #ffffff !important;
+  border-color: #10b981 !important;
+}
+
+/* Status Badges in Dark Mode */
+[data-theme="dark"] .admin-shell .bg-amber-50,
+.admin-shell[data-theme="dark"] .bg-amber-50,
+html[data-theme="dark"] .admin-shell .bg-amber-50,
+[data-theme="dark"] .admin-shell .bg-amber-100,
+.admin-shell[data-theme="dark"] .bg-amber-100,
+html[data-theme="dark"] .admin-shell .bg-amber-100 {
+  background-color: #2b1f0d !important;
+  color: #fde047 !important;
+  border-color: #78350f !important;
+}
+
+[data-theme="dark"] .admin-shell .bg-emerald-50,
+.admin-shell[data-theme="dark"] .bg-emerald-50,
+html[data-theme="dark"] .admin-shell .bg-emerald-50,
+[data-theme="dark"] .admin-shell .bg-emerald-100,
+.admin-shell[data-theme="dark"] .bg-emerald-100,
+html[data-theme="dark"] .admin-shell .bg-emerald-100 {
+  background-color: #0b291d !important;
+  color: #6ee7b7 !important;
+  border-color: #065f46 !important;
+}
+
+[data-theme="dark"] .admin-shell .bg-rose-50,
+.admin-shell[data-theme="dark"] .bg-rose-50,
+html[data-theme="dark"] .admin-shell .bg-rose-50,
+[data-theme="dark"] .admin-shell .bg-rose-100,
+.admin-shell[data-theme="dark"] .bg-rose-100,
+html[data-theme="dark"] .admin-shell .bg-rose-100 {
+  background-color: #2d1217 !important;
+  color: #fca5a5 !important;
+  border-color: #881337 !important;
+}
+
+[data-theme="dark"] .admin-shell .bg-slate-100,
+.admin-shell[data-theme="dark"] .bg-slate-100,
+html[data-theme="dark"] .admin-shell .bg-slate-100 {
+  background-color: var(--admin-surface-subtle) !important;
+  color: var(--admin-text-secondary) !important;
+}
+
+/* Modals & Dialogs in Dark Mode */
+[data-theme="dark"] .admin-shell div[role="dialog"] > div,
+.admin-shell[data-theme="dark"] div[role="dialog"] > div,
+html[data-theme="dark"] .admin-shell div[role="dialog"] > div {
+  background-color: var(--admin-surface) !important;
+  border-color: var(--admin-border-strong) !important;
+  color: var(--admin-text-primary) !important;
+}
+
+/* Primary Action Buttons */
+.admin-shell button[class*="bg-[#0F1E21]"]:hover {
+  background-color: #1e3a3f !important;
+}
+
+[data-theme="dark"] .admin-shell button[class*="bg-[#0F1E21]"] {
+  background-color: #1a4a40 !important;
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .admin-shell button[class*="bg-[#0F1E21]"]:hover {
+  background-color: #235e52 !important;
+}
