@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   type DepartmentId,
   type IncidentCaseSummary,
@@ -18,10 +18,11 @@ import {
 
 interface WorkQueuePageProps {
   departmentId: DepartmentId;
+  actorId?: string;
   onOpenCase: (caseId: string) => void;
   onOpenReport?: (referenceNumber: string) => void;
   initialArea?: string;
-  initialSavedView?: 'needs' | 'unassigned' | 'mine' | 'all';
+  initialSavedView?: 'needs' | 'unassigned' | 'mine' | 'all' | 'completed';
   initialDisplayMode?: 'cases' | 'reports';
   onCountUpdate?: (counts: { cases: number; reports: number; urgent: number }) => void;
   density?: 'comfortable' | 'compact';
@@ -29,6 +30,7 @@ interface WorkQueuePageProps {
 
 export const WorkQueuePage: React.FC<WorkQueuePageProps> = ({
   departmentId,
+  actorId,
   onOpenCase,
   onOpenReport,
   initialArea = 'All areas',
@@ -38,7 +40,7 @@ export const WorkQueuePage: React.FC<WorkQueuePageProps> = ({
   density = 'comfortable',
 }) => {
   // State
-  const [savedView, setSavedView] = useState<'needs' | 'unassigned' | 'mine' | 'all'>(
+  const [savedView, setSavedView] = useState<WorkQueueFilter['savedView']>(
     initialSavedView
   );
   const [displayMode, setDisplayMode] = useState<'cases' | 'reports'>(
@@ -116,24 +118,14 @@ export const WorkQueuePage: React.FC<WorkQueuePageProps> = ({
     return () => window.clearTimeout(timeout);
   }, [searchQuery]);
 
-  // Dynamic issue types based on loaded cases
-  const issueOptions = useMemo(() => {
-    return [
-      'All issues',
-      'Road damage',
-      'Road safety',
-      'Road drainage',
-      'Road obstruction',
-      'Footpath obstruction',
-      'Pipeline burst',
-      'Sewage overflow',
-      'Contaminated water',
-      'Sparking wire hazard',
-      'Gas leak emergency',
-      'Structural cracks',
-      'Overflowing public dumpster',
-    ];
-  }, []);
+  const [issueOptions, setIssueOptions] = useState(['All issues']);
+  useEffect(() => {
+    let active = true;
+    caseOperationsService.listDepartmentIssueTypes(departmentId)
+      .then((types) => { if (active) setIssueOptions(['All issues', ...types]); })
+      .catch(() => { /* Keep the unfiltered view available on fetch errors. */ });
+    return () => { active = false; };
+  }, [departmentId, retry]);
 
   // Fetch summary
   useEffect(() => {
@@ -164,6 +156,7 @@ export const WorkQueuePage: React.FC<WorkQueuePageProps> = ({
     setLoadError(null);
     const filter: WorkQueueFilter = {
       savedView,
+      actorId,
       displayMode,
       searchQuery: debouncedSearch,
       area: selectedArea,
@@ -190,6 +183,7 @@ export const WorkQueuePage: React.FC<WorkQueuePageProps> = ({
     }
   }, [
     departmentId,
+    actorId,
     savedView,
     displayMode,
     debouncedSearch,
@@ -208,11 +202,16 @@ export const WorkQueuePage: React.FC<WorkQueuePageProps> = ({
 
   // Handle external initial area change
   useEffect(() => {
-    if (initialArea && initialArea !== selectedArea) {
+    if (initialArea) {
       setSelectedArea(initialArea);
       setPage(0);
     }
-  }, [initialArea, selectedArea]);
+  }, [initialArea]);
+
+  useEffect(() => {
+    setSavedView(initialSavedView);
+    setPage(0);
+  }, [initialSavedView]);
 
   // Clear filters
   const handleClearFilters = () => {
@@ -253,9 +252,11 @@ export const WorkQueuePage: React.FC<WorkQueuePageProps> = ({
       {/* Page Heading */}
       <div className="page-heading">
         <div>
-          <div className="ops-eyebrow">OPERATIONS / INTAKE</div>
-          <h1>Work queue</h1>
-          <p>Review incoming cases, assign a response, and follow every citizen report.</p>
+          <div className="ops-eyebrow">OPERATIONS / {initialSavedView === 'completed' ? 'RECORDS' : 'INTAKE'}</div>
+          <h1>{initialSavedView === 'completed' ? 'Completed cases' : 'Work queue'}</h1>
+          <p>{initialSavedView === 'completed'
+            ? 'Resolved case history, kept separate from active work. Search by place or case reference.'
+            : 'Review incoming cases, assign a response, and follow every citizen report.'}</p>
         </div>
         <div className="small-counter">
           {summaryStats.totalCases} cases · {summaryStats.totalReports.toLocaleString()} reports
@@ -272,7 +273,11 @@ export const WorkQueuePage: React.FC<WorkQueuePageProps> = ({
       {/* Saved Views & Display Mode Switch */}
       <div className="viewbar">
         <div className="saved-views" role="tablist" aria-label="Saved work views">
-          {displayMode === 'cases' ? (
+          {initialSavedView === 'completed' ? (
+            <button type="button" role="tab" aria-selected="true" className="view-chip active">
+              Archived resolutions <b>{summaryStats.casesCompleted}</b>
+            </button>
+          ) : displayMode === 'cases' ? (
             <>
               <button
                 type="button"
@@ -320,7 +325,7 @@ export const WorkQueuePage: React.FC<WorkQueuePageProps> = ({
                   setPage(0);
                 }}
               >
-                All cases <b>{summaryStats.totalCases}</b>
+                Active cases <b>{Math.max(0, summaryStats.totalCases - summaryStats.casesCompleted)}</b>
               </button>
             </>
           ) : (

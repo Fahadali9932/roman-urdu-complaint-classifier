@@ -75,7 +75,8 @@ export interface CursorPage<T> {
 }
 
 export interface WorkQueueFilter {
-  savedView: 'needs' | 'unassigned' | 'mine' | 'all';
+  savedView: 'needs' | 'unassigned' | 'mine' | 'all' | 'completed';
+  actorId?: string;
   displayMode: 'cases' | 'reports';
   searchQuery: string;
   area: string; // 'All areas' or specific locality

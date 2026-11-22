@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useSearchParams } from 'react-router-dom';
-import { AlertCircle, ArrowRight, CheckCircle2, Clock3, FolderOpen, RotateCcw, Search, ShieldCheck } from 'lucide-react';
+import { AlertCircle, ArrowRight, CheckCircle2, Clock3, FolderOpen, MapPinned, RotateCcw, Search, ShieldCheck } from 'lucide-react';
 import { Button } from '../../components/common/Button';
 import { useLanguage } from '../../context/LanguageContext';
 import { complaintService } from '../../services';
@@ -109,6 +109,9 @@ export const ComplaintTracker: React.FC = () => {
           <p className="mt-2 text-base leading-relaxed text-[#544C47]">
             {ur ? 'رسید سے اپنا 24 ہندسوں کا نجی ٹریکنگ نمبر درج کریں۔ اکاؤنٹ کی ضرورت نہیں۔' : 'Enter the private 24-digit number on your receipt. No account needed.'}
           </p>
+          <Link to="/karachi-map" className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-full border border-[#E5DBD8] px-4 text-sm font-semibold text-[#681822] hover:bg-[#FAF1F2]">
+            <MapPinned className="h-4 w-4" /> Explore Karachi's public issue map <ArrowRight className="h-4 w-4" />
+          </Link>
         </div>
 
         {!record ? (

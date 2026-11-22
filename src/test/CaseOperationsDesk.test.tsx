@@ -197,10 +197,10 @@ describe('AWAAZ-E-AWAM — CASE OPERATIONS DESK (V5)', () => {
 
       // Verify saved views
       await waitFor(() => {
-        expect(screen.getByText(/Needs (?:response|action)/i)).toBeInTheDocument();
-        expect(screen.getByText(/Unassigned/i)).toBeInTheDocument();
-        expect(screen.getByText(/My cases/i)).toBeInTheDocument();
-        expect(screen.getByText(/All cases/i)).toBeInTheDocument();
+        expect(screen.getByRole('tab', { name: /Needs (?:response|action)/i })).toBeInTheDocument();
+        expect(screen.getByRole('tab', { name: /Unassigned/i })).toBeInTheDocument();
+        expect(screen.getByRole('tab', { name: /My cases/i })).toBeInTheDocument();
+        expect(screen.getByRole('tab', { name: /Active cases/i })).toBeInTheDocument();
       });
 
       // Verify segmented mode buttons

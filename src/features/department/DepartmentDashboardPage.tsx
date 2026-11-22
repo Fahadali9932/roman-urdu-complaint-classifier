@@ -98,7 +98,7 @@ export const DepartmentDashboardPage: React.FC = () => {
     if (newPassword.length < 15) {
       setPasswordStatus({
         type: 'error',
-        message: 'Passphrase must be at least 15 characters long (NIST 800-63B standard).',
+        message: 'Department staff passphrases must be at least 15 characters long.',
       });
       return;
     }
@@ -112,15 +112,17 @@ export const DepartmentDashboardPage: React.FC = () => {
 
     try {
       setPasswordStatus({ type: 'loading', message: 'Updating password securely...' });
-      if (isSupabaseConfigured() && supabase) {
-        const { error } = await supabase.auth.updateUser({ password: newPassword });
-        if (error) {
-          setPasswordStatus({
-            type: 'error',
-            message: error.message || 'Could not update password. Please check session validity.',
-          });
-          return;
-        }
+      if (!isSupabaseConfigured() || !supabase) {
+        setPasswordStatus({ type: 'error', message: 'Password changes require a connected authentication service.' });
+        return;
+      }
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) {
+        setPasswordStatus({
+          type: 'error',
+          message: error.message || 'Could not update password. Please check session validity.',
+        });
+        return;
       }
       setPasswordStatus({
         type: 'success',
@@ -185,6 +187,7 @@ export const DepartmentDashboardPage: React.FC = () => {
     if (v === 'dashboard' || v === 'overview') return 'dashboard';
     if (v === 'tasks' || v === 'complaints') return 'tasks';
     if (v === 'queue' || v === 'cases') return 'queue';
+    if (v === 'archive') return 'archive';
     if (v === 'areas') return 'areas';
     if (v === 'priority' || v === 'priority_queue') return 'priority_queue';
     if (v === 'review') return 'review';
@@ -219,6 +222,8 @@ export const DepartmentDashboardPage: React.FC = () => {
       setCurrentSection('tasks');
     } else if (v === 'queue' || v === 'cases') {
       setCurrentSection('queue');
+    } else if (v === 'archive') {
+      setCurrentSection('archive');
     } else if (v === 'areas') {
       setCurrentSection('areas');
     } else if (v === 'priority' || v === 'priority_queue') {
@@ -261,6 +266,7 @@ export const DepartmentDashboardPage: React.FC = () => {
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [modalInitialStatus, setModalInitialStatus] = useState<ComplaintStatus | undefined>(undefined);
   const [unauthorizedRefError, setUnauthorizedRefError] = useState<string | null>(null);
+  const [priorityUpdateError, setPriorityUpdateError] = useState<string | null>(null);
 
   // Priority overrides state
   const [priorityOverrides, setPriorityOverrides] = useState<
@@ -286,12 +292,17 @@ export const DepartmentDashboardPage: React.FC = () => {
   });
 
   const handleOverridePriority = async (refNumber: string, newPriority: PriorityLevel, reason: string) => {
+    setPriorityUpdateError(null);
     if (departmentId) {
       try {
         await complaintService.overrideComplaintPriority(departmentId, refNumber, newPriority, reason);
       } catch (err: any) {
-        console.warn('Backend override call failed, storing locally:', err?.message);
+        setPriorityUpdateError(err?.message || 'Priority change was not saved. Please retry.');
+        return;
       }
+    } else {
+      setPriorityUpdateError('No verified department session. Priority change was not saved.');
+      return;
     }
 
     const updatedRecord = {
@@ -619,8 +630,8 @@ export const DepartmentDashboardPage: React.FC = () => {
           setSelectedReference(null);
           setSelectedCaseId(null);
         }}
-        complaintsCount={queueMetrics?.cases ?? (taskCounts.all || 20)}
-        priorityCount={queueMetrics?.urgent ?? (priorityQueueCounts.urgent || 2)}
+        complaintsCount={queueMetrics?.cases ?? taskCounts.all}
+        priorityCount={queueMetrics?.urgent ?? priorityQueueCounts.urgent}
         reviewCount={taskCounts.under_review}
         isCollapsed={isSidebarCollapsed}
         onToggleCollapse={handleToggleSidebarCollapse}
@@ -665,6 +676,13 @@ export const DepartmentDashboardPage: React.FC = () => {
 
         {/* Main Content Area */}
         <main className="page" id="content">
+          {priorityUpdateError && (
+            <div className="ops-error-state" role="alert" style={{ marginBottom:'18px' }}>
+              <AlertCircle size={18} />
+              <div><strong>Priority was not changed</strong><p>{priorityUpdateError}</p></div>
+              <button type="button" className="button" onClick={() => setPriorityUpdateError(null)}>Dismiss</button>
+            </div>
+          )}
           {/* Unauthorized Reference Warning */}
           {unauthorizedRefError && (
             <div
@@ -713,17 +731,19 @@ export const DepartmentDashboardPage: React.FC = () => {
           {/* =========================================================================
               VIEW 2: WORK QUEUE / COMPLAINTS (CASE OPERATIONS DESK V5)
               ========================================================================= */}
-          {(currentSection === 'queue' || currentSection === 'tasks' || currentSection === 'review') && (
+          {(currentSection === 'queue' || currentSection === 'archive' || currentSection === 'tasks' || currentSection === 'review') && (
             <div>
               {selectedCaseId ? (
                 /* CASE DETAIL VIEW (4 REAL TABS, INCIDENT CORROBORATION, BULK ACCEPT) */
                 <CaseDetailPage
                   caseId={selectedCaseId}
+                  isArchive={currentSection === 'archive'}
                   onBack={() => {
                     setSelectedCaseId(null);
                     setSelectedReference(null);
                   }}
                   onOpenReport={(ref) => {
+                    setSelectedCaseId(null);
                     setSelectedReference(ref);
                   }}
                 />
@@ -886,8 +906,9 @@ export const DepartmentDashboardPage: React.FC = () => {
                 /* CASE OPERATIONS WORK QUEUE */
                 <WorkQueuePage
                   departmentId={departmentId!}
+                  actorId={session?.userId}
                   initialArea={selectedAreaFilter}
-                  initialSavedView={preferences.defaultQueueView}
+                  initialSavedView={currentSection === 'archive' ? 'completed' : preferences.defaultQueueView}
                   density={preferences.density}
                   onCountUpdate={setQueueMetrics}
                   onOpenCase={(caseId) => {

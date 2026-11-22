@@ -182,6 +182,8 @@ Deno.serve(async (req) => {
       citizenPhone: string;
       citizenEmail?: string;
       residentialAddress: string;
+      incidentLatitude?: number;
+      incidentLongitude?: number;
       clarificationAnswer?: ClarificationAnswer;
     };
     if (!input || typeof input.description !== "string") {
@@ -196,6 +198,12 @@ Deno.serve(async (req) => {
       requiredTextFields.some((value) => typeof value !== "string" || !value.trim() || value.length > 240) ||
       (input.citizenEmail !== undefined && (typeof input.citizenEmail !== "string" || input.citizenEmail.length > 254))) {
       return json({ error: "Please complete all required complaint fields (200 words max).", code: "INVALID_COMPLAINT_PAYLOAD" }, 400);
+    }
+    const hasPin = input.incidentLatitude !== undefined || input.incidentLongitude !== undefined;
+    if (hasPin && (!Number.isFinite(input.incidentLatitude) || !Number.isFinite(input.incidentLongitude) ||
+      input.incidentLatitude! < 24.45 || input.incidentLatitude! > 25.65 ||
+      input.incidentLongitude! < 66.25 || input.incidentLongitude! > 67.85)) {
+      return json({ error: "Please choose a point within Karachi.", code: "INVALID_INCIDENT_PIN" }, 400);
     }
 
     // Generate cryptographic private claim code and 24-digit tracking number for guest submissions
@@ -348,8 +356,21 @@ Deno.serve(async (req) => {
       console.error("Complaint submission RPC failed", error);
       return json({ error: "Submission service is temporarily unavailable.", code: "SUBMISSION_UNAVAILABLE" }, 500);
     }
+    // Supplemental geolocation is never used to classify or route the case.
+    // A failed supplemental write must not incorrectly undo an issued receipt.
+    let incidentLocationSaved = !hasPin;
+    if (hasPin && data?.complaint_id) {
+      const { error: locationError } = await admin.from("complaint_geo_points").insert({
+        complaint_id: data.complaint_id,
+        latitude: input.incidentLatitude,
+        longitude: input.incidentLongitude,
+      });
+      incidentLocationSaved = !locationError;
+      if (locationError) console.error("Optional incident pin could not be saved", locationError.code);
+    }
     return json({
       ...data,
+      incident_location_saved: incidentLocationSaved,
       prediction: {
         departmentId: primaryDept,
         departments,

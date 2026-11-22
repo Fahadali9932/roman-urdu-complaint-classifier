@@ -863,7 +863,7 @@ export class CaseOperationsService implements ICaseOperationsService {
         .from('complaints')
         // Staff must never request the guest claim/tracking credential digests.
         .select('id, citizen_id, reference_number, created_at, updated_at, status, sanitized_description, description, incident_public_location, incident_locality, generated_heading, title, predicted_department_id, assigned_department_id, assigned_department_ids, incident_district, manual_priority, manual_priority_reason, factual_summary')
-        .or(`assigned_department_id.eq.${deptId},predicted_department_id.eq.${deptId}`);
+        .or(`assigned_department_id.eq.${deptId},assigned_department_ids.cs.{${deptId}}`);
 
       if (error) throw error;
       if (!data || !Array.isArray(data)) throw new Error('The case service returned an invalid response.');
@@ -875,6 +875,17 @@ export class CaseOperationsService implements ICaseOperationsService {
           this.casesByDept.set(deptId, []);
         }
         return;
+      }
+
+      const { data: issueRows, error: issueError } = await supabase
+        .from('complaint_issues')
+        .select('complaint_id,issue_type,department_id')
+        .eq('department_id', deptId)
+        .in('complaint_id', data.map((item) => item.id));
+      if (issueError) throw issueError;
+      const issueByComplaint = new Map<string, string>();
+      for (const issue of issueRows || []) {
+        if (issue.issue_type) issueByComplaint.set(issue.complaint_id, issue.issue_type);
       }
 
       // Build cases exclusively from live Supabase complaints
@@ -954,7 +965,7 @@ export class CaseOperationsService implements ICaseOperationsService {
               departmentId: deptId,
               title: row.generated_heading || row.title || 'Citizen Public Report',
               issueFamily: 'Municipal Infrastructure',
-              issueSubtype: row.predicted_department_id || 'General',
+              issueSubtype: issueByComplaint.get(row.id) || 'General',
               publicPlace: row.incident_public_location || locality,
               district: row.incident_district || 'District East',
               locality: locality,
@@ -1013,6 +1024,13 @@ export class CaseOperationsService implements ICaseOperationsService {
 
     // 1. Filter
     let filtered = list.filter((c) => {
+      // Resolved incidents remain searchable in the archive, but do not
+      // compete with actionable work in the default queue.
+      if (filter.savedView === 'completed') {
+        if (c.workStatus !== 'completed') return false;
+      } else if (c.workStatus === 'completed') {
+        return false;
+      }
       // Saved views
       if (filter.savedView === 'needs' && c.pendingAcceptanceCount === 0)
         return false;
@@ -1024,7 +1042,7 @@ export class CaseOperationsService implements ICaseOperationsService {
         return false;
       if (
         filter.savedView === 'mine' &&
-        !c.assignedStaffLabel.toLowerCase().includes('team')
+        (!filter.actorId || c.assignedStaffId !== filter.actorId)
       )
         return false;
 
@@ -1093,6 +1111,13 @@ export class CaseOperationsService implements ICaseOperationsService {
       pageSize,
       totalPages,
     };
+  }
+
+  async listDepartmentIssueTypes(deptId: DepartmentId): Promise<string[]> {
+    await this.syncWithSupabase(deptId);
+    return [...new Set((this.casesByDept.get(deptId) || [])
+      .map((item) => item.issueSubtype)
+      .filter((item): item is string => Boolean(item && item.trim())))].sort();
   }
 
   async listDepartmentReports(

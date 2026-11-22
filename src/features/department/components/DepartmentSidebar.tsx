@@ -5,6 +5,7 @@ import {
   MapPin,
   Flame,
   Layers,
+  Archive,
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react';
@@ -14,6 +15,7 @@ export type WorkspaceSection =
   | 'dashboard'
   | 'overview'
   | 'queue'
+  | 'archive'
   | 'tasks'
   | 'areas'
   | 'priority'
@@ -85,6 +87,7 @@ export const DepartmentSidebar: React.FC<DepartmentSidebarProps> = ({
     (currentSection === 'queue' || currentSection === 'tasks') &&
     activeTaskFilter !== 'under_review';
   const isAreasActive = currentSection === 'areas';
+  const isArchiveActive = currentSection === 'archive';
   const isPriorityActive =
     currentSection === 'priority' || currentSection === 'priority_queue';
   const isReviewActive =
@@ -166,6 +169,18 @@ export const DepartmentSidebar: React.FC<DepartmentSidebarProps> = ({
           <b className="nav-count" id="queueCount">
             {complaintsCount}
           </b>
+        </button>
+
+        <button
+          type="button"
+          data-view="archive"
+          onClick={() => handleNavClick('archive')}
+          className={`nav-item ${isArchiveActive ? 'active' : ''}`}
+          aria-current={isArchiveActive ? 'page' : undefined}
+          data-tooltip="Completed cases"
+        >
+          <Archive className="ico" />
+          <span>Completed cases</span>
         </button>
 
         {/* Areas */}

@@ -16,6 +16,7 @@ import {
 import { formatPakistanDateParts, getStatusChipInfo } from './ComplaintInboxList';
 import { PriorityOverrideModal } from './PriorityOverrideModal';
 import { FlagIncorrectDepartmentModal } from './FlagIncorrectDepartmentModal';
+import { ComplaintEvidencePanel } from './ComplaintEvidencePanel';
 
 interface ComplaintDetailViewProps {
   complaint: DepartmentComplaintView | null;
@@ -428,6 +429,7 @@ export const ComplaintDetailView: React.FC<ComplaintDetailViewProps> = ({
             <p style={{ fontSize: '12px', marginTop: '15px', color: 'var(--muted)' }}>
               Processed by intelligent privacy engine. Direct citizen PII (personal mobile numbers, CNIC, private home address) has been redacted prior to municipal staff presentation.
             </p>
+            <ComplaintEvidencePanel complaintId={complaint.id} />
           </div>
         )}
 

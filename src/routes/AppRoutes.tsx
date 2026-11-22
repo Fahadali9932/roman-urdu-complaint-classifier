@@ -10,6 +10,7 @@ import { TermsOfUsePage } from '../features/information/pages/TermsOfUsePage';
 import { FaqPage } from '../features/information/pages/FaqPage';
 import { ComplaintForm } from '../features/citizen/ComplaintForm';
 import { ComplaintTracker } from '../features/citizen/ComplaintTracker';
+import { KarachiIssuesMapPage } from '../features/citizen/KarachiIssuesMapPage';
 import { CitizenDashboard } from '../features/citizen/CitizenDashboard';
 import { LoginPage } from '../features/auth/LoginPage';
 import { RegisterPage } from '../features/auth/RegisterPage';
@@ -46,6 +47,7 @@ export const AppRoutes: React.FC = () => {
         <Route path="/submit" element={<ComplaintForm />} />
         <Route path="/write-complaint" element={<Navigate to="/submit" replace />} />
         <Route path="/track" element={<ComplaintTracker />} />
+        <Route path="/karachi-map" element={<KarachiIssuesMapPage />} />
         <Route path="/track/:referenceNumber" element={<ComplaintTracker />} />
         {/* Citizen Auth routes */}
         <Route path="/login" element={<LoginPage />} />

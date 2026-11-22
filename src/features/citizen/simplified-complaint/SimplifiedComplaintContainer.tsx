@@ -11,6 +11,7 @@ import {
   Copy,
   Home,
   Info,
+  ImagePlus,
   Lock,
   Mail,
   MapPin,
@@ -23,6 +24,7 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '../../../context/LanguageContext';
 import { KarachiAreaCombobox } from '../components/KarachiAreaCombobox';
+import { IncidentPinPicker, type IncidentPin } from '../components/IncidentPinPicker';
 import { defaultLocalityResolver } from '../../../data/karachi/locationResolver';
 import { KARACHI_DISTRICTS_DATA } from '../../../data/karachi/districts';
 import { KARACHI_DEPARTMENTS } from '../../../mocks/complaints';
@@ -175,6 +177,11 @@ export const SimplifiedComplaintContainer: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isSubmittingRef = useRef(false);
   const [submission, setSubmission] = useState<SubmissionResult | null>(null);
+  const [incidentPin, setIncidentPin] = useState<IncidentPin | null>(null);
+  const [photo, setPhoto] = useState<File | null>(null);
+  const [photoInputError, setPhotoInputError] = useState('');
+  const [evidenceNotice, setEvidenceNotice] = useState('');
+  const [photoRetrying, setPhotoRetrying] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [searchParams] = useSearchParams();
   const [isTestMode, setIsTestMode] = useState<boolean>(() => {
@@ -445,11 +452,34 @@ export const SimplifiedComplaintContainer: React.FC = () => {
         locality: formData.location.locality,
         district: formData.location.district as KarachiDistrict,
         publicLocation: formData.location.publicLocation,
+        incidentLatitude: incidentPin?.latitude,
+        incidentLongitude: incidentPin?.longitude,
         title: formData.complaint.description.trim().slice(0, 50) || 'Public complaint',
         description: formData.complaint.description.trim(),
         isDemonstration: Boolean(import.meta.env.DEV && isTestMode),
         clarificationAnswer: overrideAnswer,
       });
+      const evidenceMessages: string[] = [];
+      if (incidentPin && result.incidentLocationSaved === false) {
+        evidenceMessages.push('Your complaint is saved, but its optional map pin could not be attached.');
+      }
+      if (photo && !result.isSimulated && isSupabaseConfigured() && supabase) {
+        try {
+          const data = new FormData();
+          data.append('reference', result.referenceNumber);
+          data.append('tracking', result.guestTrackingNumber || '');
+          data.append('photo', photo);
+          const { data: response, error: uploadError } = await supabase.functions.invoke('upload-complaint-photo', { body: data });
+          if (uploadError || !response?.attached) {
+            evidenceMessages.push('Your complaint is saved, but the optional photo did not upload.');
+          }
+        } catch {
+          evidenceMessages.push('Your complaint is saved, but the optional photo did not upload.');
+        }
+      } else if (photo && result.isSimulated) {
+        evidenceMessages.push('Local test mode does not store photos.');
+      }
+      setEvidenceNotice(evidenceMessages.join(' '));
       if (typeof window !== 'undefined' && window.sessionStorage) {
         sessionStorage.removeItem(getDraftKey(currentUserId));
         sessionStorage.removeItem(LEGACY_DRAFT_KEY);
@@ -464,6 +494,24 @@ export const SimplifiedComplaintContainer: React.FC = () => {
       isSubmittingRef.current = false;
       setIsSubmitting(false);
     }
+  };
+
+  const retryPhoto = async () => {
+    if (!submission || !photo || !isSupabaseConfigured() || !supabase || photoRetrying) return;
+    setPhotoRetrying(true);
+    try {
+      const data = new FormData();
+      data.append('reference', submission.referenceNumber);
+      data.append('tracking', submission.guestTrackingNumber || '');
+      data.append('photo', photo);
+      const { data: response, error } = await supabase.functions.invoke('upload-complaint-photo', { body: data });
+      if (error || !response?.attached) throw new Error('Upload failed');
+      setEvidenceNotice(incidentPin && submission.incidentLocationSaved === false
+        ? 'Photo attached successfully. The optional map pin could not be saved.'
+        : 'Photo attached successfully.');
+    } catch {
+      setEvidenceNotice('Your complaint is safe, but the photo still could not be attached. Please try again.');
+    } finally { setPhotoRetrying(false); }
   };
 
   const handleClarificationConfirm = () => {
@@ -937,6 +985,8 @@ export const SimplifiedComplaintContainer: React.FC = () => {
                     <p className="mt-2 text-xs text-[#6B6864]">{copy.streetHelp}</p>
                   </Field>
 
+                  <IncidentPinPicker value={incidentPin} onChange={setIncidentPin} />
+
                   <Field htmlFor="applicantAddress" label={copy.address} required error={errors.applicantAddress}>
                     <div className="relative">
                       <Home
@@ -1057,6 +1107,32 @@ export const SimplifiedComplaintContainer: React.FC = () => {
                         {ur ? 'شکایت ۲۰۰ الفاظ سے زیادہ ہے۔' : 'Keep the complaint within 200 words.'}
                       </p>
                     )}
+                  </div>
+
+                  <div className="rounded-2xl border border-[#DED9D3] bg-[#FAF9F7] p-4 sm:p-5">
+                    <label htmlFor="incident-photo" className="flex items-center gap-2 text-sm font-bold text-[#171717]">
+                      <ImagePlus className="h-5 w-5 text-[#681822]" /> Photo of the issue (optional)
+                    </label>
+                    <p className="my-2 text-xs leading-relaxed text-[#6B6864]">
+                      Add one JPG, PNG or WebP image, maximum 1 MB. Avoid faces, identity documents and house numbers. Only authorized staff can view it.
+                    </p>
+                    <input
+                      id="incident-photo" type="file" accept="image/jpeg,image/png,image/webp"
+                      className="block w-full text-xs file:mr-3 file:rounded-lg file:border file:border-[#D9D3CC] file:bg-white file:px-3 file:py-2 file:font-bold file:text-[#681822]"
+                      onChange={(event) => {
+                        const selected = event.currentTarget.files?.[0] || null;
+                        if (selected && (selected.size > 1024 * 1024 || !['image/jpeg', 'image/png', 'image/webp'].includes(selected.type))) {
+                          setPhoto(null);
+                          setPhotoInputError('Choose a JPG, PNG or WebP image no larger than 1 MB.');
+                          event.currentTarget.value = '';
+                        } else {
+                          setPhoto(selected);
+                          setPhotoInputError('');
+                        }
+                      }}
+                    />
+                    {photo && <p className="mt-2 text-xs font-semibold text-[#126B53]">Selected: {photo.name}</p>}
+                    {photoInputError && <p className="mt-2 text-xs font-semibold text-[#B4233E]" role="alert">{photoInputError}</p>}
                   </div>
 
                   {activeClarification && (
@@ -1212,9 +1288,16 @@ export const SimplifiedComplaintContainer: React.FC = () => {
             formData={formData}
             copy={copy}
             ur={ur}
+            evidenceNotice={evidenceNotice}
+            canRetryPhoto={Boolean(photo && evidenceNotice.includes('photo') && !submission.isSimulated)}
+            photoRetrying={photoRetrying}
+            onRetryPhoto={retryPhoto}
             onClose={() => {
               setSubmission(null);
               setFormData(INITIAL_FORM);
+              setPhoto(null);
+              setIncidentPin(null);
+              setEvidenceNotice('');
               setStage(1);
             }}
           />
@@ -1256,8 +1339,12 @@ const SubmissionModal: React.FC<{
   formData: FullComplaintFormState;
   copy: Record<string, string>;
   ur: boolean;
+  evidenceNotice?: string;
+  canRetryPhoto?: boolean;
+  photoRetrying?: boolean;
+  onRetryPhoto?: () => void;
   onClose: () => void;
-}> = ({ submission, copy, ur, onClose }) => {
+}> = ({ submission, copy, ur, evidenceNotice, canRetryPhoto, photoRetrying, onRetryPhoto, onClose }) => {
   const navigate = useNavigate();
   const [copiedRef, setCopiedRef] = useState(false);
   const [copiedTracking, setCopiedTracking] = useState(false);
@@ -1334,6 +1421,16 @@ const SubmissionModal: React.FC<{
             <X className="h-5 w-5" />
           </button>
         </div>
+
+        {evidenceNotice && (
+          <div role="status" className="mt-4 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-950">
+            <p>{evidenceNotice}</p>
+            {canRetryPhoto && <button type="button" onClick={onRetryPhoto} disabled={photoRetrying}
+              className="mt-2 rounded-lg border border-amber-600 bg-white px-3 py-2 text-xs font-bold text-amber-950 disabled:opacity-50">
+              {photoRetrying ? 'Retrying…' : 'Retry photo without resubmitting complaint'}
+            </button>}
+          </div>
+        )}
 
         {/* 1. Primary Code Display: ONE Secret Tracking Card for Guests */}
         {submission.guestTrackingNumber ? (

@@ -206,6 +206,9 @@ export type ClarificationAnswer = { draftText: string } & (
 );
 
 export interface ComplaintSubmissionInput {
+  /** Optional user-confirmed incident location (not home address). */
+  incidentLatitude?: number;
+  incidentLongitude?: number;
   citizenName: string;
   citizenPhone?: string;
   citizenEmail?: string;
@@ -286,6 +289,8 @@ export interface CitizenOverviewStats {
 }
 
 export interface SubmissionResult {
+  complaintId?: string;
+  incidentLocationSaved?: boolean;
   referenceNumber: string;
   isSimulated: boolean;
   timestamp: string;

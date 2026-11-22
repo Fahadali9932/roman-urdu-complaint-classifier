@@ -21,12 +21,14 @@ interface CaseDetailPageProps {
   caseId: string;
   onBack: () => void;
   onOpenReport?: (referenceNumber: string) => void;
+  isArchive?: boolean;
 }
 
 export const CaseDetailPage: React.FC<CaseDetailPageProps> = ({
   caseId,
   onBack,
   onOpenReport,
+  isArchive = false,
 }) => {
   const [caseItem, setCaseItem] = useState<IncidentCaseSummary | null>(null);
   const [activeTab, setActiveTab] = useState<'overview' | 'reports' | 'activity' | 'work'>('overview');
@@ -194,7 +196,7 @@ export const CaseDetailPage: React.FC<CaseDetailPageProps> = ({
       {/* Back button */}
       <button type="button" className="back-link" onClick={onBack}>
         <ArrowLeft className="ico" style={{ width: 16, height: 16 }} />
-        Back to work queue
+        {isArchive ? 'Back to completed cases' : 'Back to work queue'}
       </button>
 
       {/* Page Header */}
@@ -212,7 +214,9 @@ export const CaseDetailPage: React.FC<CaseDetailPageProps> = ({
 
         <div className="detail-header-actions">
           <button className="ops-icon-action" type="button" title="Refresh case" aria-label="Refresh case" onClick={loadCase}><RefreshCw size={17} /></button>
-          {eligibleCount > 0 ? (
+          {caseItem.workStatus === 'completed' ? (
+            <span className="tag" style={{ background: 'var(--success-bg)', color: 'var(--success)' }}>Filed in Completed cases</span>
+          ) : eligibleCount > 0 ? (
             <button
               type="button"
               className="button primary"

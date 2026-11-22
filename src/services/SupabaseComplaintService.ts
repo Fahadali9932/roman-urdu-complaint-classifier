@@ -176,6 +176,8 @@ export class SupabaseComplaintService implements IComplaintService {
         incidentDistrict: input.district,
         incidentLocality: input.locality,
         incidentPublicLocation: input.publicLocation,
+        incidentLatitude: input.incidentLatitude,
+        incidentLongitude: input.incidentLongitude,
         citizenName: input.citizenName,
         citizenPhone: input.citizenPhone,
         citizenEmail: input.citizenEmail,
@@ -203,6 +205,8 @@ export class SupabaseComplaintService implements IComplaintService {
         : (data.assigned_department_id ? [data.assigned_department_id] : []));
 
     return {
+      complaintId: data.complaint_id,
+      incidentLocationSaved: data.incident_location_saved,
       referenceNumber: data.reference_number,
       isSimulated: false,
       timestamp: new Date().toISOString(),
