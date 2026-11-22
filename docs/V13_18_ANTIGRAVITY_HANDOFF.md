@@ -14,8 +14,8 @@ Read `docs/V13_18_VERIFIED_FIELD_OPERATIONS.md` fully before doing anything. Fir
 2. Central admin can invite unique approved accounts, set `head`/`officer` roles, revoke membership, and view workforce status. Verify only AAL2 main administrators may change staff privileges.
 3. Department head sees real incoming case groups, assigns one responsible officer and deadline/instructions, reviews extensions, observes on-time/late/active counts and transparent encouraging **officer rating** (new officers not rated under five verified cases).
 4. Officer sees only own assignments, can begin work, request extra time, and take a current **on-site photo + explicit GPS** to submit. Camera photo is bounded and validated, stored privately and audited. Head reviews actual proof with original location distance, GPS accuracy and exact-duplicate flag; can approve or return. Do not claim any free AI detector can scientifically prove image authenticity.
-5. Approved proof is visible only in the authenticated complaint owner's **My Complaints** details; citizen can confirm or dispute. Public map must never reveal original high-resolution photo, owner identity or precise GPS.
-6. Active assignments, due-soon, overdue, pending-proof and verified **archive** are clear, compact, mobile responsive, and consistent with the citizen portal's serious civic design—not a generic SaaS analytics template. Verified work never disappears from the record. Head must explicitly close eligible in-progress citizen records through the existing status timeline/outbox; all relevant departments must verify proof first.
+5. Approved proof is visible only in the authenticated complaint owner's **My Complaints** details. **Fahad approved a 72-hour response window**: confirmation allows the head to close once all departments verify, disputes return work to the officer for a fresh evidence cycle, and nonresponse requires a documented head decision after 72 hours before closure. Each repair cycle must preserve its own citizen response. Public map must never reveal original high-resolution photo, owner identity or precise GPS.
+6. Active assignments, due-soon, overdue, disputed/rework, pending-proof and verified **archive** are clear, compact, mobile responsive, and consistent with the citizen portal's serious civic design—not a generic SaaS analytics template. Verified work never disappears from the record. The head explicitly closes eligible in-progress citizen records through the existing timeline/outbox; every assigned department must have verified the latest proof. Legacy status updates must honor the same citizen-review gate.
 7. Review optional improvements without shifting the existing feature's architecture. Keep the UI understandable at 320px, 393px, 768px, 1024px and 1440px and do browser testing on a host that permits Chrome.
 
 Local-only demonstration authentication now uses per-session generated passwords; reveal them through the collapsed local-demo section of each login form. Do not assume the old fixed demonstration password works. For scripted local browser QA, set `VITE_AWAAZ_LOCAL_STAFF_PASSWORD` in a private, ignored `.env.local` and pass the same value as `AWAAZ_QA_STAFF_ACCESS_KEY` to the QA process. Never commit or screenshot these values.
@@ -30,6 +30,7 @@ npm run build
 npx vitest run
 npm run lint
 node --test tests/edge/v13_18_work_orders_security_gate.mjs
+node --test tests/edge/v13_18_citizen_review_security_gate.mjs
 node --test tests/edge/v13_17_geo_evidence_security_gate.mjs
 node --test tests/edge/v13_16_2_atomic_batch_gate.mjs
 node tests/edge/complaint-boundaries.mjs

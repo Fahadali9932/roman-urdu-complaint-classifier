@@ -31,6 +31,7 @@ export interface DepartmentWorkOrder {
   extension_reason: string | null;
   reviewed_at: string | null;
   review_note: string | null;
+  citizen_dispute_pending: boolean;
 }
 
 export interface DepartmentProof {
@@ -53,6 +54,9 @@ export interface CitizenWorkProof {
   distance_m: number | null;
   location_result: DepartmentProof['location_result'];
   feedback: 'confirmed' | 'disputed' | null;
+  order_status: WorkState;
+  response_expires_at: string | null;
+  can_respond: boolean;
   signed_url?: string;
 }
 
@@ -140,7 +144,8 @@ class FieldOperationsService {
         officer_id: input.officerId, assigned_by: 'local-demonstration',
         instructions: input.instructions, assigned_at: now, original_due_at: input.dueAt,
         due_at: input.dueAt, started_at: null, status: 'assigned',
-        extension_requested_due_at: null, extension_reason: null, reviewed_at: null, review_note: null });
+        extension_requested_due_at: null, extension_reason: null, reviewed_at: null, review_note: null,
+        citizen_dispute_pending:false });
       return id;
     }
     return requireSuccess(await requireSupabase().rpc('v1318_assign_work', {
@@ -159,9 +164,11 @@ class FieldOperationsService {
     requireSuccess(await requireSupabase().rpc('v1318_start_work', { p_order: orderId }));
   }
 
-  async closeVerified(orderId: string): Promise<number> {
+  async closeVerified(orderId: string, nonresponseReason = ''): Promise<number> {
     if (isLocalFieldDemo()) return 1;
-    return requireSuccess(await requireSupabase().rpc('v1318_close_verified_order', { p_order: orderId })) as number;
+    return requireSuccess(await requireSupabase().rpc('v1318_close_verified_order', {
+      p_order: orderId,p_nonresponse_reason:nonresponseReason.trim(),
+    })) as number;
   }
 
   async requestExtension(orderId: string, dueAt: string, reason: string) {

@@ -60,11 +60,13 @@
 .field-order-actions{display:flex;flex-wrap:wrap;align-items:center;justify-content:end;gap:8px;max-width:320px}
 .field-order-actions button:not(.field-primary),.field-dialog-actions button:not(.field-primary){border:1px solid var(--field-line);background:#fff;color:var(--field-ink);border-radius:7px;font-size:11px;padding:11px 13px;font-weight:700}
 .field-order p.field-extension{margin-top:9px;border-left:3px solid #b88332;padding:7px 10px;background:#fff7ed;color:#75471b}
+.field-order p.field-dispute-alert{margin-top:10px;border-left:3px solid #b23130;padding:9px 11px;background:#fff0ec;color:#8e302c;font-weight:700}
 .field-person{display:flex;align-items:center;gap:15px;padding:16px 24px;border-bottom:1px solid var(--field-line)}
 .field-person:last-child{border-bottom:0}
 .field-avatar{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-weight:800;color:#fff;background:#16594f}
 .field-person-name{flex:1;min-width:0}.field-person-name strong,.field-person-name small{display:block}.field-person-name strong{font-size:14px}.field-person-name small{font-size:11px;color:var(--field-muted);margin-top:5px}
 .field-rating{display:flex;align-items:center;gap:5px;color:#b18324}.field-rating strong{font-size:18px}.field-rating small{font-size:10px;color:var(--field-muted);margin-left:5px}
+.field-rating-stars{display:inline-flex;gap:1px;align-items:center}
 .field-feedback{padding:12px 16px;border-radius:9px;font-size:13px;display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
 .field-feedback.good{background:#e6f4ec;color:#13563c}.field-feedback.bad,.field-warn{background:#fff0ec;color:#953e2d}.field-feedback button{border:0;background:transparent}
 .field-overlay{position:fixed;inset:0;background:#0a181c99;z-index:1000;display:flex;justify-content:center;align-items:center;padding:18px;overflow:auto}
@@ -82,5 +84,6 @@
 .field-close-records{margin-top:20px}
 .field-close-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 0;border-top:1px solid #e8e8e3;font-size:13px}
 .field-close-row>span{font-weight:700;max-width:60ch}
+.field-close-reason{display:flex;flex-direction:column;gap:7px;flex:1;min-width:0}.field-close-reason strong{font-size:13px}.field-close-reason label{font-size:11px;color:#607275}.field-close-reason textarea{width:100%;min-height:63px;border:1px solid #cdd8d6;border-radius:8px;padding:9px 11px;font-size:12px;resize:vertical;background:#fff;color:#14272a}
 .field-close-row button{border:1px solid #cdd8d6;border-radius:8px;padding:9px 12px;background:#f8faf9;display:inline-flex;align-items:center;gap:8px;font-weight:700;color:#134d4d}
 @media(max-width:600px){.field-close-row{align-items:stretch;flex-direction:column}.field-close-row button{justify-content:center}}

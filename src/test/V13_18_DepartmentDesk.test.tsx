@@ -13,6 +13,7 @@ const assigned: DepartmentWorkOrder = {
   assigned_at:'2026-11-20T10:00:00Z', original_due_at:'2026-11-24T10:00:00Z',
   due_at:'2026-11-24T10:00:00Z',started_at:null,status:'assigned',
   extension_requested_due_at:null,extension_reason:null,reviewed_at:null,review_note:null,
+  citizen_dispute_pending:false,
 };
 
 afterEach(()=>vi.restoreAllMocks());
@@ -43,6 +44,26 @@ describe('V13.18 role-specific department workspace',()=>{
     rerender(<FieldOperationsDesk departmentId="kmc" userId="officer-1" role="officer" view="field_archive"/>);
     await waitFor(()=>expect(screen.getByText('Dangerous uncovered manhole')).toBeInTheDocument());
     expect(screen.getByText('Verified work history')).toBeInTheDocument();
+  });
+  it('places a citizen-disputed repair back into the assigned officer workflow',async()=>{
+    vi.spyOn(fieldOperations,'orders').mockResolvedValue([{
+      ...assigned,status:'returned',citizen_dispute_pending:true,
+    }]);
+    render(<FieldOperationsDesk departmentId="kmc" userId="officer-1" role="officer" view="field"/>);
+    expect(await screen.findByText('CITIZEN DISPUTE / REWORK')).toBeInTheDocument();
+    expect(screen.getByText(/revisit the issue and provide new evidence/i)).toBeInTheDocument();
+    expect(screen.getByRole('button',{name:/Start work/i})).toBeInTheDocument();
+  });
+  it('lets a head document a nonresponse closure without silently bypassing the 72-hour gate',async()=>{
+    const close=vi.spyOn(fieldOperations,'closeVerified').mockResolvedValue(1);
+    vi.spyOn(fieldOperations,'orders').mockResolvedValue([{...assigned,status:'verified'}]);
+    vi.spyOn(fieldOperations,'team').mockResolvedValue([]);
+    vi.spyOn(caseOperationsService,'listDepartmentCases').mockResolvedValue({items:[],nextCursor:null,prevCursor:null,total:0,page:0,pageSize:100,totalPages:1});
+    render(<FieldOperationsDesk departmentId="kmc" userId="head-1" role="head" view="field_archive"/>);
+    const field=await screen.findByLabelText(/Reason for closure without a citizen response/i);
+    fireEvent.change(field,{target:{value:'No citizen responded within the published review period; proof reviewed manually.'}});
+    fireEvent.click(screen.getByRole('button',{name:/Close verified reports/i}));
+    await waitFor(()=>expect(close).toHaveBeenCalledWith('record-1','No citizen responded within the published review period; proof reviewed manually.'));
   });
   it('assigns real linked complaint ids, officer identity and a deadline through the service',async()=>{
     const assignment = vi.spyOn(fieldOperations,'assign').mockResolvedValue('new-order-id');

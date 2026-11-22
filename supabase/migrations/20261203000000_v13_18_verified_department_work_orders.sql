@@ -27,6 +27,7 @@ CREATE TABLE IF NOT EXISTS public.department_work_orders (
   reviewed_by uuid REFERENCES auth.users(id),
   reviewed_at timestamptz,
   review_note text,
+  citizen_dispute_pending boolean NOT NULL DEFAULT false,
   updated_at timestamptz NOT NULL DEFAULT now(),
   UNIQUE (department_id, anchor_complaint_id),
   CHECK (due_at > assigned_at)
@@ -69,13 +70,25 @@ CREATE INDEX IF NOT EXISTS idx_v1318_evidence_order
   ON public.department_work_evidence(order_id, submitted_at DESC);
 
 CREATE TABLE IF NOT EXISTS public.department_work_feedback (
+  evidence_id uuid NOT NULL REFERENCES public.department_work_evidence(id),
   order_id uuid NOT NULL REFERENCES public.department_work_orders(id),
   complaint_id uuid NOT NULL REFERENCES public.complaints(id),
   citizen_id uuid NOT NULL REFERENCES auth.users(id),
   verdict text NOT NULL CHECK (verdict IN ('confirmed','disputed')),
   note text NOT NULL DEFAULT '',
   submitted_at timestamptz NOT NULL DEFAULT now(),
-  PRIMARY KEY (order_id, complaint_id)
+  PRIMARY KEY (evidence_id, complaint_id)
+);
+CREATE INDEX IF NOT EXISTS idx_v1318_feedback_order
+  ON public.department_work_feedback(order_id, complaint_id);
+
+-- An unanswered citizen may be closed only after the review window, and only
+-- through an MFA-verified head's documented decision. Direct writes are denied.
+CREATE TABLE IF NOT EXISTS public.department_work_closure_reviews (
+  complaint_id uuid PRIMARY KEY REFERENCES public.complaints(id),
+  actor_id uuid NOT NULL REFERENCES auth.users(id),
+  reason text NOT NULL CHECK (length(trim(reason)) BETWEEN 20 AND 1200),
+  recorded_at timestamptz NOT NULL DEFAULT now()
 );
 
 CREATE TABLE IF NOT EXISTS public.department_work_events (
@@ -92,12 +105,13 @@ ALTER TABLE public.department_work_order_reports ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.department_work_evidence ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.department_work_feedback ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.department_work_events ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.department_work_closure_reviews ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public.department_work_orders, public.department_work_order_reports,
   public.department_work_evidence, public.department_work_feedback,
-  public.department_work_events FROM anon, authenticated;
+  public.department_work_events, public.department_work_closure_reviews FROM anon, authenticated;
 GRANT SELECT ON public.department_work_orders, public.department_work_order_reports,
   public.department_work_evidence, public.department_work_feedback,
-  public.department_work_events TO authenticated;
+  public.department_work_events, public.department_work_closure_reviews TO authenticated;
 
 CREATE OR REPLACE FUNCTION public.v1318_is_department_head(p_department text)
 RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path = '' AS $$
@@ -138,7 +152,19 @@ CREATE POLICY v1318_events_read ON public.department_work_events
   FOR SELECT TO authenticated USING (public.v1318_can_view_order(order_id));
 CREATE POLICY v1318_feedback_read ON public.department_work_feedback
   FOR SELECT TO authenticated USING (
-    citizen_id = auth.uid() OR public.v1318_can_view_order(order_id)
+    -- A staff member gets aggregate dispute indicators, never unredacted
+    -- citizen-written feedback through the generic Data API.
+    citizen_id = auth.uid()
+  );
+CREATE POLICY v1318_closure_review_read ON public.department_work_closure_reviews
+  FOR SELECT TO authenticated USING (
+    EXISTS (
+      SELECT 1 FROM public.complaints c
+      WHERE c.id=complaint_id AND c.citizen_id=auth.uid()
+    ) OR EXISTS (
+      SELECT 1 FROM public.department_work_order_reports r
+      WHERE r.complaint_id=complaint_id AND public.v1318_can_view_order(r.order_id)
+    )
   );
 
 -- Department heads can see only actively approved staff in their department.
@@ -355,6 +381,7 @@ BEGIN
     decided_at=now(),decided_by=auth.uid(),decision_note=left(coalesce(p_note,''),1200)
     WHERE id=v_proof.id;
   UPDATE public.department_work_orders SET status=CASE WHEN p_approve THEN 'verified' ELSE 'returned' END,
+    citizen_dispute_pending=CASE WHEN p_approve THEN false ELSE citizen_dispute_pending END,
     reviewed_by=auth.uid(),reviewed_at=now(),review_note=left(coalesce(p_note,''),1200),updated_at=now()
     WHERE id=p_order;
   INSERT INTO public.department_work_events(order_id,actor_id,event_type,detail)
@@ -365,13 +392,57 @@ $$;
 REVOKE ALL ON FUNCTION public.v1318_review_proof(uuid,boolean,text) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.v1318_review_proof(uuid,boolean,text) TO authenticated;
 
--- Closure is a separate, deliberate head action after proof approval. Existing
--- workflow RPC records the citizen timeline and queues the actual notifications.
--- Do not silently close other departments' work on multi-agency complaints.
-CREATE OR REPLACE FUNCTION public.v1318_close_verified_order(p_order uuid)
+-- Shared status gate: legacy status RPCs must not bypass the same citizen-review
+-- policy as the explicit head closure action. A waiver exists only when the
+-- head recorded a reason after the full 72-hour unanswered response window.
+CREATE OR REPLACE FUNCTION public.v1318_resolution_ready(p_complaint uuid)
+RETURNS boolean LANGUAGE plpgsql VOLATILE SECURITY DEFINER SET search_path='' AS $$
+DECLARE v_case public.complaints%ROWTYPE; v_department text;
+  v_order uuid; v_proof uuid; v_reviewed timestamptz;
+BEGIN
+  IF auth.uid() IS NULL OR auth.jwt()->>'aal'<>'aal2' THEN RETURN false; END IF;
+  SELECT * INTO v_case FROM public.complaints WHERE id=p_complaint;
+  IF v_case.id IS NULL OR v_case.assigned_department_id IS NULL
+    OR v_case.status<>'in_progress' THEN RETURN false; END IF;
+  FOR v_department IN SELECT DISTINCT unnest(
+    CASE WHEN cardinality(coalesce(v_case.assigned_department_ids,ARRAY[]::text[]))>0
+      THEN v_case.assigned_department_ids ELSE ARRAY[v_case.assigned_department_id] END
+  ) LOOP
+    SELECT o.id,e.id,o.reviewed_at INTO v_order,v_proof,v_reviewed
+      FROM public.department_work_order_reports r
+      JOIN public.department_work_orders o ON o.id=r.order_id AND o.department_id=v_department
+        AND o.status='verified'
+      JOIN public.department_work_evidence e ON e.order_id=o.id AND e.decision='approved'
+      WHERE r.complaint_id=p_complaint
+      ORDER BY e.submitted_at DESC LIMIT 1;
+    IF v_order IS NULL OR v_proof IS NULL OR v_reviewed IS NULL THEN RETURN false; END IF;
+    IF NOT EXISTS (
+      SELECT 1 FROM public.department_work_feedback f WHERE f.evidence_id=v_proof
+        AND f.complaint_id=p_complaint AND f.verdict='confirmed'
+    ) AND NOT (
+      v_reviewed<=now()-interval '72 hours' AND EXISTS (
+        SELECT 1 FROM public.department_work_closure_reviews w
+        WHERE w.complaint_id=p_complaint AND w.actor_id=auth.uid()
+          AND w.recorded_at>=v_reviewed AND length(trim(w.reason))>=20
+      )
+    ) THEN RETURN false; END IF;
+    v_order:=NULL; v_proof:=NULL; v_reviewed:=NULL;
+  END LOOP;
+  RETURN true;
+END;
+$$;
+REVOKE ALL ON FUNCTION public.v1318_resolution_ready(uuid) FROM PUBLIC,anon,authenticated;
+
+-- Closure is a deliberate MFA-verified head action: first supervisor proof,
+-- then citizen confirmation or a reasoned decision after 72 unanswered hours.
+-- The existing status RPC retains the official timeline and notification flow.
+CREATE OR REPLACE FUNCTION public.v1318_close_verified_order(
+  p_order uuid,p_nonresponse_reason text DEFAULT ''
+)
 RETURNS integer LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
 DECLARE v_order public.department_work_orders%ROWTYPE;
   v_report record; v_count integer := 0; v_department text;
+  v_reviewed timestamptz; v_proof uuid; v_silent boolean;
 BEGIN
   SELECT * INTO v_order FROM public.department_work_orders WHERE id=p_order FOR UPDATE;
   IF v_order.id IS NULL OR NOT public.v1318_is_department_head(v_order.department_id) THEN
@@ -387,17 +458,42 @@ BEGIN
     IF v_report.status='resolved' THEN CONTINUE; END IF;
     IF v_report.status<>'in_progress' OR v_report.assigned_department_id<>v_order.department_id THEN
       RAISE EXCEPTION 'Each report must be in progress and closed by its primary department'; END IF;
+    v_silent:=false;
     FOR v_department IN SELECT DISTINCT unnest(
       CASE WHEN cardinality(coalesce(v_report.assigned_department_ids,ARRAY[]::text[]))>0
         THEN v_report.assigned_department_ids ELSE ARRAY[v_report.assigned_department_id] END
       ) LOOP
-      IF v_department IS NOT NULL AND NOT EXISTS(
-        SELECT 1 FROM public.department_work_order_reports r
-        JOIN public.department_work_orders o ON o.id=r.order_id
+      SELECT e.id,o.reviewed_at INTO v_proof,v_reviewed
+        FROM public.department_work_order_reports r
+        JOIN public.department_work_orders o ON o.id=r.order_id AND o.status='verified'
         JOIN public.department_work_evidence e ON e.order_id=o.id AND e.decision='approved'
-        WHERE r.complaint_id=v_report.id AND o.department_id=v_department AND o.status='verified'
-      ) THEN RAISE EXCEPTION 'Another assigned department has not verified its work'; END IF;
+        WHERE r.complaint_id=v_report.id AND o.department_id=v_department
+        ORDER BY e.submitted_at DESC LIMIT 1;
+      IF v_proof IS NULL OR v_reviewed IS NULL THEN
+        RAISE EXCEPTION 'Another assigned department has not verified its work'; END IF;
+      IF NOT EXISTS (
+        SELECT 1 FROM public.department_work_feedback f WHERE f.evidence_id=v_proof
+          AND f.complaint_id=v_report.id AND f.verdict='confirmed'
+      ) THEN
+        IF v_reviewed>now()-interval '72 hours' THEN
+          RAISE EXCEPTION 'Await the 72-hour citizen review window or explicit citizen confirmation'; END IF;
+        v_silent:=true;
+      END IF;
+      v_proof:=NULL; v_reviewed:=NULL;
     END LOOP;
+    IF v_silent THEN
+      IF length(trim(coalesce(p_nonresponse_reason,''))) NOT BETWEEN 20 AND 1200 THEN
+        RAISE EXCEPTION 'Documented supervisor reason (20-1200 characters) required for unanswered citizen feedback';
+      END IF;
+      INSERT INTO public.department_work_closure_reviews(complaint_id,actor_id,reason,recorded_at)
+      VALUES(v_report.id,auth.uid(),trim(p_nonresponse_reason),now())
+      ON CONFLICT (complaint_id) DO UPDATE SET actor_id=EXCLUDED.actor_id,
+        reason=EXCLUDED.reason,recorded_at=EXCLUDED.recorded_at;
+      INSERT INTO public.department_work_events(order_id,actor_id,event_type,detail)
+      VALUES(p_order,auth.uid(),'nonresponse_closure_review',left(trim(p_nonresponse_reason),200));
+    END IF;
+    IF NOT public.v1318_resolution_ready(v_report.id) THEN
+      RAISE EXCEPTION 'Citizen confirmation or authorized review window required'; END IF;
     PERFORM public.staff_update_complaint_status(v_report.id,'resolved',
       'Work completed and verified','کام مکمل اور تصدیق شدہ',
       'Department head approved on-site work evidence.','متعلقہ محکمے نے کام کی تصدیق کی ہے۔');
@@ -408,25 +504,34 @@ BEGIN
   RETURN v_count;
 END;
 $$;
-REVOKE ALL ON FUNCTION public.v1318_close_verified_order(uuid) FROM PUBLIC,anon;
-GRANT EXECUTE ON FUNCTION public.v1318_close_verified_order(uuid) TO authenticated;
+REVOKE ALL ON FUNCTION public.v1318_close_verified_order(uuid,text) FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION public.v1318_close_verified_order(uuid,text) TO authenticated;
 
 -- A citizen may only see approved proof linked to their own complaint.
 CREATE OR REPLACE FUNCTION public.v1318_my_work_proofs(p_complaint uuid)
 RETURNS TABLE(order_id uuid,department_id text,storage_path text,submitted_at timestamptz,
-    distance_m numeric,location_result text,feedback text)
+    distance_m numeric,location_result text,feedback text,
+    order_status text,response_expires_at timestamptz,can_respond boolean)
 LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path='' AS $$
 BEGIN
   IF auth.uid() IS NULL OR NOT EXISTS(
     SELECT 1 FROM public.complaints c WHERE c.id=p_complaint AND c.citizen_id=auth.uid()
   ) THEN RAISE EXCEPTION 'Complaint ownership required' USING ERRCODE='42501'; END IF;
   RETURN QUERY SELECT o.id,o.department_id,e.storage_path,e.submitted_at,
-    e.original_distance_m,e.location_result,f.verdict
+    e.original_distance_m,e.location_result,f.verdict,o.status,
+    o.reviewed_at+interval '72 hours',
+    (o.status='verified' AND now()<=o.reviewed_at+interval '72 hours'
+      AND c.status<>'resolved' AND f.verdict IS NULL)
     FROM public.department_work_order_reports r
     JOIN public.department_work_orders o ON o.id=r.order_id
     JOIN public.department_work_evidence e ON e.order_id=o.id AND e.decision='approved'
-    LEFT JOIN public.department_work_feedback f ON f.order_id=o.id AND f.complaint_id=p_complaint
-    WHERE r.complaint_id=p_complaint AND o.status='verified'
+    JOIN public.complaints c ON c.id=r.complaint_id
+    LEFT JOIN public.department_work_feedback f ON f.evidence_id=e.id AND f.complaint_id=p_complaint
+    WHERE r.complaint_id=p_complaint AND e.id=(
+      SELECT latest.id FROM public.department_work_evidence latest
+      WHERE latest.order_id=o.id AND latest.decision='approved'
+      ORDER BY latest.submitted_at DESC LIMIT 1
+    )
     ORDER BY e.submitted_at DESC;
 END;
 $$;
@@ -436,20 +541,35 @@ GRANT EXECUTE ON FUNCTION public.v1318_my_work_proofs(uuid) TO authenticated;
 CREATE OR REPLACE FUNCTION public.v1318_citizen_feedback(
   p_order uuid,p_complaint uuid,p_verdict text,p_note text DEFAULT ''
 ) RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
+DECLARE v_order public.department_work_orders%ROWTYPE; v_evidence uuid;
 BEGIN
   IF p_verdict NOT IN ('confirmed','disputed') OR length(coalesce(p_note,''))>1000
     OR (p_verdict='disputed' AND length(trim(coalesce(p_note,'')))<10) THEN
     RAISE EXCEPTION 'Invalid feedback'; END IF;
-  IF auth.uid() IS NULL OR NOT EXISTS (
-    SELECT 1 FROM public.department_work_order_reports r
-    JOIN public.department_work_orders o ON o.id=r.order_id AND o.status='verified'
+  SELECT o.* INTO v_order
+    FROM public.department_work_orders o
+    JOIN public.department_work_order_reports r ON r.order_id=o.id
     JOIN public.complaints c ON c.id=r.complaint_id
-    WHERE r.order_id=p_order AND r.complaint_id=p_complaint AND c.citizen_id=auth.uid()
-  ) THEN RAISE EXCEPTION 'Not authorized to review this work' USING ERRCODE='42501'; END IF;
-  INSERT INTO public.department_work_feedback(order_id,complaint_id,citizen_id,verdict,note)
-    VALUES(p_order,p_complaint,auth.uid(),p_verdict,trim(coalesce(p_note,'')))
-  ON CONFLICT (order_id,complaint_id) DO NOTHING;
+    WHERE o.id=p_order AND r.complaint_id=p_complaint
+      AND c.citizen_id=auth.uid() AND c.status<>'resolved'
+    FOR UPDATE OF o;
+  IF v_order.id IS NULL OR v_order.status<>'verified' OR v_order.reviewed_at IS NULL
+    OR now()>v_order.reviewed_at+interval '72 hours' THEN
+    RAISE EXCEPTION 'Citizen review is unavailable or its 72-hour window has closed' USING ERRCODE='42501';
+  END IF;
+  SELECT e.id INTO v_evidence FROM public.department_work_evidence e
+    WHERE e.order_id=p_order AND e.decision='approved'
+    ORDER BY e.submitted_at DESC LIMIT 1;
+  IF v_evidence IS NULL THEN RAISE EXCEPTION 'No approved proof is available'; END IF;
+  INSERT INTO public.department_work_feedback(evidence_id,order_id,complaint_id,citizen_id,verdict,note)
+    VALUES(v_evidence,p_order,p_complaint,auth.uid(),p_verdict,trim(coalesce(p_note,'')))
+  ON CONFLICT (evidence_id,complaint_id) DO NOTHING;
   IF NOT FOUND THEN RAISE EXCEPTION 'Feedback has already been recorded'; END IF;
+  IF p_verdict='disputed' THEN
+    UPDATE public.department_work_orders SET status='returned',citizen_dispute_pending=true,
+      review_note='Citizen reported unresolved work; officer rework is required',updated_at=now()
+      WHERE id=p_order;
+  END IF;
   INSERT INTO public.department_work_events(order_id,actor_id,event_type,detail)
     VALUES(p_order,auth.uid(),'citizen_feedback',p_verdict);
 END;
@@ -470,7 +590,7 @@ RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path = '' AS $$
    JOIN public.department_work_orders o ON o.id=e.order_id
    WHERE e.storage_path=p_path AND (
      public.v1318_can_view_order(o.id) OR
-     (e.decision='approved' AND o.status='verified' AND EXISTS (
+     (e.decision='approved' AND EXISTS (
        SELECT 1 FROM public.department_work_order_reports r
        JOIN public.complaints c ON c.id=r.complaint_id
        WHERE r.order_id=o.id AND c.citizen_id=auth.uid()
@@ -537,9 +657,10 @@ USING (auth.jwt()->>'aal'='aal2' AND EXISTS (
 -- officers from editing another officer's reports and blocks unverified closure.
 CREATE OR REPLACE FUNCTION public.v1318_staff_update_guard()
 RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
-DECLARE v_department text;
 BEGIN
-  IF auth.uid() IS NULL OR public.is_main_admin(auth.uid()) THEN RETURN NEW; END IF;
+  IF auth.uid() IS NULL THEN RETURN NEW; END IF;
+  IF public.is_main_admin(auth.uid()) AND NOT
+    (NEW.status='resolved' AND OLD.status IS DISTINCT FROM 'resolved') THEN RETURN NEW; END IF;
   IF EXISTS(SELECT 1 FROM public.department_memberships m WHERE m.user_id=auth.uid() AND m.status='active') THEN
     IF auth.jwt()->>'aal'<>'aal2' THEN
       RAISE EXCEPTION 'Authenticator verification required for staff mutations' USING ERRCODE='42501';
@@ -558,18 +679,18 @@ BEGIN
     ) THEN RAISE EXCEPTION 'Outside assigned work' USING ERRCODE='42501'; END IF;
   END IF;
   IF NEW.status='resolved' AND OLD.status IS DISTINCT FROM 'resolved' THEN
-    FOR v_department IN SELECT DISTINCT unnest(
-      CASE WHEN cardinality(coalesce(OLD.assigned_department_ids,ARRAY[]::text[]))>0
-        THEN OLD.assigned_department_ids
-        ELSE ARRAY[OLD.assigned_department_id] END
-      ) LOOP
-      IF v_department IS NOT NULL AND NOT EXISTS (
-        SELECT 1 FROM public.department_work_order_reports r
-        JOIN public.department_work_orders o ON o.id=r.order_id
-        JOIN public.department_work_evidence e ON e.order_id=o.id AND e.decision='approved'
-        WHERE r.complaint_id=OLD.id AND o.department_id=v_department AND o.status='verified'
-      ) THEN RAISE EXCEPTION 'Officer proof and supervisor approval required before closure' USING ERRCODE='42501'; END IF;
-    END LOOP;
+    IF NOT public.is_main_admin(auth.uid()) AND NOT EXISTS (
+      SELECT 1 FROM public.department_memberships m
+      WHERE m.user_id=auth.uid() AND m.status='active' AND m.staff_role='head'
+        AND m.department_id=OLD.assigned_department_id
+    ) THEN
+      RAISE EXCEPTION 'Only the primary department head may close verified reports'
+        USING ERRCODE='42501';
+    END IF;
+    IF NOT public.v1318_resolution_ready(OLD.id) THEN
+      RAISE EXCEPTION 'Verified evidence and citizen confirmation, or a documented 72-hour head review, are required before closure'
+        USING ERRCODE='42501';
+    END IF;
   END IF;
   RETURN NEW;
 END;
