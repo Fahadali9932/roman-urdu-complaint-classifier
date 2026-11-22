@@ -80,8 +80,8 @@ export const AdminAccessPage: React.FC = () => {
   };
 
   useEffect(() => {
-    loadMemberships();
-  }, []);
+    if (isAuthenticated) void loadMemberships();
+  }, [isAuthenticated]);
 
   useEffect(() => {
     if (!supabase || !isSupabaseConfigured()) return;
@@ -203,10 +203,12 @@ export const AdminAccessPage: React.FC = () => {
     <div className="min-h-screen bg-[#F8FAFC] text-[#0F1E21] flex flex-col font-sans">
       <AdminHeader activeTab="access" />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-        <div className="space-y-1"><p className="text-xs font-bold text-[#075F57] tracking-[.14em]">AWAAZ-E-AWAM / CENTRAL CONTROL</p><h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#102E30]">People & permissions.</h1><p className="text-sm text-[#64748B]">Invite employees, manage roles and see where department resources are needed.</p><h2 className="sr-only">Departments & access</h2><p className="sr-only">Review approved department access and revoke it when required.</p></div>
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col gap-6">
+        <div className="space-y-1 order-0"><p className="text-xs font-semibold text-[#075F57]">Central administration</p><h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-[#102E30]">People & permissions</h1><p className="text-sm text-[#64748B]">Manage department identities, roles and access.</p><h2 className="sr-only">Departments & access</h2><p className="sr-only">Review approved department access and revoke it when required.</p></div>
         {isSupabaseConfigured() && !mfaReady && <section className="bg-white border border-slate-300 rounded-2xl p-5 space-y-3 max-w-xl"><h2 className="font-bold text-lg">Verify administrator access</h2><p className="text-sm text-slate-600">Staff invitations and role changes require your authenticator code, even after signing in.</p>{!factor?<button type="button" className="bg-slate-900 text-white rounded-lg px-4 py-2 text-sm" onClick={()=>void beginMfa()}>Continue with authenticator</button>:<form className="space-y-3" onSubmit={verifyMfa}>{qr&&<div className="space-y-2"><img src={qr} alt="Administrator authenticator QR" className="w-40 h-40"/><p className="text-xs break-all">Manual setup key: {manualKey}</p></div>}<input aria-label="Six digit authenticator code" className="w-full rounded-lg border border-slate-300 p-3" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" required maxLength={6} placeholder="Six-digit code" value={mfaCode} onChange={e=>setMfaCode(e.target.value)}/><button type="submit" className="bg-slate-900 text-white rounded-lg px-4 py-2 text-sm">Verify code</button></form>}</section>}
-        <section className="bg-[#102e30] text-white rounded-2xl p-6 flex flex-col lg:flex-row gap-6 lg:items-center justify-between">
+        <details className="order-2 bg-[#102e30] text-white rounded-xl p-5 sm:p-6 group">
+          <summary className="cursor-pointer font-semibold text-base focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#bff6ac]">Invite a department employee <span className="font-normal text-sm text-slate-300 ml-2">— requires verified administrator access</span></summary>
+          <div className="mt-5 flex flex-col lg:flex-row gap-6 lg:items-center justify-between">
           <div className="max-w-md"><p className="text-xs tracking-[.2em] uppercase text-emerald-200">Personnel / controlled access</p><h2 className="text-2xl font-bold tracking-tight mt-2">One identity per person.</h2><p className="text-sm text-slate-300 mt-2 leading-relaxed">Invite each employee using a verified work email. Department heads allocate work; officers only access their assignments. No shared access keys.</p></div>
           <form onSubmit={e=>void sendInvitation(e)} className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-xl" aria-label="Invite department employee">
             <label className="text-xs">Full name<input required minLength={2} maxLength={120} value={inviteName} onChange={e=>setInviteName(e.target.value)} placeholder="Officer's full name" className="block w-full bg-white text-slate-900 border-0 rounded-lg p-3 mt-1"/></label>
@@ -216,8 +218,9 @@ export const AdminAccessPage: React.FC = () => {
             <button type="submit" disabled={inviting||!isSupabaseConfigured()||!mfaReady} className="sm:col-span-2 bg-[#bff6ac] disabled:opacity-50 text-[#102e30] rounded-lg font-bold px-4 py-3 text-sm">{inviting?'Sending invitation…':'Invite approved employee'}</button>
             {!isSupabaseConfigured()&&<p className="sm:col-span-2 text-xs text-amber-200">Connect staging Supabase to send a real invitation. Local demos cannot create live identities.</p>}
           </form>
-        </section>
-        {isSupabaseConfigured()&&mfaReady&&<section className="bg-white border border-[#D8E0DE] rounded-2xl overflow-hidden" aria-label="City-wide officer workload"><div className="p-5 border-b border-[#D8E0DE]"><p className="text-[10px] font-bold tracking-[.16em] text-[#075F57]">LIVE DEPARTMENT ROSTERS</p><h2 className="text-xl font-bold text-[#14272A] mt-1">Who is carrying the work?</h2><p className="text-xs text-slate-500 mt-1">Only verified outcomes count toward ratings. New staff are not rated.</p></div>{workforceError?<p role="alert" className="p-4 text-xs text-red-700">{workforceError}</p>:<div className="overflow-x-auto"><table className="w-full text-left text-sm"><thead className="bg-slate-50 text-[10px] text-slate-500 tracking-wider"><tr><th className="p-3">DEPARTMENT / OFFICER</th><th>ROLE</th><th>OPEN</th><th>OVERDUE</th><th>VERIFIED</th><th>RATING</th></tr></thead><tbody>{workforce.filter(o=>o.staff_role==='officer').map(o=><tr key={`${o.department_id}-${o.user_id}`} className="border-t border-slate-100"><td className="p-3 font-semibold text-[#14272A]">{o.display_name}<span className="block text-[11px] font-normal text-slate-500">{o.department_id.toUpperCase()}</span></td><td className="text-xs">Officer</td><td>{o.active_cases}</td><td className={o.overdue_cases>0?'font-bold text-red-700':''}>{o.overdue_cases}</td><td>{o.verified_cases}</td><td>{officerRating(o)?.toFixed(1)||'Not rated'}</td></tr>)}</tbody></table>{workforce.length===0&&<p className="p-4 text-sm text-slate-500">No active officer records yet.</p>}</div>}</section>}
+          </div>
+        </details>
+        {isSupabaseConfigured()&&mfaReady&&<section className="order-3 bg-white border border-[#D8E0DE] rounded-xl overflow-hidden" aria-label="City-wide officer workload"><div className="p-5 border-b border-[#D8E0DE]"><p className="text-xs font-semibold text-[#075F57]">Department rosters</p><h2 className="text-lg font-semibold text-[#14272A] mt-1">Officer workload</h2><p className="text-xs text-slate-500 mt-1">Ratings require at least five verified cases.</p></div>{workforceError?<p role="alert" className="p-4 text-xs text-red-700">{workforceError}</p>:<div className="overflow-x-auto"><table className="w-full text-left text-sm"><thead className="bg-slate-50 text-[10px] text-slate-500 tracking-wider"><tr><th className="p-3">DEPARTMENT / OFFICER</th><th>ROLE</th><th>OPEN</th><th>OVERDUE</th><th>VERIFIED</th><th>RATING</th></tr></thead><tbody>{workforce.filter(o=>o.staff_role==='officer').map(o=><tr key={`${o.department_id}-${o.user_id}`} className="border-t border-slate-100"><td className="p-3 font-semibold text-[#14272A]">{o.display_name}<span className="block text-[11px] font-normal text-slate-500">{o.department_id.toUpperCase()}</span></td><td className="text-xs">Officer</td><td>{o.active_cases}</td><td className={o.overdue_cases>0?'font-bold text-red-700':''}>{o.overdue_cases}</td><td>{o.verified_cases}</td><td>{officerRating(o)?.toFixed(1)||'Not rated'}</td></tr>)}</tbody></table>{workforce.length===0&&<p className="p-4 text-sm text-slate-500">No active officer records yet.</p>}</div>}</section>}
         {/* Global Feedback Banner */}
         {feedback && (
           <div
@@ -238,7 +241,7 @@ export const AdminAccessPage: React.FC = () => {
         )}
 
         {/* Main Grid: Authorized Access Table & Scope Sidebar */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <div className="order-1 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           {/* Table Container (Figma 35:1138 / 1248px width) */}
           <section
             className="lg:col-span-8 bg-white rounded-2xl border border-[#E2E8F0] shadow-xs overflow-hidden"
@@ -402,7 +405,7 @@ export const AdminAccessPage: React.FC = () => {
                 <p>
                   {language === 'ur'
                     ? 'جب ایڈمنسٹریٹر رسائی منسوخ کرتا ہے، تو متعلقہ ملازم کے جاری سیشن کو فوری طور پر بند کر دیا جاتا ہے، اور وہ مزید کسی شکایت تک رسائی حاصل نہیں کر سکتا۔'
-                    : 'When access is revoked, active staff tokens and sessions are invalidated immediately in real-time. The revoked employee is blocked from accessing complaints instantly.'}
+                    : 'Revocation removes active department membership. Staff requests must recheck membership and deny further work, even if an existing login token has not expired. Tokens are not automatically erased from the employee’s device.'}
                 </p>
               </div>
             </div>

@@ -2,7 +2,7 @@ import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../../context/LanguageContext';
 import { useAdminAuth } from '../../../context/AdminAuthContext';
-import { Shield, LogOut, Globe, LayoutGrid, FileText, UserCheck, Users, Cpu } from 'lucide-react';
+import { Shield, LogOut, Globe, FileText, UserCheck, Users, Cpu } from 'lucide-react';
 
 interface AdminHeaderProps {
   activeTab: 'overview' | 'complaints' | 'requests' | 'access' | 'ai';
@@ -38,7 +38,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ activeTab }) => {
                   AWAAZ-E-AWAM
                 </span>
                 <span className="text-xs text-[#94A3B8]">/</span>
-                <span className="text-xs font-semibold text-[#122E32] flex items-center gap-1">
+                <span className="hidden sm:flex text-xs font-semibold text-[#122E32] items-center gap-1">
                   <Shield className="w-3.5 h-3.5 text-[#122E32]" />
                   {language === 'ur' ? 'مین ایڈمنسٹریٹر' : 'MAIN ADMINISTRATOR'}
                 </span>
@@ -77,7 +77,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ activeTab }) => {
 
         {/* Primary Navigation Rail (Figma 35:1065 / 35:1129) */}
         <nav
-          className="flex items-center gap-6 sm:gap-8 -mb-px overflow-x-auto no-scrollbar"
+          className="flex items-center gap-4 sm:gap-7 -mb-px overflow-x-auto no-scrollbar"
           aria-label="Admin Navigation"
         >
           <NavLink
@@ -104,7 +104,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ activeTab }) => {
           >
             <Users className="w-4 h-4" />
             <span>
-              {language === 'ur' ? 'محکمے اور رسائی' : 'Departments & Access'}
+              {language === 'ur' ? 'محکمے اور رسائی' : 'People & permissions'}
             </span>
           </NavLink>
 
@@ -118,20 +118,8 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ activeTab }) => {
           >
             <Cpu className="w-4 h-4" />
             <span>
-              {language === 'ur' ? 'اے آئی کنٹرول سینٹر' : 'AI Control Center'}
+              {language === 'ur' ? 'اے آئی کا جائزہ' : 'Model review'}
             </span>
-          </NavLink>
-
-          <NavLink
-            to="/admin/overview"
-            className={`py-3 text-xs sm:text-sm font-semibold border-b-2 flex items-center gap-2 transition-colors whitespace-nowrap ${
-              activeTab === 'overview'
-                ? 'border-[#0F1E21] text-[#0F1E21]'
-                : 'border-transparent text-[#64748B] hover:text-[#0F1E21]'
-            }`}
-          >
-            <LayoutGrid className="w-4 h-4" />
-            <span>{language === 'ur' ? 'مجموعی جائزہ' : 'Overview'}</span>
           </NavLink>
 
           <NavLink

@@ -111,10 +111,12 @@
 .app-shell .brand-copy span { color: #a4bec1; font-size: 11px; }
 .app-shell .sidebar .icon-btn { color: #b3ccce; }
 .app-shell .sidebar .icon-btn:hover { background: #244750; color: #fff; }
-.app-shell .nav-label { color: #93b7b8; letter-spacing: .14em; padding-top: 29px; }
+.app-shell .nav-label { color: #93b7b8; letter-spacing: .08em; padding-top: 25px; font-weight: 650; }
 .app-shell .navigation { padding: 0 12px; }
-.app-shell .nav-item { color: #c0d4d6; padding: 12px 14px; min-height: 48px; gap: 13px; font-size: 13.5px; font-weight: 600; border-radius: 9px; }
-.app-shell .nav-item:hover { background: #254650; color: #fff; }
+.app-shell .navigation .nav-label-secondary { padding: 21px 14px 8px; font-size: 10px; color: #93b7b8; }
+.app-shell .sidebar.collapsed .nav-label-secondary { display: none; }
+.app-shell .nav-item { color: #c0d4d6; padding: 9px 14px; min-height: 44px; gap: 12px; font-size: 13px; font-weight: 550; border-radius: 7px; }
+.app-shell .nav-item:hover:not(.active) { background: #1b3c44; color: #eef8f5; }
 .app-shell .nav-item.active { background: #e4f3ed; color: #0d534d; box-shadow: inset 3px 0 #4aaa91; }
 .app-shell .nav-item.active .ico { stroke-width: 2.4; }
 .app-shell .nav-count { background: #2c4d54; color: #e5f5f1; min-width: 23px; text-align: center; }
@@ -123,6 +125,7 @@
 .app-shell .sidebar-footer .account-copy strong { color: #fff; }
 .app-shell .sidebar-footer .account-copy span { color: #b4cbce; }
 .app-shell .sidebar-footer .avatar { background: #d3e7de; color: #133b3c; }
+.app-shell .sidebar-footer .staff-demo-label { color: #e6cf9f; font-size: 10px; margin-top: 2px; }
 .app-shell .topbar { height: 70px; padding-inline: 36px; background: var(--surface); border-color: var(--line); }
 .app-shell .topbar .breadcrumb-current { font-weight: 700; }
 .app-shell .page { padding: 36px clamp(20px, 3.1vw, 54px) 80px; max-width: none; }

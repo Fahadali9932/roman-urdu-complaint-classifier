@@ -12,7 +12,7 @@ import {
 } from '../types';
 import { IComplaintService } from './IComplaintService';
 import { KARACHI_DEPARTMENTS } from '../mocks/complaints';
-import { generateMockReference, generateGuestTrackingNumber } from '../utils/referenceGenerator';
+import { generateMockReference, generateGuestTrackingNumber, generateClaimCode } from '../utils/referenceGenerator';
 import { classifyV11RelationAware, championV11Model, type V11RelationAwareResult } from './v11InferenceAdapter';
 import { assessComplaintDraft, resolveComplaintClarification, type UnderstandingResult } from './complaintUnderstanding';
 
@@ -198,7 +198,7 @@ export class MockComplaintService implements IComplaintService {
     const primaryDeptId = routedDepts[0];
     const primaryDeptName = KARACHI_DEPARTMENTS[primaryDeptId]?.name || 'Municipal Agency';
     const status: ComplaintStatus = needsReview ? 'under_review' : 'assigned';
-    const claimCode = `CLM-${Math.random().toString(36).substring(2, 6).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+    const claimCode = generateClaimCode();
 
     const complaintId = `cmp-${Date.now()}`;
     const issues: ComplaintIssue[] = routedDepts.map((d, idx) => ({

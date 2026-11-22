@@ -14,6 +14,7 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { useDepartmentAuth } from '../../../context/DepartmentAuthContext';
+import { isSupabaseConfigured } from '../../../lib/supabase';
 
 export type WorkspaceSection =
   | 'dashboard'
@@ -150,7 +151,7 @@ export const DepartmentSidebar: React.FC<DepartmentSidebarProps> = ({
         )}
       </div>
 
-      <div className="nav-label">WORKSPACE</div>
+      <div className="nav-label">{staffPosition === 'head' ? 'FIELD OPERATIONS' : 'MY WORKSPACE'}</div>
       <nav className="navigation" aria-label="Main navigation">
         {staffPosition === 'head' && <>
           <button type="button" data-view="dispatch" onClick={() => handleNavClick('dispatch')} className={`nav-item ${currentSection === 'dispatch' ? 'active' : ''}`} aria-current={currentSection === 'dispatch' ? 'page' : undefined} data-tooltip="Dispatch desk"><ClipboardList className="ico" /><span>Dispatch desk</span></button>
@@ -160,6 +161,7 @@ export const DepartmentSidebar: React.FC<DepartmentSidebarProps> = ({
         {staffPosition === 'officer' && <button type="button" data-view="field" onClick={() => handleNavClick('field')} className={`nav-item ${currentSection === 'field' ? 'active' : ''}`} aria-current={currentSection === 'field' ? 'page' : undefined} data-tooltip="My field work"><HardHat className="ico"/><span>My field work</span></button>}
         {staffPosition && <button type="button" data-view="field_archive" onClick={() => handleNavClick('field_archive')} className={`nav-item ${currentSection === 'field_archive' ? 'active' : ''}`} aria-current={currentSection === 'field_archive' ? 'page' : undefined} data-tooltip="Verified work archive"><Archive className="ico"/><span>Verified work</span></button>}
         {staffPosition !== 'officer' && <>
+        <div className="nav-label nav-label-secondary" role="presentation">COMPLAINT RECORDS</div>
         {/* Overview */}
         <button
           type="button"
@@ -259,6 +261,7 @@ export const DepartmentSidebar: React.FC<DepartmentSidebarProps> = ({
           <span>
             {departmentShort} · {departmentDesc}
           </span>
+          {!isSupabaseConfigured() && <span className="staff-demo-label">Local demonstration</span>}
         </div>
         <span className="account-presence" title="Active session" />
       </div>

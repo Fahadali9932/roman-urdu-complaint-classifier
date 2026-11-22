@@ -5,6 +5,31 @@ Verified on **22 November 2026 (Pakistan time)**. Internal delivery target:
 This document distinguishes inspected source, automated checks, and unverified
 hosted behavior. Update it after every significant verified milestone.
 
+## Development update, 22 November 2026 — Phase V13.19: Administration & Field-Operations Review, Municipal UX, CSPRNG Security & Visual QA
+
+- **Municipal Operations Console & Restrained UX (`FieldOperationsDesk.tsx`, `DepartmentSidebar.tsx`, `field-operations-v18.css`):**
+  - **Quiet Editorial Hierarchy:** Replaced generic slogans with compact, contextual headings ("Dispatch desk", "Officer roster", "Proof verification", "Verified work archive"). Suppressed repeated 4-metric KPI strips on non-dispatch views (team roster, proof verification, completed archive).
+  - **Grouped Staff Sidebar:** Navigation cleanly separated into "FIELD OPERATIONS" (or "MY WORKSPACE" for officers) and "COMPLAINT RECORDS", maintaining compact 44px+ hit targets with session demo badge.
+  - **Dispatch Usability:** Added case count badge, responsive search, 35-case paging with explicit "Show more", and an actionable 3-step assignment brief in the empty state.
+  - **Native Dark Theme:** High-contrast overrides with CSS variables for work order cards, inputs, dialogs, badges, and feedback banners.
+- **Central Administrator Portal Simplification (`AdminHeader.tsx`, `AdminAccessPage.tsx`, `AdminRequestsPage.tsx`):**
+  - **Clean 3-Tab Rail:** Removed dead/nonfunctional "Overview" tab; streamlined to "Department Requests", "People & permissions", and "Model review".
+  - **Access & Invitation Order:** Approved department staff are displayed prominently first; employee invitation form is collapsed inside a clean disclosure.
+- **Model Governance & Telemetry Honesty (`AiControlCenterPage.tsx`, `aiTelemetryService.ts`):**
+  - **Truthful Telemetry:** Differentiates historical offline benchmark results from disconnected live telemetry without inventing disk usage or runtime stats. Unreachable endpoints report "unavailable" and "STALE".
+- **Cryptographic Randomness & Security Hygiene (`referenceGenerator.ts`, `SimplifiedComplaintContainer.tsx`, `MockComplaintService.ts`):**
+  - **CSPRNG Enforced:** Replaced all `Math.random()` usage for 24-digit guest tracking numbers and local claim secrets with `crypto.getRandomValues()`. Tested to fail closed when cryptographic entropy is absent.
+  - **20 Pen-Test Scope Audit:** Documented explicit PASS / NOT TESTED / NOT APPLICABLE analysis for all 20 security assessment categories.
+- **Automated Verification & Multi-Viewport Chrome QA:**
+  - TypeScript + Vite build: PASS in 1.23s.
+  - Vitest suite: **652 passed, 1 skipped** across 65 test files.
+  - 4 Edge security gates (work orders, citizen review, geo evidence, atomic batch): **20 passed**.
+  - Municipal boundaries: **16 passed**.
+  - Production bundle hygiene: PASS (0 auth bypass markers or fixtures).
+  - Python backend unittest: **106 passed**.
+  - Real Chrome Visual QA (`tools/ai_factory/v13_19_browser_qa.mjs`): **85 screenshots verified across 5 viewports (1440, 1024, 768, 393, 320 px) in Light & Dark modes with 0px horizontal overflow**.
+
+
 ## Staging follow-up, 22 November 2026 — V13.18 migrations, real database tests and separate officer demo
 
 - **Existing staging only:** Project `jvbulmmdwovtgaxojxhn` is healthy.

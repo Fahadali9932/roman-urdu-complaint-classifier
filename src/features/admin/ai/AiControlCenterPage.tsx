@@ -4,6 +4,7 @@ import { useAdminAuth } from '../../../context/AdminAuthContext';
 import { AdminHeader } from '../../auth/components/AdminHeader';
 import {
   aiTelemetryService,
+  DEFAULT_IDLE,
   type TelemetryPayload,
 } from '../../../services/aiTelemetryService';
 import {
@@ -52,38 +53,7 @@ export const AiControlCenterPage: React.FC = () => {
   >('overview');
 
   // Telemetry state
-  const [telemetry, setTelemetry] = useState<TelemetryPayload>({
-    state: 'IDLE',
-    stage: 'Standby',
-    progress_current: 0,
-    progress_target: 0,
-    percent_complete: 0.0,
-    active_task: 'No training operation running',
-    elapsed_seconds: 0.0,
-    estimated_remaining_seconds: 0.0,
-    resources: {
-      'C:': { total_gb: 281.1, used_gb: 234.2, free_gb: 46.88 },
-      'D:': { total_gb: 194.5, used_gb: 37.8, free_gb: 156.69 },
-    },
-    latest_metrics: {
-      exact_accuracy: 0.5255,
-      macro_f1: 0.7283,
-      false_extra_rate: 0.2710,
-      missed_rate: 0.2771,
-    },
-    recent_events: [
-      {
-        timestamp: new Date().toLocaleTimeString(),
-        level: 'INFO',
-        message: 'AI Control Center telemetry initialized in standby mode.',
-      },
-    ],
-    active_model: {
-      version: 'v11-candidate-run-004-champion',
-      sha256: 'e4d042937cf8c3e1e3c70f147a707b33a629d463db34485766c98da21c2e3a56',
-      status: 'active_runtime',
-    },
-  });
+  const [telemetry, setTelemetry] = useState<TelemetryPayload>(DEFAULT_IDLE);
 
   const [isStartingSim, setIsStartingSim] = useState(false);
   const [controlFeedback, setControlFeedback] = useState<string | null>(null);
@@ -133,7 +103,7 @@ export const AiControlCenterPage: React.FC = () => {
       const res = await aiTelemetryService.startDiagnosticTraining();
       setControlFeedback(res.message);
     } catch {
-      setControlFeedback('Diagnostic run initiated.');
+      setControlFeedback('Diagnostic could not be started. Check the local training service.');
     } finally {
       setIsStartingSim(false);
     }
@@ -145,7 +115,7 @@ export const AiControlCenterPage: React.FC = () => {
       const res = await aiTelemetryService.stopTraining();
       setControlFeedback(res.message);
     } catch {
-      setControlFeedback('Stop signal delivered.');
+      setControlFeedback('Stop signal could not be delivered. Check the local training service.');
     }
   };
 
@@ -245,11 +215,11 @@ export const AiControlCenterPage: React.FC = () => {
                 <Cpu size={20} />
               </span>
               <h1 className="text-2xl font-bold text-[#0F1E21]">
-                AI Control Center & Continuous Learning
+                Model review & governance
               </h1>
             </div>
             <p className="text-xs text-[#64748B] mt-1">
-              Real-time classification telemetry, human correction verification queue, and model governance
+              Human correction decisions, historical evidence, and optional local training telemetry.
             </p>
           </div>
 
@@ -266,7 +236,7 @@ export const AiControlCenterPage: React.FC = () => {
                 className="w-2 h-2 rounded-full"
                 style={{
                   backgroundColor: stateBadgeStyle.text,
-                  animation: telemetry.state === 'LIVE' ? 'ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite' : 'none',
+                  animation: 'none',
                 }}
               />
               {stateBadgeStyle.label}
@@ -295,8 +265,8 @@ export const AiControlCenterPage: React.FC = () => {
         {/* Navigation Segment Pills */}
         <div className="flex items-center gap-2 border-b border-[#E2E8F0] pb-2 mb-6 overflow-x-auto">
           {[
-            { id: 'overview', label: 'System Overview', icon: Layers },
-            { id: 'live', label: 'Live Training Telemetry', icon: Activity },
+            { id: 'overview', label: 'Model snapshot', icon: Layers },
+            { id: 'live', label: 'Training telemetry', icon: Activity },
             { id: 'review_queue', label: `Human Review Queue (${reviewQueue.filter((q) => q.status === 'pending').length})`, icon: HelpCircle },
             { id: 'learning_history', label: `Verified Learning History (${verifiedCorrections.length})`, icon: FileCheck },
             { id: 'registry', label: 'Model Registry & Rollback', icon: HardDrive },
@@ -331,12 +301,12 @@ export const AiControlCenterPage: React.FC = () => {
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                      ACTIVE RUNTIME CHAMPION
+                      FROZEN RUN004 / RELEASE PARITY PENDING
                     </span>
                     <span className="text-xs text-slate-400 font-mono">v11-candidate-run-004-champion</span>
                   </div>
                   <h2 className="text-lg font-bold text-slate-900 mt-1">
-                    V11.4.4 Champion Hybrid Classifier
+                    Run004 classifier — historical local evaluation
                   </h2>
                 </div>
                 <div className="text-right">
@@ -347,7 +317,8 @@ export const AiControlCenterPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Metric Counters Strip */}
+              <p className="mt-4 text-xs text-amber-900 bg-amber-50 border border-amber-200 rounded-lg p-3">These are historical offline measurements, not verified staging or real-world accuracy. Validate deployed classifier parity before release.</p>
+              {/* Historical Metric Counters Strip */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
                 <div className="bg-slate-50 rounded-lg p-4 border border-slate-100">
                   <span className="text-xs text-slate-500 font-medium">Repaired Exact Set Accuracy</span>
@@ -421,7 +392,12 @@ export const AiControlCenterPage: React.FC = () => {
         )}
 
         {/* TAB 2: LIVE TRAINING TELEMETRY */}
-        {activeSegment === 'live' && (
+        {activeSegment === 'live' && (telemetry.source !== 'connected' ? (
+          <section className="rounded-xl border border-amber-200 bg-white p-6" role="status">
+            <h2 className="text-lg font-semibold text-slate-900">Training telemetry is not connected</h2>
+            <p className="mt-2 text-sm text-slate-600">No live training data is available. A connected local training service is required; this portal does not substitute sample machine statistics.</p>
+          </section>
+        ) : (
           <div className="space-y-6">
             {/* Live Progress Card */}
             <div className="bg-white rounded-xl border border-[#E2E8F0] p-6 shadow-xs">
@@ -488,14 +464,14 @@ export const AiControlCenterPage: React.FC = () => {
                 <div>
                   <span className="text-slate-500 block">C: Drive Storage Safety</span>
                   <span className="font-mono font-bold text-emerald-600 text-base">
-                    {telemetry.resources?.['C:']?.free_gb ?? 46.88} GB free
+                    {telemetry.resources?.['C:']?.free_gb ?? '—'} GB free
                   </span>
                   <span className="text-[10px] text-slate-400 block">(Safe &gt;= 20 GB)</span>
                 </div>
                 <div>
                   <span className="text-slate-500 block">D: Drive Storage Safety</span>
                   <span className="font-mono font-bold text-emerald-600 text-base">
-                    {telemetry.resources?.['D:']?.free_gb ?? 156.69} GB free
+                    {telemetry.resources?.['D:']?.free_gb ?? '—'} GB free
                   </span>
                   <span className="text-[10px] text-slate-400 block">(Safe &gt;= 30 GB)</span>
                 </div>
@@ -537,7 +513,7 @@ export const AiControlCenterPage: React.FC = () => {
               </div>
             </div>
           </div>
-        )}
+        ))}
 
         {/* TAB 3: HUMAN REVIEW QUEUE */}
         {activeSegment === 'review_queue' && (

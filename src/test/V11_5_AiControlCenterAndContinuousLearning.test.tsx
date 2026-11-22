@@ -199,14 +199,15 @@ describe('AWAAZ-E-AWAM — Phase V11.5 AI Control Center & Continuous Learning S
         </MemoryRouter>
       );
 
-      expect(screen.getByText(/AI Control Center & Continuous Learning/i)).toBeInTheDocument();
-      expect(screen.getByText(/ACTIVE RUNTIME CHAMPION/i)).toBeInTheDocument();
-      expect(screen.getByText(/V11.4.4 Champion Hybrid Classifier/i)).toBeInTheDocument();
+      expect(screen.getByText(/Model review & governance/i)).toBeInTheDocument();
+      expect(screen.getByText(/FROZEN RUN004 \/ RELEASE PARITY PENDING/i)).toBeInTheDocument();
+      expect(screen.getByText(/Run004 classifier — historical local evaluation/i)).toBeInTheDocument();
+      expect(screen.getByText(/historical offline measurements/i)).toBeInTheDocument();
       expect(screen.getByText(/52.55%/i)).toBeInTheDocument();
       expect(screen.getByText(/0.7283/i)).toBeInTheDocument();
     });
 
-    it('navigates to Live Training Telemetry tab and displays status counters and diagnostic run button', async () => {
+    it('shows an honest offline state when local training telemetry is unavailable', async () => {
       render(
         <MemoryRouter initialEntries={['/admin/ai']}>
           <LanguageProvider>
@@ -217,13 +218,12 @@ describe('AWAAZ-E-AWAM — Phase V11.5 AI Control Center & Continuous Learning S
         </MemoryRouter>
       );
 
-      const liveTabBtn = screen.getByRole('button', { name: /Live Training Telemetry/i });
+      const liveTabBtn = screen.getByRole('button', { name: /Training telemetry/i });
       fireEvent.click(liveTabBtn);
 
-      expect(screen.getByText(/Current Operational Stage/i)).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /Run 30-Sample Diagnostic/i })).toBeInTheDocument();
-      expect(screen.getByText(/C: Drive Storage Safety/i)).toBeInTheDocument();
-      expect(screen.getByText(/D: Drive Storage Safety/i)).toBeInTheDocument();
+      expect(await screen.findByText(/Training telemetry is not connected/i)).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /Run 30-Sample Diagnostic/i })).not.toBeInTheDocument();
+      expect(screen.queryByText(/C: Drive Storage Safety/i)).not.toBeInTheDocument();
     });
 
     it('navigates to Model Registry tab and verifies Run 004, Run 005, and Run 006 listings with hashes', async () => {

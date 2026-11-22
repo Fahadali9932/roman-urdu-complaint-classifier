@@ -71,8 +71,8 @@ export const AdminRequestsPage: React.FC = () => {
   };
 
   useEffect(() => {
-    loadRequests();
-  }, []);
+    if (isAuthenticated) void loadRequests();
+  }, [isAuthenticated]);
 
   // Filtered requests
   const filteredRequests = useMemo(() => {

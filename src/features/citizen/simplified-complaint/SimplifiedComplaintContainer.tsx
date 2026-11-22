@@ -54,7 +54,10 @@ const getGuestToken = (): string => {
   if (typeof window === 'undefined' || !window.sessionStorage) return 'ephemeral';
   let token = sessionStorage.getItem(GUEST_SESSION_KEY);
   if (!token) {
-    token = Math.random().toString(36).substring(2, 15);
+    // Isolate an unsigned guest's local draft without predictable identifiers.
+    // This key never grants access to a complaint or any server record.
+    token = globalThis.crypto?.randomUUID?.() || '';
+    if (!token) throw new Error('A secure browser context is required to save a guest draft.');
     sessionStorage.setItem(GUEST_SESSION_KEY, token);
   }
   return token;

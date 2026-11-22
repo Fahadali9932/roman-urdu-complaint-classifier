@@ -30,6 +30,7 @@ export interface TelemetryEvent {
 }
 
 export interface TelemetryPayload {
+  source?: 'connected' | 'unavailable';
   state: 'LIVE' | 'IDLE' | 'STALE' | 'COMPLETED' | 'FAILED';
   stage: string;
   progress_current: number;
@@ -53,9 +54,10 @@ export interface TelemetryPayload {
   notes?: string[];
 }
 
-const DEFAULT_IDLE: TelemetryPayload = {
+export const DEFAULT_IDLE: TelemetryPayload = {
+  source: 'unavailable',
   state: 'IDLE',
-  stage: 'Standby',
+  stage: 'Telemetry unavailable',
   progress_current: 0,
   progress_target: 0,
   percent_complete: 0.0,
@@ -64,28 +66,14 @@ const DEFAULT_IDLE: TelemetryPayload = {
   active_task: 'No active training operation running',
   elapsed_seconds: 0.0,
   estimated_remaining_seconds: 0.0,
-  resources: {
-    'C:': { total_gb: 281.1, used_gb: 234.2, free_gb: 46.88 },
-    'D:': { total_gb: 194.5, used_gb: 37.8, free_gb: 156.69 },
-  },
+  resources: {},
   latest_metrics: {
-    exact_accuracy: 0.5255,
-    macro_f1: 0.7283,
-    false_extra_rate: 0.2710,
-    missed_rate: 0.2771,
+    exact_accuracy: 0,
+    macro_f1: 0,
+    false_extra_rate: 0,
+    missed_rate: 0,
   },
-  recent_events: [
-    {
-      timestamp: new Date().toLocaleTimeString(),
-      level: 'INFO',
-      message: 'AI Control Center telemetry initialized in standby mode.',
-    },
-  ],
-  active_model: {
-    version: 'v11-candidate-run-004-champion',
-    sha256: 'e4d04293f9c6d4826b5c3ff3ec327e53f1947b198888e2cb2ad4cfcf7ef98457',
-    status: 'active_runtime',
-  },
+  recent_events: [],
 };
 
 class AiTelemetryService {
@@ -97,7 +85,12 @@ class AiTelemetryService {
         headers: { 'Cache-Control': 'no-cache' },
       });
       if (res.ok) {
-        const data = await res.json();
+        const data = await res.json() as TelemetryPayload;
+        if (!data || !['LIVE','IDLE','STALE','COMPLETED','FAILED'].includes(data.state) ||
+          !data.resources || !data.latest_metrics || !Array.isArray(data.recent_events)) {
+          return { ...DEFAULT_IDLE };
+        }
+        data.source = 'connected';
         // Check client-side staleness if timestamp is older than 25 seconds
         if (data.state === 'LIVE' && data.updated_at) {
           const ageSecs = Date.now() / 1000 - data.updated_at;
@@ -111,7 +104,7 @@ class AiTelemetryService {
     } catch {
       // In tests or offline environments where mock fetch isn't wired, return last known
     }
-    return this.lastKnownPayload;
+    return { ...this.lastKnownPayload, source: 'unavailable', state: 'STALE' };
   }
 
   public subscribe(
