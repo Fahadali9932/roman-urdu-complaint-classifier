@@ -7,6 +7,8 @@ import {
   type DepartmentMembershipWithDetails,
 } from '../../../services/staffAuthService';
 import { AdminHeader } from '../components/AdminHeader';
+import { supabase, isSupabaseConfigured } from '../../../lib/supabase';
+import { fieldOperations, officerRating, type DepartmentOfficer } from '../../department/services/fieldOperations';
 import {
   Search,
   Building2,
@@ -29,6 +31,18 @@ export const AdminAccessPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [departmentFilter, setDepartmentFilter] = useState<string>('all');
   const [isLoading, setIsLoading] = useState(true);
+  const [inviting, setInviting] = useState(false);
+  const [inviteName, setInviteName] = useState('');
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteDepartment, setInviteDepartment] = useState('kmc');
+  const [inviteRole, setInviteRole] = useState<'head' | 'officer'>('officer');
+  const [mfaReady,setMfaReady] = useState(!isSupabaseConfigured());
+  const [factor,setFactor] = useState('');
+  const [qr,setQr] = useState('');
+  const [manualKey,setManualKey] = useState('');
+  const [mfaCode,setMfaCode] = useState('');
+  const [workforce,setWorkforce] = useState<Array<DepartmentOfficer & { department_id:string }>>([]);
+  const [workforceError,setWorkforceError] = useState('');
 
   // Revocation modal state (Figma 35:1154 / 35:1840)
   const [selectedTarget, setSelectedTarget] = useState<DepartmentMembershipWithDetails | null>(
@@ -68,6 +82,61 @@ export const AdminAccessPage: React.FC = () => {
   useEffect(() => {
     loadMemberships();
   }, []);
+
+  useEffect(() => {
+    if (!supabase || !isSupabaseConfigured()) return;
+    void supabase.auth.mfa.getAuthenticatorAssuranceLevel().then(r=>setMfaReady(r.data?.currentLevel==='aal2'));
+  }, []);
+
+  useEffect(()=>{
+    if (!isSupabaseConfigured()||!mfaReady) return;
+    let canceled=false;
+    const allDepartments=['kmc','kwsc','kelectric','sswmb','ssgc','sbca'];
+    void Promise.all(allDepartments.map(async(department_id)=>{
+      const officers=await fieldOperations.team(department_id);
+      return officers.map(o=>({...o,department_id}));
+    })).then(results=>{if(!canceled)setWorkforce(results.flat());}).catch(err=>{
+      if(!canceled)setWorkforceError(err instanceof Error?err.message:'Workforce overview is not available.');
+    });
+    return ()=>{canceled=true};
+  },[mfaReady]);
+
+  const beginMfa = async () => {
+    if (!supabase) return;
+    const factors = await supabase.auth.mfa.listFactors();
+    const verified = factors.data?.totp.find(f=>f.status==='verified');
+    if (verified) { setFactor(verified.id); return; }
+    const enrolled = await supabase.auth.mfa.enroll({factorType:'totp',friendlyName:'Awaaz central administration'});
+    if (enrolled.error || !enrolled.data) {setFeedback({type:'error',message:enrolled.error?.message||'Could not start authenticator setup.'});return;}
+    setFactor(enrolled.data.id);setQr(enrolled.data.totp.qr_code);setManualKey(enrolled.data.totp.secret);
+  };
+
+  const verifyMfa = async (event:React.FormEvent) => {
+    event.preventDefault();if (!supabase||!factor)return;
+    const result = await supabase.auth.mfa.challengeAndVerify({factorId:factor,code:mfaCode.trim()});
+    if (result.error) setFeedback({type:'error',message:result.error.message});
+    else {setMfaReady(true);setFeedback({type:'success',message:'Administrator second-factor verification complete.'});}
+  };
+
+  const sendInvitation = async (event:React.FormEvent) => {
+    event.preventDefault();if (!supabase||!isSupabaseConfigured()||!mfaReady)return;
+    setInviting(true);setFeedback(null);
+    try {
+      const {data,error}=await supabase.functions.invoke('provision-department-staff',{body:{email:inviteEmail.trim(),fullName:inviteName.trim(),departmentId:inviteDepartment,staffRole:inviteRole}});
+      if(error||data?.error) throw new Error(data?.error||error?.message||'Invitation failed.');
+      setFeedback({type:'success',message:`Invitation sent to ${inviteEmail}. The person must accept it, create a password and activate an authenticator before accessing ${inviteDepartment.toUpperCase()}.`});
+      setInviteName('');setInviteEmail('');await loadMemberships();
+    }catch(error){setFeedback({type:'error',message:error instanceof Error?error.message:'Invitation failed.'});}
+    finally{setInviting(false);}
+  };
+
+  const changeRole = async (membership:DepartmentMembershipWithDetails, role:'head'|'officer') => {
+    if (!supabase||!mfaReady)return;
+    if(!window.confirm(`Change ${membership.profile?.email} to ${role}? This immediately changes their permissions.`))return;
+    const {error}=await supabase.rpc('v1318_set_staff_role',{p_membership:membership.id,p_role:role});
+    if(error)setFeedback({type:'error',message:error.message});
+    else{setFeedback({type:'success',message:`Role updated to ${role}.`});await loadMemberships();}
+  };
 
   const filteredMemberships = useMemo(() => {
     return memberships.filter((m) => {
@@ -135,24 +204,20 @@ export const AdminAccessPage: React.FC = () => {
       <AdminHeader activeTab="access" />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-        {/* Page Title (Figma 35:1135 - 35:1137) */}
-        <div className="space-y-1">
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded bg-blue-50 border border-blue-200 text-[11px] font-mono font-semibold text-blue-800">
-            <Users className="w-3.5 h-3.5" />
-            <span>{language === 'ur' ? 'اختیارات و رسائی کنٹرول' : 'ACCESS & PERMISSIONS'}</span>
-          </div>
-
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#0F1E21]">
-            {language === 'ur' ? 'محکمے اور رسائی' : 'Departments & access'}
-          </h1>
-
-          <p className="text-sm text-[#64748B]">
-            {language === 'ur'
-              ? 'منظور شدہ محکمانہ عملے کی رسائی کا جائزہ لیں اور ضرورت پڑنے پر فوری منسوخ کریں۔'
-              : 'Review approved department access and revoke it when required.'}
-          </p>
-        </div>
-
+        <div className="space-y-1"><p className="text-xs font-bold text-[#075F57] tracking-[.14em]">AWAAZ-E-AWAM / CENTRAL CONTROL</p><h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#102E30]">People & permissions.</h1><p className="text-sm text-[#64748B]">Invite employees, manage roles and see where department resources are needed.</p><h2 className="sr-only">Departments & access</h2><p className="sr-only">Review approved department access and revoke it when required.</p></div>
+        {isSupabaseConfigured() && !mfaReady && <section className="bg-white border border-slate-300 rounded-2xl p-5 space-y-3 max-w-xl"><h2 className="font-bold text-lg">Verify administrator access</h2><p className="text-sm text-slate-600">Staff invitations and role changes require your authenticator code, even after signing in.</p>{!factor?<button type="button" className="bg-slate-900 text-white rounded-lg px-4 py-2 text-sm" onClick={()=>void beginMfa()}>Continue with authenticator</button>:<form className="space-y-3" onSubmit={verifyMfa}>{qr&&<div className="space-y-2"><img src={qr} alt="Administrator authenticator QR" className="w-40 h-40"/><p className="text-xs break-all">Manual setup key: {manualKey}</p></div>}<input aria-label="Six digit authenticator code" className="w-full rounded-lg border border-slate-300 p-3" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" required maxLength={6} placeholder="Six-digit code" value={mfaCode} onChange={e=>setMfaCode(e.target.value)}/><button type="submit" className="bg-slate-900 text-white rounded-lg px-4 py-2 text-sm">Verify code</button></form>}</section>}
+        <section className="bg-[#102e30] text-white rounded-2xl p-6 flex flex-col lg:flex-row gap-6 lg:items-center justify-between">
+          <div className="max-w-md"><p className="text-xs tracking-[.2em] uppercase text-emerald-200">Personnel / controlled access</p><h2 className="text-2xl font-bold tracking-tight mt-2">One identity per person.</h2><p className="text-sm text-slate-300 mt-2 leading-relaxed">Invite each employee using a verified work email. Department heads allocate work; officers only access their assignments. No shared access keys.</p></div>
+          <form onSubmit={e=>void sendInvitation(e)} className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-xl" aria-label="Invite department employee">
+            <label className="text-xs">Full name<input required minLength={2} maxLength={120} value={inviteName} onChange={e=>setInviteName(e.target.value)} placeholder="Officer's full name" className="block w-full bg-white text-slate-900 border-0 rounded-lg p-3 mt-1"/></label>
+            <label className="text-xs">Work email<input type="email" required value={inviteEmail} onChange={e=>setInviteEmail(e.target.value)} placeholder="name@department.gov.pk" className="block w-full bg-white text-slate-900 border-0 rounded-lg p-3 mt-1"/></label>
+            <label className="text-xs">Department<select value={inviteDepartment} onChange={e=>setInviteDepartment(e.target.value)} className="block w-full bg-white text-slate-900 rounded-lg p-3 mt-1"><option value="kmc">Karachi Metropolitan Corporation</option><option value="kwsc">KWSC</option><option value="kelectric">K-Electric</option><option value="sswmb">SSWMB</option><option value="ssgc">SSGC</option><option value="sbca">SBCA</option></select></label>
+            <label className="text-xs">Responsibility<select value={inviteRole} onChange={e=>setInviteRole(e.target.value as 'head'|'officer')} className="block w-full bg-white text-slate-900 rounded-lg p-3 mt-1"><option value="officer">Field officer</option><option value="head">Department head</option></select></label>
+            <button type="submit" disabled={inviting||!isSupabaseConfigured()||!mfaReady} className="sm:col-span-2 bg-[#bff6ac] disabled:opacity-50 text-[#102e30] rounded-lg font-bold px-4 py-3 text-sm">{inviting?'Sending invitation…':'Invite approved employee'}</button>
+            {!isSupabaseConfigured()&&<p className="sm:col-span-2 text-xs text-amber-200">Connect staging Supabase to send a real invitation. Local demos cannot create live identities.</p>}
+          </form>
+        </section>
+        {isSupabaseConfigured()&&mfaReady&&<section className="bg-white border border-[#D8E0DE] rounded-2xl overflow-hidden" aria-label="City-wide officer workload"><div className="p-5 border-b border-[#D8E0DE]"><p className="text-[10px] font-bold tracking-[.16em] text-[#075F57]">LIVE DEPARTMENT ROSTERS</p><h2 className="text-xl font-bold text-[#14272A] mt-1">Who is carrying the work?</h2><p className="text-xs text-slate-500 mt-1">Only verified outcomes count toward ratings. New staff are not rated.</p></div>{workforceError?<p role="alert" className="p-4 text-xs text-red-700">{workforceError}</p>:<div className="overflow-x-auto"><table className="w-full text-left text-sm"><thead className="bg-slate-50 text-[10px] text-slate-500 tracking-wider"><tr><th className="p-3">DEPARTMENT / OFFICER</th><th>ROLE</th><th>OPEN</th><th>OVERDUE</th><th>VERIFIED</th><th>RATING</th></tr></thead><tbody>{workforce.filter(o=>o.staff_role==='officer').map(o=><tr key={`${o.department_id}-${o.user_id}`} className="border-t border-slate-100"><td className="p-3 font-semibold text-[#14272A]">{o.display_name}<span className="block text-[11px] font-normal text-slate-500">{o.department_id.toUpperCase()}</span></td><td className="text-xs">Officer</td><td>{o.active_cases}</td><td className={o.overdue_cases>0?'font-bold text-red-700':''}>{o.overdue_cases}</td><td>{o.verified_cases}</td><td>{officerRating(o)?.toFixed(1)||'Not rated'}</td></tr>)}</tbody></table>{workforce.length===0&&<p className="p-4 text-sm text-slate-500">No active officer records yet.</p>}</div>}</section>}
         {/* Global Feedback Banner */}
         {feedback && (
           <div
@@ -288,10 +353,11 @@ export const AdminAccessPage: React.FC = () => {
                         <td className="py-3.5 px-4 text-[#334155]">
                           <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100">
                             <ShieldCheck className="w-3 h-3 text-emerald-600" />
-                            {language === 'ur' ? 'صرف تفویض شدہ شکایات' : 'Assigned complaints only'}
+                            {m.staff_role === 'head' ? 'Department head' : 'Field officer'}
                           </span>
                         </td>
                         <td className="py-3.5 px-4 text-right rtl:text-left">
+                          {isSupabaseConfigured()&&mfaReady&&<select aria-label={`Role for ${m.profile?.email}`} value={m.staff_role||'officer'} onChange={e=>void changeRole(m,e.target.value as 'head'|'officer')} className="mb-2 mr-2 rounded-md border border-slate-300 p-1.5 text-xs"><option value="officer">Field officer</option><option value="head">Department head</option></select>}
                           <button
                             type="button"
                             onClick={() => handleOpenRevoke(m)}

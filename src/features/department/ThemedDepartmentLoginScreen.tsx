@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ArrowLeft, ShieldAlert, KeyRound, User, ArrowRight } from 'lucide-react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useDepartmentAuth } from '../../context/DepartmentAuthContext';
-import { isSupabaseConfigured } from '../../lib/supabase';
+import { isSupabaseConfigured, supabase } from '../../lib/supabase';
 import { type DepartmentId } from '../../types';
 import { DEPARTMENT_THEMES } from './design-system/tokens';
 import { DepartmentArtwork } from './design-system/DepartmentArtwork';
@@ -10,6 +10,7 @@ import { GlassCard } from './design-system/GlassCard';
 import { GlassInput } from './design-system/GlassInput';
 import { GlassButton } from './design-system/GlassButton';
 import { getIdentityByDepartmentId } from './auth/departmentIdentities';
+import { getLocalDemoCredentials } from '../../services/localDemoCredentials';
 
 interface ThemedDepartmentLoginScreenProps {
   departmentId: DepartmentId;
@@ -22,7 +23,7 @@ export const ThemedDepartmentLoginScreen: React.FC<ThemedDepartmentLoginScreenPr
   onBackToDepartmentSelection,
   isOnline = true,
 }) => {
-  const { signInWithCredentials } = useDepartmentAuth();
+  const { signInWithCredentials, completeMfaSignIn } = useDepartmentAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
@@ -30,6 +31,11 @@ export const ThemedDepartmentLoginScreen: React.FC<ThemedDepartmentLoginScreenPr
   const [accessKey, setAccessKey] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [mfaStep, setMfaStep] = useState(false);
+  const [mfaFactor, setMfaFactor] = useState('');
+  const [mfaQr, setMfaQr] = useState('');
+  const [mfaSecret, setMfaSecret] = useState('');
+  const [mfaCode, setMfaCode] = useState('');
 
   const theme = DEPARTMENT_THEMES[departmentId] || DEPARTMENT_THEMES.kmc;
   const isRoads = departmentId === 'kmc';
@@ -57,11 +63,11 @@ export const ThemedDepartmentLoginScreen: React.FC<ThemedDepartmentLoginScreenPr
 
     const trimmedUsername = username.trim();
     if (!trimmedUsername) {
-      setErrorMessage('Please enter your assigned department username.');
+      setErrorMessage(isSupabaseConfigured() ? 'Enter your invited work email.' : 'Please enter your assigned department username.');
       return;
     }
     if (!accessKey) {
-      setErrorMessage('Please enter your access key.');
+      setErrorMessage('Enter your password.');
       return;
     }
 
@@ -84,6 +90,21 @@ export const ThemedDepartmentLoginScreen: React.FC<ThemedDepartmentLoginScreenPr
       );
 
       if (!res.success) {
+        if (res.status === 'mfa_required' && supabase) {
+          const factors = await supabase.auth.mfa.listFactors();
+          if (factors.error) { setErrorMessage(factors.error.message); return; }
+          const existing = factors.data?.totp.find(f => f.status === 'verified');
+          if (existing) setMfaFactor(existing.id);
+          else {
+            const setup = await supabase.auth.mfa.enroll({ factorType:'totp',friendlyName:'Awaaz department authenticator' });
+            if (setup.error || !setup.data) { setErrorMessage(setup.error?.message || 'Could not set up your authenticator.'); return; }
+            setMfaFactor(setup.data.id);
+            setMfaQr(setup.data.totp.qr_code);
+            setMfaSecret(setup.data.totp.secret);
+          }
+          setMfaStep(true);
+          return;
+        }
         if (res.status === 'revoked') {
           setExplicitRevocation(
             `Access Revoked: ${res.rejectionReason || 'Withdrawn by Main Administrator.'}`
@@ -105,6 +126,19 @@ export const ThemedDepartmentLoginScreen: React.FC<ThemedDepartmentLoginScreenPr
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const verifyMfa = async (e:React.FormEvent) => {
+    e.preventDefault(); if (!supabase || !mfaFactor) return;
+    setIsLoading(true); setErrorMessage(null);
+    try {
+      const result = await supabase.auth.mfa.challengeAndVerify({factorId:mfaFactor,code:mfaCode.trim()});
+      if (result.error) { setErrorMessage(result.error.message); return; }
+      const finished = await completeMfaSignIn();
+      if (!finished.success) { setErrorMessage(finished.error || 'Verification failed.'); return; }
+      navigate('/department', {replace:true});
+    } catch(err) { setErrorMessage(err instanceof Error ? err.message : 'Authenticator could not be verified.'); }
+    finally { setIsLoading(false); }
   };
 
   return (
@@ -176,10 +210,13 @@ export const ThemedDepartmentLoginScreen: React.FC<ThemedDepartmentLoginScreenPr
             </div>
 
             {isLocalDemonstration && (
-              <p className="mb-5 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs leading-relaxed text-slate-700" role="status">
-                Local demonstration mode: this browser is not connected to Supabase.
-                Live staff accounts and access keys will not work here.
-              </p>
+              <div className="mb-5 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs leading-relaxed text-slate-700" role="status">
+                <p>Local demonstration mode: this browser is not connected to Supabase. Live staff accounts will not work here.</p>
+                <details className="mt-2">
+                  <summary className="cursor-pointer font-semibold">Show temporary local access key</summary>
+                  <code className="mt-2 block select-all break-all">{getLocalDemoCredentials().staffPassword}</code>
+                </details>
+              </div>
             )}
 
             {isLiveAuthMissing && (
@@ -221,14 +258,20 @@ export const ThemedDepartmentLoginScreen: React.FC<ThemedDepartmentLoginScreenPr
             )}
 
             {/* Login Form */}
-            <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+            {mfaStep ? <form onSubmit={verifyMfa} className="space-y-4" aria-label="Authenticator verification">
+              <h2 className="text-xl font-extrabold text-slate-900">Verify your identity</h2>
+              <p className="text-sm text-slate-700">Enter the six-digit code from your authenticator app. This second step is required for every officer and department head.</p>
+              {mfaQr && <div className="rounded-lg border border-slate-200 bg-white p-4"><p className="text-xs font-semibold text-slate-700 mb-2">Set up your authenticator first</p><img src={mfaQr} alt="Authenticator setup QR code" className="w-48 h-48 mx-auto"/><p className="text-xs text-slate-500 mt-2 break-all">Manual setup key: {mfaSecret}</p></div>}
+              <label htmlFor="dept-totp" className="block text-xs font-bold text-slate-800">Six-digit verification code</label><input id="dept-totp" name="otp" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" required maxLength={6} value={mfaCode} onChange={e=>setMfaCode(e.target.value)} className="w-full rounded-xl border border-slate-300 bg-white p-3 text-base tracking-[.3em]"/>
+              <GlassButton type="submit" variant="dark" isLoading={isLoading} className="w-full">Verify &amp; open workspace</GlassButton>
+            </form> : <form onSubmit={handleSubmit} className="space-y-4" noValidate>
               <GlassInput
                 id={isRoads ? 'roads-username' : `${departmentId}-username`}
-                label="Username"
-                type="text"
+                label={isLocalDemonstration?'Username':'Work email'}
+                type={isLocalDemonstration?'text':'email'}
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder={defaultUsername}
+                placeholder={isLocalDemonstration?defaultUsername:'officer@department.gov.pk'}
                 autoComplete="username"
                 required
                 disabled={isLoading}
@@ -238,7 +281,7 @@ export const ThemedDepartmentLoginScreen: React.FC<ThemedDepartmentLoginScreenPr
 
               <GlassInput
                 id={isRoads ? 'roads-access-key' : `${departmentId}-access-key`}
-                label="Access Key"
+                label={isLocalDemonstration?'Access key (local demo)':'Password'}
                 type="password"
                 value={accessKey}
                 onChange={(e) => setAccessKey(e.target.value)}
@@ -261,7 +304,7 @@ export const ThemedDepartmentLoginScreen: React.FC<ThemedDepartmentLoginScreenPr
                   Sign In
                 </GlassButton>
               </div>
-            </form>
+            </form>}
 
             {/* Back to Department Selection Link */}
             <div className="mt-5 pt-4 border-t border-black/[0.08] text-center">

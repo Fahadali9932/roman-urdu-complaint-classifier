@@ -14,6 +14,7 @@ import {
   Calendar,
 } from 'lucide-react';
 import { KARACHI_DEPARTMENTS } from '../../mocks/complaints';
+import { CitizenProofPanel } from './CitizenProofPanel';
 
 interface ComplaintDetailModalProps {
   complaint: Complaint | null;
@@ -280,6 +281,8 @@ export const ComplaintDetailModal: React.FC<ComplaintDetailModalProps> = ({
               </p>
             </div>
           </div>
+
+          <CitizenProofPanel complaintId={complaint.id} />
 
           {/* Section 3: Complaint Progress */}
           <div className="space-y-3 pt-2">

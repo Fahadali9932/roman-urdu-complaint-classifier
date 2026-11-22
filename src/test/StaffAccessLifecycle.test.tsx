@@ -1,5 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { staffAuthService } from '../services/staffAuthService';
+import { getLocalDemoCredentials } from '../services/localDemoCredentials';
+
+const officerTestPassword = getLocalDemoCredentials().staffPassword;
 
 describe('AWAAZ-E-AWAM — Phase 2: Staff Access Lifecycle (Database & Auth Integration)', () => {
   beforeEach(() => {
@@ -12,7 +15,7 @@ describe('AWAAZ-E-AWAM — Phase 2: Staff Access Lifecycle (Database & Auth Inte
       departmentId: 'kelectric',
       fullName: 'Tariq Mansoor',
       workEmail: 'tariq.mansoor@ke.com.pk',
-      password: 'SecurePassword123!',
+      password: officerTestPassword,
     });
 
     expect(res.success).toBe(true);
@@ -39,13 +42,13 @@ describe('AWAAZ-E-AWAM — Phase 2: Staff Access Lifecycle (Database & Auth Inte
       departmentId: 'kwsc',
       fullName: 'Fatima Noor',
       workEmail: 'fatima.noor@kwsc.gov.pk',
-      password: 'WaterSecurity2026!',
+      password: officerTestPassword,
     });
 
     // Attempt sign-in with correct password while still pending
     const signInRes = await staffAuthService.signInDepartmentStaff(
       'fatima.noor@kwsc.gov.pk',
-      'WaterSecurity2026!'
+      officerTestPassword
     );
 
     expect(signInRes.success).toBe(false);
@@ -60,14 +63,14 @@ describe('AWAAZ-E-AWAM — Phase 2: Staff Access Lifecycle (Database & Auth Inte
       departmentId: 'sswmb',
       fullName: 'Kamran Akram',
       workEmail: 'kamran.akram@sswmb.gos.pk',
-      password: 'CleanKarachi123!',
+      password: officerTestPassword,
     });
     const requestId = reqRes.requestId!;
 
     // 2. Main Admin logs in
     const adminLogin = await staffAuthService.signInMainAdmin(
       'admin@example.org',
-      'AdminPass123!'
+      getLocalDemoCredentials().adminPassword
     );
     expect(adminLogin.success).toBe(true);
     expect(adminLogin.session?.role).toBe('main_admin');
@@ -99,14 +102,14 @@ describe('AWAAZ-E-AWAM — Phase 2: Staff Access Lifecycle (Database & Auth Inte
       departmentId: 'ssgc',
       fullName: 'Rashid Minhas',
       workEmail: 'rashid.minhas@ssgc.com.pk',
-      password: 'GasInfrastructure2026!',
+      password: officerTestPassword,
     });
     await staffAuthService.approveDepartmentRequest(reqRes.requestId!);
 
     // Employee logs in
     const loginRes = await staffAuthService.signInDepartmentStaff(
       'rashid.minhas@ssgc.com.pk',
-      'GasInfrastructure2026!'
+      officerTestPassword
     );
 
     expect(loginRes.success).toBe(true);
@@ -123,14 +126,14 @@ describe('AWAAZ-E-AWAM — Phase 2: Staff Access Lifecycle (Database & Auth Inte
       departmentId: 'kmc',
       fullName: 'Zubair Khan',
       workEmail: 'zubair.khan@kmc.gos.pk',
-      password: 'KmcMunicipalPass123!',
+      password: officerTestPassword,
     });
     await staffAuthService.approveDepartmentRequest(reqRes.requestId!);
 
     // 2. Employee logs in
     const staffLogin = await staffAuthService.signInDepartmentStaff(
       'zubair.khan@kmc.gos.pk',
-      'KmcMunicipalPass123!'
+      officerTestPassword
     );
     expect(staffLogin.success).toBe(true);
     const staffUserId = staffLogin.session!.userId;
@@ -162,7 +165,7 @@ describe('AWAAZ-E-AWAM — Phase 2: Staff Access Lifecycle (Database & Auth Inte
     // 6. Attempted sign in is blocked with revocation details
     const reLogin = await staffAuthService.signInDepartmentStaff(
       'zubair.khan@kmc.gos.pk',
-      'KmcMunicipalPass123!'
+      officerTestPassword
     );
     expect(reLogin.success).toBe(false);
     expect(reLogin.status).toBe('revoked');
@@ -181,7 +184,7 @@ describe('AWAAZ-E-AWAM — Phase 2: Staff Access Lifecycle (Database & Auth Inte
       departmentId: 'sbca',
       fullName: 'Unverified Applicant',
       workEmail: 'unverified@external-domain.invalid',
-      password: 'RandomPassword123!',
+      password: officerTestPassword,
     });
 
     // 2. Admin rejects with explicit reason
@@ -195,7 +198,7 @@ describe('AWAAZ-E-AWAM — Phase 2: Staff Access Lifecycle (Database & Auth Inte
     // 3. Applicant attempts sign-in and sees the rejection reason
     const loginRes = await staffAuthService.signInDepartmentStaff(
       'unverified@external-domain.invalid',
-      'RandomPassword123!'
+      officerTestPassword
     );
     expect(loginRes.success).toBe(false);
     expect(loginRes.status).toBe('rejected');
@@ -215,7 +218,7 @@ describe('AWAAZ-E-AWAM — Phase 2: Staff Access Lifecycle (Database & Auth Inte
       departmentId: 'kwsc',
       fullName: 'Naveed Akhtar',
       workEmail: 'naveed@external.com',
-      password: 'InitialPassword123!',
+      password: officerTestPassword,
     });
     await staffAuthService.rejectDepartmentRequest(firstReq.requestId!, 'Use official email');
 
@@ -224,7 +227,7 @@ describe('AWAAZ-E-AWAM — Phase 2: Staff Access Lifecycle (Database & Auth Inte
       departmentId: 'kwsc',
       fullName: 'Naveed Akhtar',
       workEmail: 'naveed.akhtar@kwsc.gos.pk',
-      password: 'CorrectedPassword123!',
+      password: `${officerTestPassword}-updated`,
     });
     expect(secondReq.success).toBe(true);
 
@@ -234,7 +237,7 @@ describe('AWAAZ-E-AWAM — Phase 2: Staff Access Lifecycle (Database & Auth Inte
     // 4. Employee signs in successfully
     const login = await staffAuthService.signInDepartmentStaff(
       'naveed.akhtar@kwsc.gos.pk',
-      'CorrectedPassword123!'
+      `${officerTestPassword}-updated`
     );
     expect(login.success).toBe(true);
     expect(login.status).toBe('approved');

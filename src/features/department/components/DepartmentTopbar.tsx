@@ -67,6 +67,11 @@ export const DepartmentTopbar: React.FC<DepartmentTopbarProps> = ({
       );
     }
     switch (currentSection) {
+      case 'dispatch': return <strong className="crumb-current">Dispatch desk</strong>;
+      case 'field': return <strong className="crumb-current">My field work</strong>;
+      case 'team': return <strong className="crumb-current">Officer roster</strong>;
+      case 'verification': return <strong className="crumb-current">Proof verification</strong>;
+      case 'field_archive': return <strong className="crumb-current">Verified work archive</strong>;
       case 'dashboard':
       case 'overview':
         return <strong className="crumb-current">Overview</strong>;

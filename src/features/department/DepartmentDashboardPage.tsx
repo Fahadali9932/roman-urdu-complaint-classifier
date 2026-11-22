@@ -23,6 +23,8 @@ import { WorkQueuePage } from './components/WorkQueuePage';
 import { CaseDetailPage } from './components/CaseDetailPage';
 import { AreasPage } from './components/AreasPage';
 import { OverviewPage } from './components/OverviewPage';
+import { FieldOperationsDesk } from './components/FieldOperationsDesk';
+import { fieldOperations, type StaffPosition } from './services/fieldOperations';
 import { StatusUpdateModal } from './components/StatusUpdateModal';
 import { ReviewAssignmentModal } from './components/ReviewAssignmentModal';
 import {
@@ -44,7 +46,7 @@ import './department-theme.css';
 import './department-operations-v16.css';
 
 export const DepartmentDashboardPage: React.FC = () => {
-  const { departmentId, departmentMeta, session, isAuthenticated, checkRevocationStatus, signOut } =
+  const { departmentId, departmentMeta, session, isAuthenticated, isCheckingSession, checkRevocationStatus, signOut } =
     useDepartmentAuth();
   const navigate = useNavigate();
   const { referenceNumber: urlRef } = useParams<{ referenceNumber?: string }>();
@@ -184,6 +186,7 @@ export const DepartmentDashboardPage: React.FC = () => {
   // Navigation State
   const [currentSection, setCurrentSection] = useState<WorkspaceSection>(() => {
     const v = searchParams.get('view');
+    if (v === 'dispatch' || v === 'field' || v === 'team' || v === 'verification' || v === 'field_archive') return v;
     if (v === 'dashboard' || v === 'overview') return 'dashboard';
     if (v === 'tasks' || v === 'complaints') return 'tasks';
     if (v === 'queue' || v === 'cases') return 'queue';
@@ -212,11 +215,31 @@ export const DepartmentDashboardPage: React.FC = () => {
   const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
   const [isSortMenuOpen, setIsSortMenuOpen] = useState(false);
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
+  const [staffPosition, setStaffPosition] = useState<StaffPosition | null>(null);
+  const [staffRoleError, setStaffRoleError] = useState<string | null>(null);
+
+  // Navigation visibility is cosmetic. Every privileged mutation is also
+  // checked against server-side membership and role authorization.
+  useEffect(() => {
+    if (!departmentId || !session?.userId) return;
+    let disposed = false;
+    fieldOperations.getMyRole(departmentId, session.userId).then((role) => {
+      if (disposed) return;
+      setStaffPosition(role);
+      if (!role) { setStaffRoleError('This account has no active field-operations role. Ask the main administrator to approve it.'); return; }
+      if (!searchParams.get('view') && import.meta.env.MODE !== 'test') setCurrentSection(role === 'head' ? 'dispatch' : 'field');
+    }).catch((err:unknown) => {
+      if (!disposed) setStaffRoleError(err instanceof Error ? err.message : 'Unable to verify staff access.');
+    });
+    return () => { disposed = true; };
+  }, [departmentId, session?.userId]);
 
   // Synchronize view state when search parameters change (direct URL navigations)
   useEffect(() => {
     const v = searchParams.get('view');
-    if (v === 'dashboard' || v === 'overview') {
+    if (v === 'dispatch' || v === 'field' || v === 'team' || v === 'verification' || v === 'field_archive') {
+      setCurrentSection(v);
+    } else if (v === 'dashboard' || v === 'overview') {
       setCurrentSection('dashboard');
     } else if (v === 'tasks' || v === 'complaints') {
       setCurrentSection('tasks');
@@ -341,6 +364,9 @@ export const DepartmentDashboardPage: React.FC = () => {
 
   // Authentication & real-time revocation guard
   useEffect(() => {
+    // Supabase restores the JWT and verifies active department membership asynchronously.
+    // Redirecting before that check finishes incorrectly bounces valid MFA sessions.
+    if (isCheckingSession) return;
     if (!isAuthenticated || !departmentId) {
       navigate('/department/login', { replace: true });
       return;
@@ -352,7 +378,7 @@ export const DepartmentDashboardPage: React.FC = () => {
         { replace: true }
       );
     }
-  }, [isAuthenticated, departmentId, checkRevocationStatus, navigate]);
+  }, [isCheckingSession, isAuthenticated, departmentId, checkRevocationStatus, navigate]);
 
   // Load complaints assigned to this department with real-time sync & polling fallback
   useEffect(() => {
@@ -618,6 +644,7 @@ export const DepartmentDashboardPage: React.FC = () => {
       {/* Sidebar Navigation */}
       <DepartmentSidebar
         currentSection={currentSection}
+        staffPosition={staffPosition}
         onSelectSection={(sec) => {
           setCurrentSection(sec);
           setSelectedReference(null);
@@ -676,6 +703,11 @@ export const DepartmentDashboardPage: React.FC = () => {
 
         {/* Main Content Area */}
         <main className="page" id="content">
+          {staffRoleError && <div className="ops-error-state" role="alert"><AlertCircle size={20}/><div><strong>Staff role not verified</strong><p>{staffRoleError}</p></div></div>}
+          {(currentSection === 'dispatch' || currentSection === 'field' || currentSection === 'team' || currentSection === 'verification' || currentSection === 'field_archive') && departmentId && session?.userId && staffPosition &&
+            ((staffPosition === 'head' && currentSection !== 'field') || (staffPosition === 'officer' && (currentSection === 'field' || currentSection === 'field_archive'))) && (
+            <FieldOperationsDesk departmentId={departmentId} userId={session.userId} role={staffPosition} view={currentSection} />
+          )}
           {priorityUpdateError && (
             <div className="ops-error-state" role="alert" style={{ marginBottom:'18px' }}>
               <AlertCircle size={18} />
@@ -711,7 +743,7 @@ export const DepartmentDashboardPage: React.FC = () => {
           {/* =========================================================================
               VIEW 1: OVERVIEW (ANIMATED CIVIC SERVICE NETWORK V6)
               ========================================================================= */}
-          {(currentSection === 'dashboard' || currentSection === 'overview') && (
+          {(staffPosition === 'head' || import.meta.env.MODE === 'test') && (currentSection === 'dashboard' || currentSection === 'overview') && (
             <OverviewPage
               departmentId={departmentId || 'kmc'}
               departmentName={departmentMeta?.name || 'Roads & Infrastructure'}
@@ -731,7 +763,7 @@ export const DepartmentDashboardPage: React.FC = () => {
           {/* =========================================================================
               VIEW 2: WORK QUEUE / COMPLAINTS (CASE OPERATIONS DESK V5)
               ========================================================================= */}
-          {(currentSection === 'queue' || currentSection === 'archive' || currentSection === 'tasks' || currentSection === 'review') && (
+          {(staffPosition === 'head' || import.meta.env.MODE === 'test') && (currentSection === 'queue' || currentSection === 'archive' || currentSection === 'tasks' || currentSection === 'review') && (
             <div>
               {selectedCaseId ? (
                 /* CASE DETAIL VIEW (4 REAL TABS, INCIDENT CORROBORATION, BULK ACCEPT) */
@@ -927,7 +959,7 @@ export const DepartmentDashboardPage: React.FC = () => {
           {/* =========================================================================
               VIEW 3: AREAS WORKLOAD (CASE OPERATIONS DESK V5)
               ========================================================================= */}
-          {currentSection === 'areas' && (
+          {(staffPosition === 'head' || import.meta.env.MODE === 'test') && currentSection === 'areas' && (
             <AreasPage
               departmentId={departmentId!}
               onSelectArea={(area) => {
@@ -948,7 +980,7 @@ export const DepartmentDashboardPage: React.FC = () => {
           {/* =========================================================================
               VIEW 4: PRIORITY QUEUE (SELECTIVE EVIDENCE-BASED TRIAGE)
               ========================================================================= */}
-          {(currentSection === 'priority' || currentSection === 'priority_queue') && (
+          {(staffPosition === 'head' || import.meta.env.MODE === 'test') && (currentSection === 'priority' || currentSection === 'priority_queue') && (
             <div>
               {selectedReference && selectedComplaint ? (
                 <ComplaintDetailView

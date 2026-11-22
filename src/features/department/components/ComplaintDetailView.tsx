@@ -17,6 +17,7 @@ import { formatPakistanDateParts, getStatusChipInfo } from './ComplaintInboxList
 import { PriorityOverrideModal } from './PriorityOverrideModal';
 import { FlagIncorrectDepartmentModal } from './FlagIncorrectDepartmentModal';
 import { ComplaintEvidencePanel } from './ComplaintEvidencePanel';
+import { isSupabaseConfigured } from '../../../lib/supabase';
 
 interface ComplaintDetailViewProps {
   complaint: DepartmentComplaintView | null;
@@ -311,14 +312,14 @@ export const ComplaintDetailView: React.FC<ComplaintDetailViewProps> = ({
 
                   {complaint.status === 'in_progress' && (
                     <>
-                      <button
+                      {!isSupabaseConfigured() ? <button
                         type="button"
                         onClick={() => onOpenStatusModal('resolved')}
                         className="overview-header-action"
                         style={{ width: '100%', height: '42px', background: 'var(--success)', color: '#fff', borderColor: 'var(--success)', marginBottom: '8px' }}
                       >
                         Mark Work Done
-                      </button>
+                      </button> : <p className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-900 mb-3">Work completion now requires an assigned officer, onsite GPS, a real photo and supervisor approval. Open <strong>Dispatch desk / Proof verification</strong> to complete the process.</p>}
                       <p style={{ fontSize: '12px', color: 'var(--muted)', margin: '0 0 14px 0', lineHeight: 1.5 }}>
                         Confirm field remediation and mark complaint resolved.
                       </p>
