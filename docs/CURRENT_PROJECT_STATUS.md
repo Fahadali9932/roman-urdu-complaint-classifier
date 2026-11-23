@@ -1,9 +1,45 @@
 # Verified current project status
 
-Verified on **22 November 2026 (Pakistan time)**. Internal delivery target:
+Verified on **24 November 2026 (Pakistan time)**. Internal delivery target:
 **5 December 2026**. Read `PROJECT_MASTER_CONTEXT.md` for requirements/history.
 This document distinguishes inspected source, automated checks, and unverified
 hosted behavior. Update it after every significant verified milestone.
+
+## Development update, 24 November 2026 — Phase V13.21: Calm Operations Portal Redesign, Actionable Attention Ribbons, Pinterest 7-Day Calendar Strip, 5-Stage Dispatch Workflow, Linear Officer Lifecycle, Before/After Photo & Explicit GPS Telemetry, Universal Civic Theme System, and Zero Regressions
+
+- **Calm Focus Desk (`OverviewPage.tsx`, `v13_21_operations.css`):**
+  - **Replaced Busy Bento Grids:** Replaced dense, repetitive dashboards with a restrained, task-first municipal focus desk adhering to `charles-unslop` and `charles-ux-animation`.
+  - **Four Actionable Attention Ribbons:**
+    1. *Urgent Safety:* Immediate count of critical safety-risk incidents requiring urgent dispatch.
+    2. *Due Today:* Work orders nearing their Service Level Agreement window (<24 hours).
+    3. *Proof Review:* Work orders awaiting supervisor review of submitted field evidence.
+    4. *Active Dispatches:* Mobilized crews and unassigned cases.
+    - Each ribbon navigates directly to the relevant triage or dispatch queue upon click.
+  - **Immediate Action Stream:** Prioritizes top 3–4 tasks with high-contrast priority dots (`.v21-status-dot`), case number code badges (`.v21-meta-code`), locality metadata, and direct "Dispatch Officer →" triage buttons.
+  - **Preserved Non-Overlapping Workload Metrics:** Maintained "Total incident cases", "Citizen reports", and "Unassigned cases" with honest local demonstration notices.
+- **Pinterest 7-Day Capsule Date & Time Picker (`DepartmentDeadlinePicker.tsx`, `v13_21_operations.css`):**
+  - **In-Flow Monday-First Weekly Pill Strip:** Implemented Monday-first 7-day capsule strip (`M, T, W, T, F, S, S`) with week steppers (`‹ Prev Week`, `Next Week ›`) and workload density event dots (`.v21-event-dot green/blue/empty`).
+  - **Synchronized Month Grid:** Full month calendar navigation remains available for multi-week jumps without popovers occluding adjacent form fields.
+  - **PKT Wall-Clock Time Controls:** Hour (01–12), Minute (00, 15, 30, 45, custom), AM/PM period comboboxes, and quick presets ("Tomorrow, 5 PM", "In 3 days", "Next week").
+- **Five-Stage Dispatch & Linear Officer Lifecycle (`FieldOperationsDesk.tsx`):**
+  - **Head 5-Stage Dispatch Stepper:** `Case` → `Officer` (with active workload and verified rating) → `Deadline` (Pinterest 7-day picker) → `Instructions` → `Confirmation`.
+  - **Officer Linear 5-Step Lifecycle:** `Assigned` → `Accepted` → `In Progress` → `Proof Submitted` → `Head Verified` with clear visual status tracking.
+  - **Before/After Evidence Split:** Separate dropzones for initial condition (optional) and repaired issue (mandatory, supporting camera capture).
+  - **Explicit GPS Telemetry Module:** "Acquire GPS" button reading device coordinates (`navigator.geolocation`) with latitude, longitude, and ± accuracy display.
+  - **Deadline Extension Modal:** Streamlined delay justification and proposed deadline picker.
+  - **Supervisor Proof Verification:** Secure photo preview, proximity telemetry (meters from citizen pin), duplicate photo warning alerts, and decision note inputs.
+- **Universal Civic Theme & Navigation Header (`DepartmentTopbar.tsx`, `useCivicTheme.ts`):**
+  - **Civic Design Tokens:** High-contrast light (`#F8FAFC` base, `#FFFFFF` surfaces) and dark (`#0E1116` base, `#161B22` surfaces) color tokens with WCAG AAA text contrast.
+  - **Visible One-Click Theme Switcher:** Interactive Sun/Moon toggle with readable label ("Light" / "Dark") syncing with `localStorage` (`awaaz_dept_theme_mode`) and applying `data-theme` and `.dark` class to `document.documentElement`.
+  - **Acrylic Context Menus:** Frosted acrylic dropdown (`backdrop-filter: blur(24px)`) displaying user identity, email, and role-scoped quick navigation shortcuts.
+  - **Themed Login Screen:** Frosted glass card mounted seamlessly over preserved departmental vector artwork (`DepartmentArtwork`) across light and dark modes.
+- **Comprehensive Verification & Zero Regressions:**
+  - TypeScript Compiler `tsc -b`: **0 errors**.
+  - Production Build `npm run build`: compiled in **1.68s** with 0 errors.
+  - Vitest Unit & Integration Suite: **659 passed, 1 skipped (66 test files, 100% pass)**.
+  - Git Commit: `0aa6938` on branch `feature/v13-21-calm-operations-redesign`.
+  - Primary Workspace Protection: `D:\RomanUrdu_ComplaintClassifier_staff_auth` remained **100% untouched**.
+  - Zero billable spend ($0.00).
 
 ## Development update, 22 November 2026 — Phase V13.20: Distinct Staff Entry Points, Server Boundary Role Enforcement, In-Flow Deadline Picker & 40-Assertion Chrome QA
 
