@@ -639,7 +639,7 @@ export const DepartmentDashboardPage: React.FC = () => {
       data-dept-theme={departmentId}
       data-theme={themeMode}
       data-dept-mode={themeMode}
-      className={`app-shell density-${preferences.density}`}
+      className={`app-shell v21-app-wrapper density-${preferences.density}`}
     >
       {/* Sidebar Navigation */}
       <DepartmentSidebar
@@ -699,6 +699,7 @@ export const DepartmentDashboardPage: React.FC = () => {
             signOut();
             navigate(staffPosition ? `/department/${staffPosition}/login?dept=${departmentId}` : '/department/login');
           }}
+          staffPosition={staffPosition}
         />
 
         {/* Main Content Area */}
