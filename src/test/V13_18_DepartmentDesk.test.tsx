@@ -73,7 +73,17 @@ describe('V13.18 role-specific department workspace',()=>{
     vi.spyOn(caseOperationsService,'listCaseReports').mockResolvedValue({items:[{complaintId:'af6b4fad-79e1-47c4-82cf-ef63b8b63288'},{complaintId:'ad792c1a-82f5-4abc-9330-06f934734ab2'}] as never,nextCursor:null,prevCursor:null,total:2,page:0,pageSize:100,totalPages:1});
     render(<FieldOperationsDesk departmentId="kmc" userId="head-1" role="head" view="dispatch"/>);
     fireEvent.click(await screen.findByRole('button',{name:/Broken pipe on Tariq Road/i}));
+    // Stage 1: Case Review -> Proceed to Stage 2
+    fireEvent.click(screen.getByRole('button', { name: /Next: Choose Officer/i }));
+    // Stage 2: Select Officer -> Proceed to Stage 3
     fireEvent.change(screen.getByLabelText('Responsible officer'),{target:{value:'officer-1'}});
+    fireEvent.click(screen.getByRole('button', { name: /Next: Set Deadline/i }));
+    // Stage 3: Deadline -> Proceed to Stage 4
+    fireEvent.click(screen.getByRole('button', { name: /Next: Write Instructions/i }));
+    // Stage 4: Enter Instructions (min 8 chars) -> Proceed to Stage 5
+    fireEvent.change(screen.getByLabelText(/Instructions/i), { target: { value: 'Inspect and fix broken pipe urgently.' } });
+    fireEvent.click(screen.getByRole('button', { name: /Next: Review Summary/i }));
+    // Stage 5: Confirm & Dispatch
     fireEvent.click(screen.getByRole('button',{name:/Assign with deadline/i}));
     await waitFor(()=>expect(assignment).toHaveBeenCalledOnce());
     const input=assignment.mock.calls[0][0];

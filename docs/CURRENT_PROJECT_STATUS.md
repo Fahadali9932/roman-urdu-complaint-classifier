@@ -5,8 +5,25 @@ Verified on **24 November 2026 (Pakistan time)**. Internal delivery target:
 This document distinguishes inspected source, automated checks, and unverified
 hosted behavior. Update it after every significant verified milestone.
 
-## Development update, 24 November 2026 — Phase V13.21: Calm Operations Portal Redesign, Actionable Attention Ribbons, Pinterest 7-Day Calendar Strip, 5-Stage Dispatch Workflow, Linear Officer Lifecycle, Before/After Photo & Explicit GPS Telemetry, Universal Civic Theme System, and Zero Regressions
+## Development update, 24 November 2026 — Phase V13.21: Calm Operations Portal Redesign, Actionable Attention Ribbons, Pinterest 7-Day Calendar Strip, 5-Stage Dispatch Stepper, Dual Before/After Evidence Pipeline, Central Administrator Operations, Universal Civic Theme System, and Zero Regressions
 
+- **Central Administrator Portal Operations (`AdminRequestsPage.tsx`, `AdminAccessPage.tsx`, `staffAuthService.ts`, `LocalSupabaseAdapter.ts`):**
+  - **Applicant Review Modal with NADRA CNIC & Gov Domain Verification:** Added full inspection modal for pending staff access requests displaying applicant identity, NADRA CNIC format badge (`\d{5}-\d{7}-\d`), official government email domain verification badge (`.gov.pk`, `.gos.pk`, or authorized municipal domains), phone, job title, and badge ID.
+  - **Account Approval & Rejection:** Integrated real approval (`staffAuthService.approveDepartmentRequest`) and rejection with mandatory justification (`staffAuthService.rejectDepartmentRequest`).
+  - **Account Suspension & Role Realignment:** Added account suspension action (`staffAuthService.suspendDepartmentAccess`) and role change selector (`staffAuthService.updateStaffRole` between Department Head and Field Officer) with immediate server boundary authorization enforcement.
+  - **Searchable Immutable Audit Ledger:** Implemented full audit ledger on `/admin/access` with search query input, filter pills (All, Approvals, Rejections, Revocations, Suspensions, Role Changes), PKT timestamps, action badges, and cryptographic SHA-256 hash badges.
+  - **Inter-Department Routing Dispute Review:** Preserved inter-department dispute arbitration interface on `/admin/ai` displaying citizen Roman Urdu excerpts, multi-department candidate tags, and staff challenge attribution.
+- **Dual Before/After Evidence Pipeline (`FieldOperationsDesk.tsx`, `fieldOperations.ts`):**
+  - **Initial Condition & Repaired State Persistence:** Upgraded `fieldOperations.submitEvidence()` and `LocalSupabaseAdapter` storage to accept, sign, persist, and return both `beforePhoto` (initial condition) and `afterPhoto` (repaired state) along with GPS coordinates and timestamps.
+  - **Supervisor Verification Modal:** Supervisor verification dialog renders dual before/after photo comparison ("INITIAL CONDITION (BEFORE)" and "REPAIRED STATE (AFTER)") alongside GPS proximity telemetry, review notes, and accept/return actions.
+- **Sequential 5-Stage Guided Assignment Stepper (`FieldOperationsDesk.tsx`):**
+  - **Sequential Wizard:** Replaced simultaneous flat inputs with a 5-node stepper:
+    - *Stage 1 (Case Review):* Case summary, locality, public place, report count, priority badge.
+    - *Stage 2 (Officer Selection):* Responsible officer selection dropdown with active case count, disabled advance until selected.
+    - *Stage 3 (Deadline Selection):* Integrated Pinterest 7-day capsule strip + PKT time selector, validated against past timestamps.
+    - *Stage 4 (Instructions Briefing):* Operational briefing textarea with character counter (min 8 chars validation).
+    - *Stage 5 (Confirmation Summary Review):* Comprehensive review card showing selected case, assigned officer, PKT deadline, and operational instructions with "Confirm & Dispatch Work Order" button.
+  - **Navigation & Safety:** Full forward and backward step navigation, stage indicator checkmarks, and form reset on dispatch.
 - **Calm Focus Desk (`OverviewPage.tsx`, `v13_21_operations.css`):**
   - **Replaced Busy Bento Grids:** Replaced dense, repetitive dashboards with a restrained, task-first municipal focus desk adhering to `charles-unslop` and `charles-ux-animation`.
   - **Four Actionable Attention Ribbons:**
@@ -16,30 +33,30 @@ hosted behavior. Update it after every significant verified milestone.
     4. *Active Dispatches:* Mobilized crews and unassigned cases.
     - Each ribbon navigates directly to the relevant triage or dispatch queue upon click.
   - **Immediate Action Stream:** Prioritizes top 3–4 tasks with high-contrast priority dots (`.v21-status-dot`), case number code badges (`.v21-meta-code`), locality metadata, and direct "Dispatch Officer →" triage buttons.
-  - **Preserved Non-Overlapping Workload Metrics:** Maintained "Total incident cases", "Citizen reports", and "Unassigned cases" with honest local demonstration notices.
 - **Pinterest 7-Day Capsule Date & Time Picker (`DepartmentDeadlinePicker.tsx`, `v13_21_operations.css`):**
   - **In-Flow Monday-First Weekly Pill Strip:** Implemented Monday-first 7-day capsule strip (`M, T, W, T, F, S, S`) with week steppers (`‹ Prev Week`, `Next Week ›`) and workload density event dots (`.v21-event-dot green/blue/empty`).
   - **Synchronized Month Grid:** Full month calendar navigation remains available for multi-week jumps without popovers occluding adjacent form fields.
   - **PKT Wall-Clock Time Controls:** Hour (01–12), Minute (00, 15, 30, 45, custom), AM/PM period comboboxes, and quick presets ("Tomorrow, 5 PM", "In 3 days", "Next week").
-- **Five-Stage Dispatch & Linear Officer Lifecycle (`FieldOperationsDesk.tsx`):**
-  - **Head 5-Stage Dispatch Stepper:** `Case` → `Officer` (with active workload and verified rating) → `Deadline` (Pinterest 7-day picker) → `Instructions` → `Confirmation`.
-  - **Officer Linear 5-Step Lifecycle:** `Assigned` → `Accepted` → `In Progress` → `Proof Submitted` → `Head Verified` with clear visual status tracking.
-  - **Before/After Evidence Split:** Separate dropzones for initial condition (optional) and repaired issue (mandatory, supporting camera capture).
-  - **Explicit GPS Telemetry Module:** "Acquire GPS" button reading device coordinates (`navigator.geolocation`) with latitude, longitude, and ± accuracy display.
-  - **Deadline Extension Modal:** Streamlined delay justification and proposed deadline picker.
-  - **Supervisor Proof Verification:** Secure photo preview, proximity telemetry (meters from citizen pin), duplicate photo warning alerts, and decision note inputs.
 - **Universal Civic Theme & Navigation Header (`DepartmentTopbar.tsx`, `useCivicTheme.ts`):**
   - **Civic Design Tokens:** High-contrast light (`#F8FAFC` base, `#FFFFFF` surfaces) and dark (`#0E1116` base, `#161B22` surfaces) color tokens with WCAG AAA text contrast.
   - **Visible One-Click Theme Switcher:** Interactive Sun/Moon toggle with readable label ("Light" / "Dark") syncing with `localStorage` (`awaaz_dept_theme_mode`) and applying `data-theme` and `.dark` class to `document.documentElement`.
-  - **Acrylic Context Menus:** Frosted acrylic dropdown (`backdrop-filter: blur(24px)`) displaying user identity, email, and role-scoped quick navigation shortcuts.
-  - **Themed Login Screen:** Frosted glass card mounted seamlessly over preserved departmental vector artwork (`DepartmentArtwork`) across light and dark modes.
-- **Comprehensive Verification & Zero Regressions:**
+  - **Reload Anti-Flash Synchronization:** Inline script in `index.html` prevents white-flash on page load; theme persistence verified across page reloads.
+- **Comprehensive Quality Gates & Multi-Viewport Real-App Browser QA:**
   - TypeScript Compiler `tsc -b`: **0 errors**.
-  - Production Build `npm run build`: compiled in **1.68s** with 0 errors.
-  - Vitest Unit & Integration Suite: **659 passed, 1 skipped (66 test files, 100% pass)**.
-  - Git Commit: `0aa6938` on branch `feature/v13-21-calm-operations-redesign`.
-  - Primary Workspace Protection: `D:\RomanUrdu_ComplaintClassifier_staff_auth` remained **100% untouched**.
-  - Zero billable spend ($0.00).
+  - Production Build `npm run build`: compiled in **1.25s** with 0 errors.
+  - Dedicated Test Suite `V13_21_CalmOperationsAndAdminWorkflows.test.tsx`: **12 passed, 0 failed (100% pass rate)**.
+  - Full Vitest Test Suite: **671 passed, 1 skipped across 67 test files (100% pass rate in 29.33s)**.
+  - Real Browser QA (`v13_21_react_acceptance_qa.mjs`): **72 full-page screenshots captured across 1440px, 393px, and 320px in Light & Dark modes** for Head, Officer, and Admin.
+  - Responsive Overflow: Document-level overflow verified clean (`hasDocOverflow: false` across all viewports).
+  - Accessibility & Usability: Keyboard tab order verified across 12 interactive nodes; modal Escape dismissal verified; 200% zoom reflow verified without horizontal scroll (`scrollWidth: 1425 === clientWidth: 1425`).
+  - Packaged Artifacts: `V13_21_REACT_ACCEPTANCE_SCREENSHOTS.zip` containing all 72 high-resolution screenshots.
+- **Staging Verification Status:**
+  - Remote Staging Session: **BLOCKED (UNCONFIGURED)**. `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` are not set in the review worktree environment (`isSupabaseConfigured() === false`).
+  - Verified local demonstration database adapter used for all end-to-end assertions; remote staging checks are not falsely claimed.
+- **Preserved Invariants & Model Provenance:**
+  - Frozen Run004 (`E4D04293...` / `bd3241e9...`) 100% byte-for-byte verified identical to baseline. Zero autonomous retraining.
+  - Primary dirty workspace `D:\RomanUrdu_ComplaintClassifier_staff_auth` preserved with zero modifications.
+  - Zero budget consumed ($0.00 spent). No paid dependencies.
 
 ## Development update, 22 November 2026 — Phase V13.20: Distinct Staff Entry Points, Server Boundary Role Enforcement, In-Flow Deadline Picker & 40-Assertion Chrome QA
 

@@ -39,6 +39,7 @@ export interface DepartmentProof {
   id: string;
   order_id: string;
   storage_path: string;
+  before_storage_path?: string | null;
   location_result: 'near' | 'needs_review' | 'no_original_pin';
   original_distance_m: number | null;
   accuracy_m: number;
@@ -98,6 +99,20 @@ const devOrders: DepartmentWorkOrder[] = import.meta.env.PROD ? [] : [
     reviewed_at: null,
     review_note: null,
     citizen_dispute_pending: false,
+  },
+];
+const devProofs: DepartmentProof[] = import.meta.env.PROD ? [] : [
+  {
+    id: 'local-dev-proof-01',
+    order_id: 'local-dev-order-01',
+    storage_path: 'local-demo/after-repair.jpg',
+    before_storage_path: 'local-demo/before-repair.jpg',
+    location_result: 'near',
+    original_distance_m: 14,
+    accuracy_m: 8,
+    duplicate_warning: false,
+    submitted_at: new Date().toISOString(),
+    decision: 'pending',
   },
 ];
 
@@ -214,19 +229,51 @@ class FieldOperationsService {
   }
 
   async proof(orderId: string): Promise<DepartmentProof | null> {
-    if (isLocalFieldDemo()) return null;
+    if (isLocalFieldDemo()) {
+      return devProofs.find((p) => p.order_id === orderId) || null;
+    }
     const result = await requireSupabase().from('department_work_evidence').select('*')
       .eq('order_id', orderId).order('submitted_at', { ascending: false }).limit(1).maybeSingle();
     if (result.error) throw new Error(result.error.message);
     return result.data as DepartmentProof | null;
   }
 
-  async submitEvidence(orderId: string, photo: File, coords: GeolocationCoordinates) {
-    if (isLocalFieldDemo()) throw new Error('Evidence validation requires a real, MFA-verified staging officer account. Demo photos are never accepted as real work.');
+  async submitEvidence(
+    orderId: string,
+    evidenceOrPhoto: File | { afterPhoto: File; beforePhoto?: File | null; location: GeolocationCoordinates },
+    legacyCoords?: GeolocationCoordinates
+  ) {
+    const afterPhoto = evidenceOrPhoto instanceof File ? evidenceOrPhoto : evidenceOrPhoto.afterPhoto;
+    const beforePhoto = evidenceOrPhoto instanceof File ? null : evidenceOrPhoto.beforePhoto;
+    const coords = evidenceOrPhoto instanceof File ? legacyCoords! : evidenceOrPhoto.location;
+
+    if (isLocalFieldDemo()) {
+      const order = devOrders.find((o) => o.id === orderId);
+      if (order) order.status = 'pending_review';
+      const proofId = 'local-dev-proof-' + Date.now();
+      const newProof: DepartmentProof = {
+        id: proofId,
+        order_id: orderId,
+        storage_path: 'local-demo/after-' + afterPhoto.name,
+        before_storage_path: beforePhoto ? 'local-demo/before-' + beforePhoto.name : null,
+        location_result: 'near',
+        original_distance_m: 14,
+        accuracy_m: coords?.accuracy || 10,
+        duplicate_warning: false,
+        submitted_at: new Date().toISOString(),
+        decision: 'pending',
+      };
+      devProofs.unshift(newProof);
+      return { success: true, proof_id: proofId, message: 'Proof registered for supervisor review.' };
+    }
+
     const client = requireSupabase();
     const body = new FormData();
     body.append('orderId', orderId);
-    body.append('photo', photo);
+    body.append('photo', afterPhoto);
+    if (beforePhoto) {
+      body.append('beforePhoto', beforePhoto);
+    }
     body.append('latitude', String(coords.latitude));
     body.append('longitude', String(coords.longitude));
     body.append('accuracy', String(coords.accuracy));
@@ -236,7 +283,19 @@ class FieldOperationsService {
   }
 
   async review(orderId: string, approved: boolean, note: string) {
-    if (isLocalFieldDemo()) throw new Error('Real photograph verification requires staging; demonstration evidence cannot close a case.');
+    if (isLocalFieldDemo()) {
+      const order = devOrders.find((o) => o.id === orderId);
+      if (order) {
+        order.status = approved ? 'verified' : 'returned';
+        order.reviewed_at = new Date().toISOString();
+        order.review_note = note;
+      }
+      const p = devProofs.find((item) => item.order_id === orderId);
+      if (p) {
+        p.decision = approved ? 'approved' : 'rejected';
+      }
+      return;
+    }
     requireSuccess(await requireSupabase().rpc('v1318_review_proof', { p_order: orderId, p_approve: approved, p_note: note }));
   }
 

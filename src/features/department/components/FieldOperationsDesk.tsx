@@ -24,6 +24,7 @@ import {
   fieldOperations,
   officerRating,
   workDeadline,
+  isLocalFieldDemo,
   type DepartmentOfficer,
   type DepartmentProof,
   type DepartmentWorkOrder,
@@ -75,6 +76,7 @@ export const FieldOperationsDesk: React.FC<Props> = ({ departmentId, userId, rol
   const [team, setTeam] = useState<DepartmentOfficer[]>([]);
   const [cases, setCases] = useState<IncidentCaseSummary[]>([]);
   const [selected, setSelected] = useState<IncidentCaseSummary | null>(null);
+  const [assignStage, setAssignStage] = useState<1 | 2 | 3 | 4 | 5>(1);
   const [officer, setOfficer] = useState('');
   const [deadline, setDeadline] = useState(dueInputDefault);
   const [instructions, setInstructions] = useState('Inspect, repair and upload a clear photo from the issue location.');
@@ -83,7 +85,7 @@ export const FieldOperationsDesk: React.FC<Props> = ({ departmentId, userId, rol
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<{ success: boolean; text: string } | null>(null);
-  const [reviewing, setReviewing] = useState<{ order: DepartmentWorkOrder; proof: DepartmentProof; image?: string } | null>(null);
+  const [reviewing, setReviewing] = useState<{ order: DepartmentWorkOrder; proof: DepartmentProof; image?: string; beforeImage?: string } | null>(null);
   const [reviewNote, setReviewNote] = useState('');
   const [extensionFor, setExtensionFor] = useState<string | null>(null);
   const [extensionDate, setExtensionDate] = useState(dueInputDefault);
@@ -205,9 +207,24 @@ export const FieldOperationsDesk: React.FC<Props> = ({ departmentId, userId, rol
     try {
       const proof = await fieldOperations.proof(order.id);
       if (!proof) throw new Error('No evidence was found for this work order.');
-      const signed = await supabase?.storage.from('department-work-proof-private').createSignedUrl(proof.storage_path, 300);
+      let afterUrl: string | undefined;
+      let beforeUrl: string | undefined;
+
+      if (isLocalFieldDemo()) {
+        afterUrl = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400" viewBox="0 0 600 400"><rect width="600" height="400" fill="%231e293b"/><text x="50%" y="45%" fill="%2310b981" font-size="20" font-family="sans-serif" text-anchor="middle" font-weight="bold">REPAIRED STATE (AFTER)</text><text x="50%" y="60%" fill="%2394a3b8" font-size="14" font-family="sans-serif" text-anchor="middle">Officer On-Site Work Evidence</text></svg>';
+        if (proof.before_storage_path) {
+          beforeUrl = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400" viewBox="0 0 600 400"><rect width="600" height="400" fill="%231e293b"/><text x="50%" y="45%" fill="%23f59e0b" font-size="20" font-family="sans-serif" text-anchor="middle" font-weight="bold">INITIAL CONDITION (BEFORE)</text><text x="50%" y="60%" fill="%2394a3b8" font-size="14" font-family="sans-serif" text-anchor="middle">Initial Site Photograph</text></svg>';
+        }
+      } else {
+        const signed = await supabase?.storage.from('department-work-proof-private').createSignedUrl(proof.storage_path, 300);
+        afterUrl = signed?.data?.signedUrl;
+        if (proof.before_storage_path) {
+          const beforeSigned = await supabase?.storage.from('department-work-proof-private').createSignedUrl(proof.before_storage_path, 300);
+          beforeUrl = beforeSigned?.data?.signedUrl;
+        }
+      }
       setReviewNote('');
-      setReviewing({ order, proof, image: signed?.data?.signedUrl });
+      setReviewing({ order, proof, image: afterUrl, beforeImage: beforeUrl });
     } catch (err) {
       setMessage({ success: false, text: err instanceof Error ? err.message : 'Unable to load proof.' });
     } finally {
@@ -508,107 +525,293 @@ export const FieldOperationsDesk: React.FC<Props> = ({ departmentId, userId, rol
 
                 {selected ? (
                   <form onSubmit={(e) => void assignCase(e)} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                    {/* Stepper Node Track */}
+                    {/* Stepper Node Track (5 stages) */}
                     <div className="v21-step-track">
-                      <div className="v21-step-node active">
-                        <span className="v21-step-circle">1</span>
-                        <span>Case</span>
-                      </div>
-                      <div className={`v21-step-node ${officer ? 'active' : ''}`}>
-                        <span className="v21-step-circle">2</span>
-                        <span>Officer</span>
-                      </div>
-                      <div className={`v21-step-node ${deadline ? 'active' : ''}`}>
-                        <span className="v21-step-circle">3</span>
-                        <span>Deadline</span>
-                      </div>
-                      <div className="v21-step-node">
-                        <span className="v21-step-circle">4</span>
-                        <span>Confirm</span>
-                      </div>
+                      {[
+                        { num: 1, label: 'Case' },
+                        { num: 2, label: 'Officer' },
+                        { num: 3, label: 'Deadline' },
+                        { num: 4, label: 'Instructions' },
+                        { num: 5, label: 'Confirm' },
+                      ].map((s) => {
+                        const isActive = assignStage === s.num;
+                        const isDone = assignStage > s.num;
+                        return (
+                          <button
+                            type="button"
+                            key={s.num}
+                            onClick={() => {
+                              if (s.num < assignStage) setAssignStage(s.num as any);
+                            }}
+                            className={`v21-step-node ${isActive ? 'active' : ''} ${isDone ? 'done' : ''}`}
+                            style={{ background: 'transparent', border: 'none', cursor: s.num < assignStage ? 'pointer' : 'default', padding: 0 }}
+                          >
+                            <span className="v21-step-circle">{isDone ? '✓' : s.num}</span>
+                            <span>{s.label}</span>
+                          </button>
+                        );
+                      })}
                     </div>
 
-                    {/* Stage 1: Selected Case Summary */}
-                    <div style={{ background: 'var(--v21-bg-surface-subtle)', padding: '12px 14px', borderRadius: '8px', border: '1px solid var(--v21-border-subtle)' }}>
-                      <strong style={{ fontSize: '13px', color: 'var(--v21-text-main)', display: 'block' }}>
-                        {selected.title}
-                      </strong>
-                      <small style={{ fontSize: '11px', color: 'var(--v21-text-muted)' }}>
-                        {selected.publicPlace} · {selected.locality}
-                      </small>
-                    </div>
+                    {/* STAGE 1: CASE SELECTION REVIEW */}
+                    {assignStage === 1 && (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                        <div style={{ background: 'var(--v21-bg-surface-subtle)', padding: '14px', borderRadius: '10px', border: '1px solid var(--v21-border-subtle)' }}>
+                          <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--v21-accent)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                            Step 1 of 5: Case Verification
+                          </span>
+                          <h3 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--v21-text-main)', margin: '4px 0 6px 0' }}>
+                            {selected.title}
+                          </h3>
+                          <p style={{ fontSize: '12px', color: 'var(--v21-text-muted)', margin: '0 0 8px 0' }}>
+                            {selected.publicPlace} · {selected.locality}
+                          </p>
+                          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                            <span className="v21-dept-badge" style={{ textTransform: 'capitalize' }}>
+                              Priority: {selected.priority}
+                            </span>
+                            <span className="v21-dept-badge">
+                              {selected.linkedReportCount} citizen report{selected.linkedReportCount === 1 ? '' : 's'}
+                            </span>
+                          </div>
+                        </div>
 
-                    {/* Stage 2: Responsible Officer Selection with Workload */}
-                    <div>
-                      <label htmlFor="field-officer" style={{ fontSize: '12px', fontWeight: 700, display: 'block', marginBottom: '6px', color: 'var(--v21-text-main)' }}>
-                        Responsible officer
-                      </label>
-                      <select
-                        id="field-officer"
-                        value={officer}
-                        onChange={(e) => setOfficer(e.target.value)}
-                        required
-                        className="v21-time-select"
-                        style={{ width: '100%', padding: '8px 10px' }}
-                      >
-                        <option value="">Choose approved officer</option>
-                        {team
-                          .filter((o) => o.staff_role === 'officer')
-                          .map((o) => (
-                            <option key={o.user_id} value={o.user_id}>
-                              {o.display_name} — {o.active_cases} active workloads
-                            </option>
-                          ))}
-                      </select>
-                    </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', marginTop: '6px' }}>
+                          <button
+                            type="button"
+                            className="v21-btn"
+                            onClick={() => setSelected(null)}
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="button"
+                            className="v21-btn v21-btn-primary"
+                            onClick={() => setAssignStage(2)}
+                          >
+                            <span>Next: Choose Officer</span>
+                            <ArrowRight size={14} />
+                          </button>
+                        </div>
+                      </div>
+                    )}
 
-                    {/* Stage 3: Pinterest 7-Day Calendar Deadline Picker */}
-                    <DepartmentDeadlinePicker
-                      id="field-due"
-                      label="Work deadline"
-                      value={deadline}
-                      min={minimumDeadlineInput}
-                      onChange={setDeadline}
-                    />
+                    {/* STAGE 2: OFFICER SELECTION */}
+                    {assignStage === 2 && (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                        <div>
+                          <div style={{ fontSize: '10px', fontWeight: 700, color: 'var(--v21-accent)', textTransform: 'uppercase', marginBottom: '4px' }}>
+                            Step 2 of 5: Responsible officer
+                          </div>
+                          <label htmlFor="field-officer" style={{ fontSize: '12px', fontWeight: 700, display: 'block', marginBottom: '6px', color: 'var(--v21-text-main)' }}>
+                            Responsible officer
+                          </label>
+                          <p style={{ fontSize: '11px', color: 'var(--v21-text-muted)', margin: '0 0 10px 0' }}>
+                            Select an approved municipal field officer to assign on-site inspection and repair duties.
+                          </p>
+                          <select
+                            id="field-officer"
+                            value={officer}
+                            onChange={(e) => setOfficer(e.target.value)}
+                            required
+                            className="v21-time-select"
+                            style={{ width: '100%', padding: '10px 12px', fontSize: '12px' }}
+                          >
+                            <option value="">Choose approved officer</option>
+                            {team
+                              .filter((o) => o.staff_role === 'officer')
+                              .map((o) => (
+                                <option key={o.user_id} value={o.user_id}>
+                                  {o.display_name} — {o.active_cases} active workloads ({o.verified_cases} verified)
+                                </option>
+                              ))}
+                          </select>
+                        </div>
 
-                    {/* Stage 4: Instructions */}
-                    <div>
-                      <label htmlFor="field-instructions" style={{ fontSize: '12px', fontWeight: 700, display: 'block', marginBottom: '6px', color: 'var(--v21-text-main)' }}>
-                        Instructions to officer
-                      </label>
-                      <textarea
-                        id="field-instructions"
-                        rows={3}
-                        minLength={8}
-                        maxLength={1200}
-                        value={instructions}
-                        onChange={(e) => setInstructions(e.target.value)}
-                        style={{
-                          width: '100%',
-                          padding: '10px',
-                          borderRadius: '8px',
-                          border: '1px solid var(--v21-border-strong)',
-                          background: 'var(--v21-bg-surface)',
-                          color: 'var(--v21-text-main)',
-                          fontSize: '12px',
-                        }}
-                      />
-                    </div>
+                        {officer && (
+                          <div style={{ background: 'var(--v21-bg-surface-subtle)', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--v21-border-subtle)', fontSize: '11px', color: 'var(--v21-text-muted)' }}>
+                            Selected: <strong style={{ color: 'var(--v21-text-main)' }}>{team.find(t => t.user_id === officer)?.display_name}</strong>
+                            {' · '}Current active cases: {team.find(t => t.user_id === officer)?.active_cases}
+                          </div>
+                        )}
 
-                    {/* Stage 5: Confirm and Dispatch */}
-                    <button
-                      className="v21-btn v21-btn-primary"
-                      type="submit"
-                      disabled={busy || !officer}
-                      style={{ justifyContent: 'center', width: '100%', padding: '10px' }}
-                    >
-                      <span>Assign with deadline</span>
-                      <ArrowRight size={15} />
-                    </button>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', marginTop: '6px' }}>
+                          <button
+                            type="button"
+                            className="v21-btn"
+                            onClick={() => setAssignStage(1)}
+                          >
+                            ← Back
+                          </button>
+                          <button
+                            type="button"
+                            className="v21-btn v21-btn-primary"
+                            disabled={!officer}
+                            onClick={() => setAssignStage(3)}
+                          >
+                            <span>Next: Set Deadline</span>
+                            <ArrowRight size={14} />
+                          </button>
+                        </div>
+                      </div>
+                    )}
 
-                    <p style={{ fontSize: '11px', color: 'var(--v21-text-tertiary)', margin: 0, textAlign: 'center' }}>
-                      Assignments are recorded in the audit log and cannot close without reviewed proof.
-                    </p>
+                    {/* STAGE 3: DEADLINE SELECTION */}
+                    {assignStage === 3 && (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                        <div>
+                          <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--v21-text-tertiary)', textTransform: 'uppercase', display: 'block', marginBottom: '4px' }}>
+                            Step 3 of 5: Resolution Deadline
+                          </span>
+                          <DepartmentDeadlinePicker
+                            id="field-due"
+                            label="Work deadline (PKT)"
+                            value={deadline}
+                            min={minimumDeadlineInput}
+                            onChange={setDeadline}
+                          />
+                        </div>
+
+                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', marginTop: '6px' }}>
+                          <button
+                            type="button"
+                            className="v21-btn"
+                            onClick={() => setAssignStage(2)}
+                          >
+                            ← Back
+                          </button>
+                          <button
+                            type="button"
+                            className="v21-btn v21-btn-primary"
+                            disabled={!deadline || new Date(deadline).getTime() <= Date.now()}
+                            onClick={() => setAssignStage(4)}
+                          >
+                            <span>Next: Write Instructions</span>
+                            <ArrowRight size={14} />
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* STAGE 4: INSTRUCTIONS BRIEFING */}
+                    {assignStage === 4 && (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                        <div>
+                          <label htmlFor="field-instructions" style={{ fontSize: '12px', fontWeight: 700, display: 'block', marginBottom: '4px', color: 'var(--v21-text-main)' }}>
+                            Step 4 of 5: Instructions to officer
+                          </label>
+                          <p style={{ fontSize: '11px', color: 'var(--v21-text-muted)', margin: '0 0 8px 0' }}>
+                            Specify safety measures, site landmarks, and mandatory work verification tasks.
+                          </p>
+                          <textarea
+                            id="field-instructions"
+                            rows={4}
+                            minLength={8}
+                            maxLength={1200}
+                            value={instructions}
+                            onChange={(e) => setInstructions(e.target.value)}
+                            placeholder="Provide clear guidance for the field crew..."
+                            style={{
+                              width: '100%',
+                              padding: '10px',
+                              borderRadius: '8px',
+                              border: '1px solid var(--v21-border-strong)',
+                              background: 'var(--v21-bg-surface)',
+                              color: 'var(--v21-text-main)',
+                              fontSize: '12px',
+                            }}
+                          />
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: 'var(--v21-text-tertiary)', marginTop: '4px' }}>
+                            <span>Min 8 characters</span>
+                            <span>{instructions.length}/1200</span>
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', marginTop: '6px' }}>
+                          <button
+                            type="button"
+                            className="v21-btn"
+                            onClick={() => setAssignStage(3)}
+                          >
+                            ← Back
+                          </button>
+                          <button
+                            type="button"
+                            className="v21-btn v21-btn-primary"
+                            disabled={instructions.trim().length < 8}
+                            onClick={() => setAssignStage(5)}
+                          >
+                            <span>Next: Review Summary</span>
+                            <ArrowRight size={14} />
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* STAGE 5: FINAL CONFIRMATION SUMMARY REVIEW */}
+                    {assignStage === 5 && (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                        <div style={{ background: 'var(--v21-bg-surface-subtle)', padding: '14px', borderRadius: '10px', border: '1px solid var(--v21-border-subtle)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--v21-border-subtle)', paddingBottom: '8px' }}>
+                            <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--v21-accent)', textTransform: 'uppercase' }}>
+                              Step 5 of 5: Work Order Summary
+                            </span>
+                            <span className="v21-dept-badge">READY TO DISPATCH</span>
+                          </div>
+
+                          <div>
+                            <span style={{ fontSize: '10px', color: 'var(--v21-text-tertiary)', display: 'block', fontWeight: 600 }}>CASE</span>
+                            <strong style={{ fontSize: '12px', color: 'var(--v21-text-main)' }}>{selected.title}</strong>
+                            <div style={{ fontSize: '11px', color: 'var(--v21-text-muted)' }}>{selected.publicPlace} · {selected.locality}</div>
+                          </div>
+
+                          <div>
+                            <span style={{ fontSize: '10px', color: 'var(--v21-text-tertiary)', display: 'block', fontWeight: 600 }}>ASSIGNED OFFICER</span>
+                            <strong style={{ fontSize: '12px', color: 'var(--v21-text-main)' }}>
+                              {team.find(t => t.user_id === officer)?.display_name || officer}
+                            </strong>
+                          </div>
+
+                          <div>
+                            <span style={{ fontSize: '10px', color: 'var(--v21-text-tertiary)', display: 'block', fontWeight: 600 }}>DEADLINE (PKT)</span>
+                            <strong style={{ fontSize: '12px', color: 'var(--v21-text-main)' }}>
+                              {new Date(deadline).toLocaleString('en-PK', { dateStyle: 'medium', timeStyle: 'short' })}
+                            </strong>
+                          </div>
+
+                          <div>
+                            <span style={{ fontSize: '10px', color: 'var(--v21-text-tertiary)', display: 'block', fontWeight: 600 }}>INSTRUCTIONS</span>
+                            <p style={{ fontSize: '11px', color: 'var(--v21-text-muted)', margin: 0, fontStyle: 'italic', background: 'var(--v21-bg-surface)', padding: '8px 10px', borderRadius: '6px', border: '1px solid var(--v21-border-subtle)' }}>
+                              &ldquo;{instructions}&rdquo;
+                            </p>
+                          </div>
+                        </div>
+
+                        <p style={{ fontSize: '11px', color: 'var(--v21-text-tertiary)', margin: 0, textAlign: 'center' }}>
+                          Dispatching creates an active work order and sends an operational notification to the officer.
+                        </p>
+
+                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', marginTop: '6px' }}>
+                          <button
+                            type="button"
+                            className="v21-btn"
+                            onClick={() => setAssignStage(4)}
+                          >
+                            ← Back
+                          </button>
+                          <button
+                            className="v21-btn v21-btn-primary"
+                            type="submit"
+                            aria-label="Confirm & Dispatch Work Order (Assign with deadline)"
+                            disabled={busy || !officer || !deadline || instructions.trim().length < 8}
+                            style={{ padding: '10px 16px' }}
+                          >
+                            <span>Confirm & Dispatch Work Order</span>
+                            <ArrowRight size={14} />
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </form>
                 ) : (
                   <div style={{ textAlign: 'center', padding: '24px 12px', color: 'var(--v21-text-muted)' }}>
@@ -992,18 +1195,47 @@ export const FieldOperationsDesk: React.FC<Props> = ({ departmentId, userId, rol
               </button>
             </div>
 
-            <div style={{ borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--v21-border-subtle)', marginBottom: '12px', background: '#000', maxHeight: '280px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              {reviewing.image ? (
-                <img
-                  src={reviewing.image}
-                  alt="Private officer-submitted work evidence"
-                  style={{ width: '100%', height: 'auto', maxHeight: '280px', objectFit: 'contain' }}
-                />
-              ) : (
-                <p style={{ color: '#fff', fontSize: '12px', padding: '24px' }}>
-                  Secure preview could not be retrieved. Verify storage access before approving.
-                </p>
+            {/* Split Before / After Photo Previews */}
+            <div style={{ display: 'grid', gridTemplateColumns: reviewing.beforeImage ? '1fr 1fr' : '1fr', gap: '12px', marginBottom: '14px' }}>
+              {reviewing.beforeImage && (
+                <div style={{ borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--v21-border-subtle)', background: '#000', display: 'flex', flexDirection: 'column' }}>
+                  <div style={{ padding: '6px 10px', background: 'var(--v21-bg-surface-subtle)', borderBottom: '1px solid var(--v21-border-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--v21-warning)' }}>
+                      INITIAL CONDITION (BEFORE)
+                    </span>
+                    <span style={{ fontSize: '10px', color: 'var(--v21-text-tertiary)' }}>Site pin</span>
+                  </div>
+                  <div style={{ height: '220px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <img
+                      src={reviewing.beforeImage}
+                      alt="Before work condition"
+                      style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                    />
+                  </div>
+                </div>
               )}
+
+              <div style={{ borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--v21-border-subtle)', background: '#000', display: 'flex', flexDirection: 'column' }}>
+                <div style={{ padding: '6px 10px', background: 'var(--v21-bg-surface-subtle)', borderBottom: '1px solid var(--v21-border-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--v21-accent)' }}>
+                    REPAIRED STATE (AFTER)
+                  </span>
+                  <span style={{ fontSize: '10px', color: 'var(--v21-text-tertiary)' }}>Mandatory</span>
+                </div>
+                <div style={{ height: '220px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {reviewing.image ? (
+                    <img
+                      src={reviewing.image}
+                      alt="Repaired work evidence"
+                      style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                    />
+                  ) : (
+                    <p style={{ color: '#fff', fontSize: '12px', padding: '24px' }}>
+                      Secure preview could not be retrieved. Verify storage access before approving.
+                    </p>
+                  )}
+                </div>
+              </div>
             </div>
 
             <div style={{ fontSize: '11px', color: 'var(--v21-text-muted)', marginBottom: '12px', padding: '8px 12px', borderRadius: '6px', background: 'var(--v21-bg-surface-subtle)' }}>
@@ -1190,8 +1422,14 @@ export const FieldOperationsDesk: React.FC<Props> = ({ departmentId, userId, rol
               e.preventDefault();
               if (!photo || !location) return;
               void execute(async () => {
-                await fieldOperations.submitEvidence(uploadFor, photo, location);
+                await fieldOperations.submitEvidence(uploadFor, {
+                  afterPhoto: photo,
+                  beforePhoto: beforePhoto || null,
+                  location,
+                });
                 setUploadFor(null);
+                setPhoto(null);
+                setBeforePhoto(null);
               }, 'Proof submitted for head review. The work is not verified yet.');
             }}
           >

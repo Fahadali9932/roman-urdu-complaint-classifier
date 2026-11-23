@@ -5,6 +5,7 @@ import { useAdminAuth } from '../../../context/AdminAuthContext';
 import {
   staffAuthService,
   type DepartmentMembershipWithDetails,
+  type AccessAuditLogRow,
 } from '../../../services/staffAuthService';
 import { AdminHeader } from '../components/AdminHeader';
 import { supabase, isSupabaseConfigured } from '../../../lib/supabase';
@@ -50,12 +51,31 @@ export const AdminAccessPage: React.FC = () => {
   );
   const [isRevokeModalOpen, setIsRevokeModalOpen] = useState(false);
   const [revokeReason, setRevokeReason] = useState('');
+  const [isSuspendModalOpen, setIsSuspendModalOpen] = useState(false);
+  const [suspendReason, setSuspendReason] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Searchable Audit Ledger state
+  const [auditLogs, setAuditLogs] = useState<AccessAuditLogRow[]>([]);
+  const [auditFilter, setAuditFilter] = useState<string>('all');
+  const [auditSearch, setAuditSearch] = useState<string>('');
 
   // Status feedback
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(
     null
   );
+
+  // Keyboard shortcut listener (Escape key dismissal)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (isRevokeModalOpen) setIsRevokeModalOpen(false);
+        if (isSuspendModalOpen) setIsSuspendModalOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isRevokeModalOpen, isSuspendModalOpen]);
 
   // Guard: Redirect unauthenticated admins to login
   useEffect(() => {
@@ -63,6 +83,15 @@ export const AdminAccessPage: React.FC = () => {
       navigate('/admin/login', { replace: true });
     }
   }, [isAuthenticated, navigate]);
+
+  const loadAuditLogs = () => {
+    try {
+      const logs = staffAuthService.getAccessAuditLog();
+      setAuditLogs(logs);
+    } catch {
+      // ignore
+    }
+  };
 
   const loadMemberships = async () => {
     setIsLoading(true);
@@ -80,7 +109,10 @@ export const AdminAccessPage: React.FC = () => {
   };
 
   useEffect(() => {
-    if (isAuthenticated) void loadMemberships();
+    if (isAuthenticated) {
+      void loadMemberships();
+      loadAuditLogs();
+    }
   }, [isAuthenticated]);
 
   useEffect(() => {
@@ -130,12 +162,64 @@ export const AdminAccessPage: React.FC = () => {
     finally{setInviting(false);}
   };
 
-  const changeRole = async (membership:DepartmentMembershipWithDetails, role:'head'|'officer') => {
-    if (!supabase||!mfaReady)return;
-    if(!window.confirm(`Change ${membership.profile?.email} to ${role}? This immediately changes their permissions.`))return;
-    const {error}=await supabase.rpc('v1318_set_staff_role',{p_membership:membership.id,p_role:role});
-    if(error)setFeedback({type:'error',message:error.message});
-    else{setFeedback({type:'success',message:`Role updated to ${role}.`});await loadMemberships();}
+  const changeRole = async (membership: DepartmentMembershipWithDetails, role: 'head' | 'officer') => {
+    setIsSubmitting(true);
+    setFeedback(null);
+    try {
+      const res = await staffAuthService.updateStaffRole(
+        membership.id,
+        role,
+        `Role reassigned by Main Administrator to ${role}`
+      );
+      if (res.success) {
+        setFeedback({
+          type: 'success',
+          message: `Role for ${membership.profile?.email} changed to ${role === 'head' ? 'Department Head' : 'Field Officer'}.`,
+        });
+        await loadMemberships();
+        loadAuditLogs();
+      } else {
+        setFeedback({
+          type: 'error',
+          message: res.error || 'Failed to update staff role.',
+        });
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleOpenSuspend = (membership: DepartmentMembershipWithDetails) => {
+    setSelectedTarget(membership);
+    setSuspendReason('');
+    setIsSuspendModalOpen(true);
+  };
+
+  const handleConfirmSuspend = async () => {
+    if (!selectedTarget) return;
+    setIsSubmitting(true);
+    setFeedback(null);
+    try {
+      const reason = suspendReason.trim() || 'Temporary suspension pending administrative review.';
+      const res = await staffAuthService.suspendDepartmentAccess(selectedTarget.id, reason);
+      if (res.success) {
+        setFeedback({
+          type: 'success',
+          message: `Account for ${selectedTarget.profile?.email} suspended. Access is temporarily disabled.`,
+        });
+        setIsSuspendModalOpen(false);
+        setSelectedTarget(null);
+        await loadMemberships();
+        loadAuditLogs();
+      } else {
+        setFeedback({
+          type: 'error',
+          message: res.error || 'Failed to suspend account.',
+        });
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const filteredMemberships = useMemo(() => {
@@ -153,6 +237,19 @@ export const AdminAccessPage: React.FC = () => {
       return matchesSearch && matchesDept;
     });
   }, [memberships, searchQuery, departmentFilter]);
+
+  const filteredAuditLogs = useMemo(() => {
+    return auditLogs.filter((log) => {
+      const matchesAction = auditFilter === 'all' || log.action === auditFilter;
+      const q = auditSearch.toLowerCase();
+      const matchesSearch =
+        !q ||
+        log.target_email.toLowerCase().includes(q) ||
+        (log.actor_id && log.actor_id.toLowerCase().includes(q)) ||
+        (log.department_id && log.department_id.toLowerCase().includes(q));
+      return matchesAction && matchesSearch;
+    });
+  }, [auditLogs, auditFilter, auditSearch]);
 
   const handleOpenRevoke = (membership: DepartmentMembershipWithDetails) => {
     setSelectedTarget(membership);
@@ -360,15 +457,35 @@ export const AdminAccessPage: React.FC = () => {
                           </span>
                         </td>
                         <td className="py-3.5 px-4 text-right rtl:text-left">
-                          {isSupabaseConfigured()&&mfaReady&&<select aria-label={`Role for ${m.profile?.email}`} value={m.staff_role||'officer'} onChange={e=>void changeRole(m,e.target.value as 'head'|'officer')} className="mb-2 mr-2 rounded-md border border-slate-300 p-1.5 text-xs"><option value="officer">Field officer</option><option value="head">Department head</option></select>}
-                          <button
-                            type="button"
-                            onClick={() => handleOpenRevoke(m)}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 font-semibold text-xs transition-colors cursor-pointer"
-                          >
-                            <UserX className="w-3.5 h-3.5" />
-                            <span>{language === 'ur' ? 'رسائی منسوخ کریں →' : 'Revoke access →'}</span>
-                          </button>
+                          <div className="flex items-center justify-end gap-2 flex-wrap">
+                            <select
+                              aria-label={`Role for ${m.profile?.email}`}
+                              value={m.staff_role || 'officer'}
+                              onChange={(e) => void changeRole(m, e.target.value as 'head' | 'officer')}
+                              disabled={isSubmitting}
+                              className="rounded-md border border-[#CBD5E1] p-1.5 text-xs bg-white font-medium cursor-pointer"
+                            >
+                              <option value="officer">Field officer</option>
+                              <option value="head">Department head</option>
+                            </select>
+                            <button
+                              type="button"
+                              onClick={() => handleOpenSuspend(m)}
+                              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 hover:bg-amber-100 font-semibold text-xs transition-colors cursor-pointer"
+                              title="Temporarily suspend staff access"
+                            >
+                              <AlertCircle className="w-3.5 h-3.5" />
+                              <span>Suspend</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleOpenRevoke(m)}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 font-semibold text-xs transition-colors cursor-pointer"
+                            >
+                              <UserX className="w-3.5 h-3.5" />
+                              <span>{language === 'ur' ? 'رسائی منسوخ کریں →' : 'Revoke access →'}</span>
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -411,6 +528,172 @@ export const AdminAccessPage: React.FC = () => {
             </div>
           </section>
         </div>
+
+        {/* Searchable Audit Ledger Section */}
+        <section
+          className="order-4 bg-white rounded-2xl border border-[#E2E8F0] shadow-xs overflow-hidden"
+          aria-labelledby="audit-ledger-heading"
+        >
+          <div className="p-5 border-b border-[#E2E8F0] space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div>
+                <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-slate-100 text-[#0F1E21] text-[10px] font-mono font-bold uppercase tracking-wider mb-1">
+                  <ShieldCheck className="w-3 h-3 text-emerald-600" />
+                  CRYPTOGRAPHIC LOG INTEGRITY
+                </div>
+                <h2 id="audit-ledger-heading" className="text-base font-bold text-[#0F1E21]">
+                  Administrative Access Audit Ledger
+                </h2>
+                <p className="text-xs text-[#64748B]">
+                  Immutable append-only record of all identity provisions, approvals, role mutations, suspensions, and access revocations.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="px-2.5 py-1 rounded-full bg-slate-100 text-slate-800 text-xs font-mono font-bold">
+                  {filteredAuditLogs.length} Records
+                </span>
+                <button
+                  type="button"
+                  onClick={loadAuditLogs}
+                  className="text-xs font-semibold text-[#122E32] hover:underline cursor-pointer"
+                >
+                  Refresh Log
+                </button>
+              </div>
+            </div>
+
+            {/* Filter Pills and Search */}
+            <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
+              <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1">
+                {['all', 'request_approved', 'request_rejected', 'access_revoked', 'access_suspended', 'role_updated'].map((actionKey) => {
+                  const isAct = auditFilter === actionKey;
+                  const label =
+                    actionKey === 'all'
+                      ? 'All Events'
+                      : actionKey === 'request_approved'
+                      ? 'Approvals'
+                      : actionKey === 'request_rejected'
+                      ? 'Rejections'
+                      : actionKey === 'access_revoked'
+                      ? 'Revocations'
+                      : actionKey === 'access_suspended'
+                      ? 'Suspensions'
+                      : 'Role Changes';
+                  return (
+                    <button
+                      key={actionKey}
+                      type="button"
+                      onClick={() => setAuditFilter(actionKey)}
+                      className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer ${
+                        isAct
+                          ? 'bg-[#0F1E21] text-white shadow-xs'
+                          : 'bg-slate-100 text-[#64748B] hover:text-[#0F1E21] hover:bg-slate-200'
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="relative min-w-[220px]">
+                <Search className="w-3.5 h-3.5 absolute left-3 top-3 text-[#94A3B8]" />
+                <input
+                  type="text"
+                  value={auditSearch}
+                  onChange={(e) => setAuditSearch(e.target.value)}
+                  placeholder="Filter target email or actor..."
+                  className="w-full h-9 pl-8 pr-3 rounded-lg border border-[#CBD5E1] text-xs focus:outline-none focus:border-[#122E32]"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Audit Records Table */}
+          <div className="overflow-x-auto">
+            <table className="w-full text-left rtl:text-right text-xs">
+              <thead className="bg-[#F8FAFC] text-[#64748B] font-mono uppercase tracking-wider text-[11px] border-b border-[#E2E8F0]">
+                <tr>
+                  <th className="py-3 px-4">TIMESTAMP (PKT)</th>
+                  <th className="py-3 px-4">ACTION</th>
+                  <th className="py-3 px-4">TARGET USER & DEPT</th>
+                  <th className="py-3 px-4">OPERATIONAL DETAILS</th>
+                  <th className="py-3 px-4 text-right">HASH INTEGRITY</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#F1F5F9]">
+                {filteredAuditLogs.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="py-8 text-center text-slate-500 text-xs">
+                      No audit records matching selected criteria.
+                    </td>
+                  </tr>
+                ) : (
+                  filteredAuditLogs.map((log) => (
+                    <tr key={log.id} className="hover:bg-[#F8FAFC] transition-colors">
+                      <td className="py-3.5 px-4 font-mono text-[11px] text-[#64748B] whitespace-nowrap">
+                        {new Date(log.created_at).toLocaleString('en-PK', { dateStyle: 'medium', timeStyle: 'short' })}
+                      </td>
+                      <td className="py-3.5 px-4">
+                        {log.action === 'request_approved' && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-emerald-50 border border-emerald-200 text-emerald-800 font-mono text-[10px] font-bold">
+                            <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                            APPROVED
+                          </span>
+                        )}
+                        {log.action === 'request_rejected' && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-rose-50 border border-rose-200 text-rose-800 font-mono text-[10px] font-bold">
+                            <AlertCircle className="w-3 h-3 text-rose-600" />
+                            REJECTED
+                          </span>
+                        )}
+                        {log.action === 'access_revoked' && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-rose-50 border border-rose-200 text-rose-800 font-mono text-[10px] font-bold">
+                            <UserX className="w-3 h-3 text-rose-600" />
+                            REVOKED
+                          </span>
+                        )}
+                        {log.action === 'access_suspended' && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-amber-50 border border-amber-200 text-amber-800 font-mono text-[10px] font-bold">
+                            <AlertTriangle className="w-3 h-3 text-amber-600" />
+                            SUSPENDED
+                          </span>
+                        )}
+                        {log.action === 'role_updated' && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-blue-50 border border-blue-200 text-blue-800 font-mono text-[10px] font-bold">
+                            <ShieldCheck className="w-3 h-3 text-blue-600" />
+                            ROLE UPDATED
+                          </span>
+                        )}
+                        {log.action === 'admin_provisioned' && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-slate-100 border border-slate-300 text-slate-800 font-mono text-[10px] font-bold">
+                            <ShieldAlert className="w-3 h-3 text-slate-600" />
+                            PROVISIONED
+                          </span>
+                        )}
+                      </td>
+                      <td className="py-3.5 px-4 font-mono text-[#0F1E21]">
+                        <div>{log.target_email}</div>
+                        <div className="text-[10px] text-[#64748B] font-sans">
+                          Dept: <span className="font-semibold uppercase">{log.department_id || 'All'}</span> · Actor: {log.actor_id || 'admin'}
+                        </div>
+                      </td>
+                      <td className="py-3.5 px-4 text-[#334155] max-w-xs truncate text-[11px]">
+                        {log.details ? (typeof log.details === 'object' ? (log.details as any).reason || (log.details as any).note || JSON.stringify(log.details) : String(log.details)) : '—'}
+                      </td>
+                      <td className="py-3.5 px-4 text-right">
+                        <span className="font-mono text-[10px] text-slate-500 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                          #{log.id.slice(0, 8)}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </section>
       </main>
 
       {/* Revocation Confirmation Dialog (Figma Frame 35:1154 / 35:1840) */}
@@ -490,6 +773,75 @@ export const AdminAccessPage: React.FC = () => {
                 <span>
                   {language === 'ur' ? 'منسوخی کی تصدیق کریں' : 'Confirm revoke'}
                 </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Suspension Confirmation Dialog */}
+      {isSuspendModalOpen && selectedTarget && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs"
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="bg-white rounded-2xl border border-amber-200 shadow-2xl max-w-lg w-full p-6 space-y-5">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+                <AlertCircle className="w-5 h-5 text-amber-700" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-lg font-bold text-[#0F1E21]">
+                  Suspend staff account?
+                </h3>
+                <p className="text-xs text-[#64748B]">
+                  Selection: {selectedTarget.profile?.email} ({selectedTarget.department?.name})
+                </p>
+              </div>
+            </div>
+
+            <p className="text-xs sm:text-sm text-[#334155] leading-relaxed">
+              Suspending an account temporarily revokes login permissions and active work dispatch capability without deleting verified work history.
+            </p>
+
+            <div className="space-y-1.5">
+              <label
+                htmlFor="suspend-reason-input"
+                className="block text-xs font-semibold text-[#0F1E21]"
+              >
+                Reason for suspension:
+              </label>
+              <input
+                id="suspend-reason-input"
+                type="text"
+                value={suspendReason}
+                onChange={(e) => setSuspendReason(e.target.value)}
+                placeholder="e.g., Pending disciplinary inquiry or temporary leave..."
+                className="w-full h-10 px-3 rounded-lg border border-[#CBD5E1] text-xs focus:outline-none focus:border-amber-500"
+              />
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsSuspendModalOpen(false);
+                  setSelectedTarget(null);
+                }}
+                className="px-4 py-2.5 rounded-xl border border-[#CBD5E1] text-xs font-semibold text-[#64748B] hover:bg-[#F8FAFC] cursor-pointer"
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                onClick={handleConfirmSuspend}
+                disabled={isSubmitting}
+                className="px-5 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold flex items-center gap-2 cursor-pointer disabled:opacity-50"
+              >
+                <AlertCircle className="w-4 h-4" />
+                <span>Confirm suspension</span>
               </button>
             </div>
           </div>

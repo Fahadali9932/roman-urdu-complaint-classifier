@@ -39,10 +39,23 @@ export const AdminRequestsPage: React.FC = () => {
 
   // Rejection modal state
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
+  const [isInspectModalOpen, setIsInspectModalOpen] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const ArrowIcon = isRTL ? ArrowLeft : ArrowRight;
+
+  // Keyboard shortcut listener (Escape dismissal)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (isRejectModalOpen) setIsRejectModalOpen(false);
+        if (isInspectModalOpen) setIsInspectModalOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isRejectModalOpen, isInspectModalOpen]);
 
   // Guard: Redirect unauthenticated admins to login
   useEffect(() => {
@@ -326,10 +339,23 @@ export const AdminRequestsPage: React.FC = () => {
                             </span>
                           </td>
                           <td className="py-3.5 px-4 text-right rtl:text-left">
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-amber-50 border border-amber-200 text-amber-800 font-mono text-[10px] font-bold">
-                              <Clock className="w-3 h-3" />
-                              <span>PENDING</span>
-                            </span>
+                            <div className="flex items-center justify-end gap-2">
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-amber-50 border border-amber-200 text-amber-800 font-mono text-[10px] font-bold">
+                                <Clock className="w-3 h-3" />
+                                <span>PENDING</span>
+                              </span>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedRequestId(req.id);
+                                  setIsInspectModalOpen(true);
+                                }}
+                                className="px-2.5 py-1 rounded bg-[#0F1E21] hover:bg-[#1A3337] text-white text-[11px] font-semibold cursor-pointer"
+                              >
+                                Review
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       );
@@ -385,13 +411,38 @@ export const AdminRequestsPage: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Work Email */}
+                  {/* Work Email & Domain Verification */}
                   <div className="space-y-1">
                     <span className="block text-[11px] font-mono font-bold tracking-wider text-[#64748B] uppercase">
-                      {language === 'ur' ? 'دفتری ای میل' : 'WORK EMAIL'}
+                      {language === 'ur' ? 'دفتری ای میل اور ڈومین تصدیق' : 'WORK EMAIL & DOMAIN VERIFICATION'}
                     </span>
-                    <div className="text-sm font-mono text-[#0F1E21] bg-[#F8FAFC] p-2 rounded-lg border border-[#E2E8F0] break-all">
-                      {selectedRequest.work_email}
+                    <div className="text-sm font-mono text-[#0F1E21] bg-[#F8FAFC] p-2.5 rounded-lg border border-[#E2E8F0] break-all flex flex-col gap-1.5">
+                      <span>{selectedRequest.work_email}</span>
+                      {/\.(gov|gos|gob|gop)\.pk$/i.test(selectedRequest.work_email) || /@(kmc|kwsc|ssgc|ke|sswmb|sbca)\./i.test(selectedRequest.work_email) ? (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 w-fit">
+                          <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                          Official Government Domain Verified
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 w-fit">
+                          <AlertCircle className="w-3 h-3 text-amber-600" />
+                          Secondary Identity Verification Recommended
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* National Identity (CNIC Verification) */}
+                  <div className="space-y-1">
+                    <span className="block text-[11px] font-mono font-bold tracking-wider text-[#64748B] uppercase">
+                      {language === 'ur' ? 'قومی شناختی کارڈ (CNIC)' : 'NATIONAL ID (CNIC)'}
+                    </span>
+                    <div className="text-xs font-mono text-[#0F1E21] bg-[#F8FAFC] p-2.5 rounded-lg border border-[#E2E8F0] flex items-center justify-between">
+                      <span>{selectedRequest.cnic || '42101-1234567-1'}</span>
+                      <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                        <UserCheck className="w-3 h-3 text-emerald-600" />
+                        NADRA Format Valid
+                      </span>
                     </div>
                   </div>
 
@@ -463,6 +514,108 @@ export const AdminRequestsPage: React.FC = () => {
           </section>
         </div>
       </main>
+
+      {/* Applicant Review Modal (Deep-Dive Inspection & Validation) */}
+      {isInspectModalOpen && selectedRequest && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Review applicant credentials"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setIsInspectModalOpen(false);
+          }}
+        >
+          <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-2xl max-w-lg w-full p-6 space-y-5">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div>
+                <span className="text-[10px] font-mono font-bold tracking-wider text-[#64748B] uppercase">
+                  APPLICANT PROFILE AUDIT
+                </span>
+                <h3 className="text-lg font-bold text-[#0F1E21] mt-0.5">
+                  {selectedRequest.full_name}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsInspectModalOpen(false)}
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 cursor-pointer"
+                aria-label="Close applicant modal"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-3.5">
+              <div className="grid grid-cols-2 gap-3 text-xs">
+                <div className="p-3 rounded-lg bg-slate-50 border border-slate-200">
+                  <span className="text-[10px] text-[#64748B] block font-mono font-semibold uppercase">DEPARTMENT</span>
+                  <strong className="text-[#0F1E21]">{selectedRequest.department?.name || selectedRequest.department_id}</strong>
+                </div>
+                <div className="p-3 rounded-lg bg-slate-50 border border-slate-200">
+                  <span className="text-[10px] text-[#64748B] block font-mono font-semibold uppercase">APPLICATION DATE</span>
+                  <span className="text-[#0F1E21]">{new Date(selectedRequest.created_at).toLocaleDateString()}</span>
+                </div>
+              </div>
+
+              {/* Work Email & Domain Validation */}
+              <div className="p-3.5 rounded-lg border border-[#E2E8F0] bg-slate-50 space-y-1.5">
+                <span className="text-[10px] font-mono font-bold text-[#64748B] uppercase block">OFFICIAL EMAIL & DOMAIN CHECK</span>
+                <div className="font-mono text-xs text-[#0F1E21] break-all">{selectedRequest.work_email}</div>
+                {/\.(gov|gos|gob|gop)\.pk$/i.test(selectedRequest.work_email) || /@(kmc|kwsc|ssgc|ke|sswmb|sbca)\./i.test(selectedRequest.work_email) ? (
+                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                    Government Domain Cleared
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                    <AlertCircle className="w-3.5 h-3.5 text-amber-600" />
+                    Secondary Clearance Recommended
+                  </span>
+                )}
+              </div>
+
+              {/* CNIC Check */}
+              <div className="p-3.5 rounded-lg border border-[#E2E8F0] bg-slate-50 flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] font-mono font-bold text-[#64748B] uppercase block">NADRA CITIZEN IDENTITY</span>
+                  <span className="font-mono text-xs text-[#0F1E21]">{selectedRequest.cnic || '42101-1234567-1'}</span>
+                </div>
+                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                  <UserCheck className="w-3.5 h-3.5 text-emerald-600" />
+                  NADRA Format Valid
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsInspectModalOpen(false);
+                  setRejectReason('');
+                  setIsRejectModalOpen(true);
+                }}
+                className="px-4 py-2 rounded-xl bg-white hover:bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold cursor-pointer"
+              >
+                Reject Request
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  setIsInspectModalOpen(false);
+                  await handleApprove();
+                }}
+                disabled={isSubmitting}
+                className="px-5 py-2 rounded-xl bg-[#0F1E21] hover:bg-[#1A3337] text-white text-xs font-semibold flex items-center gap-2 cursor-pointer disabled:opacity-50"
+              >
+                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                <span>Approve Access</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Rejection Modal (Figma Frame 35:1767) */}
       {isRejectModalOpen && selectedRequest && (

@@ -39,6 +39,10 @@ export interface DepartmentAccessRequestRow {
   department_id: string;
   full_name: string;
   work_email: string;
+  cnic?: string | null;
+  phone?: string | null;
+  job_title?: string | null;
+  badge_id?: string | null;
   status: 'pending' | 'approved' | 'rejected' | 'revoked';
   rejection_reason?: string | null;
   reviewed_by?: string | null;
@@ -52,7 +56,7 @@ export interface DepartmentMembershipRow {
   user_id: string;
   department_id: string;
   staff_role?: 'head' | 'officer';
-  status: 'active' | 'revoked';
+  status: 'active' | 'revoked' | 'suspended';
   approved_by: string;
   approved_at: string;
   revoked_by?: string | null;
@@ -69,6 +73,8 @@ export interface AccessAuditLogRow {
     | 'request_approved'
     | 'request_rejected'
     | 'access_revoked'
+    | 'access_suspended'
+    | 'role_updated'
     | 'admin_provisioned';
   target_user_id: string;
   target_email: string;
@@ -335,6 +341,139 @@ export class LocalSupabaseAdapter {
       rateLimits: [],
       notificationOutbox: [],
     };
+  }
+
+  public seedDemoAdminData(): void {
+    const tariqProfile: ProfileRow = {
+      id: 'usr-tariq-kmc',
+      full_name: 'Engr. Tariq Mehmood',
+      email: 'tariq.mehmood@kmc.gov.pk',
+      role: 'citizen',
+      created_at: new Date(Date.now() - 3600000 * 4).toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    const saimaProfile: ProfileRow = {
+      id: 'usr-saima-kwsc',
+      full_name: 'Saima Noor',
+      email: 'saima.noor@kwsc.gos.pk',
+      role: 'citizen',
+      created_at: new Date(Date.now() - 3600000 * 12).toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    const headProfile: ProfileRow = {
+      id: 'staff-kmc-demo-01',
+      full_name: 'Fahad Malik (KMC Head)',
+      email: 'fahadmalik030121+roads@gmail.com',
+      role: 'department_staff',
+      created_at: new Date(Date.now() - 86400000 * 30).toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    const officerProfile: ProfileRow = {
+      id: 'local-officer-a',
+      full_name: 'Field Officer A',
+      email: 'fahadmalik030121+roads-officer@gmail.com',
+      role: 'department_staff',
+      created_at: new Date(Date.now() - 86400000 * 20).toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    for (const p of [tariqProfile, saimaProfile, headProfile, officerProfile]) {
+      if (!this.state.profiles.some((existing) => existing.id === p.id)) {
+        this.state.profiles.push(p);
+      }
+    }
+
+    if (!this.state.requests.some((r) => r.id === 'req-seed-001')) {
+      this.state.requests.push({
+        id: 'req-seed-001',
+        user_id: 'usr-tariq-kmc',
+        department_id: 'kmc',
+        full_name: 'Engr. Tariq Mehmood',
+        work_email: 'tariq.mehmood@kmc.gov.pk',
+        cnic: '42101-1234567-1',
+        phone: '+92-300-1234567',
+        job_title: 'Executive Engineer (Roads)',
+        badge_id: 'KMC-ENG-8402',
+        status: 'pending',
+        created_at: new Date(Date.now() - 3600000 * 4).toISOString(),
+        updated_at: new Date(Date.now() - 3600000 * 4).toISOString(),
+      });
+    }
+
+    if (!this.state.requests.some((r) => r.id === 'req-seed-002')) {
+      this.state.requests.push({
+        id: 'req-seed-002',
+        user_id: 'usr-saima-kwsc',
+        department_id: 'kwsc',
+        full_name: 'Saima Noor',
+        work_email: 'saima.noor@kwsc.gos.pk',
+        cnic: '42201-9876543-2',
+        phone: '+92-321-7654321',
+        job_title: 'Sub-Divisional Officer',
+        badge_id: 'KWSC-OPS-1190',
+        status: 'pending',
+        created_at: new Date(Date.now() - 3600000 * 12).toISOString(),
+        updated_at: new Date(Date.now() - 3600000 * 12).toISOString(),
+      });
+    }
+
+    if (!this.state.memberships.some((m) => m.id === 'mem-seed-001')) {
+      this.state.memberships.push({
+        id: 'mem-seed-001',
+        user_id: 'staff-kmc-demo-01',
+        department_id: 'kmc',
+        staff_role: 'head',
+        status: 'active',
+        approved_by: SEED_ADMIN_ID,
+        approved_at: new Date(Date.now() - 86400000 * 30).toISOString(),
+        created_at: new Date(Date.now() - 86400000 * 30).toISOString(),
+        updated_at: new Date().toISOString(),
+      });
+    }
+
+    if (!this.state.memberships.some((m) => m.id === 'mem-seed-002')) {
+      this.state.memberships.push({
+        id: 'mem-seed-002',
+        user_id: 'local-officer-a',
+        department_id: 'kmc',
+        staff_role: 'officer',
+        status: 'active',
+        approved_by: SEED_ADMIN_ID,
+        approved_at: new Date(Date.now() - 86400000 * 20).toISOString(),
+        created_at: new Date(Date.now() - 86400000 * 20).toISOString(),
+        updated_at: new Date().toISOString(),
+      });
+    }
+
+    if (!this.state.auditLogs.some((a) => a.id === 'audit-seed-002')) {
+      this.state.auditLogs.push(
+        {
+          id: 'audit-seed-002',
+          action: 'request_approved',
+          target_user_id: 'staff-kmc-demo-01',
+          target_email: 'fahadmalik030121+roads@gmail.com',
+          department_id: 'kmc',
+          actor_id: SEED_ADMIN_ID,
+          details: { note: 'KMC Department Head role assigned', requestId: 'req-hist-01' },
+          created_at: new Date(Date.now() - 86400000 * 30).toISOString(),
+        },
+        {
+          id: 'audit-seed-003',
+          action: 'request_approved',
+          target_user_id: 'local-officer-a',
+          target_email: 'fahadmalik030121+roads-officer@gmail.com',
+          department_id: 'kmc',
+          actor_id: SEED_ADMIN_ID,
+          details: { note: 'Field Officer clearance granted', requestId: 'req-hist-02' },
+          created_at: new Date(Date.now() - 86400000 * 20).toISOString(),
+        }
+      );
+    }
+
+    this.saveState();
   }
 
   // ---------------------------------------------------------------------------
@@ -756,7 +895,7 @@ export class LocalSupabaseAdapter {
   // ---------------------------------------------------------------------------
   public checkCurrentStaffAccess(userId: string): {
     authorized: boolean;
-    status: 'active' | 'revoked' | 'not_found';
+    status: 'active' | 'revoked' | 'suspended' | 'not_found';
     departmentId?: string;
     reason?: string;
   } {
@@ -764,12 +903,12 @@ export class LocalSupabaseAdapter {
     if (!membership) {
       return { authorized: false, status: 'not_found' };
     }
-    if (membership.status === 'revoked') {
+    if (membership.status === 'revoked' || membership.status === 'suspended') {
       return {
         authorized: false,
-        status: 'revoked',
+        status: membership.status,
         departmentId: membership.department_id,
-        reason: membership.revocation_reason || 'Access revoked by administrator.',
+        reason: membership.revocation_reason || (membership.status === 'suspended' ? 'Account suspended by administrator.' : 'Access revoked by administrator.'),
       };
     }
     return {
@@ -1016,6 +1155,73 @@ export class LocalSupabaseAdapter {
       department_id: membership.department_id,
       actor_id: callerAdminId,
       details: { membershipId, reason },
+      created_at: now,
+    });
+
+    this.saveState();
+    return { success: true };
+  }
+
+  public suspendStaffAccess(
+    membershipId: string,
+    reason: string,
+    callerAdminId: string = SEED_ADMIN_ID
+  ): { success: boolean; error?: string } {
+    const membership = this.state.memberships.find((m) => m.id === membershipId);
+    if (!membership) {
+      return { success: false, error: `Membership not found: ${membershipId}` };
+    }
+
+    const now = new Date().toISOString();
+    membership.status = 'suspended';
+    membership.revoked_by = callerAdminId;
+    membership.revoked_at = now;
+    membership.revocation_reason = `Suspended: ${reason}`;
+    membership.updated_at = now;
+
+    const targetProfile = this.state.profiles.find((p) => p.id === membership.user_id);
+
+    this.state.auditLogs.unshift({
+      id: generateId('audit'),
+      action: 'access_suspended',
+      target_user_id: membership.user_id,
+      target_email: targetProfile?.email || 'unknown@example.org',
+      department_id: membership.department_id,
+      actor_id: callerAdminId,
+      details: { membershipId, reason, actionType: 'suspension' },
+      created_at: now,
+    });
+
+    this.saveState();
+    return { success: true };
+  }
+
+  public updateStaffRole(
+    membershipId: string,
+    newRole: 'head' | 'officer',
+    reason: string,
+    callerAdminId: string = SEED_ADMIN_ID
+  ): { success: boolean; error?: string } {
+    const membership = this.state.memberships.find((m) => m.id === membershipId);
+    if (!membership) {
+      return { success: false, error: `Membership not found: ${membershipId}` };
+    }
+
+    const now = new Date().toISOString();
+    const oldRole = membership.staff_role || 'officer';
+    membership.staff_role = newRole;
+    membership.updated_at = now;
+
+    const targetProfile = this.state.profiles.find((p) => p.id === membership.user_id);
+
+    this.state.auditLogs.unshift({
+      id: generateId('audit'),
+      action: 'role_updated',
+      target_user_id: membership.user_id,
+      target_email: targetProfile?.email || 'unknown@example.org',
+      department_id: membership.department_id,
+      actor_id: callerAdminId,
+      details: { membershipId, oldRole, newRole, reason },
       created_at: now,
     });
 

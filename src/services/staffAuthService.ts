@@ -9,6 +9,7 @@ import {
   type ProfileRow,
 } from './LocalSupabaseAdapter';
 
+export type { AccessAuditLogRow };
 export type StaffRole = 'main_admin' | 'department_staff' | 'citizen';
 
 export interface DepartmentAccessRequestWithDept extends DepartmentAccessRequestRow {
@@ -580,7 +581,7 @@ class StaffAuthService {
   // ---------------------------------------------------------------------------
   public checkCurrentStaffAccess(userId: string): {
     authorized: boolean;
-    status: 'active' | 'revoked' | 'not_found';
+    status: 'active' | 'revoked' | 'suspended' | 'not_found';
     departmentId?: string;
     reason?: string;
   } {
@@ -755,6 +756,39 @@ class StaffAuthService {
     }
     const admin = this.getCurrentAdminSession();
     return localSupabaseAdapter.revokeStaffAccess(membershipId, reason, admin?.userId);
+  }
+
+  public async suspendDepartmentAccess(
+    membershipId: string,
+    reason: string
+  ): Promise<{ success: boolean; error?: string }> {
+    if (isSupabaseConfigured() && supabase) {
+      const { error } = await supabase.rpc('revoke_staff_access', {
+        p_membership_id: membershipId,
+        p_reason: `Suspended: ${reason}`,
+      });
+      if (error) return { success: false, error: error.message };
+      return { success: true };
+    }
+    const admin = this.getCurrentAdminSession();
+    return localSupabaseAdapter.suspendStaffAccess(membershipId, reason, admin?.userId);
+  }
+
+  public async updateStaffRole(
+    membershipId: string,
+    newRole: 'head' | 'officer',
+    reason: string
+  ): Promise<{ success: boolean; error?: string }> {
+    if (isSupabaseConfigured() && supabase) {
+      const { error } = await supabase
+        .from('department_memberships')
+        .update({ staff_role: newRole, updated_at: new Date().toISOString() })
+        .eq('id', membershipId);
+      if (error) return { success: false, error: error.message };
+      return { success: true };
+    }
+    const admin = this.getCurrentAdminSession();
+    return localSupabaseAdapter.updateStaffRole(membershipId, newRole, reason, admin?.userId);
   }
 
   public getAccessAuditLog(): AccessAuditLogRow[] {

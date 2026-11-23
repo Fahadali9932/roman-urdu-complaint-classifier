@@ -182,6 +182,133 @@ async function setAdminSession() {
     };
     localStorage.setItem('awaaz_admin_session_v2', JSON.stringify(a));
     sessionStorage.setItem('awaaz_admin_session_v2', JSON.stringify(a));
+
+    const storageKey = 'awaaz_local_supabase_db_v2';
+    let db = null;
+    try {
+      db = JSON.parse(localStorage.getItem(storageKey));
+    } catch (e) {}
+
+    const seedReqs = [
+      {
+        id: 'req-seed-001',
+        user_id: 'usr-tariq-kmc',
+        department_id: 'kmc',
+        full_name: 'Engr. Tariq Mehmood',
+        work_email: 'tariq.mehmood@kmc.gov.pk',
+        cnic: '42101-1234567-1',
+        phone: '+92-300-1234567',
+        job_title: 'Executive Engineer (Roads)',
+        badge_id: 'KMC-ENG-8402',
+        status: 'pending',
+        created_at: new Date(Date.now() - 3600000 * 4).toISOString(),
+        updated_at: new Date(Date.now() - 3600000 * 4).toISOString(),
+      },
+      {
+        id: 'req-seed-002',
+        user_id: 'usr-saima-kwsc',
+        department_id: 'kwsc',
+        full_name: 'Saima Noor',
+        work_email: 'saima.noor@kwsc.gos.pk',
+        cnic: '42201-9876543-2',
+        phone: '+92-321-7654321',
+        job_title: 'Sub-Divisional Officer',
+        badge_id: 'KWSC-OPS-1190',
+        status: 'pending',
+        created_at: new Date(Date.now() - 3600000 * 12).toISOString(),
+        updated_at: new Date(Date.now() - 3600000 * 12).toISOString(),
+      }
+    ];
+
+    const seedMems = [
+      {
+        id: 'mem-seed-001',
+        user_id: 'staff-kmc-demo-01',
+        department_id: 'kmc',
+        staff_role: 'head',
+        status: 'active',
+        approved_by: 'main-admin-id',
+        approved_at: new Date(Date.now() - 86400000 * 30).toISOString(),
+        created_at: new Date(Date.now() - 86400000 * 30).toISOString(),
+        updated_at: new Date().toISOString(),
+      },
+      {
+        id: 'mem-seed-002',
+        user_id: 'local-officer-a',
+        department_id: 'kmc',
+        staff_role: 'officer',
+        status: 'active',
+        approved_by: 'main-admin-id',
+        approved_at: new Date(Date.now() - 86400000 * 20).toISOString(),
+        created_at: new Date(Date.now() - 86400000 * 20).toISOString(),
+        updated_at: new Date().toISOString(),
+      }
+    ];
+
+    const seedAudit = [
+      {
+        id: 'audit-seed-001',
+        action: 'admin_provisioned',
+        target_user_id: 'main-admin-id',
+        target_email: 'admin@example.org',
+        actor_id: 'main-admin-id',
+        details: { note: 'Initial Main Administrator provisioned' },
+        created_at: new Date(Date.now() - 86400000 * 35).toISOString(),
+      },
+      {
+        id: 'audit-seed-002',
+        action: 'request_approved',
+        target_user_id: 'staff-kmc-demo-01',
+        target_email: 'fahadmalik030121+roads@gmail.com',
+        department_id: 'kmc',
+        actor_id: 'main-admin-id',
+        details: { note: 'KMC Department Head role assigned', requestId: 'req-hist-01' },
+        created_at: new Date(Date.now() - 86400000 * 30).toISOString(),
+      },
+      {
+        id: 'audit-seed-003',
+        action: 'request_approved',
+        target_user_id: 'local-officer-a',
+        target_email: 'fahadmalik030121+roads-officer@gmail.com',
+        department_id: 'kmc',
+        actor_id: 'main-admin-id',
+        details: { note: 'Field Officer clearance granted', requestId: 'req-hist-02' },
+        created_at: new Date(Date.now() - 86400000 * 20).toISOString(),
+      }
+    ];
+
+    if (!db) {
+      db = {
+        departments: [
+          { id: 'kmc', name: 'Karachi Metropolitan Corporation', is_active: true },
+          { id: 'kwsc', name: 'Karachi Water & Sewerage Corporation', is_active: true },
+          { id: 'sswmb', name: 'Sindh Solid Waste Management Board', is_active: true },
+          { id: 'sbca', name: 'Sindh Building Control Authority', is_active: true },
+          { id: 'kelectric', name: 'K-Electric', is_active: true },
+          { id: 'ssgc', name: 'Sui Southern Gas Company', is_active: true }
+        ],
+        profiles: [
+          { id: 'usr-tariq-kmc', full_name: 'Engr. Tariq Mehmood', email: 'tariq.mehmood@kmc.gov.pk', role: 'citizen', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+          { id: 'usr-saima-kwsc', full_name: 'Saima Noor', email: 'saima.noor@kwsc.gos.pk', role: 'citizen', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+          { id: 'staff-kmc-demo-01', full_name: 'Fahad Malik (KMC Head)', email: 'fahadmalik030121+roads@gmail.com', role: 'department_staff', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+          { id: 'local-officer-a', full_name: 'Field Officer A', email: 'fahadmalik030121+roads-officer@gmail.com', role: 'department_staff', created_at: new Date().toISOString(), updated_at: new Date().toISOString() }
+        ],
+        credentials: [],
+        requests: seedReqs,
+        memberships: seedMems,
+        auditLogs: seedAudit,
+        complaints: [],
+        citizenPrivateDetails: [],
+        timelineEvents: [],
+        rateLimits: [],
+        notificationOutbox: []
+      };
+    } else {
+      db.requests = seedReqs;
+      db.memberships = seedMems;
+      db.auditLogs = seedAudit;
+    }
+    localStorage.setItem(storageKey, JSON.stringify(db));
   })()`);
 }
 
@@ -285,7 +412,12 @@ const screens = [
         const btn = Array.from(document.querySelectorAll('button, a')).find(b => b.textContent && b.textContent.includes('Dispatch'));
         if (btn) btn.click();
       })()`);
-      await wait(1200);
+      await wait(800);
+      await evaluate(`(() => {
+        const firstCase = document.querySelector('.v21-case-row');
+        if (firstCase) firstCase.click();
+      })()`);
+      await wait(600);
     },
   },
   {
@@ -376,6 +508,22 @@ const screens = [
       await setAdminSession();
       await send('Page.navigate', { url: `${BASE_URL}/admin/requests` });
       await wait(1400);
+    },
+  },
+  {
+    id: 'react-admin-inspect-modal',
+    title: 'Admin Applicant Review (CNIC & Gov Domain Check)',
+    setup: async () => {
+      await send('Page.navigate', { url: `${BASE_URL}/admin/login` });
+      await wait(400);
+      await setAdminSession();
+      await send('Page.navigate', { url: `${BASE_URL}/admin/requests` });
+      await wait(1400);
+      await evaluate(`(() => {
+        const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent && b.textContent.includes('Inspect details'));
+        if (btn) btn.click();
+      })()`);
+      await wait(600);
     },
   },
   {
