@@ -4,6 +4,7 @@ import { LanguageProvider } from './context/LanguageContext';
 import { AdminAuthProvider } from './context/AdminAuthContext';
 import { DepartmentAuthProvider } from './context/DepartmentAuthContext';
 import { AppRoutes } from './routes/AppRoutes';
+import { useCivicTheme } from './features/department/hooks/useCivicTheme';
 
 const ScrollToTop: React.FC = () => {
   const { pathname, hash } = useLocation();
@@ -23,6 +24,7 @@ const ScrollToTop: React.FC = () => {
 };
 
 export const App: React.FC = () => {
+  useCivicTheme();
   return (
     <BrowserRouter>
       <ScrollToTop />

@@ -17,6 +17,20 @@
       content="Awaaz-e-Awam: AI-Powered Civic Complaint Management Platform for Karachi Municipal Services (KW&SC, SSWMB, K-Electric, KMC). Capstone project, Greenwich University, Karachi, Pakistan."
     />
     <title>Awaaz-e-Awam | Citizen Complaint Portal</title>
+    <script>
+      (function() {
+        try {
+          var mode = localStorage.getItem('awaaz_dept_theme_mode') || localStorage.getItem('aawaaz-demo-theme');
+          if (mode === 'dark' || (!mode && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            document.documentElement.classList.add('dark');
+          } else {
+            document.documentElement.setAttribute('data-theme', 'light');
+            document.documentElement.classList.remove('dark');
+          }
+        } catch(e) {}
+      })();
+    </script>
   </head>
   <body class="antialiased selection:bg-[#126B63] selection:text-white">
     <div id="root"></div>

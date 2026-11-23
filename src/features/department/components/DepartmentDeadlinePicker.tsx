@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { CalendarDays, ChevronDown, ChevronLeft, ChevronRight, Clock3 } from 'lucide-react';
 import './department-deadline-picker.css';
 import '../v13_21_operations.css';
@@ -33,6 +33,15 @@ export function DepartmentDeadlinePicker({ id, label, value, min, onChange }: De
   const selected = new Date(value);
   const minimum = new Date(min);
   const selectedSafe = Number.isFinite(selected.getTime()) ? selected : new Date();
+
+  useEffect(() => {
+    if (!expanded) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setExpanded(false);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [expanded]);
 
   // Active viewing date for month and week navigation
   const [visibleMonth, setVisibleMonth] = useState(() => new Date(selectedSafe.getFullYear(), selectedSafe.getMonth(), 1));

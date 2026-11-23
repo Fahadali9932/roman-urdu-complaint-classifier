@@ -122,6 +122,18 @@ export const FieldOperationsDesk: React.FC<Props> = ({ departmentId, userId, rol
     void reload();
   }, [reload]);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (reviewing) setReviewing(null);
+        if (extensionFor) setExtensionFor(null);
+        if (uploadFor) setUploadFor(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [reviewing, extensionFor, uploadFor]);
+
   const myOrders = role === 'head' ? orders : orders.filter((order) => order.officer_id === userId);
   const active = myOrders.filter((o) => o.status !== 'verified');
   const verified = myOrders.filter((o) => o.status === 'verified');
