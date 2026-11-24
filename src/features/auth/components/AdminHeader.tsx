@@ -120,57 +120,74 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ activeTab }) => {
 
         {/* Primary Navigation Rail (Figma 35:1065 / 35:1129) */}
         <nav
-          className="flex items-center gap-4 sm:gap-7 -mb-px overflow-x-auto no-scrollbar"
+          className="flex items-center gap-2 sm:gap-7 -mb-px overflow-x-visible"
           aria-label="Admin Navigation"
         >
           <NavLink
             to="/admin/requests"
-            className={`py-3 text-xs sm:text-sm font-semibold border-b-2 flex items-center gap-2 transition-colors whitespace-nowrap ${
+            data-testid="admin-nav-requests"
+            className={`py-3 text-xs sm:text-sm font-semibold border-b-2 flex items-center gap-1.5 sm:gap-2 transition-colors whitespace-nowrap ${
               activeTab === 'requests'
                 ? 'border-[#0F1E21] text-[#0F1E21]'
                 : 'border-transparent text-[#64748B] hover:text-[#0F1E21]'
             }`}
           >
             <UserCheck className="w-4 h-4" />
-            <span>
+            <span className="hidden sm:inline">
               {language === 'ur' ? 'محکمہ درخواستیں' : 'Department Requests'}
+            </span>
+            <span className="inline sm:hidden">
+              {language === 'ur' ? 'درخواستیں' : 'Requests'}
             </span>
           </NavLink>
 
           <NavLink
             to="/admin/access"
-            className={`py-3 text-xs sm:text-sm font-semibold border-b-2 flex items-center gap-2 transition-colors whitespace-nowrap ${
+            data-testid="admin-nav-access"
+            className={`py-3 text-xs sm:text-sm font-semibold border-b-2 flex items-center gap-1.5 sm:gap-2 transition-colors whitespace-nowrap ${
               activeTab === 'access'
                 ? 'border-[#0F1E21] text-[#0F1E21]'
                 : 'border-transparent text-[#64748B] hover:text-[#0F1E21]'
             }`}
           >
             <Users className="w-4 h-4" />
-            <span>
+            <span className="hidden sm:inline">
               {language === 'ur' ? 'محکمے اور رسائی' : 'People & permissions'}
+            </span>
+            <span className="inline sm:hidden">
+              {language === 'ur' ? 'رسائی' : 'Access'}
             </span>
           </NavLink>
 
           <NavLink
             to="/admin/ai"
-            className={`py-3 text-xs sm:text-sm font-semibold border-b-2 flex items-center gap-2 transition-colors whitespace-nowrap ${
+            data-testid="admin-nav-ai"
+            className={`py-3 text-xs sm:text-sm font-semibold border-b-2 flex items-center gap-1.5 sm:gap-2 transition-colors whitespace-nowrap ${
               activeTab === 'ai'
                 ? 'border-[#0F1E21] text-[#0F1E21]'
                 : 'border-transparent text-[#64748B] hover:text-[#0F1E21]'
             }`}
           >
             <Cpu className="w-4 h-4" />
-            <span>
+            <span className="hidden sm:inline">
               {language === 'ur' ? 'اے آئی کا جائزہ' : 'Model review'}
+            </span>
+            <span className="inline sm:hidden">
+              {language === 'ur' ? 'اے آئی' : 'AI Review'}
             </span>
           </NavLink>
 
           <NavLink
             to="/submit"
-            className="py-3 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-[#64748B] hover:text-[#0F1E21] flex items-center gap-2 transition-colors whitespace-nowrap"
+            className="py-3 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-[#64748B] hover:text-[#0F1E21] flex items-center gap-1.5 sm:gap-2 transition-colors whitespace-nowrap"
           >
             <FileText className="w-4 h-4" />
-            <span>{language === 'ur' ? 'شہری پورٹل' : 'Citizen Portal'}</span>
+            <span className="hidden sm:inline">
+              {language === 'ur' ? 'شہری پورٹل' : 'Citizen Portal'}
+            </span>
+            <span className="inline sm:hidden">
+              {language === 'ur' ? 'شہری' : 'Citizen'}
+            </span>
           </NavLink>
         </nav>
       </div>

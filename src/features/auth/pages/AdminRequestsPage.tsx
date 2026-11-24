@@ -346,6 +346,8 @@ export const AdminRequestsPage: React.FC = () => {
                               </span>
                               <button
                                 type="button"
+                                data-testid="inspect-applicant-btn"
+                                aria-label={`Review ${req.full_name} credentials`}
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   setSelectedRequestId(req.id);
@@ -522,6 +524,7 @@ export const AdminRequestsPage: React.FC = () => {
           role="dialog"
           aria-modal="true"
           aria-label="Review applicant credentials"
+          data-testid="inspect-applicant-modal"
           onClick={(e) => {
             if (e.target === e.currentTarget) setIsInspectModalOpen(false);
           }}

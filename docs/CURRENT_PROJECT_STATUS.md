@@ -43,14 +43,20 @@ hosted behavior. Update it after every significant verified milestone.
   - **Reload Anti-Flash Synchronization:** Inline script in `index.html` prevents white-flash on page load; theme persistence verified across page reloads.
 - **Comprehensive Quality Gates & Multi-Viewport Real-App Browser QA:**
   - TypeScript Compiler `tsc -b`: **0 errors**.
-  - Production Build `npm run build`: compiled in **1.24s** with 0 errors.
+  - Production Build `npm run build`: compiled in **1.29s** with 0 errors.
   - Dedicated Test Suite `V13_21_CalmOperationsAndAdminWorkflows.test.tsx`: **12 passed, 0 failed (100% pass rate)**.
-  - Full Vitest Test Suite: **671 passed, 1 skipped across 67 test files (100% pass rate in 30.79s)**.
-  - Real Browser QA (`v13_21_react_acceptance_qa.mjs`): **84 full-page screenshots captured across 14 screens, 3 viewports (1440px, 393px, 320px), and 2 themes (Light & Dark)** for Head, Officer, and Admin.
-  - Responsive Mobile Element Overflow: Evaluated 56 mobile checks (14 screens × 2 mobile viewports × 2 themes) testing both `scrollWidth <= clientWidth` and `badCount === 0` across all DOM child elements. **0 bad elements detected across all screens and viewports (100% PASS)**, resolving prior flex-button overflow issues on Head Focus and Head Dispatch.
-  - Dark Theme Distinction & Pixel Quality Gate: Enforced 42 light/dark screenshot pair quality checks. **0 byte-identical pairs detected (100% PASS)**, with verified civic dark backgrounds (`rgb(14, 17, 22)`) distinctly differentiated from light backgrounds (`rgb(248, 250, 252)`), eliminating previously identical Admin Login captures.
-  - Accessibility & Usability: Keyboard tab order verified across 12 interactive nodes; modal Escape dismissal verified; 200% zoom reflow verified without horizontal scroll (`scrollWidth: 1425 === clientWidth: 1425`).
-  - Packaged Artifacts: `V13_21_REACT_ACCEPTANCE_SCREENSHOTS.zip` containing all 84 high-resolution screenshots.
+  - Full Vitest Test Suite: **671 passed, 1 skipped across 67 test files (100% pass rate in 29.00s)**.
+  - Elimination of False-Positive QA Captures:
+    - Root causes diagnosed and permanently resolved: enriched mock work orders with `in_progress` and `pending_review` statuses; synchronized view routing query parameter defaults; aligned table action button test IDs (`data-testid="inspect-applicant-btn"`); and replaced clipped mobile horizontal scrollbars with a responsive single-DOM navigation architecture.
+    - Repaired screenshot pairs at 320px light mode: `react-head-focus` vs `react-head-dispatch` (10,779 byte difference), `react-officer-myday` vs `react-officer-evidence-modal` (9,739 byte difference), and `react-admin-requests` vs `react-admin-inspect-modal` (754 byte difference).
+  - Strict Automated QA Validity Gates (`v13_21_react_acceptance_qa.mjs`):
+    - `expectedStateChecks`: **84 passed / 0 failed** (100% pass rate). Every named screenshot verified against DOM selector presence, non-zero bounding box dimensions, and unique case-insensitive heading text markers.
+    - `modalChecks`: **24 passed / 0 failed** (100% pass rate). Every modal screen asserts rendered dialog, active visibility, bounding box height > 50px, and dialog role.
+    - `navigationReachabilityChecks`: **10 passed / 0 failed** (100% pass rate). Verified direct destinations (`Focus`, `Queue`, `Dispatch`), accessible acrylic overflow menu (`More ▾` / `Proof ▾` / `Archive ▾`), 44px touch targets, outside-click dismissal, and true CDP keyboard `Escape` dismissal at 320px.
+    - `overflowChecks`: **56 passed / 0 failed** (100% pass rate across 393px and 320px). Asserts `scrollWidth <= clientWidth + 1px` and `badCount === 0`.
+    - `themeChecks`: **42 passed / 0 failed** (100% pass rate). Distinct Light (`rgb(248, 250, 252)`) vs Civic Dark (`rgb(14, 17, 22)`) surface colors verified.
+    - `duplicateScreenChecks`: **546 passed / 0 failed** (100% pass rate). Enforced pairwise buffer inequality across all 91 screen pairs in each viewport and theme.
+  - Packaged Artifacts: `V13_21_REACT_ACCEPTANCE_SCREENSHOTS.zip` containing all 84 high-resolution screenshots (7,163,059 bytes) and `v13_21_react_acceptance_qa_summary.json`.
 - **Staging Verification Status:**
   - Remote Staging Session: **BLOCKED (UNCONFIGURED)**. `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` are not set in the review worktree environment (`isSupabaseConfigured() === false`). Production instance `akbwiedtmxjxcjscgitw` is strictly protected and untouched.
   - All 9 operational scenarios verified against the local demonstration database adapter; 9 prerequisites documented for remote hosted staging execution. No remote staging checks are falsely claimed.

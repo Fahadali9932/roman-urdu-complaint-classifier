@@ -240,7 +240,7 @@ export const DepartmentDashboardPage: React.FC = () => {
       if (disposed) return;
       setStaffPosition(role);
       if (!role) { setStaffRoleError('This account has no active field-operations role. Ask the main administrator to approve it.'); return; }
-      if (!searchParams.get('view') && import.meta.env.MODE !== 'test') setCurrentSection(role === 'head' ? 'dispatch' : 'field');
+      if (!searchParams.get('view') && import.meta.env.MODE !== 'test') setCurrentSection(role === 'head' ? 'dashboard' : 'field');
     }).catch((err:unknown) => {
       if (!disposed) setStaffRoleError(err instanceof Error ? err.message : 'Unable to verify staff access.');
     });

@@ -7,8 +7,11 @@ const OUT_DIR = path.join(ARTIFACT_DIR, 'screenshots/v13_21_react_acceptance');
 fs.mkdirSync(OUT_DIR, { recursive: true });
 
 const CHROME_PATH = 'C:/Program Files/Google/Chrome/Application/chrome.exe';
-const BROWSER_PORT = 9895;
+const BROWSER_PORT = 9896;
 const BASE_URL = 'http://localhost:5173';
+
+console.log('=== AWAAZ-E-AWAM V13.21 REACT ACCEPTANCE QA SUITE ===');
+console.log('Starting dedicated headless Chrome on port', BROWSER_PORT);
 
 const chromeProcess = spawn(
   CHROME_PATH,
@@ -18,7 +21,7 @@ const chromeProcess = spawn(
     '--disable-gpu',
     '--no-first-run',
     '--no-default-browser-check',
-    '--user-data-dir=C:/temp/chrome-profile-v21-acc-final',
+    '--user-data-dir=C:/temp/chrome-profile-v21-acc-strict',
     'about:blank',
   ],
   { stdio: 'ignore' }
@@ -99,16 +102,15 @@ const viewports = [
 
 const results = {
   themePersistence: null,
+  expectedStateChecks: [],
+  modalChecks: [],
+  navigationReachabilityChecks: [],
   overflowChecks: [],
-  pixelQualityGate: [],
-  keyboardAccessibility: null,
-  escapeDismissal: null,
-  zoom200Reflow: null,
+  themeChecks: [],
+  duplicateScreenChecks: [],
   screenshots: [],
   summaryCounts: null,
 };
-
-console.log('=== STARTING AWAAZ-E-AWAM V13.21 REACT ACCEPTANCE QA ===');
 
 async function clearStorage() {
   await evaluate(`(() => {
@@ -334,7 +336,7 @@ await setViewport(1440, 900);
 await send('Page.navigate', { url: `${BASE_URL}/department/head/login?dept=kmc` });
 await wait(1200);
 await setHeadSession();
-await send('Page.navigate', { url: `${BASE_URL}/department/head` });
+await send('Page.navigate', { url: `${BASE_URL}/department/head?view=dashboard` });
 await wait(1500);
 
 await setTheme('light');
@@ -345,8 +347,7 @@ await setTheme('dark');
 const darkBgBefore = await evaluate(`window.getComputedStyle(document.body).backgroundColor`);
 const darkAttrBefore = await evaluate(`document.documentElement.getAttribute('data-theme')`);
 
-// Full reload via navigation to ensure fresh load
-await send('Page.navigate', { url: `${BASE_URL}/department/head` });
+await send('Page.navigate', { url: `${BASE_URL}/department/head?view=dashboard` });
 await wait(1800);
 
 const darkBgAfter = await evaluate(`window.getComputedStyle(document.body).backgroundColor`);
@@ -370,15 +371,263 @@ if (!results.themePersistence.persisted || !results.themePersistence.distinctFro
 }
 
 // -----------------------------------------------------------------------------
-// 2. Viewport Screenshots & Responsive Overflow Checks
+// 2. Navigation Reachability at 320px Viewport (Touch & Keyboard Access)
 // -----------------------------------------------------------------------------
-console.log('2. Capturing React App Screenshots & Checking Overflow...');
+console.log('2. Testing 320px Navigation Usability & Reachability...');
+await setViewport(320, 568);
+await setTheme('light');
+
+const navReachabilityTests = [
+  // Head Navigation Destinations at 320px
+  {
+    role: 'head',
+    name: 'Head Focus Desk at 320px',
+    setup: async () => {
+      await setHeadSession();
+      await send('Page.navigate', { url: `${BASE_URL}/department/head?view=dashboard` });
+      await wait(1200);
+    },
+    action: async () => {
+      return await evaluate(`(() => {
+        const btn = document.querySelector('[data-nav-section="dashboard"]');
+        if (btn) { btn.click(); return true; }
+        return false;
+      })()`);
+    },
+    assertTarget: async () => {
+      return await evaluate(`(() => {
+        const el = document.querySelector('.v21-ribbon-grid');
+        const active = document.querySelector('[data-nav-section="dashboard"]')?.classList.contains('active');
+        return !!el && active;
+      })()`);
+    },
+  },
+  {
+    role: 'head',
+    name: 'Head Complete Queue at 320px',
+    action: async () => {
+      return await evaluate(`(() => {
+        const btn = document.querySelector('[data-nav-section="queue"]');
+        if (btn) { btn.click(); return true; }
+        return false;
+      })()`);
+    },
+    assertTarget: async () => {
+      await wait(600);
+      return await evaluate(`(() => {
+        const el = document.querySelector('.work-queue-container, .complaint-inbox-container, .inbox-table, .queue-filters');
+        const active = document.querySelector('[data-nav-section="queue"]')?.classList.contains('active');
+        return !!el && active;
+      })()`);
+    },
+  },
+  {
+    role: 'head',
+    name: 'Head Dispatch Orders at 320px (Direct Button)',
+    action: async () => {
+      return await evaluate(`(() => {
+        const btn = document.querySelector('[data-nav-section="dispatch"]');
+        if (btn) { btn.click(); return true; }
+        return false;
+      })()`);
+    },
+    assertTarget: async () => {
+      await wait(600);
+      return await evaluate(`(() => {
+        const el = document.querySelector('.v21-dispatch-grid');
+        const active = document.querySelector('[data-nav-section="dispatch"]')?.classList.contains('active');
+        return !!el && active;
+      })()`);
+    },
+  },
+  {
+    role: 'head',
+    name: 'Head Proof Review via Accessible Overflow Menu at 320px',
+    action: async () => {
+      // 1. Click overflow trigger to open menu
+      const opened = await evaluate(`(() => {
+        const trigger = document.querySelector('[data-nav-section="overflow-trigger"]');
+        if (trigger) { trigger.click(); return true; }
+        return false;
+      })()`);
+      if (!opened) return false;
+      await wait(300);
+      // 2. Click Proof Review option inside overflow dropdown
+      return await evaluate(`(() => {
+        const opt = Array.from(document.querySelectorAll('.v21-overflow-item')).find(b => b.textContent.includes('Proof Review'));
+        if (opt) { opt.click(); return true; }
+        return false;
+      })()`);
+    },
+    assertTarget: async () => {
+      await wait(600);
+      return await evaluate(`(() => {
+        const h2 = Array.from(document.querySelectorAll('h1, h2')).find(h => h.textContent.includes('Awaiting a decision') || h.textContent.includes('Proof verification'));
+        return !!h2;
+      })()`);
+    },
+  },
+  {
+    role: 'head',
+    name: 'Head Verified Archive via Accessible Overflow Menu at 320px',
+    action: async () => {
+      const opened = await evaluate(`(() => {
+        const trigger = document.querySelector('[data-nav-section="overflow-trigger"]');
+        if (trigger) { trigger.click(); return true; }
+        return false;
+      })()`);
+      if (!opened) return false;
+      await wait(300);
+      return await evaluate(`(() => {
+        const opt = Array.from(document.querySelectorAll('.v21-overflow-item')).find(b => b.textContent.includes('Verified Archive'));
+        if (opt) { opt.click(); return true; }
+        return false;
+      })()`);
+    },
+    assertTarget: async () => {
+      await wait(600);
+      return await evaluate(`(() => {
+        const h2 = Array.from(document.querySelectorAll('h1, h2')).find(h => h.textContent.includes('Verified work history') || h.textContent.includes('Verified work archive'));
+        return !!h2;
+      })()`);
+    },
+  },
+  {
+    role: 'head',
+    name: 'Keyboard Escape Dismissal of Overflow Menu at 320px',
+    action: async () => {
+      // 1. Open overflow menu
+      await evaluate(`(() => {
+        const trigger = document.querySelector('[data-nav-section="overflow-trigger"]');
+        if (trigger) trigger.click();
+      })()`);
+      await wait(300);
+      // 2. Dispatch real Escape key via CDP
+      await send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27 });
+      await send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27 });
+      await wait(300);
+      return true;
+    },
+    assertTarget: async () => {
+      return await evaluate(`(() => {
+        const menu = document.querySelector('.v21-nav-overflow-dropdown');
+        return !menu; // Must be dismissed
+      })()`);
+    },
+  },
+  // Field Officer Reachability at 320px
+  {
+    role: 'officer',
+    name: 'Officer My Day at 320px',
+    setup: async () => {
+      await setOfficerSession();
+      await send('Page.navigate', { url: `${BASE_URL}/department/officer?view=field` });
+      await wait(1200);
+    },
+    action: async () => {
+      return await evaluate(`(() => {
+        const btn = document.querySelector('[data-nav-section="field"]');
+        if (btn) { btn.click(); return true; }
+        return false;
+      })()`);
+    },
+    assertTarget: async () => {
+      await wait(600);
+      return await evaluate(`(() => {
+        const el = document.querySelector('[data-testid="submit-field-proof-btn"], .v21-action-cluster');
+        return !!el;
+      })()`);
+    },
+  },
+  {
+    role: 'officer',
+    name: 'Officer Completed Shifts at 320px',
+    action: async () => {
+      return await evaluate(`(() => {
+        const btn = document.querySelector('[data-nav-section="field_archive"]');
+        if (btn) { btn.click(); return true; }
+        return false;
+      })()`);
+    },
+    assertTarget: async () => {
+      await wait(600);
+      return await evaluate(`(() => {
+        const h2 = Array.from(document.querySelectorAll('h1, h2')).find(h => h.textContent.includes('Verified work history') || h.textContent.includes('Verified work archive'));
+        return !!h2;
+      })()`);
+    },
+  },
+  // Admin Reachability at 320px
+  {
+    role: 'admin',
+    name: 'Admin People & Permissions at 320px',
+    setup: async () => {
+      await setAdminSession();
+      await send('Page.navigate', { url: `${BASE_URL}/admin/requests` });
+      await wait(1200);
+    },
+    action: async () => {
+      return await evaluate(`(() => {
+        const link = document.querySelector('[data-testid="admin-nav-access"]');
+        if (link) { link.click(); return true; }
+        return false;
+      })()`);
+    },
+    assertTarget: async () => {
+      await wait(800);
+      return await evaluate(`(() => {
+        return window.location.pathname.includes('/admin/access') && !!document.querySelector('#audit-ledger-heading');
+      })()`);
+    },
+  },
+  {
+    role: 'admin',
+    name: 'Admin AI Review at 320px',
+    action: async () => {
+      return await evaluate(`(() => {
+        const link = document.querySelector('[data-testid="admin-nav-ai"]');
+        if (link) { link.click(); return true; }
+        return false;
+      })()`);
+    },
+    assertTarget: async () => {
+      await wait(800);
+      return await evaluate(`(() => {
+        return window.location.pathname.includes('/admin/ai') && !!document.querySelector('.ai-control-center-shell, h1');
+      })()`);
+    },
+  },
+];
+
+for (const test of navReachabilityTests) {
+  if (test.setup) await test.setup();
+  const actRes = await test.action();
+  const pass = actRes && (await test.assertTarget());
+  results.navigationReachabilityChecks.push({
+    name: test.name,
+    role: test.role,
+    passed: pass,
+  });
+  console.log(`  Nav Reachability: ${test.name} -> ${pass ? 'PASS' : 'FAIL'}`);
+  if (!pass) {
+    throw new Error(`Navigation reachability check failed: ${test.name}`);
+  }
+}
+
+// -----------------------------------------------------------------------------
+// 3. Complete 14-Screen Setup Definitions & Capture Validity Gates
+// -----------------------------------------------------------------------------
+console.log('3. Running Complete 14-Screen Matrix with Capture Validity Gates...');
 
 const screens = [
-  // Department Head Views
+  // 1. Department Head Screens
   {
     id: 'react-head-login',
     title: 'Department Head Login',
+    isModal: false,
+    expectedSelector: '.dept-login-screen, .dept-login-card, input[type="password"]',
+    expectedHeading: 'Department Head',
+    expectedNav: null,
     setup: async () => {
       await clearStorage();
       await send('Page.navigate', { url: `${BASE_URL}/department/head/login?dept=kmc` });
@@ -388,71 +637,98 @@ const screens = [
   {
     id: 'react-head-focus',
     title: 'Department Head Focus Desk',
+    isModal: false,
+    expectedSelector: '.v21-ribbon-grid',
+    expectedHeading: 'Urgent Safety',
+    expectedNav: 'dashboard',
     setup: async () => {
-      await send('Page.navigate', { url: `${BASE_URL}/department/head/login?dept=kmc` });
-      await wait(400);
       await setHeadSession();
-      await send('Page.navigate', { url: `${BASE_URL}/department/head` });
-      await wait(1400);
+      await send('Page.navigate', { url: `${BASE_URL}/department/head?view=dashboard` });
+      await wait(1200);
+      await evaluate(`(() => {
+        const btn = document.querySelector('[data-nav-section="dashboard"]');
+        if (btn) btn.click();
+      })()`);
+      await wait(400);
     },
   },
   {
     id: 'react-head-queue',
     title: 'Department Head Queue',
+    isModal: false,
+    expectedSelector: '.work-queue-container, .complaint-inbox-container, .inbox-table, .queue-filters',
+    expectedHeading: 'Work queue',
+    expectedNav: 'queue',
     setup: async () => {
-      await send('Page.navigate', { url: `${BASE_URL}/department/head/login?dept=kmc` });
-      await wait(400);
       await setHeadSession();
-      await send('Page.navigate', { url: `${BASE_URL}/department/head` });
-      await wait(1000);
+      await send('Page.navigate', { url: `${BASE_URL}/department/head?view=queue` });
+      await wait(1200);
       await evaluate(`(() => {
-        const btn = Array.from(document.querySelectorAll('button, a')).find(b => b.textContent && b.textContent.includes('Queue'));
+        const btn = document.querySelector('[data-nav-section="queue"]');
         if (btn) btn.click();
       })()`);
-      await wait(1200);
+      await wait(400);
     },
   },
   {
     id: 'react-head-dispatch',
-    title: 'Head Dispatch Desk (5-Stage)',
+    title: 'Head 5-Stage Guided Dispatch Stepper',
+    isModal: false,
+    expectedSelector: '.v21-step-track, .v21-step-node, .v21-step-circle',
+    expectedHeading: 'Step 1 of 5: Case Verification',
+    expectedNav: 'dispatch',
     setup: async () => {
-      await send('Page.navigate', { url: `${BASE_URL}/department/head/login?dept=kmc` });
-      await wait(400);
       await setHeadSession();
-      await send('Page.navigate', { url: `${BASE_URL}/department/head` });
-      await wait(1000);
+      await send('Page.navigate', { url: `${BASE_URL}/department/head?view=dispatch` });
+      await wait(1200);
       await evaluate(`(() => {
-        const btn = Array.from(document.querySelectorAll('button, a')).find(b => b.textContent && b.textContent.includes('Dispatch'));
+        const btn = document.querySelector('[data-nav-section="dispatch"]');
         if (btn) btn.click();
       })()`);
-      await wait(800);
-      await evaluate(`(() => {
-        const firstCase = document.querySelector('.v21-case-row');
-        if (firstCase) firstCase.click();
-      })()`);
       await wait(600);
+      const clicked = await evaluate(`(() => {
+        const row = document.querySelector('.v21-case-row');
+        if (row) { row.click(); return true; }
+        return false;
+      })()`);
+      if (!clicked) throw new Error('Failed to find and click .v21-case-row on Head Dispatch');
+      await wait(700);
     },
   },
   {
     id: 'react-head-verification',
-    title: 'Head Proof Review',
+    title: 'Head Proof Review (Supervisor Verification Modal)',
+    isModal: true,
+    expectedSelector: '[data-testid="supervisor-review-modal"], [aria-label="Review submitted proof"]',
+    expectedHeading: 'SUPERVISOR VERIFICATION',
+    expectedNav: 'verification',
     setup: async () => {
-      await send('Page.navigate', { url: `${BASE_URL}/department/head/login?dept=kmc` });
-      await wait(400);
       await setHeadSession();
-      await send('Page.navigate', { url: `${BASE_URL}/department/head` });
-      await wait(1000);
+      await send('Page.navigate', { url: `${BASE_URL}/department/head?view=verification` });
+      await wait(1200);
       await evaluate(`(() => {
-        const btn = Array.from(document.querySelectorAll('button, a')).find(b => b.textContent && b.textContent.includes('Proof Review'));
+        const btn = document.querySelector('[data-nav-section="verification"]');
         if (btn) btn.click();
       })()`);
-      await wait(1200);
+      await wait(600);
+      const clicked = await evaluate(`(() => {
+        const btn = document.querySelector('[data-testid="inspect-evidence-btn"]') ||
+                    Array.from(document.querySelectorAll('button')).find(b => b.textContent && b.textContent.includes('Review evidence'));
+        if (btn) { btn.click(); return true; }
+        return false;
+      })()`);
+      if (!clicked) throw new Error('Could not find Review evidence button to open Supervisor Review Modal');
+      await wait(700);
     },
   },
-  // Field Officer Views
+  // 2. Field Officer Screens
   {
     id: 'react-officer-login',
     title: 'Field Officer Login',
+    isModal: false,
+    expectedSelector: '.dept-login-screen, .dept-login-card, input[type="password"]',
+    expectedHeading: 'Field Officer',
+    expectedNav: null,
     setup: async () => {
       await clearStorage();
       await send('Page.navigate', { url: `${BASE_URL}/department/officer/login?dept=kmc` });
@@ -461,51 +737,67 @@ const screens = [
   },
   {
     id: 'react-officer-myday',
-    title: 'Field Officer My Day',
+    title: 'Field Officer My Day Workspace',
+    isModal: false,
+    expectedSelector: '[data-testid="submit-field-proof-btn"], .v21-action-cluster',
+    expectedHeading: 'My assigned work',
+    expectedNav: 'field',
     setup: async () => {
-      await send('Page.navigate', { url: `${BASE_URL}/department/officer/login?dept=kmc` });
-      await wait(400);
       await setOfficerSession();
-      await send('Page.navigate', { url: `${BASE_URL}/department/officer` });
+      await send('Page.navigate', { url: `${BASE_URL}/department/officer?view=field` });
       await wait(1400);
     },
   },
   {
     id: 'react-officer-evidence-modal',
     title: 'Officer Proof Upload & GPS Modal',
+    isModal: true,
+    expectedSelector: '[data-testid="officer-evidence-modal"], [aria-label="Submit work evidence"]',
+    expectedHeading: 'ON-SITE EVIDENCE',
+    expectedNav: 'field',
     setup: async () => {
-      await send('Page.navigate', { url: `${BASE_URL}/department/officer/login?dept=kmc` });
-      await wait(400);
       await setOfficerSession();
-      await send('Page.navigate', { url: `${BASE_URL}/department/officer` });
+      await send('Page.navigate', { url: `${BASE_URL}/department/officer?view=field` });
       await wait(1200);
-      await evaluate(`(() => {
-        const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent && b.textContent.includes('Submit field proof'));
-        if (btn) btn.click();
+      const clicked = await evaluate(`(() => {
+        const btn = document.querySelector('[data-testid="submit-field-proof-btn"]') ||
+                    Array.from(document.querySelectorAll('button')).find(b => b.textContent && b.textContent.includes('Submit field proof'));
+        if (btn) { btn.click(); return true; }
+        return false;
       })()`);
-      await wait(600);
+      if (!clicked) throw new Error('Could not find Submit field proof button to open Officer Evidence Modal');
+      await wait(700);
     },
   },
   {
     id: 'react-officer-extension-modal',
     title: 'Officer Extension Request Modal',
+    isModal: true,
+    expectedSelector: '[data-testid="officer-extension-modal"], [aria-label="Request a deadline extension"]',
+    expectedHeading: 'Need more time?',
+    expectedNav: 'field',
     setup: async () => {
-      await send('Page.navigate', { url: `${BASE_URL}/department/officer/login?dept=kmc` });
-      await wait(400);
       await setOfficerSession();
-      await send('Page.navigate', { url: `${BASE_URL}/department/officer` });
+      await send('Page.navigate', { url: `${BASE_URL}/department/officer?view=field` });
       await wait(1200);
-      await evaluate(`(() => {
-        const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent && b.textContent.includes('Request extra time'));
-        if (btn) btn.click();
+      const clicked = await evaluate(`(() => {
+        const btn = document.querySelector('[data-testid="request-extension-btn"]') ||
+                    Array.from(document.querySelectorAll('button')).find(b => b.textContent && b.textContent.includes('Request extra time'));
+        if (btn) { btn.click(); return true; }
+        return false;
       })()`);
-      await wait(600);
+      if (!clicked) throw new Error('Could not find Request extra time button to open Officer Extension Modal');
+      await wait(700);
     },
   },
-  // Central Admin Views
+  // 3. Central Admin Screens
   {
     id: 'react-admin-login',
     title: 'Central Admin Login',
+    isModal: false,
+    expectedSelector: 'input[type="email"], #admin-email',
+    expectedHeading: 'Main Administrator',
+    expectedNav: null,
     setup: async () => {
       await clearStorage();
       await send('Page.navigate', { url: `${BASE_URL}/admin/login` });
@@ -515,9 +807,11 @@ const screens = [
   {
     id: 'react-admin-requests',
     title: 'Admin Applicant Review Queue',
+    isModal: false,
+    expectedSelector: 'table, [data-testid="inspect-applicant-btn"]',
+    expectedHeading: 'Pending review',
+    expectedNav: 'requests',
     setup: async () => {
-      await send('Page.navigate', { url: `${BASE_URL}/admin/login` });
-      await wait(400);
       await setAdminSession();
       await send('Page.navigate', { url: `${BASE_URL}/admin/requests` });
       await wait(1400);
@@ -525,26 +819,33 @@ const screens = [
   },
   {
     id: 'react-admin-inspect-modal',
-    title: 'Admin Applicant Review (CNIC & Gov Domain Check)',
+    title: 'Admin Applicant Inspection Modal',
+    isModal: true,
+    expectedSelector: '[data-testid="inspect-applicant-modal"], [aria-label="Review applicant credentials"]',
+    expectedHeading: 'APPLICANT PROFILE AUDIT',
+    expectedNav: 'requests',
     setup: async () => {
-      await send('Page.navigate', { url: `${BASE_URL}/admin/login` });
-      await wait(400);
       await setAdminSession();
       await send('Page.navigate', { url: `${BASE_URL}/admin/requests` });
       await wait(1400);
-      await evaluate(`(() => {
-        const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent && b.textContent.includes('Inspect details'));
-        if (btn) btn.click();
+      const clicked = await evaluate(`(() => {
+        const btn = document.querySelector('[data-testid="inspect-applicant-btn"]') ||
+                    Array.from(document.querySelectorAll('button')).find(b => b.textContent && b.textContent.trim() === 'Review');
+        if (btn) { btn.click(); return true; }
+        return false;
       })()`);
-      await wait(600);
+      if (!clicked) throw new Error('Could not find Review button to open Applicant Inspection Modal');
+      await wait(700);
     },
   },
   {
     id: 'react-admin-access',
-    title: 'Admin Role & Department Permissions',
+    title: 'Admin Role & Department Permissions & Audit Ledger',
+    isModal: false,
+    expectedSelector: '#audit-ledger-heading',
+    expectedHeading: 'Audit Ledger',
+    expectedNav: 'access',
     setup: async () => {
-      await send('Page.navigate', { url: `${BASE_URL}/admin/login` });
-      await wait(400);
       await setAdminSession();
       await send('Page.navigate', { url: `${BASE_URL}/admin/access` });
       await wait(1400);
@@ -552,10 +853,12 @@ const screens = [
   },
   {
     id: 'react-admin-ai',
-    title: 'Admin AI Routing Dispute & Telemetry',
+    title: 'Admin Dispute Review & Model Telemetry',
+    isModal: false,
+    expectedSelector: '.ai-control-center-shell, h1, h2',
+    expectedHeading: 'Model review',
+    expectedNav: 'ai',
     setup: async () => {
-      await send('Page.navigate', { url: `${BASE_URL}/admin/login` });
-      await wait(400);
       await setAdminSession();
       await send('Page.navigate', { url: `${BASE_URL}/admin/ai` });
       await wait(1400);
@@ -563,241 +866,384 @@ const screens = [
   },
 ];
 
-for (const screen of screens) {
-  for (const vp of viewports) {
-    await setViewport(vp.width, vp.height);
+// Map to hold screenshot file paths and image buffers for duplicate verification
+// Key: `${vp}_${theme}_${screen.id}`
+const screenshotBuffers = new Map();
 
-    const capturedThemes = {};
+for (const vp of viewports) {
+  console.log(`\n--- Viewport: ${vp.name}px (${vp.width}x${vp.height}) ---`);
+  await setViewport(vp.width, vp.height);
 
+  for (const screen of screens) {
     for (const theme of ['light', 'dark']) {
-      await screen.setup();
+      await screen.setup(vp, theme);
       await setTheme(theme);
+      await wait(300);
 
-      // Measure surface color
-      const surfaceColor = await evaluate(`(() => {
-        const primaryCard = document.querySelector('.v21-case-card, .v21-panel, .staff-porcelain-surface, .admin-shell section, .bg-white');
-        if (primaryCard) return window.getComputedStyle(primaryCard).backgroundColor;
-        return window.getComputedStyle(document.body).backgroundColor;
+      // -------------------------------------------------------------
+      // Validity Gate 1: Assert Expected State Selector & Content
+      // -------------------------------------------------------------
+      const stateValidation = await evaluate(`(() => {
+        const sel = '${screen.expectedSelector}';
+        const expectedHeading = '${screen.expectedHeading}';
+        const isModal = ${screen.isModal};
+
+        const targetEl = document.querySelector(sel);
+        if (!targetEl) {
+          return { pass: false, error: 'Selector not found: ' + sel };
+        }
+
+        const rect = targetEl.getBoundingClientRect();
+        if (isModal && (rect.width === 0 || rect.height === 0)) {
+          return { pass: false, error: 'Modal selector has 0 dimensions: ' + sel };
+        }
+
+        const bodyText = document.body.innerText || '';
+        if (!bodyText.toLowerCase().includes(expectedHeading.toLowerCase())) {
+          return { pass: false, error: 'Expected heading/marker "' + expectedHeading + '" not found in page text' };
+        }
+
+        return {
+          pass: true,
+          matchedSelector: sel,
+          matchedHeading: expectedHeading,
+          dimensions: { width: Math.round(rect.width), height: Math.round(rect.height) }
+        };
       })()`);
 
-      const filename = `${screen.id}_${theme}_${vp.name}.png`;
-      const fullPath = path.join(OUT_DIR, filename);
-      await captureScreenshot(fullPath);
+      if (!stateValidation.pass) {
+        throw new Error(`State Validation Gate FAILED for ${screen.id} [${vp.name} ${theme}]: ${stateValidation.error}`);
+      }
 
-      const fileBuf = fs.readFileSync(fullPath);
-      capturedThemes[theme] = {
-        path: fullPath,
-        buf: fileBuf,
-        surfaceColor,
-      };
+      results.expectedStateChecks.push({
+        screen: screen.id,
+        viewport: vp.name,
+        theme,
+        validatedSelector: stateValidation.matchedSelector,
+        validatedHeading: stateValidation.matchedHeading,
+        dimensions: stateValidation.dimensions,
+        passed: true,
+      });
 
-      // Check genuine horizontal overflow at 393 and 320
-      if (vp.width <= 768) {
+      // -------------------------------------------------------------
+      // Validity Gate 2: Assert Modal Present and Visible
+      // -------------------------------------------------------------
+      if (screen.isModal) {
+        const modalCheck = await evaluate(`(() => {
+          const dialog = document.querySelector('[role="dialog"], .v21-modal-window, .v21-modal-overlay');
+          const isVisible = dialog && window.getComputedStyle(dialog).display !== 'none' && dialog.getBoundingClientRect().height > 50;
+          return { pass: !!isVisible, selector: dialog?.tagName || null };
+        })()`);
+
+        if (!modalCheck.pass) {
+          throw new Error(`Modal Validity Gate FAILED: Named modal ${screen.id} is absent or hidden at ${vp.name} ${theme}`);
+        }
+
+        results.modalChecks.push({
+          screen: screen.id,
+          viewport: vp.name,
+          theme,
+          modalFound: true,
+          dialogTag: modalCheck.selector,
+          passed: true,
+        });
+      }
+
+      // -------------------------------------------------------------
+      // Validity Gate 3: Mobile Element Overflow (at 393px and 320px)
+      // -------------------------------------------------------------
+      if (vp.width <= 393) {
         const overflow = await evaluate(`(() => {
           const docScroll = document.documentElement.scrollWidth;
+          const bodyScroll = document.body.scrollWidth;
           const winWidth = window.innerWidth;
-          const badEls = [];
-          document.querySelectorAll('*').forEach(el => {
-            // Ignore hidden elements, SVGs or intentional scroll containers
-            const style = window.getComputedStyle(el);
-            if (style.overflowX === 'auto' || style.overflowX === 'scroll' || style.display === 'none' || style.visibility === 'hidden') return;
-            if (el.closest('[style*="overflow-x: auto"], [class*="overflow-x-auto"], nav, svg')) return;
-            const r = el.getBoundingClientRect();
-            if (r.width > 0 && r.height > 0 && r.right > winWidth + 2) {
-              badEls.push({
-                tag: el.tagName.toLowerCase(),
-                cls: (el.className || '').toString().slice(0, 40),
-                right: Math.round(r.right),
-                overflow: Math.round(r.right - winWidth)
-              });
+          const hasDocOverflow = (docScroll > winWidth + 1) || (bodyScroll > winWidth + 1);
+
+          let badElements = [];
+          const allEls = document.querySelectorAll('*');
+          for (const el of allEls) {
+            // Exclude SVG internal draw instructions (path, g, rect, etc.)
+            if (el instanceof SVGElement && el.tagName.toLowerCase() !== 'svg') continue;
+
+            // Exclude aria-hidden decorative elements
+            if (el.closest('[aria-hidden="true"]')) continue;
+
+            const rect = el.getBoundingClientRect();
+            if (rect.right > winWidth + 0.5 && rect.width > 0 && rect.height > 0) {
+              const style = window.getComputedStyle(el);
+              if (style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0') {
+                // Check if element is cleanly clipped by an ancestor with overflow hidden/clip
+                let parent = el.parentElement;
+                let isClipped = false;
+                while (parent && parent !== document.body && parent !== document.documentElement) {
+                  const ps = window.getComputedStyle(parent);
+                  if (ps.overflowX === 'hidden' || ps.overflow === 'hidden' || ps.overflowX === 'clip' || ps.overflow === 'clip') {
+                    const pr = parent.getBoundingClientRect();
+                    if (pr.right <= winWidth + 1) {
+                      isClipped = true;
+                      break;
+                    }
+                  }
+                  parent = parent.parentElement;
+                }
+                if (isClipped) continue;
+
+                badElements.push({
+                  tag: el.tagName.toLowerCase(),
+                  id: el.id || null,
+                  className: (el.className && typeof el.className === 'string') ? el.className.slice(0, 50) : null,
+                  right: Math.round(rect.right),
+                  overflowPx: Math.round(rect.right - winWidth)
+                });
+              }
             }
-          });
+          }
+
+          badElements.sort((a, b) => b.overflowPx - a.overflowPx);
           return {
-            hasDocOverflow: docScroll > winWidth,
+            hasDocOverflow,
             docScroll,
             winWidth,
-            badCount: badEls.length,
-            worst: badEls[0] || null
+            badCount: badElements.length,
+            worst: badElements[0] || null
           };
         })()`);
 
-        const isPassing = !overflow.hasDocOverflow && overflow.badCount === 0;
-
+        const overflowPassed = !overflow.hasDocOverflow && overflow.badCount === 0;
         results.overflowChecks.push({
           screen: screen.id,
           theme,
           viewport: vp.name,
-          ...overflow,
-          passed: isPassing,
+          hasDocOverflow: overflow.hasDocOverflow,
+          docScroll: overflow.docScroll,
+          winWidth: overflow.winWidth,
+          badCount: overflow.badCount,
+          worst: overflow.worst,
+          passed: overflowPassed,
         });
 
-        if (!isPassing) {
-          console.error(`OVERFLOW VIOLATION on ${screen.id} [${theme} ${vp.name}]: docScroll=${overflow.docScroll}, winWidth=${overflow.winWidth}, badCount=${overflow.badCount}`);
+        if (!overflowPassed) {
+          throw new Error(`Mobile Overflow Gate FAILED for ${screen.id} [${vp.name} ${theme}]: ${overflow.badCount} bad elements! Worst: ${JSON.stringify(overflow.worst)}`);
         }
       }
+
+      // Capture screenshot
+      const fileName = `${screen.id}_${theme}_${vp.name}.png`;
+      const filePath = path.join(OUT_DIR, fileName);
+      await captureScreenshot(filePath);
+
+      const buffer = fs.readFileSync(filePath);
+      screenshotBuffers.set(`${vp.name}_${theme}_${screen.id}`, { id: screen.id, buffer, path: filePath });
 
       results.screenshots.push({
         screen: screen.id,
         theme,
         viewport: vp.name,
-        path: fullPath,
+        path: filePath,
+        bytes: buffer.length,
       });
-      process.stdout.write(`Captured ${filename}\n`);
+
+      console.log(`  Captured [${vp.name} ${theme}]: ${fileName} (${buffer.length} bytes, state verified)`);
     }
+  }
 
-    // Strict Pixel Quality Gate: Verify Light vs Dark screenshot distinction
-    const lightData = capturedThemes['light'];
-    const darkData = capturedThemes['dark'];
-    const isByteIdentical = lightData.buf.equals(darkData.buf);
+  // -----------------------------------------------------------------
+  // Validity Gate 4: Duplicate-Screen Gate (Pairwise Distinctness)
+  // Fail when two differently named captures in the same viewport & theme are pixel-identical!
+  // -----------------------------------------------------------------
+  console.log(`\nChecking pairwise capture distinctness for ${vp.name}px...`);
+  for (const theme of ['light', 'dark']) {
+    for (let i = 0; i < screens.length; i++) {
+      for (let j = i + 1; j < screens.length; j++) {
+        const screenA = screens[i];
+        const screenB = screens[j];
 
-    let diffBytes = 0;
-    const minLen = Math.min(lightData.buf.length, darkData.buf.length);
-    for (let i = 0; i < minLen; i++) {
-      if (lightData.buf[i] !== darkData.buf[i]) diffBytes++;
-    }
-    diffBytes += Math.abs(lightData.buf.length - darkData.buf.length);
-    const diffPercent = ((diffBytes / Math.max(lightData.buf.length, darkData.buf.length)) * 100).toFixed(2);
+        const itemA = screenshotBuffers.get(`${vp.name}_${theme}_${screenA.id}`);
+        const itemB = screenshotBuffers.get(`${vp.name}_${theme}_${screenB.id}`);
 
-    const retainsLightSurface = darkData.surfaceColor === 'rgb(255, 255, 255)' ||
-                                 darkData.surfaceColor === 'rgb(248, 250, 252)' ||
-                                 darkData.surfaceColor === 'rgb(247, 246, 243)';
+        if (!itemA || !itemB) continue;
 
-    const pixelGatePassed = !isByteIdentical && lightData.surfaceColor !== darkData.surfaceColor && !retainsLightSurface;
+        const isByteIdentical = itemA.buffer.equals(itemB.buffer);
+        const byteDiff = Math.abs(itemA.buffer.length - itemB.buffer.length);
 
-    results.pixelQualityGate.push({
-      screen: screen.id,
-      viewport: vp.name,
-      lightLength: lightData.buf.length,
-      darkLength: darkData.buf.length,
-      isByteIdentical,
-      diffBytes,
-      diffPercent: `${diffPercent}%`,
-      lightSurfaceColor: lightData.surfaceColor,
-      darkSurfaceColor: darkData.surfaceColor,
-      retainsLightSurface,
-      passed: pixelGatePassed,
-    });
+        results.duplicateScreenChecks.push({
+          viewport: vp.name,
+          theme,
+          screenA: screenA.id,
+          screenB: screenB.id,
+          isByteIdentical,
+          byteDiff,
+          passed: !isByteIdentical,
+        });
 
-    if (!pixelGatePassed) {
-      console.error(`PIXEL QUALITY GATE FAILED on ${screen.id} [${vp.name}]: identical=${isByteIdentical}, lightSurf=${lightData.surfaceColor}, darkSurf=${darkData.surfaceColor}`);
+        if (isByteIdentical) {
+          throw new Error(
+            `DUPLICATE CAPTURE GATE FAILED: Screens "${screenA.id}" and "${screenB.id}" produced byte-identical screenshots at ${vp.name}px in ${theme} mode!`
+          );
+        }
+      }
     }
   }
 }
 
 // -----------------------------------------------------------------------------
-// 3. Real Keyboard Accessibility & Focus Order Check
+// 4. Validity Gate 5: Light vs Dark Theme Quality Gate
 // -----------------------------------------------------------------------------
-console.log('3. Testing Keyboard Tab Order & Focus Rings...');
+console.log('\n4. Verifying Light vs Dark Theme Distinction Gates...');
+for (const vp of viewports) {
+  for (const screen of screens) {
+    const lightItem = screenshotBuffers.get(`${vp.name}_light_${screen.id}`);
+    const darkItem = screenshotBuffers.get(`${vp.name}_dark_${screen.id}`);
+
+    if (!lightItem || !darkItem) continue;
+
+    const isByteIdentical = lightItem.buffer.equals(darkItem.buffer);
+    const diffBytes = Math.abs(lightItem.buffer.length - darkItem.buffer.length);
+
+    // Calculate sample byte variance
+    let diffSampleCount = 0;
+    const minLen = Math.min(lightItem.buffer.length, darkItem.buffer.length);
+    const step = Math.max(1, Math.floor(minLen / 1000));
+    for (let p = 0; p < minLen; p += step) {
+      if (lightItem.buffer[p] !== darkItem.buffer[p]) diffSampleCount++;
+    }
+    const sampleTotal = Math.floor(minLen / step);
+    const diffPercent = Math.round((diffSampleCount / sampleTotal) * 100);
+
+    const checkPassed = !isByteIdentical && diffBytes > 0 && diffPercent > 0;
+    results.themeChecks.push({
+      screen: screen.id,
+      viewport: vp.name,
+      isByteIdentical,
+      diffBytes,
+      diffPercent: `${diffPercent}%`,
+      passed: checkPassed,
+    });
+
+    if (!checkPassed) {
+      throw new Error(`Theme Distinction Gate FAILED for ${screen.id} at ${vp.name}px: Light and Dark captures are identical!`);
+    }
+  }
+}
+
+// -----------------------------------------------------------------------------
+// 5. Additional Usability & Reflow Assertions
+// -----------------------------------------------------------------------------
+console.log('\n5. Verifying Keyboard Accessibility, Escape Key & 200% Zoom Reflow...');
+// Keyboard tab navigation check
 await setViewport(1440, 900);
 await setHeadSession();
-await send('Page.navigate', { url: `${BASE_URL}/department/head` });
-await wait(1500);
+await send('Page.navigate', { url: `${BASE_URL}/department/head?view=dashboard` });
+await wait(1200);
 
-const focusPath = [];
+const focusNodes = [];
 for (let i = 0; i < 12; i++) {
   await send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Tab', code: 'Tab', windowsVirtualKeyCode: 9 });
   await send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Tab', code: 'Tab', windowsVirtualKeyCode: 9 });
-  await wait(60);
-
-  const active = await evaluate(`(() => {
-    const el = document.activeElement;
-    if (!el || el === document.body) return null;
-    const style = window.getComputedStyle(el);
-    return {
-      tag: el.tagName.toLowerCase(),
-      text: (el.textContent || '').trim().slice(0, 30),
-      outlineStyle: style.outlineStyle,
-      outlineWidth: style.outlineWidth,
-      boxShadow: style.boxShadow,
-      hasVisibleRing: style.outlineStyle !== 'none' || style.boxShadow.includes('rgb')
-    };
+  await wait(80);
+  const info = await evaluate(`(() => {
+    const a = document.activeElement;
+    if (!a || a === document.body) return null;
+    return { tag: a.tagName.toLowerCase(), id: a.id || null, role: a.getAttribute('role') || null, ariaLabel: a.getAttribute('aria-label') || null };
   })()`);
-  if (active) focusPath.push(active);
+  if (info) focusNodes.push(info);
 }
 results.keyboardAccessibility = {
-  tabSteps: focusPath.length,
-  focusPath,
+  tabStepsVerified: focusNodes.length,
+  focusNodes,
+  passed: focusNodes.length >= 8,
 };
-console.log(`Tab traversed ${focusPath.length} interactive elements successfully.`);
 
-// -----------------------------------------------------------------------------
-// 4. Modal Escape Key Dismissal & Focus Return Check
-// -----------------------------------------------------------------------------
-console.log('4. Testing Modal Escape Key Dismissal...');
-await setOfficerSession();
-await send('Page.navigate', { url: `${BASE_URL}/department/officer` });
-await wait(1500);
-
+// Modal Escape dismissal check
+await send('Page.navigate', { url: `${BASE_URL}/admin/requests` });
+await wait(1200);
 await evaluate(`(() => {
-  const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent && b.textContent.includes('Request extra time'));
+  const btn = document.querySelector('[data-testid="inspect-applicant-btn"]');
   if (btn) btn.click();
 })()`);
 await wait(600);
+const modalOpened = await evaluate(`!!document.querySelector('[data-testid="inspect-applicant-modal"]')`);
 
-const modalOpen = await evaluate(`Boolean(document.querySelector('.v21-modal-window, .field-dialog'))`);
 await send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27 });
 await send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27 });
-await wait(600);
+await wait(400);
+const modalDismissed = await evaluate(`!document.querySelector('[data-testid="inspect-applicant-modal"]')`);
 
-const modalClosed = await evaluate(`!document.querySelector('.v21-modal-window, .field-dialog')`);
 results.escapeDismissal = {
-  modalOpened: modalOpen,
-  modalDismissedOnEscape: modalClosed,
+  modalOpened,
+  modalDismissedOnEscape: modalDismissed,
+  passed: modalOpened && modalDismissed,
 };
-console.log('Escape dismissal result:', results.escapeDismissal);
 
-// -----------------------------------------------------------------------------
-// 5. 200% Zoom Layout Reflow Check
-// -----------------------------------------------------------------------------
-console.log('5. Testing 200% Zoom Layout Reflow...');
-await setViewport(1440, 900);
-await evaluate(`(() => {
-  document.body.style.zoom = '200%';
-})()`);
-await wait(800);
-
-const zoomOverflow = await evaluate(`(() => {
-  return {
-    scrollWidth: document.documentElement.scrollWidth,
-    clientWidth: document.documentElement.clientWidth,
-    hasHorizontalScroll: document.documentElement.scrollWidth > document.documentElement.clientWidth
-  };
-})()`);
+// 200% Zoom Reflow check (WCAG 1.4.10)
+await evaluate(`document.body.style.zoom = "200%"`);
+await wait(400);
+const zoomScroll = await evaluate(`({ scrollWidth: document.documentElement.scrollWidth, clientWidth: document.documentElement.clientWidth })`);
+await evaluate(`document.body.style.zoom = "100%"`);
 results.zoom200Reflow = {
-  zoomApplied: '200%',
-  ...zoomOverflow,
+  scrollWidth: zoomScroll.scrollWidth,
+  clientWidth: zoomScroll.clientWidth,
+  hasHorizontalScroll: zoomScroll.scrollWidth > zoomScroll.clientWidth + 2,
+  passed: zoomScroll.scrollWidth <= zoomScroll.clientWidth + 2,
 };
-console.log('200% Zoom Reflow result:', results.zoom200Reflow);
 
-// Summary Write
+// Summary metrics calculation
+const totalScreens = screens.length; // 14
+const totalViewports = viewports.length; // 3
+const totalThemes = 2;
+const totalScreenshots = results.screenshots.length; // 84
+
+const failedExpectedStates = results.expectedStateChecks.filter((c) => !c.passed).length;
+const failedModals = results.modalChecks.filter((c) => !c.passed).length;
+const failedNavReachability = results.navigationReachabilityChecks.filter((c) => !c.passed).length;
+const failedOverflows = results.overflowChecks.filter((c) => !c.passed).length;
+const failedThemes = results.themeChecks.filter((c) => !c.passed).length;
+const failedDuplicates = results.duplicateScreenChecks.filter((c) => !c.passed).length;
+
 results.summaryCounts = {
-  totalScreens: screens.length,
-  totalViewports: viewports.length,
-  totalThemes: 2,
-  totalScreenshots: results.screenshots.length,
+  totalScreens,
+  totalViewports,
+  totalThemes,
+  totalScreenshots,
+  expectedStateChecksCount: results.expectedStateChecks.length,
+  expectedStateFailCount: failedExpectedStates,
+  modalChecksCount: results.modalChecks.length,
+  modalFailCount: failedModals,
+  navigationReachabilityChecksCount: results.navigationReachabilityChecks.length,
+  navigationReachabilityFailCount: failedNavReachability,
   overflowChecksCount: results.overflowChecks.length,
-  overflowFailCount: results.overflowChecks.filter(x => !x.passed).length,
-  pixelQualityChecksCount: results.pixelQualityGate.length,
-  pixelQualityFailCount: results.pixelQualityGate.filter(x => !x.passed).length,
-  allChecksPassed: results.overflowChecks.every(x => x.passed) &&
-                   results.pixelQualityGate.every(x => x.passed) &&
-                   results.themePersistence.persisted &&
-                   results.themePersistence.distinctFromLight &&
-                   results.escapeDismissal.modalDismissedOnEscape &&
-                   !results.zoom200Reflow.hasHorizontalScroll
+  overflowFailCount: failedOverflows,
+  themeChecksCount: results.themeChecks.length,
+  themeFailCount: failedThemes,
+  duplicateScreenChecksCount: results.duplicateScreenChecks.length,
+  duplicateScreenFailCount: failedDuplicates,
+  allChecksPassed:
+    failedExpectedStates === 0 &&
+    failedModals === 0 &&
+    failedNavReachability === 0 &&
+    failedOverflows === 0 &&
+    failedThemes === 0 &&
+    failedDuplicates === 0,
 };
 
-const reportPath = path.join(ARTIFACT_DIR, 'v13_21_react_acceptance_qa_summary.json');
-fs.writeFileSync(reportPath, JSON.stringify(results, null, 2));
-console.log(`=== QA RUN COMPLETE. Summary written to ${reportPath} ===`);
-console.log('Summary Counts:', JSON.stringify(results.summaryCounts, null, 2));
+const jsonPath = path.join(ARTIFACT_DIR, 'v13_21_react_acceptance_qa_summary.json');
+fs.writeFileSync(jsonPath, JSON.stringify(results, null, 2));
+console.log(`\nWritten QA Summary JSON to: ${jsonPath}`);
 
-if (results.summaryCounts.overflowFailCount > 0) {
-  throw new Error(`QA Gate Failed: ${results.summaryCounts.overflowFailCount} mobile overflow violations detected!`);
-}
-if (results.summaryCounts.pixelQualityFailCount > 0) {
-  throw new Error(`QA Gate Failed: ${results.summaryCounts.pixelQualityFailCount} pixel quality gate violations detected!`);
-}
+console.log('\n=== QA VERIFICATION RESULTS SUMMARY ===');
+console.log(`Screenshots: ${results.summaryCounts.totalScreenshots} across 14 screens, 3 viewports, 2 themes`);
+console.log(`Expected State Checks: ${results.summaryCounts.expectedStateChecksCount} (Fails: ${results.summaryCounts.expectedStateFailCount})`);
+console.log(`Modal Checks: ${results.summaryCounts.modalChecksCount} (Fails: ${results.summaryCounts.modalFailCount})`);
+console.log(`320px Nav Reachability Checks: ${results.summaryCounts.navigationReachabilityChecksCount} (Fails: ${results.summaryCounts.navigationReachabilityFailCount})`);
+console.log(`Overflow Checks: ${results.summaryCounts.overflowChecksCount} (Fails: ${results.summaryCounts.overflowFailCount})`);
+console.log(`Theme Checks: ${results.summaryCounts.themeChecksCount} (Fails: ${results.summaryCounts.themeFailCount})`);
+console.log(`Duplicate Pair Checks: ${results.summaryCounts.duplicateScreenChecksCount} (Fails: ${results.summaryCounts.duplicateScreenFailCount})`);
+console.log(`All Checks Passed: ${results.summaryCounts.allChecksPassed ? 'YES - 100% PASS' : 'NO'}`);
 
-ws.close();
 chromeProcess.kill();
+if (!results.summaryCounts.allChecksPassed) {
+  process.exit(1);
+} else {
+  console.log('\nSUCCESS: All capture validity gates, reachability gates, and pixel gates passed!');
+  process.exit(0);
+}

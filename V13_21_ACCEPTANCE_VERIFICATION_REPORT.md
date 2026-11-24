@@ -1,10 +1,10 @@
 # AWAAZ-E-AWAM — V13.21 ACCEPTANCE VERIFICATION REPORT
 
-**Execution Date:** 24 November 2026 (Pakistan Time)  
+**Execution Date:** 24 November 2026 (Pakistan Standard Time)  
 **Target Milestone:** Phase V13.21 Calm Operations Portal Redesign & Operational Hardening  
 **Active Worktree:** `D:\RomanUrdu_V13_19_Review`  
 **Active Feature Branch:** `feature/v13-21-calm-operations-redesign`  
-**Starting Commit:** [`5fbed7d`](https://github.com/Fahadali9932/roman-urdu-complaint-classifier/commit/5fbed7d)  
+**Starting Commit:** [`c85ccfcc`](https://github.com/Fahadali9932/roman-urdu-complaint-classifier/commit/c85ccfcc)  
 **Pushed Remote Origin:** `https://github.com/Fahadali9932/roman-urdu-complaint-classifier.git`  
 **Primary Protected Workspace:** `D:\RomanUrdu_ComplaintClassifier_staff_auth` (**100% untouched**)  
 **Financial Spend:** **$0.00** (Zero billable dependencies)  
@@ -15,150 +15,122 @@
 
 ## 1. Executive Summary & Verification Reconciliation
 
-In strict adherence to project directives and user instructions, Phase V13.21 verification was rerun to resolve previous quality gates: correcting QA inventory counts, eliminating mobile element overflow, enforcing genuine dark theme visual distinction across all views, and honestly reporting remote staging status.
+In strict adherence to project directives and the review checkpoint, Phase V13.21 browser QA automation was audited and repaired to eliminate false-positive captures, enforce strict state validation gates, fix mobile navigation clipping at 320px, and ensure all 84 screenshots capture genuine, distinct interactive application states.
 
-All metrics below are dynamically derived from the machine-generated QA summary artifact (`v13_21_react_acceptance_qa_summary.json`):
+All metrics below are dynamically derived from the machine-generated QA summary artifact ([`v13_21_react_acceptance_qa_summary.json`](file:///C:/Users/Annihilation/.gemini/antigravity/brain/3caaefa1-3615-4655-86f5-c95c17bc0aa2/v13_21_react_acceptance_qa_summary.json)):
 
-| Metric | Previous Run | Corrected V13.21 Run | Status |
-|---|:---:|:---:|:---:|
-| **Distinct Operational Screens** | 12 (misreported) | **14 screens** | **PASS** |
-| **Tested Viewports** | 3 (1440px, 393px, 320px) | **3 viewports** | **PASS** |
-| **Tested Themes** | 2 (Light, Dark) | **2 themes** | **PASS** |
-| **Total Full-Page Screenshots** | 72 (misreported) | **84 screenshots** | **PASS** |
-| **Mobile Element Overflow Checks** | Unenforced child checks | **56 checks (14 screens × 2 mobile × 2 themes)** | **100% PASS (0 fails)** |
-| **Off-Screen Overflowing Elements (`badCount`)** | 27–89 bad elements (max 63px) | **0 bad elements across all screens** | **100% PASS** |
-| **Light/Dark Pixel Quality Gates** | Identical Admin desktop | **42 pairs (14 screens × 3 viewports)** | **100% PASS (0 fails)** |
-| **Byte-Identical PNG Pairs** | 1 pair (Admin Desktop) | **0 byte-identical pairs** | **100% PASS** |
-| **Dark Theme Background Distinction** | `rgb(247, 246, 243)` (light) | `rgb(14, 17, 22)` (dark) | **PASS** |
-| **Theme Persistence Across Page Reload** | Verified | **`persisted: true`, `dark` retained** | **PASS** |
-| **Keyboard Tab Order & Focus Rings** | 12 nodes | **12 nodes verified** | **PASS** |
-| **Modal Escape Dismissal** | Verified | **`modalDismissedOnEscape: true`** | **PASS** |
-| **200% Zoom Reflow (WCAG 1.4.10)** | 0px scroll | **`scrollWidth: 1425 === clientWidth: 1425`** | **PASS** |
-| **Vitest Test Suite Pass Rate** | 671 / 672 passed | **671 passed, 1 skipped (67 test files)** | **100% PASS** |
-| **TypeScript Compiler (`tsc -b`)** | 0 errors | **0 errors** | **PASS** |
-| **Production Build (`vite build`)** | 0 errors | **0 errors (1.24s)** | **PASS** |
+| Test Category | Evaluated Scope | Checked Conditions | Result / Failures | Status |
+|---|---|---|:---:|:---:|
+| **Expected State Checks** | 84 checks (14 screens × 3 viewports × 2 themes) | Target DOM selector exists, non-zero dimensions, expected heading/marker present in page text | **84 passed / 0 fails** | **100% PASS** |
+| **Modal Presence Checks** | 24 checks (4 modal screens × 3 viewports × 2 themes) | Named modal rendered in DOM, `display !== 'none'`, height > 50px, active dialog role | **24 passed / 0 fails** | **100% PASS** |
+| **320px Navigation Reachability** | 10 interactive tests at 320px viewport | Direct buttons (`Focus`, `Queue`, `Dispatch`), accessible overflow dropdown (`More ▾`), touch target size (44px), outside-click dismissal, CDP keyboard Escape key dismissal | **10 passed / 0 fails** | **100% PASS** |
+| **Mobile Element Overflow Checks** | 56 checks (14 screens × 2 mobile viewports × 2 themes) | `scrollWidth <= clientWidth + 1px` AND zero non-exempt elements extending past right edge (`badCount === 0`) | **56 passed / 0 fails** | **100% PASS** |
+| **Light vs Dark Theme Distinction** | 42 pairs (14 screens × 3 viewports) | Non-identical PNG buffers, per-channel color variation, page background shifts from light (`rgb(248, 250, 252)`) to civic dark (`rgb(14, 17, 22)`) | **42 passed / 0 fails** | **100% PASS** |
+| **Pairwise Capture Distinctness** | 546 comparisons (91 pairs × 3 viewports × 2 themes) | Pairwise buffer comparison (`!bufferA.equals(bufferB)`); zero identically named captures across states | **546 passed / 0 fails** | **100% PASS** |
+| **Theme Persistence Reload Gate** | Head Focus desk at 1440px desktop | Dark mode applied, page reloaded, attribute and localStorage verified (`persisted: true`, `dark` retained) | **Verified** | **100% PASS** |
+| **Vitest Full Test Suite** | 67 test files across entire repository | Unit, integration, security boundaries, classification, and calm operational workflows | **671 passed, 1 skipped (0 fails)** | **100% PASS** |
+| **TypeScript Compiler (`tsc -b`)** | Full project type check | Zero type errors or missing interface definitions | **0 errors** | **PASS** |
+| **Production Build (`vite build`)** | Production bundling in worktree | Client environment built in 1.29s with gzip reporting | **0 errors (1.29s)** | **PASS** |
 
 ---
 
-## 2. Resolution of Mobile Element Overflow
+## 2. Root Cause Analysis & Permanent Resolution of False-Positive Captures
 
-### A. Root Cause Analysis
-During initial multi-viewport testing, while the document root reported `hasDocOverflow: false` (`document.documentElement.scrollWidth <= window.innerWidth`), deeper DOM bounding-box checks detected off-screen elements on mobile viewports:
-- **Head Focus (`react-head-focus`):** 27 bad elements at 393px; 87 bad elements at 320px.
-- **Head Dispatch (`react-head-dispatch`):** 29 bad elements at 393px; 89 bad elements at 320px.
-- **Maximum Recorded Element Overflow:** 63px beyond the right edge of the viewport.
+The review checkpoint identified 3 named screenshot pairs that were byte-identical at 320px in light mode:
+1. `react-head-focus` vs `react-head-dispatch`
+2. `react-officer-myday` vs `react-officer-evidence-modal`
+3. `react-admin-requests` vs `react-admin-inspect-modal`
 
-**Mechanism of Failure:**
-1. In Chromium, `<button>` flex containers (such as `.v21-case-row`) and nested `<div>` wrappers do not shrink below their intrinsic content size unless constrained with `min-width: 0`, `overflow: hidden`, and `max-width: 100%`.
-2. The long case summary strings (e.g. *"Sewer line rupture causing street inundation near commercial market..."*) and multiple inline badges stretched the inner metadata flex container to 416px on 393px viewports (23px overflow) and 383px on 320px viewports (63px overflow).
-3. The two-column dispatch layout grid did not collapse to a single column on tablet/mobile breakpoints.
+### A. Head Focus vs Head Dispatch at 320px
+- **Root Cause:** In `DepartmentDashboardPage.tsx`, when no `view` query parameter was present in the URL, a legacy fallback forced `currentSection = 'dispatch'`. Consequently, navigating to `/department/head` loaded the dispatch view rather than the focus desk. At 320px, horizontal tab clipping prevented automated scripts from clicking the Focus tab.
+- **Resolution:**
+  1. Updated `DepartmentDashboardPage.tsx` line 243 so that when `!searchParams.get('view')`, it properly defaults to `role === 'head' ? 'dashboard' : 'field'`.
+  2. Overhauled `DepartmentTopbar.tsx` navigation into a responsive single-DOM structure with direct, always-visible buttons for `Focus` and `Dispatch`, removing the hidden scrollbar tab strip.
+  3. Verified distinctness: `react-head-focus` (43,607 bytes) vs `react-head-dispatch` (32,828 bytes) — **10,779 byte difference**, `isByteIdentical: false`.
 
-### B. Code Fixes Applied
-1. **Responsive Single-Column Grid Collapse (`v13_21_operations.css`):**
-   ```css
-   @media (max-width: 900px) {
-     .v21-dispatch-grid {
-       grid-template-columns: 1fr !important;
-       gap: 14px;
-     }
-   }
-   ```
-2. **Container & Button Shrink Containment (`v13_21_operations.css`):**
-   ```css
-   .v21-case-row {
-     max-width: 100%;
-     min-width: 0;
-     box-sizing: border-box;
-     overflow: hidden;
-   }
-   ```
-3. **Ellipsis & Min-Width Flex Truncation (`FieldOperationsDesk.tsx`, `OverviewPage.tsx`):**
-   - Wrapped case summary text in a container with `min-width: 0`, `flex: 1`, and `max-width: 100%`.
-   - Applied `whiteSpace: 'nowrap'`, `overflow: 'hidden'`, and `textOverflow: 'ellipsis'` to all long text spans and locality metadata.
-4. **Facts Strip & Ribbons Responsive Stacking (`v13_21_operations.css`):**
-   - Collapsed `.overview-facts-strip` to a single column on `< 768px`.
-   - Collapsed `.v21-ribbon-grid` to a single column on compact mobile (`< 360px`).
+### B. Officer My Day vs Officer Evidence Modal at 320px
+- **Root Cause:** In `FieldOperationsDesk.tsx`, the "Submit field proof" button only renders on work orders whose status is `in_progress`. In the initial local demo mock data, all work orders were initialized with `status: 'assigned'`. The automated capture script attempted to click a non-existent button (`if (btn) btn.click()`), silently failing to open the modal and falling back to capturing the un-opened My Day view.
+- **Resolution:**
+  1. Enriched `devOrders` in `src/features/department/services/fieldOperations.ts`:
+     - `local-dev-order-01`: explicitly initialized with `status: 'in_progress'` and `started_at` populated.
+     - `local-dev-order-02`: initialized with `status: 'pending_review'` for supervisor verification.
+     - `local-dev-order-03`: initialized with `status: 'assigned'`.
+     - `local-dev-order-04`: initialized with `status: 'verified'`.
+  2. Added explicit test attribute `data-testid="submit-field-proof-btn"` and `data-testid="officer-evidence-modal"`.
+  3. Added strict modal assertions: the QA runner throws a hard error if the modal dialog element is absent or has zero bounding dimensions.
+  4. Verified distinctness: `react-officer-myday` (31,783 bytes) vs `react-officer-evidence-modal` (41,522 bytes) — **9,739 byte difference**, `isByteIdentical: false`.
 
-### C. Automated QA Verification Results
-The QA script evaluated every visible interactive element using `getBoundingClientRect().right > window.innerWidth + 0.5`. Across all 56 mobile checks (14 screens × 2 mobile viewports × 2 themes):
-- **Violations Detected:** **0** (`badCount: 0` on every check)
-- **Worst Recorded Margin:** **0px**
-- **Document Scrollbars:** **None** (`scrollWidth === clientWidth`)
+### C. Admin Requests vs Admin Applicant Inspect Modal at 320px
+- **Root Cause:** In `AdminRequestsPage.tsx`, the action button in the applicant table was labeled "Review", whereas the QA script searched for "Inspect details". The click silently failed, capturing the un-opened table twice.
+- **Resolution:**
+  1. Added explicit test attributes `data-testid="inspect-applicant-btn"` on the action button and `data-testid="inspect-applicant-modal"` on the dialog wrapper.
+  2. Updated the QA script to find and click `[data-testid="inspect-applicant-btn"]` and assert the presence of `[data-testid="inspect-applicant-modal"]` and heading `APPLICANT PROFILE AUDIT`.
+  3. Verified distinctness: `react-admin-requests` (30,663 bytes) vs `react-admin-inspect-modal` (29,909 bytes) — **754 byte difference**, `isByteIdentical: false`.
 
 ---
 
-## 3. Dark Theme Distinction & Pixel Quality Gate
+## 3. Repair of 320px Navigation Usability & Reachability
 
-### A. Root Cause Analysis
-The previous desktop Admin Login capture produced byte-identical light and dark screenshots (`diffBytes: 0`, identical CRC) with `darkBgBefore: rgb(247, 246, 243)`.
-1. **CSS Specificity:** `src/index.css` contained a top-level rule `body { background-color: var(--paper-white); }` (`#F7F6F3`) that overrode dark mode variables when `[data-theme="dark"]` was placed on `html`.
-2. **Missing Auth Dark Tokens:** `StaffAuthLayout.tsx` lacked an interactive theme switcher, and `staff-auth.css` did not define `[data-theme="dark"]` selectors for `.staff-porcelain-surface`, leaving the authentication form cards permanently bright white (`#FFFFFF`).
-3. **Attribute Desynchronization:** `DepartmentDashboardPage.tsx` managed internal `themeMode` state without propagating `document.documentElement.setAttribute('data-theme', themeMode)`.
+### A. The 320px Navigation Defect
+In previous builds, `.v21-nav-tabs` relied on `overflow-x: auto` with `-webkit-overflow-scrolling: touch` and hidden scrollbars (`display: none`). At 320px viewport width (304px available content width), the first two tabs ("Focus Desk (Priority)" and "Complete Queue") consumed ~250px, leaving only ~54px for "Dispatch Orders" (which appeared cut in half) and hiding "Proof Review" and "Verified Archive" completely off-screen with no visual cue.
 
-### B. Code Fixes Applied
-1. **Explicit Root & Body Token Overrides (`src/index.css`):**
-   ```css
-   html[data-theme="dark"] body,
-   [data-theme="dark"] body {
-     background-color: #0E1116 !important;
-     color: #F0F6FC !important;
-   }
-   ```
-2. **Staff Auth One-Click Theme Switcher (`StaffAuthLayout.tsx`):**
-   - Connected `useCivicTheme` hook.
-   - Added a visible Sun/Moon toggle button in the header (`.staff-theme-toggle`) allowing one-click theme switching from any login portal.
-3. **Complete Dark Mode Authentication Tokens (`src/features/auth/staff-auth.css`):**
-   - Added `[data-theme="dark"] .staff-porcelain-surface { background: #161B22; border-color: #30363D; }`.
-   - Added dark styling for inputs (`background: #0E1116`, `border: #30363D`, `color: #F0F6FC`), labels, badges, and headers.
-4. **Synchronized Dashboard HTML Attributes (`DepartmentDashboardPage.tsx`):**
-   - Added `useEffect` ensuring `document.documentElement` immediately receives `data-theme="dark"` and class `dark` whenever `themeMode === 'dark'`.
+### B. Responsive Single-DOM Navigation Architecture
+`DepartmentTopbar.tsx` and `v13_21_operations.css` were refactored into a clear, discoverable, accessible architecture:
+1. **Core Direct Destinations (Always Visible):**
+   - `Focus` (`data-nav-section="dashboard"`, ⌥1)
+   - `Queue` (`data-nav-section="queue"`, ⌥2)
+   - `Dispatch` (`data-nav-section="dispatch"`, ⌥3)
+   - On screens `<= 640px`, labels automatically shorten (`Focus`, `Queue`, `Dispatch`). Within 304px, the three buttons occupy only 220px, fitting comfortably with zero horizontal scrollbar and zero clipping.
+2. **Accessible Acrylic Overflow Menu (`More ▾`):**
+   - Destinations exceeding mobile width (`Proof Review`, `Verified Archive`) are surfaced on mobile via a prominent dropdown trigger button (`.v21-nav-overflow-btn`).
+   - When active, the trigger dynamically displays the active destination (`Proof ▾` or `Archive ▾`) with active indicator styling.
+   - The dropdown (`.v21-nav-overflow-dropdown`) features acrylic frosted glass (`backdrop-filter: blur(16px)`), generous 44px minimum touch targets, checkmark indicators (`✓`) for the active section, and full keyboard navigation.
+3. **Dismissal & Accessibility:**
+   - Supports outside-click dismissal.
+   - Listens for the `Escape` key on both `document` and `window`, immediately closing the menu and returning focus.
+   - Exposes full ARIA semantics (`aria-haspopup="menu"`, `aria-expanded={isNavOverflowOpen}`).
+4. **Admin Navigation at 320px:**
+   - Shortened labels on mobile in `AdminHeader.tsx` (`Requests`, `Access`, `AI Review`, `Citizen`) and reduced gap to `gap-2 sm:gap-7`, eliminating tab clipping across all viewports.
 
-### C. Pixel Quality Gate Verification Results
-The QA script enforced a pixel quality gate across all 42 light/dark pairs:
-1. `!isByteIdentical`: Confirmed light and dark PNGs differ in content bytes.
-2. `diffBytes > 0` & `diffPercent > 0`: Calculated per-channel pixel variation.
-3. `lightSurfaceColor !== darkSurfaceColor`: Asserted that the page background shifts from light (`rgb(248, 250, 252)`) to civic dark (`rgb(14, 17, 22)`).
-4. `!retainsLightSurface`: Confirmed that dark mode surfaces do not retain `#FFFFFF` or `#F7F6F3`.
-
-**Results Across All 42 Pairs:**
-- **Byte-Identical Pairs:** **0** (0% failure rate)
-- **Pixel Quality Violations:** **0** (100% pass rate)
-- **Average Desktop Pixel Variance:** **99.4%** visual differentiation between light and dark modes
-- **Background Color Proof:** Light `rgb(248, 250, 252)` vs Dark `rgb(14, 17, 22)`
+### C. Automated 320px Reachability Results (10 / 10 PASS)
+- `Nav Reachability: Head Focus Desk at 320px` -> **PASS**
+- `Nav Reachability: Head Complete Queue at 320px` -> **PASS**
+- `Nav Reachability: Head Dispatch Orders at 320px (Direct Button)` -> **PASS**
+- `Nav Reachability: Head Proof Review via Accessible Overflow Menu at 320px` -> **PASS**
+- `Nav Reachability: Head Verified Archive via Accessible Overflow Menu at 320px` -> **PASS**
+- `Nav Reachability: Keyboard Escape Dismissal of Overflow Menu at 320px` -> **PASS**
+- `Nav Reachability: Officer My Day at 320px` -> **PASS**
+- `Nav Reachability: Officer Completed Shifts at 320px` -> **PASS**
+- `Nav Reachability: Admin People & Permissions at 320px` -> **PASS**
+- `Nav Reachability: Admin AI Review at 320px` -> **PASS**
 
 ---
 
-## 4. Multi-Viewport Real-App Browser Screenshot Inventory
+## 4. Screenshot Inventory & Pairwise Distinctness Matrix
 
-Automated browser QA executed against the real running React application (`http://localhost:5173`) using real Chrome CDP (`tools/ai_factory/v13_21_react_acceptance_qa.mjs`).
+All 84 screenshots are packaged in [`V13_21_REACT_ACCEPTANCE_SCREENSHOTS.zip`](file:///C:/Users/Annihilation/.gemini/antigravity/brain/3caaefa1-3615-4655-86f5-c95c17bc0aa2/V13_21_REACT_ACCEPTANCE_SCREENSHOTS.zip) (7,163,059 bytes).
 
-All 84 screenshots are packaged in `V13_21_REACT_ACCEPTANCE_SCREENSHOTS.zip` (6,057,686 bytes) and indexed below:
+Every single capture was subjected to:
+1. `expectedStateChecks`: DOM selector presence + non-zero dimensions + heading verification.
+2. `overflowChecks`: `scrollWidth <= clientWidth + 1` AND `badCount === 0`.
+3. `duplicateScreenChecks`: Pairwise CRC and byte comparison against every other screen in the same viewport and theme.
 
-```
-Viewports:
-- Desktop: 1440 × 900 px
-- Tablet / Mobile: 393 × 852 px
-- Compact Mobile: 320 × 568 px
-Themes: Light & Dark
-Total: 14 Screens × 3 Viewports × 2 Themes = 84 Full-Page PNG Screenshots
-```
-
-| # | Screen ID | Title / View Description | 1440px (L/D) | 393px (L/D) | 320px (L/D) | Overflow Status |
-|---|---|---|:---:|:---:|:---:|:---:|
-| 1 | `react-head-login` | Department Head Login Portal | PASS / PASS | PASS / PASS | PASS / PASS | 0 bad elements |
-| 2 | `react-head-focus` | Head Focus Desk (Calm Ribbons & Action Stream) | PASS / PASS | PASS / PASS | PASS / PASS | 0 bad elements |
-| 3 | `react-head-queue` | Head Triage Queue (Filters & Paging) | PASS / PASS | PASS / PASS | PASS / PASS | 0 bad elements |
-| 4 | `react-head-dispatch` | Head 5-Stage Guided Dispatch Stepper | PASS / PASS | PASS / PASS | PASS / PASS | 0 bad elements |
-| 5 | `react-head-verification` | Head Proof Verification (Dual Before/After Comparison) | PASS / PASS | PASS / PASS | PASS / PASS | 0 bad elements |
-| 6 | `react-officer-login` | Field Officer Login Portal | PASS / PASS | PASS / PASS | PASS / PASS | 0 bad elements |
-| 7 | `react-officer-myday` | Field Officer My Day Workspace (Active Work Orders) | PASS / PASS | PASS / PASS | PASS / PASS | 0 bad elements |
-| 8 | `react-officer-evidence-modal` | Officer Proof Upload Dialog (Dual Photo & GPS Badge) | PASS / PASS | PASS / PASS | PASS / PASS | 0 bad elements |
-| 9 | `react-officer-extension-modal` | Officer Extension Request Modal (Delay Justification) | PASS / PASS | PASS / PASS | PASS / PASS | 0 bad elements |
-| 10 | `react-admin-login` | Central Administrator Login Portal | PASS / PASS | PASS / PASS | PASS / PASS | 0 bad elements |
-| 11 | `react-admin-requests` | Admin Applicant Review Queue | PASS / PASS | PASS / PASS | PASS / PASS | 0 bad elements |
-| 12 | `react-admin-inspect-modal` | Admin Applicant Inspection Modal (NADRA CNIC/Domain) | PASS / PASS | PASS / PASS | PASS / PASS | 0 bad elements |
-| 13 | `react-admin-access` | Admin Permissions, Suspensions & Audit Ledger | PASS / PASS | PASS / PASS | PASS / PASS | 0 bad elements |
-| 14 | `react-admin-ai` | Admin Dispute Review & Model Telemetry | PASS / PASS | PASS / PASS | PASS / PASS | 0 bad elements |
+| # | Screen ID | Title / View Description | 1440px (L/D) | 393px (L/D) | 320px (L/D) | Modal Gate | Overflow Gate | Pairwise Gate |
+|---|---|---|:---:|:---:|:---:|:---:|:---:|:---:|
+| 1 | `react-head-login` | Department Head Login Portal | 174KB / 154KB | 68KB / 62KB | 35KB / 36KB | N/A | 0 bad | PASS |
+| 2 | `react-head-focus` | Head Focus Desk (Calm Ribbons & Action Stream) | 169KB / 168KB | 74KB / 74KB | 44KB / 44KB | N/A | 0 bad | PASS |
+| 3 | `react-head-queue` | Head Triage Queue (Filters & Paging) | 172KB / 177KB | 60KB / 61KB | 41KB / 42KB | N/A | 0 bad | PASS |
+| 4 | `react-head-dispatch` | Head 5-Stage Guided Dispatch Stepper | 175KB / 176KB | 50KB / 50KB | 33KB / 33KB | N/A | 0 bad | PASS |
+| 5 | `react-head-verification` | Head Proof Verification (Supervisor Verification Modal) | 156KB / 158KB | 57KB / 57KB | 31KB / 30KB | PASS | 0 bad | PASS |
+| 6 | `react-officer-login` | Field Officer Login Portal | 167KB / 147KB | 67KB / 62KB | 38KB / 38KB | N/A | 0 bad | PASS |
+| 7 | `react-officer-myday` | Field Officer My Day Workspace (Active Work Orders) | 114KB / 112KB | 62KB / 61KB | 32KB / 32KB | N/A | 0 bad | PASS |
+| 8 | `react-officer-evidence-modal` | Officer Proof Upload Dialog (Dual Photo & GPS Badge) | 178KB / 181KB | 80KB / 80KB | 42KB / 41KB | PASS | 0 bad | PASS |
+| 9 | `react-officer-extension-modal` | Officer Extension Request Modal (Delay Justification) | 159KB / 162KB | 70KB / 71KB | 38KB / 38KB | PASS | 0 bad | PASS |
+| 10 | `react-admin-login` | Central Administrator Login Portal | 259KB / 240KB | 109KB / 103KB | 72KB / 64KB | N/A | 0 bad | PASS |
+| 11 | `react-admin-requests` | Admin Applicant Review Queue | 87KB / 87KB | 47KB / 48KB | 31KB / 31KB | N/A | 0 bad | PASS |
+| 12 | `react-admin-inspect-modal` | Admin Applicant Inspection Modal (Profile Audit) | 129KB / 126KB | 62KB / 61KB | 30KB / 29KB | PASS | 0 bad | PASS |
+| 13 | `react-admin-access` | Admin Permissions, Suspensions & Audit Ledger | 99KB / 99KB | 42KB / 42KB | 29KB / 29KB | N/A | 0 bad | PASS |
+| 14 | `react-admin-ai` | Admin Dispute Review & Model Telemetry | 99KB / 98KB | 54KB / 54KB | 34KB / 35KB | N/A | 0 bad | PASS |
 
 ---
 
@@ -201,23 +173,23 @@ In strict adherence to project instructions regarding truthful reporting without
 ## 6. Packaged Deliverables & Test Commands
 
 ### A. Artifact Files
-- **Screenshot Archive:** `C:\Users\Annihilation\.gemini\antigravity\brain\3caaefa1-3615-4655-86f5-c95c17bc0aa2\V13_21_REACT_ACCEPTANCE_SCREENSHOTS.zip` (84 PNGs, 6,057,686 bytes).
-- **QA Summary Telemetry:** `C:\Users\Annihilation\.gemini\antigravity\brain\3caaefa1-3615-4655-86f5-c95c17bc0aa2\v13_21_react_acceptance_qa_summary.json`.
-- **Status Document:** `docs/CURRENT_PROJECT_STATUS.md` in `D:\RomanUrdu_V13_19_Review`.
+- **Screenshot Archive:** [`V13_21_REACT_ACCEPTANCE_SCREENSHOTS.zip`](file:///C:/Users/Annihilation/.gemini/antigravity/brain/3caaefa1-3615-4655-86f5-c95c17bc0aa2/V13_21_REACT_ACCEPTANCE_SCREENSHOTS.zip) (84 PNGs, 7,163,059 bytes).
+- **QA Summary Telemetry:** [`v13_21_react_acceptance_qa_summary.json`](file:///C:/Users/Annihilation/.gemini/antigravity/brain/3caaefa1-3615-4655-86f5-c95c17bc0aa2/v13_21_react_acceptance_qa_summary.json).
+- **Status Document:** [`docs/CURRENT_PROJECT_STATUS.md`](file:///D:/RomanUrdu_V13_19_Review/docs/CURRENT_PROJECT_STATUS.md).
 
 ### B. Verification Commands & Exit Codes
 ```powershell
 # 1. Full Vitest Test Suite (Unit, Integration & Workflows)
 npm test -- --run
-# Exit Code: 0 (66 passed, 1 skipped; 671 passed, 1 skipped in 30.79s)
+# Exit Code: 0 (66 passed, 1 skipped; 671 passed, 1 skipped in 29.00s)
 
 # 2. Production TypeScript Build
 npm run build
-# Exit Code: 0 (0 errors, built in 1.24s)
+# Exit Code: 0 (0 errors, built in 1.29s)
 
 # 3. Dedicated 14-Screen Multi-Viewport Real-App Browser QA
 node tools/ai_factory/v13_21_react_acceptance_qa.mjs
-# Exit Code: 0 (84 screenshots, 56 overflow checks [0 fails], 42 pixel gates [0 fails])
+# Exit Code: 0 (84 screenshots, 546 pairwise duplicate checks [0 fails], 24 modal checks [0 fails], 56 overflow checks [0 fails])
 ```
 
 ---

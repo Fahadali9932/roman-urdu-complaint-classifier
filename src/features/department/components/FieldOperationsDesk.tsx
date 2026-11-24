@@ -966,6 +966,8 @@ export const FieldOperationsDesk: React.FC<Props> = ({ departmentId, userId, rol
                                 <button
                                   className="v21-btn v21-btn-primary"
                                   type="button"
+                                  data-testid="inspect-evidence-btn"
+                                  aria-label="Review evidence"
                                   disabled={busy}
                                   onClick={() => void showProof(o)}
                                 >
@@ -1011,6 +1013,8 @@ export const FieldOperationsDesk: React.FC<Props> = ({ departmentId, userId, rol
                                 <button
                                   className="v21-btn v21-btn-primary"
                                   type="button"
+                                  data-testid="submit-field-proof-btn"
+                                  aria-label="Submit field proof"
                                   onClick={() => {
                                     setUploadFor(o.id);
                                     setPhoto(null);
@@ -1026,6 +1030,8 @@ export const FieldOperationsDesk: React.FC<Props> = ({ departmentId, userId, rol
                                 <button
                                   className="v21-btn"
                                   type="button"
+                                  data-testid="request-extension-btn"
+                                  aria-label="Request extra time"
                                   onClick={() => setExtensionFor(o.id)}
                                 >
                                   Request extra time
@@ -1178,6 +1184,7 @@ export const FieldOperationsDesk: React.FC<Props> = ({ departmentId, userId, rol
             role="dialog"
             aria-modal="true"
             aria-label="Review submitted proof"
+            data-testid="supervisor-review-modal"
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
               <div>
@@ -1330,6 +1337,7 @@ export const FieldOperationsDesk: React.FC<Props> = ({ departmentId, userId, rol
             role="dialog"
             aria-modal="true"
             aria-label="Request a deadline extension"
+            data-testid="officer-extension-modal"
             onSubmit={(e) => {
               e.preventDefault();
               if (
@@ -1422,6 +1430,7 @@ export const FieldOperationsDesk: React.FC<Props> = ({ departmentId, userId, rol
             role="dialog"
             aria-modal="true"
             aria-label="Submit work evidence"
+            data-testid="officer-evidence-modal"
             onSubmit={(e) => {
               e.preventDefault();
               if (!photo || !location) return;
