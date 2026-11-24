@@ -52,6 +52,21 @@
 }
 
 /* Base App Wrapper for Calm Operations */
+html[data-theme="dark"],
+html[data-theme="dark"] body,
+body[data-theme="dark"],
+[data-theme="dark"] body {
+  background-color: var(--v21-bg-base, #0E1116) !important;
+  color: var(--v21-text-main, #F0F6FC) !important;
+}
+html[data-theme="light"],
+html[data-theme="light"] body,
+body[data-theme="light"],
+[data-theme="light"] body {
+  background-color: var(--v21-bg-base, #F8FAFC) !important;
+  color: var(--v21-text-main, #0F172A) !important;
+}
+
 .v21-app-wrapper {
   background: var(--v21-bg-base);
   color: var(--v21-text-main);
@@ -60,6 +75,25 @@
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   transition: background-color 150ms ease, color 150ms ease;
   overflow-x: hidden;
+}
+
+/* Dispatch Layout Grid */
+.v21-dispatch-grid {
+  display: grid;
+  grid-template-columns: 1.8fr 1.2fr;
+  gap: 20px;
+  align-items: start;
+  width: 100%;
+}
+.v21-dispatch-grid.has-selected {
+  grid-template-columns: 1.2fr 1.8fr;
+}
+@media (max-width: 900px) {
+  .v21-dispatch-grid,
+  .v21-dispatch-grid.has-selected {
+    grid-template-columns: 1fr !important;
+    gap: 14px;
+  }
 }
 
 .v21-content-container {
@@ -312,6 +346,10 @@
   transition: background 100ms ease;
   cursor: pointer;
   gap: 12px;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .v21-case-row:last-child {
@@ -892,6 +930,23 @@
   
   .v21-sec-header { flex-direction: column; align-items: flex-start; gap: 8px; }
   .v21-sec-header .v21-btn { width: 100%; justify-content: center; min-height: 44px; }
+
+  /* Facts Strip Mobile Reflow (Head Focus) */
+  .overview-facts-strip {
+    grid-template-columns: 1fr !important;
+    padding: 4px !important;
+    gap: 4px !important;
+  }
+  .overview-facts-strip .fact-item {
+    border-right: none !important;
+    border-bottom: 1px solid var(--v21-border-subtle) !important;
+    padding: 10px 14px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  .overview-facts-strip .fact-item:last-child {
+    border-bottom: none !important;
+  }
 }
 
 @media (max-width: 360px) {
@@ -900,6 +955,7 @@
   .v21-day-letter { font-size: 10px; }
   .v21-brand-title { font-size: 14px; }
   .v21-dept-badge { font-size: 10px; }
+  .v21-ribbon-grid { grid-template-columns: 1fr !important; }
   .v21-ribbon-number { font-size: 16px; }
   .v21-ribbon-label { font-size: 10px; }
 }

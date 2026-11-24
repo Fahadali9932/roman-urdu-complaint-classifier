@@ -43,16 +43,17 @@ hosted behavior. Update it after every significant verified milestone.
   - **Reload Anti-Flash Synchronization:** Inline script in `index.html` prevents white-flash on page load; theme persistence verified across page reloads.
 - **Comprehensive Quality Gates & Multi-Viewport Real-App Browser QA:**
   - TypeScript Compiler `tsc -b`: **0 errors**.
-  - Production Build `npm run build`: compiled in **1.25s** with 0 errors.
+  - Production Build `npm run build`: compiled in **1.24s** with 0 errors.
   - Dedicated Test Suite `V13_21_CalmOperationsAndAdminWorkflows.test.tsx`: **12 passed, 0 failed (100% pass rate)**.
-  - Full Vitest Test Suite: **671 passed, 1 skipped across 67 test files (100% pass rate in 29.33s)**.
-  - Real Browser QA (`v13_21_react_acceptance_qa.mjs`): **72 full-page screenshots captured across 1440px, 393px, and 320px in Light & Dark modes** for Head, Officer, and Admin.
-  - Responsive Overflow: Document-level overflow verified clean (`hasDocOverflow: false` across all viewports).
+  - Full Vitest Test Suite: **671 passed, 1 skipped across 67 test files (100% pass rate in 30.79s)**.
+  - Real Browser QA (`v13_21_react_acceptance_qa.mjs`): **84 full-page screenshots captured across 14 screens, 3 viewports (1440px, 393px, 320px), and 2 themes (Light & Dark)** for Head, Officer, and Admin.
+  - Responsive Mobile Element Overflow: Evaluated 56 mobile checks (14 screens × 2 mobile viewports × 2 themes) testing both `scrollWidth <= clientWidth` and `badCount === 0` across all DOM child elements. **0 bad elements detected across all screens and viewports (100% PASS)**, resolving prior flex-button overflow issues on Head Focus and Head Dispatch.
+  - Dark Theme Distinction & Pixel Quality Gate: Enforced 42 light/dark screenshot pair quality checks. **0 byte-identical pairs detected (100% PASS)**, with verified civic dark backgrounds (`rgb(14, 17, 22)`) distinctly differentiated from light backgrounds (`rgb(248, 250, 252)`), eliminating previously identical Admin Login captures.
   - Accessibility & Usability: Keyboard tab order verified across 12 interactive nodes; modal Escape dismissal verified; 200% zoom reflow verified without horizontal scroll (`scrollWidth: 1425 === clientWidth: 1425`).
-  - Packaged Artifacts: `V13_21_REACT_ACCEPTANCE_SCREENSHOTS.zip` containing all 72 high-resolution screenshots.
+  - Packaged Artifacts: `V13_21_REACT_ACCEPTANCE_SCREENSHOTS.zip` containing all 84 high-resolution screenshots.
 - **Staging Verification Status:**
-  - Remote Staging Session: **BLOCKED (UNCONFIGURED)**. `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` are not set in the review worktree environment (`isSupabaseConfigured() === false`).
-  - Verified local demonstration database adapter used for all end-to-end assertions; remote staging checks are not falsely claimed.
+  - Remote Staging Session: **BLOCKED (UNCONFIGURED)**. `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` are not set in the review worktree environment (`isSupabaseConfigured() === false`). Production instance `akbwiedtmxjxcjscgitw` is strictly protected and untouched.
+  - All 9 operational scenarios verified against the local demonstration database adapter; 9 prerequisites documented for remote hosted staging execution. No remote staging checks are falsely claimed.
 - **Preserved Invariants & Model Provenance:**
   - Frozen Run004 (`E4D04293...` / `bd3241e9...`) 100% byte-for-byte verified identical to baseline. Zero autonomous retraining.
   - Primary dirty workspace `D:\RomanUrdu_ComplaintClassifier_staff_auth` preserved with zero modifications.

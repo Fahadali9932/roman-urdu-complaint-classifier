@@ -300,15 +300,15 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
                         }
                       }}
                     >
-                      <div className="v21-case-main">
+                      <div className="v21-case-main" style={{ minWidth: 0, flex: 1, maxWidth: '100%', overflow: 'hidden' }}>
                         <span
                           className={`v21-status-dot ${isCritical ? 'danger' : c.priority === 'high' ? 'warning' : 'normal'}`}
                           title={isCritical ? 'Critical Safety Risk' : c.priority}
                         />
-                        <div style={{ minWidth: 0 }}>
+                        <div style={{ minWidth: 0, flex: 1, maxWidth: '100%', overflow: 'hidden' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                             <span className="v21-meta-code">{c.caseNumber}</span>
-                            <span className="v21-case-title">
+                            <span className="v21-case-title" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block', maxWidth: '100%' }}>
                               {isCritical && (
                                 <span style={{ color: 'var(--v21-danger)', marginRight: '6px', fontWeight: 700 }}>
                                   [Safety Risk]
@@ -317,7 +317,7 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
                               {c.title}
                             </span>
                           </div>
-                          <div className="v21-case-meta">
+                          <div className="v21-case-meta" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                             <span><MapPin size={12} style={{ display: 'inline', marginRight: '3px' }} />{c.locality}</span>
                             <span>·</span>
                             <span>{c.linkedReportCount} citizen {c.linkedReportCount === 1 ? 'report' : 'reports'}</span>

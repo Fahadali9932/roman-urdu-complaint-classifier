@@ -1,8 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../../../context/LanguageContext';
+import { useCivicTheme } from '../../department/hooks/useCivicTheme';
 import { SculpturalComposition } from './SculpturalComposition';
-import { Globe, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Globe, ArrowLeft, ArrowRight, Sun, Moon } from 'lucide-react';
 import '../staff-auth.css';
 
 interface StaffAuthLayoutProps {
@@ -14,6 +15,7 @@ export const StaffAuthLayout: React.FC<StaffAuthLayoutProps> = ({
   children,
 }) => {
   const { language, toggleLanguage, isRTL } = useLanguage();
+  const { theme, toggleTheme } = useCivicTheme();
 
   return (
     <div className="staff-auth-root flex flex-col justify-between min-h-screen relative selection:bg-[#2C4A52]/30">
@@ -102,7 +104,7 @@ export const StaffAuthLayout: React.FC<StaffAuthLayoutProps> = ({
               ========================================================================= */}
           <section className="lg:col-span-6 flex flex-col justify-center">
             <div className="staff-porcelain-surface w-full max-w-[696px] mx-auto p-6 sm:p-10 lg:p-12 flex flex-col justify-between">
-              {/* Top Navigation & Language Switcher inside porcelain surface */}
+              {/* Top Navigation, Language & Theme Switcher inside porcelain surface */}
               <div className="flex items-center justify-between pb-6 mb-6 border-b border-[#E2E8F0]">
                 <Link
                   to="/"
@@ -116,15 +118,32 @@ export const StaffAuthLayout: React.FC<StaffAuthLayoutProps> = ({
                   <span>{language === 'ur' ? 'شہری پورٹل' : 'Citizen Portal'}</span>
                 </Link>
 
-                <button
-                  type="button"
-                  onClick={toggleLanguage}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#E2E8F0] text-xs font-semibold text-[#0F1E21] hover:bg-[#F8FAFC] transition-colors cursor-pointer"
-                  title="Switch language"
-                >
-                  <Globe className="w-3.5 h-3.5 text-[#64748B]" />
-                  <span className="font-mono">{language === 'en' ? 'EN / اردو' : 'اردو / EN'}</span>
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={toggleTheme}
+                    className="staff-theme-toggle flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[#E2E8F0] text-xs font-semibold text-[#0F1E21] hover:bg-[#F8FAFC] transition-colors cursor-pointer"
+                    title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+                    aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+                  >
+                    {theme === 'dark' ? (
+                      <Sun className="w-3.5 h-3.5 text-[#F59E0B]" />
+                    ) : (
+                      <Moon className="w-3.5 h-3.5 text-[#64748B]" />
+                    )}
+                    <span className="font-mono text-[11px]">{theme === 'dark' ? 'LIGHT' : 'DARK'}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={toggleLanguage}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#E2E8F0] text-xs font-semibold text-[#0F1E21] hover:bg-[#F8FAFC] transition-colors cursor-pointer"
+                    title="Switch language"
+                  >
+                    <Globe className="w-3.5 h-3.5 text-[#64748B]" />
+                    <span className="font-mono">{language === 'en' ? 'EN / اردو' : 'اردو / EN'}</span>
+                  </button>
+                </div>
               </div>
 
               {/* Injected Form Content */}

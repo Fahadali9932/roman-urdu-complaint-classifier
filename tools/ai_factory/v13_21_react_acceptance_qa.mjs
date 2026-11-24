@@ -8,7 +8,7 @@ fs.mkdirSync(OUT_DIR, { recursive: true });
 
 const CHROME_PATH = 'C:/Program Files/Google/Chrome/Application/chrome.exe';
 const BROWSER_PORT = 9895;
-const BASE_URL = 'http://127.0.0.1:5173';
+const BASE_URL = 'http://localhost:5173';
 
 const chromeProcess = spawn(
   CHROME_PATH,
@@ -100,10 +100,12 @@ const viewports = [
 const results = {
   themePersistence: null,
   overflowChecks: [],
+  pixelQualityGate: [],
   keyboardAccessibility: null,
   escapeDismissal: null,
   zoom200Reflow: null,
   screenshots: [],
+  summaryCounts: null,
 };
 
 console.log('=== STARTING AWAAZ-E-AWAM V13.21 REACT ACCEPTANCE QA ===');
@@ -316,9 +318,10 @@ async function setTheme(theme) {
   await evaluate(`(() => {
     document.documentElement.setAttribute('data-theme', '${theme}');
     document.documentElement.classList.toggle('dark', '${theme}' === 'dark');
+    document.body.setAttribute('data-theme', '${theme}');
     localStorage.setItem('awaaz_dept_theme_mode', '${theme}');
     localStorage.setItem('aawaaz-demo-theme', '${theme}');
-    document.querySelectorAll('.admin-shell').forEach(s => s.setAttribute('data-theme', '${theme}'));
+    document.querySelectorAll('.admin-shell, .staff-auth-root, .v21-app-wrapper').forEach(s => s.setAttribute('data-theme', '${theme}'));
   })()`);
   await wait(150);
 }
@@ -334,27 +337,37 @@ await setHeadSession();
 await send('Page.navigate', { url: `${BASE_URL}/department/head` });
 await wait(1500);
 
+await setTheme('light');
+const lightBg = await evaluate(`window.getComputedStyle(document.body).backgroundColor`);
+const lightAttr = await evaluate(`document.documentElement.getAttribute('data-theme')`);
+
 await setTheme('dark');
 const darkBgBefore = await evaluate(`window.getComputedStyle(document.body).backgroundColor`);
 const darkAttrBefore = await evaluate(`document.documentElement.getAttribute('data-theme')`);
 
-// Full reload
-await send('Page.reload');
-await wait(1500);
+// Full reload via navigation to ensure fresh load
+await send('Page.navigate', { url: `${BASE_URL}/department/head` });
+await wait(1800);
 
 const darkBgAfter = await evaluate(`window.getComputedStyle(document.body).backgroundColor`);
 const darkAttrAfter = await evaluate(`document.documentElement.getAttribute('data-theme')`);
 const darkStored = await evaluate(`localStorage.getItem('awaaz_dept_theme_mode')`);
 
 results.themePersistence = {
+  lightBg,
   darkBgBefore,
   darkBgAfter,
+  lightAttr,
   darkAttrBefore,
   darkAttrAfter,
   darkStored,
   persisted: darkAttrAfter === 'dark' && darkStored === 'dark',
+  distinctFromLight: darkBgAfter !== lightBg && darkBgAfter !== 'rgb(247, 246, 243)',
 };
 console.log('Theme persistence result:', results.themePersistence);
+if (!results.themePersistence.persisted || !results.themePersistence.distinctFromLight) {
+  throw new Error(`Theme persistence or visual distinction failed: ${JSON.stringify(results.themePersistence)}`);
+}
 
 // -----------------------------------------------------------------------------
 // 2. Viewport Screenshots & Responsive Overflow Checks
@@ -551,15 +564,32 @@ const screens = [
 ];
 
 for (const screen of screens) {
-  for (const theme of ['light', 'dark']) {
-    for (const vp of viewports) {
-      await setViewport(vp.width, vp.height);
+  for (const vp of viewports) {
+    await setViewport(vp.width, vp.height);
+
+    const capturedThemes = {};
+
+    for (const theme of ['light', 'dark']) {
       await screen.setup();
       await setTheme(theme);
+
+      // Measure surface color
+      const surfaceColor = await evaluate(`(() => {
+        const primaryCard = document.querySelector('.v21-case-card, .v21-panel, .staff-porcelain-surface, .admin-shell section, .bg-white');
+        if (primaryCard) return window.getComputedStyle(primaryCard).backgroundColor;
+        return window.getComputedStyle(document.body).backgroundColor;
+      })()`);
 
       const filename = `${screen.id}_${theme}_${vp.name}.png`;
       const fullPath = path.join(OUT_DIR, filename);
       await captureScreenshot(fullPath);
+
+      const fileBuf = fs.readFileSync(fullPath);
+      capturedThemes[theme] = {
+        path: fullPath,
+        buf: fileBuf,
+        surfaceColor,
+      };
 
       // Check genuine horizontal overflow at 393 and 320
       if (vp.width <= 768) {
@@ -591,12 +621,19 @@ for (const screen of screens) {
           };
         })()`);
 
+        const isPassing = !overflow.hasDocOverflow && overflow.badCount === 0;
+
         results.overflowChecks.push({
           screen: screen.id,
           theme,
           viewport: vp.name,
           ...overflow,
+          passed: isPassing,
         });
+
+        if (!isPassing) {
+          console.error(`OVERFLOW VIOLATION on ${screen.id} [${theme} ${vp.name}]: docScroll=${overflow.docScroll}, winWidth=${overflow.winWidth}, badCount=${overflow.badCount}`);
+        }
       }
 
       results.screenshots.push({
@@ -606,6 +643,43 @@ for (const screen of screens) {
         path: fullPath,
       });
       process.stdout.write(`Captured ${filename}\n`);
+    }
+
+    // Strict Pixel Quality Gate: Verify Light vs Dark screenshot distinction
+    const lightData = capturedThemes['light'];
+    const darkData = capturedThemes['dark'];
+    const isByteIdentical = lightData.buf.equals(darkData.buf);
+
+    let diffBytes = 0;
+    const minLen = Math.min(lightData.buf.length, darkData.buf.length);
+    for (let i = 0; i < minLen; i++) {
+      if (lightData.buf[i] !== darkData.buf[i]) diffBytes++;
+    }
+    diffBytes += Math.abs(lightData.buf.length - darkData.buf.length);
+    const diffPercent = ((diffBytes / Math.max(lightData.buf.length, darkData.buf.length)) * 100).toFixed(2);
+
+    const retainsLightSurface = darkData.surfaceColor === 'rgb(255, 255, 255)' ||
+                                 darkData.surfaceColor === 'rgb(248, 250, 252)' ||
+                                 darkData.surfaceColor === 'rgb(247, 246, 243)';
+
+    const pixelGatePassed = !isByteIdentical && lightData.surfaceColor !== darkData.surfaceColor && !retainsLightSurface;
+
+    results.pixelQualityGate.push({
+      screen: screen.id,
+      viewport: vp.name,
+      lightLength: lightData.buf.length,
+      darkLength: darkData.buf.length,
+      isByteIdentical,
+      diffBytes,
+      diffPercent: `${diffPercent}%`,
+      lightSurfaceColor: lightData.surfaceColor,
+      darkSurfaceColor: darkData.surfaceColor,
+      retainsLightSurface,
+      passed: pixelGatePassed,
+    });
+
+    if (!pixelGatePassed) {
+      console.error(`PIXEL QUALITY GATE FAILED on ${screen.id} [${vp.name}]: identical=${isByteIdentical}, lightSurf=${lightData.surfaceColor}, darkSurf=${darkData.surfaceColor}`);
     }
   }
 }
@@ -696,9 +770,34 @@ results.zoom200Reflow = {
 console.log('200% Zoom Reflow result:', results.zoom200Reflow);
 
 // Summary Write
+results.summaryCounts = {
+  totalScreens: screens.length,
+  totalViewports: viewports.length,
+  totalThemes: 2,
+  totalScreenshots: results.screenshots.length,
+  overflowChecksCount: results.overflowChecks.length,
+  overflowFailCount: results.overflowChecks.filter(x => !x.passed).length,
+  pixelQualityChecksCount: results.pixelQualityGate.length,
+  pixelQualityFailCount: results.pixelQualityGate.filter(x => !x.passed).length,
+  allChecksPassed: results.overflowChecks.every(x => x.passed) &&
+                   results.pixelQualityGate.every(x => x.passed) &&
+                   results.themePersistence.persisted &&
+                   results.themePersistence.distinctFromLight &&
+                   results.escapeDismissal.modalDismissedOnEscape &&
+                   !results.zoom200Reflow.hasHorizontalScroll
+};
+
 const reportPath = path.join(ARTIFACT_DIR, 'v13_21_react_acceptance_qa_summary.json');
 fs.writeFileSync(reportPath, JSON.stringify(results, null, 2));
 console.log(`=== QA RUN COMPLETE. Summary written to ${reportPath} ===`);
+console.log('Summary Counts:', JSON.stringify(results.summaryCounts, null, 2));
+
+if (results.summaryCounts.overflowFailCount > 0) {
+  throw new Error(`QA Gate Failed: ${results.summaryCounts.overflowFailCount} mobile overflow violations detected!`);
+}
+if (results.summaryCounts.pixelQualityFailCount > 0) {
+  throw new Error(`QA Gate Failed: ${results.summaryCounts.pixelQualityFailCount} pixel quality gate violations detected!`);
+}
 
 ws.close();
 chromeProcess.kill();

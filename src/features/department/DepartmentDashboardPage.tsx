@@ -153,11 +153,24 @@ export const DepartmentDashboardPage: React.FC = () => {
     return 'light';
   });
 
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      document.documentElement.setAttribute('data-theme', themeMode);
+      document.documentElement.classList.toggle('dark', themeMode === 'dark');
+      document.body.setAttribute('data-theme', themeMode);
+    }
+  }, [themeMode]);
+
   const handleSetTheme = (mode: 'light' | 'dark') => {
     setThemeMode(mode);
     if (typeof window !== 'undefined' && window.localStorage) {
       localStorage.setItem('aawaaz-demo-theme', mode);
       localStorage.setItem('awaaz_dept_theme_mode', mode);
+    }
+    if (typeof document !== 'undefined') {
+      document.documentElement.setAttribute('data-theme', mode);
+      document.documentElement.classList.toggle('dark', mode === 'dark');
+      document.body.setAttribute('data-theme', mode);
     }
   };
 

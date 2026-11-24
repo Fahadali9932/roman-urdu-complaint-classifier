@@ -418,7 +418,7 @@ export const FieldOperationsDesk: React.FC<Props> = ({ departmentId, userId, rol
 
           {/* VIEW: Dispatch Desk (Head) with 5-stage assignment workflow */}
           {view === 'dispatch' && isHead && (
-            <div style={{ display: 'grid', gridTemplateColumns: selected ? '1.2fr 1.8fr' : '1.8fr 1.2fr', gap: '20px', alignItems: 'start' }}>
+            <div className={`v21-dispatch-grid ${selected ? 'has-selected' : ''}`}>
               {/* Left Column: Incoming Cases Ready for Assignment */}
               <div className="v21-case-card" style={{ padding: '16px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
@@ -469,9 +469,13 @@ export const FieldOperationsDesk: React.FC<Props> = ({ departmentId, userId, rol
                           background: isSelected ? 'var(--v21-accent-light)' : 'var(--v21-bg-surface)',
                           textAlign: 'left',
                           width: '100%',
+                          maxWidth: '100%',
+                          minWidth: 0,
+                          overflow: 'hidden',
+                          boxSizing: 'border-box',
                         }}
                       >
-                        <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ flex: 1, minWidth: 0, maxWidth: '100%', overflow: 'hidden' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                             <span className="v21-meta-code">{c.caseNumber}</span>
                             {isCritical && (
@@ -483,7 +487,7 @@ export const FieldOperationsDesk: React.FC<Props> = ({ departmentId, userId, rol
                           <strong style={{ fontSize: '13px', color: 'var(--v21-text-main)', display: 'block', margin: '4px 0 2px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                             {c.title}
                           </strong>
-                          <span style={{ fontSize: '11px', color: 'var(--v21-text-muted)' }}>
+                          <span style={{ fontSize: '11px', color: 'var(--v21-text-muted)', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                             <MapPin size={11} style={{ display: 'inline', marginRight: '3px' }} />
                             {c.locality} · {c.linkedReportCount} citizen reports
                           </span>
