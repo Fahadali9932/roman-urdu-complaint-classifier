@@ -1,0 +1,556 @@
+/* ==============================================================================
+   AWAAZ-E-AWAM — V3 ATMOSPHERIC CIVIC GLASS DESIGN SYSTEM
+   Scoped cleanly for Department Head, Field Officer, and Central Administrator.
+   Preserves Citizen Portal editorial styling while delivering exact V3 Figma tokens.
+   ============================================================================== */
+
+:root,
+[data-theme="light"] {
+  --v3-canvas: #E8EDF0;
+  --v3-surface: #F1F4F6;
+  --v3-surface-glass: rgba(241, 244, 246, 0.86);
+  --v3-nav-glass: rgba(241, 244, 246, 0.78);
+  --v3-raised: #DCE5EA;
+  --v3-soft: #D9E4EB;
+  --v3-edge: #C4D0D8;
+  --v3-ink: #273746;
+  --v3-muted: #526575;
+  --v3-accent: #365875;
+  --v3-action: #426581;
+  --v3-action-hover: #35546C;
+  --v3-onaction: #F0F4F7;
+  --v3-danger: #9B2C2C;
+  --v3-danger-soft: rgba(155, 44, 44, 0.10);
+  --v3-success: #1E6B4B;
+  --v3-success-soft: rgba(30, 107, 75, 0.11);
+  --v3-warning: #8A5312;
+  --v3-warning-soft: rgba(138, 83, 18, 0.11);
+  --v3-shadow-nav: 0 8px 28px rgba(39, 55, 70, 0.08);
+  --v3-shadow-glass: 0 18px 44px rgba(39, 55, 70, 0.16);
+}
+
+[data-theme="dark"],
+.dark {
+  --v3-canvas: #202B35;
+  --v3-surface: #283541;
+  --v3-surface-glass: rgba(40, 53, 65, 0.86);
+  --v3-nav-glass: rgba(40, 53, 65, 0.80);
+  --v3-raised: #344450;
+  --v3-soft: #304656;
+  --v3-edge: #475969;
+  --v3-ink: #E1E8EE;
+  --v3-muted: #A9B9C6;
+  --v3-accent: #B1CADC;
+  --v3-action: #436581;
+  --v3-action-hover: #517796;
+  --v3-onaction: #EFF4F7;
+  --v3-danger: #F28B82;
+  --v3-danger-soft: rgba(242, 139, 130, 0.16);
+  --v3-success: #7AD1A5;
+  --v3-success-soft: rgba(122, 209, 165, 0.15);
+  --v3-warning: #F5C36D;
+  --v3-warning-soft: rgba(245, 195, 109, 0.16);
+  --v3-shadow-nav: 0 10px 30px rgba(0, 0, 0, 0.28);
+  --v3-shadow-glass: 0 22px 48px rgba(0, 0, 0, 0.38);
+}
+
+.v3-portal-shell {
+  background-color: var(--v3-canvas);
+  color: var(--v3-ink);
+  min-height: 100vh;
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: clip;
+  font-family: 'DM Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-variation-settings: "opsz" 14;
+  line-height: 1.35;
+  box-sizing: border-box;
+  transition: background-color 180ms ease, color 180ms ease;
+}
+
+.v3-portal-shell *,
+.v3-portal-shell *::before,
+.v3-portal-shell *::after {
+  box-sizing: border-box;
+}
+
+/* Override legacy !important body canvas cleanly when a V3 staff portal is mounted */
+body.v3-civic-active {
+  background-color: var(--v3-canvas) !important;
+  color: var(--v3-ink) !important;
+  font-family: 'DM Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+}
+
+/* Floating Pill Navigation (1120 x 56px, r=28px) */
+.v3-nav-outer {
+  width: 100%;
+  padding: 24px 24px 0;
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  pointer-events: none;
+}
+
+.v3-nav-pill {
+  pointer-events: auto;
+  max-width: 1120px;
+  min-height: 56px;
+  margin: 0 auto;
+  padding: 8px 14px 8px 22px;
+  border-radius: 28px;
+  background-color: var(--v3-nav-glass);
+  border: 1px solid var(--v3-edge);
+  backdrop-filter: blur(9px);
+  -webkit-backdrop-filter: blur(9px);
+  box-shadow: var(--v3-shadow-nav);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.v3-nav-brand {
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--v3-ink);
+  white-space: nowrap;
+  flex-shrink: 0;
+  text-decoration: none;
+}
+
+.v3-nav-tabs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.v3-nav-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.v3-nav-tab {
+  min-width: 96px;
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 18px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--v3-muted);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  transition: background-color 150ms cubic-bezier(0.22, 1, 0.36, 1),
+              color 150ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.v3-nav-tab:hover {
+  color: var(--v3-ink);
+}
+
+.v3-nav-tab[aria-current="page"],
+.v3-nav-tab.is-active {
+  background-color: var(--v3-soft);
+  color: var(--v3-ink);
+}
+
+.v3-nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.v3-icon-btn {
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 9999px;
+  border: none;
+  background: transparent;
+  color: var(--v3-ink);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 140ms ease, color 140ms ease;
+}
+
+.v3-icon-btn:hover {
+  background-color: var(--v3-soft);
+}
+
+.v3-avatar-pill {
+  width: 32px;
+  height: 32px;
+  border-radius: 9999px;
+  background-color: var(--v3-soft);
+  border: 1px solid var(--v3-edge);
+  color: var(--v3-ink);
+  font-size: 13px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Main 960px Content Column */
+.v3-main-column {
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 56px 24px 80px;
+}
+
+.v3-eyebrow {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--v3-muted);
+  letter-spacing: 0.01em;
+}
+
+.v3-page-h1 {
+  font-size: 38px;
+  font-weight: 500;
+  line-height: 1.18;
+  letter-spacing: -0.02em;
+  color: var(--v3-ink);
+  margin: 8px 0 0;
+  overflow-wrap: anywhere;
+}
+
+.v3-section-heading {
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--v3-ink);
+  margin: 44px 0 16px;
+}
+
+.v3-detail-title {
+  font-size: 21px;
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--v3-ink);
+  overflow-wrap: anywhere;
+}
+
+/* Operational List Row (80px desktop, >=88px mobile) */
+.v3-case-row {
+  min-height: 80px;
+  padding: 14px 16px 14px 8px;
+  border-bottom: 1px solid var(--v3-edge);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 16px 24px;
+  transition: background-color 150ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.v3-case-row.is-focused {
+  background-color: var(--v3-soft);
+  border-bottom-color: transparent;
+  border-radius: 12px;
+  padding: 16px 20px 16px 24px;
+  margin-bottom: 4px;
+}
+
+.v3-case-row-title {
+  font-size: 17px;
+  font-weight: 500;
+  color: var(--v3-ink);
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.v3-case-row-meta {
+  font-size: 13px;
+  color: var(--v3-muted);
+  margin-top: 3px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.v3-case-row-status {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--v3-muted);
+  white-space: nowrap;
+}
+
+.v3-case-row-status[data-tone="danger"] {
+  color: var(--v3-danger);
+}
+.v3-case-row-status[data-tone="warning"] {
+  color: var(--v3-warning);
+}
+.v3-case-row-status[data-tone="success"] {
+  color: var(--v3-success);
+}
+
+/* Buttons & Quiet Actions (>= 44px accessible hit target) */
+.v3-btn-primary {
+  min-height: 44px;
+  padding: 0 22px;
+  border-radius: 10px;
+  background-color: var(--v3-action);
+  color: var(--v3-onaction);
+  font-size: 14px;
+  font-weight: 500;
+  border: 1px solid transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 150ms ease, transform 120ms ease, opacity 150ms ease;
+}
+
+.v3-btn-primary:hover:not(:disabled) {
+  background-color: var(--v3-action-hover);
+}
+
+.v3-btn-primary:active:not(:disabled) {
+  transform: scale(0.985);
+}
+
+.v3-btn-primary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.v3-btn-secondary {
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: 10px;
+  background-color: var(--v3-surface);
+  color: var(--v3-ink);
+  border: 1px solid var(--v3-edge);
+  font-size: 14px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 150ms ease, border-color 150ms ease;
+}
+
+.v3-btn-secondary:hover:not(:disabled) {
+  background-color: var(--v3-soft);
+}
+
+.v3-quiet-action {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: none;
+  background: transparent;
+  color: var(--v3-accent);
+  font-size: 14px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background-color 140ms ease, color 140ms ease;
+}
+
+.v3-quiet-action:hover:not(:disabled) {
+  background-color: rgba(66, 101, 129, 0.09);
+}
+
+/* Inputs, Fields & Surface Cards */
+.v3-field-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--v3-muted);
+  margin-bottom: 6px;
+}
+
+.v3-input {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background-color: var(--v3-surface);
+  border: 1px solid var(--v3-edge);
+  color: var(--v3-ink);
+  font-size: 15px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+
+.v3-input:focus {
+  border-color: var(--v3-action);
+  box-shadow: 0 0 0 3px rgba(66, 101, 129, 0.18);
+}
+
+.v3-textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background-color: var(--v3-surface);
+  border: 1px solid var(--v3-edge);
+  color: var(--v3-ink);
+  font-size: 15px;
+  font-family: inherit;
+  line-height: 1.5;
+  outline: none;
+}
+
+.v3-textarea:focus {
+  border-color: var(--v3-action);
+  box-shadow: 0 0 0 3px rgba(66, 101, 129, 0.18);
+}
+
+.v3-card {
+  background-color: var(--v3-surface);
+  border: 1px solid var(--v3-edge);
+  border-radius: 14px;
+}
+
+.v3-raised-box {
+  background-color: var(--v3-raised);
+  border: 1px solid var(--v3-edge);
+  border-radius: 12px;
+}
+
+/* Radio Option Selector Cards (72px rows, r=10px) */
+.v3-radio-card {
+  min-height: 72px;
+  padding: 14px 18px;
+  border-radius: 10px;
+  background-color: var(--v3-surface);
+  border: 1px solid var(--v3-edge);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 150ms ease, border-color 150ms ease;
+}
+
+.v3-radio-card[aria-checked="true"],
+.v3-radio-card.is-selected {
+  background-color: var(--v3-soft);
+  border-color: var(--v3-accent);
+}
+
+/* Frosted Auth Glass Card (380px width, r=24px, blur=14px) */
+.v3-auth-glass-card {
+  width: 100%;
+  max-width: 396px;
+  border-radius: 24px;
+  background-color: var(--v3-surface-glass);
+  border: 1px solid var(--v3-edge);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: var(--v3-shadow-glass);
+  color: var(--v3-ink);
+}
+
+.v3-auth-title {
+  font-size: 46px;
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+  color: var(--v3-ink);
+}
+
+/* Responsive Breakpoints (1024 / 768 / 393 / 390 / 320px) */
+@media (max-width: 767px) {
+  .v3-nav-outer {
+    padding: 14px 12px 0;
+  }
+
+  .v3-nav-pill {
+    padding: 6px 10px 6px 16px;
+    min-height: 52px;
+  }
+
+  .v3-nav-tabs,
+  .v3-avatar-pill {
+    display: none;
+  }
+
+  .v3-main-column {
+    padding: 36px 20px 64px;
+  }
+
+  .v3-page-h1 {
+    font-size: 30px;
+  }
+
+  .v3-case-row {
+    min-height: 88px;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 6px;
+    padding: 16px 8px;
+  }
+
+  .v3-case-row.is-focused {
+    padding: 16px;
+  }
+
+  .v3-case-row-title {
+    font-size: 16px;
+  }
+
+  .v3-case-row-footer-mobile {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .v3-auth-title {
+    font-size: 32px;
+  }
+}
+
+@media (max-width: 359px) {
+  .v3-nav-outer {
+    padding: 12px 10px 0;
+  }
+
+  .v3-main-column {
+    padding: 28px 16px 56px;
+  }
+
+  .v3-page-h1 {
+    font-size: 28px;
+  }
+}
+
+/* Focus ring accessibility */
+.v3-portal-shell :is(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--v3-accent);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .v3-portal-shell,
+  .v3-portal-shell * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
