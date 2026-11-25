@@ -50,7 +50,18 @@ export const CitizenProofPanel: React.FC<{ complaintId: string }> = ({ complaint
       <div className="flex items-center justify-between gap-2"><span className="inline-flex gap-1.5 items-center text-xs font-bold text-emerald-700"><CheckCircle2 size={16}/> Department-reviewed evidence</span><small className="text-[11px] text-[#625D58]">{proof.department_id.toUpperCase()}</small></div>
       {proof.order_status==='returned'&&<p className="rounded-lg bg-amber-50 p-3 text-xs font-semibold text-amber-900" role="status">This repair was returned for further work. The department must submit and review fresh evidence.</p>}
       {proof.order_status==='verified'&&proof.response_expires_at&&<p className="text-xs text-[#625D58]">Review period ends {new Intl.DateTimeFormat('en-PK',{dateStyle:'medium',timeStyle:'short',timeZone:'Asia/Karachi'}).format(new Date(proof.response_expires_at))} (Pakistan time).</p>}
-      {proof.signed_url?<img className="max-w-full max-h-64 w-full object-contain rounded-lg bg-[#E5E3E0]" src={proof.signed_url} alt="Private photo of work submitted and approved by department staff" loading="lazy"/>:<div className="text-xs text-[#625D58] p-3 rounded-lg bg-white">This private photo could not be loaded. Please sign in again to refresh access.</div>}
+      <div className={proof.before_signed_url ? 'grid grid-cols-1 sm:grid-cols-2 gap-3' : ''}>
+        {proof.before_signed_url && (
+          <div>
+            <span className="block text-[11px] font-bold text-[#625D58] mb-1">Before work condition</span>
+            <img className="max-w-full max-h-64 w-full object-contain rounded-lg bg-[#E5E3E0]" src={proof.before_signed_url} alt="Private photo of initial condition before repair" loading="lazy"/>
+          </div>
+        )}
+        <div>
+          {proof.before_signed_url && <span className="block text-[11px] font-bold text-[#126B53] mb-1">Completed repair</span>}
+          {proof.signed_url?<img className="max-w-full max-h-64 w-full object-contain rounded-lg bg-[#E5E3E0]" src={proof.signed_url} alt="Private photo of work submitted and approved by department staff" loading="lazy"/>:<div className="text-xs text-[#625D58] p-3 rounded-lg bg-white">This private photo could not be loaded. Please sign in again to refresh access.</div>}
+        </div>
+      </div>
       <div className="flex gap-2 items-start text-xs text-[#625D58]"><ShieldAlert size={15} className="shrink-0"/><span>Department review checks the image and GPS proximity. This does not scientifically prove that an image was camera-original or free of AI manipulation.</span></div>
       {proof.feedback?<div className="text-xs font-semibold text-[#141414] p-3 bg-white rounded-lg">You marked this work as {proof.feedback}. Your feedback has been recorded.</div>:proof.can_respond?<>
         <label htmlFor={`citizen-work-note-${proof.order_id}`} className="block text-xs font-bold text-[#141414]">Your feedback (required if reporting a problem)</label>

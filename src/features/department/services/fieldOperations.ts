@@ -52,6 +52,7 @@ export interface CitizenWorkProof {
   order_id: string;
   department_id: string;
   storage_path: string;
+  before_storage_path?: string | null;
   submitted_at: string;
   distance_m: number | null;
   location_result: DepartmentProof['location_result'];
@@ -60,6 +61,7 @@ export interface CitizenWorkProof {
   response_expires_at: string | null;
   can_respond: boolean;
   signed_url?: string;
+  before_signed_url?: string;
 }
 
 export type AssignmentInput = {
@@ -371,11 +373,25 @@ class FieldOperationsService {
   async citizenProofs(complaintId: string): Promise<CitizenWorkProof[]> {
     if (!isSupabaseConfigured() || !supabase) return [];
     const client = supabase;
-    const rows = requireSuccess(await client.rpc('v1318_my_work_proofs', { p_complaint: complaintId })) as CitizenWorkProof[];
+    let rows: CitizenWorkProof[];
+    const v14Res = await client.rpc('v14_my_work_proofs', { p_complaint: complaintId });
+    if (!v14Res.error && Array.isArray(v14Res.data)) {
+      rows = v14Res.data as CitizenWorkProof[];
+    } else {
+      rows = requireSuccess(await client.rpc('v1318_my_work_proofs', { p_complaint: complaintId })) as CitizenWorkProof[];
+    }
     const proofRows = await Promise.all(rows.map(async (proof) => {
-      const { data, error } = await client.storage.from('department-work-proof-private')
-        .createSignedUrl(proof.storage_path, 300);
-      return { ...proof, signed_url: error ? undefined : data?.signedUrl };
+      const [{ data, error }, beforeSigned] = await Promise.all([
+        client.storage.from('department-work-proof-private').createSignedUrl(proof.storage_path, 300),
+        proof.before_storage_path
+          ? client.storage.from('department-work-proof-private').createSignedUrl(proof.before_storage_path, 300)
+          : Promise.resolve({ data: null, error: null }),
+      ]);
+      return {
+        ...proof,
+        signed_url: error ? undefined : data?.signedUrl,
+        before_signed_url: beforeSigned?.error ? undefined : beforeSigned?.data?.signedUrl,
+      };
     }));
     return proofRows;
   }
