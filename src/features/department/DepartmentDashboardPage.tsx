@@ -726,6 +726,17 @@ export const DepartmentDashboardPage: React.FC = () => {
         },
       },
       {
+        id: 'review',
+        label: 'Review Queue',
+        meta: 'Supervisor routing verification cases',
+        active: currentSection === 'review',
+        onSelect: () => {
+          setCurrentSection('review');
+          setSelectedCaseId(null);
+          setSelectedReference(null);
+        },
+      },
+      {
         id: 'password',
         label: 'Change passphrase',
         meta: 'Update your account credentials',

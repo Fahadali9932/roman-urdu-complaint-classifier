@@ -27,6 +27,8 @@ describe('AWAAZ-E-AWAM — Staff Classification Review Queue & Routing', () => {
       district: 'South',
       locality: 'Clifton',
       publicLocation: 'Near Boat Basin',
+      incidentLatitude: 24.8138,
+      incidentLongitude: 67.0299,
       title: 'Ambiguous issue',
       description: 'Masla hai pareshani hai help chahiye jaldi',
       isDemonstration: false,
@@ -63,7 +65,9 @@ describe('AWAAZ-E-AWAM — Staff Classification Review Queue & Routing', () => {
       </BrowserRouter>
     );
 
-    // Verify Review Queue navigation item appears in sidebar
+    // Open workspace menu and verify Review Queue navigation item appears with role isolation
+    const menuBtn = await screen.findByRole('button', { name: /Open workspace menu/i });
+    fireEvent.click(menuBtn);
     await waitFor(() => {
       expect(screen.getByText('Review Queue')).toBeInTheDocument();
     });
@@ -79,6 +83,8 @@ describe('AWAAZ-E-AWAM — Staff Classification Review Queue & Routing', () => {
       district: 'East',
       locality: 'Gulshan-e-Iqbal',
       publicLocation: 'Near Disco Bakery',
+      incidentLatitude: 24.9182,
+      incidentLongitude: 67.0971,
       title: 'Road repair query',
       description: 'Sadak par gaddha hai repair kar dein',
       isDemonstration: false,
@@ -116,7 +122,9 @@ describe('AWAAZ-E-AWAM — Staff Classification Review Queue & Routing', () => {
       </BrowserRouter>
     );
 
-    // Switch to Review Queue
+    // Open workspace menu and switch to Review Queue
+    const menuBtn = await screen.findByRole('button', { name: /Open workspace menu/i });
+    fireEvent.click(menuBtn);
     await waitFor(() => {
       const reviewQueueBtn = screen.getByText('Review Queue');
       fireEvent.click(reviewQueueBtn);

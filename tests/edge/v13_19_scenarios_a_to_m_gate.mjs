@@ -79,8 +79,8 @@ test('Scenario F: Field officer submits completion proof with bounding & telemet
   assert.match(proofFunction, /LIMIT = 1024 \* 1024/);
   assert.match(proofFunction, /isSupportedImage/);
   assert.match(proofFunction, /mime === "image\/jpeg"/);
-  assert.match(proofFunction, /latitude < 24\.45 \|\| latitude > 25\.65/);
-  assert.match(proofFunction, /longitude < 66\.25 \|\| longitude > 67\.85/);
+  assert.match(proofFunction, /validateSindhCoordinatesServer\(latitude,\s*longitude\)/);
+  assert.match(proofFunction, /geoCheck\.code/);
   assert.match(proofFunction, /crypto\.subtle\.digest\("SHA-256"/);
   assert.match(sqlV18, /status='pending_review'/);
 });

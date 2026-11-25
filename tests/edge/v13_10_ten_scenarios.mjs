@@ -84,6 +84,8 @@ const basePayload = {
   incidentDistrict: 'District East',
   incidentLocality: 'Gulshan-e-Iqbal',
   incidentPublicLocation: 'Block 13-D Main Road',
+  incidentLatitude: 24.9182,
+  incidentLongitude: 67.0971,
   citizenName: 'Ahmed Raza',
   citizenPhone: '03009876543',
   citizenEmail: 'ahmed@example.com',

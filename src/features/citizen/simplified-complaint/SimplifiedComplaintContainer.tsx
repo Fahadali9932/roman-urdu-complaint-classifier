@@ -86,6 +86,8 @@ interface TestPreset {
   district: KarachiDistrict;
   publicLocation: string;
   address: string;
+  latitude: number;
+  longitude: number;
   description: string;
 }
 
@@ -98,6 +100,8 @@ const PRESET_CASES: TestPreset[] = [
     district: 'District Keamari',
     publicLocation: 'Machar Colony Road',
     address: 'House 42, Sector 5, Machar Colony',
+    latitude: 24.8475,
+    longitude: 66.9854,
     description: 'Humare ghar ke pass wali road kharab hai isko jald se jald theek kiya jae',
   },
   {
@@ -108,6 +112,8 @@ const PRESET_CASES: TestPreset[] = [
     district: 'District East',
     publicLocation: 'Block 4 Main Market',
     address: 'House 12, Street 3, Block 4',
+    latitude: 24.9182,
+    longitude: 67.0971,
     description: 'Bijli nahi aa rahi jiski wajah se pani ki motor nahi chal rahi',
   },
   {
@@ -118,6 +124,8 @@ const PRESET_CASES: TestPreset[] = [
     district: 'District South',
     publicLocation: 'Preedy Street near market',
     address: 'Flat 3-B, Commercial Area',
+    latitude: 24.8594,
+    longitude: 67.0241,
     description: 'Sarak mein gaddha hai aur public pani ki pipeline bhi leak kar rahi hai',
   },
   {
@@ -128,6 +136,8 @@ const PRESET_CASES: TestPreset[] = [
     district: 'District Korangi',
     publicLocation: 'Sector 31-D Main Road',
     address: 'House 88, Street 4, Sector 31-D',
+    latitude: 24.8326,
+    longitude: 67.1512,
     description: 'Gas ka koi masla nahi hai lekin hamari gali se kachra nahi uthaya ja raha',
   },
   {
@@ -138,6 +148,8 @@ const PRESET_CASES: TestPreset[] = [
     district: 'District Central',
     publicLocation: 'Block 2 near petrol pump',
     address: 'House 15, Block 2',
+    latitude: 24.9144,
+    longitude: 67.0321,
     description: 'Public water main phat gayi hai jiski wajah se road bhi dhans gayi. Dono pipeline aur road ko repair karna zaroori hai.',
   },
   {
@@ -148,6 +160,8 @@ const PRESET_CASES: TestPreset[] = [
     district: 'District South',
     publicLocation: 'Block 2 near Boat Basin',
     address: 'House 204, Block 2, Clifton',
+    latitude: 24.8138,
+    longitude: 67.0299,
     description: 'Mohtaram afsaran, main Clifton Block 2 ka rehaishi hun aur nihayat adab se ap ki tawajjuh is ahem maslay ki taraf dilana chahta hun. Pichlay chand hafton se hamare ilaqay ki mukammal main sarak shadeed toot phoot ka shikar hai aur jaga jaga gehre khadday ban chukay hain jis se aam shehriyon aur traffic ko shaded mushkilaat ka samna hai. Barsat ke baad se halat mazeed kharab ho chuki hai aur footpath bhi toot phoot chuka hai. Hum barha ilaqay ke muaziz shehriyon ke sath mil kar guzarish kar chuke hain lekin abhi tak KMC ki taraf se koi amli iqdam nahi uthaya gaya. Rozana subah school jane wale bachay aur daftari mulazmeen is kharab sarak ki wajah se shadeed takleef uthate hain aur gaariyon ko bhi nuqsan pohanch raha hai. Baraye meherbani is shikayat ka fori notice liya jaye aur KMC ki engineering team bhej kar is sarak aur footpath ki jald az jald az-sar-e-nau taameer aur carpeting karwai jaye taake awam ko mazeed pareshani na ho. Shukriya.',
   },
   {
@@ -158,6 +172,8 @@ const PRESET_CASES: TestPreset[] = [
     district: 'District East',
     publicLocation: 'Basia Bungalows Block 4 Gulshan',
     address: 'Bungalow 18, Block 4, Gulshan-e-Iqbal',
+    latitude: 24.9182,
+    longitude: 67.0971,
     description: 'Salam janab Basia Banglows Block 4 Gulshan me bejli ka tranforma jal gya he kal rat se andhera he or sth wali rod b tuti hoi he kachra b para he',
   },
   {
@@ -168,6 +184,8 @@ const PRESET_CASES: TestPreset[] = [
     district: 'District Central',
     publicLocation: 'Liaquatabad No 4 Main Bazaar',
     address: 'House 55, Street 2, Liaquatabad No 4',
+    latitude: 24.9012,
+    longitude: 67.0468,
     description: 'Lanat ho tum sab pe gas nahi arahi subah se chulha nahi chala bache bhooke hain pagal samjha hai kya hume gas ka pressure bilkul zero hai',
   },
 ];
@@ -229,6 +247,7 @@ export const SimplifiedComplaintContainer: React.FC = () => {
         description: preset.description,
       },
     });
+    setIncidentPin({ latitude: preset.latitude, longitude: preset.longitude });
     setStage(3);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };

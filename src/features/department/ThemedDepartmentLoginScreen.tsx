@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShieldAlert, ArrowRight, ArrowLeft } from 'lucide-react';
+import { ShieldAlert, ArrowRight, ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { useDepartmentAuth } from '../../context/DepartmentAuthContext';
 import { isSupabaseConfigured, supabase } from '../../lib/supabase';
@@ -33,6 +33,7 @@ export const ThemedDepartmentLoginScreen: React.FC<ThemedDepartmentLoginScreenPr
 
   const [username, setUsername] = useState('');
   const [accessKey, setAccessKey] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [mfaStep, setMfaStep] = useState(false);
@@ -200,7 +201,7 @@ export const ThemedDepartmentLoginScreen: React.FC<ThemedDepartmentLoginScreenPr
   return (
     <V3AuthShell
       portalTitle={roleTitle || theme.monumentalTitle}
-      eyebrow={`${theme.code} · ${roleTitle ? `${roleTitle} workspace` : theme.shortName}`}
+      eyebrow={targetRole ? `${theme.code} · ${roleTitle} workspace` : `${theme.code} • ${theme.monumentalTitle}`}
       subtitle={theme.jurisdiction}
       artwork={<DepartmentArtwork departmentId={departmentId} />}
       theme={civicTheme}
@@ -233,7 +234,7 @@ export const ThemedDepartmentLoginScreen: React.FC<ThemedDepartmentLoginScreenPr
           {roleTitle ? `${roleTitle} sign in` : 'Sign in'}
         </h2>
         <p className="mt-1 text-[13px]" style={{ color: 'var(--v3-muted)' }}>
-          {roleTitle ? `${theme.name} · Individual ${targetRole} account` : `${theme.name} · ${theme.subtitleEn}`}
+          {roleTitle ? `${theme.name} · Individual ${targetRole} account` : `${theme.name} • ${theme.subtitleEn}`}
         </p>
       </div>
 
@@ -410,17 +411,28 @@ export const ThemedDepartmentLoginScreen: React.FC<ThemedDepartmentLoginScreenPr
             <label htmlFor={isRoads ? 'roads-access-key' : `${departmentId}-access-key`} className="v3-field-label">
               {isLocalDemonstration ? 'Access key (local demo)' : 'Password'}
             </label>
-            <input
-              id={isRoads ? 'roads-access-key' : `${departmentId}-access-key`}
-              type="password"
-              value={accessKey}
-              onChange={(e) => setAccessKey(e.target.value)}
-              placeholder="Enter password"
-              autoComplete="current-password"
-              required
-              disabled={isLoading}
-              className="v3-input"
-            />
+            <div className="relative">
+              <input
+                id={isRoads ? 'roads-access-key' : `${departmentId}-access-key`}
+                type={showPassword ? 'text' : 'password'}
+                value={accessKey}
+                onChange={(e) => setAccessKey(e.target.value)}
+                placeholder="Enter password"
+                autoComplete="current-password"
+                required
+                disabled={isLoading}
+                className="v3-input pr-12"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                className="absolute right-1.5 top-1/2 -translate-y-1/2 inline-flex min-h-[40px] min-w-[40px] items-center justify-center rounded-lg cursor-pointer"
+                style={{ color: 'var(--v3-muted)' }}
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" aria-hidden="true" /> : <Eye className="h-4 w-4" aria-hidden="true" />}
+              </button>
+            </div>
           </div>
 
           <div className="pt-1">
@@ -440,6 +452,7 @@ export const ThemedDepartmentLoginScreen: React.FC<ThemedDepartmentLoginScreenPr
         <button
           type="button"
           onClick={onBackToDepartmentSelection}
+          aria-label="Back to Department Selection"
           className="v3-quiet-action"
         >
           ← Switch Department
