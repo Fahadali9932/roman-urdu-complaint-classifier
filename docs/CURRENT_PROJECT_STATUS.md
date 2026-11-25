@@ -1,9 +1,38 @@
 # Verified current project status
 
-Verified on **24 November 2026 (Pakistan time)**. Internal delivery target:
+Verified on **25 November 2026 (Pakistan time)**. Internal delivery target:
 **5 December 2026**. Read `PROJECT_MASTER_CONTEXT.md` for requirements/history.
 This document distinguishes inspected source, automated checks, and unverified
 hosted behavior. Update it after every significant verified milestone.
+
+## Development update, 25 November 2026 — Phase V14: Atmospheric Civic Glass Portal Integration, Mandatory Sindh Geographical Eligibility & Dual Before/After Work Proof Repair
+
+- **Git & Protected Baseline (`D:\RomanUrdu_V13_19_Review`, branch `feature/v14-figma-portal-integration`):**
+  - Branched from verified baseline `c60858bea9f63aa55fe7b41bdd0dd34a505020a7` (`checkpoint/v13-21-c60858b` preserved locally).
+  - Protected primary worktree `D:\RomanUrdu_ComplaintClassifier_staff_auth` left completely untouched.
+  - Design references extracted from 252 `V3 ·` Figma frames into `docs/V14_IMPLEMENTATION_SPEC.md` and `docs/v14/V3_FIGMA_SPEC_CACHE.md` (`c2179ff`).
+- **Atmospheric Civic Glass Design System & V3 Staff Portals (`e38aa97`, `b783e14`, `71a9d3f`, `757f328`, + final polish):**
+  - Added `DM Sans` typography (`index.html`), scoped V3 tokens (`src/styles/v3-civic-glass.css`), and shared primitives (`src/components/v3/`: `V3TopNav`, `V3WorkspaceMenu`, `V3CaseRow`, `V3PrimaryButton`, `V3AuthShell`).
+  - Integrated Department Head & Field Officer V3 portals: floating frosted pill `DepartmentTopbar`, full-page `V3WorkspaceMenu` (including `Review Queue`), calm `Focus` workbench (`OverviewPage.tsx`), `36×56px` weekly capsule deadline calendar (`DepartmentDeadlinePicker.tsx`), Field Officer `My day`/`Assignments`/`History` scoping (`officerFilter`), V3 `ThemedDepartmentLoginScreen` with Light glass card contrast repair and show/hide password toggle, and `/department/request-access` (`StaffAccessRequestPage.tsx`).
+  - Integrated Central Administrator V3 portal: single-row frosted `AdminHeader` (keeping EN/UR and Light/Dark toggles, `>=44px` hit targets, zero empty `Overview` leakage), synchronized Light/Dark token rules in `admin-portal.css`, and multi-label selection cards in `AiControlCenterPage.tsx`.
+- **Mandatory Sindh Geographical Eligibility (`c899fec` + `IncidentPinPicker.tsx` lifecycle fix):**
+  - Integrated Public Domain `geoBoundaries PAK ADM1 Simplified (2019)` Sindh polygon (`shapeISO: PK-SD`, SHA-256 `e2653ec7189eb025193d91a575387c88b42a136b97cdfd14946e54d1d649c341`; `docs/v14/SINDH_BOUNDARY_PROVENANCE.md`).
+  - Enforced server- and client-side Sindh polygon eligibility separately from Karachi-only municipal agency coverage (`kmc`, `kwsc`, `kelectric`) across `src/lib/geo/sindhEligibility.ts`, `supabase/functions/_shared/sindh-geo.ts`, `IncidentPinPicker.tsx`, `SimplifiedComplaintContainer.tsx`, `SupabaseComplaintService.ts`, `MockComplaintService.ts`, `LocalV11ComplaintService.ts`, and `supabase/functions/submit-classified-complaint/index.ts`.
+  - Eliminated Leaflet `_onZoomTransitionEnd` (`_leaflet_pos`) unmount crash on Step 2 -> Step 3 advancement and stabilized map across EN/UR toggles.
+- **Dual Before/After Work Proof Backend Repair (`9634582`):**
+  - Created additive SQL migration `supabase/migrations/20261205000000_v14_sindh_geo_and_dual_work_proof.sql` widening coordinate CHECK constraints to Sindh (`23.50..28.60`, `66.40..71.20`), adding nullable `before_*` evidence metadata columns with consistency checks, updating `v1318_can_download_proof` and `v1318_record_proof`, and adding `v14_my_work_proofs`.
+  - Updated `supabase/functions/upload-department-work-proof/index.ts` (`MAX_BODY = LIMIT * 2 + 16384`, Sindh GPS check via `validateSindhCoordinatesServer`, magic-byte/SHA-256 checks for `after` + optional `beforePhoto`, atomic cleanup of both paths on RPC failure), `fieldOperations.ts`, and `CitizenProofPanel.tsx`. Added HTTP test suite `tests/edge/v14_dual_work_proof_http.mjs`.
+- **Observed Verification Results (Post Final Code Edits):**
+  - `npm run build` (`tsc -b && vite build`): exit `0` (`1.25s`, 2,255 modules).
+  - `node tools/ai_factory/v13_8_2_verify_production_bundle.mjs`: `PASS` (`1` production JS bundle, clean).
+  - `npm run lint` (`oxlint`): `0 errors` (`169` warnings across 374 files).
+  - `npx vitest run`: **`67` test files passed, `1` skipped (`V13_6_DevelopmentProbe.test.ts`); `688` tests passed, `1` skipped**.
+  - Local Node Edge suites (`node --test` across 12 non-staging `tests/edge/*.mjs` suites): **`106` passed, `0` failed, `0` skipped**.
+  - Python V11 suite (`tests/v11`): **`106` tests passed in `17.771s`** (Run004 classifier weights preserved untouched).
+  - Chrome CDP Headless Browser QA across `1440`, `1024`, `768`, `393`, `390`, `320px` (Light & Dark, pre final 3-line `admin-portal.css` dark refresh-link tweak): `75` checks, `0px` horizontal overflow, `0` uncaught JS exceptions, `0` sub-42px interactive nav/action warnings.
+  - Full implementation record: `docs/V14_IMPLEMENTATION_REPORT.md`.
+- **Remaining Hosted Staging Actions:**
+  - Remote staging (`jvbulmmdwovtgaxojxhn`) is not configured in this local environment; staging SQL migration `20261205000000_v14_sindh_geo_and_dual_work_proof.sql` and Edge Function deployments (`submit-classified-complaint`, `upload-department-work-proof`) remain pending live execution. Production (`akbwiedtmxjxcjscgitw`) was not modified.
 
 ## Development update, 24 November 2026 — Phase V13.21: Calm Operations Portal Redesign, Actionable Attention Ribbons, Pinterest 7-Day Calendar Strip, 5-Stage Dispatch Stepper, Dual Before/After Evidence Pipeline, Central Administrator Operations, Universal Civic Theme System, and Zero Regressions
 

@@ -457,6 +457,7 @@ body[data-theme="light"],
 
 .v21-case-row {
   display: flex;
+  flex-shrink: 0;
   align-items: center;
   justify-content: space-between;
   padding: 14px 18px;

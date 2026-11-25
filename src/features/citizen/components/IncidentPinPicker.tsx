@@ -28,6 +28,8 @@ export function IncidentPinPicker({
   const map = useRef<L.Map | null>(null);
   const marker = useRef<L.Marker | null>(null);
   const onChangeRef = useRef(onChange);
+  const urRef = useRef(ur);
+  urRef.current = ur;
   const [status, setStatus] = useState('');
   const [regionAlert, setRegionAlert] = useState<string | null>(null);
   const [manualLat, setManualLat] = useState(() => (value ? String(value.latitude) : ''));
@@ -47,14 +49,19 @@ export function IncidentPinPicker({
     setManualLon(lon.toFixed(6));
     onChangeRef.current({ latitude: lat, longitude: lon });
     setStatus(sourceLabel);
-    map.current?.setView([lat, lon], Math.max(map.current.getZoom(), 12));
+    map.current?.setView([lat, lon], Math.max(map.current.getZoom(), 12), { animate: false });
     return true;
   };
 
   useEffect(() => {
     if (!container.current || map.current) return;
-    const instance = L.map(container.current, { scrollWheelZoom: false, zoomControl: true })
-      .setView([24.8607, 67.0011], 10);
+    const instance = L.map(container.current, {
+      scrollWheelZoom: false,
+      zoomControl: true,
+      zoomAnimation: false,
+      fadeAnimation: false,
+      markerZoomAnimation: false,
+    }).setView([24.8607, 67.0011], 10);
     map.current = instance;
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap contributors',
@@ -63,16 +70,17 @@ export function IncidentPinPicker({
 
     instance.on('click', (event: L.LeafletMouseEvent) => {
       const { lat, lng } = event.latlng;
+      const isUrdu = urRef.current;
       const check = verifySindhLocation(lat, lng);
       if (!check.eligible) {
-        setRegionAlert(ur ? check.messageUrdu : check.message);
+        setRegionAlert(isUrdu ? check.messageUrdu : check.message);
         return;
       }
       setRegionAlert(null);
       setManualLat(lat.toFixed(6));
       setManualLon(lng.toFixed(6));
       setStatus(
-        ur
+        isUrdu
           ? 'مقام کی تصدیق ہو گئی۔ تبدیل کرنے کے لیے نقشے پر کسی اور جگہ ٹیپ کریں۔'
           : 'Sindh location verified. Tap another point on the map to adjust.'
       );
@@ -82,11 +90,17 @@ export function IncidentPinPicker({
     const timer = window.setTimeout(() => instance.invalidateSize(), 60);
     return () => {
       window.clearTimeout(timer);
-      instance.remove();
+      try {
+        instance.stop();
+        instance.off();
+        instance.remove();
+      } catch {
+        // Ignore teardown race during unmount
+      }
       map.current = null;
       marker.current = null;
     };
-  }, [ur]);
+  }, []);
 
   useEffect(() => {
     if (!map.current) return;

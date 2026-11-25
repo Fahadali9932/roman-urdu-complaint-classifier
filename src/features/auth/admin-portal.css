@@ -3,20 +3,22 @@
    Professional Civic Console Design with WCAG AA Contrast in Light & Dark Modes
    ============================================================================== */
 
-:root {
-  --admin-canvas: var(--v3-canvas, #E8EDF0);
-  --admin-surface: var(--v3-surface, #F1F4F6);
-  --admin-surface-subtle: var(--v3-raised, #DCE5EA);
-  --admin-surface-hover: var(--v3-soft, #D9E4EB);
-  --admin-border: var(--v3-edge, #C4D0D8);
+:root,
+[data-theme="light"] .admin-shell,
+.admin-shell[data-theme="light"] {
+  --admin-canvas: #E8EDF0;
+  --admin-surface: #F1F4F6;
+  --admin-surface-subtle: #DCE5EA;
+  --admin-surface-hover: #D9E4EB;
+  --admin-border: #C4D0D8;
   --admin-border-strong: #9EB0BE;
-  --admin-text-primary: var(--v3-ink, #273746);
-  --admin-text-secondary: var(--v3-ink, #273746);
-  --admin-text-muted: var(--v3-muted, #526575);
+  --admin-text-primary: #273746;
+  --admin-text-secondary: #273746;
+  --admin-text-muted: #526575;
   --admin-text-faint: #677A89;
-  --admin-header-bg: var(--v3-nav-glass, rgba(241, 244, 246, 0.80));
-  --admin-accent: var(--v3-action, #426581);
-  --admin-accent-contrast: var(--v3-onaction, #F0F4F7);
+  --admin-header-bg: rgba(241, 244, 246, 0.80);
+  --admin-accent: #426581;
+  --admin-accent-contrast: #F0F4F7;
 }
 
 .admin-shell {
@@ -141,9 +143,27 @@ html[data-theme="dark"] .admin-shell .text-slate-900 {
   color: var(--admin-text-primary) !important;
 }
 
+[data-theme="dark"] .admin-shell .text-\[\#122E32\],
+.admin-shell[data-theme="dark"] .text-\[\#122E32\],
+html[data-theme="dark"] .admin-shell .text-\[\#122E32\],
+[data-theme="dark"] .admin-shell .text-\[\#075F57\],
+.admin-shell[data-theme="dark"] .text-\[\#075F57\],
+html[data-theme="dark"] .admin-shell .text-\[\#075F57\] {
+  color: var(--admin-accent) !important;
+}
+
 [data-theme="dark"] .admin-shell .text-\[\#64748B\],
 .admin-shell[data-theme="dark"] .text-\[\#64748B\],
-html[data-theme="dark"] .admin-shell .text-\[\#64748B\],
+html[data-theme="dark"] .admin-shell .text-\[\#122E32\],
+.admin-shell[data-theme="dark"] .text-\[\#122E32\],
+html[data-theme="dark"] .admin-shell .text-\[\#122E32\],
+[data-theme="dark"] .admin-shell .text-\[\#075F57\],
+.admin-shell[data-theme="dark"] .text-\[\#075F57\],
+html[data-theme="dark"] .admin-shell .text-\[\#075F57\] {
+  color: var(--admin-accent) !important;
+}
+
+[data-theme="dark"] .admin-shell .text-\[\#64748B\],
 [data-theme="dark"] .admin-shell .text-slate-500,
 .admin-shell[data-theme="dark"] .text-slate-500,
 html[data-theme="dark"] .admin-shell .text-slate-500,

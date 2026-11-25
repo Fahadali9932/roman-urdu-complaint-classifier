@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../../context/LanguageContext';
 import { useAdminAuth } from '../../../context/AdminAuthContext';
+import { useCivicTheme } from '../../department/hooks/useCivicTheme';
 import { LogOut, Globe, Moon, Sun } from 'lucide-react';
 import '../admin-portal.css';
 
@@ -15,18 +16,9 @@ interface AdminHeaderProps {
  */
 export const AdminHeader: React.FC<AdminHeaderProps> = ({ activeTab }) => {
   const { language, setLanguage } = useLanguage();
-  const { adminSession, signOut } = useAdminAuth();
+  const { signOut } = useAdminAuth();
   const navigate = useNavigate();
-
-  const [themeMode, setThemeMode] = useState<'light' | 'dark'>(() => {
-    if (typeof window !== 'undefined' && window.localStorage) {
-      const saved =
-        localStorage.getItem('awaaz_dept_theme_mode') ||
-        localStorage.getItem('aawaaz-demo-theme');
-      if (saved === 'dark' || saved === 'light') return saved;
-    }
-    return 'light';
-  });
+  const { theme: themeMode, toggleTheme } = useCivicTheme();
 
   useEffect(() => {
     document.body.classList.add('v3-civic-active');
@@ -36,18 +28,9 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ activeTab }) => {
   }, []);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const saved =
-        localStorage.getItem('awaaz_dept_theme_mode') ||
-        localStorage.getItem('aawaaz-demo-theme');
-      const mode = saved === 'dark' || saved === 'light' ? saved : 'light';
-      setThemeMode(mode);
-      document.documentElement.setAttribute('data-theme', mode);
-      document.documentElement.classList.toggle('dark', mode === 'dark');
-      const shells = document.querySelectorAll('.admin-shell');
-      shells.forEach((s) => s.setAttribute('data-theme', mode));
-    }
-  }, []);
+    const shells = document.querySelectorAll('.admin-shell');
+    shells.forEach((s) => s.setAttribute('data-theme', themeMode));
+  }, [themeMode]);
 
   const handleSignOut = () => {
     signOut();
@@ -58,27 +41,14 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ activeTab }) => {
     setLanguage(language === 'en' ? 'ur' : 'en');
   };
 
-  const toggleTheme = () => {
-    const next = themeMode === 'light' ? 'dark' : 'light';
-    setThemeMode(next);
-    if (typeof window !== 'undefined' && window.localStorage) {
-      localStorage.setItem('awaaz_dept_theme_mode', next);
-      localStorage.setItem('aawaaz-demo-theme', next);
-      document.documentElement.setAttribute('data-theme', next);
-      document.documentElement.classList.toggle('dark', next === 'dark');
-      const shells = document.querySelectorAll('.admin-shell');
-      shells.forEach((s) => s.setAttribute('data-theme', next));
-    }
-  };
-
   return (
     <div className="v3-nav-outer" style={{ paddingBottom: '12px' }}>
       <header
-        className="v3-nav-pill flex-wrap"
+        className="v3-nav-pill flex-wrap lg:flex-nowrap gap-2"
         style={{
           height: 'auto',
           minHeight: '56px',
-          padding: '8px 14px 8px 18px',
+          padding: '6px 12px 6px 14px',
         }}
       >
         {/* Brand Anchor */}
@@ -93,34 +63,30 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ activeTab }) => {
             a.
           </div>
           <div className="leading-tight">
-            <div className="flex items-center gap-1.5">
-              <span className="text-[14px] font-medium" style={{ color: 'var(--v3-ink)' }}>
-                Awaaz-e-Awam
-              </span>
-              <span className="hidden sm:inline text-[11px] font-medium uppercase tracking-wider" style={{ color: 'var(--v3-muted)' }}>
-                · MAIN ADMINISTRATOR
-              </span>
+            <div className="text-[13.5px] font-medium whitespace-nowrap" style={{ color: 'var(--v3-ink)' }}>
+              Awaaz-e-Awam
             </div>
-            <p className="hidden md:block text-[11px]" style={{ color: 'var(--v3-muted)' }}>
-              {adminSession?.fullName || (language === 'ur' ? 'سپر ایڈمنسٹریٹر' : 'Provincial Civic Oversight')}
+            <p className="hidden sm:block text-[10px] font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: 'var(--v3-muted)' }}>
+              {language === 'ur' ? 'مین ایڈمنسٹریٹر' : 'MAIN ADMINISTRATOR'}
             </p>
           </div>
         </div>
 
         {/* Navigation Pill Links */}
         <nav
-          className="flex items-center gap-1 overflow-x-auto max-w-full"
+          className="flex items-center gap-1 min-w-0 shrink-0"
           aria-label="Admin Navigation"
         >
           <NavLink
             to="/admin/requests"
             data-testid="admin-nav-requests"
-            className={`v3-nav-tab ${activeTab === 'requests' ? 'is-active' : ''}`}
+            className={`v3-nav-tab whitespace-nowrap ${activeTab === 'requests' ? 'is-active' : ''}`}
+            style={{ padding: '0 13px', fontSize: '13px' }}
           >
-            <span className="hidden sm:inline">
+            <span className="hidden md:inline">
               {language === 'ur' ? 'محکمہ درخواستیں' : 'Department Requests'}
             </span>
-            <span className="inline sm:hidden">
+            <span className="inline md:hidden">
               {language === 'ur' ? 'درخواستیں' : 'Requests'}
             </span>
           </NavLink>
@@ -128,12 +94,13 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ activeTab }) => {
           <NavLink
             to="/admin/access"
             data-testid="admin-nav-access"
-            className={`v3-nav-tab ${activeTab === 'access' ? 'is-active' : ''}`}
+            className={`v3-nav-tab whitespace-nowrap ${activeTab === 'access' ? 'is-active' : ''}`}
+            style={{ padding: '0 13px', fontSize: '13px' }}
           >
-            <span className="hidden sm:inline">
+            <span className="hidden md:inline">
               {language === 'ur' ? 'محکمے اور رسائی' : 'People & permissions'}
             </span>
-            <span className="inline sm:hidden">
+            <span className="inline md:hidden">
               {language === 'ur' ? 'رسائی' : 'Permissions'}
             </span>
           </NavLink>
@@ -141,26 +108,28 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ activeTab }) => {
           <NavLink
             to="/admin/ai"
             data-testid="admin-nav-ai"
-            className={`v3-nav-tab ${activeTab === 'ai' ? 'is-active' : ''}`}
+            className={`v3-nav-tab whitespace-nowrap ${activeTab === 'ai' ? 'is-active' : ''}`}
+            style={{ padding: '0 13px', fontSize: '13px' }}
           >
-            <span className="hidden sm:inline">
+            <span className="hidden md:inline">
               {language === 'ur' ? 'اے آئی کا جائزہ' : 'Model review'}
             </span>
-            <span className="inline sm:hidden">
+            <span className="inline md:hidden">
               {language === 'ur' ? 'اے آئی' : 'AI review'}
             </span>
           </NavLink>
 
           <NavLink
             to="/submit"
-            className="v3-nav-tab hidden md:inline-flex"
+            className="v3-nav-tab v3-nav-tab-desktop-only whitespace-nowrap"
+            style={{ padding: '0 13px', fontSize: '13px' }}
           >
             {language === 'ur' ? 'شہری پورٹل' : 'Citizen Portal'}
           </NavLink>
         </nav>
 
         {/* Theme, Language, Sign out */}
-        <div className="v3-nav-actions">
+        <div className="v3-nav-actions shrink-0">
           <button
             type="button"
             onClick={toggleTheme}
@@ -179,23 +148,24 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ activeTab }) => {
           <button
             type="button"
             onClick={toggleLanguage}
-            className="inline-flex min-h-[44px] items-center gap-1 rounded-full px-2.5 text-[12px] font-medium cursor-pointer"
+            className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center gap-1 rounded-full px-2.5 text-[12px] font-medium whitespace-nowrap cursor-pointer"
             style={{ color: 'var(--v3-ink)' }}
             title={language === 'en' ? 'Switch to Urdu' : 'انگریزی میں تبدیل کریں'}
           >
-            <Globe className="h-4 w-4" />
+            <Globe className="h-4 w-4 shrink-0" />
             <span className="hidden sm:inline">{language === 'en' ? 'اردو' : 'English'}</span>
           </button>
 
           <button
             type="button"
             onClick={handleSignOut}
-            className="inline-flex min-h-[44px] items-center gap-1.5 rounded-full px-3 text-[13px] font-medium cursor-pointer"
+            className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center gap-1.5 rounded-full px-2.5 text-[13px] font-medium whitespace-nowrap cursor-pointer"
             style={{ color: 'var(--v3-danger)' }}
+            aria-label={language === 'ur' ? 'لاگ آؤٹ' : 'Sign out'}
             title="Sign Out"
           >
-            <LogOut className="h-4 w-4" />
-            <span className="hidden sm:inline">
+            <LogOut className="h-4 w-4 shrink-0" />
+            <span className="hidden xl:inline">
               {language === 'ur' ? 'لاگ آؤٹ' : 'Sign out'}
             </span>
           </button>

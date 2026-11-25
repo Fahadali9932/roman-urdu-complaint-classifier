@@ -5,6 +5,7 @@
    ============================================================================== */
 
 :root,
+html[data-theme="light"],
 [data-theme="light"] {
   --v3-canvas: #E8EDF0;
   --v3-surface: #F1F4F6;
@@ -30,7 +31,7 @@
 }
 
 [data-theme="dark"],
-.dark {
+html.dark:not([data-theme="light"]) {
   --v3-canvas: #202B35;
   --v3-surface: #283541;
   --v3-surface-glass: rgba(40, 53, 65, 0.86);
@@ -132,10 +133,10 @@ body.v3-civic-active {
 }
 
 .v3-nav-tab {
-  min-width: 96px;
-  height: 36px;
-  padding: 0 16px;
-  border-radius: 18px;
+  min-width: 88px;
+  min-height: 44px;
+  padding: 0 15px;
+  border-radius: 22px;
   font-size: 14px;
   font-weight: 500;
   color: var(--v3-muted);
@@ -149,6 +150,12 @@ body.v3-civic-active {
   text-decoration: none;
   transition: background-color 150ms cubic-bezier(0.22, 1, 0.36, 1),
               color 150ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (max-width: 1279px) {
+  .v3-nav-tab-desktop-only {
+    display: none;
+  }
 }
 
 .v3-nav-tab:hover {

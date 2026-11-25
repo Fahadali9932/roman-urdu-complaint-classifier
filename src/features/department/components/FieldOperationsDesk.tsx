@@ -426,8 +426,8 @@ export const FieldOperationsDesk: React.FC<Props> = ({
                     </h2>
                   </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'var(--v21-bg-surface-subtle)', padding: '4px 10px', borderRadius: '8px', border: '1px solid var(--v21-border-subtle)' }}>
-                    <Search size={14} color="var(--v21-text-tertiary)" />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'var(--v21-bg-surface-subtle)', padding: '6px 10px', borderRadius: '8px', border: '1px solid var(--v21-border-subtle)', flex: '1 1 200px', maxWidth: '260px', minWidth: 0 }}>
+                    <Search size={14} color="var(--v21-text-tertiary)" style={{ flexShrink: 0 }} />
                     <input
                       aria-label="Search cases"
                       placeholder="Search reference or area"
@@ -436,7 +436,7 @@ export const FieldOperationsDesk: React.FC<Props> = ({
                         setSearch(e.target.value);
                         setVisibleLimit(35);
                       }}
-                      style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: '12px', color: 'var(--v21-text-main)', width: '130px' }}
+                      style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: '12px', color: 'var(--v21-text-main)', width: '100%', minWidth: '170px' }}
                     />
                   </div>
                 </div>
@@ -459,6 +459,7 @@ export const FieldOperationsDesk: React.FC<Props> = ({
                         className={`v21-case-row ${isSelected ? 'selected' : ''}`}
                         aria-pressed={isSelected}
                         style={{
+                          flexShrink: 0,
                           borderRadius: '8px',
                           border: isSelected ? '1px solid var(--v21-accent)' : '1px solid var(--v21-border-subtle)',
                           background: isSelected ? 'var(--v21-accent-light)' : 'var(--v21-bg-surface)',
