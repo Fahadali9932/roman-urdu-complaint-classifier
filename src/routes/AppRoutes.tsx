@@ -20,6 +20,7 @@ import { DepartmentPortalLayout } from '../features/department/DepartmentPortalL
 import { DepartmentDashboardPage } from '../features/department/DepartmentDashboardPage';
 import { DepartmentLoginPage } from '../features/department/DepartmentLoginPage';
 import { DepartmentRoleBoundary } from '../features/department/DepartmentRoleBoundary';
+import { StaffAccessRequestPage } from '../features/department/StaffAccessRequestPage';
 import { AdminLoginPage } from '../features/auth/pages/AdminLoginPage';
 import { AdminRequestsPage } from '../features/auth/pages/AdminRequestsPage';
 import { AdminAccessPage } from '../features/auth/pages/AdminAccessPage';
@@ -70,6 +71,7 @@ export const AppRoutes: React.FC = () => {
         <Route path="/department/login" element={<DepartmentLoginPage />} />
         <Route path="/department/head/login" element={<DepartmentLoginPage targetRole="head" />} />
         <Route path="/department/officer/login" element={<DepartmentLoginPage targetRole="officer" />} />
+        <Route path="/department/request-access" element={<StaffAccessRequestPage />} />
         <Route path="/department/head" element={<DepartmentRoleBoundary expectedRole="head" />} />
         <Route path="/department/officer" element={<DepartmentRoleBoundary expectedRole="officer" />} />
         <Route path="/department/settings" element={<Navigate to="/department?view=overview" replace />} />

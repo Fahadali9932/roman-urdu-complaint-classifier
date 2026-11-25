@@ -14,6 +14,7 @@ interface V3AuthShellProps {
   backTo?: string;
   backLabel?: string;
   headerActions?: React.ReactNode;
+  titleAsHeading?: boolean;
   children: React.ReactNode;
 }
 
@@ -35,6 +36,7 @@ export const V3AuthShell: React.FC<V3AuthShellProps> = ({
   backTo = '/',
   backLabel = 'Citizen Portal',
   headerActions,
+  titleAsHeading = true,
   children,
 }) => {
   return (
@@ -125,7 +127,11 @@ export const V3AuthShell: React.FC<V3AuthShellProps> = ({
           <div className="text-[15px] font-medium" style={{ color: 'var(--v3-muted)' }}>
             Awaaz-e-Awam
           </div>
-          <h1 className="v3-auth-title">{portalTitle}</h1>
+          {titleAsHeading ? (
+            <h1 className="v3-auth-title">{portalTitle}</h1>
+          ) : (
+            <div className="v3-auth-title">{portalTitle}</div>
+          )}
           <div className="pt-1 text-[14px] font-medium" style={{ color: 'var(--v3-accent)' }}>
             {eyebrow}
           </div>

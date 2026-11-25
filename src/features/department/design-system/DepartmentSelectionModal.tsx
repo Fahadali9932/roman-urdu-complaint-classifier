@@ -108,7 +108,7 @@ export const DepartmentSelectionModal: React.FC<DepartmentSelectionModalProps> =
       role="dialog"
       aria-modal="true"
       aria-labelledby="choose-department-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/75 backdrop-blur-md animate-fadeIn"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/45 backdrop-blur-md animate-fadeIn"
       onClick={(e) => {
         if (e.target === e.currentTarget) {
           onClose();
@@ -117,18 +117,26 @@ export const DepartmentSelectionModal: React.FC<DepartmentSelectionModalProps> =
     >
       <div
         ref={modalRef}
-        className="w-full max-w-[560px] bg-[#1a191d]/95 backdrop-blur-2xl border border-white/15 rounded-3xl shadow-[0_32px_90px_rgba(0,0,0,0.65)] p-6 sm:p-7 text-white animate-scaleIn"
+        className="w-full max-w-[540px] rounded-[24px] border p-6 sm:p-8 shadow-2xl animate-scaleIn"
+        style={{
+          backgroundColor: 'var(--v3-surface-glass)',
+          borderColor: 'var(--v3-edge)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
+          color: 'var(--v3-ink)',
+        }}
       >
         {/* Modal Header */}
         <div className="flex items-start justify-between pb-5">
           <div>
             <h1
               id="choose-department-title"
-              className="text-2xl sm:text-[26px] font-bold tracking-tight text-white"
+              className="text-[26px] font-medium tracking-tight"
+              style={{ color: 'var(--v3-ink)' }}
             >
               Choose department
             </h1>
-            <p className="text-xs sm:text-sm text-slate-400 mt-1">
+            <p className="mt-1 text-[14px]" style={{ color: 'var(--v3-muted)' }}>
               Continue to your department sign-in.
             </p>
           </div>
@@ -137,42 +145,56 @@ export const DepartmentSelectionModal: React.FC<DepartmentSelectionModalProps> =
             type="button"
             onClick={onClose}
             aria-label="Close department selector"
-            className="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white flex items-center justify-center transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-white/20"
+            className="v3-icon-btn"
           >
-            <X className="w-4 h-4" />
+            <X className="h-4 w-4" />
           </button>
         </div>
 
-        {/* 6 Restrained Department Rows */}
-        <div className="space-y-0 border-t border-white/[0.09]">
+        {/* 6 Clean Hairline Department Rows */}
+        <div className="border-t" style={{ borderColor: 'var(--v3-edge)' }}>
           {DEPARTMENT_CHOICES.map((dept, index) => (
             <button
               key={dept.id}
               ref={index === 0 ? firstButtonRef : undefined}
               type="button"
               onClick={() => onSelectDepartment(dept.id)}
-              className="w-full group flex items-center justify-between py-4 px-2 sm:px-3 text-left border-b border-white/[0.08] hover:bg-white/[0.04] rounded-xl transition-all cursor-pointer focus:outline-none focus:bg-white/[0.06] focus:ring-1 focus:ring-white/20"
+              className="group flex min-h-[56px] w-full items-center justify-between border-b px-3 py-3 text-left transition-colors hover:bg-[var(--v3-soft)]/60 cursor-pointer"
+              style={{ borderColor: 'var(--v3-edge)' }}
             >
-              <div className="flex items-center gap-3.5 min-w-0">
-                <div className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center shrink-0 group-hover:border-white/20 transition-colors">
+              <div className="flex min-w-0 items-center gap-3.5">
+                <div
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] border"
+                  style={{
+                    backgroundColor: 'var(--v3-raised)',
+                    borderColor: 'var(--v3-edge)',
+                  }}
+                >
                   {dept.icon}
                 </div>
-                <span className="font-semibold text-sm sm:text-base text-slate-100 group-hover:text-white transition-colors">
+                <span
+                  className="text-[15px] font-medium"
+                  style={{ color: 'var(--v3-ink)' }}
+                >
                   {dept.name}
                 </span>
               </div>
 
-              <div className="text-slate-500 group-hover:text-white group-hover:translate-x-0.5 transition-all">
-                <ArrowRight className="w-4 h-4" />
-              </div>
+              <ArrowRight
+                className="h-4 w-4 shrink-0 transition-transform group-hover:translate-x-0.5"
+                style={{ color: 'var(--v3-accent)' }}
+              />
             </button>
           ))}
         </div>
 
         {/* Modal Footer Note */}
-        <div className="pt-4 flex items-center justify-between text-xs text-slate-500">
+        <div
+          className="flex items-center justify-between pt-4 text-[12px]"
+          style={{ color: 'var(--v3-muted)' }}
+        >
           <span>Esc to close</span>
-          <span className="text-[11px] text-slate-500/80">Awaaz-e-Awam</span>
+          <span>Awaaz-e-Awam</span>
         </div>
       </div>
     </div>

@@ -14,9 +14,7 @@ import {
   Star,
   X,
   Upload,
-  AlertTriangle,
   Compass,
-  CheckCircle2,
 } from 'lucide-react';
 import { caseOperationsService } from '../../../services/CaseOperationsService';
 import type { IncidentCaseSummary, WorkQueueFilter } from '../../../types/case-operations';
@@ -40,6 +38,7 @@ interface Props {
   userId: string;
   role: StaffPosition;
   view: 'dispatch' | 'field' | 'team' | 'verification' | 'field_archive';
+  officerFilter?: 'today' | 'all';
 }
 
 const formatPKT = (value: string) =>
@@ -71,7 +70,13 @@ const filter: WorkQueueFilter = {
   pageSize: 100,
 };
 
-export const FieldOperationsDesk: React.FC<Props> = ({ departmentId, userId, role, view }) => {
+export const FieldOperationsDesk: React.FC<Props> = ({
+  departmentId,
+  userId,
+  role,
+  view,
+  officerFilter = 'today',
+}) => {
   const [orders, setOrders] = useState<DepartmentWorkOrder[]>([]);
   const [team, setTeam] = useState<DepartmentOfficer[]>([]);
   const [cases, setCases] = useState<IncidentCaseSummary[]>([]);
@@ -148,14 +153,18 @@ export const FieldOperationsDesk: React.FC<Props> = ({ departmentId, userId, rol
   const isHead = role === 'head';
   const heading =
     view === 'team'
-      ? 'Officer roster'
+      ? 'Officers'
       : view === 'verification'
-      ? 'Proof verification'
+      ? 'Proof review'
       : view === 'field_archive'
-      ? 'Verified work archive'
+      ? isHead
+        ? 'Archive'
+        : 'History'
       : isHead
-      ? 'Dispatch desk'
-      : 'My field work';
+      ? 'Dispatch'
+      : officerFilter === 'all'
+      ? 'Assignments'
+      : 'My day';
   const actionable = view === 'verification' ? pending : view === 'field_archive' ? verified : active;
 
   async function execute(action: () => Promise<unknown>, success: string) {
@@ -292,52 +301,35 @@ export const FieldOperationsDesk: React.FC<Props> = ({ departmentId, userId, rol
         </div>
       )}
 
-      {/* Operational Metrics Ribbons */}
+      {/* Calm V3 Operational Summary Strip (replaces heavy 4-box SaaS KPI grid) */}
       {(view === 'dispatch' || view === 'field') && (
-        <div className="v21-ribbon-grid" role="group" aria-label="Operations metrics" style={{ marginBottom: '20px' }}>
-          <div className="v21-ribbon-card">
-            <div>
-              <div className="v21-ribbon-label">Open work</div>
-              <div className="v21-ribbon-number">{active.length}</div>
-              <div style={{ fontSize: '11px', color: 'var(--v21-text-tertiary)', marginTop: '2px' }}>
-                {isHead ? 'Across department' : 'Assigned to you'}
-              </div>
-            </div>
-            <Clock3 size={18} color="var(--v21-text-tertiary)" />
-          </div>
-
-          <div className={`v21-ribbon-card ${overdue.length > 0 ? 'urgent' : ''}`}>
-            <div>
-              <div className="v21-ribbon-label">Past deadline</div>
-              <div className="v21-ribbon-number">{overdue.length}</div>
-              <div style={{ fontSize: '11px', color: 'var(--v21-text-tertiary)', marginTop: '2px' }}>
-                Needs immediate action
-              </div>
-            </div>
-            <AlertTriangle size={18} color={overdue.length > 0 ? 'var(--v21-danger)' : 'var(--v21-text-tertiary)'} />
-          </div>
-
-          <div className={`v21-ribbon-card ${pending.length > 0 ? 'active' : ''}`}>
-            <div>
-              <div className="v21-ribbon-label">Awaiting review</div>
-              <div className="v21-ribbon-number">{pending.length}</div>
-              <div style={{ fontSize: '11px', color: 'var(--v21-text-tertiary)', marginTop: '2px' }}>
-                Submitted evidence
-              </div>
-            </div>
-            <FileCheck2 size={18} color={pending.length > 0 ? 'var(--v21-accent)' : 'var(--v21-text-tertiary)'} />
-          </div>
-
-          <div className="v21-ribbon-card">
-            <div>
-              <div className="v21-ribbon-label">Verified</div>
-              <div className="v21-ribbon-number">{verified.length}</div>
-              <div style={{ fontSize: '11px', color: 'var(--v21-text-tertiary)', marginTop: '2px' }}>
-                Accepted by head
-              </div>
-            </div>
-            <CheckCircle2 size={18} color="var(--v21-text-tertiary)" />
-          </div>
+        <div
+          className="flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-b py-3 text-[13px]"
+          style={{
+            borderColor: 'var(--v3-edge)',
+            color: 'var(--v3-muted)',
+            marginBottom: '22px',
+          }}
+          role="group"
+          aria-label="Operations metrics"
+        >
+          <span>
+            <strong style={{ color: 'var(--v3-ink)' }}>{active.length}</strong> open
+          </span>
+          <span>
+            <strong style={{ color: overdue.length > 0 ? 'var(--v3-danger)' : 'var(--v3-ink)' }}>
+              {overdue.length}
+            </strong>{' '}
+            past deadline
+          </span>
+          {isHead && (
+            <span>
+              <strong style={{ color: 'var(--v3-accent)' }}>{pending.length}</strong> awaiting proof review
+            </span>
+          )}
+          <span>
+            <strong style={{ color: 'var(--v3-ink)' }}>{verified.length}</strong> verified
+          </span>
         </div>
       )}
 
@@ -458,6 +450,9 @@ export const FieldOperationsDesk: React.FC<Props> = ({ departmentId, userId, rol
                         type="button"
                         key={c.id}
                         onClick={() => {
+                          if (selected?.id !== c.id) {
+                            setAssignStage(1);
+                          }
                           setSelected(c);
                           setOfficer('');
                         }}
@@ -1549,8 +1544,8 @@ export const FieldOperationsDesk: React.FC<Props> = ({ departmentId, userId, rol
             <button
               className="v21-btn v21-btn-primary"
               type="submit"
-              disabled={busy || !photo || !location || photo.size > 1048576}
-              style={{ width: '100%', justifyContent: 'center', padding: '10px' }}
+              disabled={busy || !photo || !location || photo.size > 1048576 || (beforePhoto !== null && beforePhoto.size > 1048576)}
+              style={{ width: '100%', justifyContent: 'center', padding: '10px', backgroundColor: 'var(--v3-action)', color: 'var(--v3-onaction)', minHeight: '44px' }}
             >
               <span>Submit for verification</span>
               <ArrowRight size={14} />

@@ -8,10 +8,10 @@ import {
   type ComplaintStatus,
 } from '../../types';
 import {
-  DepartmentSidebar,
   type WorkspaceSection,
   type TaskFilterType,
 } from './components/DepartmentSidebar';
+import { V3WorkspaceMenu, type V3WorkspaceMenuItem } from '../../components/v3';
 import { DepartmentTopbar } from './components/DepartmentTopbar';
 import { supabase, isSupabaseConfigured } from '../../lib/supabase';
 import {
@@ -28,7 +28,6 @@ import { fieldOperations, type StaffPosition } from './services/fieldOperations'
 import { StatusUpdateModal } from './components/StatusUpdateModal';
 import { ReviewAssignmentModal } from './components/ReviewAssignmentModal';
 import {
-  getPriorityQueueCounts,
   type PriorityLevel,
 } from '../../lib/priority-engine';
 import {
@@ -174,28 +173,6 @@ export const DepartmentDashboardPage: React.FC = () => {
     }
   };
 
-  // Sidebar collapse: default false (expanded 248px)
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(() => {
-    if (typeof window !== 'undefined' && window.localStorage) {
-      return (
-        localStorage.getItem('aawaaz-demo-collapsed') === 'yes' ||
-        localStorage.getItem('awaaz_dept_sidebar_collapsed') === 'true'
-      );
-    }
-    return false;
-  });
-
-  const handleToggleSidebarCollapse = () => {
-    setIsSidebarCollapsed((prev) => {
-      const next = !prev;
-      if (typeof window !== 'undefined' && window.localStorage) {
-        localStorage.setItem('aawaaz-demo-collapsed', next ? 'yes' : 'no');
-        localStorage.setItem('awaaz_dept_sidebar_collapsed', String(next));
-      }
-      return next;
-    });
-  };
-
   // Navigation State
   const [currentSection, setCurrentSection] = useState<WorkspaceSection>(() => {
     const v = searchParams.get('view');
@@ -219,15 +196,10 @@ export const DepartmentDashboardPage: React.FC = () => {
     if (v === 'review') return 'under_review';
     return 'all';
   });
-  const [queueMetrics, setQueueMetrics] = useState<{
-    cases: number;
-    reports: number;
-    urgent: number;
-  } | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
   const [isSortMenuOpen, setIsSortMenuOpen] = useState(false);
-  const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
+  const [isWorkspaceMenuOpen, setIsWorkspaceMenuOpen] = useState(false);
   const [staffPosition, setStaffPosition] = useState<StaffPosition | null>(null);
   const [staffRoleError, setStaffRoleError] = useState<string | null>(null);
 
@@ -574,11 +546,6 @@ export const DepartmentDashboardPage: React.FC = () => {
     };
   }, [augmentedComplaints, augmentedReviewComplaints]);
 
-  // Priority Queue counts
-  const priorityQueueCounts = useMemo(() => {
-    return getPriorityQueueCounts(augmentedComplaints);
-  }, [augmentedComplaints]);
-
   // Filter and sort complaints
   const filteredComplaints = useMemo(() => {
     const source = activeTaskFilter === 'under_review' ? augmentedReviewComplaints : augmentedComplaints;
@@ -646,57 +613,147 @@ export const DepartmentDashboardPage: React.FC = () => {
     }
   };
 
+  const workspaceMenuItems: V3WorkspaceMenuItem[] = useMemo(() => {
+    if (staffPosition === 'officer') {
+      return [
+        {
+          id: 'field',
+          label: 'My day',
+          meta: 'Immediate tasks, work in progress, and urgent items',
+          active: currentSection === 'field',
+          onSelect: () => {
+            setCurrentSection('field');
+            setSelectedCaseId(null);
+            setSelectedReference(null);
+          },
+        },
+        {
+          id: 'tasks',
+          label: 'Assignments',
+          meta: 'All active field orders assigned to your account',
+          active: currentSection === 'tasks',
+          onSelect: () => {
+            setCurrentSection('tasks');
+            setSelectedCaseId(null);
+            setSelectedReference(null);
+          },
+        },
+        {
+          id: 'field_archive',
+          label: 'History',
+          meta: 'Submitted evidence and supervisor-verified work',
+          active: currentSection === 'field_archive',
+          onSelect: () => {
+            setCurrentSection('field_archive');
+            setSelectedCaseId(null);
+            setSelectedReference(null);
+          },
+        },
+        {
+          id: 'password',
+          label: 'Change passphrase',
+          meta: 'Update your account credentials',
+          onSelect: () => setIsPasswordModalOpen(true),
+        },
+      ];
+    }
+
+    return [
+      {
+        id: 'dashboard',
+        label: 'Focus',
+        meta: 'Daily decisions requiring supervisor review or dispatch',
+        active: currentSection === 'dashboard' || currentSection === 'overview',
+        onSelect: () => {
+          setCurrentSection('dashboard');
+          setSelectedCaseId(null);
+          setSelectedReference(null);
+        },
+      },
+      {
+        id: 'queue',
+        label: 'Complaints',
+        meta: 'Searchable cases, incident reports, and corroboration',
+        active: currentSection === 'queue' || currentSection === 'tasks',
+        onSelect: () => {
+          setCurrentSection('queue');
+          setSelectedCaseId(null);
+          setSelectedReference(null);
+        },
+      },
+      {
+        id: 'dispatch',
+        label: 'Dispatch',
+        meta: '5-stage assignment workflow and extension requests',
+        active: currentSection === 'dispatch',
+        onSelect: () => {
+          setCurrentSection('dispatch');
+          setSelectedCaseId(null);
+          setSelectedReference(null);
+        },
+      },
+      {
+        id: 'verification',
+        label: 'Proof review',
+        meta: 'Inspect Before/After photographs and GPS proximity',
+        active: currentSection === 'verification',
+        onSelect: () => {
+          setCurrentSection('verification');
+          setSelectedCaseId(null);
+          setSelectedReference(null);
+        },
+      },
+      {
+        id: 'team',
+        label: 'Officers',
+        meta: 'Approved field roster, workload, and verified scorecards',
+        active: currentSection === 'team',
+        onSelect: () => {
+          setCurrentSection('team');
+          setSelectedCaseId(null);
+          setSelectedReference(null);
+        },
+      },
+      {
+        id: 'field_archive',
+        label: 'Archive',
+        meta: 'Verified field history and eligible citizen closures',
+        active: currentSection === 'field_archive' || currentSection === 'archive',
+        onSelect: () => {
+          setCurrentSection('field_archive');
+          setSelectedCaseId(null);
+          setSelectedReference(null);
+        },
+      },
+      {
+        id: 'password',
+        label: 'Change passphrase',
+        meta: 'Update your account credentials',
+        onSelect: () => setIsPasswordModalOpen(true),
+      },
+    ];
+  }, [staffPosition, currentSection]);
+
   return (
     <div
       data-testid="department-workspace"
       data-dept-theme={departmentId}
       data-theme={themeMode}
       data-dept-mode={themeMode}
-      className={`app-shell v21-app-wrapper density-${preferences.density}`}
+      className={`app-shell v21-app-wrapper v3-portal-shell density-${preferences.density}`}
     >
-      {/* Sidebar Navigation */}
-      <DepartmentSidebar
-        currentSection={currentSection}
-        staffPosition={staffPosition}
-        onSelectSection={(sec) => {
-          setCurrentSection(sec);
-          setSelectedReference(null);
-          setSelectedCaseId(null);
-        }}
-        activeTaskFilter={activeTaskFilter}
-        onSelectTaskFilter={(filter) => {
-          setCurrentSection('tasks');
-          setActiveTaskFilter(filter);
-          setSelectedReference(null);
-          setSelectedCaseId(null);
-        }}
-        complaintsCount={queueMetrics?.cases ?? taskCounts.all}
-        priorityCount={queueMetrics?.urgent ?? priorityQueueCounts.urgent}
-        reviewCount={taskCounts.under_review}
-        isCollapsed={isSidebarCollapsed}
-        onToggleCollapse={handleToggleSidebarCollapse}
-        isMobileOpen={isMobileDrawerOpen}
-        onCloseMobileDrawer={() => setIsMobileDrawerOpen(false)}
-      />
-
-      {/* Mobile Backdrop Shade */}
-      <div
-        id="mobileShade"
-        className="mobile-shade"
-        hidden={!isMobileDrawerOpen}
-        onClick={() => setIsMobileDrawerOpen(false)}
-      />
-
       {/* Main Content Shell */}
       <div className="main-shell">
-        {/* Topbar */}
+        {/* V3 Floating Pill Top Navigation */}
         <DepartmentTopbar
           currentSection={currentSection}
           activeTaskFilter={activeTaskFilter}
           selectedReference={selectedReference}
           selectedCaseId={selectedCaseId}
-          onOpenMobileDrawer={() => setIsMobileDrawerOpen(true)}
+          menuOpen={isWorkspaceMenuOpen}
+          onToggleWorkspaceMenu={() => setIsWorkspaceMenuOpen((prev) => !prev)}
           onSelectSection={(sec) => {
+            setIsWorkspaceMenuOpen(false);
             if (sec === 'settings') {
               setCurrentSection('dashboard');
             } else {
@@ -718,9 +775,27 @@ export const DepartmentDashboardPage: React.FC = () => {
         {/* Main Content Area */}
         <main className="page" id="content">
           {staffRoleError && <div className="ops-error-state" role="alert"><AlertCircle size={20}/><div><strong>Staff role not verified</strong><p>{staffRoleError}</p></div></div>}
-          {(currentSection === 'dispatch' || currentSection === 'field' || currentSection === 'team' || currentSection === 'verification' || currentSection === 'field_archive') && departmentId && session?.userId && staffPosition &&
-            ((staffPosition === 'head' && currentSection !== 'field') || (staffPosition === 'officer' && (currentSection === 'field' || currentSection === 'field_archive'))) && (
-            <FieldOperationsDesk departmentId={departmentId} userId={session.userId} role={staffPosition} view={currentSection} />
+          {isWorkspaceMenuOpen ? (
+            <V3WorkspaceMenu
+              subtitle={`${staffPosition === 'officer' ? 'Field Officer' : 'Department Head'} · ${departmentMeta?.code || departmentId?.toUpperCase() || 'KMC'}`}
+              items={workspaceMenuItems}
+              onClose={() => setIsWorkspaceMenuOpen(false)}
+              onSignOut={() => {
+                signOut();
+                navigate(staffPosition ? `/department/${staffPosition}/login?dept=${departmentId}` : '/department/login');
+              }}
+            />
+          ) : (
+            <>
+          {(currentSection === 'dispatch' || currentSection === 'field' || currentSection === 'team' || currentSection === 'verification' || currentSection === 'field_archive' || (staffPosition === 'officer' && currentSection === 'tasks')) && departmentId && session?.userId && staffPosition &&
+            ((staffPosition === 'head' && currentSection !== 'field') || (staffPosition === 'officer' && (currentSection === 'field' || currentSection === 'tasks' || currentSection === 'field_archive'))) && (
+            <FieldOperationsDesk
+              departmentId={departmentId}
+              userId={session.userId}
+              role={staffPosition}
+              view={staffPosition === 'officer' && currentSection === 'tasks' ? 'field' : (currentSection as 'dispatch' | 'field' | 'team' | 'verification' | 'field_archive')}
+              officerFilter={staffPosition === 'officer' && currentSection === 'tasks' ? 'all' : 'today'}
+            />
           )}
           {priorityUpdateError && (
             <div className="ops-error-state" role="alert" style={{ marginBottom:'18px' }}>
@@ -757,7 +832,7 @@ export const DepartmentDashboardPage: React.FC = () => {
           {/* =========================================================================
               VIEW 1: OVERVIEW (ANIMATED CIVIC SERVICE NETWORK V6)
               ========================================================================= */}
-          {(staffPosition === 'head' || import.meta.env.MODE === 'test') && (currentSection === 'dashboard' || currentSection === 'overview') && (
+          {(staffPosition === 'head' || (staffPosition !== 'officer' && import.meta.env.MODE === 'test')) && (currentSection === 'dashboard' || currentSection === 'overview') && (
             <OverviewPage
               departmentId={departmentId || 'kmc'}
               departmentName={departmentMeta?.name || 'Roads & Infrastructure'}
@@ -777,7 +852,7 @@ export const DepartmentDashboardPage: React.FC = () => {
           {/* =========================================================================
               VIEW 2: WORK QUEUE / COMPLAINTS (CASE OPERATIONS DESK V5)
               ========================================================================= */}
-          {(staffPosition === 'head' || import.meta.env.MODE === 'test') && (currentSection === 'queue' || currentSection === 'archive' || currentSection === 'tasks' || currentSection === 'review') && (
+          {(staffPosition === 'head' || (staffPosition !== 'officer' && import.meta.env.MODE === 'test')) && (currentSection === 'queue' || currentSection === 'archive' || currentSection === 'tasks' || currentSection === 'review') && (
             <div>
               {selectedCaseId ? (
                 /* CASE DETAIL VIEW (4 REAL TABS, INCIDENT CORROBORATION, BULK ACCEPT) */
@@ -956,7 +1031,6 @@ export const DepartmentDashboardPage: React.FC = () => {
                   initialArea={selectedAreaFilter}
                   initialSavedView={currentSection === 'archive' ? 'completed' : preferences.defaultQueueView}
                   density={preferences.density}
-                  onCountUpdate={setQueueMetrics}
                   onOpenCase={(caseId) => {
                     setSelectedCaseId(caseId);
                     setSelectedReference(null);
@@ -973,7 +1047,7 @@ export const DepartmentDashboardPage: React.FC = () => {
           {/* =========================================================================
               VIEW 3: AREAS WORKLOAD (CASE OPERATIONS DESK V5)
               ========================================================================= */}
-          {(staffPosition === 'head' || import.meta.env.MODE === 'test') && currentSection === 'areas' && (
+          {(staffPosition === 'head' || (staffPosition !== 'officer' && import.meta.env.MODE === 'test')) && currentSection === 'areas' && (
             <AreasPage
               departmentId={departmentId!}
               onSelectArea={(area) => {
@@ -994,7 +1068,7 @@ export const DepartmentDashboardPage: React.FC = () => {
           {/* =========================================================================
               VIEW 4: PRIORITY QUEUE (SELECTIVE EVIDENCE-BASED TRIAGE)
               ========================================================================= */}
-          {(staffPosition === 'head' || import.meta.env.MODE === 'test') && (currentSection === 'priority' || currentSection === 'priority_queue') && (
+          {(staffPosition === 'head' || (staffPosition !== 'officer' && import.meta.env.MODE === 'test')) && (currentSection === 'priority' || currentSection === 'priority_queue') && (
             <div>
               {selectedReference && selectedComplaint ? (
                 <ComplaintDetailView
@@ -1023,6 +1097,8 @@ export const DepartmentDashboardPage: React.FC = () => {
                 />
               )}
             </div>
+          )}
+            </>
           )}
         </main>
       </div>

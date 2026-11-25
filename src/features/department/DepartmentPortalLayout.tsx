@@ -9,6 +9,13 @@ export const DepartmentPortalLayout: React.FC = () => {
   );
 
   useEffect(() => {
+    document.body.classList.add('v3-civic-active');
+    return () => {
+      document.body.classList.remove('v3-civic-active');
+    };
+  }, []);
+
+  useEffect(() => {
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
 

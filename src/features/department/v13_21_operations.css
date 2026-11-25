@@ -4,51 +4,51 @@
    ============================================================================== */
 
 :root, [data-theme="light"] {
-  --v21-bg-base: #F8FAFC;
-  --v21-bg-surface: #FFFFFF;
-  --v21-bg-surface-subtle: #F1F5F9;
-  --v21-bg-glass: rgba(255, 255, 255, 0.90);
-  --v21-border-subtle: #E2E8F0;
-  --v21-border-strong: #CBD5E1;
-  --v21-text-main: #0F172A;
-  --v21-text-muted: #475569;
-  --v21-text-tertiary: #64748B;
-  --v21-accent: #0F5132;
-  --v21-accent-hover: #0B3D26;
-  --v21-accent-light: #E8F5E9;
-  --v21-danger: #DC2626;
-  --v21-danger-light: #FEF2F2;
-  --v21-warning: #D97706;
-  --v21-warning-light: #FFFBEB;
-  --v21-info: #0284C7;
-  --v21-info-light: #F0F9FF;
-  --v21-shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
-  --v21-shadow-glass: 0 16px 40px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.04);
-  --v21-shadow-menu: 0 12px 32px rgba(0,0,0,0.12);
+  --v21-bg-base: var(--v3-canvas, #E8EDF0);
+  --v21-bg-surface: var(--v3-surface, #F1F4F6);
+  --v21-bg-surface-subtle: var(--v3-raised, #DCE5EA);
+  --v21-bg-glass: var(--v3-surface-glass, rgba(241, 244, 246, 0.86));
+  --v21-border-subtle: var(--v3-edge, #C4D0D8);
+  --v21-border-strong: #9EB0BE;
+  --v21-text-main: var(--v3-ink, #273746);
+  --v21-text-muted: var(--v3-muted, #526575);
+  --v21-text-tertiary: #5E7181;
+  --v21-accent: var(--v3-action, #426581);
+  --v21-accent-hover: var(--v3-action-hover, #35546C);
+  --v21-accent-light: var(--v3-soft, #D9E4EB);
+  --v21-danger: var(--v3-danger, #9B2C2C);
+  --v21-danger-light: var(--v3-danger-soft, rgba(155, 44, 44, 0.10));
+  --v21-warning: var(--v3-warning, #8A5312);
+  --v21-warning-light: var(--v3-warning-soft, rgba(138, 83, 18, 0.11));
+  --v21-info: var(--v3-accent, #365875);
+  --v21-info-light: var(--v3-soft, #D9E4EB);
+  --v21-shadow-sm: 0 2px 10px rgba(39, 55, 70, 0.05);
+  --v21-shadow-glass: var(--v3-shadow-glass, 0 18px 44px rgba(39, 55, 70, 0.16));
+  --v21-shadow-menu: 0 12px 32px rgba(39, 55, 70, 0.14);
 }
 
 [data-theme="dark"] {
-  --v21-bg-base: #0E1116;
-  --v21-bg-surface: #161B22;
-  --v21-bg-surface-subtle: #21262D;
-  --v21-bg-glass: rgba(22, 27, 34, 0.92);
-  --v21-border-subtle: #30363D;
-  --v21-border-strong: #484F58;
-  --v21-text-main: #F0F6FC;
-  --v21-text-muted: #C9D1D9;
-  --v21-text-tertiary: #8B949E;
-  --v21-accent: #2EA043;
-  --v21-accent-hover: #3FB950;
-  --v21-accent-light: rgba(46, 160, 67, 0.15);
-  --v21-danger: #F85149;
-  --v21-danger-light: rgba(248, 81, 73, 0.15);
-  --v21-warning: #F59E0B;
-  --v21-warning-light: rgba(245, 158, 11, 0.15);
-  --v21-info: #38BDF8;
-  --v21-info-light: rgba(56, 189, 248, 0.15);
-  --v21-shadow-sm: 0 1px 3px rgba(0,0,0,0.4);
-  --v21-shadow-glass: 0 16px 40px rgba(0,0,0,0.5), 0 2px 6px rgba(0,0,0,0.3);
-  --v21-shadow-menu: 0 12px 32px rgba(0,0,0,0.6);
+  --v21-bg-base: var(--v3-canvas, #202B35);
+  --v21-bg-surface: var(--v3-surface, #283541);
+  --v21-bg-surface-subtle: var(--v3-raised, #344450);
+  --v21-bg-glass: var(--v3-surface-glass, rgba(40, 53, 65, 0.86));
+  --v21-border-subtle: var(--v3-edge, #475969);
+  --v21-border-strong: #5E7284;
+  --v21-text-main: var(--v3-ink, #E1E8EE);
+  --v21-text-muted: var(--v3-muted, #A9B9C6);
+  --v21-text-tertiary: #96A8B8;
+  --v21-accent: var(--v3-accent, #B1CADC);
+  --v21-accent-hover: #C5D9E8;
+  --v21-accent-light: var(--v3-soft, #304656);
+  --v21-danger: var(--v3-danger, #F28B82);
+  --v21-danger-light: var(--v3-danger-soft, rgba(242, 139, 130, 0.16));
+  --v21-warning: var(--v3-warning, #F5C36D);
+  --v21-warning-light: var(--v3-warning-soft, rgba(245, 195, 109, 0.16));
+  --v21-info: var(--v3-accent, #B1CADC);
+  --v21-info-light: var(--v3-soft, #304656);
+  --v21-shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.28);
+  --v21-shadow-glass: var(--v3-shadow-glass, 0 22px 48px rgba(0, 0, 0, 0.38));
+  --v21-shadow-menu: 0 12px 32px rgba(0, 0, 0, 0.48);
 }
 
 /* Base App Wrapper for Calm Operations */
@@ -56,15 +56,15 @@ html[data-theme="dark"],
 html[data-theme="dark"] body,
 body[data-theme="dark"],
 [data-theme="dark"] body {
-  background-color: var(--v21-bg-base, #0E1116) !important;
-  color: var(--v21-text-main, #F0F6FC) !important;
+  background-color: var(--v21-bg-base, #202B35) !important;
+  color: var(--v21-text-main, #E1E8EE) !important;
 }
 html[data-theme="light"],
 html[data-theme="light"] body,
 body[data-theme="light"],
 [data-theme="light"] body {
-  background-color: var(--v21-bg-base, #F8FAFC) !important;
-  color: var(--v21-text-main, #0F172A) !important;
+  background-color: var(--v21-bg-base, #E8EDF0) !important;
+  color: var(--v21-text-main, #273746) !important;
 }
 
 .v21-app-wrapper {
@@ -72,9 +72,31 @@ body[data-theme="light"],
   color: var(--v21-text-main);
   min-height: 100vh;
   width: 100%;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'DM Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-variation-settings: "opsz" 14;
   transition: background-color 150ms ease, color 150ms ease;
-  overflow-x: hidden;
+  overflow-x: clip;
+  display: block !important;
+}
+
+.v21-app-wrapper .main-shell {
+  margin-left: 0 !important;
+  width: 100% !important;
+  max-width: 100%;
+  background: transparent;
+}
+
+.v21-app-wrapper .page {
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 36px 24px 72px;
+}
+
+@media (max-width: 767px) {
+  .v21-app-wrapper .page {
+    padding: 24px 20px 64px;
+  }
 }
 
 /* Dispatch Layout Grid */
@@ -630,29 +652,30 @@ body[data-theme="light"],
 }
 
 .v21-day-capsule {
-  width: 38px;
-  height: 60px;
-  border-radius: 9999px;
+  width: 36px;
+  height: 56px;
+  border-radius: 18px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
   padding: 6px 0;
-  background: var(--v21-bg-surface);
-  border: 1px solid var(--v21-border-subtle);
+  background: var(--v3-surface, var(--v21-bg-surface));
+  border: 1px solid var(--v3-edge, var(--v21-border-subtle));
+  color: var(--v3-ink, var(--v21-text-main));
   cursor: pointer;
   transition: all 140ms ease;
 }
 
 .v21-day-capsule:hover {
-  border-color: var(--v21-border-strong);
+  border-color: var(--v3-accent, var(--v21-border-strong));
 }
 
 .v21-day-capsule.active {
-  background: var(--v21-text-main);
-  color: var(--v21-bg-surface);
-  border-color: var(--v21-text-main);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  background: var(--v3-action, #426581);
+  color: var(--v3-onaction, #F0F4F7);
+  border-color: var(--v3-action, #426581);
+  box-shadow: 0 4px 12px rgba(39, 55, 70, 0.18);
 }
 
 .v21-day-num {

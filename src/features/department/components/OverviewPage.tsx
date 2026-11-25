@@ -3,18 +3,8 @@ import type { DepartmentId, IncidentCaseSummary, AreaWorkloadSummary } from '../
 import type { WorkspaceSection } from './DepartmentSidebar';
 import { caseOperationsService } from '../../../services/CaseOperationsService';
 import { fieldOperations, type DepartmentWorkOrder } from '../services/fieldOperations';
-import {
-  ArrowRight,
-  ArrowUpRight,
-  Clock,
-  RefreshCw,
-  AlertCircle,
-  ShieldAlert,
-  CalendarClock,
-  FileCheck2,
-  Send,
-  MapPin,
-} from 'lucide-react';
+import { RefreshCw, AlertCircle } from 'lucide-react';
+import { V3CaseRow, V3QuietAction } from '../../../components/v3';
 import '../v13_21_operations.css';
 
 interface OverviewPageProps {
@@ -25,24 +15,18 @@ interface OverviewPageProps {
   density?: 'comfortable' | 'compact';
 }
 
+/**
+ * V3 · Department Head · Focus screen:
+ * Calm operational focal view showing 2-4 highest-priority pending decisions
+ * without heavy metric card clutter.
+ */
 export const OverviewPage: React.FC<OverviewPageProps> = ({
   departmentId,
   departmentName,
   onNavigate,
   onSelectCase,
-  density = 'comfortable',
 }) => {
-  const [summary, setSummary] = useState<{
-    totalCases: number;
-    totalReports: number;
-    casesNeedingResponse: number;
-    casesAccepted: number;
-    reportsAwaitingAck: number;
-    casesInProgress: number;
-    casesCompleted: number;
-    casesUnassigned: number;
-    urgentCases: number;
-  }>({
+  const [summary, setSummary] = useState({
     totalCases: 0,
     totalReports: 0,
     casesNeedingResponse: 0,
@@ -57,7 +41,7 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
   const [orders, setOrders] = useState<DepartmentWorkOrder[]>([]);
   const [nextUpCases, setNextUpCases] = useState<IncidentCaseSummary[]>([]);
   const [topAreas, setTopAreas] = useState<AreaWorkloadSummary[]>([]);
-  const [lastRefreshed, setLastRefreshed] = useState<string>('');
+  const [lastRefreshed, setLastRefreshed] = useState('');
   const [loadState, setLoadState] = useState<'loading' | 'ready' | 'error'>('loading');
   const [reloadKey, setReloadKey] = useState(0);
 
@@ -68,40 +52,31 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
     Promise.all([
       caseOperationsService.getDepartmentWorkSummary(departmentId),
       caseOperationsService.listDepartmentCases(departmentId, {
-        displayMode: 'cases',
         savedView: 'needs',
-        sort: 'attention',
+        displayMode: 'cases',
         searchQuery: '',
         area: 'All areas',
         issueType: 'All issues',
+        sort: 'attention',
         page: 0,
-        pageSize: 5,
+        pageSize: 4,
       }),
       caseOperationsService.listAreaWorkload(departmentId),
-      fieldOperations.orders(departmentId).catch(() => []),
+      fieldOperations.orders(departmentId).catch(() => [] as DepartmentWorkOrder[]),
     ])
-      .then(([workSummary, casesPage, areas, workOrders]) => {
+      .then(([sum, nextPage, areaRows, orderRows]) => {
         if (!active) return;
-        setSummary(workSummary);
-        setNextUpCases(casesPage.items.slice(0, 4));
-        setTopAreas(areas.slice(0, 4));
-        setOrders(workOrders);
+        setSummary(sum);
+        setNextUpCases(nextPage.items.slice(0, 4));
+        setTopAreas(areaRows.slice(0, 4));
+        setOrders(orderRows);
+        setLastRefreshed(
+          new Date().toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit' })
+        );
         setLoadState('ready');
-
-        const now = new Date();
-        const pktTime = now.toLocaleTimeString('en-US', {
-          timeZone: 'Asia/Karachi',
-          hour: 'numeric',
-          minute: '2-digit',
-          hour12: true,
-        });
-        setLastRefreshed(`Updated today at ${pktTime} PKT`);
       })
-      .catch((err) => {
-        if (active) {
-          setLoadState('error');
-          console.warn('Overview data loading failed:', err);
-        }
+      .catch(() => {
+        if (active) setLoadState('error');
       });
 
     return () => {
@@ -109,332 +84,249 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
     };
   }, [departmentId, reloadKey]);
 
-  // Derived counts for the 4 Actionable Attention Ribbon Cards
-  const urgentSafetyCount = useMemo(() => {
-    const criticalCases = nextUpCases.filter((c) => c.priority === 'critical').length;
-    return Math.max(summary.urgentCases || 0, criticalCases);
-  }, [summary.urgentCases, nextUpCases]);
+  const proofPending = useMemo(
+    () => orders.filter((o) => o.status === 'pending_review'),
+    [orders]
+  );
+  const extensionPending = useMemo(
+    () => orders.filter((o) => Boolean(o.extension_requested_due_at)),
+    [orders]
+  );
 
-  const dueTodayCount = useMemo(() => {
-    const now = Date.now();
-    const endOfDay = new Date();
-    endOfDay.setHours(23, 59, 59, 999);
-    return orders.filter((o) => {
-      if (o.status === 'verified') return false;
-      const dueTime = new Date(o.due_at).getTime();
-      return dueTime > now && dueTime <= endOfDay.getTime() + 86400000;
-    }).length;
-  }, [orders]);
+  // Compose 2-4 focused decisions matching V3 Head Focus cadence
+  const decisionItems = useMemo(() => {
+    const rows: Array<{
+      id: string;
+      title: string;
+      meta: string;
+      status: string;
+      tone: 'default' | 'danger' | 'warning' | 'success';
+      actionLabel: string;
+      onAction: () => void;
+    }> = [];
 
-  const proofPendingCount = useMemo(() => {
-    return orders.filter((o) => o.status === 'pending_review').length;
-  }, [orders]);
+    for (const order of proofPending.slice(0, 2)) {
+      rows.push({
+        id: `proof-${order.id}`,
+        title: order.case_label || 'Completed work verification',
+        meta: `Evidence submitted · Due ${new Date(order.due_at).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' })}`,
+        status: 'Proof review',
+        tone: 'warning',
+        actionLabel: 'Review',
+        onAction: () => onNavigate('verification'),
+      });
+    }
 
-  const activeDispatchesCount = useMemo(() => {
-    return summary.casesInProgress + summary.casesUnassigned;
-  }, [summary.casesInProgress, summary.casesUnassigned]);
+    for (const order of extensionPending.slice(0, 1)) {
+      rows.push({
+        id: `ext-${order.id}`,
+        title: order.case_label || 'Deadline extension request',
+        meta: order.extension_reason || 'Requested extra field time',
+        status: 'Extension pending',
+        tone: 'warning',
+        actionLabel: 'Review',
+        onAction: () => onNavigate('dispatch'),
+      });
+    }
+
+    for (const c of nextUpCases) {
+      if (rows.length >= 4) break;
+      rows.push({
+        id: `case-${c.id}`,
+        title: c.title,
+        meta: `${c.caseNumber} · ${c.locality} · ${c.linkedReportCount} ${
+          c.linkedReportCount === 1 ? 'report' : 'reports'
+        }`,
+        status: c.priority === 'critical' ? 'Safety concern' : 'Needs dispatch',
+        tone: c.priority === 'critical' ? 'danger' : 'default',
+        actionLabel: c.assignedStaffId ? 'Inspect' : 'Dispatch',
+        onAction: () => onSelectCase(c.id),
+      });
+    }
+
+    return rows.slice(0, 4);
+  }, [proofPending, extensionPending, nextUpCases, onNavigate, onSelectCase]);
 
   return (
-    <div className={`overview-page v21-content-container ${density === 'compact' ? 'density-compact' : 'density-comfortable'}`}>
-      {/* 1. Calm Civic Page Heading */}
-      <div className="v21-sec-header" style={{ marginBottom: '16px' }}>
+    <div className="mx-auto w-full max-w-[960px]" data-testid="department-overview-view">
+      {/* V3 Focus Header */}
+      <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--v21-text-tertiary)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
-            {departmentName} / OPERATIONS DESK
+          <div className="v3-eyebrow">
+            {departmentId.toUpperCase()} · {departmentName}
           </div>
-          <h1 style={{ fontSize: '20px', fontWeight: 800, margin: '4px 0 2px 0', color: 'var(--v21-text-main)', letterSpacing: '-0.02em' }}>
-            Good work starts here.
-          </h1>
-          <p style={{ fontSize: '13px', color: 'var(--v21-text-muted)', margin: 0 }}>
-            Calm, task-first municipal operations. Address immediate safety risks and dispatch field crews.
+          <h1 className="v3-page-h1">Focus</h1>
+          <p className="mt-2 text-[15px]" style={{ color: 'var(--v3-muted)' }}>
+            Decisions for today — prioritized to keep response calm and timely.
           </p>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <button
-            type="button"
-            className="v21-btn"
-            onClick={() => setReloadKey((key) => key + 1)}
-            aria-label="Refresh department overview"
-            title="Refresh overview"
-          >
-            <RefreshCw size={14} />
+        <div className="flex flex-wrap items-center gap-2">
+          <V3QuietAction onClick={() => setReloadKey((k) => k + 1)} aria-label="Refresh department overview">
+            <RefreshCw className="h-4 w-4" />
             <span>Refresh</span>
-          </button>
+          </V3QuietAction>
           <button
             type="button"
-            className="v21-btn v21-btn-primary"
+            className="v3-btn-primary"
             onClick={() => onNavigate('queue')}
           >
-            <span>Open work queue</span>
-            <ArrowUpRight size={14} />
+            Open complaints
           </button>
         </div>
       </div>
 
       {/* Honest Local Demonstration Notice */}
       {caseOperationsService.isDemonstrationWorkspace() && (
-        <div className="ops-demo-notice" role="note" style={{ marginBottom: '16px' }}>
-          <AlertCircle size={16} aria-hidden="true" />
+        <div
+          className="mt-5 flex items-center gap-2.5 rounded-[12px] px-4 py-3 text-[13px]"
+          style={{
+            backgroundColor: 'var(--v3-raised)',
+            border: '1px solid var(--v3-edge)',
+            color: 'var(--v3-ink)',
+          }}
+          role="note"
+        >
+          <AlertCircle className="h-4 w-4 shrink-0" style={{ color: 'var(--v3-accent)' }} />
           <span>
-            <strong>Local demonstration.</strong> Figures include seeded sample incidents and may not reflect production workload.
+            <strong>Local demonstration.</strong> Figures include seeded sample incidents and do not represent live municipal counts.
           </span>
         </div>
       )}
 
       {loadState === 'error' && (
-        <div className="ops-error-state" role="alert" style={{ marginBottom: '16px' }}>
-          <AlertCircle size={20} />
+        <div
+          className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-[12px] p-4"
+          style={{
+            backgroundColor: 'var(--v3-danger-soft)',
+            border: '1px solid var(--v3-danger)',
+          }}
+          role="alert"
+        >
           <div>
-            <strong>Overview unavailable</strong>
-            <p>We could not load the latest case summary. Existing counts have not been refreshed.</p>
+            <strong className="text-[14px]">Overview unavailable</strong>
+            <p className="text-[13px]" style={{ color: 'var(--v3-muted)' }}>
+              We could not load the latest case summary.
+            </p>
           </div>
-          <button type="button" className="v21-btn" onClick={() => setReloadKey((key) => key + 1)}>
+          <button type="button" className="v3-btn-secondary" onClick={() => setReloadKey((k) => k + 1)}>
             Try again
           </button>
         </div>
       )}
 
       {loadState === 'loading' && (
-        <div className="ops-loading-state" role="status" style={{ padding: '24px 0', color: 'var(--v21-text-muted)' }}>
-          Refreshing department summary…
+        <div className="py-10 text-[14px]" style={{ color: 'var(--v3-muted)' }} role="status">
+          Refreshing department focus…
         </div>
       )}
 
       {loadState === 'ready' && (
         <>
-          {/* 2. Four Actionable Attention Ribbon Cards */}
-          <div className="v21-ribbon-grid" role="group" aria-label="Department priority ribbons">
-            <button
-              type="button"
-              className={`v21-ribbon-card ${urgentSafetyCount > 0 ? 'urgent' : ''}`}
-              onClick={() => onNavigate('queue')}
-            >
-              <div>
-                <div className="v21-ribbon-label">Urgent Safety</div>
-                <div className="v21-ribbon-number">{urgentSafetyCount}</div>
-                <div style={{ fontSize: '11px', color: 'var(--v21-text-tertiary)', marginTop: '2px' }}>
-                  {urgentSafetyCount > 0 ? 'Hazardous incidents' : 'No hazards pending'}
-                </div>
-              </div>
-              <ShieldAlert size={20} color={urgentSafetyCount > 0 ? 'var(--v21-danger)' : 'var(--v21-text-tertiary)'} />
-            </button>
-
-            <button
-              type="button"
-              className={`v21-ribbon-card ${dueTodayCount > 0 ? 'warning' : ''}`}
-              onClick={() => onNavigate('dispatch')}
-            >
-              <div>
-                <div className="v21-ribbon-label">Due Today</div>
-                <div className="v21-ribbon-number">{dueTodayCount}</div>
-                <div style={{ fontSize: '11px', color: 'var(--v21-text-tertiary)', marginTop: '2px' }}>
-                  Work orders nearing SLA
-                </div>
-              </div>
-              <CalendarClock size={20} color={dueTodayCount > 0 ? 'var(--v21-warning)' : 'var(--v21-text-tertiary)'} />
-            </button>
-
-            <button
-              type="button"
-              className={`v21-ribbon-card ${proofPendingCount > 0 ? 'active' : ''}`}
-              onClick={() => onNavigate('dispatch')}
-            >
-              <div>
-                <div className="v21-ribbon-label">Proof Review</div>
-                <div className="v21-ribbon-number">{proofPendingCount}</div>
-                <div style={{ fontSize: '11px', color: 'var(--v21-text-tertiary)', marginTop: '2px' }}>
-                  Photos awaiting sign-off
-                </div>
-              </div>
-              <FileCheck2 size={20} color={proofPendingCount > 0 ? 'var(--v21-accent)' : 'var(--v21-text-tertiary)'} />
-            </button>
-
-            <button
-              type="button"
-              className="v21-ribbon-card"
-              onClick={() => onNavigate('queue')}
-            >
-              <div>
-                <div className="v21-ribbon-label">Active Dispatches</div>
-                <div className="v21-ribbon-number">{activeDispatchesCount}</div>
-                <div style={{ fontSize: '11px', color: 'var(--v21-text-tertiary)', marginTop: '2px' }}>
-                  Crews mobilized & unassigned
-                </div>
-              </div>
-              <Send size={20} color="var(--v21-text-tertiary)" />
-            </button>
-          </div>
-
-          {/* 3. Primary Task Stream: "Immediate Action Required" (Max 3-4 items) */}
-          <section aria-labelledby="v21-immediate-action-heading" style={{ marginBottom: '24px' }}>
-            <div className="v21-sec-header">
-              <h2 id="v21-immediate-action-heading" className="v21-sec-title">
-                Immediate Action Required
-                <span className="v21-sec-counter">{nextUpCases.length} prioritized</span>
+          {/* Decisions for today (2-4 prioritized items) */}
+          <section aria-labelledby="v3-decisions-heading">
+            <div className="flex flex-wrap items-baseline justify-between gap-2">
+              <h2 id="v3-decisions-heading" className="v3-section-heading">
+                Decisions for today
               </h2>
+              <V3QuietAction onClick={() => onNavigate('queue')}>
+                View all {summary.casesNeedingResponse} pending →
+              </V3QuietAction>
+            </div>
+
+            {decisionItems.length > 0 ? (
+              <div>
+                {decisionItems.map((item, idx) => (
+                  <V3CaseRow
+                    key={item.id}
+                    title={item.title}
+                    meta={item.meta}
+                    status={item.status}
+                    statusTone={item.tone}
+                    actionLabel={item.actionLabel}
+                    onAction={item.onAction}
+                    focused={idx === 0}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div
+                className="v3-card p-6 text-[14px]"
+                style={{ color: 'var(--v3-muted)' }}
+              >
+                No pending dispatch, extension, or proof reviews require immediate action.
+              </div>
+            )}
+          </section>
+
+          {/* Compact calm operational totals strip */}
+          <div
+            className="mt-8 flex flex-wrap items-center justify-between gap-4 border-t border-b py-4 text-[13px]"
+            style={{ borderColor: 'var(--v3-edge)', color: 'var(--v3-muted)' }}
+            role="group"
+            aria-label="Department case summary metrics"
+          >
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
               <button
                 type="button"
-                className="v21-sec-link"
                 onClick={() => onNavigate('queue')}
+                className="inline-flex items-baseline gap-1.5 bg-transparent border-0 p-0 cursor-pointer text-left"
+                style={{ color: 'var(--v3-muted)' }}
               >
-                <span>View all {summary.casesNeedingResponse} cases in queue →</span>
+                <strong style={{ color: 'var(--v3-ink)' }}>{summary.totalCases}</strong>
+                <span>Total incident cases</span>
               </button>
-            </div>
-
-            <div className="v21-case-card">
-              {nextUpCases.length > 0 ? (
-                nextUpCases.map((c) => {
-                  const isCritical = c.priority === 'critical';
-                  return (
-                    <div
-                      key={c.id}
-                      className="v21-case-row"
-                      role="button"
-                      tabIndex={0}
-                      onClick={() => onSelectCase(c.id)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault();
-                          onSelectCase(c.id);
-                        }
-                      }}
-                    >
-                      <div className="v21-case-main" style={{ minWidth: 0, flex: 1, maxWidth: '100%', overflow: 'hidden' }}>
-                        <span
-                          className={`v21-status-dot ${isCritical ? 'danger' : c.priority === 'high' ? 'warning' : 'normal'}`}
-                          title={isCritical ? 'Critical Safety Risk' : c.priority}
-                        />
-                        <div style={{ minWidth: 0, flex: 1, maxWidth: '100%', overflow: 'hidden' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                            <span className="v21-meta-code">{c.caseNumber}</span>
-                            <span className="v21-case-title" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block', maxWidth: '100%' }}>
-                              {isCritical && (
-                                <span style={{ color: 'var(--v21-danger)', marginRight: '6px', fontWeight: 700 }}>
-                                  [Safety Risk]
-                                </span>
-                              )}
-                              {c.title}
-                            </span>
-                          </div>
-                          <div className="v21-case-meta" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            <span><MapPin size={12} style={{ display: 'inline', marginRight: '3px' }} />{c.locality}</span>
-                            <span>·</span>
-                            <span>{c.linkedReportCount} citizen {c.linkedReportCount === 1 ? 'report' : 'reports'}</span>
-                            <span>·</span>
-                            <span>Reported {c.ageDays} {c.ageDays === 1 ? 'day' : 'days'} ago</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="v21-case-actions">
-                        <button
-                          type="button"
-                          className="v21-btn v21-btn-primary"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onSelectCase(c.id);
-                          }}
-                        >
-                          <span>Dispatch Officer</span>
-                          <ArrowRight size={13} />
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })
-              ) : (
-                <div style={{ padding: '24px', textAlign: 'center', color: 'var(--v21-text-muted)', fontSize: '13px' }}>
-                  No incident cases currently require immediate triage.
-                </div>
-              )}
-            </div>
-          </section>
-
-          {/* 4. Three Distinct Non-Overlapping Workload Totals (Backward test compatibility) */}
-          <div className="overview-facts-strip" role="group" aria-label="Department case summary metrics" style={{ marginBottom: '24px' }}>
-            <button
-              type="button"
-              className="fact-item"
-              onClick={() => onNavigate('queue')}
-            >
-              <span className="fact-label">Total incident cases</span>
-              <b className="fact-value">{summary.totalCases}</b>
-              <span className="fact-desc">unique public issues</span>
-            </button>
-
-            <button
-              type="button"
-              className="fact-item"
-              onClick={() => onNavigate('queue')}
-            >
-              <span className="fact-label">Citizen reports</span>
-              <b className="fact-value">{summary.totalReports.toLocaleString()}</b>
-              <span className="fact-desc">individually trackable submissions</span>
-            </button>
-
-            <button
-              type="button"
-              className="fact-item"
-              onClick={() => onNavigate('queue')}
-            >
-              <span className="fact-label">Unassigned cases</span>
-              <b className="fact-value fact-alert">{summary.casesUnassigned}</b>
-              <span className="fact-desc">need a responsible officer</span>
-            </button>
-          </div>
-
-          {/* 5. Lower Section: Where help is needed (Top Areas) */}
-          <section aria-labelledby="v21-areas-heading" style={{ marginBottom: '24px' }}>
-            <div className="v21-sec-header">
-              <h2 id="v21-areas-heading" className="v21-sec-title">
-                Where help is needed
-              </h2>
               <button
                 type="button"
-                className="v21-sec-link"
-                onClick={() => onNavigate('areas')}
+                onClick={() => onNavigate('queue')}
+                className="inline-flex items-baseline gap-1.5 bg-transparent border-0 p-0 cursor-pointer text-left"
+                style={{ color: 'var(--v3-muted)' }}
               >
-                <span>View all areas →</span>
+                <strong style={{ color: 'var(--v3-ink)' }}>{summary.totalReports.toLocaleString()}</strong>
+                <span>Citizen reports</span>
               </button>
+              <button
+                type="button"
+                onClick={() => onNavigate('queue')}
+                className="inline-flex items-baseline gap-1.5 bg-transparent border-0 p-0 cursor-pointer text-left"
+                style={{ color: 'var(--v3-muted)' }}
+              >
+                <strong style={{ color: 'var(--v3-danger)' }}>{summary.casesUnassigned}</strong>
+                <span>Unassigned cases</span>
+              </button>
+              <span>
+                <strong style={{ color: 'var(--v3-ink)' }}>{proofPending.length}</strong> Awaiting proof review
+              </span>
             </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '12px' }}>
-              {topAreas.map((a) => (
-                <button
-                  type="button"
-                  key={a.area}
-                  className="v21-ribbon-card"
-                  onClick={() => onNavigate('areas')}
-                >
-                  <div style={{ minWidth: 0 }}>
-                    <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--v21-text-main)' }}>
-                      {a.area}
-                    </div>
-                    <div style={{ fontSize: '11px', color: 'var(--v21-text-tertiary)', marginTop: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {a.topIssues.length > 0 ? a.topIssues.join(', ') : 'Municipal works'}
-                    </div>
-                  </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: '18px', fontWeight: 800, color: 'var(--v21-text-main)' }}>
-                      {a.activeCasesCount}
-                    </div>
-                    <div style={{ fontSize: '10px', color: 'var(--v21-text-tertiary)' }}>
-                      {a.activeCasesCount === 1 ? 'case' : 'cases'}
-                    </div>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </section>
-
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '11px', color: 'var(--v21-text-tertiary)', paddingTop: '12px', borderTop: '1px solid var(--v21-border-subtle)', flexWrap: 'wrap', gap: '8px' }}>
-            <span>Each case represents one incident; its linked citizen reports stay separately traceable.</span>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <Clock size={13} />
-              <span>{lastRefreshed}</span>
-            </div>
+            {lastRefreshed && <span>Updated {lastRefreshed}</span>}
           </div>
+
+          {/* Areas needing attention */}
+          {topAreas.length > 0 && (
+            <section aria-labelledby="v3-areas-heading">
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <h2 id="v3-areas-heading" className="v3-section-heading">
+                  Where help is needed
+                </h2>
+                <V3QuietAction onClick={() => onNavigate('areas')}>
+                  All areas →
+                </V3QuietAction>
+              </div>
+
+              <div>
+                {topAreas.map((area) => (
+                  <V3CaseRow
+                    key={area.area}
+                    title={area.area}
+                    meta={area.topIssues.length > 0 ? area.topIssues.join(', ') : 'Municipal works'}
+                    status={`${area.activeCasesCount} ${area.activeCasesCount === 1 ? 'case' : 'cases'}`}
+                    actionLabel="Open"
+                    onAction={() => onNavigate('areas')}
+                  />
+                ))}
+              </div>
+            </section>
+          )}
         </>
       )}
     </div>
