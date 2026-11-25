@@ -4,19 +4,19 @@
    ============================================================================== */
 
 :root {
-  --admin-canvas: #f8fafc;
-  --admin-surface: #ffffff;
-  --admin-surface-subtle: #f1f5f9;
-  --admin-surface-hover: #f8fafc;
-  --admin-border: #e2e8f0;
-  --admin-border-strong: #cbd5e1;
-  --admin-text-primary: #0f1e21;
-  --admin-text-secondary: #334155;
-  --admin-text-muted: #64748b;
-  --admin-text-faint: #94a3b8;
-  --admin-header-bg: #ffffff;
-  --admin-accent: #0f1e21;
-  --admin-accent-contrast: #ffffff;
+  --admin-canvas: var(--v3-canvas, #E8EDF0);
+  --admin-surface: var(--v3-surface, #F1F4F6);
+  --admin-surface-subtle: var(--v3-raised, #DCE5EA);
+  --admin-surface-hover: var(--v3-soft, #D9E4EB);
+  --admin-border: var(--v3-edge, #C4D0D8);
+  --admin-border-strong: #9EB0BE;
+  --admin-text-primary: var(--v3-ink, #273746);
+  --admin-text-secondary: var(--v3-ink, #273746);
+  --admin-text-muted: var(--v3-muted, #526575);
+  --admin-text-faint: #677A89;
+  --admin-header-bg: var(--v3-nav-glass, rgba(241, 244, 246, 0.80));
+  --admin-accent: var(--v3-action, #426581);
+  --admin-accent-contrast: var(--v3-onaction, #F0F4F7);
 }
 
 .admin-shell {
@@ -27,37 +27,38 @@
   max-width: 100vw;
   overflow-x: hidden;
   box-sizing: border-box;
+  font-family: 'DM Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-variation-settings: "opsz" 14;
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .admin-shell main {
   width: 100%;
-  max-width: 80rem;
+  max-width: 1040px;
   min-width: 0;
   box-sizing: border-box;
 }
 
 /* ==============================================================================
-   DARK THEME: PURPOSE-BUILT CIVIC CONSOLE PALETTE
-   High-contrast, non-reflective surfaces for continuous operations oversight.
+   DARK THEME: ATMOSPHERIC CIVIC GLASS PALETTE
    ============================================================================== */
 
 [data-theme="dark"] .admin-shell,
 .admin-shell[data-theme="dark"],
 html[data-theme="dark"] .admin-shell {
-  --admin-canvas: #0b1117;
-  --admin-surface: #141c24;
-  --admin-surface-subtle: #1a2530;
-  --admin-surface-hover: #22303e;
-  --admin-border: #263544;
-  --admin-border-strong: #384b5e;
-  --admin-text-primary: #f0f4f8;
-  --admin-text-secondary: #cbd5e1;
-  --admin-text-muted: #94a3b8;
-  --admin-text-faint: #64748b;
-  --admin-header-bg: #101720;
-  --admin-accent: #38bdf8;
-  --admin-accent-contrast: #0b1117;
+  --admin-canvas: var(--v3-canvas, #202B35);
+  --admin-surface: var(--v3-surface, #283541);
+  --admin-surface-subtle: var(--v3-raised, #344450);
+  --admin-surface-hover: var(--v3-soft, #304656);
+  --admin-border: var(--v3-edge, #475969);
+  --admin-border-strong: #5E7284;
+  --admin-text-primary: var(--v3-ink, #E1E8EE);
+  --admin-text-secondary: var(--v3-ink, #E1E8EE);
+  --admin-text-muted: var(--v3-muted, #A9B9C6);
+  --admin-text-faint: #8FA3B3;
+  --admin-header-bg: var(--v3-nav-glass, rgba(40, 53, 65, 0.82));
+  --admin-accent: var(--v3-accent, #B1CADC);
+  --admin-accent-contrast: #202B35;
 }
 
 /* Header & Navigation Bar in Dark Mode */
@@ -315,16 +316,20 @@ html[data-theme="dark"] .admin-shell div[role="dialog"] > div {
   color: var(--admin-text-primary) !important;
 }
 
-/* Primary Action Buttons */
+/* Primary Action Buttons (Atmospheric Civic Glass Slate-Blue) */
+.admin-shell button[class*="bg-[#0F1E21]"] {
+  background-color: var(--v3-action, #426581) !important;
+  color: var(--v3-onaction, #F0F4F7) !important;
+}
 .admin-shell button[class*="bg-[#0F1E21]"]:hover {
-  background-color: #1e3a3f !important;
+  background-color: var(--v3-action-hover, #35546C) !important;
 }
 
 [data-theme="dark"] .admin-shell button[class*="bg-[#0F1E21]"] {
-  background-color: #1a4a40 !important;
-  color: #ffffff !important;
+  background-color: var(--v3-action, #436581) !important;
+  color: var(--v3-onaction, #EFF4F7) !important;
 }
 
 [data-theme="dark"] .admin-shell button[class*="bg-[#0F1E21]"]:hover {
-  background-color: #235e52 !important;
+  background-color: var(--v3-action-hover, #517796) !important;
 }

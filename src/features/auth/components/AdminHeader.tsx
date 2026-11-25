@@ -2,13 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../../context/LanguageContext';
 import { useAdminAuth } from '../../../context/AdminAuthContext';
-import { Shield, LogOut, Globe, FileText, UserCheck, Users, Cpu, Moon, Sun } from 'lucide-react';
+import { LogOut, Globe, Moon, Sun } from 'lucide-react';
 import '../admin-portal.css';
 
 interface AdminHeaderProps {
   activeTab: 'overview' | 'complaints' | 'requests' | 'access' | 'ai';
 }
 
+/**
+ * Floating 1120x56px frosted pill header for the Central Administrator workspace,
+ * preserving bilingual toggle, theme persistence, and zero-oversight-leak sign out.
+ */
 export const AdminHeader: React.FC<AdminHeaderProps> = ({ activeTab }) => {
   const { language, setLanguage } = useLanguage();
   const { adminSession, signOut } = useAdminAuth();
@@ -16,18 +20,30 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ activeTab }) => {
 
   const [themeMode, setThemeMode] = useState<'light' | 'dark'>(() => {
     if (typeof window !== 'undefined' && window.localStorage) {
-      const saved = localStorage.getItem('awaaz_dept_theme_mode') || localStorage.getItem('aawaaz-demo-theme');
+      const saved =
+        localStorage.getItem('awaaz_dept_theme_mode') ||
+        localStorage.getItem('aawaaz-demo-theme');
       if (saved === 'dark' || saved === 'light') return saved;
     }
     return 'light';
   });
 
   useEffect(() => {
+    document.body.classList.add('v3-civic-active');
+    return () => {
+      document.body.classList.remove('v3-civic-active');
+    };
+  }, []);
+
+  useEffect(() => {
     if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('awaaz_dept_theme_mode') || localStorage.getItem('aawaaz-demo-theme');
-      const mode = (saved === 'dark' || saved === 'light') ? saved : 'light';
+      const saved =
+        localStorage.getItem('awaaz_dept_theme_mode') ||
+        localStorage.getItem('aawaaz-demo-theme');
+      const mode = saved === 'dark' || saved === 'light' ? saved : 'light';
       setThemeMode(mode);
       document.documentElement.setAttribute('data-theme', mode);
+      document.documentElement.classList.toggle('dark', mode === 'dark');
       const shells = document.querySelectorAll('.admin-shell');
       shells.forEach((s) => s.setAttribute('data-theme', mode));
     }
@@ -49,90 +65,58 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ activeTab }) => {
       localStorage.setItem('awaaz_dept_theme_mode', next);
       localStorage.setItem('aawaaz-demo-theme', next);
       document.documentElement.setAttribute('data-theme', next);
+      document.documentElement.classList.toggle('dark', next === 'dark');
       const shells = document.querySelectorAll('.admin-shell');
       shells.forEach((s) => s.setAttribute('data-theme', next));
     }
   };
 
   return (
-    <header className="bg-white border-b border-[#E2E8F0] sticky top-0 z-30 shadow-xs">
-      {/* Top Bar: Identity & Controls */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          {/* Brand & Monogram */}
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-[#0F1E21] text-white flex items-center justify-center font-mono font-bold text-base shadow-sm">
-              a.
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-mono font-bold tracking-wider text-[#0F1E21] uppercase">
-                  AWAAZ-E-AWAM
-                </span>
-                <span className="text-xs text-[#94A3B8]">/</span>
-                <span className="hidden sm:flex text-xs font-semibold text-[#122E32] items-center gap-1">
-                  <Shield className="w-3.5 h-3.5 text-[#122E32]" />
-                  {language === 'ur' ? 'مین ایڈمنسٹریٹر' : 'MAIN ADMINISTRATOR'}
-                </span>
-              </div>
-              <p className="text-[11px] text-[#64748B]">
-                {adminSession?.fullName || (language === 'ur' ? 'سپر ایڈمنسٹریٹر' : 'Provincial Civic Oversight')}
-              </p>
-            </div>
+    <div className="v3-nav-outer" style={{ paddingBottom: '12px' }}>
+      <header
+        className="v3-nav-pill flex-wrap"
+        style={{
+          height: 'auto',
+          minHeight: '56px',
+          padding: '8px 14px 8px 18px',
+        }}
+      >
+        {/* Brand Anchor */}
+        <div className="flex items-center gap-2.5 shrink-0">
+          <div
+            className="flex h-8 w-8 items-center justify-center rounded-full text-[14px] font-semibold"
+            style={{
+              backgroundColor: 'var(--v3-action)',
+              color: 'var(--v3-onaction)',
+            }}
+          >
+            a.
           </div>
-
-          {/* Controls: Theme toggle, Language toggle & Sign out */}
-          <div className="flex items-center gap-2 sm:gap-3">
-            <button
-              type="button"
-              onClick={toggleTheme}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#E2E8F0] hover:bg-[#F8FAFC] text-xs font-semibold text-[#0F1E21] transition-colors cursor-pointer"
-              title={themeMode === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
-              aria-label={themeMode === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
-            >
-              {themeMode === 'light' ? <Moon className="w-3.5 h-3.5 text-[#64748B]" /> : <Sun className="w-3.5 h-3.5 text-amber-400" />}
-              <span className="hidden sm:inline">{themeMode === 'light' ? 'Dark' : 'Light'}</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={toggleLanguage}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#E2E8F0] hover:bg-[#F8FAFC] text-xs font-semibold text-[#0F1E21] transition-colors cursor-pointer"
-              title={language === 'en' ? 'Switch to Urdu' : 'انگریزی میں تبدیل کریں'}
-            >
-              <Globe className="w-3.5 h-3.5 text-[#64748B]" />
-              <span>{language === 'en' ? 'اردو' : 'English'}</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={handleSignOut}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-50 border border-rose-200 hover:bg-rose-100 text-xs font-semibold text-rose-700 transition-colors cursor-pointer"
-              title="Sign Out"
-            >
-              <LogOut className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">
-                {language === 'ur' ? 'لاگ آؤٹ' : 'Sign out'}
+          <div className="leading-tight">
+            <div className="flex items-center gap-1.5">
+              <span className="text-[14px] font-medium" style={{ color: 'var(--v3-ink)' }}>
+                Awaaz-e-Awam
               </span>
-            </button>
+              <span className="hidden sm:inline text-[11px] font-medium uppercase tracking-wider" style={{ color: 'var(--v3-muted)' }}>
+                · MAIN ADMINISTRATOR
+              </span>
+            </div>
+            <p className="hidden md:block text-[11px]" style={{ color: 'var(--v3-muted)' }}>
+              {adminSession?.fullName || (language === 'ur' ? 'سپر ایڈمنسٹریٹر' : 'Provincial Civic Oversight')}
+            </p>
           </div>
         </div>
 
-        {/* Primary Navigation Rail (Figma 35:1065 / 35:1129) */}
+        {/* Navigation Pill Links */}
         <nav
-          className="flex items-center gap-2 sm:gap-7 -mb-px overflow-x-visible"
+          className="flex items-center gap-1 overflow-x-auto max-w-full"
           aria-label="Admin Navigation"
         >
           <NavLink
             to="/admin/requests"
             data-testid="admin-nav-requests"
-            className={`py-3 text-xs sm:text-sm font-semibold border-b-2 flex items-center gap-1.5 sm:gap-2 transition-colors whitespace-nowrap ${
-              activeTab === 'requests'
-                ? 'border-[#0F1E21] text-[#0F1E21]'
-                : 'border-transparent text-[#64748B] hover:text-[#0F1E21]'
-            }`}
+            className={`v3-nav-tab ${activeTab === 'requests' ? 'is-active' : ''}`}
           >
-            <UserCheck className="w-4 h-4" />
             <span className="hidden sm:inline">
               {language === 'ur' ? 'محکمہ درخواستیں' : 'Department Requests'}
             </span>
@@ -144,53 +128,83 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ activeTab }) => {
           <NavLink
             to="/admin/access"
             data-testid="admin-nav-access"
-            className={`py-3 text-xs sm:text-sm font-semibold border-b-2 flex items-center gap-1.5 sm:gap-2 transition-colors whitespace-nowrap ${
-              activeTab === 'access'
-                ? 'border-[#0F1E21] text-[#0F1E21]'
-                : 'border-transparent text-[#64748B] hover:text-[#0F1E21]'
-            }`}
+            className={`v3-nav-tab ${activeTab === 'access' ? 'is-active' : ''}`}
           >
-            <Users className="w-4 h-4" />
             <span className="hidden sm:inline">
               {language === 'ur' ? 'محکمے اور رسائی' : 'People & permissions'}
             </span>
             <span className="inline sm:hidden">
-              {language === 'ur' ? 'رسائی' : 'Access'}
+              {language === 'ur' ? 'رسائی' : 'Permissions'}
             </span>
           </NavLink>
 
           <NavLink
             to="/admin/ai"
             data-testid="admin-nav-ai"
-            className={`py-3 text-xs sm:text-sm font-semibold border-b-2 flex items-center gap-1.5 sm:gap-2 transition-colors whitespace-nowrap ${
-              activeTab === 'ai'
-                ? 'border-[#0F1E21] text-[#0F1E21]'
-                : 'border-transparent text-[#64748B] hover:text-[#0F1E21]'
-            }`}
+            className={`v3-nav-tab ${activeTab === 'ai' ? 'is-active' : ''}`}
           >
-            <Cpu className="w-4 h-4" />
             <span className="hidden sm:inline">
               {language === 'ur' ? 'اے آئی کا جائزہ' : 'Model review'}
             </span>
             <span className="inline sm:hidden">
-              {language === 'ur' ? 'اے آئی' : 'AI Review'}
+              {language === 'ur' ? 'اے آئی' : 'AI review'}
             </span>
           </NavLink>
 
           <NavLink
             to="/submit"
-            className="py-3 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-[#64748B] hover:text-[#0F1E21] flex items-center gap-1.5 sm:gap-2 transition-colors whitespace-nowrap"
+            className="v3-nav-tab hidden md:inline-flex"
           >
-            <FileText className="w-4 h-4" />
-            <span className="hidden sm:inline">
-              {language === 'ur' ? 'شہری پورٹل' : 'Citizen Portal'}
-            </span>
-            <span className="inline sm:hidden">
-              {language === 'ur' ? 'شہری' : 'Citizen'}
-            </span>
+            {language === 'ur' ? 'شہری پورٹل' : 'Citizen Portal'}
           </NavLink>
         </nav>
-      </div>
-    </header>
+
+        {/* Theme, Language, Sign out */}
+        <div className="v3-nav-actions">
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className="v3-icon-btn"
+            title={themeMode === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+            aria-label={themeMode === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+            data-testid="v3-admin-theme-toggle"
+          >
+            {themeMode === 'light' ? (
+              <Moon className="h-[18px] w-[18px]" />
+            ) : (
+              <Sun className="h-[18px] w-[18px]" />
+            )}
+          </button>
+
+          <button
+            type="button"
+            onClick={toggleLanguage}
+            className="inline-flex min-h-[44px] items-center gap-1 rounded-full px-2.5 text-[12px] font-medium cursor-pointer"
+            style={{ color: 'var(--v3-ink)' }}
+            title={language === 'en' ? 'Switch to Urdu' : 'انگریزی میں تبدیل کریں'}
+          >
+            <Globe className="h-4 w-4" />
+            <span className="hidden sm:inline">{language === 'en' ? 'اردو' : 'English'}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleSignOut}
+            className="inline-flex min-h-[44px] items-center gap-1.5 rounded-full px-3 text-[13px] font-medium cursor-pointer"
+            style={{ color: 'var(--v3-danger)' }}
+            title="Sign Out"
+          >
+            <LogOut className="h-4 w-4" />
+            <span className="hidden sm:inline">
+              {language === 'ur' ? 'لاگ آؤٹ' : 'Sign out'}
+            </span>
+          </button>
+
+          <div className="v3-avatar-pill" title="Central Administrator">
+            A
+          </div>
+        </div>
+      </header>
+    </div>
   );
 };

@@ -642,30 +642,43 @@ export const AiControlCenterPage: React.FC = () => {
                     </p>
                   </div>
 
-                  {/* Multi-Label Department Checkboxes */}
+                  {/* Multi-Label Department Selection (72px cards + checkboxes) */}
                   <div className="mb-4">
                     <span className="text-xs text-slate-700 font-bold block mb-2">
                       Assign One or Two Confirmed Municipal Departments (3+ requires separate triage):
                     </span>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                      {DEPARTMENTS.map((d) => (
-                        <label
-                          key={d.id}
-                          className={`flex items-center gap-2 p-2 rounded border text-xs cursor-pointer ${
-                            selectedDepts.includes(d.id)
-                              ? 'bg-emerald-50 border-emerald-400 text-emerald-900 font-bold'
-                              : 'bg-white border-slate-200 text-slate-700'
-                          }`}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={selectedDepts.includes(d.id)}
-                            onChange={() => handleToggleDept(d.id)}
-                            className="rounded text-emerald-600"
-                          />
-                          <span>{d.name}</span>
-                        </label>
-                      ))}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      {DEPARTMENTS.map((d) => {
+                        const checked = selectedDepts.includes(d.id);
+                        return (
+                          <label
+                            key={d.id}
+                            className={`flex min-h-[58px] items-center justify-between gap-2 px-3.5 py-2.5 rounded-[10px] border text-xs cursor-pointer transition-colors ${
+                              checked
+                                ? 'font-semibold'
+                                : ''
+                            }`}
+                            style={{
+                              backgroundColor: checked ? 'var(--v3-soft)' : 'var(--v3-surface)',
+                              borderColor: checked ? 'var(--v3-accent)' : 'var(--v3-edge)',
+                              color: 'var(--v3-ink)',
+                            }}
+                          >
+                            <span className="flex items-center gap-2.5">
+                              <input
+                                type="checkbox"
+                                checked={checked}
+                                onChange={() => handleToggleDept(d.id)}
+                                className="rounded"
+                              />
+                              <span>{d.name}</span>
+                            </span>
+                            <span className="text-[11px] uppercase" style={{ color: 'var(--v3-muted)' }}>
+                              {d.id}
+                            </span>
+                          </label>
+                        );
+                      })}
                     </div>
                   </div>
 
