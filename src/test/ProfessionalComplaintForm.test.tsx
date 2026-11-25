@@ -54,6 +54,9 @@ describe('Complaint form safeguards', () => {
     fireEvent.change(screen.getByLabelText(/area \/ locality/i), { target: { value: 'Saddar' } });
     fireEvent.change(screen.getByLabelText(/street, block or nearby landmark/i), { target: { value: 'Frere Road' } });
     fireEvent.change(screen.getByLabelText(/home address/i), { target: { value: 'House 99, Saddar' } });
+    fireEvent.change(screen.getByLabelText(/^Latitude$/i), { target: { value: '24.8607' } });
+    fireEvent.change(screen.getByLabelText(/^Longitude$/i), { target: { value: '67.0011' } });
+    fireEvent.click(screen.getByRole('button', { name: /verify location/i }));
     fireEvent.click(screen.getByRole('button', { name: /continue/i }));
     const description = await screen.findByLabelText(/complaint description/i);
     fireEvent.change(description, { target: { value: Array.from({ length: 205 }, (_, index) => `word${index}`).join(' ') } });

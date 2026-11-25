@@ -37,6 +37,7 @@ function createMockDatabase(user = { id: 'test-user', role: 'citizen' }, quota =
         select() { return this; },
         eq() { return this; },
         maybeSingle: async () => ({ data: { role: user.role } }),
+        insert: async () => ({ error: null }),
       };
     },
     rpc: async (fn, args) => {
@@ -102,6 +103,8 @@ const draftBase = {
   incidentDistrict: 'District East',
   incidentLocality: 'Gulshan Block 7',
   incidentPublicLocation: 'Street 4 Main Market',
+  incidentLatitude: 24.9056,
+  incidentLongitude: 67.0822,
   citizenName: 'Fahad',
   citizenPhone: '03001234567',
   residentialAddress: 'House 12, Block 7',
@@ -281,6 +284,60 @@ test('Local HTTP Server: Shared quota denial returns Retry-After without classif
   assert.equal(response.status, 429);
   assert.equal((await response.json()).code, 'RATE_LIMITED');
   assert.equal(response.headers.get('Retry-After'), '60');
+  assert.equal(db.writes.length, 0);
+});
+
+test('Local HTTP Server: Missing incident coordinates rejected with LOCATION_REQUIRED before DB writes', async () => {
+  const db = createMockDatabase();
+  const { incidentLatitude: _a, incidentLongitude: _b, ...withoutCoords } = draftBase;
+  const response = await fetch(`${baseUrl}/submit`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ...withoutCoords, description: 'Gas ki supply band hai' }),
+  });
+  assert.equal(response.status, 400);
+  assert.equal((await response.json()).code, 'LOCATION_REQUIRED');
+  assert.equal(db.writes.length, 0);
+});
+
+test('Local HTTP Server: Swapped lat/lon rejected with INVALID_COORDINATES before DB writes', async () => {
+  const db = createMockDatabase();
+  const response = await fetch(`${baseUrl}/submit`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ...draftBase, incidentLatitude: 67.0011, incidentLongitude: 24.8607, description: 'Gas band hai' }),
+  });
+  assert.equal(response.status, 400);
+  assert.equal((await response.json()).code, 'INVALID_COORDINATES');
+  assert.equal(db.writes.length, 0);
+});
+
+test('Local HTTP Server: Out-of-Sindh coordinates (Lahore) rejected with OUTSIDE_SINDH and zero writes', async () => {
+  const db = createMockDatabase();
+  const response = await fetch(`${baseUrl}/submit`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ...draftBase, incidentLatitude: 31.5204, incidentLongitude: 74.3587, description: 'Gas band hai' }),
+  });
+  assert.equal(response.status, 422);
+  assert.equal((await response.json()).code, 'OUTSIDE_SINDH');
+  assert.equal(db.writes.length, 0);
+});
+
+test('Local HTTP Server: Sindh outside Karachi (Hyderabad) triggers UNSUPPORTED_SERVICE_AREA for Karachi-only department', async () => {
+  const db = createMockDatabase();
+  const response = await fetch(`${baseUrl}/submit`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      ...draftBase,
+      incidentLatitude: 25.3960,
+      incidentLongitude: 68.3578,
+      description: 'Hamare mohalle ki sadak toot chuki hai KMC repair chahiye',
+    }),
+  });
+  assert.equal(response.status, 422);
+  assert.equal((await response.json()).code, 'UNSUPPORTED_SERVICE_AREA');
   assert.equal(db.writes.length, 0);
 });
 

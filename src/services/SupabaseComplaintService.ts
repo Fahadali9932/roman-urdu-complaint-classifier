@@ -11,6 +11,7 @@ import type {
 } from '../types';
 import type { IComplaintService } from './IComplaintService';
 import { complaintService as mockComplaintService } from './MockComplaintService';
+import { verifySindhLocation } from '../lib/geo/sindhEligibility';
 
 const fallback = mockComplaintService;
 
@@ -79,7 +80,16 @@ const COMPLAINT_SELECT_QUERY = 'id,citizen_id,reference_number,incident_district
 export class ComplaintSubmissionError extends Error {
   constructor(
     message: string,
-    public readonly code: 'AUTHENTICATION_REQUIRED' | 'CITIZEN_ACCOUNT_REQUIRED' | 'VALIDATION_FAILED' | 'SUBMISSION_UNAVAILABLE'
+    public readonly code:
+      | 'AUTHENTICATION_REQUIRED'
+      | 'CITIZEN_ACCOUNT_REQUIRED'
+      | 'VALIDATION_FAILED'
+      | 'SUBMISSION_UNAVAILABLE'
+      | 'LOCATION_REQUIRED'
+      | 'INVALID_COORDINATES'
+      | 'OUTSIDE_SINDH'
+      | 'UNSUPPORTED_SERVICE_AREA'
+      | 'LOCATION_VERIFICATION_UNAVAILABLE'
   ) {
     super(message);
     this.name = 'ComplaintSubmissionError';
@@ -169,6 +179,12 @@ export class SupabaseComplaintService implements IComplaintService {
   async submitComplaint(input: ComplaintSubmissionInput): Promise<SubmissionResult> {
     if (!isSupabaseConfigured() || !supabase) return fallback.submitComplaint(input);
 
+    const geoCheck = verifySindhLocation(input.incidentLatitude, input.incidentLongitude);
+    if (!geoCheck.eligible) {
+      const geoCode = geoCheck.code === 'ELIGIBLE_SINDH' ? 'VALIDATION_FAILED' : geoCheck.code;
+      throw new ComplaintSubmissionError(geoCheck.message, geoCode);
+    }
+
     const { data, error } = await supabase.functions.invoke('submit-classified-complaint', {
       body: {
         title: input.title,
@@ -188,15 +204,26 @@ export class SupabaseComplaintService implements IComplaintService {
     });
     if (error) {
       const subError = await safeSubmissionError(error);
-      // A configured live backend must never turn a failed request into a
-      // browser-only ticket. That creates a reference which staff can neither
-      // see nor action, and falsely tells the citizen that the case was filed.
       throw subError;
     }
     if (data?.error) {
+      const serverCode = typeof data.code === 'string' ? data.code : 'SUBMISSION_UNAVAILABLE';
+      const geoCodes = [
+        'LOCATION_REQUIRED',
+        'INVALID_COORDINATES',
+        'OUTSIDE_SINDH',
+        'UNSUPPORTED_SERVICE_AREA',
+        'LOCATION_VERIFICATION_UNAVAILABLE',
+      ] as const;
+      const isGeoCode = (geoCodes as readonly string[]).includes(serverCode);
+      const typedCode = isGeoCode
+        ? (serverCode as (typeof geoCodes)[number])
+        : 'SUBMISSION_UNAVAILABLE';
       throw new ComplaintSubmissionError(
-        'We could not submit the complaint right now. Your entered details are still here; please try again shortly.',
-        'SUBMISSION_UNAVAILABLE'
+        isGeoCode
+          ? String(data.error)
+          : 'We could not submit the complaint right now. Your entered details are still here; please try again shortly.',
+        typedCode
       );
     }
     const routedDepts = data.prediction?.departments ||

@@ -36,6 +36,9 @@ describe('AWAAZ-E-AWAM — Guest Complaint Submission & Ownership Claiming', () 
     fireEvent.change(locality, { target: { value: 'Gulshan-e-Iqbal' } });
     fireEvent.change(screen.getByLabelText(/street, block or nearby landmark/i), { target: { value: 'Block 13-D' } });
     fireEvent.change(screen.getByLabelText(/home address/i), { target: { value: 'Flat 402, Block 13-D' } });
+    fireEvent.change(screen.getByLabelText(/^Latitude$/i), { target: { value: '24.9056' } });
+    fireEvent.change(screen.getByLabelText(/^Longitude$/i), { target: { value: '67.0822' } });
+    fireEvent.click(screen.getByRole('button', { name: /verify location/i }));
     fireEvent.click(screen.getByRole('button', { name: /continue/i }));
 
     // Step 3: Verify informational notice
@@ -73,6 +76,9 @@ describe('AWAAZ-E-AWAM — Guest Complaint Submission & Ownership Claiming', () 
     fireEvent.change(locality, { target: { value: 'Gulshan-e-Iqbal' } });
     fireEvent.change(screen.getByLabelText(/گلی، بلاک یا قریبی نشانی/i), { target: { value: 'Block 13-D' } });
     fireEvent.change(screen.getByLabelText(/رہائشی پتہ/i), { target: { value: 'فلیٹ 402' } });
+    fireEvent.change(screen.getByLabelText(/^Latitude$/i), { target: { value: '24.9056' } });
+    fireEvent.change(screen.getByLabelText(/^Longitude$/i), { target: { value: '67.0822' } });
+    fireEvent.click(screen.getByRole('button', { name: /مقام کی تصدیق کریں/i }));
     fireEvent.click(screen.getByRole('button', { name: /آگے بڑھیں/i }));
 
     // Step 3: Check Urdu notice
@@ -98,6 +104,9 @@ describe('AWAAZ-E-AWAM — Guest Complaint Submission & Ownership Claiming', () 
     fireEvent.change(locality, { target: { value: 'Clifton' } });
     fireEvent.change(screen.getByLabelText(/street, block or nearby landmark/i), { target: { value: 'Block 2' } });
     fireEvent.change(screen.getByLabelText(/home address/i), { target: { value: 'House 14' } });
+    fireEvent.change(screen.getByLabelText(/^Latitude$/i), { target: { value: '24.8138' } });
+    fireEvent.change(screen.getByLabelText(/^Longitude$/i), { target: { value: '67.0300' } });
+    fireEvent.click(screen.getByRole('button', { name: /verify location/i }));
     fireEvent.click(screen.getByRole('button', { name: /continue/i }));
 
     // Step 3

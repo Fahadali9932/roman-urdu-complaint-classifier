@@ -25,6 +25,7 @@ import {
 import { useLanguage } from '../../../context/LanguageContext';
 import { KarachiAreaCombobox } from '../components/KarachiAreaCombobox';
 import { IncidentPinPicker, type IncidentPin } from '../components/IncidentPinPicker';
+import { verifySindhLocation } from '../../../lib/geo/sindhEligibility';
 import { defaultLocalityResolver } from '../../../data/karachi/locationResolver';
 import { KARACHI_DISTRICTS_DATA } from '../../../data/karachi/districts';
 import { KARACHI_DEPARTMENTS } from '../../../mocks/complaints';
@@ -329,7 +330,9 @@ export const SimplifiedComplaintContainer: React.FC = () => {
       formData.location.locality &&
       formData.location.district &&
       formData.location.publicLocation.trim() &&
-      formData.applicant.applicantAddress.trim()
+      formData.applicant.applicantAddress.trim() &&
+      incidentPin &&
+      verifySindhLocation(incidentPin.latitude, incidentPin.longitude).eligible
     ),
     words > 0 && words <= MAX_COMPLAINT_WORDS,
   ];
@@ -401,6 +404,10 @@ export const SimplifiedComplaintContainer: React.FC = () => {
       if (!formData.location.district) next.district = ur ? 'ضلع منتخب کریں۔' : 'Select a Karachi district.';
       if (!formData.location.publicLocation.trim()) next.publicLocation = ur ? 'قریبی نشانی درج کریں۔' : 'Enter the incident street or landmark.';
       if (!formData.applicant.applicantAddress.trim()) next.applicantAddress = ur ? 'رہائشی پتہ درج کریں۔' : 'Enter your home address.';
+      const pinCheck = verifySindhLocation(incidentPin?.latitude, incidentPin?.longitude);
+      if (!pinCheck.eligible) {
+        next.incidentLocation = ur ? pinCheck.messageUrdu : pinCheck.message;
+      }
     }
     if (target === 3) {
       if (!words) next.description = ur ? 'شکایت کی تفصیل درج کریں۔' : 'Describe the complaint.';
@@ -422,6 +429,18 @@ export const SimplifiedComplaintContainer: React.FC = () => {
   const submit = async (overrideAnswer?: ClarificationAnswer) => {
     if (isSubmittingRef.current || isSubmitting) return;
     if (!validate(3)) return;
+
+    const pinCheck = verifySindhLocation(incidentPin?.latitude, incidentPin?.longitude);
+    if (!pinCheck.eligible) {
+      const msg = ur ? pinCheck.messageUrdu : pinCheck.message;
+      setErrors((current) => ({
+        ...current,
+        incidentLocation: msg,
+        submit: msg,
+        submitCode: pinCheck.code,
+      }));
+      return;
+    }
 
     if (!overrideAnswer) {
       const activeService = import.meta.env.DEV && isTestMode ? localV11ComplaintService : complaintService;
@@ -988,7 +1007,14 @@ export const SimplifiedComplaintContainer: React.FC = () => {
                     <p className="mt-2 text-xs text-[#6B6864]">{copy.streetHelp}</p>
                   </Field>
 
-                  <IncidentPinPicker value={incidentPin} onChange={setIncidentPin} />
+                  <IncidentPinPicker
+                    value={incidentPin}
+                    onChange={(pin) => {
+                      setIncidentPin(pin);
+                      setErrors((current) => ({ ...current, incidentLocation: '', submit: '', submitCode: '' }));
+                    }}
+                    error={errors.incidentLocation}
+                  />
 
                   <Field htmlFor="applicantAddress" label={copy.address} required error={errors.applicantAddress}>
                     <div className="relative">

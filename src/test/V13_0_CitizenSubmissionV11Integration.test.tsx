@@ -78,6 +78,8 @@ describe('PHASE V13.0 — REAL CITIZEN SUBMISSION & V11 INTEGRATION', () => {
         district: 'District East',
         locality: 'Gulshan-e-Iqbal',
         publicLocation: 'Block 7 Main Market',
+        incidentLatitude: 24.9056,
+        incidentLongitude: 67.0822,
         citizenName: 'Fahad',
         citizenPhone: '03001234567',
         residentialAddress: 'House 12, Block 7',
@@ -242,6 +244,9 @@ describe('PHASE V13.0 — REAL CITIZEN SUBMISSION & V11 INTEGRATION', () => {
       fireEvent.change(container.querySelector('#locality')!, { target: { value: 'Gulshan-e-Iqbal' } });
       fireEvent.change(container.querySelector('#publicLocation')!, { target: { value: 'Near Disco Bakery' } });
       fireEvent.change(container.querySelector('#applicantAddress')!, { target: { value: 'House 123, Street 4' } });
+      fireEvent.change(container.querySelector('#incident-lat-input')!, { target: { value: '24.9056' } });
+      fireEvent.change(container.querySelector('#incident-lon-input')!, { target: { value: '67.0822' } });
+      fireEvent.click(screen.getByRole('button', { name: /verify location/i }));
 
       fireEvent.click(screen.getByRole('button', { name: /Continue|آگے بڑھیں/i }));
 
@@ -298,6 +303,9 @@ describe('PHASE V13.0 — REAL CITIZEN SUBMISSION & V11 INTEGRATION', () => {
       fireEvent.change(container.querySelector('#locality')!, { target: { value: 'Gulshan-e-Iqbal' } });
       fireEvent.change(container.querySelector('#publicLocation')!, { target: { value: 'Near Disco Bakery' } });
       fireEvent.change(container.querySelector('#applicantAddress')!, { target: { value: 'House 123, Street 4' } });
+      fireEvent.change(container.querySelector('#incident-lat-input')!, { target: { value: '24.9056' } });
+      fireEvent.change(container.querySelector('#incident-lon-input')!, { target: { value: '67.0822' } });
+      fireEvent.click(screen.getByRole('button', { name: /verify location/i }));
       fireEvent.click(screen.getByRole('button', { name: /Continue|آگے بڑھیں/i }));
 
       // Step 3
@@ -367,6 +375,9 @@ describe('PHASE V13.0 — REAL CITIZEN SUBMISSION & V11 INTEGRATION', () => {
       fireEvent.change(container.querySelector('#locality')!, { target: { value: 'Gulshan-e-Iqbal' } });
       fireEvent.change(container.querySelector('#publicLocation')!, { target: { value: 'Near Disco Bakery' } });
       fireEvent.change(container.querySelector('#applicantAddress')!, { target: { value: 'House 123, Street 4' } });
+      fireEvent.change(container.querySelector('#incident-lat-input')!, { target: { value: '24.9056' } });
+      fireEvent.change(container.querySelector('#incident-lon-input')!, { target: { value: '67.0822' } });
+      fireEvent.click(screen.getByRole('button', { name: /verify location/i }));
       fireEvent.click(screen.getByRole('button', { name: /Continue|آگے بڑھیں/i }));
 
       // Step 3
@@ -436,6 +447,9 @@ describe('PHASE V13.0 — REAL CITIZEN SUBMISSION & V11 INTEGRATION', () => {
       fireEvent.change(container.querySelector('#locality')!, { target: { value: 'Gulshan Block 7' } });
       fireEvent.change(container.querySelector('#publicLocation')!, { target: { value: 'Street 4 Main Market' } });
       fireEvent.change(container.querySelector('#applicantAddress')!, { target: { value: 'House 12, Block 7' } });
+      fireEvent.change(container.querySelector('#incident-lat-input')!, { target: { value: '24.9056' } });
+      fireEvent.change(container.querySelector('#incident-lon-input')!, { target: { value: '67.0822' } });
+      fireEvent.click(screen.getByRole('button', { name: /verify location/i }));
       fireEvent.click(screen.getByRole('button', { name: /Continue|آگے بڑھیں/i }));
 
       // Step 3: Enter Fahad's clear complaint

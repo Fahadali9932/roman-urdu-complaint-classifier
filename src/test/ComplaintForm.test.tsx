@@ -49,8 +49,16 @@ describe('Simplified Write your complaint flow', () => {
     expect(await screen.findByText(/enter your home address/i)).toBeInTheDocument();
     expect(screen.queryByRole('heading', { level: 2, name: /describe what happened/i })).not.toBeInTheDocument();
 
-    // Fill home address and advance
+    // Attempt to continue without selecting Sindh incident location -> blocked
     fireEvent.change(screen.getByLabelText(/home address/i), { target: { value: 'House 12-B, Clifton Block 4' } });
+    fireEvent.click(screen.getByRole('button', { name: /continue/i }));
+    expect(await screen.findByText(/within Sindh before submitting/i)).toBeInTheDocument();
+
+    // Enter valid Sindh incident location coordinates & verify
+    fireEvent.change(screen.getByLabelText(/^Latitude$/i), { target: { value: '24.8138' } });
+    fireEvent.change(screen.getByLabelText(/^Longitude$/i), { target: { value: '67.0300' } });
+    fireEvent.click(screen.getByRole('button', { name: /verify location/i }));
+
     fireEvent.click(screen.getByRole('button', { name: /continue/i }));
     expect(await screen.findByRole('heading', { level: 2, name: /describe what happened/i })).toBeInTheDocument();
   });
@@ -65,6 +73,9 @@ describe('Simplified Write your complaint flow', () => {
     expect(await screen.findByText(/automatically identified/i)).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText(/street, block or nearby landmark/i), { target: { value: '26th Street' } });
     fireEvent.change(screen.getByLabelText(/home address/i), { target: { value: 'House 42-A, Street 26, Phase 6' } });
+    fireEvent.change(screen.getByLabelText(/^Latitude$/i), { target: { value: '24.8138' } });
+    fireEvent.change(screen.getByLabelText(/^Longitude$/i), { target: { value: '67.0300' } });
+    fireEvent.click(screen.getByRole('button', { name: /verify location/i }));
     fireEvent.click(screen.getByRole('button', { name: /continue/i }));
     expect(await screen.findByRole('heading', { level: 2, name: /describe what happened/i })).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText(/complaint description/i), { target: { value: 'The streetlight has not worked for two weeks.' } });

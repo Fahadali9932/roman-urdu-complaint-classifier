@@ -16,6 +16,7 @@ import {
   type V11RelationAwareResult,
 } from './v11InferenceAdapter';
 import { processComplaintPrivacy } from '../lib/privacy-engine';
+import { verifySindhLocation } from '../lib/geo/sindhEligibility';
 import { KARACHI_DEPARTMENTS } from '../mocks/complaints';
 import { generateGuestTrackingNumber } from '../utils/referenceGenerator';
 import {
@@ -142,6 +143,15 @@ export class LocalV11ComplaintService implements IComplaintService {
     }
     if (!rawDraft) {
       throw new Error('Complaint description cannot be empty.');
+    }
+
+    if (input.incidentLatitude !== undefined || input.incidentLongitude !== undefined) {
+      const geoCheck = verifySindhLocation(input.incidentLatitude, input.incidentLongitude);
+      if (!geoCheck.eligible) {
+        const err = new Error(geoCheck.message) as Error & { code?: string };
+        err.code = geoCheck.code;
+        throw err;
+      }
     }
 
     const rawWords = rawDraft.split(/\s+/).filter(Boolean).length;

@@ -13,6 +13,7 @@ import {
 import { IComplaintService } from './IComplaintService';
 import { KARACHI_DEPARTMENTS } from '../mocks/complaints';
 import { generateMockReference, generateGuestTrackingNumber, generateClaimCode } from '../utils/referenceGenerator';
+import { verifySindhLocation } from '../lib/geo/sindhEligibility';
 import { classifyV11RelationAware, championV11Model, type V11RelationAwareResult } from './v11InferenceAdapter';
 import { assessComplaintDraft, resolveComplaintClarification, type UnderstandingResult } from './complaintUnderstanding';
 
@@ -161,6 +162,14 @@ export class MockComplaintService implements IComplaintService {
   }
 
   async submitComplaint(input: ComplaintSubmissionInput): Promise<SubmissionResult> {
+    if (input.incidentLatitude !== undefined || input.incidentLongitude !== undefined) {
+      const geoCheck = verifySindhLocation(input.incidentLatitude, input.incidentLongitude);
+      if (!geoCheck.eligible) {
+        const err = new Error(geoCheck.message) as Error & { code?: string };
+        err.code = geoCheck.code;
+        throw err;
+      }
+    }
     await this.delay(200);
 
     const refNumber = generateMockReference(2026);

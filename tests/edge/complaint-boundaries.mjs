@@ -95,6 +95,7 @@ test('notification renders recorded remarks and escapes ordinary text in provide
   assert.ok(!sent[0].html.includes('Draft remark'));
 });
 const draft = { incidentDistrict: 'Central', incidentLocality: 'Nazimabad', incidentPublicLocation: 'Gali 1',
+  incidentLatitude: 24.9180, incidentLongitude: 67.0310,
   citizenName: 'Test', citizenPhone: 'private fixture', residentialAddress: 'test address', description: 'gas leak ki boo aa rahi hai' };
 for (const [label, token, owner] of [['guest', 'public-test-key', null], ['citizen', 'session', citizen.id]]) {
   test('V11 submission classifier uses bundled Run004 artifact for ' + label, async () => {

@@ -13,6 +13,7 @@ import {
   type UnderstandingResult,
 } from "../_shared/v11-engine.ts";
 import { processComplaintPrivacy } from "./privacy-engine.ts";
+import { validateDepartmentCoverageServer, validateSindhCoordinatesServer } from "../_shared/sindh-geo.ts";
 
 const classifier = model as unknown as V11ModelArtifact;
 // A 200-word complaint does not justify unbounded request bodies. This also
@@ -199,11 +200,15 @@ Deno.serve(async (req) => {
       (input.citizenEmail !== undefined && (typeof input.citizenEmail !== "string" || input.citizenEmail.length > 254))) {
       return json({ error: "Please complete all required complaint fields (200 words max).", code: "INVALID_COMPLAINT_PAYLOAD" }, 400);
     }
-    const hasPin = input.incidentLatitude !== undefined || input.incidentLongitude !== undefined;
-    if (hasPin && (!Number.isFinite(input.incidentLatitude) || !Number.isFinite(input.incidentLongitude) ||
-      input.incidentLatitude! < 24.45 || input.incidentLatitude! > 25.65 ||
-      input.incidentLongitude! < 66.25 || input.incidentLongitude! > 67.85)) {
-      return json({ error: "Please choose a point within Karachi.", code: "INVALID_INCIDENT_PIN" }, 400);
+    // Mandatory Sindh GeoJSON Point-in-Polygon boundary check before classifier/DB/uploads.
+    // Supersedes legacy optional INVALID_INCIDENT_PIN bbox check.
+    const geoCheck = validateSindhCoordinatesServer(input.incidentLatitude, input.incidentLongitude);
+    if (!geoCheck.eligible) {
+      return json({
+        error: geoCheck.error || "Please choose a valid point within Sindh.",
+        code: geoCheck.code,
+        legacyCode: geoCheck.code === "OUTSIDE_SINDH" ? "INVALID_INCIDENT_PIN" : geoCheck.code,
+      }, geoCheck.status);
     }
 
     // Generate cryptographic private claim code and 24-digit tracking number for guest submissions
@@ -270,6 +275,19 @@ Deno.serve(async (req) => {
       if (!reviewReason) {
         reviewReason = "NO_DEPARTMENT_MET_THRESHOLD";
       }
+    }
+
+    // Separate check: Sindh eligibility passed; now check per-department service coverage rules
+    const serviceCoverage = validateDepartmentCoverageServer(
+      Number(input.incidentLatitude),
+      Number(input.incidentLongitude),
+      departments,
+    );
+    if (!serviceCoverage.eligible) {
+      return json({
+        error: serviceCoverage.error || "Selected Sindh location is outside the matched municipal service coverage.",
+        code: serviceCoverage.code,
+      }, serviceCoverage.status);
     }
 
     const primaryDept = departments[0] ?? null;
@@ -356,17 +374,16 @@ Deno.serve(async (req) => {
       console.error("Complaint submission RPC failed", error);
       return json({ error: "Submission service is temporarily unavailable.", code: "SUBMISSION_UNAVAILABLE" }, 500);
     }
-    // Supplemental geolocation is never used to classify or route the case.
-    // A failed supplemental write must not incorrectly undo an issued receipt.
-    let incidentLocationSaved = !hasPin;
-    if (hasPin && data?.complaint_id) {
+    // Persist mandatory verified incident point
+    let incidentLocationSaved = false;
+    if (data?.complaint_id) {
       const { error: locationError } = await admin.from("complaint_geo_points").insert({
         complaint_id: data.complaint_id,
         latitude: input.incidentLatitude,
         longitude: input.incidentLongitude,
       });
       incidentLocationSaved = !locationError;
-      if (locationError) console.error("Optional incident pin could not be saved", locationError.code);
+      if (locationError) console.error("Verified incident pin could not be saved", locationError.code);
     }
     return json({
       ...data,
