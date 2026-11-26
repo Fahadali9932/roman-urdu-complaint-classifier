@@ -30,6 +30,7 @@ export type WorkspaceSection =
   | 'case'
   | 'home'
   | 'dispatch'
+  | 'work_orders'
   | 'field'
   | 'team'
   | 'verification'
