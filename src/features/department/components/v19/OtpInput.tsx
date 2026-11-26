@@ -8,6 +8,8 @@ export interface OtpInputProps {
   autoFocus?: boolean;
   onComplete?: (code: string) => void;
   error?: boolean;
+  id?: string;
+  name?: string;
 }
 
 /**
@@ -26,6 +28,8 @@ export const OtpInput: React.FC<OtpInputProps> = ({
   autoFocus = true,
   onComplete,
   error = false,
+  id,
+  name,
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isFocused, setIsFocused] = useState(false);
@@ -61,6 +65,8 @@ export const OtpInput: React.FC<OtpInputProps> = ({
     >
       <input
         ref={inputRef}
+        id={id}
+        name={name}
         type="text"
         inputMode="numeric"
         autoComplete="one-time-code"

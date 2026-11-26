@@ -45,6 +45,8 @@ export const V19HodPortalView: React.FC<V19HodPortalViewProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [reloadKey, setReloadKey] = useState(0);
   const [currentTime] = useState<number>(() => Date.now());
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [departmentNotifs, setDepartmentNotifs] = useState<any[]>([]);
 
   // Notification Drawer State
   const [isNotifOpen, setIsNotifOpen] = useState(false);
@@ -57,8 +59,9 @@ export const V19HodPortalView: React.FC<V19HodPortalViewProps> = ({
       fieldOperations.orders(departmentId).catch(() => [] as DepartmentWorkOrder[]),
       fieldOperations.orderLinksMap(departmentId).catch(() => new Map()),
       fieldOperations.officersDirectory(departmentId).catch(() => [] as DepartmentOfficer[]),
+      fieldOperations.fetchNotifications(departmentId).catch(() => []),
     ])
-      .then(async ([orderRows, linksMap, officerRows]) => {
+      .then(async ([orderRows, linksMap, officerRows, notifRows]) => {
         if (!active) return;
         const names = new Map(officerRows.map((o: DepartmentOfficer) => [o.user_id, o.display_name]));
         const items = await caseOperationsService.listIndependentComplaintsForHead(departmentId as any, {
@@ -73,6 +76,7 @@ export const V19HodPortalView: React.FC<V19HodPortalViewProps> = ({
         setOrders(orderRows);
         setOfficers(officerRows);
         setComplaints(items);
+        setDepartmentNotifs(notifRows);
 
         // Map proofs from orders with pending review
         const proofsMap: Record<string, DepartmentProof> = {};
@@ -83,9 +87,9 @@ export const V19HodPortalView: React.FC<V19HodPortalViewProps> = ({
               order_id: ord.id,
               storage_path: 'https://images.unsplash.com/photo-1590486803833-1c5dc8ddd4c8?auto=format&fit=crop&w=800&q=80',
               before_storage_path: 'https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?auto=format&fit=crop&w=800&q=80',
-              location_result: 'near',
-              original_distance_m: 14,
-              accuracy_m: 4,
+              location_result: (ord.gps_verified ? 'near' : 'needs_review') as any,
+              original_distance_m: ord.gps_distance_m || 14,
+              accuracy_m: ord.gps_accuracy_m || 4,
               duplicate_warning: false,
               submitted_at: ord.started_at || new Date().toISOString(),
               decision: ord.status === 'verified' ? 'approved' : 'pending',
@@ -116,7 +120,7 @@ export const V19HodPortalView: React.FC<V19HodPortalViewProps> = ({
 
   const overdueOrders = orders.filter((o) => {
     if (o.status === 'verified') return false;
-    const dueTime = new Date(o.extension_requested_due_at || o.due_at).getTime();
+    const dueTime = new Date(o.effective_deadline_at || o.extension_requested_due_at || o.due_at).getTime();
     return Number.isFinite(dueTime) && dueTime < currentTime;
   });
 
@@ -132,9 +136,12 @@ export const V19HodPortalView: React.FC<V19HodPortalViewProps> = ({
   ];
 
   // Actions
-  const handleRejectComplaint = async (complaintId: string, _reason: string) => {
-    // Record rejection
+  const handleRejectComplaint = async (complaintId: string, reason: string) => {
+    await fieldOperations.rejectDepartmentComplaint(complaintId, reason);
     setComplaints((prev) => prev.filter((c) => c.id !== complaintId));
+    setToastMessage(`Complaint #${complaintId.slice(0, 8)} rejected: ${reason}`);
+    setTimeout(() => setToastMessage(null), 4000);
+    setReloadKey((k) => k + 1);
   };
 
   const handleAssignComplaint = async (
@@ -167,12 +174,16 @@ export const V19HodPortalView: React.FC<V19HodPortalViewProps> = ({
   };
 
   const handleApproveResolution = async (orderId: string) => {
-    await fieldOperations.review(orderId, true, 'Supervisor verified completed field resolution');
+    await fieldOperations.approveResolution(orderId);
+    setToastMessage(`Resolution for Order #${orderId.slice(0, 8)} approved and recorded.`);
+    setTimeout(() => setToastMessage(null), 4000);
     setReloadKey((k) => k + 1);
   };
 
   const handleReturnCorrection = async (orderId: string, reason: string, correctionHours: number) => {
-    await fieldOperations.review(orderId, false, `Correction required: ${reason} (+${correctionHours}h)`);
+    await fieldOperations.returnCorrection(orderId, reason, correctionHours);
+    setToastMessage(`Order #${orderId.slice(0, 8)} returned for correction (+${correctionHours}h).`);
+    setTimeout(() => setToastMessage(null), 4000);
     setReloadKey((k) => k + 1);
   };
 
@@ -188,6 +199,18 @@ export const V19HodPortalView: React.FC<V19HodPortalViewProps> = ({
       fullName: data.fullName,
       employeeId: cleanEmp,
     });
+
+    // Save persistent officer profile details with masked CNIC and phone
+    await fieldOperations.saveOfficerProfile(res.officerUserId, departmentId, {
+      fullName: data.fullName,
+      employeeId: cleanEmp,
+      officialEmail: data.email,
+      phone: data.phoneNumber,
+      cnic: data.cnic,
+    }).catch(() => null);
+
+    setToastMessage(`Officer ${data.fullName} provisioned with temporary access.`);
+    setTimeout(() => setToastMessage(null), 4000);
     setReloadKey((k) => k + 1);
     return res;
   };
@@ -195,18 +218,26 @@ export const V19HodPortalView: React.FC<V19HodPortalViewProps> = ({
   const handleToggleSuspension = async (officerId: string, currentStatus: string, reason?: string) => {
     if (currentStatus === 'suspended') {
       await fieldOperations.reactivateOfficer({ departmentId, targetUserId: officerId });
+      setToastMessage(`Officer ${officerId} restored to active operational status.`);
     } else {
       await fieldOperations.suspendOfficer({ departmentId, targetUserId: officerId, reason: reason || 'Administrative HOD suspension' });
+      setToastMessage(`Officer ${officerId} suspended from field operations.`);
     }
+    setTimeout(() => setToastMessage(null), 4000);
     setReloadKey((k) => k + 1);
   };
 
-  const handleIssueWarning = async (officerId: string, reason: string) => {
-    window.alert(`Official notice issued to officer ID ${officerId}: ${reason}`);
+  const handleIssueWarning = async (officerId: string, reason: string, severity: 'advisory' | 'formal' | 'final' = 'formal') => {
+    await fieldOperations.issueWarning(departmentId, officerId, reason, severity);
+    setToastMessage(`Formal notice transmitted to officer ${officerId}: ${reason}`);
+    setTimeout(() => setToastMessage(null), 4000);
+    setReloadKey((k) => k + 1);
   };
 
-  const handleExtendDeadline = async (orderId: string, _additionalHours: number) => {
-    await fieldOperations.decideExtension(orderId, true);
+  const handleExtendDeadline = async (orderId: string, additionalHours: number) => {
+    await fieldOperations.extendDeadline(orderId, additionalHours, 'Supervisory authorized extension');
+    setToastMessage(`Order #${orderId.slice(0, 8)} deadline extended by ${additionalHours} hours.`);
+    setTimeout(() => setToastMessage(null), 4000);
     setReloadKey((k) => k + 1);
   };
 
@@ -228,6 +259,35 @@ export const V19HodPortalView: React.FC<V19HodPortalViewProps> = ({
       unreadNotifications={unreadCount}
       onOpenNotifications={() => setIsNotifOpen(true)}
     >
+      {/* Toast Feedback Banner */}
+      {toastMessage && (
+        <div
+          role="status"
+          aria-live="polite"
+          style={{
+            position: 'fixed',
+            top: '20px',
+            right: '20px',
+            zIndex: 9999,
+            padding: '12px 18px',
+            background: 'var(--v19-glass-surface)',
+            border: '1px solid var(--v19-lime)',
+            borderRadius: '12px',
+            color: 'var(--v19-text-primary)',
+            fontSize: '13px',
+            fontWeight: 500,
+            boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+            backdropFilter: 'blur(20px)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+          }}
+        >
+          <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--v19-lime)' }} />
+          <span>{toastMessage}</span>
+        </div>
+      )}
+
       {/* Tab Content */}
       {activeTab === 'home' && (
         <HodHomePage
@@ -304,6 +364,18 @@ export const V19HodPortalView: React.FC<V19HodPortalViewProps> = ({
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '360px', overflowY: 'auto' }}>
+              {departmentNotifs.map((n) => (
+                <div key={n.id} style={{ padding: '10px 12px', borderRadius: '10px', background: 'var(--v19-glass-subtle)', border: '1px solid var(--v19-glass-border)', fontSize: '12.5px' }}>
+                  <div style={{ fontWeight: 600, color: n.notification_type === 'warning' ? 'var(--v19-amber)' : 'var(--v19-text-primary)' }}>
+                    {n.title}
+                  </div>
+                  <div style={{ color: 'var(--v19-text-secondary)', marginTop: '2px' }}>{n.message}</div>
+                  <div style={{ fontSize: '11px', color: 'var(--v19-text-muted)', marginTop: '4px' }}>
+                    {new Date(n.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} · {new Date(n.created_at).toLocaleDateString()}
+                  </div>
+                </div>
+              ))}
+
               {overdueOrders.map((o) => (
                 <div key={o.id} style={{ padding: '10px 12px', borderRadius: '10px', background: 'var(--v19-red-soft)', border: '1px solid var(--v19-red)', fontSize: '12.5px' }}>
                   <div style={{ fontWeight: 600, color: 'var(--v19-red)' }}>OVERDUE ASSIGNMENT ALERT</div>
@@ -321,13 +393,13 @@ export const V19HodPortalView: React.FC<V19HodPortalViewProps> = ({
               ))}
 
               {verificationPendingCount > 0 && (
-                <div style={{ padding: '10px 12px', borderRadius: '10px', background: 'var(--v19-cyan-soft)', border: '1px solid var(--v19-cyan)', fontSize: '12.5px' }}>
+                <div key="pending-verif" style={{ padding: '10px 12px', borderRadius: '10px', background: 'var(--v19-cyan-soft)', border: '1px solid var(--v19-cyan)', fontSize: '12.5px' }}>
                   <div style={{ fontWeight: 600, color: 'var(--v19-cyan)' }}>RESOLUTIONS PENDING VERIFICATION</div>
                   <div style={{ color: 'var(--v19-text-primary)', marginTop: '2px' }}>{verificationPendingCount} completed field orders ready for inspection</div>
                 </div>
               )}
 
-              {unreadCount === 0 && (
+              {unreadCount === 0 && departmentNotifs.length === 0 && (
                 <p style={{ textAlign: 'center', color: 'var(--v19-text-muted)', fontSize: '13px', margin: '20px 0' }}>
                   No urgent alerts at this moment.
                 </p>

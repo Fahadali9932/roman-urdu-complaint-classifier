@@ -1,5 +1,6 @@
-import React from 'react';
-import { KeyRound, LogOut, Building2, Smartphone } from 'lucide-react';
+import React, { useState } from 'react';
+import { KeyRound, LogOut, Building2, Smartphone, Camera } from 'lucide-react';
+import { fieldOperations } from '../../services/fieldOperations';
 
 export interface OfficerProfileViewProps {
   departmentCode: string;
@@ -20,26 +21,88 @@ export const OfficerProfileView: React.FC<OfficerProfileViewProps> = ({
   onSignOut,
   onOpenPasswordModal,
 }) => {
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setIsUploading(true);
+      try {
+        await fieldOperations.uploadProfilePhoto(staffUsername, file);
+        let preview = '';
+        try {
+          if (typeof URL !== 'undefined' && typeof URL.createObjectURL === 'function') {
+            preview = URL.createObjectURL(file);
+          } else {
+            preview = 'blob:officer-photo';
+          }
+        } catch {
+          preview = 'blob:officer-photo';
+        }
+        setPhotoUrl(preview);
+      } finally {
+        setIsUploading(false);
+      }
+    }
+  };
+
   return (
     <div data-testid="v19-officer-profile" style={{ maxWidth: '640px', margin: '0 auto', width: '100%', display: 'flex', flexDirection: 'column', gap: '20px' }}>
       {/* Officer Identity Card */}
       <div className="v19-glass-card" style={{ display: 'flex', alignItems: 'center', gap: '20px', padding: '28px' }}>
-        <div
-          style={{
-            width: '64px',
-            height: '64px',
-            borderRadius: '50%',
-            background: 'var(--v19-lime-soft)',
-            border: '2px solid var(--v19-lime)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: 'var(--v19-lime)',
-            fontSize: '24px',
-            fontWeight: 700,
-          }}
-        >
-          {officerName[0]?.toUpperCase() || 'O'}
+        <div style={{ position: 'relative' }}>
+          <div
+            style={{
+              width: '64px',
+              height: '64px',
+              borderRadius: '50%',
+              background: 'var(--v19-lime-soft)',
+              border: '2px solid var(--v19-lime)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'var(--v19-lime)',
+              fontSize: '24px',
+              fontWeight: 700,
+              overflow: 'hidden',
+            }}
+          >
+            {photoUrl ? (
+              <img src={photoUrl} alt="Officer Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            ) : (
+              officerName[0]?.toUpperCase() || 'O'
+            )}
+          </div>
+          <label
+            htmlFor="officer-photo-upload"
+            title="Upload profile photograph"
+            style={{
+              position: 'absolute',
+              bottom: '-4px',
+              right: '-4px',
+              width: '24px',
+              height: '24px',
+              borderRadius: '50%',
+              background: 'var(--v19-lime)',
+              color: '#0E121A',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              border: '2px solid var(--v19-card-bg)',
+            }}
+          >
+            <Camera size={12} />
+          </label>
+          <input
+            id="officer-photo-upload"
+            type="file"
+            accept="image/*"
+            style={{ display: 'none' }}
+            onChange={handlePhotoUpload}
+            disabled={isUploading}
+          />
         </div>
 
         <div>

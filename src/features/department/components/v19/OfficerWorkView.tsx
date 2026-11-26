@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { type DepartmentWorkOrder } from '../../services/fieldOperations';
 import { type HeadIndependentComplaintRow } from '../../../../services/CaseOperationsService';
+import { syntheticImageDetector, type ForensicScreeningReport } from '../../../../services/syntheticImageDetector';
 import { ImageLightbox } from './ImageLightbox';
 import {
   Clock,
@@ -61,6 +62,7 @@ export const OfficerWorkView: React.FC<OfficerWorkViewProps> = ({
   const [isDoneModalOpen, setIsDoneModalOpen] = useState(false);
   const [capturedPhoto, setCapturedPhoto] = useState<File | null>(null);
   const [photoPreviewUrl, setPhotoPreviewUrl] = useState<string | null>(null);
+  const [screeningReport, setScreeningReport] = useState<ForensicScreeningReport | null>(null);
   const [isAcquiringGps, setIsAcquiringGps] = useState(false);
   const [capturedGps, setCapturedGps] = useState<{
     latitude: number;
@@ -142,6 +144,11 @@ export const OfficerWorkView: React.FC<OfficerWorkViewProps> = ({
       }
       setPhotoPreviewUrl(url);
 
+      // Run truthful synthetic screening
+      syntheticImageDetector.screenImage(file).then((report) => {
+        setScreeningReport(report);
+      }).catch(() => null);
+
       // Trigger automatic high-accuracy GPS capture on photo selection
       acquireGps();
     }
@@ -210,6 +217,7 @@ export const OfficerWorkView: React.FC<OfficerWorkViewProps> = ({
       setCapturedPhoto(null);
       setPhotoPreviewUrl(null);
       setCapturedGps(null);
+      setScreeningReport(null);
     } finally {
       setIsSubmittingDone(false);
     }
@@ -547,6 +555,38 @@ export const OfficerWorkView: React.FC<OfficerWorkViewProps> = ({
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
                       <img src={photoPreviewUrl} alt="Captured evidence" style={{ maxHeight: '160px', borderRadius: '8px', objectFit: 'cover' }} />
                       <span style={{ fontSize: '12px', color: 'var(--v19-lime)', fontWeight: 600 }}>Tap to retake photo 📷</span>
+                      {screeningReport && (
+                        <div
+                          style={{
+                            marginTop: '4px',
+                            padding: '6px 12px',
+                            borderRadius: '8px',
+                            background: 'rgba(0,0,0,0.4)',
+                            border: '1px solid var(--v19-glass-border)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            fontSize: '11.5px',
+                          }}
+                        >
+                          <span
+                            style={{
+                              width: '7px',
+                              height: '7px',
+                              borderRadius: '50%',
+                              background:
+                                screeningReport.status === 'screening_passed'
+                                  ? 'var(--v19-green)'
+                                  : screeningReport.status === 'suspicious' || screeningReport.status === 'confirmed_synthetic'
+                                    ? 'var(--v19-red)'
+                                    : 'var(--v19-amber)',
+                            }}
+                          />
+                          <span style={{ color: 'var(--v19-text-primary)', fontWeight: 600 }}>
+                            {screeningReport.verdictLabel}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', color: 'var(--v19-text-muted)' }}>

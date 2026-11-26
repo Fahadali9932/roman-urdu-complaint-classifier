@@ -45,24 +45,7 @@ export const V19OfficerPortalView: React.FC<V19OfficerPortalViewProps> = ({
   const [reloadKey, setReloadKey] = useState(0);
 
   // Notifications State
-  const [notifications, setNotifications] = useState<OfficerNotificationItem[]>(() => [
-    {
-      id: 'notif-1',
-      title: 'Municipal Task Assigned',
-      message: 'New road hazard restoration assigned by Department Head. Review instructions and commence work.',
-      type: 'assignment',
-      createdAt: new Date(Date.now() - 3600000).toISOString(),
-      read: false,
-    },
-    {
-      id: 'notif-2',
-      title: '30m Proximity Audit',
-      message: 'Remember to capture evidence on site. The system validates high-accuracy GPS coordinates against the citizen report.',
-      type: 'deadline',
-      createdAt: new Date(Date.now() - 86400000).toISOString(),
-      read: true,
-    },
-  ]);
+  const [notifications, setNotifications] = useState<OfficerNotificationItem[]>([]);
 
   // Load operational data
   useEffect(() => {
@@ -72,8 +55,9 @@ export const V19OfficerPortalView: React.FC<V19OfficerPortalViewProps> = ({
       fieldOperations.orders(departmentId).catch(() => [] as DepartmentWorkOrder[]),
       fieldOperations.officersDirectory(departmentId).catch(() => [] as DepartmentOfficer[]),
       fieldOperations.orderLinksMap(departmentId).catch(() => new Map()),
+      fieldOperations.fetchNotifications(departmentId, username).catch(() => []),
     ])
-      .then(async ([orderRows, officerRows, linksMap]) => {
+      .then(async ([orderRows, officerRows, linksMap, notifRows]) => {
         if (!active) return;
 
         // Find this officer
@@ -88,6 +72,39 @@ export const V19OfficerPortalView: React.FC<V19OfficerPortalViewProps> = ({
           ? orderRows.filter((o) => o.officer_id === currentOfficer.user_id)
           : orderRows;
         setOrders(officerOrders);
+
+        // Map live staff notifications
+        if (Array.isArray(notifRows) && notifRows.length > 0) {
+          const mapped: OfficerNotificationItem[] = notifRows.map((n) => ({
+            id: n.id,
+            title: n.title,
+            message: n.message,
+            type: (n.notification_type === 'general' ? 'assignment' : n.notification_type) as any,
+            createdAt: n.created_at,
+            read: n.is_read,
+            orderId: n.link_url?.includes('order') ? n.link_url : undefined,
+          }));
+          setNotifications(mapped);
+        } else {
+          setNotifications([
+            {
+              id: 'notif-1',
+              title: 'Municipal Task Assigned',
+              message: 'New road hazard restoration assigned by Department Head. Review instructions and commence work.',
+              type: 'assignment',
+              createdAt: new Date(Date.now() - 3600000).toISOString(),
+              read: false,
+            },
+            {
+              id: 'notif-2',
+              title: '30m Proximity Audit',
+              message: 'Remember to capture evidence on site. The system validates high-accuracy GPS coordinates against the citizen report.',
+              type: 'deadline',
+              createdAt: new Date(Date.now() - 86400000).toISOString(),
+              read: true,
+            },
+          ]);
+        }
 
         // Load complaints for detail reading
         const names = new Map(officerRows.map((o: DepartmentOfficer) => [o.user_id, o.display_name]));
@@ -140,9 +157,9 @@ export const V19OfficerPortalView: React.FC<V19OfficerPortalViewProps> = ({
     { id: 'profile', label: 'Profile' },
   ];
 
-  // Action: Start Working (sets started_at and transitions to in_progress)
+  // Action: Start Working (sets started_at and transitions to in_progress with commencement deadline)
   const handleStartWork = async (orderId: string) => {
-    await fieldOperations.start(orderId);
+    await fieldOperations.startWorkOrder(orderId);
     setReloadKey((k) => k + 1);
     // Switch to active work console
     setActiveTab('work');
@@ -154,26 +171,24 @@ export const V19OfficerPortalView: React.FC<V19OfficerPortalViewProps> = ({
     evidenceFile: File,
     gps: { latitude: number; longitude: number; accuracy: number; distanceM?: number }
   ) => {
-    await fieldOperations.submitEvidence(
+    const storagePath = `proofs/${departmentCode}/${orderId}_${Date.now()}.jpg`;
+    const res = await fieldOperations.submitWorkCompletion(
       orderId,
-      evidenceFile,
+      storagePath,
       {
         latitude: gps.latitude,
         longitude: gps.longitude,
         accuracy: gps.accuracy,
-        altitude: null,
-        altitudeAccuracy: null,
-        heading: null,
-        speed: null,
-      } as GeolocationCoordinates
+      },
+      evidenceFile
     );
 
     // Add notification
     setNotifications((prev) => [
       {
         id: `notif-${Date.now()}`,
-        title: 'Resolution Submitted for Verification',
-        message: `Order #${orderId.slice(0, 8)} submitted. Awaiting supervisor 30m GPS audit and proof approval.`,
+        title: res.gpsVerified ? 'Resolution Submitted (GPS Verified)' : 'Resolution Submitted (Exception Review)',
+        message: `Order #${orderId.slice(0, 8)} submitted. ${res.gpsVerified ? `Site proximity verified (${res.distanceMeters ?? 0}m).` : 'Proximity requires supervisor exception review.'}`,
         type: 'verification',
         createdAt: new Date().toISOString(),
         read: false,
@@ -267,10 +282,14 @@ export const V19OfficerPortalView: React.FC<V19OfficerPortalViewProps> = ({
         {activeTab === 'notifications' && (
           <OfficerNotificationsView
             notifications={notifications}
-            onMarkAsRead={(id) => {
+            onMarkAsRead={async (id) => {
+              await fieldOperations.markNotificationRead(id).catch(() => null);
               setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
             }}
-            onMarkAllAsRead={() => {
+            onMarkAllAsRead={async () => {
+              await Promise.all(
+                notifications.filter((n) => !n.read).map((n) => fieldOperations.markNotificationRead(n.id).catch(() => null))
+              );
               setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
             }}
             onNavigateToOrder={(_orderId) => {

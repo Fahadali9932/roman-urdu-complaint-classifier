@@ -12,6 +12,7 @@ import { staffAuthService } from '../../services/staffAuthService';
 import { fieldOperations, type StaffPosition } from './services/fieldOperations';
 import { useCivicTheme } from './hooks/useCivicTheme';
 import { V3AuthShell, V3PrimaryButton } from '../../components/v3';
+import { OtpInput } from './components/v19/OtpInput';
 
 interface ThemedDepartmentLoginScreenProps {
   departmentId: DepartmentId;
@@ -371,18 +372,17 @@ export const ThemedDepartmentLoginScreen: React.FC<ThemedDepartmentLoginScreenPr
             <label htmlFor="dept-totp" className="v3-field-label">
               Six-digit verification code
             </label>
-            <input
-              id="dept-totp"
-              name="otp"
-              inputMode="numeric"
-              autoComplete="one-time-code"
-              pattern="[0-9]{6}"
-              required
-              maxLength={6}
-              value={mfaCode}
-              onChange={(e) => setMfaCode(e.target.value)}
-              className="v3-input tracking-[0.28em]"
-            />
+            <div style={{ marginTop: '8px' }}>
+              <OtpInput
+                id="dept-totp"
+                name="otp"
+                value={mfaCode}
+                onChange={setMfaCode}
+                length={6}
+                disabled={isLoading}
+                error={Boolean(errorMessage)}
+              />
+            </div>
           </div>
           <V3PrimaryButton type="submit" disabled={isLoading} className="w-full">
             Verify &amp; open workspace

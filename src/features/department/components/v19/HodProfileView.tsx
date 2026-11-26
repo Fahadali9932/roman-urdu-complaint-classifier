@@ -1,5 +1,6 @@
-import React from 'react';
-import { KeyRound, LogOut, Building2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { KeyRound, LogOut, Building2, Camera } from 'lucide-react';
+import { fieldOperations } from '../../services/fieldOperations';
 
 export interface HodProfileViewProps {
   departmentCode: string;
@@ -16,25 +17,87 @@ export const HodProfileView: React.FC<HodProfileViewProps> = ({
   onSignOut,
   onOpenPasswordModal,
 }) => {
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setIsUploading(true);
+      try {
+        await fieldOperations.uploadProfilePhoto(username, file);
+        let preview = '';
+        try {
+          if (typeof URL !== 'undefined' && typeof URL.createObjectURL === 'function') {
+            preview = URL.createObjectURL(file);
+          } else {
+            preview = 'blob:profile-photo';
+          }
+        } catch {
+          preview = 'blob:profile-photo';
+        }
+        setPhotoUrl(preview);
+      } finally {
+        setIsUploading(false);
+      }
+    }
+  };
+
   return (
     <div data-testid="v19-hod-profile" style={{ maxWidth: '640px', margin: '0 auto', width: '100%', display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <div className="v19-glass-card" style={{ display: 'flex', alignItems: 'center', gap: '20px', padding: '28px' }}>
-        <div
-          style={{
-            width: '64px',
-            height: '64px',
-            borderRadius: '50%',
-            background: 'var(--v19-lime-soft)',
-            border: '2px solid var(--v19-lime)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: 'var(--v19-lime)',
-            fontSize: '24px',
-            fontWeight: 700,
-          }}
-        >
-          {username[0]?.toUpperCase() || 'H'}
+        <div style={{ position: 'relative' }}>
+          <div
+            style={{
+              width: '64px',
+              height: '64px',
+              borderRadius: '50%',
+              background: 'var(--v19-lime-soft)',
+              border: '2px solid var(--v19-lime)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'var(--v19-lime)',
+              fontSize: '24px',
+              fontWeight: 700,
+              overflow: 'hidden',
+            }}
+          >
+            {photoUrl ? (
+              <img src={photoUrl} alt="HOD Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            ) : (
+              username[0]?.toUpperCase() || 'H'
+            )}
+          </div>
+          <label
+            htmlFor="hod-photo-upload"
+            title="Upload profile photograph"
+            style={{
+              position: 'absolute',
+              bottom: '-4px',
+              right: '-4px',
+              width: '24px',
+              height: '24px',
+              borderRadius: '50%',
+              background: 'var(--v19-lime)',
+              color: '#0E121A',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              border: '2px solid var(--v19-card-bg)',
+            }}
+          >
+            <Camera size={12} />
+          </label>
+          <input
+            id="hod-photo-upload"
+            type="file"
+            accept="image/*"
+            style={{ display: 'none' }}
+            onChange={handlePhotoUpload}
+            disabled={isUploading}
+          />
         </div>
 
         <div>
