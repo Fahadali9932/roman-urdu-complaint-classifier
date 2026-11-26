@@ -382,7 +382,7 @@ export const FieldOperationsDesk: React.FC<Props> = ({
           {view === 'team' && isHead && (
             <div className="v21-case-card" style={{ padding: '20px' }}>
               <div style={{ marginBottom: '14px' }}>
-                <h2 style={{ fontSize: '16px', fontWeight: 700, margin: '0 0 4px 0' }}>Officer roster & access</h2>
+                <h2 style={{ fontSize: '16px', fontWeight: 700, margin: '0 0 4px 0', color: 'var(--v15-ink, var(--v21-text-primary, inherit))' }}>Officer roster & access</h2>
                 <p style={{ fontSize: '12px', color: 'var(--v21-text-muted)', margin: 0 }}>
                   Add department officers, issue one-time temporary access keys, reset credentials, or suspend access within {departmentId.toUpperCase()} only. Temporary keys are displayed once and never persisted.
                 </p>
