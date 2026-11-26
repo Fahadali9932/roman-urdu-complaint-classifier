@@ -1,9 +1,22 @@
 import { isSupabaseConfigured, supabase } from '../../../lib/supabase';
 import { getLocalDemoStaffRole } from '../auth/departmentIdentities';
 import { findAdvisoryIncidentMatches, type IncidentPin } from './incidentMatching';
+import { syntheticImageDetector, type ForensicScreeningReport, type EvidenceIntegrityStatus } from '../../../services/syntheticImageDetector';
 
 export type WorkState = 'assigned' | 'in_progress' | 'pending_review' | 'verified' | 'returned';
 export type StaffPosition = 'head' | 'officer';
+
+export function haversineDistanceMeters(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371000; // Earth radius in metres
+  const toRad = (deg: number) => (deg * Math.PI) / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return Math.round(R * c * 100) / 100;
+}
 
 export interface DepartmentOfficer {
   user_id: string;
@@ -83,11 +96,50 @@ export interface DepartmentWorkOrder {
   gps_accuracy_m?: number | null;
   gps_distance_m?: number | null;
   gps_verified?: boolean;
+  gps_exception_review?: boolean;
+  evidence_integrity_status?: EvidenceIntegrityStatus;
   extension_requested_due_at: string | null;
   extension_reason: string | null;
   reviewed_at: string | null;
   review_note: string | null;
   citizen_dispute_pending: boolean;
+}
+
+export interface OfficerProfileDetails {
+  user_id: string;
+  department_id: string;
+  full_name: string;
+  employee_id: string;
+  official_email: string;
+  phone_masked?: string | null;
+  cnic_masked?: string | null;
+  cnic_hash?: string | null;
+  profile_photo_storage_path?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface OfficerRankingEvent {
+  id: string;
+  officer_id: string;
+  order_id?: string | null;
+  department_id: string;
+  event_type: 'on_time_completion' | 'overdue_submission' | 'correction_penalty' | 'dispute_deduction' | 'advisory_commendation';
+  points_delta: number;
+  notes?: string | null;
+  created_at: string;
+}
+
+export interface DeadlineExtensionRecord {
+  id: string;
+  order_id: string;
+  department_id: string;
+  previous_deadline: string;
+  extended_deadline: string;
+  additional_hours: number;
+  reason: string;
+  authorized_by: string;
+  created_at: string;
 }
 
 export interface StaffNotification {
@@ -271,6 +323,92 @@ const devProofs: DepartmentProof[] = import.meta.env.PROD ? [] : [
     decision: 'approved',
   },
 ];
+
+const devComplaintCoords: Record<string, { latitude: number; longitude: number }> = {
+  'local-complaint-anchor-01': { latitude: 24.9312, longitude: 67.1123 }, // NED University Gate
+  'local-complaint-anchor-02': { latitude: 24.8715, longitude: 67.0620 }, // Shahrah-e-Faisal
+  'local-complaint-anchor-03': { latitude: 24.9080, longitude: 67.0980 }, // Rashid Minhas Road
+  'local-complaint-anchor-04': { latitude: 24.9200, longitude: 67.0950 }, // Gulshan Block 6
+};
+
+const devWarnings: OfficerWarning[] = import.meta.env.PROD ? [] : [
+  {
+    id: 'warn-01',
+    officer_id: 'local-officer-b',
+    department_id: 'kmc',
+    issued_by: 'local-hod',
+    reason: 'Late arrival to urgent water pipe burst site.',
+    severity: 'formal',
+    issued_at: new Date(Date.now() - 86400000).toISOString(),
+  },
+];
+
+const devDeadlineHistory: DeadlineExtensionRecord[] = import.meta.env.PROD ? [] : [];
+
+const devNotifications: StaffNotification[] = import.meta.env.PROD ? [] : [
+  {
+    id: 'notif-01',
+    user_id: 'local-officer-a',
+    department_id: 'kmc',
+    title: 'Resolution Evidence Submitted',
+    message: 'Field Officer Tariq submitted evidence for Order #local-dev-order-02.',
+    notification_type: 'verification',
+    is_read: false,
+    created_at: new Date(Date.now() - 3600000).toISOString(),
+  },
+  {
+    id: 'notif-02',
+    user_id: 'local-officer-a',
+    department_id: 'kmc',
+    title: 'New Urgent Complaint Intake',
+    message: 'High priority asphalt failure reported on University Road.',
+    notification_type: 'assignment',
+    is_read: true,
+    created_at: new Date(Date.now() - 14400000).toISOString(),
+  },
+];
+
+const devRankingEvents: OfficerRankingEvent[] = import.meta.env.PROD ? [] : [
+  {
+    id: 'rank-evt-01',
+    officer_id: 'local-officer-a',
+    order_id: 'local-dev-order-04',
+    department_id: 'kmc',
+    event_type: 'on_time_completion',
+    points_delta: 10,
+    notes: 'Resolved within authorized commencement deadline.',
+    created_at: new Date(Date.now() - 86400000).toISOString(),
+  },
+];
+
+const devOfficerProfiles: Map<string, OfficerProfileDetails> = new Map([
+  ['local-officer-a', {
+    user_id: 'local-officer-a',
+    department_id: 'kmc',
+    full_name: 'Field Officer A',
+    employee_id: 'kmc-off-01',
+    official_email: 'officer.a@kmc.gos.pk',
+    phone_masked: '0300-***-1234',
+    cnic_masked: '42101-*******-1',
+    cnic_hash: 'mock-hash-1',
+    profile_photo_storage_path: null,
+    created_at: new Date(Date.now() - 30 * 86400000).toISOString(),
+    updated_at: new Date().toISOString(),
+  }],
+  ['local-officer-b', {
+    user_id: 'local-officer-b',
+    department_id: 'kmc',
+    full_name: 'Field Officer B',
+    employee_id: 'kmc-off-02',
+    official_email: 'officer.b@kmc.gos.pk',
+    phone_masked: '0321-***-5678',
+    cnic_masked: '42201-*******-3',
+    cnic_hash: 'mock-hash-2',
+    profile_photo_storage_path: null,
+    created_at: new Date(Date.now() - 20 * 86400000).toISOString(),
+    updated_at: new Date().toISOString(),
+  }],
+]);
 
 function requireSupabase() {
   if (!isSupabaseConfigured() || !supabase) throw new Error('A verified staging Supabase connection is required for live work management.');
@@ -817,22 +955,52 @@ class FieldOperationsService {
 
   // --- V19 ENHANCED METHODS (Commencement Deadlines, GPS Audit & Lifecycle) ---
 
-  async startWorkOrder(orderId: string): Promise<{ success: boolean; effectiveDeadlineAt: string }> {
+  async startWorkOrder(orderId: string): Promise<{
+    success: boolean;
+    effectiveDeadlineAt: string;
+    idempotentReplay?: boolean;
+    status?: string;
+    startedAt?: string | null;
+  }> {
     if (isLocalFieldDemo()) {
       const order = devOrders.find((o) => o.id === orderId);
-      const startTime = new Date().toISOString();
-      const deadline = new Date(Date.now() + (order?.assigned_duration_hours || 72) * 3600000).toISOString();
-      if (order) {
-        order.status = 'in_progress';
-        order.started_at = startTime;
-        order.effective_deadline_at = deadline;
-        order.due_at = deadline;
+      if (!order) throw new Error(`Work order ${orderId} not found.`);
+      if (order.status === 'verified') throw new Error(`Cannot start completed and verified work order ${orderId}.`);
+      if (order.status === 'pending_review') throw new Error(`Work order ${orderId} is already pending supervisor verification.`);
+
+      // Idempotency: If already in_progress and has started_at, return existing deadline without resetting timer!
+      if (order.status === 'in_progress' && order.started_at) {
+        return {
+          success: true,
+          idempotentReplay: true,
+          status: 'in_progress',
+          startedAt: order.started_at,
+          effectiveDeadlineAt: order.effective_deadline_at || order.due_at,
+        };
       }
-      return { success: true, effectiveDeadlineAt: deadline };
+
+      const startTime = new Date().toISOString();
+      const deadline = new Date(Date.now() + (order.assigned_duration_hours || 72) * 3600000).toISOString();
+      order.status = 'in_progress';
+      order.started_at = startTime;
+      order.effective_deadline_at = deadline;
+      order.due_at = deadline;
+
+      return {
+        success: true,
+        idempotentReplay: false,
+        status: 'in_progress',
+        startedAt: startTime,
+        effectiveDeadlineAt: deadline,
+      };
     }
+
     const res = requireSuccess(await requireSupabase().rpc('v19_start_work_order', { p_order_id: orderId })) as {
       success: boolean;
       effectiveDeadlineAt: string;
+      idempotentReplay?: boolean;
+      status?: string;
+      startedAt?: string | null;
     };
     return res;
   }
@@ -840,75 +1008,239 @@ class FieldOperationsService {
   async submitWorkCompletion(
     orderId: string,
     storagePath: string,
-    coords: { latitude: number; longitude: number; accuracy: number }
-  ): Promise<{ success: boolean; gpsVerified: boolean; distanceMeters?: number }> {
+    coords: { latitude: number; longitude: number; accuracy: number },
+    file?: File | Blob
+  ): Promise<{
+    success: boolean;
+    gpsVerified: boolean;
+    distanceMeters?: number;
+    locationResult?: string;
+    exceptionReview?: boolean;
+    screeningReport?: ForensicScreeningReport;
+  }> {
+    if (coords.latitude == null || coords.longitude == null) {
+      throw new Error('Device GPS coordinates are required for field completion.');
+    }
+    if (coords.latitude < -90 || coords.latitude > 90 || coords.longitude < -180 || coords.longitude > 180) {
+      throw new Error('Invalid GPS coordinates out of bounds.');
+    }
+
+    // Run truthful forensic screening if image file is supplied
+    let screeningReport: ForensicScreeningReport | undefined = undefined;
+    if (file) {
+      try {
+        screeningReport = await syntheticImageDetector.screenImage(file);
+      } catch {
+        // Fallback to manual review
+      }
+    }
+
     if (isLocalFieldDemo()) {
       const order = devOrders.find((o) => o.id === orderId);
-      if (order) {
-        order.status = 'pending_review';
-        order.gps_latitude = coords.latitude;
-        order.gps_longitude = coords.longitude;
-        order.gps_accuracy_m = coords.accuracy;
-        order.gps_distance_m = 14.5;
-        order.gps_verified = true;
+      if (!order) throw new Error(`Work order ${orderId} not found.`);
+
+      // Lookup baseline coordinates for anchor complaint
+      const baseline = devComplaintCoords[order.anchor_complaint_id];
+      let distanceM: number | undefined = undefined;
+      let isVerified = false;
+      let exceptionReview = false;
+      let locationResult = 'needs_review';
+
+      if (!baseline || baseline.latitude == null || baseline.longitude == null) {
+        // No original pin in complaint: NEVER mark verified; require explicit exception review!
+        isVerified = false;
+        exceptionReview = true;
+        locationResult = 'no_original_pin';
+      } else if (coords.accuracy == null || coords.accuracy > 50) {
+        // GPS accuracy too low to verify site presence
+        distanceM = haversineDistanceMeters(coords.latitude, coords.longitude, baseline.latitude, baseline.longitude);
+        isVerified = false;
+        exceptionReview = true;
+        locationResult = 'poor_accuracy';
+      } else {
+        distanceM = haversineDistanceMeters(coords.latitude, coords.longitude, baseline.latitude, baseline.longitude);
+        if (distanceM <= 30 && coords.accuracy <= 30) {
+          isVerified = true;
+          exceptionReview = false;
+          locationResult = 'near';
+        } else {
+          isVerified = false;
+          exceptionReview = true;
+          locationResult = 'needs_review';
+        }
       }
+
+      order.status = 'pending_review';
+      order.gps_latitude = coords.latitude;
+      order.gps_longitude = coords.longitude;
+      order.gps_accuracy_m = coords.accuracy;
+      order.gps_distance_m = distanceM ?? null;
+      order.gps_verified = isVerified;
+      order.gps_exception_review = exceptionReview;
+      order.evidence_integrity_status = screeningReport?.status || 'pending_screening';
+
       const proofId = 'local-v19-proof-' + Date.now();
       devProofs.unshift({
         id: proofId,
         order_id: orderId,
         storage_path: storagePath,
-        location_result: 'near',
-        original_distance_m: 14.5,
+        location_result: locationResult as 'near' | 'needs_review' | 'no_original_pin',
+        original_distance_m: distanceM ?? null,
         accuracy_m: coords.accuracy,
         duplicate_warning: false,
         submitted_at: new Date().toISOString(),
         decision: 'pending',
       });
-      return { success: true, gpsVerified: true, distanceMeters: 14.5 };
+
+      // Emits notification to HOD
+      devNotifications.unshift({
+        id: 'notif-' + Date.now(),
+        user_id: 'local-hod',
+        department_id: order.department_id,
+        title: 'Resolution Proof Ready for Review',
+        message: `Evidence submitted for Order #${orderId.slice(0, 8)} (Proximity: ${distanceM != null ? distanceM + 'm' : 'No baseline'}${exceptionReview ? ' · EXCEPTION REVIEW REQUIRED' : ''}).`,
+        notification_type: 'verification',
+        is_read: false,
+        created_at: new Date().toISOString(),
+      });
+
+      return {
+        success: true,
+        gpsVerified: isVerified,
+        distanceMeters: distanceM,
+        locationResult,
+        exceptionReview,
+        screeningReport,
+      };
     }
+
     const res = requireSuccess(await requireSupabase().rpc('v19_submit_work_completion', {
       p_order_id: orderId,
       p_storage_path: storagePath,
       p_lat: coords.latitude,
       p_lng: coords.longitude,
       p_accuracy: coords.accuracy,
-    })) as { success: boolean; gpsVerified: boolean; distanceMeters?: number };
-    return res;
+    })) as {
+      success: boolean;
+      gpsVerified: boolean;
+      distanceMeters?: number;
+      locationResult?: string;
+      gpsExceptionReview?: boolean;
+    };
+
+    return {
+      success: res.success,
+      gpsVerified: res.gpsVerified,
+      distanceMeters: res.distanceMeters,
+      locationResult: res.locationResult,
+      exceptionReview: res.gpsExceptionReview,
+      screeningReport,
+    };
   }
 
-  async approveResolution(orderId: string): Promise<{ success: boolean }> {
+  async approveResolution(orderId: string): Promise<{ success: boolean; onTime?: boolean }> {
     if (isLocalFieldDemo()) {
       const order = devOrders.find((o) => o.id === orderId);
-      if (order) {
-        order.status = 'verified';
-        order.reviewed_at = new Date().toISOString();
-        order.review_note = 'Supervisory approval granted.';
-      }
-      const p = devProofs.find((item) => item.order_id === orderId);
+      if (!order) throw new Error(`Work order ${orderId} not found.`);
+      if (order.status === 'verified') throw new Error(`Work order ${orderId} is already verified and closed.`);
+      if (order.status !== 'pending_review') throw new Error(`Work order ${orderId} is not pending supervisor review.`);
+
+      const isOntime = order.effective_deadline_at
+        ? new Date() <= new Date(order.effective_deadline_at)
+        : true;
+
+      order.status = 'verified';
+      order.reviewed_at = new Date().toISOString();
+      order.review_note = 'Supervisory approval granted.';
+
+      const p = devProofs.find((item) => item.order_id === orderId && item.decision === 'pending');
       if (p) p.decision = 'approved';
-      return { success: true };
+
+      // Record idempotent ranking points
+      devRankingEvents.push({
+        id: 'rank-evt-' + Date.now(),
+        officer_id: order.officer_id,
+        order_id: order.id,
+        department_id: order.department_id,
+        event_type: isOntime ? 'on_time_completion' : 'overdue_submission',
+        points_delta: isOntime ? 10 : -15,
+        notes: isOntime ? 'Resolved within authorized commencement deadline.' : 'Completed after authorized commencement deadline.',
+        created_at: new Date().toISOString(),
+      });
+
+      // Notify officer
+      devNotifications.unshift({
+        id: 'notif-' + Date.now(),
+        user_id: order.officer_id,
+        department_id: order.department_id,
+        title: 'Resolution Approved',
+        message: `Your proof for Order #${orderId.slice(0, 8)} was approved by Department Head.`,
+        notification_type: 'verification',
+        is_read: false,
+        created_at: new Date().toISOString(),
+      });
+
+      return { success: true, onTime: isOntime };
     }
+
     const res = requireSuccess(await requireSupabase().rpc('v19_approve_resolution', { p_order_id: orderId })) as {
       success: boolean;
+      onTime?: boolean;
     };
     return res;
   }
 
-  async returnCorrection(orderId: string, reason: string, correctionHours = 24): Promise<{ success: boolean; newDeadline: string }> {
+  async returnCorrection(
+    orderId: string,
+    reason: string,
+    correctionHours = 24
+  ): Promise<{ success: boolean; newDeadline: string }> {
+    if (!reason || !reason.trim()) {
+      throw new Error('Correction reason is mandatory.');
+    }
+
     if (isLocalFieldDemo()) {
       const order = devOrders.find((o) => o.id === orderId);
+      if (!order) throw new Error(`Work order ${orderId} not found.`);
+      if (order.status === 'verified') throw new Error(`Cannot return verified order ${orderId}.`);
+
       const newDeadline = new Date(Date.now() + correctionHours * 3600000).toISOString();
-      if (order) {
-        order.status = 'returned';
-        order.review_note = reason;
-        order.effective_deadline_at = newDeadline;
-        order.due_at = newDeadline;
-        order.instructions = (order.instructions || '') + '\n[CORRECTION REQUIRED]: ' + reason;
-      }
-      const p = devProofs.find((item) => item.order_id === orderId);
+      order.status = 'returned';
+      order.review_note = reason;
+      order.effective_deadline_at = newDeadline;
+      order.due_at = newDeadline;
+      order.instructions = (order.instructions || '') + '\n[SUPERVISOR CORRECTION REQUIRED]: ' + reason;
+
+      const p = devProofs.find((item) => item.order_id === orderId && item.decision === 'pending');
       if (p) p.decision = 'rejected';
+
+      // Record penalty in ranking ledger
+      devRankingEvents.push({
+        id: 'rank-evt-' + Date.now(),
+        officer_id: order.officer_id,
+        order_id: order.id,
+        department_id: order.department_id,
+        event_type: 'correction_penalty',
+        points_delta: -10,
+        notes: 'Returned for correction: ' + reason,
+        created_at: new Date().toISOString(),
+      });
+
+      // Notify officer
+      devNotifications.unshift({
+        id: 'notif-' + Date.now(),
+        user_id: order.officer_id,
+        department_id: order.department_id,
+        title: 'Correction Required on Field Task',
+        message: `Order #${orderId.slice(0, 8)} returned by Department Head: ${reason}`,
+        notification_type: 'warning',
+        is_read: false,
+        created_at: new Date().toISOString(),
+      });
+
       return { success: true, newDeadline };
     }
+
     const res = requireSuccess(await requireSupabase().rpc('v19_return_correction', {
       p_order_id: orderId,
       p_reason: reason,
@@ -917,7 +1249,87 @@ class FieldOperationsService {
     return res;
   }
 
+  async extendDeadline(
+    orderId: string,
+    additionalHours: number,
+    reason: string
+  ): Promise<{
+    success: boolean;
+    orderId: string;
+    previousDeadline: string;
+    extendedDeadline: string;
+    additionalHours: number;
+  }> {
+    if (!additionalHours || additionalHours <= 0) {
+      throw new Error('Additional hours must be greater than zero.');
+    }
+    if (!reason || !reason.trim()) {
+      throw new Error('Reason for extension is required.');
+    }
+
+    if (isLocalFieldDemo()) {
+      const order = devOrders.find((o) => o.id === orderId);
+      if (!order) throw new Error(`Work order ${orderId} not found.`);
+      if (order.status === 'verified') throw new Error(`Cannot extend deadline for verified order ${orderId}.`);
+
+      const prevDeadline = order.effective_deadline_at || order.due_at || new Date().toISOString();
+      const newDeadline = new Date(new Date(prevDeadline).getTime() + additionalHours * 3600000).toISOString();
+
+      order.effective_deadline_at = newDeadline;
+      order.due_at = newDeadline;
+      order.extension_requested_due_at = null;
+      order.extension_reason = null;
+
+      devDeadlineHistory.push({
+        id: 'hist-' + Date.now(),
+        order_id: orderId,
+        department_id: order.department_id,
+        previous_deadline: prevDeadline,
+        extended_deadline: newDeadline,
+        additional_hours: additionalHours,
+        reason,
+        authorized_by: 'local-hod',
+        created_at: new Date().toISOString(),
+      });
+
+      devNotifications.unshift({
+        id: 'notif-' + Date.now(),
+        user_id: order.officer_id,
+        department_id: order.department_id,
+        title: 'Deadline Extension Approved',
+        message: `Deadline for Order #${orderId.slice(0, 8)} was extended by ${additionalHours}h: ${reason}`,
+        notification_type: 'deadline',
+        is_read: false,
+        created_at: new Date().toISOString(),
+      });
+
+      return {
+        success: true,
+        orderId,
+        previousDeadline: prevDeadline,
+        extendedDeadline: newDeadline,
+        additionalHours,
+      };
+    }
+
+    const res = requireSuccess(await requireSupabase().rpc('v19_extend_deadline', {
+      p_order_id: orderId,
+      p_additional_hours: additionalHours,
+      p_reason: reason,
+    })) as {
+      success: boolean;
+      orderId: string;
+      previousDeadline: string;
+      extendedDeadline: string;
+      additionalHours: number;
+    };
+    return res;
+  }
+
   async rejectDepartmentComplaint(complaintId: string, reason: string): Promise<{ success: boolean }> {
+    if (!reason || !reason.trim()) {
+      throw new Error('Rejection reason is required.');
+    }
     if (isLocalFieldDemo()) {
       return { success: true };
     }
@@ -928,30 +1340,209 @@ class FieldOperationsService {
     return res;
   }
 
+  async issueWarning(
+    departmentId: string,
+    officerId: string,
+    reason: string,
+    severity: 'advisory' | 'formal' | 'final' = 'formal'
+  ): Promise<{ success: boolean; warningId: string; officerId: string }> {
+    if (!reason || !reason.trim()) {
+      throw new Error('Warning reason is mandatory.');
+    }
+
+    if (isLocalFieldDemo()) {
+      const warnId = 'warn-' + Date.now();
+      const warning: OfficerWarning = {
+        id: warnId,
+        officer_id: officerId,
+        department_id: departmentId,
+        issued_by: 'local-hod',
+        reason,
+        severity,
+        issued_at: new Date().toISOString(),
+      };
+      devWarnings.unshift(warning);
+
+      devNotifications.unshift({
+        id: 'notif-warn-' + Date.now(),
+        user_id: officerId,
+        department_id: departmentId,
+        title: 'Formal Supervisory Notice Issued',
+        message: `Department Head issued ${severity} notice: ${reason}`,
+        notification_type: 'warning',
+        is_read: false,
+        created_at: new Date().toISOString(),
+      });
+
+      return { success: true, warningId: warnId, officerId };
+    }
+
+    const res = requireSuccess(await requireSupabase().rpc('v19_issue_warning', {
+      p_officer_id: officerId,
+      p_department: departmentId,
+      p_reason: reason,
+      p_severity: severity,
+    })) as { success: boolean; warningId: string; officerId: string };
+    return res;
+  }
+
+  async saveOfficerProfile(
+    officerId: string,
+    departmentId: string,
+    profileData: {
+      fullName: string;
+      employeeId: string;
+      officialEmail: string;
+      phone?: string;
+      cnic?: string;
+      photoPath?: string;
+    }
+  ): Promise<{
+    success: boolean;
+    userId: string;
+    employeeId: string;
+    phoneMasked?: string | null;
+    cnicMasked?: string | null;
+  }> {
+    if (isLocalFieldDemo()) {
+      const phoneClean = profileData.phone?.trim();
+      const phoneMasked = phoneClean && phoneClean.length >= 7
+        ? phoneClean.slice(0, 4) + '-***-' + phoneClean.slice(-3)
+        : null;
+
+      const cnicClean = profileData.cnic?.trim();
+      const cnicMasked = cnicClean && cnicClean.length >= 10
+        ? cnicClean.slice(0, 5) + '-*******-' + cnicClean.slice(-1)
+        : null;
+
+      const profile: OfficerProfileDetails = {
+        user_id: officerId,
+        department_id: departmentId,
+        full_name: profileData.fullName.trim(),
+        employee_id: profileData.employeeId.trim(),
+        official_email: profileData.officialEmail.trim(),
+        phone_masked: phoneMasked,
+        cnic_masked: cnicMasked,
+        cnic_hash: cnicClean ? 'demo-sha256-hash' : null,
+        profile_photo_storage_path: profileData.photoPath || null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+      devOfficerProfiles.set(officerId, profile);
+
+      const off = devTeam.find((o) => o.user_id === officerId);
+      if (off) {
+        off.display_name = profileData.fullName.trim();
+        off.employee_id = profileData.employeeId.trim();
+      }
+
+      return {
+        success: true,
+        userId: officerId,
+        employeeId: profileData.employeeId,
+        phoneMasked,
+        cnicMasked,
+      };
+    }
+
+    const res = requireSuccess(await requireSupabase().rpc('v19_save_officer_profile', {
+      p_officer_id: officerId,
+      p_department: departmentId,
+      p_full_name: profileData.fullName,
+      p_employee_id: profileData.employeeId,
+      p_official_email: profileData.officialEmail,
+      p_phone: profileData.phone || null,
+      p_cnic: profileData.cnic || null,
+      p_photo_path: profileData.photoPath || null,
+    })) as {
+      success: boolean;
+      userId: string;
+      employeeId: string;
+      phoneMasked?: string | null;
+      cnicMasked?: string | null;
+    };
+    return res;
+  }
+
+  async fetchOfficerProfile(userId: string): Promise<OfficerProfileDetails | null> {
+    if (isLocalFieldDemo()) {
+      return devOfficerProfiles.get(userId) || null;
+    }
+    const { data, error } = await requireSupabase()
+      .from('officer_profile_details')
+      .select('*')
+      .eq('user_id', userId)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    return data as OfficerProfileDetails | null;
+  }
+
+  async uploadProfilePhoto(userId: string, photoFile: File): Promise<string> {
+    if (isLocalFieldDemo()) {
+      return `local-profiles/${userId}-${Date.now()}.jpg`;
+    }
+    const client = requireSupabase();
+    const storagePath = `profiles/${userId}/${Date.now()}_${photoFile.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+    const { error } = await client.storage.from('department-work-proof-private').upload(storagePath, photoFile);
+    if (error) throw new Error(error.message);
+    return storagePath;
+  }
+
+  async fetchRankingEvents(officerId: string): Promise<OfficerRankingEvent[]> {
+    if (isLocalFieldDemo()) {
+      return devRankingEvents.filter((e) => e.officer_id === officerId);
+    }
+    const { data, error } = await requireSupabase()
+      .from('officer_ranking_events')
+      .select('*')
+      .eq('officer_id', officerId)
+      .order('created_at', { ascending: false });
+    if (error) throw new Error(error.message);
+    return (data || []) as OfficerRankingEvent[];
+  }
+
+  /**
+   * Verified Rating Formula:
+   * Score = 1.0 + 4.0 * (0.7 * onTimeRate + 0.3 * (1 - disputeRate))
+   */
+  calculateOfficerRating(
+    officer: Pick<DepartmentOfficer, 'verified_cases' | 'on_time_cases' | 'disputed_cases'>
+  ): {
+    score: number;
+    onTimeRate: number;
+    disputeRate: number;
+    verifiedCases: number;
+  } {
+    const verified = Math.max(1, officer.verified_cases);
+    const onTimeRate = Math.min(1, Math.max(0, officer.on_time_cases / verified));
+    const disputeRate = Math.min(1, Math.max(0, officer.disputed_cases / verified));
+    const rawScore = 1.0 + 4.0 * (0.7 * onTimeRate + 0.3 * (1.0 - disputeRate));
+    const roundedScore = Math.round(rawScore * 10) / 10;
+
+    return {
+      score: roundedScore,
+      onTimeRate: Math.round(onTimeRate * 100),
+      disputeRate: Math.round(disputeRate * 100),
+      verifiedCases: officer.verified_cases,
+    };
+  }
+
+  async fetchDeadlineHistory(orderId: string): Promise<DeadlineExtensionRecord[]> {
+    if (isLocalFieldDemo()) {
+      return devDeadlineHistory.filter((h) => h.order_id === orderId);
+    }
+    const { data, error } = await requireSupabase()
+      .from('work_order_deadline_history')
+      .select('*')
+      .eq('order_id', orderId)
+      .order('created_at', { ascending: false });
+    if (error) throw new Error(error.message);
+    return (data || []) as DeadlineExtensionRecord[];
+  }
+
   async fetchNotifications(departmentId: string, userId?: string): Promise<StaffNotification[]> {
     if (isLocalFieldDemo()) {
-      return [
-        {
-          id: 'notif-01',
-          user_id: userId || 'local-demo',
-          department_id: departmentId,
-          title: 'Resolution Evidence Submitted',
-          message: 'Field Officer Tariq submitted evidence for Order #local-dev-order-02.',
-          notification_type: 'verification',
-          is_read: false,
-          created_at: new Date(Date.now() - 3600000).toISOString(),
-        },
-        {
-          id: 'notif-02',
-          user_id: userId || 'local-demo',
-          department_id: departmentId,
-          title: 'New Urgent Complaint Intake',
-          message: 'High priority asphalt failure reported on University Road.',
-          notification_type: 'assignment',
-          is_read: true,
-          created_at: new Date(Date.now() - 14400000).toISOString(),
-        },
-      ];
+      return devNotifications.filter((n) => n.department_id === departmentId && (!userId || n.user_id === userId || !n.user_id));
     }
     const query = requireSupabase()
       .from('staff_notifications')
@@ -967,7 +1558,11 @@ class FieldOperationsService {
   }
 
   async markNotificationRead(notificationId: string): Promise<void> {
-    if (isLocalFieldDemo()) return;
+    if (isLocalFieldDemo()) {
+      const notif = devNotifications.find((n) => n.id === notificationId);
+      if (notif) notif.is_read = true;
+      return;
+    }
     const { error } = await requireSupabase()
       .from('staff_notifications')
       .update({ is_read: true })
@@ -977,17 +1572,7 @@ class FieldOperationsService {
 
   async fetchOfficerWarnings(departmentId: string, officerId: string): Promise<OfficerWarning[]> {
     if (isLocalFieldDemo()) {
-      return [
-        {
-          id: 'warn-01',
-          officer_id: officerId,
-          department_id: departmentId,
-          issued_by: 'local-hod',
-          reason: 'Late arrival to urgent water pipe burst site.',
-          severity: 'formal',
-          issued_at: new Date(Date.now() - 86400000).toISOString(),
-        },
-      ];
+      return devWarnings.filter((w) => w.department_id === departmentId && w.officer_id === officerId);
     }
     const { data, error } = await requireSupabase()
       .from('officer_warnings')

@@ -149,14 +149,14 @@ class SyntheticImageDetector {
         }
 
         let finalStatus: EvidenceIntegrityStatus = 'screening_passed';
-        let confidence = 0.88;
+        let confidence = noiseScore;
 
         if (detectedArtifacts.length >= 2) {
           finalStatus = 'suspicious';
-          confidence = 0.4;
+          confidence = Math.min(confidence, 0.4);
         } else if (detectedArtifacts.length === 1 || !hasExifCamera) {
           finalStatus = 'manual_review_required';
-          confidence = 0.65;
+          confidence = Math.min(confidence, 0.65);
         }
 
         return {
