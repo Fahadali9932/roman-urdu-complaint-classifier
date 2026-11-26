@@ -1,9 +1,51 @@
 # Verified current project status
 
-Verified on **26 November 2026 (Pakistan time)**. Internal delivery target:
+Verified on **27 November 2026 (Pakistan time)**. Internal delivery target:
 **5 December 2026**. Read `PROJECT_MASTER_CONTEXT.md` for requirements/history.
 This document distinguishes inspected source, automated checks, and unverified
 hosted behavior. Update it after every significant verified milestone.
+
+## Development update, 27 November 2026 — Phase V19: Unified HOD & Field Officer Portals (Apple-Inspired Liquid Glass, Commencement Deadlines & GPS Evidence Verification)
+
+- **Git & Protected Baseline (`D:\RomanUrdu_V13_19_Review`, branch `feature/v19-unified-hod-officer-portals`):**
+  - Branched from V18 baseline checkpoint `checkpoint/v18-before-v19` (`08d28d8d2cdcd5c8c00932f2e255254ee663594f`).
+  - Protected primary worktree `D:\RomanUrdu_ComplaintClassifier_staff_auth` remained completely untouched.
+  - Total expenditure: `$0.00`; zero paid external APIs or credit card requirements.
+  - Frozen Run004 Roman Urdu classifier (`E4D042937CF8C3E1E3C70F147A707B33A629D463DB34485766C98DA21C2E3A56`), training datasets, and citizen portals preserved with 100% integrity.
+- **Shared Design System & Primitives (`v19-unified.css`, `src/features/department/components/v19/`):**
+  - Atmospheric departmental glows: `dept-kmc` (emerald/lime), `dept-kwsc` (cyan/azure), `dept-kelectric` (amber/orange), and `dept-default` (indigo).
+  - High-precision live PKT clock (`TrustedClock.tsx`) anchored to Asia/Karachi wall-clock bounds.
+  - Pure SVG interactive categorical donut chart (`DonutChart.tsx`) with animated hovering segments.
+  - Full-screen optical zoom evidence lightbox (`ImageLightbox.tsx`) with anti-tamper diagonal watermarks.
+  - Accessible 6-digit OTP input primitive (`OtpInput.tsx`).
+  - Anti-leak dynamic security watermark (`WatermarkOverlay.tsx`) generating 18 diagonal tiles with department, username, and PKT timestamp.
+- **HOD Digital Workspace (`V19HodPortalView.tsx`):**
+  - **Overview (`HodHomePage.tsx`):** Authenticated greeting, active/solved KPI counters, pure SVG donut chart, zero distracting heatmaps.
+  - **Complaints (`HodComplaintsView.tsx`):** Priority-sorted unassigned cases, quick search/district filter, reading detail view, rejection workflow with mandatory justification, assignment drawer with V16 30m duplicate incident matching.
+  - **Officer Management (`HodOfficersView.tsx`):** Complete roster, temporary credentials generation (`TMP-XXXX-XXXX`), formal warnings modal, suspension toggle, and deadline adjustments.
+  - **Verification (`HodVerificationView.tsx`):** Dual before-and-after photo inspection, 30m Haversine GPS badge, one-click Approval, and Return for Correction with penalty deadline extension.
+  - **Profile (`HodProfileView.tsx`):** Department jurisdiction and session logout.
+- **Field Officer Portal & Mobile Fieldwork Gate (`V19OfficerPortalView.tsx`, `OfficerMobileGate.tsx`):**
+  - **Mobile Gate:** On viewports `< 768px`, analytical and roster views display an Apple-inspired desktop-required boundary gate with 1-click CTA to return to the active `Work` tab, preventing accidental edits in the field.
+  - **Active Work Console (`OfficerWorkView.tsx`):** Live commencement-based countdown timer to `effective_deadline_at`, turn-by-turn navigation (Google Maps / OpenStreetMap), extension request modal, and on-site completion submission with camera input, GPS capture, and 30m proximity validation.
+  - **Assigned Tasks (`OfficerComplaintsView.tsx`):** Unstarted field orders with citizen photos and **Start Working** commencement trigger.
+  - **Performance Scorecard (`OfficerPerformanceView.tsx`):** On-time resolution rate, supervisor-verified counts, formal supervisory notices, and historical ledger.
+  - **Notifications Stream (`OfficerNotificationsView.tsx`):** Real-time task assignments, supervisor decisions, and deadline alerts.
+- **Backend Migrations & Stored Procedures (`supabase/migrations/20261207000000_v19_unified_hod_officer_portals.sql`):**
+  - Schema extension on `department_work_orders`: `assigned_duration_hours`, `started_at`, `effective_deadline_at`, `rejection_reason`, `gps_latitude`, `gps_longitude`, `gps_accuracy_m`, `gps_distance_m`, `gps_verified`, `evidence_hash`.
+  - Supporting tables: `staff_notifications`, `officer_warnings`, `officer_activity_heartbeats` with RLS policies.
+  - PostgreSQL RPCs: `v19_start_work_order`, `v19_submit_work_completion`, `v19_approve_resolution`, `v19_return_correction`, `v19_reject_department_complaint`.
+  - Service integration: `FieldOperationsService` wraps all RPCs with complete offline demo fallback for developer preview and testing.
+- **Automated Quality Gates & Test Suite Results:**
+  - `npx tsc -b`: exit `0` (`0` type errors).
+  - `oxlint`: exit `0` (`0` warnings, `0` errors across all V19 files).
+  - `npm test -- --run` (Vitest): **`75` passed | `1` skipped (`76`), `734` passed | `1` skipped (`735`)** in `34.86s` (including 21 newly authored V19 tests across 4 dedicated test suites). Zero regressions.
+  - Headless Chrome QA (`tools/ai_factory/v19_browser_qa.mjs`): 18 high-resolution screenshots captured across 7 viewports (`1920px`, `1440px`, `1280px`, `1024px`, `768px`, `390px`, `320px`), Light and Dark mode, with **`0px` horizontal overflow** and verified security watermarking.
+- **Documentation Deliverables:**
+  - `docs/V19_UNIFIED_HOD_OFFICER_IMPLEMENTATION_REPORT.md`
+  - `docs/V19_BACKEND_AND_SECURITY_REPORT.md`
+  - `docs/V19_BROWSER_QA_REPORT.md`
+  - `docs/V19_RANKING_DEADLINE_AND_EVIDENCE_POLICY.md`
 
 ## Development update, 26 November 2026 — Phase V18: Reference-Fidelity Redesign (Minimal Sales Analytics Dashboard & Drivery Complaint List)
 
