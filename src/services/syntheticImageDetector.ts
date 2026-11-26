@@ -106,8 +106,11 @@ class SyntheticImageDetector {
           img.onload = () => resolve({ width: img.naturalWidth, height: img.naturalHeight });
           img.onerror = () => reject(new Error('Image decoding failed'));
         });
+        const timeoutPromise = new Promise<{ width: number; height: number }>((_, reject) => {
+          setTimeout(() => reject(new Error('Image decode timeout')), 500);
+        });
         img.src = url;
-        const { width, height } = await loadPromise;
+        const { width, height } = await Promise.race([loadPromise, timeoutPromise]);
         URL.revokeObjectURL(url);
 
         // Aspect ratio sanity check

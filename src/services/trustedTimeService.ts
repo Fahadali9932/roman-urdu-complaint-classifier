@@ -27,6 +27,15 @@ class TrustedTimeService {
     }
   }
 
+  public syncWithServerTime(serverDateMsOrString: number | string): void {
+    const ms = typeof serverDateMsOrString === 'string' ? new Date(serverDateMsOrString).getTime() : serverDateMsOrString;
+    if (!isNaN(ms) && ms > 0) {
+      this.serverBaselineMs = ms;
+      this.monotonicStart = typeof performance !== 'undefined' ? performance.now() : 0;
+      this.hasSyncedWithServer = true;
+    }
+  }
+
   public async syncWithServer(): Promise<void> {
     if (typeof window === 'undefined' || typeof fetch === 'undefined') return;
 
@@ -124,6 +133,10 @@ class TrustedTimeService {
    * Checks whether clock has received an authoritative server handshake.
    */
   public isSynced(): boolean {
+    return this.hasSyncedWithServer;
+  }
+
+  public isSynchronized(): boolean {
     return this.hasSyncedWithServer;
   }
 
