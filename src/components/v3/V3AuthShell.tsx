@@ -54,10 +54,7 @@ export const V3AuthShell: React.FC<V3AuthShellProps> = ({
           <div
             className="absolute inset-0"
             style={{
-              background:
-                theme === 'dark'
-                  ? 'linear-gradient(120deg, rgba(32, 43, 53, 0.94) 0%, rgba(32, 43, 53, 0.86) 52%, rgba(32, 43, 53, 0.74) 100%)'
-                  : 'linear-gradient(120deg, rgba(232, 237, 240, 0.96) 0%, rgba(232, 237, 240, 0.92) 50%, rgba(232, 237, 240, 0.78) 100%)',
+              background: 'var(--v3-auth-scrim)',
             }}
           />
         </div>

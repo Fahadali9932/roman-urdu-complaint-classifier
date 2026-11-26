@@ -28,6 +28,7 @@ html[data-theme="light"],
   --v3-warning-soft: rgba(138, 83, 18, 0.11);
   --v3-shadow-nav: 0 8px 28px rgba(39, 55, 70, 0.08);
   --v3-shadow-glass: 0 18px 44px rgba(39, 55, 70, 0.16);
+  --v3-auth-scrim: linear-gradient(120deg, rgba(232, 237, 240, 0.96) 0%, rgba(232, 237, 240, 0.91) 50%, rgba(232, 237, 240, 0.78) 100%);
 }
 
 [data-theme="dark"],
@@ -53,6 +54,7 @@ html.dark:not([data-theme="light"]) {
   --v3-warning-soft: rgba(245, 195, 109, 0.16);
   --v3-shadow-nav: 0 10px 30px rgba(0, 0, 0, 0.28);
   --v3-shadow-glass: 0 22px 48px rgba(0, 0, 0, 0.38);
+  --v3-auth-scrim: linear-gradient(120deg, rgba(32, 43, 53, 0.94) 0%, rgba(32, 43, 53, 0.86) 52%, rgba(32, 43, 53, 0.74) 100%);
 }
 
 .v3-portal-shell {
@@ -406,6 +408,11 @@ body.v3-civic-active {
 .v3-input:focus {
   border-color: var(--v3-action);
   box-shadow: 0 0 0 3px rgba(66, 101, 129, 0.18);
+}
+
+.v3-input::placeholder {
+  color: var(--v3-muted);
+  opacity: 1;
 }
 
 .v3-textarea {

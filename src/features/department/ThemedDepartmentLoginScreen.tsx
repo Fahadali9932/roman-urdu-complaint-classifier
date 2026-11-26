@@ -219,7 +219,7 @@ export const ThemedDepartmentLoginScreen: React.FC<ThemedDepartmentLoginScreenPr
         >
           {roleTitle ? `${roleTitle} sign in` : 'Sign in'}
         </h2>
-        <p className="mt-1 text-[13px]" style={{ color: 'var(--v3-muted)' }}>
+        <p className="mt-1 text-[13px]" style={{ color: 'var(--v3-muted)', textWrap: 'pretty' }}>
           {roleTitle ? `${theme.name} · Individual ${targetRole} account` : `${theme.name} • ${theme.subtitleEn}`}
         </p>
       </div>
@@ -257,18 +257,17 @@ export const ThemedDepartmentLoginScreen: React.FC<ThemedDepartmentLoginScreenPr
         </nav>
       )}
 
-      {/* Local Demo Notice */}
+      {/* Local Demo Notice (flat divider strip to avoid nested card inside glass panel) */}
       {isLocalDemonstration && (
         <div
-          className="mb-5 rounded-[12px] px-4 py-3 text-[12px] leading-relaxed"
+          className="mb-5 border-t border-b py-3 text-[12px] leading-relaxed"
           style={{
-            backgroundColor: 'var(--v3-raised)',
-            border: '1px solid var(--v3-edge)',
+            borderColor: 'var(--v3-edge)',
             color: 'var(--v3-ink)',
           }}
           role="status"
         >
-          <p>
+          <p style={{ textWrap: 'pretty' }}>
             Local demonstration mode: this browser is not connected to Supabase.{' '}
             {roleTitle ? `Use the ${roleTitle} account (${defaultUsername}). ` : ''}Live staff accounts will not work here.
           </p>

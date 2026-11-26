@@ -413,7 +413,7 @@ export const FieldOperationsDesk: React.FC<Props> = ({
             <div style={{ maxWidth: '760px', margin: '0 auto' }}>
               {!selected ? (
                 /* Stage 0: Incoming Cases Ready for Assignment */
-                <div className="v21-case-card" style={{ padding: '20px' }}>
+                <div className="v21-case-card" data-incoming-queue="true" style={{ padding: '20px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', flexWrap: 'wrap', gap: '10px' }}>
                     <div>
                       <h2 style={{ fontSize: '17px', fontWeight: 600, margin: 0, color: 'var(--v3-ink, var(--v21-text-main))' }}>
@@ -549,8 +549,8 @@ export const FieldOperationsDesk: React.FC<Props> = ({
                       {[
                         { num: 1, label: 'Case' },
                         { num: 2, label: 'Officer' },
-                        { num: 3, label: 'Deadline' },
-                        { num: 4, label: 'Instructions' },
+                        { num: 3, label: 'Due' },
+                        { num: 4, label: 'Notes' },
                         { num: 5, label: 'Confirm' },
                       ].map((s) => {
                         const isActive = assignStage === s.num;
@@ -878,12 +878,12 @@ export const FieldOperationsDesk: React.FC<Props> = ({
             <div className="v21-case-card" style={{ padding: '20px', marginTop: '20px' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
                 <div>
-                  <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--v21-text-tertiary)', letterSpacing: '0.04em' }}>
+                  <span style={{ fontSize: '12px', fontWeight: 500, color: 'var(--v3-muted, var(--v21-text-muted))' }}>
                     {view === 'verification'
-                      ? 'EVIDENCE INBOX'
+                      ? 'Evidence inbox'
                       : view === 'field_archive'
-                      ? 'COMPLETED / ARCHIVED'
-                      : 'WORK IN MOTION'}
+                      ? 'Completed and archived'
+                      : 'Work in motion'}
                   </span>
                   <h2 style={{ fontSize: '16px', fontWeight: 700, margin: '2px 0 0 0', color: 'var(--v21-text-main)' }}>
                     {view === 'verification'

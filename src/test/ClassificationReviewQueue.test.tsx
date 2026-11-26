@@ -69,7 +69,7 @@ describe('AWAAZ-E-AWAM — Staff Classification Review Queue & Routing', () => {
     const menuBtn = await screen.findByRole('button', { name: /Open workspace menu/i });
     fireEvent.click(menuBtn);
     await waitFor(() => {
-      expect(screen.getByText('Review Queue')).toBeInTheDocument();
+      expect(screen.getByText(/Review queue/i)).toBeInTheDocument();
     });
   });
 
@@ -126,7 +126,7 @@ describe('AWAAZ-E-AWAM — Staff Classification Review Queue & Routing', () => {
     const menuBtn = await screen.findByRole('button', { name: /Open workspace menu/i });
     fireEvent.click(menuBtn);
     await waitFor(() => {
-      const reviewQueueBtn = screen.getByText('Review Queue');
+      const reviewQueueBtn = screen.getByText(/Review queue/i);
       fireEvent.click(reviewQueueBtn);
     });
 

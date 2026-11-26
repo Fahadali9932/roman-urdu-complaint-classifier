@@ -1,9 +1,31 @@
 # Verified current project status
 
-Verified on **25 November 2026 (Pakistan time)**. Internal delivery target:
+Verified on **26 November 2026 (Pakistan time)**. Internal delivery target:
 **5 December 2026**. Read `PROJECT_MASTER_CONTEXT.md` for requirements/history.
 This document distinguishes inspected source, automated checks, and unverified
 hosted behavior. Update it after every significant verified milestone.
+
+## Development update, 26 November 2026 — Phase V14.1: Department Head Portal Design Refinement
+
+- **Git & Protected Baseline (`D:\RomanUrdu_V13_19_Review`, branch `feature/v14-1-head-design-refinement`):**
+  - Branched from V14 baseline `4b0a12e` (`checkpoint/v14-4b0a12e` preserved locally).
+  - Protected primary worktree `D:\RomanUrdu_ComplaintClassifier_staff_auth` and frozen Run004 classifier untouched.
+- **Token Authority & Typography Consolidation (`2061dd2` + final polish):**
+  - Eliminated legacy `Inter` overrides in `.app-shell` (`department-operations-v16.css`, `department-theme.css`) so the Department Head portal uses `DM Sans` (`--v3-font-sans`) consistently (`impeccable detect` source scan exit `0`, `[]`).
+  - Removed `#8B5CF6`, `#0a7067`, `#2b4746`, `#c88b43`, side-tab left border stripes, and `transition: all`; separated Dark `--v21-accent` (`#B1CADC`) from `--v21-action` (`#436581` / `#EFF4F7`, `5.67:1`); raised `.v3-input::placeholder` and `--subtle` contrast to `>= 5.0:1`; preserved functional reduced-motion feedback; enforced `.two-cols` mobile stacking (`0px` overflow at `390px` and `320px`) and `44px` deadline time `<select>` controls.
+- **Department Head Screen Refinements (`414f294`, `bc460be`, + final polish):**
+  - **Login (`V3AuthShell.tsx`, `ThemedDepartmentLoginScreen.tsx`):** Moved backdrop scrim to CSS `--v3-auth-scrim` fixing Light-mode hero contrast over the arterial road SVG (`> 9:1`), hid role-switching tabs when `targetRole` is set, removed duplicate top navigation pills leaving one clean `← Switch Department` action, flattened the local demo notice, and applied `textWrap: 'balance'` / `'pretty'`.
+  - **Focus (`OverviewPage.tsx`) & Complaint Queue (`WorkQueuePage.tsx`):** Replaced double borders with a single top divider above the metrics strip, removed boxed counter framing, wrapped `.saved-views` tabs cleanly on mobile, and restored report unit text below `480px`.
+  - **Case Details (`CaseDetailPage.tsx`, `ComplaintDetailView.tsx`):** Removed duplicate `"View reports"` CTA, flattened the `fact-strip` and overview columns (`ops-detail-narrative` / `ops-detail-meta`), and fixed mobile two-column stacking.
+  - **Dispatch (`FieldOperationsDesk.tsx`) & Weekly Deadline Picker (`DepartmentDeadlinePicker.tsx`):** Hid the incoming 91-case queue while actively dispatching a selected case (with `Change case` recovery and 5-segment progress track preserving drafts across backward steps); replaced dual stacked calendars with a single Monday-first weekly view (`Choose another date` toggle for month selection) and removed fabricated Wed/Fri workload dots.
+  - **Workspace Navigation Menu (`V3WorkspaceMenu.tsx`, `DepartmentDashboardPage.tsx`):** Synchronized dashboard theme state via shared `useCivicTheme()`, grouped menu items (`Primary views` `md:hidden` on desktop to avoid duplicating topbar tabs while retaining full mobile access, `Workspace tools`, `Account`), standardized `Review queue` casing, and refined active row radius.
+- **Observed Verification Results (Post Final Edits):**
+  - `impeccable detect --json src/features/department src/components/v3`: exit **`0`** (`[]`).
+  - Chrome CDP QA (`v14_1_qa_verify.mjs`): **`84`** screenshots across `1440`, `1024`, `768`, `393`, `390`, `320px` (Light & Dark), **`0px`** max overflow, **`44px`** min deadline select height, **`0`** console/page errors; `impeccable detect --cdp` exited **`0`** on `6/7` captured screens (`06_head_deadline_picker_light` exited `2` on lower `Assigned work orders` shared list metadata/nested framing).
+  - `npx tsc -b`: exit `0`; `npm run lint` (`oxlint`): `0` errors (`270` warnings); `npm run build`: exit `0` (`1.65s`); `v13_8_2_verify_production_bundle.mjs`: `PASS`.
+  - `npx vitest run`: **`67` test files passed, `1` skipped (`68`); `688` tests passed, `1` skipped (`689`)** (`V13_6_DevelopmentProbe.test.ts`).
+  - Local Node Edge suites (`12` non-staging suites): **`106` passed, `0` failed**; Python `tests/v11` (`python -m unittest discover -s tests/v11`): **`106` tests `OK` (`16.465s`)**.
+  - Full refinement report: `docs/V14_1_DESIGN_REFINEMENT_REPORT.md`.
 
 ## Development update, 25 November 2026 — Phase V14: Atmospheric Civic Glass Portal Integration, Mandatory Sindh Geographical Eligibility & Dual Before/After Work Proof Repair
 
