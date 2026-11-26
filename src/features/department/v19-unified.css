@@ -734,3 +734,22 @@ body.v19-window-hidden .v19-conceal-on-hidden {
     font-size: 26px;
   }
 }
+
+/* Officer Mobile Fieldwork Boundary Rules */
+.v19-desktop-only-content {
+  display: block;
+}
+
+.v19-mobile-restricted-gate {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .v19-desktop-only-content {
+    display: none !important;
+  }
+  .v19-mobile-restricted-gate {
+    display: block !important;
+  }
+}
+
