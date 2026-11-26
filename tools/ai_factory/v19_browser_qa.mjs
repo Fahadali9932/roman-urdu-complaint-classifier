@@ -211,7 +211,9 @@ async function run() {
       deviceScaleFactor: 1,
       mobile: vp.mobile,
     });
-    await sleep(600);
+    // Fresh navigation ensures activeTab resets to 'home'
+    await send('Page.navigate', { url: 'http://localhost:5173/department/officer' });
+    await sleep(800);
 
     const evalRes = await send('Runtime.evaluate', {
       expression: `
@@ -225,16 +227,17 @@ async function run() {
           const watermarks = Array.from(document.querySelectorAll('.v19-watermark-overlay span')).map(s => s.textContent.trim());
           const hasWatermarks = watermarks.length > 0 && watermarks.some(w => w.includes('OFFICIAL USE ONLY'));
 
-          // Check if mobile restriction gate is triggered for non-work tabs on small screens
-          const mobileGate = !!document.querySelector('[data-testid="officer-mobile-gate"]');
+          // Check if mobile restriction gate is computed visible on screen (< 768px on non-work tabs)
+          const gateEl = document.querySelector('[data-testid="v19-mobile-restriction-gate"]');
           const isMobileViewport = window.innerWidth < 768;
+          const mobileGateVisible = gateEl ? window.getComputedStyle(gateEl).display !== 'none' : false;
 
           return {
             clientWidth,
             scrollWidth,
             horizontalOverflow,
             hasWatermarks,
-            mobileGate,
+            mobileGateVisible,
             isMobileViewport
           };
         })()
@@ -244,7 +247,7 @@ async function run() {
 
     const metrics = evalRes.result?.value || {};
     console.log(`  Width: ${metrics.clientWidth}px, Overflow: ${metrics.horizontalOverflow}px`);
-    console.log(`  Mobile Gate Active: ${metrics.mobileGate} (Expected on non-work when < 768px: ${metrics.isMobileViewport})`);
+    console.log(`  Mobile Gate Visible: ${metrics.mobileGateVisible} (Expected on non-work when < 768px: ${metrics.isMobileViewport})`);
 
     // Capture screenshot of default/home tab
     const shot = await send('Page.captureScreenshot', { format: 'png' });
@@ -275,7 +278,7 @@ async function run() {
       overflowPx: metrics.horizontalOverflow,
       overflowPass: metrics.horizontalOverflow === 0,
       watermarksPass: metrics.hasWatermarks,
-      gatePolicyPass: metrics.isMobileViewport ? metrics.mobileGate : true,
+      gatePolicyPass: metrics.isMobileViewport ? metrics.mobileGateVisible : !metrics.mobileGateVisible,
       screenshot: `officer_${vp.name}.png`,
     });
   }
@@ -319,6 +322,55 @@ async function run() {
   const darkShot = await send('Page.captureScreenshot', { format: 'png' });
   fs.writeFileSync(path.join(OUTPUT_DIR, 'theme_dark_mode_1440.png'), Buffer.from(darkShot.data, 'base64'));
   console.log('  Saved Dark Mode screenshot: theme_dark_mode_1440.png');
+
+  // -------------------------------------------------------------
+  // INTERACTIVE OPERATIONAL MODALS AUDIT
+  // -------------------------------------------------------------
+  console.log('\n========================================');
+  console.log('AUDITING INTERACTIVE OPERATIONAL MODALS');
+  console.log('========================================');
+
+  // 1. HOD Warning Modal
+  await send('Page.navigate', { url: 'http://localhost:5173/department/head' });
+  await sleep(1500);
+  await send('Runtime.evaluate', {
+    expression: `
+      const tab = Array.from(document.querySelectorAll('.v19-nav-tab')).find(t => t.textContent.includes('Officers'));
+      if (tab) tab.click();
+    `,
+  });
+  await sleep(800);
+  await send('Runtime.evaluate', {
+    expression: `
+      const warnBtn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('Issue Formal Warning'));
+      if (warnBtn) warnBtn.click();
+    `,
+  });
+  await sleep(800);
+  const warnModalShot = await send('Page.captureScreenshot', { format: 'png' });
+  fs.writeFileSync(path.join(OUTPUT_DIR, 'hod_warning_modal.png'), Buffer.from(warnModalShot.data, 'base64'));
+  console.log('  Saved HOD Warning Modal screenshot: hod_warning_modal.png');
+
+  // 2. Officer Work Modal (Submit Completion / Camera & GPS Proximity)
+  await send('Page.navigate', { url: 'http://localhost:5173/department/officer' });
+  await sleep(1500);
+  await send('Runtime.evaluate', {
+    expression: `
+      const workTab = Array.from(document.querySelectorAll('.v19-nav-tab')).find(t => t.textContent.includes('Work'));
+      if (workTab) workTab.click();
+    `,
+  });
+  await sleep(800);
+  await send('Runtime.evaluate', {
+    expression: `
+      const doneBtn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('Work Is Done'));
+      if (doneBtn) doneBtn.click();
+    `,
+  });
+  await sleep(800);
+  const resolutionModalShot = await send('Page.captureScreenshot', { format: 'png' });
+  fs.writeFileSync(path.join(OUTPUT_DIR, 'officer_resolution_modal.png'), Buffer.from(resolutionModalShot.data, 'base64'));
+  console.log('  Saved Officer Resolution Modal screenshot: officer_resolution_modal.png');
 
   // Clean exit
   ws.close();
