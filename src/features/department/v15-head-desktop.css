@@ -14,7 +14,7 @@
   --v15-surface-sheen: linear-gradient(180deg, #FFFFFF 0%, #F8F8F9 100%);
   --v15-rail-bg: linear-gradient(180deg, #FFFFFF 0%, #F7F7F8 100%);
   --v15-ink: #171717;
-  --v15-muted: #737373;
+  --v15-muted: #666666;
   --v15-border: #E5E5E5;
   --v15-border-subtle: #EDEDED;
   --v15-edge-highlight: rgba(255, 255, 255, 0.9);
@@ -564,8 +564,9 @@
 .v15-workspace-id {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px 10px;
   flex-wrap: wrap;
+  min-width: 0;
   font-size: 13px;
   color: var(--v15-muted);
 }
@@ -579,6 +580,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-shrink: 0;
 }
 
 .v15-surface-btn {
@@ -591,6 +593,8 @@
   color: var(--v15-ink);
   font-size: 13px;
   font-weight: 500;
+  white-space: nowrap;
+  flex-shrink: 0;
   display: inline-flex;
   align-items: center;
   gap: 7px;
@@ -963,15 +967,11 @@
   gap: 14px;
 }
 
-.v15-restriction-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 11px;
-  border: 1px solid var(--v15-border);
-  background: var(--v15-surface-soft);
+.v15-restriction-heading-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   color: var(--v15-ink);
-  display: grid;
-  place-items: center;
 }
 
 /* Accessible Focus Ring */

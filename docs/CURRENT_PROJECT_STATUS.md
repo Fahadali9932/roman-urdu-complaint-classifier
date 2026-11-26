@@ -5,6 +5,24 @@ Verified on **26 November 2026 (Pakistan time)**. Internal delivery target:
 This document distinguishes inspected source, automated checks, and unverified
 hosted behavior. Update it after every significant verified milestone.
 
+## Development update, 26 November 2026 — Phase V15.0: Department Head Home, Collapsible Rail & Desktop Boundary
+
+- **Git & Protected Baseline (`D:\RomanUrdu_V13_19_Review`, branch `feature/v15-head-desktop-home`):**
+  - Branched from V14.1 `49a6b02` (`checkpoint/v14-1-49a6b02` local rollback branch preserved).
+  - Protected primary worktree `D:\RomanUrdu_ComplaintClassifier_staff_auth` and frozen Run004 classifier left untouched; zero merges to `main`, zero deployments, and `$0.00` spend.
+- **Department Head Workspace Redesign (`9ca6344` + final polish):**
+  - **Collapsible Vertical Rail (`HeadSidebarNav.tsx`, `v15-head-desktop.css`):** Iconsax-inspired neutral paper/charcoal rail (`68px` collapsed / `216px` expanded with `awaaz_head_sidebar_collapsed` persistence), outline `lucide-react` icons, accessible collapsed tooltips, restrained purple illumination strictly scoped to the active navigation item, bottom account controls, Escape-dismissible `Open workspace menu` popover (`Review queue`, `Change passphrase`, theme toggle, `Sign out`), and exact 8 destinations (`Home`, `Complaints`, `Dispatch`, `Work orders`, `Proof review`, `Officers`, `Archive`, `Settings`).
+  - **Department Head Home (`HeadHomePage.tsx`):** Clean Head landing view preserving `OverviewPage.tsx` intact for `V13_16`. Includes single-line department header, PKT greeting + PKT date (`Asia/Karachi`), 4 interactive inline operational counts (`Incoming`, `Unassigned`, `Proof review`, `Overdue`), `Priority inbox` with 4 filters (`All priorities`, `Urgent`, `Unassigned`, `Overdue`), deterministic ordering capped at 5 rows, contextual row actions (`Review`/`Assign`/`Inspect`), quiet footer, and loading/empty/error-retry states.
+  - **Scoped V15 Neutral Tokens (`v15-head-desktop.css`):** Light (`#FAFAFA`/`#FFFFFF`/`#171717`/`#666666`/`#E5E5E5`) and Dark (`#121212`/`#1C1C1C`/`#F5F5F5`/`#A3A3A3`/`#303030`) tokens scoped strictly to `.v15-head-shell` and `.v15-restriction-shell`. Field Officer, Central Administrator, and Citizen layouts untouched.
+- **Desktop-Only Head Usability Boundary (`useHeadDesktopAccess.ts`, `HeadDesktopRestrictionScreen.tsx`, `DepartmentRoleBoundary.tsx`, `DepartmentDashboardPage.tsx`):**
+  - Restricts Head operational routes (`/department/head`, `/department`, `/department/complaints/:referenceNumber`) when viewport width `< 1024px` or phone form-factor (`mobile UA` / coarse no-hover narrow screen), preventing workspace mount and operational case/complaint/work-order fetches while keeping session storage intact across `390px <-> 1280px` resize transitions. Browser checks act as UX usability controls alongside server membership, AAL2, and Supabase RLS.
+- **Observed Verification Results (Post Final Edits):**
+  - `impeccable detect --json src/features/department`: exit **`0`** (`[]`); live Chrome CDP audit (`v15_head_qa.mjs`) exited **`0`** with **`0` findings** across Light & Dark `1440px` Home and `390px` Restriction screens; **`25`** screenshots captured (`1920px` down to `320px` + `844x390` landscape) with **`0px`** overflow, **`0`** console/page errors, and **`0`** operational fetches while restricted.
+  - `npx tsc -b`: exit **`0`**; `npm run lint` (`oxlint`): **`0` errors** (`273` warnings); `npm run build`: exit **`0`** (`1.30s`); `v13_8_2_verify_production_bundle.mjs`: **`PASS`**.
+  - `npx vitest run`: **`68` test files passed, `1` skipped (`69`); `694` tests passed, `1` skipped (`695`)** in `30.22s` (includes all `6/6` tests in `src/test/V15_HeadDesktopHomeAndRestriction.test.tsx`).
+  - Local Node Edge suites (non-staging `tests/edge/*.mjs`): **`106` passed, `0` failed**; Python `tests/v11`: **`106` tests `OK` (`17.232s`)**.
+  - Full implementation record: `docs/V15_HEAD_HOME_IMPLEMENTATION_REPORT.md`.
+
 ## Development update, 26 November 2026 — Phase V14.1: Department Head Portal Design Refinement
 
 - **Git & Protected Baseline (`D:\RomanUrdu_V13_19_Review`, branch `feature/v14-1-head-design-refinement`):**

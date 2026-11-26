@@ -40,23 +40,22 @@ export const HeadDesktopRestrictionScreen: React.FC<HeadDesktopRestrictionScreen
       </header>
 
       <main className="v15-restriction-card" aria-labelledby="head-desktop-restriction-heading">
-        <div className="v15-restriction-icon" aria-hidden="true">
-          <Monitor size={22} strokeWidth={1.5} />
+        <div className="v15-restriction-heading-row">
+          <Monitor size={24} strokeWidth={1.65} aria-hidden="true" style={{ flexShrink: 0 }} />
+          <h1
+            id="head-desktop-restriction-heading"
+            style={{
+              margin: 0,
+              fontSize: 'clamp(22px, 4vw, 26px)',
+              fontWeight: 600,
+              letterSpacing: '-0.02em',
+              lineHeight: 1.2,
+              color: 'var(--v15-ink)',
+            }}
+          >
+            Continue on desktop
+          </h1>
         </div>
-
-        <h1
-          id="head-desktop-restriction-heading"
-          style={{
-            margin: 0,
-            fontSize: 'clamp(22px, 4vw, 26px)',
-            fontWeight: 600,
-            letterSpacing: '-0.02em',
-            lineHeight: 1.2,
-            color: 'var(--v15-ink)',
-          }}
-        >
-          Continue on desktop
-        </h1>
 
         <p
           style={{
