@@ -5,6 +5,30 @@ Verified on **26 November 2026 (Pakistan time)**. Internal delivery target:
 This document distinguishes inspected source, automated checks, and unverified
 hosted behavior. Update it after every significant verified milestone.
 
+## Development update, 26 November 2026 — Phase V16.0: Independent Complaint Intake, Safe Duplicate Advisory & Attachment, Head-Scoped Officer Provisioning, and Approved Head UI
+
+- **Git & Protected Baseline (`D:\RomanUrdu_V13_19_Review`, branch `feature/v16-incident-assignment-and-staff`):**
+  - Branched from V15 baseline (`checkpoint/v15-d630dfb` preserved locally at `d630dfb75cee82fcba3ec5152e94ba7ac9775881`).
+  - Protected primary worktree `D:\RomanUrdu_ComplaintClassifier_staff_auth` and frozen Run004 classifier (`E4D042937CF8C3E1E3C70F147A707B33A629D463DB34485766C98DA21C2E3A56`) untouched; zero merges to `main`, zero production mutations (`akbwiedtmxjxcjscgitw` untouched), and `$0.00` spend.
+- **Independent Complaint Intake & Unconfirmed Grouping Removal (`CaseOperationsService.ts`, `CaseDetailPage.tsx`, `incidentMatching.ts`):**
+  - Eliminated silent same-area complaint bundling (`1` citizen report = `1` independent complaint with authoritative `id`) and disabled multi-report unconfirmed batch acceptance in UI, service layer, and SQL (`staff_accept_department_report_batch` restricted to `cardinality = 1`).
+  - Removed raw `description` select/fallback in `CaseOperationsService.ts`, ensuring staff queues only read sanitized summaries/descriptions. Citizen submission/tracking and supervisor classification review route (`?view=review`, `ReviewAssignmentModal.tsx`, `/admin/*`) remain intact.
+- **Transactional 30m Duplicate Advisory, Append-Only Linking & Officer Lifecycle (`supabase/migrations/20261206000000_v16_incident_assignment_and_staff.sql`, `supabase/functions/manage-department-officers/index.ts`, `fieldOperations.ts`, `staffAuthService.ts`, `DepartmentAuthContext.tsx`):**
+  - Added server RPCs `v16_find_candidate_orders` (30 m Haversine citizen-confirmed pins, exact sorted known issue set, optional uncertain subtype discovery, verified excluded, `pending_review` non-attachable), `v16_create_work_order_with_advisory` (per-dept advisory lock + fail-fast `P0001` `STALE_CANDIDATES` + idempotency), `v16_attach_report_to_work_order` (append-only preserve-order linking), `v16_detach_report_from_work_order`, `v16_reassign_work_order_officer`, `v16_department_officers`, `v16_resolve_staff_login_email`, `v16_staff_operational_access`, unique `(department_id, complaint_id)` index (`uq_v16_work_report_dept_complaint`), and legacy `v1318_assign_work` overwrite protection.
+  - Deployed `manage-department-officers` (`create_officer`, `complete_first_login_password` preserving active GoTrue AAL2 session, `reset_credentials`, `suspend_officer`, `reactivate_officer`) with one-time unpersisted temporary access keys and server- + UI-enforced forced passphrase setup (`forced-password-change-gate` in `DepartmentDashboardPage.tsx`).
+- **Approved V16 Department Head UI (`HeadHomePage.tsx`, `HeadComplaintsPage.tsx`, `HeadComplaintDetailView.tsx`, `FieldOperationsDesk.tsx`, `v15-head-desktop.css`):**
+  - Simplified Head Home to strictly ONE overview (`Today` default/`Yesterday`/`This month`/`This year` in strict PKT, distinct active total, 1 horizontal segmented bar, 4 labels: `New complaints`, `Under review`, `In progress`, `Awaiting verification`), removing Priority Inbox and Overdue blocks while keeping V15 rail, Light/Dark themes, and `< 1024px` desktop gate.
+  - Added flat Complaints list (`Today` default + `All`/`Yesterday`/`This month` + area/search, zero bundle counts) opening flat Complaint Detail reading view (`Back` preserving filter, `Previous`/`Next`, sanitized text, zoomable photo, OSM map, direct `Assign` w/ 30 m candidate strip + uncertain toggle + `STALE_CANDIDATES` recovery). Fixed dark-mode heading contrast on `Officer roster & access`.
+- **Live Staging Verification (`jvbulmmdwovtgaxojxhn`):**
+  - Applied `20261205000000_v14_sindh_geo_and_dual_work_proof.sql` and `20261206000000_v16_incident_assignment_and_staff.sql`; deployed `manage-department-officers`, `upload-department-work-proof`, and `submit-classified-complaint` (`ACTIVE`).
+  - Executed real E2E test suite (`scratch/v16_staging_live_verify.mjs`): live intake, AAL2 TOTP MFA, cross-dept block, officer creation, first-login passphrase block/unlock, `< 200 ms` 30 m candidate match & fail-fast `STALE_CANDIDATES`, append-only attach/idempotent replay/detach, dual PNG proof upload, suspension/reassignment, credential reset, and full fixture cleanup (`{ users: 0, complaints: 0, orders: 0 }`). `supabase db advisors --type security` reported `0` `ERROR`s (`44` intentional `WARN`s).
+- **Observed Post-Final-Edit Quality Gates & Chrome QA (`af55f54`):**
+  - `impeccable detect src/features/department --json`: `[]` (`0` findings); `npx tsc -b`: exit `0`; `npm run lint`: `0` errors (`278` warnings across `396` files); `npm run build`: `✓ built in 1.58s` (`2,263` modules); `v13_8_2_verify_production_bundle.mjs`: `PASS`.
+  - `npx vitest run`: **`70` passed | `1` skipped (`71`), `709` passed | `1` skipped (`710`)** in `39.85s` (`V16_FullWorkflows.test.tsx`, `V16_IncidentMatching.test.ts`, `V15_HeadDesktopHomeAndRestriction.test.tsx`, `CaseOperationsDesk.test.tsx`, `V13_16`, `V13_18`, `DepartmentStaffAuthGateway`).
+  - Local Node Edge suites (non-staging `tests/edge/*.mjs`): **`106` passed, `0` failed**; Python `tests/v11`: **`106` tests `OK` (`18.605s`)**.
+  - Headless Chrome QA: `20` screenshots across `1920px`, `1440px`, `1024px`, `768px`, `390px`, `320px`, and `844x390` landscape (`Light`/`Dark`) with `0px` horizontal overflow, `0` console errors, `0` page errors.
+  - Full implementation & production migration plan: `docs/V16_IMPLEMENTATION_REPORT.md`.
+
 ## Development update, 26 November 2026 — Phase V15.0: Department Head Home, Collapsible Rail & Desktop Boundary
 
 - **Git & Protected Baseline (`D:\RomanUrdu_V13_19_Review`, branch `feature/v15-head-desktop-home`):**
