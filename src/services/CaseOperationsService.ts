@@ -823,34 +823,6 @@ export class CaseOperationsService implements ICaseOperationsService {
     return result;
   }
 
-  private isCorridorMatch(placeA: string, placeB: string): boolean {
-    if (!placeA || !placeB) return false;
-    const a = placeA.trim().toLowerCase();
-    const b = placeB.trim().toLowerCase();
-    if (a === b) return true;
-
-    const stopWords = new Set([
-      'near', 'at', 'in', 'on', 'the', 'karachi', 'road', 'street', 'block',
-      'phase', 'sector', 'main', 'opposite', 'behind', 'beside', 'front',
-      'area', 'ke', 'samne', 'pass', 'crossing', 'flyover', 'corridor',
-      'roundabout', 'chowk', 'signal', 'lane', 'gate',
-      'gulshan', 'iqbal', 'korangi', 'gulberg', 'nazimabad', 'north',
-      'saddar', 'clifton', 'pechs', 'district', 'east', 'west', 'central',
-      'south', 'malir', 'keamari'
-    ]);
-    const getTokens = (s: string) =>
-      s
-        .replace(/[^a-z0-9\s]/g, ' ')
-        .split(/\s+/)
-        .filter((w) => w.length > 2 && !stopWords.has(w));
-
-    const tokensA = getTokens(a);
-    const tokensB = getTokens(b);
-    if (tokensA.length === 0 || tokensB.length === 0) return false;
-
-    return tokensA.some((t) => tokensB.includes(t));
-  }
-
   private async syncWithSupabase(deptId: DepartmentId): Promise<void> {
     if (!isSupabaseConfigured() || !supabase) {
       if (!this.isDemonstrationWorkspace()) {
@@ -893,8 +865,7 @@ export class CaseOperationsService implements ICaseOperationsService {
       const existingRefMap = new Map<string, { caseItem: StoredCase; report: CaseReportRow }>();
 
       for (const row of data) {
-        const ref = row.reference_number || row.id;
-        const mapped = existingRefMap.get(ref);
+        const mapped = existingRefMap.get(row.id);
         if (mapped) {
           mapped.report.status = row.status || mapped.report.status;
           mapped.report.updatedAt = row.updated_at || mapped.report.updatedAt;
@@ -922,85 +893,61 @@ export class CaseOperationsService implements ICaseOperationsService {
               row.sanitized_description || row.description || 'Public complaint',
             publicLocation: row.incident_public_location || row.incident_locality || 'Karachi',
             linkState: 'linked',
-            linkMethod: 'auto_asset',
             uniquePersonId: row.citizen_id ? `citizen-${row.citizen_id.slice(0, 8)}` : `guest-${row.id.slice(0, 8)}`,
           };
 
           const locality = row.incident_locality || 'General';
-          const rowPlace = row.incident_public_location || '';
-
-          // Match against active cases: must match department, not completed, matching locality, AND matching corridor/landmark
-          const targetCase = liveCases.find((c) => {
-            if (c.workStatus === 'completed') return false;
-            if (c.locality.trim().toLowerCase() !== locality.trim().toLowerCase()) return false;
-            if (!rowPlace) return false;
-            return this.isCorridorMatch(c.publicPlace, rowPlace);
-          });
-
-          if (targetCase) {
-            targetCase.reports.unshift(newReport);
-            targetCase.linkedReportCount = targetCase.reports.length;
-            const uniqueReporters = new Set(targetCase.reports.map((r) => r.uniquePersonId));
-            targetCase.uniqueReporterCount = uniqueReporters.size;
-            targetCase.pendingAcceptanceCount = targetCase.reports.filter(
-              (r) => r.status === 'assigned' || r.status === 'submitted'
-            ).length;
-            if (newReport.submittedAt > targetCase.lastReportedAt) {
-              targetCase.lastReportedAt = newReport.submittedAt;
-            }
-          } else {
-            let caseNum = `C-${(row.reference_number || row.id).slice(-4).toUpperCase()}`;
-            if (liveCases.some((c) => c.id === caseNum)) {
-              caseNum = `C-${row.id.replace(/-/g, '').slice(0, 4).toUpperCase()}`;
-            }
-
-            let initialStatus: 'needs_acceptance' | 'accepted' | 'in_progress' | 'completed' = 'needs_acceptance';
-            if (row.status === 'accepted') initialStatus = 'accepted';
-            else if (row.status === 'in_progress') initialStatus = 'in_progress';
-            else if (row.status === 'resolved' || row.status === 'rejected') initialStatus = 'completed';
-
-            const newCase: StoredCase = {
-              id: caseNum,
-              caseNumber: caseNum,
-              departmentId: deptId,
-              title: row.generated_heading || row.title || 'Citizen Public Report',
-              issueFamily: 'Municipal Infrastructure',
-              issueSubtype: issueByComplaint.get(row.id) || 'General',
-              publicPlace: row.incident_public_location || locality,
-              district: row.incident_district || 'District East',
-              locality: locality,
-              workStatus: initialStatus,
-              linkedReportCount: 1,
-              uniqueReporterCount: 1,
-              pendingAcceptanceCount: (row.status === 'assigned' || row.status === 'submitted') ? 1 : 0,
-              priority: (row.manual_priority as any) || 'normal',
-              priorityReason: row.manual_priority_reason || 'Live submission received from citizen portal.',
-              firstReportedAt: row.created_at || new Date().toISOString(),
-              lastReportedAt: row.created_at || new Date().toISOString(),
-              oldestPendingAt: row.created_at || new Date().toISOString(),
-              ageDays: 0,
-              assignedStaffId: null,
-              assignedStaffLabel: 'Unassigned',
-              summary: row.factual_summary || row.description || 'Live citizen complaint',
-              version: 1,
-              reports: [newReport],
-              activity: [
-                {
-                  id: `act-live-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-                  caseId: caseNum,
-                  eventType: 'created',
-                  label: 'Complaint submitted',
-                  detail: `Citizen submitted live complaint ${newReport.referenceNumber}.`,
-                  actorLabel: 'Citizen Portal',
-                  createdAt: row.created_at || new Date().toISOString(),
-                  formattedWhen: 'Just now',
-                },
-              ],
-            };
-            liveCases.unshift(newCase);
-            existingRefMap.set(newReport.referenceNumber, { caseItem: newCase, report: newReport });
-            existingRefMap.set(newReport.complaintId, { caseItem: newCase, report: newReport });
+          // V16: one incoming complaint per row. Only explicit work-order links may join reports.
+          let caseNum = `C-${(row.reference_number || row.id).slice(-4).toUpperCase()}`;
+          if (liveCases.some((c) => c.id === caseNum)) {
+            caseNum = `C-${row.id.replace(/-/g, '').slice(0, 4).toUpperCase()}`;
           }
+
+          let initialStatus: 'needs_acceptance' | 'accepted' | 'in_progress' | 'completed' = 'needs_acceptance';
+          if (row.status === 'accepted') initialStatus = 'accepted';
+          else if (row.status === 'in_progress') initialStatus = 'in_progress';
+          else if (row.status === 'resolved' || row.status === 'rejected') initialStatus = 'completed';
+
+          const newCase: StoredCase = {
+            id: caseNum,
+            caseNumber: caseNum,
+            departmentId: deptId,
+            title: row.generated_heading || row.title || 'Citizen Public Report',
+            issueFamily: 'Municipal Infrastructure',
+            issueSubtype: issueByComplaint.get(row.id) || 'General',
+            publicPlace: row.incident_public_location || locality,
+            district: row.incident_district || 'District East',
+            locality: locality,
+            workStatus: initialStatus,
+            linkedReportCount: 1,
+            uniqueReporterCount: 1,
+            pendingAcceptanceCount: (row.status === 'assigned' || row.status === 'submitted') ? 1 : 0,
+            priority: (row.manual_priority as any) || 'normal',
+            priorityReason: row.manual_priority_reason || 'Live submission received from citizen portal.',
+            firstReportedAt: row.created_at || new Date().toISOString(),
+            lastReportedAt: row.created_at || new Date().toISOString(),
+            oldestPendingAt: row.created_at || new Date().toISOString(),
+            ageDays: 0,
+            assignedStaffId: null,
+            assignedStaffLabel: 'Unassigned',
+            summary: row.factual_summary || row.description || 'Live citizen complaint',
+            version: 1,
+            reports: [newReport],
+            activity: [
+              {
+                id: `act-live-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+                caseId: caseNum,
+                eventType: 'created',
+                label: 'Complaint submitted',
+                detail: `Citizen submitted live complaint ${newReport.referenceNumber}.`,
+                actorLabel: 'Citizen Portal',
+                createdAt: row.created_at || new Date().toISOString(),
+                formattedWhen: 'Just now',
+              },
+            ],
+          };
+          liveCases.unshift(newCase);
+          existingRefMap.set(newReport.complaintId, { caseItem: newCase, report: newReport });
         }
       }
 
