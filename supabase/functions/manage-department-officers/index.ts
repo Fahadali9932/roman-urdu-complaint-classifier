@@ -225,12 +225,12 @@ Deno.serve(async (request) => {
       }
     };
 
-    const { error: profErr } = await admin.from("profiles").insert({
+    const { error: profErr } = await admin.from("profiles").upsert({
       id: newUserId,
       full_name: fullName,
       email: syntheticEmail,
       role: "department_staff",
-    });
+    }, { onConflict: "id" });
     if (profErr) {
       await rollbackAuth();
       return json({ error: "Profile provisioning failed; partial auth record rolled back cleanly." }, 500);
