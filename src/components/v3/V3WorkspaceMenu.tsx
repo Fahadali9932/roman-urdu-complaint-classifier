@@ -6,6 +6,8 @@ export interface V3WorkspaceMenuItem {
   id: string;
   label: string;
   meta?: string;
+  group?: string;
+  mobileOnly?: boolean;
   to?: string;
   onSelect?: () => void;
   active?: boolean;
@@ -65,17 +67,15 @@ export const V3WorkspaceMenu: React.FC<V3WorkspaceMenuProps> = ({
           {subtitle}
         </p>
 
-        <div
-          className="mt-8 border-t"
-          style={{ borderColor: 'var(--v3-edge)' }}
-          role="menu"
-        >
-          {items.map((item) => {
+        <div className="mt-6 space-y-5" role="menu">
+          {items.map((item, idx) => {
+            const prevGroup = idx > 0 ? items[idx - 1].group : undefined;
+            const showGroupHeader = Boolean(item.group && item.group !== prevGroup);
             const inner = (
               <>
                 <span className="min-w-0">
                   <span
-                    className="block text-[16px] font-medium"
+                    className="block text-[15px] font-medium"
                     style={{ color: 'var(--v3-ink)' }}
                   >
                     {item.label}
@@ -96,46 +96,56 @@ export const V3WorkspaceMenu: React.FC<V3WorkspaceMenuProps> = ({
               </>
             );
 
+            const visibilityClass = item.mobileOnly ? 'md:hidden ' : '';
             const rowClass =
-              'flex min-h-[56px] w-full items-center justify-between gap-4 border-b px-2 text-left transition-colors hover:bg-[var(--v3-soft)]/50';
+              `${visibilityClass}flex min-h-[54px] w-full items-center justify-between gap-4 rounded-[12px] px-3.5 py-2.5 text-left transition-colors hover:bg-[var(--v3-soft)]/50`;
 
-            if (item.to && !item.onSelect) {
-              return (
+            const control =
+              item.to && !item.onSelect ? (
                 <Link
-                  key={item.id}
                   to={item.to}
                   role="menuitem"
                   onClick={onClose}
                   className={rowClass}
                   style={{
-                    borderColor: 'var(--v3-edge)',
                     backgroundColor: item.active ? 'var(--v3-soft)' : 'transparent',
+                    border: item.active ? '1px solid var(--v3-edge)' : '1px solid transparent',
                   }}
                 >
                   {inner}
                 </Link>
+              ) : (
+                <button
+                  type="button"
+                  role="menuitem"
+                  data-menu-item={item.id}
+                  onClick={() => {
+                    item.onSelect?.();
+                    onClose();
+                  }}
+                  className={rowClass}
+                  style={{
+                    backgroundColor: item.active ? 'var(--v3-soft)' : 'transparent',
+                    border: item.active ? '1px solid var(--v3-edge)' : '1px solid transparent',
+                    cursor: 'pointer',
+                  }}
+                >
+                  {inner}
+                </button>
               );
-            }
 
             return (
-              <button
-                key={item.id}
-                type="button"
-                role="menuitem"
-                data-menu-item={item.id}
-                onClick={() => {
-                  item.onSelect?.();
-                  onClose();
-                }}
-                className={rowClass}
-                style={{
-                  borderColor: 'var(--v3-edge)',
-                  backgroundColor: item.active ? 'var(--v3-soft)' : 'transparent',
-                  cursor: 'pointer',
-                }}
-              >
-                {inner}
-              </button>
+              <React.Fragment key={item.id}>
+                {showGroupHeader && (
+                  <div
+                    className={`${visibilityClass}pt-2 px-3.5 text-[12px] font-medium`}
+                    style={{ color: 'var(--v3-muted)' }}
+                  >
+                    {item.group}
+                  </div>
+                )}
+                {control}
+              </React.Fragment>
             );
           })}
         </div>

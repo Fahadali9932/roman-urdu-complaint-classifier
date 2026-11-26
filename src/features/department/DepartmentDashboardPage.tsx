@@ -13,6 +13,7 @@ import {
 } from './components/DepartmentSidebar';
 import { V3WorkspaceMenu, type V3WorkspaceMenuItem } from '../../components/v3';
 import { DepartmentTopbar } from './components/DepartmentTopbar';
+import { useCivicTheme } from './hooks/useCivicTheme';
 import { supabase, isSupabaseConfigured } from '../../lib/supabase';
 import {
   ComplaintInboxList,
@@ -143,35 +144,14 @@ export const DepartmentDashboardPage: React.FC = () => {
     }
   };
 
-  // Theme mode: 'light' (default) | 'dark'
-  const [themeMode, setThemeMode] = useState<'light' | 'dark'>(() => {
-    if (typeof window !== 'undefined' && window.localStorage) {
-      const saved = localStorage.getItem('aawaaz-demo-theme') || localStorage.getItem('awaaz_dept_theme_mode');
-      if (saved === 'dark' || saved === 'light') return saved;
-    }
-    return 'light';
-  });
+  // Theme mode synchronized with shared useCivicTheme state
+  const { theme: themeMode, setTheme: handleSetTheme } = useCivicTheme();
 
   useEffect(() => {
     if (typeof document !== 'undefined') {
-      document.documentElement.setAttribute('data-theme', themeMode);
-      document.documentElement.classList.toggle('dark', themeMode === 'dark');
       document.body.setAttribute('data-theme', themeMode);
     }
   }, [themeMode]);
-
-  const handleSetTheme = (mode: 'light' | 'dark') => {
-    setThemeMode(mode);
-    if (typeof window !== 'undefined' && window.localStorage) {
-      localStorage.setItem('aawaaz-demo-theme', mode);
-      localStorage.setItem('awaaz_dept_theme_mode', mode);
-    }
-    if (typeof document !== 'undefined') {
-      document.documentElement.setAttribute('data-theme', mode);
-      document.documentElement.classList.toggle('dark', mode === 'dark');
-      document.body.setAttribute('data-theme', mode);
-    }
-  };
 
   // Navigation State
   const [currentSection, setCurrentSection] = useState<WorkspaceSection>(() => {
@@ -663,6 +643,8 @@ export const DepartmentDashboardPage: React.FC = () => {
         id: 'dashboard',
         label: 'Focus',
         meta: 'Daily decisions requiring supervisor review or dispatch',
+        group: 'Primary views',
+        mobileOnly: true,
         active: currentSection === 'dashboard' || currentSection === 'overview',
         onSelect: () => {
           setCurrentSection('dashboard');
@@ -674,6 +656,8 @@ export const DepartmentDashboardPage: React.FC = () => {
         id: 'queue',
         label: 'Complaints',
         meta: 'Searchable cases, incident reports, and corroboration',
+        group: 'Primary views',
+        mobileOnly: true,
         active: currentSection === 'queue' || currentSection === 'tasks',
         onSelect: () => {
           setCurrentSection('queue');
@@ -685,6 +669,8 @@ export const DepartmentDashboardPage: React.FC = () => {
         id: 'dispatch',
         label: 'Dispatch',
         meta: '5-stage assignment workflow and extension requests',
+        group: 'Primary views',
+        mobileOnly: true,
         active: currentSection === 'dispatch',
         onSelect: () => {
           setCurrentSection('dispatch');
@@ -695,7 +681,9 @@ export const DepartmentDashboardPage: React.FC = () => {
       {
         id: 'verification',
         label: 'Proof review',
-        meta: 'Inspect Before/After photographs and GPS proximity',
+        meta: 'Inspect before/after photographs and GPS proximity',
+        group: 'Primary views',
+        mobileOnly: true,
         active: currentSection === 'verification',
         onSelect: () => {
           setCurrentSection('verification');
@@ -707,6 +695,7 @@ export const DepartmentDashboardPage: React.FC = () => {
         id: 'team',
         label: 'Officers',
         meta: 'Approved field roster, workload, and verified scorecards',
+        group: 'Workspace tools',
         active: currentSection === 'team',
         onSelect: () => {
           setCurrentSection('team');
@@ -718,6 +707,7 @@ export const DepartmentDashboardPage: React.FC = () => {
         id: 'field_archive',
         label: 'Archive',
         meta: 'Verified field history and eligible citizen closures',
+        group: 'Workspace tools',
         active: currentSection === 'field_archive' || currentSection === 'archive',
         onSelect: () => {
           setCurrentSection('field_archive');
@@ -727,8 +717,9 @@ export const DepartmentDashboardPage: React.FC = () => {
       },
       {
         id: 'review',
-        label: 'Review Queue',
+        label: 'Review queue',
         meta: 'Supervisor routing verification cases',
+        group: 'Workspace tools',
         active: currentSection === 'review',
         onSelect: () => {
           setCurrentSection('review');
@@ -740,6 +731,7 @@ export const DepartmentDashboardPage: React.FC = () => {
         id: 'password',
         label: 'Change passphrase',
         meta: 'Update your account credentials',
+        group: 'Account',
         onSelect: () => setIsPasswordModalOpen(true),
       },
     ];
@@ -898,8 +890,8 @@ export const DepartmentDashboardPage: React.FC = () => {
                   {/* Page Heading */}
                   <div className="page-heading">
                     <div>
-                      <div className="ops-eyebrow">OPERATIONS / {currentSection === 'review' || activeTaskFilter === 'under_review' ? 'ROUTING' : 'REPORTS'}</div>
-                      <h1>{currentSection === 'review' || activeTaskFilter === 'under_review' ? 'Review Queue' : 'Complaints'}</h1>
+                      <div className="ops-eyebrow">{currentSection === 'review' || activeTaskFilter === 'under_review' ? 'Routing verification' : 'Citizen reports'}</div>
+                      <h1>{currentSection === 'review' || activeTaskFilter === 'under_review' ? 'Review queue' : 'Complaints'}</h1>
                       <p className="page-lead">
                         {activeTaskFilter === 'under_review'
                           ? 'Assign unresolved department-routing cases through your existing authorized workflow.'

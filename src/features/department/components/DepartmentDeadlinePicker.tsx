@@ -43,6 +43,9 @@ export function DepartmentDeadlinePicker({ id, label, value, min, onChange }: De
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [expanded]);
 
+  // Progressive disclosure: single Monday-first weekly view first; full month view behind toggle
+  const [showMonthCalendar, setShowMonthCalendar] = useState(false);
+
   // Active viewing date for month and week navigation
   const [visibleMonth, setVisibleMonth] = useState(() => new Date(selectedSafe.getFullYear(), selectedSafe.getMonth(), 1));
   const [weekOffset, setWeekOffset] = useState(0);
@@ -58,34 +61,34 @@ export function DepartmentDeadlinePicker({ id, label, value, min, onChange }: De
   const displayedHour = selectedSafe.getHours() % 12 || 12;
   const period = selectedSafe.getHours() >= 12 ? 'PM' : 'AM';
 
-  // Compute 7 days of the currently focused week (Monday-first, Pinterest style)
+  // Compute 7 days of the currently focused week (Monday-first) without mock workload dots
   const currentWeekDays = useMemo(() => {
     const base = new Date(selectedSafe);
-    // Find Monday of the week
     const currentDayOfWeek = (base.getDay() + 6) % 7; // 0 for Mon, 6 for Sun
     const monday = new Date(base);
     monday.setDate(base.getDate() - currentDayOfWeek + (weekOffset * 7));
 
-    const days: { date: Date; dateKey: string; dayNum: number; letter: string; fullLabel: string; dot: 'green' | 'blue' | 'empty' }[] = [];
+    const days: { date: Date; dateKey: string; dayNum: number; letter: string; fullLabel: string }[] = [];
     const letters = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
     for (let i = 0; i < 7; i++) {
       const d = new Date(monday);
       d.setDate(monday.getDate() + i);
-      const key = localDay(d);
-      // Sample mock workload density dot: Friday has urgent/dense work, Wed has normal work
-      const dot = i === 4 ? 'blue' : i === 2 ? 'green' : 'empty';
       days.push({
         date: d,
-        dateKey: key,
+        dateKey: localDay(d),
         dayNum: d.getDate(),
         letter: letters[i],
         fullLabel: new Intl.DateTimeFormat('en-PK', { dateStyle: 'full' }).format(d),
-        dot,
       });
     }
     return days;
   }, [selectedSafe, weekOffset]);
+
+  const focusedWeekMonthLabel = useMemo(() => {
+    const mid = currentWeekDays[3]?.date ?? selectedSafe;
+    return new Intl.DateTimeFormat('en-PK', { month: 'long', year: 'numeric' }).format(mid);
+  }, [currentWeekDays, selectedSafe]);
 
   const choose = (day: string, hour = selectedSafe.getHours(), minute = selectedSafe.getMinutes()) => {
     onChange(combine(day, hour, minute));
@@ -131,103 +134,152 @@ export function DepartmentDeadlinePicker({ id, label, value, min, onChange }: De
             <button type="button" onClick={() => preset(7)}>Next week</button>
           </div>
 
-          {/* Pinterest-inspired 7-Day Week Strip */}
-          <div className="v21-pinterest-box" aria-label="7-Day Weekly Calendar Strip">
-            <div className="v21-pinterest-nav">
-              <button
-                type="button"
-                className="v21-week-btn"
-                aria-label="Previous week"
-                onClick={() => setWeekOffset((prev) => prev - 1)}
-              >
-                ‹ Prev Week
-              </button>
-              <strong style={{ fontSize: '12px', color: 'var(--v21-text-main)' }}>
-                {currentWeekDays[0].date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} – {currentWeekDays[6].date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
-              </strong>
-              <button
-                type="button"
-                className="v21-week-btn"
-                aria-label="Next week"
-                onClick={() => setWeekOffset((prev) => prev + 1)}
-              >
-                Next Week ›
-              </button>
-            </div>
+          {!showMonthCalendar ? (
+            /* Single Monday-first Weekly Strip (default) */
+            <div className="v21-pinterest-box" aria-label="Weekly deadline date selector">
+              <div className="v21-pinterest-nav">
+                <button
+                  type="button"
+                  className="v21-week-btn"
+                  aria-label="Previous week"
+                  onClick={() => setWeekOffset((prev) => prev - 1)}
+                >
+                  ‹ Prev
+                </button>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--v3-ink, var(--v21-text-main))' }}>
+                    {focusedWeekMonthLabel}
+                  </div>
+                  <div style={{ fontSize: '11px', color: 'var(--v3-muted, var(--v21-text-muted))' }}>
+                    {currentWeekDays[0].date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} – {currentWeekDays[6].date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  className="v21-week-btn"
+                  aria-label="Next week"
+                  onClick={() => setWeekOffset((prev) => prev + 1)}
+                >
+                  Next ›
+                </button>
+              </div>
 
-            <div className="v21-pinterest-grid" role="group" aria-label="Current week days">
-              {currentWeekDays.map((d) => {
-                const isSelected = d.dateKey === selectedDay;
-                const disabled = Number.isFinite(minimum.getTime()) && d.date < new Date(minimum.getFullYear(), minimum.getMonth(), minimum.getDate());
-                return (
-                  <div key={d.dateKey} className="v21-day-col">
-                    <span className="v21-day-letter">{d.letter}</span>
+              <div className="v21-pinterest-grid" role="group" aria-label="Current week days">
+                {currentWeekDays.map((d) => {
+                  const isSelected = d.dateKey === selectedDay;
+                  const disabled = Number.isFinite(minimum.getTime()) && d.date < new Date(minimum.getFullYear(), minimum.getMonth(), minimum.getDate());
+                  return (
+                    <div key={d.dateKey} className="v21-day-col">
+                      <span className="v21-day-letter">{d.letter}</span>
+                      <button
+                        type="button"
+                        disabled={disabled}
+                        title={d.fullLabel}
+                        aria-label={d.fullLabel}
+                        aria-pressed={isSelected}
+                        className={`v21-day-capsule ${isSelected ? 'active' : ''}`}
+                        onClick={() => {
+                          choose(d.dateKey);
+                          setVisibleMonth(new Date(d.date.getFullYear(), d.date.getMonth(), 1));
+                        }}
+                      >
+                        <span className="v21-day-num">{d.dayNum}</span>
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '10px' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowMonthCalendar(true)}
+                  aria-expanded={false}
+                  style={{
+                    background: 'transparent',
+                    border: 0,
+                    padding: '6px 4px',
+                    minHeight: '36px',
+                    fontSize: '12px',
+                    fontWeight: 500,
+                    color: 'var(--v3-accent, var(--v21-accent))',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Choose another date
+                </button>
+              </div>
+            </div>
+          ) : (
+            /* Optional Month Grid for Future Dates */
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '6px' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowMonthCalendar(false)}
+                  aria-expanded={true}
+                  style={{
+                    background: 'transparent',
+                    border: 0,
+                    padding: '6px 4px',
+                    minHeight: '36px',
+                    fontSize: '12px',
+                    fontWeight: 500,
+                    color: 'var(--v3-accent, var(--v21-accent))',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Back to week view
+                </button>
+              </div>
+              <div className="deadline-picker-month">
+                <button
+                  type="button"
+                  aria-label="Previous month"
+                  onClick={() => setVisibleMonth(new Date(year, month - 1, 1))}
+                  disabled={new Date(year, month, 1) <= new Date(minimum.getFullYear(), minimum.getMonth(), 1)}
+                >
+                  <ChevronLeft size={17} />
+                </button>
+                <strong>{new Intl.DateTimeFormat('en-PK', { month: 'long', year: 'numeric' }).format(visibleMonth)}</strong>
+                <button
+                  type="button"
+                  aria-label="Next month"
+                  onClick={() => setVisibleMonth(new Date(year, month + 1, 1))}
+                >
+                  <ChevronRight size={17} />
+                </button>
+              </div>
+
+              <div className="deadline-picker-calendar" aria-label="Select deadline date">
+                {weekDays.map((day) => (
+                  <span className="deadline-picker-weekday" key={day}>{day}</span>
+                ))}
+                {Array.from({ length: count }, (_, index) => {
+                  const dayNumber = index - firstWeekday + 1;
+                  if (dayNumber < 1 || dayNumber > daysInMonth) return <span key={`empty-${index}`} aria-hidden="true" />;
+                  const date = new Date(year, month, dayNumber);
+                  const dateKey = localDay(date);
+                  const disabled = Number.isFinite(minimum.getTime()) && date < new Date(minimum.getFullYear(), minimum.getMonth(), minimum.getDate());
+                  return (
                     <button
+                      key={dateKey}
                       type="button"
                       disabled={disabled}
-                      title={d.fullLabel}
-                      aria-label={`${d.letter}, ${d.dayNum}`}
-                      aria-pressed={isSelected}
-                      className={`v21-day-capsule ${isSelected ? 'active' : ''}`}
+                      aria-label={new Intl.DateTimeFormat('en-PK', { dateStyle: 'full' }).format(date)}
+                      aria-pressed={dateKey === selectedDay}
                       onClick={() => {
-                        choose(d.dateKey);
-                        setVisibleMonth(new Date(d.date.getFullYear(), d.date.getMonth(), 1));
+                        choose(dateKey);
+                        setWeekOffset(0);
                       }}
                     >
-                      <span className="v21-day-num">{d.dayNum}</span>
-                      <span className={`v21-event-dot ${d.dot}`} aria-hidden="true" />
+                      {dayNumber}
                     </button>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
-          </div>
-
-          {/* Month Header for Jumping Across Weeks/Months */}
-          <div className="deadline-picker-month">
-            <button
-              type="button"
-              aria-label="Previous month"
-              onClick={() => setVisibleMonth(new Date(year, month - 1, 1))}
-              disabled={new Date(year, month, 1) <= new Date(minimum.getFullYear(), minimum.getMonth(), 1)}
-            >
-              <ChevronLeft size={17} />
-            </button>
-            <strong>{new Intl.DateTimeFormat('en-PK', { month: 'long', year: 'numeric' }).format(visibleMonth)}</strong>
-            <button
-              type="button"
-              aria-label="Next month"
-              onClick={() => setVisibleMonth(new Date(year, month + 1, 1))}
-            >
-              <ChevronRight size={17} />
-            </button>
-          </div>
-
-          {/* Full Month Calendar Grid (Synchronized) */}
-          <div className="deadline-picker-calendar" aria-label="Select deadline date">
-            {weekDays.map((day) => (
-              <span className="deadline-picker-weekday" key={day}>{day}</span>
-            ))}
-            {Array.from({ length: count }, (_, index) => {
-              const dayNumber = index - firstWeekday + 1;
-              if (dayNumber < 1 || dayNumber > daysInMonth) return <span key={`empty-${index}`} aria-hidden="true" />;
-              const date = new Date(year, month, dayNumber);
-              const dateKey = localDay(date);
-              const disabled = Number.isFinite(minimum.getTime()) && date < new Date(minimum.getFullYear(), minimum.getMonth(), minimum.getDate());
-              return (
-                <button
-                  key={dateKey}
-                  type="button"
-                  disabled={disabled}
-                  aria-label={new Intl.DateTimeFormat('en-PK', { dateStyle: 'full' }).format(date)}
-                  aria-pressed={dateKey === selectedDay}
-                  onClick={() => choose(dateKey)}
-                >
-                  {dayNumber}
-                </button>
-              );
-            })}
-          </div>
+          )}
 
           {/* Time Selector Bar */}
           <div className="deadline-picker-time">

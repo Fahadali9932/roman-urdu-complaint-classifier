@@ -28,6 +28,9 @@ describe('V13.20 role-specific portals and deadline input', () => {
     fireEvent.click(trigger);
     expect(trigger).toHaveAttribute('aria-expanded', 'true');
     expect(screen.getByText('November 2026')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Monday, 23 November 2026/i })).toBeInTheDocument();
+    // Secondary action opens full month view for dates outside the focused week
+    fireEvent.click(screen.getByRole('button', { name: /Choose another date/i }));
     expect(screen.getByRole('button', { name: /Sunday, 22 November 2026/i })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /Monday, 23 November 2026/i }));
     expect(screen.getByText(/23 Nov 2026/)).toBeInTheDocument();

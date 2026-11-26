@@ -260,8 +260,8 @@ export const FieldOperationsDesk: React.FC<Props> = ({
       {/* Header Bar */}
       <div className="v21-sec-header" style={{ marginBottom: '16px' }}>
         <div>
-          <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--v21-text-tertiary)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
-            {isHead ? 'DEPARTMENT HEAD' : 'FIELD OFFICER'} / {departmentId.toUpperCase()}
+          <div style={{ fontSize: '12px', fontWeight: 500, color: 'var(--v3-muted, var(--v21-text-muted))' }}>
+            {isHead ? 'Department Head' : 'Field Officer'} · {departmentId.toUpperCase()}
           </div>
           <h1 style={{ fontSize: '20px', fontWeight: 800, margin: '4px 0 2px 0', color: 'var(--v21-text-main)', letterSpacing: '-0.02em' }}>
             {heading}
@@ -408,125 +408,144 @@ export const FieldOperationsDesk: React.FC<Props> = ({
             </div>
           )}
 
-          {/* VIEW: Dispatch Desk (Head) with 5-stage assignment workflow */}
+          {/* VIEW: Dispatch Desk (Head) with focused 5-stage assignment workflow */}
           {view === 'dispatch' && isHead && (
-            <div className={`v21-dispatch-grid ${selected ? 'has-selected' : ''}`}>
-              {/* Left Column: Incoming Cases Ready for Assignment */}
-              <div className="v21-case-card" style={{ padding: '16px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
-                  <div>
-                    <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--v21-text-tertiary)', letterSpacing: '0.04em' }}>
-                      INCOMING CASES
-                    </span>
-                    <h2 style={{ fontSize: '16px', fontWeight: 700, margin: '2px 0 0 0', color: 'var(--v21-text-main)' }}>
-                      Ready for assignment{' '}
-                      <span style={{ fontSize: '12px', color: 'var(--v21-text-tertiary)', fontWeight: 500 }}>
-                        ({search ? `${candidates.length} of ${cases.length}` : `${candidates.length}`})
-                      </span>
-                    </h2>
+            <div style={{ maxWidth: '760px', margin: '0 auto' }}>
+              {!selected ? (
+                /* Stage 0: Incoming Cases Ready for Assignment */
+                <div className="v21-case-card" style={{ padding: '20px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', flexWrap: 'wrap', gap: '10px' }}>
+                    <div>
+                      <h2 style={{ fontSize: '17px', fontWeight: 600, margin: 0, color: 'var(--v3-ink, var(--v21-text-main))' }}>
+                        Ready for assignment{' '}
+                        <span style={{ fontSize: '13px', color: 'var(--v3-muted, var(--v21-text-muted))', fontWeight: 400 }}>
+                          ({search ? `${candidates.length} of ${cases.length}` : `${candidates.length}`})
+                        </span>
+                      </h2>
+                      <p style={{ fontSize: '12px', color: 'var(--v3-muted, var(--v21-text-muted))', margin: '2px 0 0 0' }}>
+                        5-stage dispatch workflow · Three steps to dispatch a case: select an incident, assign officer and deadline, confirm instructions.
+                      </p>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--v3-surface, var(--v21-bg-surface))', padding: '0 12px', minHeight: '44px', borderRadius: '10px', border: '1px solid var(--v3-edge, var(--v21-border-subtle))', flex: '1 1 220px', maxWidth: '280px', minWidth: 0 }}>
+                      <Search size={15} color="var(--v3-muted, var(--v21-text-muted))" style={{ flexShrink: 0 }} />
+                      <input
+                        aria-label="Search cases"
+                        placeholder="Search reference or area"
+                        value={search}
+                        onChange={(e) => {
+                          setSearch(e.target.value);
+                          setVisibleLimit(35);
+                        }}
+                        style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: '13px', color: 'var(--v3-ink, var(--v21-text-main))', width: '100%', minWidth: 0 }}
+                      />
+                    </div>
                   </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'var(--v21-bg-surface-subtle)', padding: '6px 10px', borderRadius: '8px', border: '1px solid var(--v21-border-subtle)', flex: '1 1 200px', maxWidth: '260px', minWidth: 0 }}>
-                    <Search size={14} color="var(--v21-text-tertiary)" style={{ flexShrink: 0 }} />
-                    <input
-                      aria-label="Search cases"
-                      placeholder="Search reference or area"
-                      value={search}
-                      onChange={(e) => {
-                        setSearch(e.target.value);
-                        setVisibleLimit(35);
-                      }}
-                      style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: '12px', color: 'var(--v21-text-main)', width: '100%', minWidth: '170px' }}
-                    />
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '560px', overflowY: 'auto' }}>
-                  {candidates.slice(0, visibleLimit).map((c) => {
-                    const isSelected = selected?.id === c.id;
-                    const isCritical = c.priority === 'critical';
-                    return (
-                      <button
-                        type="button"
-                        key={c.id}
-                        onClick={() => {
-                          if (selected?.id !== c.id) {
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '560px', overflowY: 'auto' }}>
+                    {candidates.slice(0, visibleLimit).map((c) => {
+                      const isCritical = c.priority === 'critical';
+                      return (
+                        <button
+                          type="button"
+                          key={c.id}
+                          onClick={() => {
                             setAssignStage(1);
-                          }
-                          setSelected(c);
-                          setOfficer('');
-                        }}
-                        className={`v21-case-row ${isSelected ? 'selected' : ''}`}
-                        aria-pressed={isSelected}
-                        style={{
-                          flexShrink: 0,
-                          borderRadius: '8px',
-                          border: isSelected ? '1px solid var(--v21-accent)' : '1px solid var(--v21-border-subtle)',
-                          background: isSelected ? 'var(--v21-accent-light)' : 'var(--v21-bg-surface)',
-                          textAlign: 'left',
-                          width: '100%',
-                          maxWidth: '100%',
-                          minWidth: 0,
-                          overflow: 'hidden',
-                          boxSizing: 'border-box',
-                        }}
-                      >
-                        <div style={{ flex: 1, minWidth: 0, maxWidth: '100%', overflow: 'hidden' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <span className="v21-meta-code">{c.caseNumber}</span>
-                            {isCritical && (
-                              <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--v21-danger)', background: 'var(--v21-danger-light)', padding: '1px 5px', borderRadius: '4px' }}>
-                                URGENT
-                              </span>
-                            )}
+                            setSelected(c);
+                            setOfficer('');
+                          }}
+                          className="v21-case-row"
+                          style={{
+                            flexShrink: 0,
+                            borderRadius: '10px',
+                            border: '1px solid var(--v3-edge, var(--v21-border-subtle))',
+                            background: 'var(--v3-surface, var(--v21-bg-surface))',
+                            textAlign: 'left',
+                            width: '100%',
+                            maxWidth: '100%',
+                            minWidth: 0,
+                            overflow: 'hidden',
+                            boxSizing: 'border-box',
+                          }}
+                        >
+                          <div style={{ flex: 1, minWidth: 0, maxWidth: '100%', overflow: 'hidden' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <span className="v21-meta-code">{c.caseNumber}</span>
+                              {isCritical && (
+                                <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--v3-danger, var(--v21-danger))', background: 'var(--v3-danger-soft, var(--v21-danger-light))', padding: '1px 6px', borderRadius: '5px' }}>
+                                  Urgent
+                                </span>
+                              )}
+                            </div>
+                            <strong style={{ fontSize: '14px', fontWeight: 500, color: 'var(--v3-ink, var(--v21-text-main))', display: 'block', margin: '4px 0 2px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                              {c.title}
+                            </strong>
+                            <span style={{ fontSize: '12px', color: 'var(--v3-muted, var(--v21-text-muted))', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              <MapPin size={11} style={{ display: 'inline', marginRight: '3px' }} />
+                              {c.locality} · {c.linkedReportCount} citizen reports
+                            </span>
                           </div>
-                          <strong style={{ fontSize: '13px', color: 'var(--v21-text-main)', display: 'block', margin: '4px 0 2px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                            {c.title}
-                          </strong>
-                          <span style={{ fontSize: '11px', color: 'var(--v21-text-muted)', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            <MapPin size={11} style={{ display: 'inline', marginRight: '3px' }} />
-                            {c.locality} · {c.linkedReportCount} citizen reports
-                          </span>
-                        </div>
-                        <ChevronRight size={16} color="var(--v21-text-tertiary)" />
-                      </button>
-                    );
-                  })}
+                          <ChevronRight size={16} color="var(--v3-muted, var(--v21-text-muted))" />
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {candidates.length > visibleLimit && (
+                    <button
+                      type="button"
+                      className="v21-btn"
+                      style={{ width: '100%', marginTop: '10px', justifyContent: 'center' }}
+                      onClick={() => setVisibleLimit((v) => v + 35)}
+                    >
+                      Show more cases ({Math.min(visibleLimit, candidates.length)} of {candidates.length})
+                    </button>
+                  )}
+
+                  {!candidates.length && (
+                    <p style={{ textAlign: 'center', padding: '24px 0', color: 'var(--v3-muted, var(--v21-text-muted))', fontSize: '13px' }}>
+                      {cases.length ? 'No cases match that search.' : 'No cases are available for assignment.'}
+                    </p>
+                  )}
                 </div>
+              ) : (
+                /* Focused 5-Stage Dispatch Progression (full queue hidden cleanly during workflow) */
+                <div className="v21-workflow-card">
+                  <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '14px' }}>
+                    <div>
+                      <span style={{ fontSize: '12px', fontWeight: 500, color: 'var(--v3-muted, var(--v21-text-muted))' }}>
+                        5-Stage Dispatch Workflow · {selected.caseNumber}
+                      </span>
+                      <h2 style={{ fontSize: '18px', fontWeight: 600, margin: '2px 0 0 0', color: 'var(--v3-ink, var(--v21-text-main))' }}>
+                        Assign this case
+                      </h2>
+                    </div>
 
-                {candidates.length > visibleLimit && (
-                  <button
-                    type="button"
-                    className="v21-btn"
-                    style={{ width: '100%', marginTop: '10px', justifyContent: 'center' }}
-                    onClick={() => setVisibleLimit((v) => v + 35)}
-                  >
-                    Show more cases ({Math.min(visibleLimit, candidates.length)} of {candidates.length})
-                  </button>
-                )}
+                    <button
+                      type="button"
+                      onClick={() => setSelected(null)}
+                      style={{
+                        background: 'transparent',
+                        border: 0,
+                        padding: '8px 10px',
+                        minHeight: '44px',
+                        fontSize: '13px',
+                        fontWeight: 500,
+                        color: 'var(--v3-accent, var(--v21-accent))',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Change case
+                    </button>
+                  </div>
 
-                {!candidates.length && (
-                  <p style={{ textAlign: 'center', padding: '24px 0', color: 'var(--v21-text-muted)', fontSize: '13px' }}>
-                    {cases.length ? 'No cases match that search.' : 'No cases are available for assignment.'}
-                  </p>
-                )}
-              </div>
-
-              {/* Right Column: 5-Stage Assignment Workflow Panel */}
-              <div className="v21-case-card" style={{ padding: '20px' }}>
-                <div style={{ marginBottom: '16px' }}>
-                  <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--v21-text-tertiary)', letterSpacing: '0.04em' }}>
-                    5-STAGE DISPATCH WORKFLOW
-                  </span>
-                  <h2 style={{ fontSize: '16px', fontWeight: 700, margin: '2px 0 0 0', color: 'var(--v21-text-main)' }}>
-                    {selected ? 'Assign this case' : 'Assignment brief'}
-                  </h2>
-                </div>
-
-                {selected ? (
                   <form onSubmit={(e) => void assignCase(e)} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                    {/* Stepper Node Track (5 stages) */}
-                    <div className="v21-step-track">
+                    {/* Restrained 5-Segment Horizontal Progress Track */}
+                    <div
+                      role="group"
+                      aria-label="Dispatch workflow steps"
+                      style={{ display: 'grid', gridTemplateColumns: 'repeat(5, minmax(0, 1fr))', gap: '6px' }}
+                    >
                       {[
                         { num: 1, label: 'Case' },
                         { num: 2, label: 'Officer' },
@@ -540,14 +559,50 @@ export const FieldOperationsDesk: React.FC<Props> = ({
                           <button
                             type="button"
                             key={s.num}
+                            disabled={s.num >= assignStage}
                             onClick={() => {
                               if (s.num < assignStage) setAssignStage(s.num as any);
                             }}
-                            className={`v21-step-node ${isActive ? 'active' : ''} ${isDone ? 'done' : ''}`}
-                            style={{ background: 'transparent', border: 'none', cursor: s.num < assignStage ? 'pointer' : 'default', padding: 0 }}
+                            style={{
+                              display: 'flex',
+                              flexDirection: 'column',
+                              alignItems: 'flex-start',
+                              gap: '6px',
+                              background: 'transparent',
+                              border: 0,
+                              padding: '4px 0',
+                              minHeight: '44px',
+                              cursor: s.num < assignStage ? 'pointer' : 'default',
+                              textAlign: 'left',
+                            }}
                           >
-                            <span className="v21-step-circle">{isDone ? '✓' : s.num}</span>
-                            <span>{s.label}</span>
+                            <span
+                              style={{
+                                display: 'block',
+                                width: '100%',
+                                height: '4px',
+                                borderRadius: '999px',
+                                background:
+                                  isActive || isDone
+                                    ? 'var(--v3-action, var(--v21-action))'
+                                    : 'var(--v3-edge, var(--v21-border-subtle))',
+                              }}
+                            />
+                            <span
+                              style={{
+                                fontSize: '12px',
+                                fontWeight: isActive ? 600 : 500,
+                                color: isActive
+                                  ? 'var(--v3-ink, var(--v21-text-main))'
+                                  : 'var(--v3-muted, var(--v21-text-muted))',
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                maxWidth: '100%',
+                              }}
+                            >
+                              {s.label}
+                            </span>
                           </button>
                         );
                       })}
@@ -760,35 +815,35 @@ export const FieldOperationsDesk: React.FC<Props> = ({
                           </div>
 
                           <div>
-                            <span style={{ fontSize: '10px', color: 'var(--v21-text-tertiary)', display: 'block', fontWeight: 600 }}>CASE</span>
-                            <strong style={{ fontSize: '12px', color: 'var(--v21-text-main)' }}>{selected.title}</strong>
-                            <div style={{ fontSize: '11px', color: 'var(--v21-text-muted)' }}>{selected.publicPlace} · {selected.locality}</div>
+                            <span style={{ fontSize: '11px', color: 'var(--v3-muted, var(--v21-text-muted))', display: 'block', fontWeight: 500 }}>Case</span>
+                            <strong style={{ fontSize: '13px', color: 'var(--v3-ink, var(--v21-text-main))' }}>{selected.title}</strong>
+                            <div style={{ fontSize: '12px', color: 'var(--v3-muted, var(--v21-text-muted))' }}>{selected.publicPlace} · {selected.locality}</div>
                           </div>
 
                           <div>
-                            <span style={{ fontSize: '10px', color: 'var(--v21-text-tertiary)', display: 'block', fontWeight: 600 }}>ASSIGNED OFFICER</span>
-                            <strong style={{ fontSize: '12px', color: 'var(--v21-text-main)' }}>
+                            <span style={{ fontSize: '11px', color: 'var(--v3-muted, var(--v21-text-muted))', display: 'block', fontWeight: 500 }}>Assigned officer</span>
+                            <strong style={{ fontSize: '13px', color: 'var(--v3-ink, var(--v21-text-main))' }}>
                               {team.find(t => t.user_id === officer)?.display_name || officer}
                             </strong>
                           </div>
 
                           <div>
-                            <span style={{ fontSize: '10px', color: 'var(--v21-text-tertiary)', display: 'block', fontWeight: 600 }}>DEADLINE (PKT)</span>
-                            <strong style={{ fontSize: '12px', color: 'var(--v21-text-main)' }}>
+                            <span style={{ fontSize: '11px', color: 'var(--v3-muted, var(--v21-text-muted))', display: 'block', fontWeight: 500 }}>Deadline (PKT)</span>
+                            <strong style={{ fontSize: '13px', color: 'var(--v3-ink, var(--v21-text-main))' }}>
                               {new Date(deadline).toLocaleString('en-PK', { dateStyle: 'medium', timeStyle: 'short' })}
                             </strong>
                           </div>
 
                           <div>
-                            <span style={{ fontSize: '10px', color: 'var(--v21-text-tertiary)', display: 'block', fontWeight: 600 }}>INSTRUCTIONS</span>
-                            <p style={{ fontSize: '11px', color: 'var(--v21-text-muted)', margin: 0, fontStyle: 'italic', background: 'var(--v21-bg-surface)', padding: '8px 10px', borderRadius: '6px', border: '1px solid var(--v21-border-subtle)' }}>
-                              &ldquo;{instructions}&rdquo;
+                            <span style={{ fontSize: '11px', color: 'var(--v3-muted, var(--v21-text-muted))', display: 'block', fontWeight: 500 }}>Instructions</span>
+                            <p style={{ fontSize: '12px', color: 'var(--v3-ink, var(--v21-text-main))', margin: '4px 0 0 0', background: 'var(--v3-surface, var(--v21-bg-surface))', padding: '8px 10px', borderRadius: '6px', border: '1px solid var(--v3-edge, var(--v21-border-subtle))' }}>
+                              {instructions}
                             </p>
                           </div>
                         </div>
 
-                        <p style={{ fontSize: '11px', color: 'var(--v21-text-tertiary)', margin: 0, textAlign: 'center' }}>
-                          Dispatching creates an active work order and sends an operational notification to the officer.
+                        <p style={{ fontSize: '12px', color: 'var(--v3-muted, var(--v21-text-muted))', margin: 0, textAlign: 'center' }}>
+                          Dispatching creates an active work order and notifies the assigned officer.
                         </p>
 
                         <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', marginTop: '6px' }}>
@@ -813,22 +868,8 @@ export const FieldOperationsDesk: React.FC<Props> = ({
                       </div>
                     )}
                   </form>
-                ) : (
-                  <div style={{ textAlign: 'center', padding: '24px 12px', color: 'var(--v21-text-muted)' }}>
-                    <p style={{ fontWeight: 600, fontSize: '14px', marginBottom: '8px' }}>
-                      Three steps to dispatch a case
-                    </p>
-                    <ol style={{ textAlign: 'left', fontSize: '12px', display: 'flex', flexDirection: 'column', gap: '8px', paddingLeft: '20px', margin: '0 auto', maxWidth: '320px' }}>
-                      <li>Select an incident from the case list.</li>
-                      <li>Choose an approved officer and deadline.</li>
-                      <li>Confirm instructions and assign the work.</li>
-                    </ol>
-                    <p style={{ fontSize: '11px', color: 'var(--v21-text-tertiary)', marginTop: '16px' }}>
-                      Each assignment stays visible until its evidence is verified.
-                    </p>
-                  </div>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           )}
 
