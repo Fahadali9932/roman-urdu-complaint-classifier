@@ -38,8 +38,10 @@ export const ParallaxComplaintList: React.FC<ParallaxComplaintListProps> = ({
     const container = containerRef.current;
     if (!container) return;
 
-    // Check for reduced motion
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    // Check for reduced motion safely
+    const prefersReducedMotion = typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+      ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      : false;
     if (prefersReducedMotion) return;
 
     let ticking = false;
@@ -118,7 +120,7 @@ export const ParallaxComplaintList: React.FC<ParallaxComplaintListProps> = ({
                   </span>
                 </div>
 
-                <div
+                <h4
                   style={{
                     fontSize: '14.5px',
                     fontWeight: 600,
@@ -126,10 +128,11 @@ export const ParallaxComplaintList: React.FC<ParallaxComplaintListProps> = ({
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
+                    margin: 0,
                   }}
                 >
                   {item.heading}
-                </div>
+                </h4>
 
                 <div
                   style={{

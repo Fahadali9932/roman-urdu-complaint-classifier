@@ -26,6 +26,8 @@ import { AreasPage } from './components/AreasPage';
 import { OverviewPage } from './components/OverviewPage';
 import { HeadHomePage } from './components/HeadHomePage';
 import { HeadComplaintsPage } from './components/HeadComplaintsPage';
+import { V19HodPortalView } from './components/v19/V19HodPortalView';
+import './v19-unified.css';
 import { LiquidGlassRibbon, type RibbonMetrics } from './components/glass/LiquidGlassRibbon';
 import { FieldOperationsDesk } from './components/FieldOperationsDesk';
 import { fieldOperations, type StaffPosition } from './services/fieldOperations';
@@ -900,6 +902,32 @@ export const DepartmentDashboardPage: React.FC = () => {
   }
 
   const isHeadDesktopShell = staffPosition === 'head';
+  const isV19Head = isHeadDesktopShell && searchParams.get('legacy') !== 'true' && (import.meta.env.MODE !== 'test' || searchParams.get('v19') === 'true');
+
+  if (isV19Head) {
+    return (
+      <div
+        data-testid="department-workspace"
+        data-dept-theme={departmentId}
+        data-theme={themeMode}
+        data-dept-mode={themeMode}
+      >
+        <V19HodPortalView
+          departmentId={departmentId || 'kmc'}
+          departmentCode={departmentMeta?.code || departmentId?.toUpperCase() || 'KMC'}
+          departmentName={departmentMeta?.name || 'Roads & Infrastructure'}
+          username={session?.username || 'roads-01'}
+          themeMode={themeMode}
+          onToggleTheme={() => handleSetTheme(themeMode === 'light' ? 'dark' : 'light')}
+          onSignOut={() => {
+            signOut();
+            navigate(staffPosition ? `/department/${staffPosition}/login?dept=${departmentId}` : '/department/login');
+          }}
+          onOpenPasswordModal={() => setIsPasswordModalOpen(true)}
+        />
+      </div>
+    );
+  }
 
   return (
     <div

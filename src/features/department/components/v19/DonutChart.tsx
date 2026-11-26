@@ -51,7 +51,7 @@ export const DonutChart: React.FC<DonutChartProps> = ({
   }, [segments, total, circumference]);
 
   return (
-    <div className="v19-glass-card v19-donut-panel">
+    <div className="v19-glass-card v19-donut-panel" data-testid="v19-donut-chart">
       <div className="v19-panel-top">
         <span className="v19-panel-title">{title}</span>
 

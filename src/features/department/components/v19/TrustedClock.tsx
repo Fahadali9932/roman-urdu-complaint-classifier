@@ -39,6 +39,7 @@ export const TrustedClock: React.FC<TrustedClockProps> = ({ className = '' }) =>
   return (
     <div
       className={`v19-trusted-clock ${className}`}
+      data-testid="v19-trusted-clock"
       title="Trusted server-anchored Pakistan Standard Time (PKT)"
       aria-label={`Current time: ${timeStr} PKT, ${dateStr}`}
     >

@@ -55,6 +55,10 @@ export interface HeadIndependentComplaintRow {
   submittedAt: string;
   updatedAt: string;
   priority: PriorityBand;
+  latitude?: number | null;
+  longitude?: number | null;
+  rawText?: string;
+  photoUrl?: string | null;
 }
 
 const PKT_OFFSET_MS = 5 * 60 * 60 * 1000;
@@ -355,11 +359,18 @@ export class CaseOperationsService implements ICaseOperationsService {
     const cfg = (dept in configMap ? configMap[dept as keyof typeof configMap] : configMap.kmc);
     const result: StoredCase[] = [];
     const nowMs = Date.now();
-    const hoursAgo = (h: number) => new Date(nowMs - h * 3600 * 1000).toISOString();
+    const pktOffset = 5 * 60 * 60 * 1000;
+    const pktNow = new Date(nowMs + pktOffset);
+    const todayStartUtc = Date.UTC(pktNow.getUTCFullYear(), pktNow.getUTCMonth(), pktNow.getUTCDate(), 0, 0, 0, 0) - pktOffset;
+    const hoursAgo = (h: number) => {
+      const targetMs = nowMs - h * 3600 * 1000;
+      const clampedMs = Math.max(todayStartUtc + 60000 + (h * 60000), targetMs);
+      return new Date(clampedMs).toISOString();
+    };
     const daysAgo = (d: number, hour = 10) => {
-      const base = new Date(nowMs - d * 86400000);
-      base.setUTCHours(hour, 15, 0, 0);
-      return base.toISOString();
+      const targetPktDay = new Date(todayStartUtc + pktOffset - d * 86400000);
+      const dayStartUtc = Date.UTC(targetPktDay.getUTCFullYear(), targetPktDay.getUTCMonth(), targetPktDay.getUTCDate(), hour, 15, 0, 0) - pktOffset;
+      return new Date(dayStartUtc).toISOString();
     };
 
     // V16: Every incoming unconfirmed citizen complaint is kept strictly independent (1 report per record).
@@ -1474,6 +1485,10 @@ export class CaseOperationsService implements ICaseOperationsService {
         submittedAt: item.firstReportedAt,
         updatedAt: item.lastReportedAt,
         priority: item.priority,
+        latitude: (report as any)?.latitude ?? (item as any)?.latitude ?? null,
+        longitude: (report as any)?.longitude ?? (item as any)?.longitude ?? null,
+        rawText: (report as any)?.sanitizedNarrativePreview ?? item.summary,
+        photoUrl: (report as any)?.photoUrl ?? null,
       });
     }
 
