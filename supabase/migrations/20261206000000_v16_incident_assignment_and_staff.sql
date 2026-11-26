@@ -953,8 +953,9 @@ BEGIN
   LIMIT 1;
 
   IF v_stale_candidate IS NOT NULL THEN
+    -- Use P0001 (fail-fast user exception) rather than 40001 so PostgREST returns immediately instead of retrying.
     RAISE EXCEPTION 'STALE_CANDIDATES: A new matching nearby work order (%) was created concurrently. Refresh candidates before proceeding.', v_stale_candidate
-      USING ERRCODE = '40001';
+      USING ERRCODE = 'P0001';
   END IF;
 
   INSERT INTO public.department_work_orders(
