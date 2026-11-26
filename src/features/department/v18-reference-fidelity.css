@@ -1,0 +1,879 @@
+/* ==========================================================================
+   AWAAZ-E-AWAM — V18 REFERENCE-FIDELITY DESIGN SYSTEM
+   Master Visual Reference: Minimal Sales Analytics Dashboard (Reference 2)
+   Complaint List Reference: Drivery Reports Dashboard (Reference 1)
+   No decorative wallpaper · Clean geometric surfaces · Expressive lime accents
+   ========================================================================== */
+
+:root,
+[data-theme='light'],
+.rf-portal-shell[data-theme='light'],
+.rf-portal-shell[data-dept-mode='light'] {
+  /* System Typography */
+  --rf-font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", Inter, -apple-system, sans-serif;
+  --rf-font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  /* Reference 2 Light Palette */
+  --rf-canvas: #ECEEF2;
+  --rf-card: #FFFFFF;
+  --rf-card-subtle: #F8F9FA;
+  --rf-card-dark: #181A1F;
+  --rf-card-dark-text: #FFFFFF;
+
+  --rf-text-primary: #111827;
+  --rf-text-secondary: #5B6471;
+  --rf-text-muted: #94A3B8;
+
+  --rf-pill-bg: #E3E6EB;
+  --rf-pill-text: #475569;
+  --rf-pill-active-bg: #181A1F;
+  --rf-pill-active-text: #FFFFFF;
+
+  /* Reference 2 Lime Accent */
+  --rf-lime: #D4F639;
+  --rf-lime-text: #0E121A;
+  --rf-lime-soft: rgba(212, 246, 57, 0.22);
+
+  --rf-danger: #EF4444;
+  --rf-danger-soft: rgba(239, 68, 68, 0.12);
+  --rf-blue: #0284C7;
+  --rf-blue-soft: rgba(2, 132, 199, 0.12);
+  --rf-amber: #D97706;
+  --rf-amber-soft: rgba(217, 119, 6, 0.12);
+
+  --rf-border-subtle: rgba(15, 23, 42, 0.05);
+  --rf-shadow-card: 0 4px 16px -2px rgba(15, 23, 42, 0.03), 0 1px 3px rgba(15, 23, 42, 0.02);
+  --rf-shadow-float: 0 12px 28px -4px rgba(15, 23, 42, 0.08);
+
+  /* Geometry from Reference 2 */
+  --rf-radius-card: 22px;
+  --rf-radius-pill: 9999px;
+  --rf-radius-btn: 12px;
+  --rf-radius-sm: 8px;
+
+  /* Motion Curves */
+  --rf-spring: cubic-bezier(0.16, 1, 0.3, 1);
+  --rf-ease-out: cubic-bezier(0.32, 0.72, 0, 1);
+  --rf-ease-in: cubic-bezier(0.55, 0, 1, 0.45);
+}
+
+[data-theme='dark'],
+.rf-portal-shell[data-theme='dark'],
+.rf-portal-shell[data-dept-mode='dark'] {
+  /* Reference 2 Dark Palette */
+  --rf-canvas: #0E1015;
+  --rf-card: #161820;
+  --rf-card-subtle: #1C1F28;
+  --rf-card-dark: #101217;
+  --rf-card-dark-text: #FFFFFF;
+
+  --rf-text-primary: #F3F4F6;
+  --rf-text-secondary: #94A3B8;
+  --rf-text-muted: #64748B;
+
+  --rf-pill-bg: #222631;
+  --rf-pill-text: #94A3B8;
+  --rf-pill-active-bg: #FFFFFF;
+  --rf-pill-active-text: #111827;
+
+  --rf-lime: #D4F639;
+  --rf-lime-text: #0E121A;
+  --rf-lime-soft: rgba(212, 246, 57, 0.25);
+
+  --rf-border-subtle: rgba(255, 255, 255, 0.07);
+  --rf-shadow-card: 0 8px 24px -2px rgba(0, 0, 0, 0.45), 0 2px 6px rgba(0, 0, 0, 0.3);
+  --rf-shadow-float: 0 16px 36px -4px rgba(0, 0, 0, 0.6);
+}
+
+/* Master Shell Layout (Strict column orientation over legacy v15 row flex) */
+.v15-head-shell.rf-portal-shell,
+.rf-portal-shell {
+  font-family: var(--rf-font) !important;
+  background-color: var(--rf-canvas) !important;
+  background: var(--rf-canvas) !important;
+  color: var(--rf-text-primary) !important;
+  min-height: 100vh !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  transition: background-color 200ms var(--rf-ease-out), color 200ms var(--rf-ease-out);
+}
+
+.rf-portal-shell .lg-ribbon-wrap {
+  width: 100% !important;
+  max-width: 1560px !important;
+  margin: 0 auto !important;
+  padding: 16px 28px 0 !important;
+  display: block !important;
+  box-sizing: border-box !important;
+}
+
+.rf-portal-shell .main-shell.rf-workspace-layout,
+.v15-head-shell .v15-content-frame.rf-workspace-layout {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: flex-start !important;
+  max-width: 1560px !important;
+  width: 100% !important;
+  margin: 0 auto !important;
+  padding: 16px 28px 48px !important;
+  gap: 24px !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  box-sizing: border-box !important;
+}
+
+.rf-portal-shell .rf-circular-icon-rail {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 12px !important;
+  width: 48px !important;
+  flex-shrink: 0 !important;
+  margin-top: 6px !important;
+}
+
+.rf-workspace-content,
+.v15-head-shell .v15-main-page.rf-workspace-content {
+  flex: 1 1 0% !important;
+  width: calc(100% - 72px) !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+}
+
+/* Tabular Numerals */
+.rf-num, .rf-case-id, .rf-metric-value, .rf-counter, .rf-tag {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.015em;
+}
+
+/* ==========================================================================
+   REGION A: LOGO & TOP NAVIGATION (REFERENCE 2)
+   ========================================================================== */
+.rf-top-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 28px;
+  max-width: 1536px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.rf-logo-group {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.rf-abstract-logo,
+.rf-abstract-symbol {
+  width: 28px;
+  height: 28px;
+  background: transparent !important;
+  color: var(--rf-text-primary) !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: transform 140ms var(--rf-spring);
+}
+[data-theme='dark'] .rf-abstract-logo,
+[data-theme='dark'] .rf-abstract-symbol {
+  background: transparent !important;
+  color: #FFFFFF !important;
+}
+.rf-logo-trigger:hover .rf-abstract-symbol {
+  transform: scale(1.08);
+}
+
+/* Reference 2 Navigation Capsules Integration with LiquidGlassRibbon */
+.lg-ribbon-wrap {
+  position: sticky;
+  top: 10px;
+  z-index: 60;
+  width: 100%;
+  padding: 8px clamp(16px, 2.5vw, 32px) 0;
+}
+
+.lg-ribbon {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.lg-ribbon-nav {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+.lg-nav-pill {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  padding: 8px 18px !important;
+  border-radius: var(--rf-radius-pill) !important;
+  background: var(--rf-pill-bg) !important;
+  color: var(--rf-pill-text) !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  border: 1px solid var(--rf-border-subtle) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+  transition: all 180ms var(--rf-spring) !important;
+}
+
+.lg-nav-pill:hover {
+  background: color-mix(in srgb, var(--rf-pill-bg) 85%, black) !important;
+  color: var(--rf-text-primary) !important;
+}
+
+.lg-nav-pill.is-active {
+  background: var(--rf-pill-active-bg) !important;
+  color: var(--rf-pill-active-text) !important;
+  font-weight: 600 !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.14) !important;
+  border-color: transparent !important;
+}
+
+/* Reference 2 Pill-Shaped Navigation Capsules */
+.rf-nav-capsules {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rf-nav-capsule {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  border-radius: var(--rf-radius-pill);
+  background: var(--rf-pill-bg);
+  color: var(--rf-pill-text);
+  font-size: 13px;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: all 180ms var(--rf-spring);
+  text-decoration: none;
+}
+
+.rf-nav-capsule:hover {
+  background: color-mix(in srgb, var(--rf-pill-bg) 80%, black);
+  color: var(--rf-text-primary);
+}
+
+.rf-nav-capsule.active {
+  background: var(--rf-pill-active-bg);
+  color: var(--rf-pill-active-text);
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+/* Region B: Upper-Right Utility Controls */
+.rf-utility-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.rf-avatar-stack {
+  display: flex;
+  align-items: center;
+}
+
+.rf-avatar-circle {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid var(--rf-canvas);
+  background: var(--rf-card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--rf-text-primary);
+  margin-left: -8px;
+}
+.rf-avatar-circle:first-child {
+  margin-left: 0;
+}
+
+.rf-avatar-badge {
+  background: var(--rf-card-dark);
+  color: var(--rf-card-dark-text);
+}
+
+.rf-btn-capsule {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: var(--rf-radius-pill);
+  background: var(--rf-card);
+  color: var(--rf-text-primary);
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px solid var(--rf-border-subtle);
+  cursor: pointer;
+  transition: all 150ms var(--rf-ease-out);
+}
+.rf-btn-capsule:hover {
+  background: var(--rf-card-subtle);
+}
+
+.rf-icon-circle-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--rf-card);
+  border: 1px solid var(--rf-border-subtle);
+  color: var(--rf-text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 150ms var(--rf-spring);
+}
+.rf-icon-circle-btn:hover {
+  transform: scale(1.05);
+  background: var(--rf-card-subtle);
+}
+
+/* ==========================================================================
+   WORKSPACE SHELL WITH LEFT CIRCULAR ICON RAIL (REGION C)
+   ========================================================================== */
+.rf-workspace-layout {
+  display: flex;
+  max-width: 1536px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 0 28px 48px;
+  gap: 24px;
+}
+
+.rf-circular-icon-rail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: 48px;
+  flex-shrink: 0;
+}
+
+.rf-rail-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: var(--rf-card);
+  border: 1px solid var(--rf-border-subtle);
+  color: var(--rf-text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 180ms var(--rf-spring);
+}
+.rf-rail-btn:hover {
+  color: var(--rf-text-primary);
+  transform: scale(1.06);
+}
+.rf-rail-btn.active {
+  background: var(--rf-card-dark);
+  color: var(--rf-card-dark-text);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.rf-rail-bottom {
+  margin-top: auto;
+}
+
+.rf-workspace-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+
+/* ==========================================================================
+   REGION D & E: PAGE HEADING & TOP FILTER CONTROLS
+   ========================================================================== */
+.rf-heading-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.rf-page-title {
+  font-size: 32px;
+  font-weight: 500;
+  line-height: 1.15;
+  letter-spacing: -0.025em;
+  color: var(--rf-text-primary);
+}
+
+.rf-filter-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.rf-filter-capsule {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: var(--rf-card);
+  border-radius: var(--rf-radius-pill);
+  border: 1px solid var(--rf-border-subtle);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--rf-text-secondary);
+}
+
+.rf-capsule-toggle {
+  width: 28px;
+  height: 16px;
+  border-radius: var(--rf-radius-pill);
+  background: var(--rf-pill-bg);
+  position: relative;
+  cursor: pointer;
+}
+.rf-capsule-toggle::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--rf-card);
+  transition: transform 150ms var(--rf-spring);
+}
+.rf-capsule-toggle.active {
+  background: var(--rf-card-dark);
+}
+.rf-capsule-toggle.active::after {
+  transform: translateX(12px);
+}
+
+.rf-btn-dark-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  border-radius: var(--rf-radius-pill);
+  background: var(--rf-card-dark);
+  color: var(--rf-card-dark-text);
+  font-size: 13px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 150ms var(--rf-spring);
+}
+.rf-btn-dark-pill:hover {
+  transform: scale(1.02);
+  opacity: 0.92;
+}
+
+/* ==========================================================================
+   REGION F: EXACT THREE PRIMARY METRIC CARDS (REFERENCE 2)
+   ========================================================================== */
+.rf-three-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.rf-metric-card {
+  border-radius: var(--rf-radius-card);
+  padding: 24px 26px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 170px;
+  box-shadow: var(--rf-shadow-card);
+  border: 1px solid var(--rf-border-subtle);
+  transition: transform 180ms var(--rf-spring);
+  position: relative;
+}
+
+.rf-metric-card:hover {
+  transform: translateY(-2px);
+}
+
+/* Card 1: Deep Dark Surface */
+.rf-metric-card.dark-card {
+  background: var(--rf-card-dark);
+  color: var(--rf-card-dark-text);
+}
+
+/* Card 2 & 3: Soft Light Surface */
+.rf-metric-card.light-card {
+  background: var(--rf-card);
+  color: var(--rf-text-primary);
+}
+
+.rf-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.rf-card-label {
+  font-size: 14px;
+  font-weight: 500;
+  opacity: 0.85;
+}
+
+.rf-card-arrow-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 150ms var(--rf-spring);
+}
+.dark-card .rf-card-arrow-circle {
+  background: #FFFFFF;
+  color: #111827;
+}
+.light-card .rf-card-arrow-circle {
+  background: var(--rf-card-subtle);
+  border: 1px solid var(--rf-border-subtle);
+  color: var(--rf-text-primary);
+}
+.rf-card-arrow-circle:hover {
+  transform: scale(1.1);
+}
+
+.rf-card-main-number {
+  font-size: 38px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  margin: 12px 0 4px;
+}
+
+.rf-card-sub-info {
+  font-size: 12px;
+  opacity: 0.7;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rf-card-tag {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: var(--rf-radius-pill);
+}
+
+/* ==========================================================================
+   REGION G & H: DUAL LOWER ANALYTICS PANELS (REFERENCE 2)
+   ========================================================================== */
+.rf-analytics-grid {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  gap: 16px;
+}
+
+.rf-analytics-panel {
+  background: var(--rf-card);
+  border-radius: var(--rf-radius-card);
+  padding: 24px;
+  border: 1px solid var(--rf-border-subtle);
+  box-shadow: var(--rf-shadow-card);
+  display: flex;
+  flex-direction: column;
+}
+
+.rf-panel-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.rf-panel-title {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  color: var(--rf-text-primary);
+}
+
+.rf-panel-subtitle {
+  font-size: 12px;
+  color: var(--rf-text-muted);
+  margin-top: 2px;
+}
+
+.rf-panel-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Region G: Sales Funnel Bar Chart with Hatched Pattern & Lime Tooltip */
+.rf-funnel-bars-container {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  height: 200px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--rf-border-subtle);
+  position: relative;
+}
+
+.rf-bar-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  height: 100%;
+  justify-content: flex-end;
+  position: relative;
+}
+
+.rf-bar-pillar {
+  width: 44px;
+  border-radius: 12px 12px 6px 6px;
+  background: #E8ECF0;
+  transition: all 250ms var(--rf-spring);
+}
+[data-theme='dark'] .rf-bar-pillar {
+  background: #232733;
+}
+
+/* Highlighted Hatched Bar (Thursday Peak) */
+.rf-bar-pillar.highlighted-hatched {
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(24, 26, 31, 0.18),
+    rgba(24, 26, 31, 0.18) 2px,
+    transparent 2px,
+    transparent 6px
+  );
+  border: 1px solid var(--rf-text-primary);
+}
+[data-theme='dark'] .rf-bar-pillar.highlighted-hatched {
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0.22),
+    rgba(255, 255, 255, 0.22) 2px,
+    transparent 2px,
+    transparent 6px
+  );
+  border: 1px solid var(--rf-text-primary);
+}
+
+/* Floating Lime Tooltip */
+.rf-lime-tooltip {
+  position: absolute;
+  top: -34px;
+  background: var(--rf-lime);
+  color: var(--rf-lime-text);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: var(--rf-radius-pill);
+  box-shadow: 0 4px 12px var(--rf-lime-soft);
+  white-space: nowrap;
+}
+
+.rf-bar-day-label {
+  font-size: 12px;
+  color: var(--rf-text-muted);
+  font-weight: 500;
+}
+
+/* Region H: Heatmap Activity Grid */
+.rf-heatmap-container {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex: 1;
+}
+
+.rf-heatmap-labels {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.rf-heatmap-zone-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--rf-text-secondary);
+}
+
+.rf-heatmap-matrix {
+  display: grid;
+  grid-template-columns: repeat(7, 26px);
+  grid-template-rows: repeat(4, 26px);
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
+}
+
+.rf-heatmap-cell {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  background: #E8ECF0;
+  transition: transform 120ms var(--rf-spring);
+}
+[data-theme='dark'] .rf-heatmap-cell {
+  background: #232733;
+}
+.rf-heatmap-cell:hover {
+  transform: scale(1.15);
+}
+
+/* Lime Activity Intensity Tiers */
+.rf-heatmap-cell.level-0 { background: #E8ECF0; opacity: 0.5; }
+.rf-heatmap-cell.level-1 { background: #E2F978; }
+.rf-heatmap-cell.level-2 { background: #D4F639; }
+.rf-heatmap-cell.level-3 { background: #BDE820; box-shadow: 0 0 8px var(--rf-lime-soft); }
+
+[data-theme='dark'] .rf-heatmap-cell.level-0 { background: #232733; opacity: 0.4; }
+[data-theme='dark'] .rf-heatmap-cell.level-1 { background: #9EBD25; }
+[data-theme='dark'] .rf-heatmap-cell.level-2 { background: #D4F639; }
+[data-theme='dark'] .rf-heatmap-cell.level-3 { background: #D4F639; box-shadow: 0 0 10px var(--rf-lime-soft); }
+
+/* ==========================================================================
+   OBJECTIVE 11: COMPLAINTS PAGE (REFERENCE 1 — DRIVERY STYLE)
+   ========================================================================== */
+.rf-drivery-list-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rf-drivery-row {
+  display: grid;
+  grid-template-columns: 24px 130px 1fr 110px 100px 140px 36px;
+  align-items: center;
+  background: var(--rf-card);
+  border-radius: 14px;
+  padding: 14px 18px;
+  border: 1px solid var(--rf-border-subtle);
+  box-shadow: var(--rf-shadow-card);
+  cursor: pointer;
+  transition: all 140ms var(--rf-spring);
+}
+
+.rf-drivery-row:hover {
+  transform: translateX(3px);
+  border-color: color-mix(in srgb, var(--rf-card-dark) 20%, transparent);
+}
+
+.rf-drivery-row.selected {
+  border-color: var(--rf-card-dark);
+  box-shadow: 0 0 0 1.5px var(--rf-card-dark);
+}
+
+.rf-chevron-icon {
+  color: var(--rf-text-muted);
+  transition: transform 150ms var(--rf-spring);
+}
+.rf-drivery-row:hover .rf-chevron-icon {
+  transform: translateX(2px);
+  color: var(--rf-text-primary);
+}
+
+.rf-priority-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 6px;
+}
+.rf-priority-urgent { background: var(--rf-danger); }
+.rf-priority-high { background: var(--rf-amber); }
+.rf-priority-normal { background: var(--rf-blue); }
+
+.rf-status-chip {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: var(--rf-radius-pill);
+  background: var(--rf-pill-bg);
+  color: var(--rf-text-secondary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rf-more-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--rf-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 120ms;
+}
+.rf-more-btn:hover {
+  background: var(--rf-pill-bg);
+  color: var(--rf-text-primary);
+}
+
+/* Responsive Rules */
+@media (max-width: 1200px) {
+  .rf-analytics-grid {
+    grid-template-columns: 1fr;
+  }
+  .rf-three-cards-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .rf-workspace-layout {
+    flex-direction: column;
+    padding: 0 16px 32px;
+  }
+  .rf-circular-icon-rail {
+    flex-direction: row;
+    width: 100%;
+    overflow-x: auto;
+    padding-bottom: 8px;
+  }
+  .rf-heading-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .rf-filter-group {
+    flex-wrap: wrap;
+  }
+  .rf-drivery-row {
+    grid-template-columns: 24px 100px 1fr 80px 30px;
+  }
+  .rf-drivery-row > *:nth-child(4),
+  .rf-drivery-row > *:nth-child(6),
+  .rf-drivery-row > *:nth-child(7) {
+    display: none;
+  }
+}

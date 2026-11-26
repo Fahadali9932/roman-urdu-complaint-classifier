@@ -11,6 +11,7 @@ import {
   Moon,
   Search,
   Send,
+  Share2,
   ShieldCheck,
   Sun,
   User,
@@ -128,14 +129,24 @@ export const LiquidGlassRibbon: React.FC<LiquidGlassRibbonProps> = ({
         aria-label="Department Head navigation"
         data-testid="lg-head-ribbon"
       >
-        {/* Left: Brand & Department */}
+        {/* Left: Brand & Department with Abstract Geometric Symbol */}
         <button
           type="button"
-          className="lg-ribbon-brand"
+          className="lg-ribbon-brand rf-logo-trigger"
           onClick={() => navigate('dashboard')}
+          aria-label="Awaaz-e-Awam Department Home"
         >
-          <span className="lg-ribbon-mark" aria-hidden="true">
-            {departmentCode.slice(0, 4)}
+          <span className="rf-abstract-symbol" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="8" y1="3" x2="8" y2="21" />
+              <line x1="16" y1="3" x2="16" y2="21" />
+              <line x1="3" y1="8" x2="21" y2="8" />
+              <line x1="3" y1="16" x2="21" y2="16" />
+              <circle cx="8" cy="3" r="1.5" fill="currentColor" />
+              <circle cx="16" cy="21" r="1.5" fill="currentColor" />
+              <circle cx="3" cy="16" r="1.5" fill="currentColor" />
+              <circle cx="21" cy="8" r="1.5" fill="currentColor" />
+            </svg>
           </span>
           <span className="lg-ribbon-brand-text">
             <span className="lg-ribbon-brand-name">Awaaz-e-Awam</span>
@@ -288,8 +299,27 @@ export const LiquidGlassRibbon: React.FC<LiquidGlassRibbonProps> = ({
           </div>
         </div>
 
-        {/* Right: Search, Notifications, Theme, Account & Compact Mobile Menu */}
+        {/* Right: Avatar Stack, Shared Button, Search, Notifications, Theme, Account */}
         <div className="lg-ribbon-actions">
+          {/* Reference 2 Avatar Stack */}
+          <div className="rf-avatar-stack" aria-label="Department officers stack">
+            <div className="rf-avatar-circle" title="Officer Tariq">T</div>
+            <div className="rf-avatar-circle" title="Officer Farooq">F</div>
+            <div className="rf-avatar-circle" title="Officer Sajid">S</div>
+            <div className="rf-avatar-circle rf-avatar-badge" title="6 additional officers active">+6</div>
+          </div>
+
+          {/* Reference 2 Shared Capsule */}
+          <button
+            type="button"
+            className="rf-btn-capsule"
+            onClick={() => navigate('team')}
+            title="Shared department roster"
+          >
+            <Share2 size={13} strokeWidth={1.8} aria-hidden="true" />
+            <span>Shared</span>
+          </button>
+
           <button
             type="button"
             className="lg-icon-btn"

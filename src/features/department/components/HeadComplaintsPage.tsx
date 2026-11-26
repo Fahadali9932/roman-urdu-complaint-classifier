@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { ChevronRight, Search, RefreshCw, AlertCircle } from 'lucide-react';
+import { ChevronRight, Search, RefreshCw, AlertCircle, MoreHorizontal } from 'lucide-react';
 import type { DepartmentId } from '../../../types';
 import {
   caseOperationsService,
@@ -210,32 +210,83 @@ export const HeadComplaintsPage: React.FC<HeadComplaintsPageProps> = ({
       )}
 
       {!loading && !errorMsg && rows.length > 0 && (
-        <div className="lg-glass-panel lg-inbox-card" data-testid="v16-complaints-list">
-          {rows.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              className="lg-mail-row"
-              data-testid="v16-complaint-row"
-              onClick={() => setSelectedId(item.id)}
-            >
-              <div className="lg-mail-main">
-                <div className="lg-mail-title v16-flat-row-heading">{item.heading}</div>
-                <div className="lg-mail-meta">
-                  <span>{item.referenceNumber}</span>
-                  <span aria-hidden="true">·</span>
-                  <span>
-                    {item.publicPlace}
-                    {item.locality ? `, ${item.locality}` : ''}
+        <div className="rf-drivery-list-container" data-testid="v16-complaints-list">
+          {rows.map((item) => {
+            const statusLabel =
+              item.workOrderStatus === 'pending_review'
+                ? 'Verify evidence'
+                : item.workOrderStatus === 'returned'
+                ? 'Rework needed'
+                : item.workOrderStatus === 'in_progress' || item.status === 'in_progress'
+                ? 'In progress'
+                : item.workOrderStatus === 'assigned' || item.status === 'accepted'
+                ? 'Assigned'
+                : item.status === 'under_review'
+                ? 'Under review'
+                : item.status === 'resolved'
+                ? 'Resolved'
+                : 'New';
+
+            return (
+              <button
+                key={item.id}
+                type="button"
+                className="rf-drivery-row lg-mail-row"
+                data-testid="v16-complaint-row"
+                onClick={() => setSelectedId(item.id)}
+              >
+                {/* Left Chevron */}
+                <ChevronRight size={16} strokeWidth={2} className="rf-chevron-icon" aria-hidden="true" />
+
+                {/* Reference ID */}
+                <span className="rf-case-id" style={{ fontWeight: 600, fontSize: '13px' }}>
+                  {item.referenceNumber}
+                </span>
+
+                {/* Subject & Locality */}
+                <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0, paddingRight: '12px' }}>
+                  <span className="v16-flat-row-heading" style={{ fontWeight: 600, fontSize: '13.5px', color: 'var(--rf-text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {item.heading}
+                  </span>
+                  <span style={{ fontSize: '12px', color: 'var(--rf-text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {item.publicPlace}{item.locality ? `, ${item.locality}` : ''}
                   </span>
                 </div>
-              </div>
-              <div className="lg-mail-right">
-                <PriorityPill priority={item.priority} />
-                <ChevronRight size={16} strokeWidth={1.75} className="lg-row-chevron" aria-hidden="true" />
-              </div>
-            </button>
-          ))}
+
+                {/* Status Chip */}
+                <div>
+                  <span className="rf-status-chip">
+                    {statusLabel}
+                  </span>
+                </div>
+
+                {/* Priority Indicator */}
+                <div style={{ display: 'inline-flex', alignItems: 'center' }}>
+                  <PriorityPill priority={item.priority} />
+                </div>
+
+                {/* Assigned Officer / Team */}
+                <span style={{ fontSize: '12.5px', color: 'var(--rf-text-secondary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {item.assignedOfficerName || 'Unassigned'}
+                </span>
+
+                {/* Action Menu */}
+                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                  <div
+                    className="rf-icon-circle-btn"
+                    style={{ width: '30px', height: '30px', border: 'none', background: 'transparent' }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedId(item.id);
+                    }}
+                    title="Complaint options"
+                  >
+                    <MoreHorizontal size={15} />
+                  </div>
+                </div>
+              </button>
+            );
+          })}
         </div>
       )}
     </section>

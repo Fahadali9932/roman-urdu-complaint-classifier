@@ -48,11 +48,17 @@ import {
   ClipboardList,
   Archive as ArchiveIcon,
   UserCheck,
+  ArrowLeft,
+  LayoutGrid,
+  Inbox,
+  Headphones,
+  Wrench,
 } from 'lucide-react';
 import './department-theme.css';
 import './department-operations-v16.css';
 import './v15-head-desktop.css';
 import './apple-liquid-glass.css';
+import './v18-reference-fidelity.css';
 
 export const DepartmentDashboardPage: React.FC = () => {
   const { departmentId, departmentMeta, session, isAuthenticated, isCheckingSession, checkRevocationStatus, signOut, clearMustChangePassword } =
@@ -903,7 +909,7 @@ export const DepartmentDashboardPage: React.FC = () => {
       data-dept-mode={themeMode}
       className={
         isHeadDesktopShell
-          ? `lg-portal-shell v15-head-shell density-${preferences.density}`
+          ? `rf-portal-shell lg-portal-shell v15-head-shell density-${preferences.density}`
           : `lg-portal-shell app-shell v21-app-wrapper v3-portal-shell density-${preferences.density}`
       }
     >
@@ -940,7 +946,111 @@ export const DepartmentDashboardPage: React.FC = () => {
       )}
 
       {/* Main Content Shell */}
-      <div className={isHeadDesktopShell ? 'main-shell v15-content-frame' : 'main-shell'} style={staffPosition === 'officer' ? { paddingBottom: '88px' } : undefined}>
+      <div className={isHeadDesktopShell ? 'main-shell v15-content-frame rf-workspace-layout' : 'main-shell'} style={staffPosition === 'officer' ? { paddingBottom: '88px' } : undefined}>
+        {/* Reference 2 Left Circular Icon Rail (HOD Desktop Workspace) */}
+        {isHeadDesktopShell && (
+          <aside className="rf-circular-icon-rail" aria-label="Quick operations rail">
+            {/* Top Back / Return button */}
+            <button
+              type="button"
+              className="rf-rail-btn"
+              title="Return to Overview"
+              aria-label="Return to Overview"
+              onClick={() => {
+                setCurrentSection('dashboard');
+                setSelectedCaseId(null);
+                setSelectedReference(null);
+              }}
+            >
+              <ArrowLeft size={16} strokeWidth={1.8} />
+            </button>
+
+            {/* Active tool (Dispatch & workflow) */}
+            <button
+              type="button"
+              className={`rf-rail-btn ${currentSection === 'dispatch' || currentSection === 'work_orders' ? 'active' : ''}`}
+              title="Dispatch & assignments"
+              aria-label="Dispatch & assignments"
+              onClick={() => {
+                setCurrentSection('dispatch');
+                setSelectedCaseId(null);
+                setSelectedReference(null);
+              }}
+            >
+              <Wrench size={16} strokeWidth={1.8} />
+            </button>
+
+            {/* Analytics / Overview */}
+            <button
+              type="button"
+              className={`rf-rail-btn ${currentSection === 'dashboard' || currentSection === 'overview' || currentSection === 'home' ? 'active' : ''}`}
+              title="Department overview"
+              aria-label="Department overview"
+              onClick={() => {
+                setCurrentSection('dashboard');
+                setSelectedCaseId(null);
+                setSelectedReference(null);
+              }}
+            >
+              <LayoutGrid size={16} strokeWidth={1.8} />
+            </button>
+
+            {/* Inbox / Queue */}
+            <button
+              type="button"
+              className={`rf-rail-btn ${currentSection === 'queue' || currentSection === 'tasks' ? 'active' : ''}`}
+              title="Complaints inbox"
+              aria-label="Complaints inbox"
+              onClick={() => {
+                setCurrentSection('queue');
+                setSelectedCaseId(null);
+                setSelectedReference(null);
+              }}
+            >
+              <Inbox size={16} strokeWidth={1.8} />
+            </button>
+
+            {/* Documents / Archive */}
+            <button
+              type="button"
+              className={`rf-rail-btn ${currentSection === 'archive' ? 'active' : ''}`}
+              title="Archive history"
+              aria-label="Archive history"
+              onClick={() => {
+                setCurrentSection('archive');
+                setSelectedCaseId(null);
+                setSelectedReference(null);
+              }}
+            >
+              <ArchiveIcon size={16} strokeWidth={1.8} />
+            </button>
+
+            {/* Settings */}
+            <button
+              type="button"
+              className="rf-rail-btn"
+              title="Staff security settings"
+              aria-label="Staff security settings"
+              onClick={() => setIsPasswordModalOpen(true)}
+            >
+              <KeyRound size={16} strokeWidth={1.8} />
+            </button>
+
+            {/* Support / Helpdesk */}
+            <button
+              type="button"
+              className="rf-rail-btn rf-rail-bottom"
+              title="Municipal operational desk"
+              aria-label="Municipal operational desk"
+              onClick={() => {
+                window.alert('KMC Central Dispatch Helpline: 1339 · Internal Municipal Desk Active');
+              }}
+            >
+              <Headphones size={16} strokeWidth={1.8} />
+            </button>
+          </aside>
+        )}
+
         {/* Floating Top Navigation preserved exclusively for Field Officer / legacy routes */}
         {!isHeadDesktopShell && (
           <DepartmentTopbar
@@ -975,9 +1085,9 @@ export const DepartmentDashboardPage: React.FC = () => {
         <main
           className={
             isHeadDesktopShell && (currentSection === 'dashboard' || currentSection === 'overview' || currentSection === 'home')
-              ? ''
+              ? 'rf-workspace-content'
               : isHeadDesktopShell
-              ? 'page v15-main-page'
+              ? 'page v15-main-page rf-workspace-content'
               : 'page'
           }
           id="content"

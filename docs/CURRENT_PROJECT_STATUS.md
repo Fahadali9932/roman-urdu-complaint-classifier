@@ -5,6 +5,35 @@ Verified on **26 November 2026 (Pakistan time)**. Internal delivery target:
 This document distinguishes inspected source, automated checks, and unverified
 hosted behavior. Update it after every significant verified milestone.
 
+## Development update, 26 November 2026 — Phase V18: Reference-Fidelity Redesign (Minimal Sales Analytics Dashboard & Drivery Complaint List)
+
+- **Git & Protected Baseline (`D:\RomanUrdu_V13_19_Review`, branch `feature/v18-reference-fidelity-redesign`):**
+  - Branched from V17 baseline (`checkpoint/v17-611f71e` preserved locally).
+  - Protected primary worktree `D:\RomanUrdu_ComplaintClassifier_staff_auth`, frozen Run004 classifier (`E4D042937CF8C3E1E3C70F147A707B33A629D463DB34485766C98DA21C2E3A56`), Citizen Portal, and Supabase production remain untouched; zero merges to `main`, `$0.00` spend.
+- **Master Visual Reference Reconstruction (Reference 2 — Minimal Sales Analytics Dashboard):**
+  - **Top Navigation Bar (`LiquidGlassRibbon.tsx`):** Abstract `#` geometric logo with 4 rounded node terminals rendered directly on canvas; 4 floating navigation capsules (`Overview`, `Complaints`, `Officers`, `Archive`) with active solid dark pill `#181A1F`; officer avatar stack (`T F S +6`); pill capsule action button `Shared` with upload icon; search icon, notification bell with unread badge `8`, and theme toggle.
+  - **Left Vertical Quick-Operations Rail (`DepartmentDashboardPage.tsx`):** Circular floating quick-access controls (`←` Return to Overview, Dispatch & workflow tool, Analytics/overview circle, Inbox queue circle, Archive history circle, Settings key circle, and bottom Headset support button).
+  - **Heading & Filter Controls Row (`HeadHomePage.tsx`):** Two-line clean regular-weight heading `Department \n Overview` with Karachi municipal subtitle; calendar date capsule with `LiquidSegmentedControl`; priority triage toggle switch capsule; solid dark action button `Export as CSV ↗`.
+  - **Three Primary Metric Cards (`HeadHomePage.tsx`, `v18-reference-fidelity.css`):** Card 1 solid dark `#181A1F` Received complaints (`16`, `Attention required · 12 unassigned`, circular arrow `↗`); Card 2 crisp white `#FFFFFF` Active complaints (`16`, `12 unassigned · 4 in field progress`, circular arrow `↗`); Card 3 crisp white `#FFFFFF` Resolved complaints (`3`, `1 awaiting proof verification`, circular arrow `↗`); status sub-strip capsules preserving required accessibility & unit test labels (`Received`, `Unassigned`, `In progress`, `Verify evidence`, `Resolved`).
+  - **Dual Lower Analytics Panels (`HeadHomePage.tsx`, `v18-reference-fidelity.css`):**
+    - Left: `Complaint activity` bar chart with 6 column pillars (`Mon` through `Sat`), Thursday peak highlighted with diagonal hatched pattern (`repeating-linear-gradient(45deg, ...)`) and floating vibrant lime tooltip (`#D4F639`) showing value `48`.
+    - Right: `Incident distribution` heatmap with 4 municipal zones (`Gulshan`, `Jamshed`, `Shahrah-e-Faisal`, `Korangi`) and an isometric diamond cluster of lime green intensity tiers (0 to 3) matching Reference 2.
+- **Dedicated Complaint List (Reference 1 — Drivery Reports Dashboard):**
+  - **Horizontal Complaint Cards (`HeadComplaintsPage.tsx`, `v18-reference-fidelity.css`):** Left navigation chevrons `›`, prominent reference IDs (`#KHI-2026-9016`), two-line subject & locality headings, status chips (`Assigned`, `New`, `In progress`), priority indicators (`● Routine`, `● Urgent`, `● High`), assigned officers, and right 3-dot action menus (`···`).
+- **Automated Quality Gates & Test Results:**
+  - `npx tsc -b`: exit `0` (`0` type errors).
+  - `oxlint`: exit `0` (`0` warnings, `0` errors on modified files).
+  - `npm test -- --run` (Vitest): **`71` passed | `1` skipped (`72`), `713` passed | `1` skipped (`714`)** in `31.05s`.
+  - `npm run build`: Production bundle compiled in `2.17s` (`dist/assets/index-BEe2LR-P.js`, `dist/assets/index-C937g0ho.css`).
+- **Headless Chrome Visual Verification Screenshots (`scripts/capture_v18_reference.mjs`):**
+  - Output directory: `screenshots/v18_reference/`
+  - `01_department_overview_light_1440.png` (Verified Reference 2 master overview in Light mode).
+  - `02_department_overview_dark_1440.png` (Verified Reference 2 master overview in Dark mode).
+  - `03_complaints_list_light_1440.png` (Verified Reference 1 Drivery complaint rows in Light mode).
+  - `04_complaints_list_dark_1440.png` (Verified Reference 1 Drivery complaint rows in Dark mode).
+  - Responsive viewports: `05_overview_1920.png`, `06_overview_1280.png`, `07_overview_1024.png`, `08_overview_768.png`, `09_overview_390.png`, `10_overview_320.png`.
+  - Motion frames: `motion_01_ribbon_nav_capsule.png`, `motion_02_thursday_hatched_tooltip.png`, `motion_03_heatmap_zone_matrix.png`, `motion_04_drivery_row_detail.png`.
+
 ## Development update, 26 November 2026 — Phase V17: Apple Clear Liquid Glass Staff Portal Redesign
 
 - **Git & Protected Baseline (`D:\RomanUrdu_V13_19_Review`, branch `feature/v17-apple-liquid-glass-staff-portal`):**
