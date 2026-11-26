@@ -130,10 +130,18 @@ Deno.serve(async (request) => {
       return json({ error: "Active department membership required." }, 403);
     }
 
-    const { error: pwErr } = await admin.auth.admin.updateUserById(callerData.user.id, {
-      password: newPassword,
+    // Update via caller's authenticated AAL2 session directly against GoTrue /auth/v1/user
+    // so the current token stays valid rather than revoking all sessions via admin.updateUserById.
+    const pwRes = await fetch(`${url}/auth/v1/user`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: anonKey,
+        Authorization: `Bearer ${jwt}`,
+      },
+      body: JSON.stringify({ password: newPassword }),
     });
-    if (pwErr) {
+    if (!pwRes.ok) {
       return json({ error: "Unable to update account passphrase." }, 400);
     }
 

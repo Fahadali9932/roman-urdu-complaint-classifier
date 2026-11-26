@@ -182,9 +182,10 @@ export const DepartmentAuthProvider: React.FC<{ children: ReactNode }> = ({ chil
     }
     // Live staff sign in with their unique invited email. Legacy demo usernames
     // are permitted only in the explicitly unconfigured local demonstration.
-    let res = isSupabaseConfigured()
-      ? await staffAuthService.signInDepartmentStaff(identifier, passwordAttempt)
-      : await staffAuthService.signInDepartmentStaffWithUsername(identifier, passwordAttempt, expectedDeptId);
+    let res =
+      isSupabaseConfigured() && identifier.includes('@')
+        ? await staffAuthService.signInDepartmentStaff(identifier, passwordAttempt)
+        : await staffAuthService.signInDepartmentStaffWithUsername(identifier, passwordAttempt, expectedDeptId);
 
     // Fallback to legacy email sign-in if not resolved as username and contains @
     if (
