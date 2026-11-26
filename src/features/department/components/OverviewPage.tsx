@@ -224,8 +224,8 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
       {loadState === 'ready' && (
         <>
           {/* Decisions for today (2-4 prioritized items) */}
-          <section aria-labelledby="v3-decisions-heading">
-            <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <section className="mt-7" aria-labelledby="v3-decisions-heading">
+            <div className="flex flex-wrap items-baseline justify-between gap-2 pb-2">
               <h2 id="v3-decisions-heading" className="v3-section-heading">
                 Decisions for today
               </h2>
@@ -259,10 +259,10 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
             )}
           </section>
 
-          {/* Compact calm operational totals strip */}
+          {/* Compact calm operational totals strip (single top rule, whitespace below) */}
           <div
-            className="mt-8 flex flex-wrap items-center justify-between gap-4 border-t border-b py-4 text-[13px]"
-            style={{ borderColor: 'var(--v3-edge)', color: 'var(--v3-muted)' }}
+            className="mt-7 flex flex-wrap items-center justify-between gap-4 border-t pt-5 pb-2 text-[13px]"
+            style={{ borderColor: 'var(--v3-edge)', color: 'var(--v3-muted)', fontVariantNumeric: 'tabular-nums' }}
             role="group"
             aria-label="Department case summary metrics"
           >
@@ -270,7 +270,7 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
               <button
                 type="button"
                 onClick={() => onNavigate('queue')}
-                className="inline-flex items-baseline gap-1.5 bg-transparent border-0 p-0 cursor-pointer text-left"
+                className="inline-flex min-h-[44px] items-center gap-1.5 bg-transparent border-0 p-0 cursor-pointer text-left"
                 style={{ color: 'var(--v3-muted)' }}
               >
                 <strong style={{ color: 'var(--v3-ink)' }}>{summary.totalCases}</strong>
@@ -279,7 +279,7 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
               <button
                 type="button"
                 onClick={() => onNavigate('queue')}
-                className="inline-flex items-baseline gap-1.5 bg-transparent border-0 p-0 cursor-pointer text-left"
+                className="inline-flex min-h-[44px] items-center gap-1.5 bg-transparent border-0 p-0 cursor-pointer text-left"
                 style={{ color: 'var(--v3-muted)' }}
               >
                 <strong style={{ color: 'var(--v3-ink)' }}>{summary.totalReports.toLocaleString()}</strong>
@@ -288,14 +288,15 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
               <button
                 type="button"
                 onClick={() => onNavigate('queue')}
-                className="inline-flex items-baseline gap-1.5 bg-transparent border-0 p-0 cursor-pointer text-left"
+                className="inline-flex min-h-[44px] items-center gap-1.5 bg-transparent border-0 p-0 cursor-pointer text-left"
                 style={{ color: 'var(--v3-muted)' }}
               >
                 <strong style={{ color: 'var(--v3-danger)' }}>{summary.casesUnassigned}</strong>
                 <span>Unassigned cases</span>
               </button>
-              <span>
-                <strong style={{ color: 'var(--v3-ink)' }}>{proofPending.length}</strong> Awaiting proof review
+              <span className="inline-flex min-h-[44px] items-center gap-1.5">
+                <strong style={{ color: 'var(--v3-ink)' }}>{proofPending.length}</strong>
+                <span>Awaiting proof review</span>
               </span>
             </div>
             {lastRefreshed && <span>Updated {lastRefreshed}</span>}
@@ -303,7 +304,7 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
 
           {/* Areas needing attention */}
           {topAreas.length > 0 && (
-            <section aria-labelledby="v3-areas-heading">
+            <section className="mt-8" aria-labelledby="v3-areas-heading">
               <div className="flex flex-wrap items-baseline justify-between gap-2">
                 <h2 id="v3-areas-heading" className="v3-section-heading">
                   Where help is needed

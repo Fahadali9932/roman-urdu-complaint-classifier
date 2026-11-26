@@ -252,15 +252,18 @@ export const WorkQueuePage: React.FC<WorkQueuePageProps> = ({
       {/* Page Heading */}
       <div className="page-heading">
         <div>
-          <div className="ops-eyebrow">OPERATIONS / {initialSavedView === 'completed' ? 'RECORDS' : 'INTAKE'}</div>
+          <div className="ops-eyebrow">{initialSavedView === 'completed' ? 'Records archive' : 'Intake & triage'}</div>
           <h1>{initialSavedView === 'completed' ? 'Completed cases' : 'Work queue'}</h1>
           <p>{initialSavedView === 'completed'
-            ? 'Resolved case history, kept separate from active work. Search by place or case reference.'
-            : 'Review incoming cases, assign a response, and follow every citizen report.'}</p>
+            ? 'Resolved case history kept separate from active operations.'
+            : 'Review incoming cases, assign field responses, and track citizen reports.'}</p>
         </div>
-        <div className="small-counter">
+        <span
+          className="text-[13px] font-medium"
+          style={{ color: 'var(--v3-muted)', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}
+        >
           {summaryStats.totalCases} cases · {summaryStats.totalReports.toLocaleString()} reports
-        </div>
+        </span>
       </div>
 
       {caseOperationsService.isDemonstrationWorkspace() && (
@@ -564,11 +567,11 @@ export const WorkQueuePage: React.FC<WorkQueuePageProps> = ({
         )}
       </div>
 
-      {/* Explanatory Helper Note */}
+      {/* Quiet summary line integrated above the list */}
       <p className="queue-note">
         {displayMode === 'cases'
-          ? 'Cases reflect separate public incidents. All original citizen reports remain individually trackable.'
-          : 'Individual reports retain their own references, statuses and timelines.'}
+          ? 'Grouped by public incident; linked citizen reports remain individually traceable.'
+          : 'Individual citizen reports retain their own reference numbers and timelines.'}
       </p>
 
       {/* Contiguous List Surface */}

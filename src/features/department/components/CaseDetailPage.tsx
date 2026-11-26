@@ -201,13 +201,13 @@ export const CaseDetailPage: React.FC<CaseDetailPageProps> = ({
 
       {/* Page Header */}
       <div className="page-heading detail-heading">
-        <div>
-          <div className="ops-eyebrow">OPERATIONS / INCIDENT DETAIL</div>
-          <h1>{caseItem.title}</h1>
+        <div style={{ minWidth: 0 }}>
+          <div className="ops-eyebrow">Incident record</div>
+          <h1 style={{ textWrap: 'balance' }}>{caseItem.title}</h1>
           <div className="detail-sub">
-            <span className="tag">{caseItem.caseNumber}</span>
+            <span className="tag" style={{ whiteSpace: 'nowrap' }}>{caseItem.caseNumber}</span>
             <span>{caseItem.locality}</span>
-            <span>·</span>
+            <span aria-hidden="true">·</span>
             <span>{caseItem.publicPlace}</span>
           </div>
         </div>
@@ -231,18 +231,10 @@ export const CaseDetailPage: React.FC<CaseDetailPageProps> = ({
               ✓ All reports acknowledged
             </span>
           )}
-          <button
-            type="button"
-            className="button"
-            data-tab="reports"
-            onClick={() => setActiveTab('reports')}
-          >
-            View reports
-          </button>
         </div>
       </div>
 
-      {/* Fact Strip Card */}
+      {/* Quiet Key-Fact Definition Strip (replaces boxed cell grid) */}
       <div className="fact-strip">
         <div className="fact">
           <span>Work status</span>
@@ -314,26 +306,26 @@ export const CaseDetailPage: React.FC<CaseDetailPageProps> = ({
       <div className="detail-content">
         {/* OVERVIEW TAB */}
         {activeTab === 'overview' && (
-          <div className="two-cols">
-            <section className="section">
+          <div className="two-cols ops-detail-record">
+            <section className="section ops-detail-narrative">
               <h2>Incident summary</h2>
               <div className="detail-brief">{caseItem.summary}</div>
 
               <h3>Public incident location</h3>
               <p className="value">{caseItem.publicPlace}</p>
-              <p>{caseItem.locality}.</p>
+              <p>{caseItem.locality}</p>
 
               <div className="quiet-divider" />
 
-              <h2>What&apos;s needed</h2>
+              <h2>Required action</h2>
               <p>
                 {eligibleCount > 0
-                  ? `${eligibleCount} reports are waiting for a response.`
-                  : 'There are no reports waiting for a reply in this case.'}
+                  ? `${eligibleCount} reports are awaiting initial acknowledgment.`
+                  : 'All citizen reports in this case have been acknowledged.'}
               </p>
             </section>
 
-            <aside className="section">
+            <aside className="section ops-detail-meta">
               <h2>Case details</h2>
               <div className="statline">
                 <div>
@@ -344,7 +336,7 @@ export const CaseDetailPage: React.FC<CaseDetailPageProps> = ({
 
               <div className="statline">
                 <div>
-                  <strong>Waiting for a reply</strong>
+                  <strong>Waiting for acknowledgment</strong>
                 </div>
                 <b>{eligibleCount}</b>
               </div>
@@ -358,13 +350,13 @@ export const CaseDetailPage: React.FC<CaseDetailPageProps> = ({
 
               <div className="quiet-divider" />
 
-              <h2>Why it matters</h2>
+              <h2>Priority rationale</h2>
               <p>
                 {caseItem.priority === 'critical'
-                  ? 'Safety hazard: this case must be considered quickly even if only one person reports it.'
+                  ? 'Safety hazard: prioritized for immediate field review regardless of report count.'
                   : caseItem.priority === 'high'
-                  ? `Reported ${caseItem.ageDays} days ago. People are still affected.`
-                  : `Standard priority. ${caseItem.linkedReportCount} reports inform scale but do not automatically make a life safety hazard.`}
+                  ? `Reported ${caseItem.ageDays} days ago. Residents remain affected.`
+                  : `Standard municipal priority across ${caseItem.linkedReportCount} linked reports.`}
               </p>
             </aside>
           </div>

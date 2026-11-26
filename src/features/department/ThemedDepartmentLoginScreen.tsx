@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShieldAlert, ArrowRight, ArrowLeft, Eye, EyeOff } from 'lucide-react';
+import { ShieldAlert, ArrowRight, Eye, EyeOff } from 'lucide-react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { useDepartmentAuth } from '../../context/DepartmentAuthContext';
 import { isSupabaseConfigured, supabase } from '../../lib/supabase';
@@ -201,36 +201,22 @@ export const ThemedDepartmentLoginScreen: React.FC<ThemedDepartmentLoginScreenPr
   return (
     <V3AuthShell
       portalTitle={roleTitle || theme.monumentalTitle}
-      eyebrow={targetRole ? `${theme.code} · ${roleTitle} workspace` : `${theme.code} • ${theme.monumentalTitle}`}
-      subtitle={theme.jurisdiction}
+      eyebrow={targetRole ? `${theme.code} · ${theme.jurisdiction}` : `${theme.code} • ${theme.monumentalTitle}`}
+      subtitle={targetRole ? theme.name : theme.jurisdiction}
       artwork={<DepartmentArtwork departmentId={departmentId} />}
       theme={civicTheme}
       onToggleTheme={toggleTheme}
-      backTo="/department/login"
-      backLabel="Switch Department"
-      headerActions={
-        <button
-          type="button"
-          onClick={onBackToDepartmentSelection}
-          className="inline-flex min-h-[44px] items-center gap-1.5 rounded-full px-3.5 text-[13px] font-medium cursor-pointer"
-          style={{
-            backgroundColor: 'var(--v3-nav-glass)',
-            border: '1px solid var(--v3-edge)',
-            color: 'var(--v3-ink)',
-            backdropFilter: 'blur(9px)',
-          }}
-        >
-          <ArrowLeft className="h-3.5 w-3.5" />
-          <span>Departments</span>
-        </button>
-      }
+      backLabel=""
     >
       {/* Card Header */}
       <div className="mb-5">
-        <div className="text-[12px] font-medium uppercase tracking-wider" style={{ color: 'var(--v3-accent)' }}>
+        <div className="text-[12px] font-medium" style={{ color: 'var(--v3-muted)' }}>
           {theme.titleEn}
         </div>
-        <h2 className="mt-1 text-[28px] font-medium leading-tight" style={{ color: 'var(--v3-ink)' }}>
+        <h2
+          className="mt-1 text-[26px] font-semibold leading-tight"
+          style={{ color: 'var(--v3-ink)', textWrap: 'balance' }}
+        >
           {roleTitle ? `${roleTitle} sign in` : 'Sign in'}
         </h2>
         <p className="mt-1 text-[13px]" style={{ color: 'var(--v3-muted)' }}>
@@ -238,38 +224,38 @@ export const ThemedDepartmentLoginScreen: React.FC<ThemedDepartmentLoginScreenPr
         </p>
       </div>
 
-      {/* Role Switcher */}
-      <nav
-        className="mb-5 flex gap-1.5 rounded-[12px] p-1"
-        style={{
-          backgroundColor: 'var(--v3-raised)',
-          border: '1px solid var(--v3-edge)',
-        }}
-        aria-label="Staff workspace type"
-      >
-        <Link
-          to={`/department/head/login?dept=${departmentId}`}
-          aria-current={targetRole === 'head' ? 'page' : undefined}
-          className="flex min-h-[40px] flex-1 items-center justify-center rounded-[9px] px-3 text-center text-[13px] font-medium transition-colors"
+      {/* Legacy Combined Route Role Switcher (hidden on dedicated Head / Officer logins) */}
+      {!targetRole && (
+        <nav
+          className="mb-5 flex gap-1.5 rounded-[12px] p-1"
           style={{
-            backgroundColor: targetRole === 'head' ? 'var(--v3-action)' : 'transparent',
-            color: targetRole === 'head' ? 'var(--v3-onaction)' : 'var(--v3-ink)',
+            backgroundColor: 'var(--v3-raised)',
+            border: '1px solid var(--v3-edge)',
           }}
+          aria-label="Staff workspace type"
         >
-          Department Head
-        </Link>
-        <Link
-          to={`/department/officer/login?dept=${departmentId}`}
-          aria-current={targetRole === 'officer' ? 'page' : undefined}
-          className="flex min-h-[40px] flex-1 items-center justify-center rounded-[9px] px-3 text-center text-[13px] font-medium transition-colors"
-          style={{
-            backgroundColor: targetRole === 'officer' ? 'var(--v3-action)' : 'transparent',
-            color: targetRole === 'officer' ? 'var(--v3-onaction)' : 'var(--v3-ink)',
-          }}
-        >
-          Field Officer
-        </Link>
-      </nav>
+          <Link
+            to={`/department/head/login?dept=${departmentId}`}
+            className="flex min-h-[44px] flex-1 items-center justify-center rounded-[9px] px-3 text-center text-[13px] font-medium transition-colors"
+            style={{
+              backgroundColor: 'transparent',
+              color: 'var(--v3-ink)',
+            }}
+          >
+            Department Head
+          </Link>
+          <Link
+            to={`/department/officer/login?dept=${departmentId}`}
+            className="flex min-h-[44px] flex-1 items-center justify-center rounded-[9px] px-3 text-center text-[13px] font-medium transition-colors"
+            style={{
+              backgroundColor: 'transparent',
+              color: 'var(--v3-ink)',
+            }}
+          >
+            Field Officer
+          </Link>
+        </nav>
+      )}
 
       {/* Local Demo Notice */}
       {isLocalDemonstration && (

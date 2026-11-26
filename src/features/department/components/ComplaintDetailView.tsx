@@ -183,7 +183,7 @@ export const ComplaintDetailView: React.FC<ComplaintDetailViewProps> = ({
       <section className="detail-panel" aria-live="polite">
         {/* TAB 1: OVERVIEW (2-COLUMN MATCHING 03_COMPLAINT_DETAIL_TARGET.png) */}
         {activeTab === 'overview' && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.8fr) minmax(290px, 1fr)', gap: '22px', alignItems: 'start' }}>
+          <div className="two-cols" style={{ alignItems: 'start' }}>
             {/* Left Column: Summary, Location, Narrative note */}
             <div>
               {/* Resolved Status Banner */}

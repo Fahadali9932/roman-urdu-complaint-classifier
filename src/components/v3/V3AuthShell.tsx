@@ -56,8 +56,8 @@ export const V3AuthShell: React.FC<V3AuthShellProps> = ({
             style={{
               background:
                 theme === 'dark'
-                  ? 'linear-gradient(120deg, rgba(32, 43, 53, 0.88) 0%, rgba(32, 43, 53, 0.72) 52%, rgba(32, 43, 53, 0.62) 100%)'
-                  : 'linear-gradient(120deg, rgba(232, 237, 240, 0.88) 0%, rgba(232, 237, 240, 0.70) 52%, rgba(232, 237, 240, 0.56) 100%)',
+                  ? 'linear-gradient(120deg, rgba(32, 43, 53, 0.94) 0%, rgba(32, 43, 53, 0.86) 52%, rgba(32, 43, 53, 0.74) 100%)'
+                  : 'linear-gradient(120deg, rgba(232, 237, 240, 0.96) 0%, rgba(232, 237, 240, 0.92) 50%, rgba(232, 237, 240, 0.78) 100%)',
             }}
           />
         </div>
@@ -65,19 +65,22 @@ export const V3AuthShell: React.FC<V3AuthShellProps> = ({
 
       {/* Top subtle navigation bar */}
       <header className="relative z-10 mx-auto flex w-full max-w-[1200px] flex-wrap items-center justify-between gap-2 px-4 pt-5 sm:px-8 sm:pt-7">
-        <Link
-          to={backTo}
-          className="inline-flex min-h-[44px] items-center gap-2 rounded-full px-3.5 text-[14px] font-medium transition-colors"
-          style={{
-            backgroundColor: 'var(--v3-nav-glass)',
-            border: '1px solid var(--v3-edge)',
-            color: 'var(--v3-ink)',
-            backdropFilter: 'blur(9px)',
-          }}
-        >
-          <ArrowLeft className="h-4 w-4" />
-          <span>{backLabel}</span>
-        </Link>
+        {backLabel ? (
+          <Link
+            to={backTo}
+            className="inline-flex min-h-[44px] items-center gap-2 rounded-[10px] px-3.5 text-[14px] font-medium transition-colors"
+            style={{
+              backgroundColor: 'var(--v3-surface)',
+              border: '1px solid var(--v3-edge)',
+              color: 'var(--v3-ink)',
+            }}
+          >
+            <ArrowLeft className="h-4 w-4" />
+            <span>{backLabel}</span>
+          </Link>
+        ) : (
+          <div aria-hidden="true" />
+        )}
 
         <div className="flex items-center gap-2">
           {headerActions}
@@ -85,12 +88,11 @@ export const V3AuthShell: React.FC<V3AuthShellProps> = ({
             <button
               type="button"
               onClick={onToggleLanguage}
-              className="inline-flex min-h-[44px] items-center gap-1.5 rounded-full px-3.5 text-[13px] font-medium cursor-pointer"
+              className="inline-flex min-h-[44px] items-center gap-1.5 rounded-[10px] px-3.5 text-[13px] font-medium cursor-pointer"
               style={{
-                backgroundColor: 'var(--v3-nav-glass)',
+                backgroundColor: 'var(--v3-surface)',
                 border: '1px solid var(--v3-edge)',
                 color: 'var(--v3-ink)',
-                backdropFilter: 'blur(9px)',
               }}
               aria-label="Switch language"
             >
@@ -101,12 +103,11 @@ export const V3AuthShell: React.FC<V3AuthShellProps> = ({
           <button
             type="button"
             onClick={onToggleTheme}
-            className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full px-3 cursor-pointer"
+            className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-[10px] px-3 cursor-pointer"
             style={{
-              backgroundColor: 'var(--v3-nav-glass)',
+              backgroundColor: 'var(--v3-surface)',
               border: '1px solid var(--v3-edge)',
               color: 'var(--v3-ink)',
-              backdropFilter: 'blur(9px)',
             }}
             aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
             title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
@@ -128,9 +129,9 @@ export const V3AuthShell: React.FC<V3AuthShellProps> = ({
             Awaaz-e-Awam
           </div>
           {titleAsHeading ? (
-            <h1 className="v3-auth-title">{portalTitle}</h1>
+            <h1 className="v3-auth-title" style={{ textWrap: 'balance' }}>{portalTitle}</h1>
           ) : (
-            <div className="v3-auth-title">{portalTitle}</div>
+            <div className="v3-auth-title" style={{ textWrap: 'balance' }}>{portalTitle}</div>
           )}
           <div className="pt-1 text-[14px] font-medium" style={{ color: 'var(--v3-accent)' }}>
             {eyebrow}
