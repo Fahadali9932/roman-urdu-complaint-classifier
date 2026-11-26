@@ -26,9 +26,7 @@ import { AreasPage } from './components/AreasPage';
 import { OverviewPage } from './components/OverviewPage';
 import { HeadHomePage } from './components/HeadHomePage';
 import { HeadComplaintsPage } from './components/HeadComplaintsPage';
-import { HeadSidebarNav } from './components/HeadSidebarNav';
-import { HeadDesktopRestrictionScreen } from './components/HeadDesktopRestrictionScreen';
-import { useHeadDesktopAccess } from './hooks/useHeadDesktopAccess';
+import { LiquidGlassRibbon, type RibbonMetrics } from './components/glass/LiquidGlassRibbon';
 import { FieldOperationsDesk } from './components/FieldOperationsDesk';
 import { fieldOperations, type StaffPosition } from './services/fieldOperations';
 import { StatusUpdateModal } from './components/StatusUpdateModal';
@@ -46,10 +44,15 @@ import {
   Eye,
   EyeOff,
   CheckCircle2,
+  Sun,
+  ClipboardList,
+  Archive as ArchiveIcon,
+  UserCheck,
 } from 'lucide-react';
 import './department-theme.css';
 import './department-operations-v16.css';
 import './v15-head-desktop.css';
+import './apple-liquid-glass.css';
 
 export const DepartmentDashboardPage: React.FC = () => {
   const { departmentId, departmentMeta, session, isAuthenticated, isCheckingSession, checkRevocationStatus, signOut, clearMustChangePassword } =
@@ -188,29 +191,54 @@ export const DepartmentDashboardPage: React.FC = () => {
   const [isWorkspaceMenuOpen, setIsWorkspaceMenuOpen] = useState(false);
   const [staffPosition, setStaffPosition] = useState<StaffPosition | null>(null);
   const [staffRoleError, setStaffRoleError] = useState<string | null>(null);
-  const { isDesktopAllowed: isHeadDesktopAllowed } = useHeadDesktopAccess();
   const [queueSavedViewOverride, setQueueSavedViewOverride] = useState<
     'needs' | 'unassigned' | 'mine' | 'all' | 'completed' | null
   >(null);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(() => {
-    try {
-      return localStorage.getItem('awaaz_head_sidebar_collapsed') === 'true';
-    } catch {
-      return false;
-    }
+  const [ribbonMetrics, setRibbonMetrics] = useState<RibbonMetrics>({
+    newComplaints: 0,
+    urgentComplaints: 0,
+    unassignedComplaints: 0,
+    awaitingVerification: 0,
+    availableOfficers: 0,
+    assignedOfficers: 0,
+    extensionRequests: 0,
   });
 
-  const handleToggleSidebarCollapse = () => {
-    setSidebarCollapsed((prev) => {
-      const next = !prev;
-      try {
-        localStorage.setItem('awaaz_head_sidebar_collapsed', String(next));
-      } catch {
-        // Ignore storage errors
-      }
-      return next;
+  useEffect(() => {
+    if (staffPosition !== 'head' || !departmentId) return;
+    let cancelled = false;
+    Promise.allSettled([
+      caseOperationsService.getHeadPeriodOverview(departmentId, 'today'),
+      fieldOperations.officersDirectory(departmentId),
+      fieldOperations.orders(departmentId),
+    ]).then(([overviewRes, officersRes, ordersRes]) => {
+      if (cancelled) return;
+      const ov = overviewRes.status === 'fulfilled' ? overviewRes.value : null;
+      const officers = officersRes.status === 'fulfilled' ? officersRes.value : [];
+      const orders = ordersRes.status === 'fulfilled' ? ordersRes.value : [];
+      const activeOrders = orders.filter(
+        (o) => o.status === 'assigned' || o.status === 'in_progress'
+      );
+      const assignedOfficerIds = new Set(activeOrders.map((o) => o.officer_id));
+      const activeStaff = officers.filter(
+        (o) => o.staff_role === 'officer' && o.membership_status !== 'suspended'
+      );
+      const availableOfficers = activeStaff.filter((o) => !assignedOfficerIds.has(o.user_id)).length;
+      const extensionRequests = orders.filter((o) => Boolean(o.extension_requested_due_at)).length;
+      setRibbonMetrics({
+        newComplaints: ov?.newComplaints ?? 0,
+        urgentComplaints: ov?.underReview ?? 0,
+        unassignedComplaints: ov?.newComplaints ?? 0,
+        awaitingVerification: ov?.awaitingVerification ?? 0,
+        availableOfficers,
+        assignedOfficers: assignedOfficerIds.size,
+        extensionRequests,
+      });
     });
-  };
+    return () => {
+      cancelled = true;
+    };
+  }, [staffPosition, departmentId, currentSection]);
 
   // Navigation visibility is cosmetic. Every privileged mutation is also
   // checked against server-side membership and role authorization.
@@ -375,11 +403,9 @@ export const DepartmentDashboardPage: React.FC = () => {
   }, [isCheckingSession, isAuthenticated, departmentId, checkRevocationStatus, navigate]);
 
   // Load complaints assigned to this department with real-time sync & polling fallback.
-  // Prevent Head operational data requests on unsupported mobile/narrow viewports (<1024px).
   useEffect(() => {
     if (!departmentId) return;
     if (session?.userId && !staffPosition) return;
-    if (staffPosition === 'head' && !isHeadDesktopAllowed) return;
 
     let isCancelled = false;
     const fetchComplaints = async (options?: { silent?: boolean }) => {
@@ -452,7 +478,7 @@ export const DepartmentDashboardPage: React.FC = () => {
         supabase.removeChannel(channel);
       }
     };
-  }, [departmentId, reviewRetryKey, session?.userId, staffPosition, isHeadDesktopAllowed]);
+  }, [departmentId, reviewRetryKey, session?.userId, staffPosition]);
 
   // Deep-linking: Load requested complaint by reference number
   useEffect(() => {
@@ -869,15 +895,6 @@ export const DepartmentDashboardPage: React.FC = () => {
 
   const isHeadDesktopShell = staffPosition === 'head';
 
-  if (isHeadDesktopShell && !isHeadDesktopAllowed) {
-    return (
-      <HeadDesktopRestrictionScreen
-        theme={themeMode}
-        onToggleTheme={() => handleSetTheme(themeMode === 'light' ? 'dark' : 'light')}
-      />
-    );
-  }
-
   return (
     <div
       data-testid="department-workspace"
@@ -886,19 +903,18 @@ export const DepartmentDashboardPage: React.FC = () => {
       data-dept-mode={themeMode}
       className={
         isHeadDesktopShell
-          ? `v15-head-shell density-${preferences.density}`
-          : `app-shell v21-app-wrapper v3-portal-shell density-${preferences.density}`
+          ? `lg-portal-shell v15-head-shell density-${preferences.density}`
+          : `lg-portal-shell app-shell v21-app-wrapper v3-portal-shell density-${preferences.density}`
       }
     >
       {isHeadDesktopShell && (
-        <HeadSidebarNav
+        <LiquidGlassRibbon
           departmentCode={departmentMeta?.code || departmentId?.toUpperCase() || 'KMC'}
           departmentName={departmentMeta?.name || 'Roads & Infrastructure'}
           username={session?.username || 'roads-01'}
           currentSection={currentSection}
-          activeTaskFilter={activeTaskFilter}
-          collapsed={sidebarCollapsed}
-          onToggleCollapse={handleToggleSidebarCollapse}
+          themeMode={themeMode}
+          metrics={ribbonMetrics}
           onSelectSection={(sec) => {
             setIsWorkspaceMenuOpen(false);
             setQueueSavedViewOverride(null);
@@ -914,7 +930,6 @@ export const DepartmentDashboardPage: React.FC = () => {
             setSelectedCaseId(null);
             setSelectedReference(null);
           }}
-          themeMode={themeMode}
           onToggleTheme={() => handleSetTheme(themeMode === 'light' ? 'dark' : 'light')}
           onOpenPasswordModal={() => setIsPasswordModalOpen(true)}
           onSignOut={() => {
@@ -925,7 +940,7 @@ export const DepartmentDashboardPage: React.FC = () => {
       )}
 
       {/* Main Content Shell */}
-      <div className={isHeadDesktopShell ? 'main-shell v15-content-frame' : 'main-shell'}>
+      <div className={isHeadDesktopShell ? 'main-shell v15-content-frame' : 'main-shell'} style={staffPosition === 'officer' ? { paddingBottom: '88px' } : undefined}>
         {/* Floating Top Navigation preserved exclusively for Field Officer / legacy routes */}
         {!isHeadDesktopShell && (
           <DepartmentTopbar
@@ -1327,6 +1342,46 @@ export const DepartmentDashboardPage: React.FC = () => {
           )}
         </main>
       </div>
+
+      {/* Field Officer Floating Apple Liquid Glass Bottom Navigation */}
+      {staffPosition === 'officer' && (
+        <nav className="lg-officer-bottom-nav" aria-label="Field officer navigation">
+          {[
+            { id: 'field' as const, label: 'My Day', icon: Sun },
+            { id: 'tasks' as const, label: 'Assigned Work', icon: ClipboardList },
+            { id: 'field_archive' as const, label: 'History', icon: ArchiveIcon },
+          ].map((item) => {
+            const Icon = item.icon;
+            const active =
+              (item.id === 'field' && (currentSection === 'field' || currentSection === 'dashboard' || currentSection === 'overview')) ||
+              currentSection === item.id;
+            return (
+              <button
+                key={item.id}
+                type="button"
+                className={`lg-officer-nav-item ${active ? 'is-active' : ''}`}
+                onClick={() => {
+                  setIsWorkspaceMenuOpen(false);
+                  setCurrentSection(item.id);
+                  setSelectedCaseId(null);
+                  setSelectedReference(null);
+                }}
+              >
+                <Icon size={17} />
+                <span>{item.label}</span>
+              </button>
+            );
+          })}
+          <button
+            type="button"
+            className={`lg-officer-nav-item ${isWorkspaceMenuOpen ? 'is-active' : ''}`}
+            onClick={() => setIsWorkspaceMenuOpen((prev) => !prev)}
+          >
+            <UserCheck size={17} />
+            <span>Profile</span>
+          </button>
+        </nav>
+      )}
 
       {/* Modal: Change Password (NIST 800-63B Compliant) */}
       {isPasswordModalOpen && (

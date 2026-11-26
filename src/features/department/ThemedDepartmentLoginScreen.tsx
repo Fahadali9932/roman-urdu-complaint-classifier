@@ -210,17 +210,32 @@ export const ThemedDepartmentLoginScreen: React.FC<ThemedDepartmentLoginScreenPr
     >
       {/* Card Header */}
       <div className="mb-5">
-        <div className="text-[12px] font-medium" style={{ color: 'var(--v3-muted)' }}>
-          {theme.titleEn}
+        <div
+          className="text-[12px] font-semibold tracking-tight"
+          style={{ color: targetRole ? 'var(--v3-accent)' : 'var(--v3-muted)' }}
+        >
+          {targetRole === 'head'
+            ? `${theme.code} · Agency Command`
+            : targetRole === 'officer'
+              ? `${theme.code} · Field Operations`
+              : theme.titleEn}
         </div>
         <h2
-          className="mt-1 text-[26px] font-semibold leading-tight"
+          className="mt-1 text-[26px] font-semibold leading-tight tracking-[-0.02em]"
           style={{ color: 'var(--v3-ink)', textWrap: 'balance' }}
         >
-          {roleTitle ? `${roleTitle} sign in` : 'Sign in'}
+          {targetRole === 'head'
+            ? 'Department Head Sign-In'
+            : targetRole === 'officer'
+              ? 'Field Officer Sign-In'
+              : 'Sign in'}
         </h2>
         <p className="mt-1 text-[13px]" style={{ color: 'var(--v3-muted)', textWrap: 'pretty' }}>
-          {roleTitle ? `${theme.name} · Individual ${targetRole} account` : `${theme.name} • ${theme.subtitleEn}`}
+          {targetRole === 'head'
+            ? `${theme.name} · Desk triage, dispatch & verification`
+            : targetRole === 'officer'
+              ? `${theme.name} · Assigned field tasks & resolution proof`
+              : `${theme.name} • ${theme.subtitleEn}`}
         </p>
       </div>
 

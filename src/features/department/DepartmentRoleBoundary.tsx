@@ -3,22 +3,14 @@ import { Link, Navigate } from 'react-router-dom';
 import { useDepartmentAuth } from '../../context/DepartmentAuthContext';
 import { DepartmentDashboardPage } from './DepartmentDashboardPage';
 import { fieldOperations, type StaffPosition } from './services/fieldOperations';
-import { useHeadDesktopAccess } from './hooks/useHeadDesktopAccess';
-import { useCivicTheme } from './hooks/useCivicTheme';
-import { HeadDesktopRestrictionScreen } from './components/HeadDesktopRestrictionScreen';
 
 /**
  * Separate Head/Officer entry points share one backend authorization system.
  * Routing is a usability boundary; actual reads and writes remain enforced by
  * membership, AAL2 and database policies, never by the pathname alone.
- *
- * For Department Heads, browser viewport/device checks act as an additional
- * desktop-usability gate before mounting operational workspace components.
  */
 export function DepartmentRoleBoundary({ expectedRole }: { expectedRole: StaffPosition }) {
   const { departmentId, isAuthenticated, isCheckingSession, session, signOut } = useDepartmentAuth();
-  const { isDesktopAllowed } = useHeadDesktopAccess();
-  const { theme, toggleTheme } = useCivicTheme();
   const [result, setResult] = useState<{ identity: string; role: StaffPosition | null; error?: string } | null>(null);
 
   useEffect(() => {
@@ -65,9 +57,5 @@ export function DepartmentRoleBoundary({ expectedRole }: { expectedRole: StaffPo
       </main>
     );
   }
-  if (expectedRole === 'head' && !isDesktopAllowed) {
-    return <HeadDesktopRestrictionScreen theme={theme} onToggleTheme={toggleTheme} />;
-  }
-
   return <DepartmentDashboardPage />;
 }

@@ -53,7 +53,7 @@ describe('V13.20 role-specific portals and deadline input', () => {
         </DepartmentAuthProvider>
       </MemoryRouter>,
     );
-    expect(screen.getByRole('heading', { name: 'Field Officer sign in' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /Field Officer Sign-In/i })).toBeInTheDocument();
     expect(screen.getByText(/Use the Field Officer account \(roads-02\)/)).toBeInTheDocument();
   });
 
@@ -65,7 +65,7 @@ describe('V13.20 role-specific portals and deadline input', () => {
         </DepartmentAuthProvider>
       </MemoryRouter>,
     );
-    expect(screen.getByRole('heading', { name: 'Department Head sign in' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /Department Head Sign-In/i })).toBeInTheDocument();
     expect(screen.getByText(/Use the Department Head account \(roads-01\)/)).toBeInTheDocument();
   });
 

@@ -58,18 +58,18 @@
   box-sizing: border-box;
 }
 .app-shell[data-theme="dark"] {
-  --canvas: var(--v3-canvas, #202B35);
-  --surface: var(--v3-surface, #283541);
-  --text: var(--v3-ink, #E1E8EE);
-  --body: var(--v3-ink, #E1E8EE);
-  --muted: var(--v3-muted, #A9B9C6);
-  --faint: #9CB0C0;
-  --line: var(--v3-edge, #475969);
-  --soft-line: #344450;
-  --hover: var(--v3-raised, #344450);
-  --brand: var(--v3-accent, #B1CADC);
-  --brand-soft: var(--v3-soft, #304656);
-  --brand-strong: var(--v3-accent, #B1CADC);
+  --canvas: var(--v3-canvas, #0D0F12);
+  --surface: var(--v3-surface, #181B20);
+  --text: var(--v3-ink, #F5F7FA);
+  --body: var(--v3-ink, #F5F7FA);
+  --muted: var(--v3-muted, #9AA2AE);
+  --faint: #9AA2AE;
+  --line: var(--v3-edge, rgba(255, 255, 255, 0.11));
+  --soft-line: rgba(255, 255, 255, 0.08);
+  --hover: var(--v3-raised, rgba(34, 38, 46, 0.88));
+  --brand: var(--v3-accent, #0A84FF);
+  --brand-soft: var(--v3-soft, rgba(10, 132, 255, 0.16));
+  --brand-strong: var(--v3-accent, #0A84FF);
   --urgent: #FFB4AB;
   --urgent-bg: #4B1D1D;
   --pending: #F5C36D;

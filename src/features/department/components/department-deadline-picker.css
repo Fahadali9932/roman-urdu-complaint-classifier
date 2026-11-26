@@ -4,25 +4,25 @@
 .deadline-picker-trigger span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .deadline-picker-trigger svg{color:var(--v3-accent,#365875);flex:none;transition:transform 150ms cubic-bezier(0.32, 0.72, 0, 1)}
 .deadline-picker-rotated{transform:rotate(180deg)}
-.deadline-picker-panel{position:relative;width:100%;max-width:100%;min-width:0;border:1px solid var(--v3-edge,var(--field-line));background:var(--v3-surface,var(--field-paper));border-radius:14px;padding:16px;display:grid;gap:14px;box-shadow:0 8px 24px rgba(39,55,70,0.08)}
+.deadline-picker-panel{position:relative;width:100%;max-width:100%;min-width:0;border:1px solid var(--lg-border,var(--v3-edge));background:var(--lg-glass-surface,var(--v3-surface));backdrop-filter:blur(18px) saturate(165%);-webkit-backdrop-filter:blur(18px) saturate(165%);border-radius:18px;padding:16px;display:grid;gap:14px;box-shadow:var(--lg-shadow-card,0 12px 28px rgba(15,23,42,0.08))}
 .deadline-picker-presets{display:flex;gap:6px;flex-wrap:wrap}
-.deadline-picker-presets button{min-height:44px;padding:6px 12px;border:1px solid var(--v3-edge,var(--field-line));border-radius:8px;background:transparent;font-size:12px;color:var(--v3-accent,#365875);font-weight:600;transition:background-color 150ms cubic-bezier(0.32, 0.72, 0, 1),color 150ms cubic-bezier(0.32, 0.72, 0, 1),border-color 150ms cubic-bezier(0.32, 0.72, 0, 1)}
-.deadline-picker-presets button:hover{background:var(--v3-soft,#D9E4EB);color:var(--v3-ink,#273746)}
+.deadline-picker-presets button{min-height:40px;padding:6px 12px;border:1px solid var(--lg-border,var(--v3-edge));border-radius:999px;background:var(--lg-glass-clear,transparent);font-size:12px;color:var(--lg-accent,var(--v3-accent,#007AFF));font-weight:600;transition:background-color 150ms cubic-bezier(0.32, 0.72, 0, 1),color 150ms cubic-bezier(0.32, 0.72, 0, 1),border-color 150ms cubic-bezier(0.32, 0.72, 0, 1)}
+.deadline-picker-presets button:hover{background:var(--lg-accent-soft,var(--v3-soft));color:var(--lg-ink,var(--v3-ink))}
 .deadline-picker-month{display:flex;align-items:center;justify-content:space-between;gap:8px}
-.deadline-picker-month strong{font-size:13px;font-weight:600;color:var(--v3-ink,#273746)}
-.deadline-picker-month button{width:44px;height:44px;display:grid;place-items:center;border:1px solid var(--v3-edge,var(--field-line));border-radius:9px;background:transparent;color:var(--v3-ink,var(--field-ink));transition:background-color 150ms cubic-bezier(0.32, 0.72, 0, 1),color 150ms cubic-bezier(0.32, 0.72, 0, 1)}
-.deadline-picker-month button:hover:not(:disabled){background:var(--v3-soft,#D9E4EB);color:var(--v3-ink,#273746)}
+.deadline-picker-month strong{font-size:13px;font-weight:600;color:var(--lg-ink,var(--v3-ink))}
+.deadline-picker-month button{width:40px;height:40px;display:grid;place-items:center;border:1px solid var(--lg-border,var(--v3-edge));border-radius:999px;background:var(--lg-glass-clear,transparent);color:var(--lg-ink,var(--v3-ink));transition:background-color 150ms cubic-bezier(0.32, 0.72, 0, 1),color 150ms cubic-bezier(0.32, 0.72, 0, 1)}
+.deadline-picker-month button:hover:not(:disabled){background:var(--lg-accent-soft,var(--v3-soft));color:var(--lg-ink,var(--v3-ink))}
 .deadline-picker-calendar{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}
-.deadline-picker-weekday{text-align:center;font-size:11px;font-weight:600;color:var(--v3-muted,var(--field-muted));padding:8px 0}
-.deadline-picker-calendar button{border:0;background:transparent;border-radius:8px;min-height:44px;min-width:0;font-size:12px;color:var(--v3-ink,var(--field-ink));font-weight:600;transition:background-color 150ms cubic-bezier(0.32, 0.72, 0, 1),color 150ms cubic-bezier(0.32, 0.72, 0, 1)}
-.deadline-picker-calendar button:hover:not(:disabled){background:var(--v3-soft,#D9E4EB);color:var(--v3-ink,#273746)}
-.deadline-picker-calendar button[aria-pressed="true"]{background:var(--v3-action,#426581);color:var(--v3-onaction,#F0F4F7)}
+.deadline-picker-weekday{text-align:center;font-size:11px;font-weight:600;color:var(--lg-muted,var(--v3-muted));padding:6px 0}
+.deadline-picker-calendar button{border:0;background:transparent;border-radius:999px;min-height:40px;min-width:0;font-size:12px;color:var(--lg-ink,var(--v3-ink));font-weight:600;font-variant-numeric:tabular-nums;transition:background-color 150ms cubic-bezier(0.32, 0.72, 0, 1),color 150ms cubic-bezier(0.32, 0.72, 0, 1),transform 130ms cubic-bezier(0.32, 0.72, 0, 1)}
+.deadline-picker-calendar button:hover:not(:disabled){background:var(--lg-accent-soft,var(--v3-soft));color:var(--lg-ink,var(--v3-ink))}
+.deadline-picker-calendar button[aria-pressed="true"]{background:var(--lg-accent,var(--v3-action,#007AFF));color:#FFFFFF;box-shadow:0 4px 12px rgba(0,122,255,0.28)}
 .deadline-picker-calendar button:disabled{opacity:.33;cursor:not-allowed}
-.deadline-picker-time{display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:12px 0;border-top:1px solid var(--v3-edge,var(--field-line));font-size:12px;color:var(--v3-muted,var(--field-muted))}
+.deadline-picker-time{display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:12px 0;border-top:1px solid var(--lg-border,var(--v3-edge));font-size:12px;color:var(--lg-muted,var(--v3-muted))}
 .deadline-picker-time>span:first-of-type{flex:1;min-width:64px;font-weight:600}
-.deadline-picker-time select{width:auto;flex:none;min-width:58px;min-height:44px;border:1px solid var(--v3-edge,var(--field-line));border-radius:8px;background:var(--v3-surface,var(--field-paper));color:var(--v3-ink,var(--field-ink));padding:7px 8px;font-size:13px;font-weight:500}
-.deadline-picker-done{min-height:44px;border:0;border-radius:10px;background:var(--v3-action,#426581);color:var(--v3-onaction,#F0F4F7);font-size:13px;font-weight:500;transition:background-color 150ms cubic-bezier(0.32, 0.72, 0, 1)}
-.deadline-picker-done:hover{background:var(--v3-action-hover,#35546C)}
+.deadline-picker-time select{width:auto;flex:none;min-width:58px;min-height:40px;border:1px solid var(--lg-border,var(--v3-edge));border-radius:10px;background:var(--lg-glass-surface,var(--v3-surface));color:var(--lg-ink,var(--v3-ink));padding:7px 8px;font-size:13px;font-weight:500}
+.deadline-picker-done{min-height:44px;border:0;border-radius:999px;background:var(--lg-accent,var(--v3-action,#007AFF));color:#FFFFFF;font-size:13px;font-weight:600;transition:opacity 150ms ease,transform 130ms cubic-bezier(0.32, 0.72, 0, 1)}
+.deadline-picker-done:hover{opacity:0.92}
 .deadline-picker-error{font-size:12px;color:var(--v3-danger,#9B2C2C)!important;margin:0!important}
 .deadline-picker button:focus-visible,.deadline-picker select:focus-visible{outline:2px solid var(--v3-accent,#365875);outline-offset:2px}
 .app-shell[data-theme="dark"] .deadline-picker-panel{box-shadow:0 4px 20px rgba(0,0,0,0.35)}

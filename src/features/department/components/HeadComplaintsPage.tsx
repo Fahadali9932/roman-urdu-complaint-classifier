@@ -8,6 +8,8 @@ import {
 } from '../../../services/CaseOperationsService';
 import { fieldOperations } from '../services/fieldOperations';
 import { HeadComplaintDetailView } from './HeadComplaintDetailView';
+import { LiquidSegmentedControl } from './glass/LiquidSegmentedControl';
+import { PriorityPill } from './glass/PriorityPill';
 
 interface HeadComplaintsPageProps {
   departmentId: DepartmentId;
@@ -128,19 +130,13 @@ export const HeadComplaintsPage: React.FC<HeadComplaintsPageProps> = ({
 
       {/* Filter Bar */}
       <div className="v16-complaints-controls">
-        <div className="v15-filter-row" role="group" aria-label="Complaint date range">
-          {DATE_FILTERS.map((f) => (
-            <button
-              key={f.id}
-              type="button"
-              aria-pressed={period === f.id}
-              className={`v15-filter-pill ${period === f.id ? 'is-active' : ''}`}
-              onClick={() => setPeriod(f.id)}
-            >
-              {f.label}
-            </button>
-          ))}
-        </div>
+        <LiquidSegmentedControl
+          ariaLabel="Complaint date range"
+          size="sm"
+          value={period}
+          onChange={(next) => setPeriod(next)}
+          options={DATE_FILTERS.map((f) => ({ id: f.id, label: f.label }))}
+        />
 
         <div className="v16-complaints-right-filters">
           <select
@@ -214,23 +210,30 @@ export const HeadComplaintsPage: React.FC<HeadComplaintsPageProps> = ({
       )}
 
       {!loading && !errorMsg && rows.length > 0 && (
-        <div className="v16-flat-list" data-testid="v16-complaints-list">
+        <div className="lg-glass-panel lg-inbox-card" data-testid="v16-complaints-list">
           {rows.map((item) => (
             <button
               key={item.id}
               type="button"
-              className="v16-flat-row"
+              className="lg-mail-row"
               data-testid="v16-complaint-row"
               onClick={() => setSelectedId(item.id)}
             >
-              <div className="v16-flat-row-text">
-                <span className="v16-flat-row-heading">{item.heading}</span>
-                <span className="v16-flat-row-location">
-                  {item.publicPlace}
-                  {item.locality ? `, ${item.locality}` : ''}
-                </span>
+              <div className="lg-mail-main">
+                <div className="lg-mail-title v16-flat-row-heading">{item.heading}</div>
+                <div className="lg-mail-meta">
+                  <span>{item.referenceNumber}</span>
+                  <span aria-hidden="true">·</span>
+                  <span>
+                    {item.publicPlace}
+                    {item.locality ? `, ${item.locality}` : ''}
+                  </span>
+                </div>
               </div>
-              <ChevronRight size={17} strokeWidth={1.75} className="v16-flat-row-chevron" aria-hidden="true" />
+              <div className="lg-mail-right">
+                <PriorityPill priority={item.priority} />
+                <ChevronRight size={16} strokeWidth={1.75} className="lg-row-chevron" aria-hidden="true" />
+              </div>
             </button>
           ))}
         </div>

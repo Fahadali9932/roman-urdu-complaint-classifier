@@ -7,54 +7,54 @@
 :root,
 html[data-theme="light"],
 [data-theme="light"] {
-  --v3-canvas: #E8EDF0;
-  --v3-surface: #F1F4F6;
-  --v3-surface-glass: rgba(241, 244, 246, 0.86);
-  --v3-nav-glass: rgba(241, 244, 246, 0.78);
-  --v3-raised: #DCE5EA;
-  --v3-soft: #D9E4EB;
-  --v3-edge: #C4D0D8;
-  --v3-ink: #273746;
-  --v3-muted: #526575;
-  --v3-accent: #365875;
-  --v3-action: #426581;
-  --v3-action-hover: #35546C;
-  --v3-onaction: #F0F4F7;
-  --v3-danger: #9B2C2C;
-  --v3-danger-soft: rgba(155, 44, 44, 0.10);
-  --v3-success: #1E6B4B;
-  --v3-success-soft: rgba(30, 107, 75, 0.11);
-  --v3-warning: #8A5312;
-  --v3-warning-soft: rgba(138, 83, 18, 0.11);
-  --v3-shadow-nav: 0 8px 28px rgba(39, 55, 70, 0.08);
-  --v3-shadow-glass: 0 18px 44px rgba(39, 55, 70, 0.16);
-  --v3-auth-scrim: linear-gradient(120deg, rgba(232, 237, 240, 0.96) 0%, rgba(232, 237, 240, 0.91) 50%, rgba(232, 237, 240, 0.78) 100%);
+  --v3-canvas: #ECEFF4;
+  --v3-surface: #FFFFFF;
+  --v3-surface-glass: rgba(255, 255, 255, 0.62);
+  --v3-nav-glass: rgba(255, 255, 255, 0.68);
+  --v3-raised: rgba(242, 245, 249, 0.88);
+  --v3-soft: rgba(0, 122, 255, 0.10);
+  --v3-edge: rgba(15, 23, 42, 0.10);
+  --v3-ink: #111418;
+  --v3-muted: #5C6470;
+  --v3-accent: #007AFF;
+  --v3-action: #007AFF;
+  --v3-action-hover: #0066D6;
+  --v3-onaction: #FFFFFF;
+  --v3-danger: #D92D20;
+  --v3-danger-soft: rgba(217, 45, 32, 0.10);
+  --v3-success: #18794E;
+  --v3-success-soft: rgba(24, 121, 78, 0.11);
+  --v3-warning: #B54708;
+  --v3-warning-soft: rgba(181, 71, 8, 0.11);
+  --v3-shadow-nav: 0 8px 28px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  --v3-shadow-glass: 0 18px 44px rgba(15, 23, 42, 0.10), inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  --v3-auth-scrim: linear-gradient(120deg, rgba(236, 239, 244, 0.92) 0%, rgba(236, 239, 244, 0.84) 50%, rgba(236, 239, 244, 0.72) 100%);
 }
 
 [data-theme="dark"],
 html.dark:not([data-theme="light"]) {
-  --v3-canvas: #202B35;
-  --v3-surface: #283541;
-  --v3-surface-glass: rgba(40, 53, 65, 0.86);
-  --v3-nav-glass: rgba(40, 53, 65, 0.80);
-  --v3-raised: #344450;
-  --v3-soft: #304656;
-  --v3-edge: #475969;
-  --v3-ink: #E1E8EE;
-  --v3-muted: #A9B9C6;
-  --v3-accent: #B1CADC;
-  --v3-action: #436581;
-  --v3-action-hover: #517796;
-  --v3-onaction: #EFF4F7;
-  --v3-danger: #F28B82;
-  --v3-danger-soft: rgba(242, 139, 130, 0.16);
-  --v3-success: #7AD1A5;
-  --v3-success-soft: rgba(122, 209, 165, 0.15);
-  --v3-warning: #F5C36D;
-  --v3-warning-soft: rgba(245, 195, 109, 0.16);
-  --v3-shadow-nav: 0 10px 30px rgba(0, 0, 0, 0.28);
-  --v3-shadow-glass: 0 22px 48px rgba(0, 0, 0, 0.38);
-  --v3-auth-scrim: linear-gradient(120deg, rgba(32, 43, 53, 0.94) 0%, rgba(32, 43, 53, 0.86) 52%, rgba(32, 43, 53, 0.74) 100%);
+  --v3-canvas: #0D0F12;
+  --v3-surface: #181B20;
+  --v3-surface-glass: rgba(28, 31, 38, 0.68);
+  --v3-nav-glass: rgba(28, 31, 38, 0.72);
+  --v3-raised: rgba(34, 38, 46, 0.88);
+  --v3-soft: rgba(10, 132, 255, 0.16);
+  --v3-edge: rgba(255, 255, 255, 0.11);
+  --v3-ink: #F5F7FA;
+  --v3-muted: #9AA2AE;
+  --v3-accent: #0A84FF;
+  --v3-action: #0A84FF;
+  --v3-action-hover: #3197FF;
+  --v3-onaction: #FFFFFF;
+  --v3-danger: #FF5C5C;
+  --v3-danger-soft: rgba(255, 92, 92, 0.16);
+  --v3-success: #32D583;
+  --v3-success-soft: rgba(50, 213, 131, 0.15);
+  --v3-warning: #FDB022;
+  --v3-warning-soft: rgba(253, 176, 34, 0.16);
+  --v3-shadow-nav: 0 10px 30px rgba(0, 0, 0, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  --v3-shadow-glass: 0 22px 48px rgba(0, 0, 0, 0.48), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  --v3-auth-scrim: linear-gradient(120deg, rgba(13, 15, 18, 0.90) 0%, rgba(13, 15, 18, 0.80) 52%, rgba(13, 15, 18, 0.68) 100%);
 }
 
 .v3-portal-shell {
@@ -468,15 +468,15 @@ body.v3-civic-active {
   border-color: var(--v3-accent);
 }
 
-/* Frosted Auth Glass Card (380px width, r=24px, blur=14px) */
+/* Clear Liquid Glass Auth Card (396px width, r=24px, blur=18px) */
 .v3-auth-glass-card {
   width: 100%;
   max-width: 396px;
   border-radius: 24px;
   background-color: var(--v3-surface-glass);
   border: 1px solid var(--v3-edge);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(18px) saturate(165%);
+  -webkit-backdrop-filter: blur(18px) saturate(165%);
   box-shadow: var(--v3-shadow-glass);
   color: var(--v3-ink);
 }

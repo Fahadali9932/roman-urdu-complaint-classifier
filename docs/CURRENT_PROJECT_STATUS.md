@@ -5,6 +5,22 @@ Verified on **26 November 2026 (Pakistan time)**. Internal delivery target:
 This document distinguishes inspected source, automated checks, and unverified
 hosted behavior. Update it after every significant verified milestone.
 
+## Development update, 26 November 2026 — Phase V17: Apple Clear Liquid Glass Staff Portal Redesign
+
+- **Git & Protected Baseline (`D:\RomanUrdu_V13_19_Review`, branch `feature/v17-apple-liquid-glass-staff-portal`):**
+  - Branched from V16 checkpoint (`checkpoint/v16-fa817d1` at `fa817d1`).
+  - Protected primary worktree `D:\RomanUrdu_ComplaintClassifier_staff_auth`, frozen Run004 classifier (`E4D042937CF8C3E1E3C70F147A707B33A629D463DB34485766C98DA21C2E3A56`), Citizen Portal, Central Administrator backend/security routes, and Supabase production (`akbwiedtmxjxcjscgitw`) untouched; zero merges to `main`, `$0.00` spend.
+- **Clear Liquid Glass Design System & Primitives (`apple-liquid-glass.css`, `components/glass/*`, `v3-civic-glass.css`):**
+  - Scoped Light (`#ECEFF4`->`#EAEEF3`, `#007AFF` accent) and Dark (`#0D0F12`->`#0E1014`, `#0A84FF` accent) tokens, 3 clear glass tiers (`<20px` blur + hairline optical edge highlights + `@supports not` fallbacks), `LiquidSegmentedControl` (measured `offsetLeft`/`offsetWidth` sliding capsule), `LiquidSheet` (Escape-dismissible contextual modal/bottom-sheet), `PriorityPill`, and `LiquidGlassRibbon` (floating HOD ribbon with hover/focus contextual preview popovers and `<=820px` mobile sheet).
+- **Redesigned HOD & Field Officer Portals (`HeadHomePage.tsx`, `HeadComplaintsPage.tsx`, `HeadComplaintDetailView.tsx`, `DepartmentDashboardPage.tsx`, `DepartmentRoleBoundary.tsx`, `ThemedDepartmentLoginScreen.tsx`, `department-deadline-picker.css`):**
+  - Independent `Department Head Sign-In` and `Field Officer Sign-In` screens with Clear Liquid Glass auth cards; HOD `Overview` homepage with segmented date control, 5-metric strip (`Received`, `Unassigned`, `In progress`, `Verify evidence`, `Resolved`), ~65% `Complaint inbox`, and ~35% `Field operations`; responsive HOD rendering across `1920px`–`320px` (removing `<1024px` hard lockout while keeping server-backed role boundary); Field Officer floating bottom navigation (`My Day`, `Assigned Work`, `History`, `Profile`).
+- **Observed Post-Final-Edit Quality Gates & Chrome QA:**
+  - `npx tsc -b`: exit `0`; `npm run lint`: `0` errors (`281` warnings); `npm run build`: `✓ built in 1.33s` (`2,265` modules); `v13_8_2_verify_production_bundle.mjs`: `PASS`; `npx impeccable detect src/features/department`: `0` findings (`56` files).
+  - `npx vitest run --exclude src/test/V13_6_DevelopmentProbe.test.tsx`: **`71` passed | `1` skipped (`72`), `713` passed | `1` skipped (`714`)** in `30.03s` (including `V17_AppleLiquidGlassPortal.test.tsx` 4/4, `V15_HeadDesktopHomeAndRestriction.test.tsx` 6/6, `V16_FullWorkflows.test.tsx` 10/10, `V13_20_DepartmentRoleAndDeadlinePicker.test.tsx` 7/7).
+  - Local Node Edge suites (non-staging `tests/edge/*.mjs`): **`106` passed, `0` failed**; Python `tests/v11`: **`106` tests `OK` (`16.536s`)**.
+  - Real Headless Chrome QA (`tools/ai_factory/v17_apple_qa.mjs`): `22` captures across `1920px`, `1440px`, `1366px`, `1024px`, `768px`, `390px`, `320px` (Light/Dark + Citizen isolation) with `0` horizontal overflows, `0` page errors, `0` console errors.
+  - Full implementation report: `docs/V17_APPLE_LIQUID_GLASS_REPORT.md`.
+
 ## Development update, 26 November 2026 — Phase V16.0: Independent Complaint Intake, Safe Duplicate Advisory & Attachment, Head-Scoped Officer Provisioning, and Approved Head UI
 
 - **Git & Protected Baseline (`D:\RomanUrdu_V13_19_Review`, branch `feature/v16-incident-assignment-and-staff`):**

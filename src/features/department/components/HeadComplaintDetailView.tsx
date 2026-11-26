@@ -93,10 +93,10 @@ const AuthorizedComplaintMap: React.FC<{ latitude: number; longitude: number; la
     }).addTo(instance);
     L.circleMarker([latitude, longitude], {
       radius: 8,
-      color: '#171717',
+      color: '#FFFFFF',
       weight: 2,
-      fillColor: '#6D28D9',
-      fillOpacity: 0.9,
+      fillColor: '#007AFF',
+      fillOpacity: 0.92,
     })
       .addTo(instance)
       .bindPopup(label);

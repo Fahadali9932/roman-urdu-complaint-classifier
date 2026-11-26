@@ -122,40 +122,39 @@ afterEach(() => {
 
 describe('V15.0 / V16 Department Head Home, Collapsible Rail, and Desktop Access Boundary', () => {
   it('renders HeadHomePage with PKT greeting, Today default period overview, single segmented bar, 4 exact labels, and period switching', async () => {
-    const overviewSpy = vi
-      .spyOn(caseOperationsService, 'getHeadPeriodOverview')
-      .mockImplementation(async (_deptId, period) => {
-        if (period === 'today') {
-          return {
-            period: 'today',
-            totalActive: 14,
-            newComplaints: 5,
-            underReview: 3,
-            inProgress: 4,
-            awaitingVerification: 2,
-          };
-        }
-        if (period === 'yesterday') {
-          return {
-            period: 'yesterday',
-            totalActive: 8,
-            newComplaints: 2,
-            underReview: 1,
-            inProgress: 3,
-            awaitingVerification: 2,
-          };
-        }
-        return {
-          period,
-          totalActive: 36,
-          newComplaints: 10,
-          underReview: 6,
-          inProgress: 12,
-          awaitingVerification: 8,
-        };
-      });
+    const nowIso = new Date().toISOString();
+    const yestIso = new Date(Date.now() - 86400000).toISOString();
+    const listSpy = vi
+      .spyOn(caseOperationsService, 'listIndependentComplaintsForHead')
+      .mockResolvedValue([
+        {
+          id: 'c-1',
+          referenceNumber: 'KHI-2026-9001',
+          heading: 'Broken water main near University Rd',
+          publicPlace: 'University Road',
+          locality: 'Gulshan',
+          priority: 'critical',
+          status: 'new',
+          submittedAt: nowIso,
+          rawText: 'Broken water main near University Rd',
+          issueTypes: ['Broken road'],
+        },
+        {
+          id: 'c-2',
+          referenceNumber: 'KHI-2026-9002',
+          heading: 'Storm drain blockage',
+          publicPlace: 'Tariq Road',
+          locality: 'PECHS',
+          priority: 'normal',
+          status: 'resolved',
+          submittedAt: yestIso,
+          rawText: 'Storm drain blockage',
+          issueTypes: ['Drainage'],
+        },
+      ]);
     vi.spyOn(fieldOperations, 'orders').mockResolvedValue([]);
     vi.spyOn(fieldOperations, 'orderLinksMap').mockResolvedValue(new Map());
+    vi.spyOn(fieldOperations, 'officersDirectory').mockResolvedValue([]);
 
     const onNavigate = vi.fn();
 
@@ -179,50 +178,43 @@ describe('V15.0 / V16 Department Head Home, Collapsible Rail, and Desktop Access
       expect(screen.getByTestId('v16-overview-body')).toBeInTheDocument();
     });
 
-    // Greeting reflects PKT time-of-day wording and header keeps operational identity concise
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(/Good (morning|afternoon|evening)/i);
-    expect(screen.getByText('Roads & Infrastructure')).toBeInTheDocument();
-    expect(screen.getByText('Department Head')).toBeInTheDocument();
+    // Overview heading and concise department identity
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Overview');
+    expect(screen.getByText(/Roads & Infrastructure/)).toBeInTheDocument();
 
-    // Today is active by default, shows one large total, one segmented bar, and 4 exact labels
+    // Today is active by default, shows 5-metric overview strip, Complaint inbox, and Field operations
     expect(screen.getByRole('button', { name: 'Today' })).toHaveAttribute('aria-pressed', 'true');
-    expect(screen.getByTestId('v16-overview-total')).toHaveTextContent('14');
-    expect(screen.getByRole('img', { name: /Active status breakdown/i })).toBeInTheDocument();
-    expect(screen.getByText('New complaints')).toBeInTheDocument();
-    expect(screen.getByText('Under review')).toBeInTheDocument();
-    expect(screen.getByText('In progress')).toBeInTheDocument();
-    expect(screen.getByText('Awaiting verification')).toBeInTheDocument();
-
-    // No priority inbox or overdue line on V16 Head Home
-    expect(screen.queryByTestId('v15-inbox-list')).not.toBeInTheDocument();
+    const overviewStrip = screen.getByTestId('v16-overview-body');
+    expect(screen.getByTestId('v16-overview-total')).toHaveTextContent('1');
+    expect(within(overviewStrip).getByText('Received')).toBeInTheDocument();
+    expect(within(overviewStrip).getByText('Unassigned')).toBeInTheDocument();
+    expect(within(overviewStrip).getByText('In progress')).toBeInTheDocument();
+    expect(within(overviewStrip).getByText('Verify evidence')).toBeInTheDocument();
+    expect(within(overviewStrip).getByText('Resolved')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Complaint inbox' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Field operations' })).toBeInTheDocument();
 
     // Switching period updates overview without page reload
     fireEvent.click(screen.getByRole('button', { name: 'Yesterday' }));
     await waitFor(() => {
-      expect(screen.getByTestId('v16-overview-total')).toHaveTextContent('8');
+      expect(screen.getByRole('button', { name: 'Yesterday' })).toHaveAttribute('aria-pressed', 'true');
+      expect(screen.getByTestId('v16-overview-total')).toHaveTextContent('1');
     });
 
-    fireEvent.click(screen.getByRole('button', { name: 'Open complaints' }));
+    fireEvent.click(screen.getByRole('button', { name: /View all/i }));
     expect(onNavigate).toHaveBeenCalledWith('queue');
-    expect(overviewSpy).toHaveBeenCalledWith('kmc', 'today', expect.any(Array), expect.any(Map));
-    expect(overviewSpy).toHaveBeenCalledWith('kmc', 'yesterday', expect.any(Array), expect.any(Map));
+    expect(listSpy).toHaveBeenCalled();
   });
 
   it('handles error retry recovery and empty window states cleanly on HeadHomePage', async () => {
-    const overviewSpy = vi
-      .spyOn(caseOperationsService, 'getHeadPeriodOverview')
+    const listSpy = vi
+      .spyOn(caseOperationsService, 'listIndependentComplaintsForHead')
       .mockRejectedValueOnce(new Error('Network timeout while loading KMC summary.'))
-      .mockResolvedValueOnce({
-        period: 'today',
-        totalActive: 0,
-        newComplaints: 0,
-        underReview: 0,
-        inProgress: 0,
-        awaitingVerification: 0,
-      });
+      .mockResolvedValueOnce([]);
 
     vi.spyOn(fieldOperations, 'orders').mockResolvedValue([]);
     vi.spyOn(fieldOperations, 'orderLinksMap').mockResolvedValue(new Map());
+    vi.spyOn(fieldOperations, 'officersDirectory').mockResolvedValue([]);
 
     render(
       <HeadHomePage
@@ -244,10 +236,10 @@ describe('V15.0 / V16 Department Head Home, Collapsible Rail, and Desktop Access
     fireEvent.click(screen.getByRole('button', { name: /Retry/i }));
 
     await waitFor(() => {
-      expect(overviewSpy).toHaveBeenCalledTimes(2);
-      expect(screen.getByTestId('v16-overview-empty')).toBeInTheDocument();
+      expect(listSpy).toHaveBeenCalledTimes(2);
+      expect(screen.getByTestId('v16-overview-body')).toBeInTheDocument();
+      expect(screen.getByTestId('v16-overview-total')).toHaveTextContent('0');
     });
-    expect(screen.getByText('No active complaints in this window')).toBeInTheDocument();
   });
 
   it('renders HeadSidebarNav with all 8 destinations, single active illumination, collapse tooltips, and Escape-dismissible Settings popover', () => {
@@ -331,11 +323,11 @@ describe('V15.0 / V16 Department Head Home, Collapsible Rail, and Desktop Access
     expect(evaluateHeadDesktopAccess().reason).toBe('mobile_device');
   });
 
-  it('blocks Head operational workspace mount and data queries on <1024px without clearing auth, recovers on resize, and never blocks Field Officers on mobile', async () => {
+  it('renders Head workspace responsively on 390px and desktop with LiquidGlassRibbon and preserves session', async () => {
     setViewport(390, 844);
     sessionStorage.setItem('awaaz_demo_staff_session', JSON.stringify({ userId: 'head-user-1', departmentId: 'kmc' }));
 
-    const listCasesSpy = vi.spyOn(caseOperationsService, 'listDepartmentCases').mockResolvedValue({ items: [], totalCount: 0 });
+    vi.spyOn(caseOperationsService, 'listDepartmentCases').mockResolvedValue({ items: [], totalCount: 0 });
     const overviewSpy = vi.spyOn(caseOperationsService, 'getHeadPeriodOverview').mockResolvedValue({
       period: 'today',
       totalActive: 0,
@@ -344,7 +336,7 @@ describe('V15.0 / V16 Department Head Home, Collapsible Rail, and Desktop Access
       inProgress: 0,
       awaitingVerification: 0,
     });
-    const listComplaintsSpy = vi.spyOn(complaintService, 'getDepartmentComplaints').mockResolvedValue([]);
+    vi.spyOn(complaintService, 'getDepartmentComplaints').mockResolvedValue([]);
     vi.spyOn(fieldOperations, 'getMyRole').mockResolvedValue('head');
     vi.spyOn(fieldOperations, 'orders').mockResolvedValue([]);
     vi.spyOn(fieldOperations, 'orderLinksMap').mockResolvedValue(new Map());
@@ -362,58 +354,32 @@ describe('V15.0 / V16 Department Head Home, Collapsible Rail, and Desktop Access
       </MemoryRouter>
     );
 
-    const restriction = await screen.findByTestId('head-desktop-restriction');
-    expect(within(restriction).getByRole('heading', { name: 'Continue on desktop' })).toBeInTheDocument();
-    expect(within(restriction).getByText('The Department Head workspace is designed for desktop and laptop computers.')).toBeInTheDocument();
-    expect(within(restriction).getByRole('link', { name: /Return to homepage/i })).toHaveAttribute('href', '/');
-
-    // Operational queries must not execute while restricted, and session must stay intact
-    expect(listCasesSpy).not.toHaveBeenCalled();
-    expect(overviewSpy).not.toHaveBeenCalled();
-    expect(listComplaintsSpy).not.toHaveBeenCalled();
+    await waitFor(() => {
+      expect(screen.queryByTestId('head-desktop-restriction')).not.toBeInTheDocument();
+      expect(screen.getByTestId('head-home-page')).toBeInTheDocument();
+      expect(screen.getByRole('navigation', { name: 'Department Head navigation' })).toBeInTheDocument();
+    });
     expect(authVal.signOut).not.toHaveBeenCalled();
     expect(sessionStorage.getItem('awaaz_demo_staff_session')).toContain('head-user-1');
+    expect(overviewSpy).toHaveBeenCalled();
 
-    // Resize back to desktop (>=1024px) restores workspace cleanly without re-login
+    // Resize to desktop (>=1024px) preserves workspace cleanly without re-login
     act(() => {
       setViewport(1280, 800);
       window.dispatchEvent(new Event('resize'));
     });
 
     await waitFor(() => {
-      expect(screen.queryByTestId('head-desktop-restriction')).not.toBeInTheDocument();
       expect(screen.getByTestId('head-home-page')).toBeInTheDocument();
-      expect(screen.getByTestId('head-sidebar')).toBeInTheDocument();
     });
-    expect(overviewSpy).toHaveBeenCalled();
   });
 
-  it('prevents direct DepartmentDashboardPage operational fetches for authenticated Heads on mobile, while allowing Field Officers on mobile', async () => {
+  it('renders Field Officer workspace on mobile with floating bottom navigation and no Head ribbon', async () => {
     setViewport(390, 844);
-    const listCasesSpy = vi.spyOn(caseOperationsService, 'listDepartmentCases').mockResolvedValue({ items: [], totalCount: 0 });
-    const listComplaintsSpy = vi.spyOn(complaintService, 'getDepartmentComplaints').mockResolvedValue([]);
-    const getRoleSpy = vi.spyOn(fieldOperations, 'getMyRole').mockResolvedValue('head');
+    vi.spyOn(caseOperationsService, 'listDepartmentCases').mockResolvedValue({ items: [], totalCount: 0 });
+    vi.spyOn(complaintService, 'getDepartmentComplaints').mockResolvedValue([]);
+    const getRoleSpy = vi.spyOn(fieldOperations, 'getMyRole').mockResolvedValue('officer');
 
-    const headAuth = createAuthValue();
-
-    const { unmount } = render(
-      <MemoryRouter initialEntries={['/department/complaints/KHI-2026-1001']}>
-        <DepartmentAuthContext.Provider value={headAuth}>
-          <Routes>
-            <Route path="/department/complaints/:referenceNumber" element={<DepartmentDashboardPage />} />
-          </Routes>
-        </DepartmentAuthContext.Provider>
-      </MemoryRouter>
-    );
-
-    expect(await screen.findByTestId('head-desktop-restriction')).toBeInTheDocument();
-    expect(listComplaintsSpy).not.toHaveBeenCalled();
-    expect(listCasesSpy).not.toHaveBeenCalled();
-
-    unmount();
-
-    // Officer access remains unrestricted on mobile (390px)
-    getRoleSpy.mockResolvedValue('officer');
     const officerAuth = createAuthValue({
       session: {
         userId: 'officer-user-1',
@@ -437,7 +403,9 @@ describe('V15.0 / V16 Department Head Home, Collapsible Rail, and Desktop Access
     await waitFor(() => {
       expect(screen.queryByTestId('head-desktop-restriction')).not.toBeInTheDocument();
       expect(screen.getByTestId('department-workspace')).toBeInTheDocument();
+      expect(screen.getByRole('navigation', { name: 'Field officer navigation' })).toBeInTheDocument();
     });
-    expect(screen.queryByTestId('head-sidebar')).not.toBeInTheDocument();
+    expect(screen.queryByRole('navigation', { name: 'Department Head navigation' })).not.toBeInTheDocument();
+    expect(getRoleSpy).toHaveBeenCalled();
   });
 });
