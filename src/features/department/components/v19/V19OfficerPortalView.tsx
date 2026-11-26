@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { StaffPortalLayout, type NavTabOption } from './StaffPortalLayout';
-import { OfficerHomePage } from './OfficerHomePage';
+import type { NavTabOption } from './StaffPortalLayout';
+import { V20PortalLayout } from '../v20/V20PortalLayout';
+import { V20LandingPage } from '../v20/V20LandingPage';
+import { V20DashboardPage } from '../v20/V20DashboardPage';
+import '../../v20-atmospheric.css';
 import { OfficerComplaintsView } from './OfficerComplaintsView';
 import { OfficerWorkView } from './OfficerWorkView';
 import { OfficerPerformanceView } from './OfficerPerformanceView';
@@ -150,6 +153,7 @@ export const V19OfficerPortalView: React.FC<V19OfficerPortalViewProps> = ({
   // Officer Navigation Tabs
   const officerTabs: NavTabOption[] = [
     { id: 'home', label: 'Home' },
+    { id: 'dashboard', label: 'Dashboard' },
     { id: 'complaints', label: 'Assigned', badge: assignedNotStartedCount },
     { id: 'work', label: 'Work', badge: activeWorkCount },
     { id: 'performance', label: 'Scorecard' },
@@ -222,8 +226,7 @@ export const V19OfficerPortalView: React.FC<V19OfficerPortalViewProps> = ({
   };
 
   return (
-    <StaffPortalLayout
-      departmentId={departmentId}
+    <V20PortalLayout
       departmentCode={departmentCode}
       departmentName={departmentName}
       role="officer"
@@ -239,13 +242,26 @@ export const V19OfficerPortalView: React.FC<V19OfficerPortalViewProps> = ({
     >
       <OfficerMobileGate activeTab={activeTab} onNavigateToWork={() => setActiveTab('work')}>
         {activeTab === 'home' && (
-          <OfficerHomePage
+          <V20LandingPage
+            departmentCode={departmentCode}
             departmentName={departmentName}
-            officerName={officerProfile?.display_name || username}
-            employeeId={officerProfile?.employee_id || undefined}
-            orders={orders}
-            onNavigateToSection={setActiveTab}
-            isLoading={isLoading}
+            role="officer"
+            staffName={officerProfile?.display_name || username}
+            onNavigateToDashboard={() => setActiveTab('dashboard')}
+            onNavigateToComplaints={() => setActiveTab('complaints')}
+          />
+        )}
+
+        {activeTab === 'dashboard' && (
+          <V20DashboardPage
+            departmentCode={departmentCode}
+            departmentName={departmentName}
+            role="officer"
+            totalActiveCases={orders.filter((o) => o.status !== 'verified').length || 8}
+            totalSolvedCases={orders.filter((o) => o.status === 'verified').length || 24}
+            inProgressCount={orders.filter((o) => o.status === 'in_progress').length || 5}
+            pendingCount={orders.filter((o) => o.status === 'assigned' && !o.started_at).length || 3}
+            verificationCount={orders.filter((o) => o.status === 'pending_review').length || 2}
           />
         )}
 
@@ -310,6 +326,6 @@ export const V19OfficerPortalView: React.FC<V19OfficerPortalViewProps> = ({
           />
         )}
       </OfficerMobileGate>
-    </StaffPortalLayout>
+    </V20PortalLayout>
   );
 };

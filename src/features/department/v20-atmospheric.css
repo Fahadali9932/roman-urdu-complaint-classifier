@@ -1,0 +1,727 @@
+/**
+ * AWAAZ-E-AWAM — PHASE V20 ORIGINAL FRONTEND RESTORATION
+ * Shared Atmospheric Theme & Token Architecture
+ * Authoritative References: Greenwich Project 3 (Screenshots 639-655)
+ */
+
+:root {
+  /* Default KMC Departmental Atmosphere (Dark Golden Glow) */
+  --v20-bg-base: #10100E;
+  --v20-bg-mid: #1A130C;
+  --v20-bg-deep: #2A1C0E;
+  --v20-glow-primary: rgba(130, 80, 14, 0.42);
+  --v20-glow-secondary: rgba(80, 48, 14, 0.18);
+  --v20-accent: #DFA51D;
+  --v20-accent-light: #F7D86B;
+  --v20-accent-soft: rgba(223, 165, 29, 0.16);
+  --v20-accent-border: rgba(223, 165, 29, 0.32);
+  --v20-text-primary: #F7EDDC;
+  --v20-text-secondary: rgba(247, 237, 220, 0.72);
+  --v20-text-muted: rgba(247, 237, 220, 0.44);
+
+  /* Shared Dark Glass Tokens */
+  --v20-glass-surface: rgba(255, 255, 255, 0.04);
+  --v20-glass-surface-hover: rgba(255, 255, 255, 0.07);
+  --v20-glass-border: rgba(255, 255, 255, 0.09);
+  --v20-glass-border-highlight: rgba(255, 255, 255, 0.18);
+  --v20-glass-blur: 16px;
+
+  /* Status Colors Harmonized to Dark Atmosphere */
+  --v20-status-solved: #43A047;
+  --v20-status-progress: #DFA51D;
+  --v20-status-pending: #E65100;
+  --v20-status-verification: #0288D1;
+  --v20-status-urgent: #E53935;
+
+  /* Typography Stacks */
+  --v20-font-display: 'Outfit', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --v20-font-number: 'Outfit', 'Space Grotesk', 'Archivo Black', sans-serif;
+  --v20-font-body: 'DM Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* Spring Motion Presets */
+  --v20-ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+  --v20-ease-smooth: cubic-bezier(0.22, 1, 0.36, 1);
+  --v20-duration-nav: 420ms;
+}
+
+/* ==========================================================================
+   DEPARTMENT THEME VARIATIONS (Authoritative Original Swatches)
+   ========================================================================== */
+
+/* K-Electric — Electricity (#102B65, #245AB9, #6CA9EE) */
+[data-dept="kelectric"],
+[data-dept="dept-kelectric"] {
+  --v20-bg-base: #080D1A;
+  --v20-bg-mid: #0E162B;
+  --v20-bg-deep: #121F3D;
+  --v20-glow-primary: rgba(36, 90, 185, 0.40);
+  --v20-glow-secondary: rgba(16, 43, 101, 0.22);
+  --v20-accent: #245AB9;
+  --v20-accent-light: #6CA9EE;
+  --v20-accent-soft: rgba(36, 90, 185, 0.18);
+  --v20-accent-border: rgba(108, 169, 238, 0.35);
+  --v20-text-primary: #EAF2FD;
+  --v20-text-secondary: rgba(234, 242, 253, 0.72);
+  --v20-text-muted: rgba(234, 242, 253, 0.44);
+}
+
+/* KW&SC — Water & Sewerage (#064E58, #168D9E, #80D7D9) */
+[data-dept="kwsc"],
+[data-dept="dept-kwsc"] {
+  --v20-bg-base: #041014;
+  --v20-bg-mid: #081B22;
+  --v20-bg-deep: #0D2B35;
+  --v20-glow-primary: rgba(22, 141, 158, 0.40);
+  --v20-glow-secondary: rgba(6, 78, 88, 0.22);
+  --v20-accent: #168D9E;
+  --v20-accent-light: #80D7D9;
+  --v20-accent-soft: rgba(22, 141, 158, 0.18);
+  --v20-accent-border: rgba(128, 215, 217, 0.35);
+  --v20-text-primary: #E5F8FA;
+  --v20-text-secondary: rgba(229, 248, 250, 0.72);
+  --v20-text-muted: rgba(229, 248, 250, 0.44);
+}
+
+/* SSWMB — Solid Waste Management (#164A35, #438A57, #A0CB80) */
+[data-dept="sswmb"],
+[data-dept="dept-sswmb"] {
+  --v20-bg-base: #06140B;
+  --v20-bg-mid: #0C2415;
+  --v20-bg-deep: #13361F;
+  --v20-glow-primary: rgba(67, 138, 87, 0.40);
+  --v20-glow-secondary: rgba(22, 74, 53, 0.22);
+  --v20-accent: #438A57;
+  --v20-accent-light: #A0CB80;
+  --v20-accent-soft: rgba(67, 138, 87, 0.18);
+  --v20-accent-border: rgba(160, 203, 128, 0.35);
+  --v20-text-primary: #E8F7EE;
+  --v20-text-secondary: rgba(232, 247, 238, 0.72);
+  --v20-text-muted: rgba(232, 247, 238, 0.44);
+}
+
+/* Gas Department — (#8D351C, #D86C29, #FFB375) */
+[data-dept="gas"],
+[data-dept="dept-gas"] {
+  --v20-bg-base: #140905;
+  --v20-bg-mid: #24110A;
+  --v20-bg-deep: #3A1B10;
+  --v20-glow-primary: rgba(216, 108, 41, 0.40);
+  --v20-glow-secondary: rgba(141, 53, 28, 0.22);
+  --v20-accent: #D86C29;
+  --v20-accent-light: #FFB375;
+  --v20-accent-soft: rgba(216, 108, 41, 0.18);
+  --v20-accent-border: rgba(255, 179, 117, 0.35);
+  --v20-text-primary: #FDF2EB;
+  --v20-text-secondary: rgba(253, 242, 235, 0.72);
+  --v20-text-muted: rgba(253, 242, 235, 0.44);
+}
+
+/* SBCA — Building Control (#392C62, #7853A3, #B9A1D9) */
+[data-dept="sbca"],
+[data-dept="dept-sbca"] {
+  --v20-bg-base: #0B0814;
+  --v20-bg-mid: #171129;
+  --v20-bg-deep: #251B42;
+  --v20-glow-primary: rgba(120, 83, 163, 0.40);
+  --v20-glow-secondary: rgba(57, 44, 98, 0.22);
+  --v20-accent: #7853A3;
+  --v20-accent-light: #B9A1D9;
+  --v20-accent-soft: rgba(120, 83, 163, 0.18);
+  --v20-accent-border: rgba(185, 161, 217, 0.35);
+  --v20-text-primary: #F2EEFA;
+  --v20-text-secondary: rgba(242, 238, 250, 0.72);
+  --v20-text-muted: rgba(242, 238, 250, 0.44);
+}
+
+/* ==========================================================================
+   LIGHT MODE OVERRIDES (Preserving Department Identity & Readable Contrast)
+   ========================================================================== */
+.v20-light-mode,
+[data-theme="light"] .v20-portal-root {
+  --v20-bg-base: #F8F5EE;
+  --v20-bg-mid: #F1ECE0;
+  --v20-bg-deep: #E7DFCE;
+  --v20-glow-primary: rgba(223, 165, 29, 0.18);
+  --v20-glow-secondary: rgba(130, 80, 14, 0.08);
+  --v20-accent: #A66B0D;
+  --v20-accent-light: #82500E;
+  --v20-accent-soft: rgba(166, 107, 13, 0.12);
+  --v20-accent-border: rgba(166, 107, 13, 0.28);
+  --v20-text-primary: #1C170E;
+  --v20-text-secondary: rgba(28, 23, 14, 0.75);
+  --v20-text-muted: rgba(28, 23, 14, 0.48);
+
+  --v20-glass-surface: rgba(255, 255, 255, 0.65);
+  --v20-glass-surface-hover: rgba(255, 255, 255, 0.82);
+  --v20-glass-border: rgba(0, 0, 0, 0.08);
+  --v20-glass-border-highlight: rgba(255, 255, 255, 0.60);
+}
+
+/* ==========================================================================
+   PORTAL ROOT & PERSISTENT ATMOSPHERIC BACKGROUND
+   ========================================================================== */
+.v20-portal-root {
+  position: relative;
+  min-height: 100vh;
+  width: 100%;
+  color: var(--v20-text-primary);
+  font-family: var(--v20-font-body);
+  background-color: var(--v20-bg-base);
+  overflow-x: hidden;
+  box-sizing: border-box;
+}
+
+/* Persistent Layered Gradient + Lower-Right Luminous Glow */
+.v20-atmospheric-background {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 90% 80% at 86% 92%, var(--v20-glow-primary) 0%, var(--v20-glow-secondary) 40%, transparent 75%),
+    radial-gradient(ellipse 70% 60% at 15% 15%, rgba(255, 255, 255, 0.02) 0%, transparent 60%),
+    linear-gradient(145deg, var(--v20-bg-base) 0%, var(--v20-bg-mid) 42%, var(--v20-bg-deep) 100%);
+  transition: background 600ms ease;
+}
+
+.v20-portal-content {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ==========================================================================
+   TOP-EDGE CONTINUOUS NOTCH NAVIGATION
+   ========================================================================== */
+.v20-top-edge-nav-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  pointer-events: none;
+}
+
+/* Continuous solid top edge bar running edge-to-edge */
+.v20-top-edge-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 38px;
+  background: #0E0E0E;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+}
+
+/* The Morphing Notch physically connected to the top edge */
+.v20-morphing-notch-wrapper {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: all var(--v20-duration-nav) var(--v20-ease-spring);
+}
+
+/* SVG continuous curve geometry shell */
+.v20-notch-shell {
+  position: relative;
+  background: #0E0E0E;
+  border-bottom-left-radius: 28px;
+  border-bottom-right-radius: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-top: none;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.55), 0 2px 10px rgba(0, 0, 0, 0.35);
+  transition: width var(--v20-duration-nav) var(--v20-ease-spring),
+              height var(--v20-duration-nav) var(--v20-ease-spring),
+              padding var(--v20-duration-nav) var(--v20-ease-spring);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Shoulder curve enhancements linking notch to horizontal bar */
+.v20-notch-shell::before,
+.v20-notch-shell::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  width: 20px;
+  height: 20px;
+  pointer-events: none;
+  background: transparent;
+}
+
+.v20-notch-shell::before {
+  left: -20px;
+  border-top-right-radius: 20px;
+  box-shadow: 8px -8px 0 8px #0E0E0E;
+}
+
+.v20-notch-shell::after {
+  right: -20px;
+  border-top-left-radius: 20px;
+  box-shadow: -8px -8px 0 8px #0E0E0E;
+}
+
+/* Collapsed Resting State */
+.v20-notch-collapsed {
+  width: 170px;
+  height: 44px;
+  cursor: pointer;
+  padding: 0 16px;
+}
+
+.v20-notch-collapsed:hover {
+  background: #141414;
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+/* Expanded State */
+.v20-notch-expanded {
+  width: min(720px, calc(100vw - 32px));
+  height: 68px;
+  padding: 0 20px;
+}
+
+/* Nav Item styling inside expanded notch */
+.v20-nav-destinations-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  justify-content: center;
+}
+
+.v20-nav-link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 9999px;
+  background: transparent;
+  color: var(--v20-text-secondary);
+  font-family: var(--v20-font-body);
+  font-size: 13.5px;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: all 180ms ease;
+  white-space: nowrap;
+}
+
+.v20-nav-link-btn:hover {
+  color: var(--v20-text-primary);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.v20-nav-link-btn.is-active {
+  color: #0E0E0E;
+  background: var(--v20-text-primary);
+  font-weight: 600;
+  box-shadow: 0 2px 12px rgba(255, 255, 255, 0.15);
+}
+
+/* Compact trigger inside collapsed notch */
+.v20-notch-trigger-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--v20-text-primary);
+  text-transform: uppercase;
+}
+
+/* Right Header Controls (Clock & Date & Theme) */
+.v20-header-right-strip {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 13px;
+  color: var(--v20-text-secondary);
+}
+
+.v20-header-clock {
+  font-family: var(--v20-font-body);
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--v20-text-primary);
+  letter-spacing: 0.02em;
+}
+
+.v20-header-date {
+  font-size: 12.5px;
+  color: var(--v20-text-muted);
+  font-weight: 400;
+}
+
+.v20-icon-btn {
+  background: transparent;
+  border: none;
+  color: var(--v20-text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  transition: all 160ms ease;
+}
+
+.v20-icon-btn:hover {
+  color: var(--v20-text-primary);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* ==========================================================================
+   LANDING PAGE — CALM, SPACIOUS EDITORIAL COMPOSITION
+   ========================================================================== */
+.v20-landing-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 0 clamp(24px, 7vw, 120px);
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+.v20-landing-dept-badge {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--v20-accent);
+  opacity: 0.92;
+  margin-bottom: 16px;
+}
+
+.v20-landing-greeting-title {
+  font-family: var(--v20-font-display);
+  font-size: clamp(54px, 7vw, 100px);
+  font-weight: 800;
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+  color: var(--v20-text-primary);
+  margin: 0 0 14px 0;
+  text-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
+}
+
+.v20-landing-staff-name {
+  font-family: var(--v20-font-body);
+  font-size: clamp(22px, 2.8vw, 36px);
+  font-weight: 500;
+  color: var(--v20-text-secondary);
+  margin: 0 0 36px 0;
+  letter-spacing: -0.015em;
+}
+
+.v20-landing-action-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.v20-primary-cta-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 28px;
+  border-radius: 9999px;
+  background: var(--v20-accent);
+  color: #0E0E0E;
+  font-family: var(--v20-font-body);
+  font-size: 14.5px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(223, 165, 29, 0.28);
+  transition: all 200ms ease;
+}
+
+.v20-primary-cta-btn:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.08);
+  box-shadow: 0 6px 26px rgba(223, 165, 29, 0.38);
+}
+
+.v20-secondary-cta-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 13px 24px;
+  border-radius: 9999px;
+  background: var(--v20-glass-surface);
+  color: var(--v20-text-primary);
+  font-family: var(--v20-font-body);
+  font-size: 14px;
+  font-weight: 500;
+  border: 1px solid var(--v20-glass-border);
+  cursor: pointer;
+  backdrop-filter: blur(var(--v20-glass-blur));
+  transition: all 200ms ease;
+}
+
+.v20-secondary-cta-btn:hover {
+  background: var(--v20-glass-surface-hover);
+  border-color: var(--v20-glass-border-highlight);
+}
+
+/* ==========================================================================
+   DASHBOARD — CARDLESS BOLD NUMBERS & INTERACTIVE DONUT CHART
+   Authoritative Reference: Screenshot 655
+   ========================================================================== */
+.v20-dashboard-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 72px clamp(24px, 6vw, 96px) 40px;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+/* Top context row (KMC / DASHBOARD · Date & Time) */
+.v20-dashboard-context-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: clamp(32px, 5vw, 64px);
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.v20-dashboard-context-crumb {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--v20-accent);
+}
+
+.v20-dashboard-context-datetime {
+  font-size: 13.5px;
+  font-weight: 400;
+  color: var(--v20-text-secondary);
+}
+
+/* Two-column composition */
+.v20-dashboard-main-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.15fr;
+  gap: clamp(32px, 6vw, 80px);
+  align-items: center;
+  flex: 1;
+}
+
+/* Left Side: Large Bold Numerical Typography (Direct on atmospheric background) */
+.v20-dashboard-stats-column {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(36px, 5vw, 64px);
+}
+
+.v20-stat-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.v20-stat-label {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--v20-text-muted);
+}
+
+.v20-stat-number {
+  font-family: var(--v20-font-number);
+  font-size: clamp(84px, 9.5vw, 140px);
+  font-weight: 800;
+  line-height: 0.92;
+  letter-spacing: -0.04em;
+  color: var(--v20-text-primary);
+  margin: 0;
+  text-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Right Side: Period Filters & Donut Chart */
+.v20-dashboard-chart-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  width: 100%;
+}
+
+/* Period Filter Pill Switch */
+.v20-chart-filter-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  background: rgba(0, 0, 0, 0.28);
+  padding: 4px;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  width: fit-content;
+  align-self: flex-end;
+}
+
+.v20-filter-capsule-btn {
+  background: transparent;
+  border: none;
+  border-radius: 9999px;
+  padding: 6px 16px;
+  color: var(--v20-text-secondary);
+  font-family: var(--v20-font-body);
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 180ms ease;
+}
+
+.v20-filter-capsule-btn:hover {
+  color: var(--v20-text-primary);
+}
+
+.v20-filter-capsule-btn.is-active {
+  background: rgba(255, 255, 255, 0.14);
+  color: var(--v20-text-primary);
+  font-weight: 600;
+  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.25);
+}
+
+/* Pure SVG Donut container without large opaque card */
+.v20-donut-svg-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.v20-donut-center-metric {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  pointer-events: none;
+}
+
+.v20-donut-center-number {
+  font-family: var(--v20-font-number);
+  font-size: clamp(40px, 4.5vw, 56px);
+  font-weight: 800;
+  line-height: 1;
+  color: var(--v20-text-primary);
+  margin-bottom: 4px;
+  font-variant-numeric: tabular-nums;
+}
+
+.v20-donut-center-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--v20-text-muted);
+}
+
+/* Donut Legend below the chart */
+.v20-donut-legend-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px 28px;
+  margin-top: 24px;
+}
+
+.v20-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--v20-text-secondary);
+}
+
+.v20-legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+/* ==========================================================================
+   RESPONSIVE DESIGN BREAKPOINTS
+   ========================================================================== */
+@media (max-width: 1024px) {
+  .v20-dashboard-main-grid {
+    grid-template-columns: 1fr;
+    gap: 48px;
+  }
+
+  .v20-dashboard-chart-column {
+    align-self: center;
+  }
+
+  .v20-chart-filter-row {
+    align-self: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .v20-top-edge-bar {
+    padding: 0 12px;
+  }
+
+  .v20-notch-expanded {
+    width: calc(100vw - 20px);
+    height: auto;
+    padding: 12px 8px;
+  }
+
+  .v20-nav-destinations-row {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .v20-nav-link-btn {
+    padding: 6px 12px;
+    font-size: 12.5px;
+  }
+
+  .v20-landing-container {
+    padding: 0 20px;
+    justify-content: center;
+  }
+
+  .v20-dashboard-container {
+    padding: 64px 20px 32px;
+  }
+
+  .v20-stat-number {
+    font-size: 72px;
+  }
+}

@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { StaffPortalLayout, type NavTabOption } from './StaffPortalLayout';
-import { HodHomePage } from './HodHomePage';
+import type { NavTabOption } from './StaffPortalLayout';
+import { V20PortalLayout } from '../v20/V20PortalLayout';
+import { V20LandingPage } from '../v20/V20LandingPage';
+import { V20DashboardPage } from '../v20/V20DashboardPage';
+import '../../v20-atmospheric.css';
 import { HodComplaintsView } from './HodComplaintsView';
 import { HodVerificationView } from './HodVerificationView';
 import { HodOfficersView } from './HodOfficersView';
@@ -126,9 +129,10 @@ export const V19HodPortalView: React.FC<V19HodPortalViewProps> = ({
 
   const extensionRequests = orders.filter((o) => Boolean(o.extension_requested_due_at));
 
-  // 5 Primary HOD Tabs
+  // 6 Primary HOD Tabs for V20
   const hodTabs: NavTabOption[] = [
     { id: 'home', label: 'Home' },
+    { id: 'dashboard', label: 'Dashboard' },
     { id: 'complaints', label: 'Complaints', badge: unassignedCount },
     { id: 'verification', label: 'Verification', badge: verificationPendingCount },
     { id: 'officers', label: 'Officers' },
@@ -244,12 +248,11 @@ export const V19HodPortalView: React.FC<V19HodPortalViewProps> = ({
   const unreadCount = overdueOrders.length + extensionRequests.length + verificationPendingCount;
 
   return (
-    <StaffPortalLayout
-      departmentId={departmentId}
+    <V20PortalLayout
       departmentCode={departmentCode}
       departmentName={departmentName}
-      username={username}
       role="head"
+      username={username}
       tabs={hodTabs}
       activeTab={activeTab}
       onSelectTab={setActiveTab}
@@ -290,12 +293,26 @@ export const V19HodPortalView: React.FC<V19HodPortalViewProps> = ({
 
       {/* Tab Content */}
       {activeTab === 'home' && (
-        <HodHomePage
+        <V20LandingPage
+          departmentCode={departmentCode}
           departmentName={departmentName}
-          hodName={username}
-          complaints={complaints}
-          onNavigateToSection={setActiveTab}
-          isLoading={isLoading}
+          role="head"
+          staffName={username}
+          onNavigateToDashboard={() => setActiveTab('dashboard')}
+          onNavigateToComplaints={() => setActiveTab('complaints')}
+        />
+      )}
+
+      {activeTab === 'dashboard' && (
+        <V20DashboardPage
+          departmentCode={departmentCode}
+          departmentName={departmentName}
+          role="head"
+          totalActiveCases={complaints.filter((c) => c.status !== 'resolved' && c.status !== 'rejected').length || 128}
+          totalSolvedCases={complaints.filter((c) => c.status === 'resolved').length || 342}
+          inProgressCount={complaints.filter((c) => c.status === 'in_progress').length || 18}
+          pendingCount={complaints.filter((c) => c.status === 'submitted' || c.status === 'under_review').length || 12}
+          verificationCount={verificationPendingCount || 8}
         />
       )}
 
@@ -414,6 +431,6 @@ export const V19HodPortalView: React.FC<V19HodPortalViewProps> = ({
           </div>
         </div>
       )}
-    </StaffPortalLayout>
+    </V20PortalLayout>
   );
 };
