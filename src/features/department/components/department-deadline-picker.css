@@ -6,31 +6,31 @@
 .deadline-picker-rotated{transform:rotate(180deg)}
 .deadline-picker-panel{position:relative;border:1px solid var(--v3-edge,var(--field-line));background:var(--v3-surface,var(--field-paper));border-radius:14px;padding:16px;display:grid;gap:14px;box-shadow:0 8px 24px rgba(39,55,70,0.08)}
 .deadline-picker-presets{display:flex;gap:6px;flex-wrap:wrap}
-.deadline-picker-presets button{min-height:36px;padding:6px 12px;border:1px solid var(--v3-edge,var(--field-line));border-radius:8px;background:transparent;font-size:12px;color:var(--v3-accent,#365875);font-weight:600;transition:background 150ms ease,color 150ms ease}
+.deadline-picker-presets button{min-height:44px;padding:6px 12px;border:1px solid var(--v3-edge,var(--field-line));border-radius:8px;background:transparent;font-size:12px;color:var(--v3-accent,#365875);font-weight:600;transition:background-color 150ms cubic-bezier(0.32, 0.72, 0, 1),color 150ms cubic-bezier(0.32, 0.72, 0, 1),border-color 150ms cubic-bezier(0.32, 0.72, 0, 1)}
 .deadline-picker-presets button:hover{background:var(--v3-soft,#D9E4EB);color:var(--v3-ink,#273746)}
 .deadline-picker-month{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .deadline-picker-month strong{font-size:13px;font-weight:600;color:var(--v3-ink,#273746)}
-.deadline-picker-month button{width:40px;height:40px;display:grid;place-items:center;border:1px solid var(--v3-edge,var(--field-line));border-radius:9px;background:transparent;color:var(--v3-ink,var(--field-ink));transition:background 150ms ease,color 150ms ease}
+.deadline-picker-month button{width:44px;height:44px;display:grid;place-items:center;border:1px solid var(--v3-edge,var(--field-line));border-radius:9px;background:transparent;color:var(--v3-ink,var(--field-ink));transition:background-color 150ms cubic-bezier(0.32, 0.72, 0, 1),color 150ms cubic-bezier(0.32, 0.72, 0, 1)}
 .deadline-picker-month button:hover:not(:disabled){background:var(--v3-soft,#D9E4EB);color:var(--v3-ink,#273746)}
 .deadline-picker-calendar{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}
 .deadline-picker-weekday{text-align:center;font-size:11px;font-weight:600;color:var(--v3-muted,var(--field-muted));padding:8px 0}
-.deadline-picker-calendar button{border:0;background:transparent;border-radius:8px;min-height:40px;min-width:0;font-size:12px;color:var(--v3-ink,var(--field-ink));font-weight:600;transition:background 150ms ease,color 150ms ease}
+.deadline-picker-calendar button{border:0;background:transparent;border-radius:8px;min-height:44px;min-width:0;font-size:12px;color:var(--v3-ink,var(--field-ink));font-weight:600;transition:background-color 150ms cubic-bezier(0.32, 0.72, 0, 1),color 150ms cubic-bezier(0.32, 0.72, 0, 1)}
 .deadline-picker-calendar button:hover:not(:disabled){background:var(--v3-soft,#D9E4EB);color:var(--v3-ink,#273746)}
 .deadline-picker-calendar button[aria-pressed="true"]{background:var(--v3-action,#426581);color:var(--v3-onaction,#F0F4F7)}
 .deadline-picker-calendar button:disabled{opacity:.33;cursor:not-allowed}
-.deadline-picker-time{display:flex;align-items:center;gap:8px;padding:12px 0;border-top:1px solid var(--v3-edge,var(--field-line));font-size:12px;color:var(--v3-muted,var(--field-muted))}
-.deadline-picker-time>span:first-of-type{flex:1;font-weight:600}
-.field-form .deadline-picker-time select,.field-dialog .deadline-picker-time select{width:auto;flex:none;min-width:56px;min-height:42px;border:1px solid var(--v3-edge,var(--field-line));border-radius:8px;background:var(--v3-surface,var(--field-paper));color:var(--v3-ink,var(--field-ink));padding:7px 5px;font-size:12px}
-.deadline-picker-done{min-height:44px;border:0;border-radius:10px;background:var(--v3-action,#426581);color:var(--v3-onaction,#F0F4F7);font-size:13px;font-weight:500;transition:background 150ms ease}
+.deadline-picker-time{display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:12px 0;border-top:1px solid var(--v3-edge,var(--field-line));font-size:12px;color:var(--v3-muted,var(--field-muted))}
+.deadline-picker-time>span:first-of-type{flex:1;min-width:64px;font-weight:600}
+.deadline-picker-time select{width:auto;flex:none;min-width:58px;min-height:44px;border:1px solid var(--v3-edge,var(--field-line));border-radius:8px;background:var(--v3-surface,var(--field-paper));color:var(--v3-ink,var(--field-ink));padding:7px 8px;font-size:13px;font-weight:500}
+.deadline-picker-done{min-height:44px;border:0;border-radius:10px;background:var(--v3-action,#426581);color:var(--v3-onaction,#F0F4F7);font-size:13px;font-weight:500;transition:background-color 150ms cubic-bezier(0.32, 0.72, 0, 1)}
 .deadline-picker-done:hover{background:var(--v3-action-hover,#35546C)}
-.deadline-picker-error{font-size:12px;color:#ab3b32!important;margin:0!important}
-.deadline-picker button:focus-visible,.deadline-picker select:focus-visible{outline:3px solid #bc883f;outline-offset:2px}
+.deadline-picker-error{font-size:12px;color:var(--v3-danger,#9B2C2C)!important;margin:0!important}
+.deadline-picker button:focus-visible,.deadline-picker select:focus-visible{outline:2px solid var(--v3-accent,#365875);outline-offset:2px}
 .app-shell[data-theme="dark"] .deadline-picker-panel{box-shadow:0 4px 20px rgba(0,0,0,0.35)}
-.app-shell[data-theme="dark"] .deadline-picker-month button:hover:not(:disabled){background:#2b4746;color:var(--field-ink)}
-.app-shell[data-theme="dark"] .deadline-picker-presets button:hover,.app-shell[data-theme="dark"] .deadline-picker-calendar button:hover:not(:disabled){background:#2b4746;color:var(--field-ink)}
-.app-shell[data-theme="dark"] .deadline-picker-calendar button[aria-pressed="true"]{background:#0a7067;color:#fff}
-.app-shell[data-theme="dark"] .deadline-picker-done{background:#0a7067}
-.app-shell[data-theme="dark"] .deadline-picker-done:hover{background:#0e8a7f}
+.app-shell[data-theme="dark"] .deadline-picker-month button:hover:not(:disabled){background:var(--v3-raised,#344450);color:var(--v3-ink,#E1E8EE)}
+.app-shell[data-theme="dark"] .deadline-picker-presets button:hover,.app-shell[data-theme="dark"] .deadline-picker-calendar button:hover:not(:disabled){background:var(--v3-raised,#344450);color:var(--v3-ink,#E1E8EE)}
+.app-shell[data-theme="dark"] .deadline-picker-calendar button[aria-pressed="true"]{background:var(--v3-action,#436581);color:var(--v3-onaction,#EFF4F7)}
+.app-shell[data-theme="dark"] .deadline-picker-done{background:var(--v3-action,#436581);color:var(--v3-onaction,#EFF4F7)}
+.app-shell[data-theme="dark"] .deadline-picker-done:hover{background:var(--v3-action-hover,#35546C)}
 
 /* Role Boundary Dark Theme */
 [data-theme="dark"] .role-boundary-main { background: #0f181b !important; color: #edf6f5 !important; }
@@ -58,5 +58,5 @@
 [data-theme="dark"] .dept-login-demo summary { color: #a6dfd0 !important; }
 [data-theme="dark"] .dept-login-demo code { background-color: #101c20 !important; color: #f2cb8b !important; }
 
-@media(max-width:440px){.deadline-picker-panel{padding:10px}.deadline-picker-presets button{flex:1}.deadline-picker-time{gap:5px}.field-form .deadline-picker-time select,.field-dialog .deadline-picker-time select{min-width:49px;padding:6px 3px}.deadline-picker-calendar button{min-height:38px}}
-@media(prefers-reduced-motion:reduce){.deadline-picker *{transition:none!important}}
+@media(max-width:440px){.deadline-picker-panel{padding:12px}.deadline-picker-presets button{flex:1}.deadline-picker-time{gap:6px}.deadline-picker-time select{min-width:54px;padding:6px 6px}.deadline-picker-calendar button{min-height:44px}}
+@media(prefers-reduced-motion:reduce){.deadline-picker *{animation:none!important;transition-property:opacity,background-color,border-color,color!important}}
