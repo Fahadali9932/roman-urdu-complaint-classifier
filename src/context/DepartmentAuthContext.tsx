@@ -11,6 +11,7 @@ export interface DepartmentAuthSession {
   departmentId: DepartmentId;
   departmentName: string;
   departmentCode: string;
+  mustChangePassword?: boolean;
   authenticatedAt: string;
 }
 
@@ -21,6 +22,7 @@ export interface DepartmentAuthContextType {
   isAuthenticated: boolean;
   isCheckingSession: boolean;
   session: DepartmentAuthSession | null;
+  clearMustChangePassword?: () => void;
   signIn: (deptId: DepartmentId, accessKey?: string) => { success: boolean; error?: string };
   signInWithCredentials: (
     identifier: string,
@@ -109,9 +111,17 @@ export const DepartmentAuthProvider: React.FC<{ children: ReactNode }> = ({ chil
         return;
       }
       if (session?.userId !== auth.data.user.id) { setLiveVerified(false); setIsCheckingSession(false); return; }
-      const { data } = await supabase.from('department_memberships').select('id')
+      const { data } = await supabase.from('department_memberships').select('id, must_change_password')
         .eq('user_id', auth.data.user.id).eq('department_id', session.departmentId).eq('status','active').maybeSingle();
-      if (!canceled) {setLiveVerified(Boolean(data));setIsCheckingSession(false);}
+      if (!canceled) {
+        if (data && Boolean(data.must_change_password) !== Boolean(session.mustChangePassword)) {
+          const next = { ...session, mustChangePassword: Boolean(data.must_change_password) };
+          setSession(next);
+          try { sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(next)); } catch { /* ignore */ }
+        }
+        setLiveVerified(Boolean(data));
+        setIsCheckingSession(false);
+      }
       } catch {
         if (!canceled) { setLiveVerified(false); setIsCheckingSession(false); }
       }
@@ -208,6 +218,7 @@ export const DepartmentAuthProvider: React.FC<{ children: ReactNode }> = ({ chil
         departmentId: deptId,
         departmentName: res.session.departmentName || dept?.name || deptId,
         departmentCode: res.session.departmentCode || dept?.code || deptId.toUpperCase(),
+        mustChangePassword: Boolean(res.session.mustChangePassword),
         authenticatedAt: res.session.authenticatedAt,
       };
 
@@ -248,14 +259,30 @@ export const DepartmentAuthProvider: React.FC<{ children: ReactNode }> = ({ chil
     if (assurance.error || assurance.data?.currentLevel !== 'aal2' || user.data.user?.id !== pendingMfa.userId) {
       return { success:false,error:'Authenticator verification is still required.' };
     }
-    const { data, error } = await supabase.from('department_memberships').select('id')
+    const { data, error } = await supabase.from('department_memberships').select('id, must_change_password')
       .eq('user_id',pendingMfa.userId).eq('department_id',pendingMfa.departmentId).eq('status','active').maybeSingle();
     if (error || !data) return { success:false,error:'Department authorization could not be verified.' };
-    setSession(pendingMfa); setLiveVerified(true);
-    sessionStorage.setItem(SESSION_STORAGE_KEY,JSON.stringify(pendingMfa));
+    const updated = { ...pendingMfa, mustChangePassword: Boolean(data.must_change_password) };
+    setSession(updated); setLiveVerified(true);
+    sessionStorage.setItem(SESSION_STORAGE_KEY,JSON.stringify(updated));
     setPendingMfa(null);
     setIsCheckingSession(false);
     return { success:true };
+  };
+
+  const clearMustChangePassword = () => {
+    setSession((prev) => {
+      if (!prev) return prev;
+      const next = { ...prev, mustChangePassword: false };
+      try {
+        if (typeof window !== 'undefined' && window.sessionStorage) {
+          sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(next));
+        }
+      } catch {
+        // Ignore
+      }
+      return next;
+    });
   };
 
   const signOut = () => {
@@ -282,6 +309,7 @@ export const DepartmentAuthProvider: React.FC<{ children: ReactNode }> = ({ chil
         isAuthenticated,
         isCheckingSession,
         session,
+        clearMustChangePassword,
         signIn,
         signInWithCredentials,
         completeMfaSignIn,

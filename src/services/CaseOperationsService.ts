@@ -25,6 +25,63 @@ interface StoredCase extends IncidentCaseSummary {
   activity: CaseActivityEvent[];
 }
 
+export type HeadOverviewPeriod = 'today' | 'yesterday' | 'month' | 'year';
+export type ComplaintsDateFilter = 'all' | 'today' | 'yesterday' | 'month';
+
+export interface HeadPeriodOverview {
+  period: HeadOverviewPeriod;
+  totalActive: number;
+  newComplaints: number;
+  underReview: number;
+  inProgress: number;
+  awaitingVerification: number;
+}
+
+export interface HeadIndependentComplaintRow {
+  id: string;
+  referenceNumber: string;
+  heading: string;
+  sanitizedText: string;
+  factualSummary: string;
+  locality: string;
+  publicPlace: string;
+  district: string;
+  issueTypes: string[];
+  status: ComplaintStatus;
+  workOrderStatus?: 'assigned' | 'in_progress' | 'pending_review' | 'verified' | 'returned' | null;
+  workOrderId?: string | null;
+  assignedOfficerId?: string | null;
+  assignedOfficerName?: string | null;
+  submittedAt: string;
+  updatedAt: string;
+  priority: PriorityBand;
+}
+
+const PKT_OFFSET_MS = 5 * 60 * 60 * 1000;
+
+export function getPktPeriodBounds(period: HeadOverviewPeriod | ComplaintsDateFilter, nowMs = Date.now()): { startMs: number; endMs: number } {
+  if (period === 'all') {
+    return { startMs: 0, endMs: Number.MAX_SAFE_INTEGER };
+  }
+  // Asia/Karachi is fixed UTC+05:00 (no DST)
+  const pktNow = new Date(nowMs + PKT_OFFSET_MS);
+  const y = pktNow.getUTCFullYear();
+  const m = pktNow.getUTCMonth();
+  const d = pktNow.getUTCDate();
+
+  const todayStartUtc = Date.UTC(y, m, d, 0, 0, 0, 0) - PKT_OFFSET_MS;
+  if (period === 'today') {
+    return { startMs: todayStartUtc, endMs: nowMs };
+  }
+  if (period === 'yesterday') {
+    return { startMs: todayStartUtc - 86400000, endMs: todayStartUtc - 1 };
+  }
+  if (period === 'month') {
+    return { startMs: Date.UTC(y, m, 1, 0, 0, 0, 0) - PKT_OFFSET_MS, endMs: nowMs };
+  }
+  return { startMs: Date.UTC(y, 0, 1, 0, 0, 0, 0) - PKT_OFFSET_MS, endMs: nowMs };
+}
+
 export class CaseOperationsService implements ICaseOperationsService {
   private casesByDept: Map<DepartmentId, StoredCase[]> = new Map();
   private batchOperations: Map<string, BulkAcceptResult> = new Map();
@@ -141,10 +198,10 @@ export class CaseOperationsService implements ICaseOperationsService {
             'Road surface damage and deep potholes reported near the University Road crossing at NED University. Several motorists report acute difficulty passing this section; staff must verify on ground and dispatch road repair.',
         },
         urgentSolo: {
-          title: 'Road collapsed beside bus stop',
+          title: 'Open manhole beside playground',
           issue: 'Road safety',
           summary:
-            'A resident reports an acute road collapse beside the public bus stop at Maskan Chowrangi. Immediate structural safety inspection is needed.',
+            'A resident reports an uncovered roadside manhole beside the community playground near Maskan Chowrangi. Immediate barricading and cover placement needed.',
         },
       },
       kwsc: {
@@ -297,354 +354,210 @@ export class CaseOperationsService implements ICaseOperationsService {
 
     const cfg = (dept in configMap ? configMap[dept as keyof typeof configMap] : configMap.kmc);
     const result: StoredCase[] = [];
-
-    // Case 1: Flagship 50-in-1 scenario (48 awaiting acceptance, 2 resolved)
-    const leadReports: CaseReportRow[] = Array.from({ length: 50 }, (_, r) => {
-      const isResolved = r >= 48;
-      const status: ComplaintStatus = isResolved ? 'resolved' : 'assigned';
-      const submitted = new Date(
-        Date.UTC(2026, 10, 15 - 6, 9, 48 + (r % 10))
-      ).toISOString();
-      return {
-        complaintId: `khi-comp-${dept}-0050${String(r).padStart(4, '0')}`,
-        referenceNumber: `KHI-2026-${String(500000 + r).padStart(8, '0')}`,
-        submittedAt: submitted,
-        updatedAt: submitted,
-        status,
-        sanitizedNarrativePreview:
-          r === 0
-            ? cfg.narrativeGen(cfg.leadPothole.issue, segments[0])
-            : r % 3 === 0
-            ? `University Road par road bohot toot gayi hai, gadiyan mushkil se guzarti hain.`
-            : r % 3 === 1
-            ? `NED University ke pass gehra gadda hai, rasta band hota hai.`
-            : `Main road ke qareeb asphalt toot gaya hai, road repair karain.`,
-        publicLocation: segments[0],
-        linkState: 'linked',
-        linkMethod: r === 0 ? 'auto_asset' : 'auto_cluster',
-        uniquePersonId: `resident-${dept}-${r % 42}`,
-      };
-    });
-
-    const leadActivity: CaseActivityEvent[] = [
-      {
-        id: `act-${dept}-001`,
-        caseId: `C-2051`,
-        eventType: 'created',
-        label: 'Case created',
-        detail: `First sanitized citizen report linked to case C-2051.`,
-        actorLabel: 'System Classifier',
-        createdAt: new Date(Date.UTC(2026, 10, 9, 9, 48)).toISOString(),
-        formattedWhen: '9 Nov 2026 · 2:48 PM PKT',
-      },
-      {
-        id: `act-${dept}-002`,
-        caseId: `C-2051`,
-        eventType: 'linked',
-        label: '50 reports linked',
-        detail: `50 corroborating citizen reports associated with public asset: University Road near NED University.`,
-        actorLabel: 'Incident Matching Engine',
-        createdAt: new Date(Date.UTC(2026, 10, 15, 6, 10)).toISOString(),
-        formattedWhen: '15 Nov 2026 · 11:10 AM PKT',
-      },
-    ];
-
-    result.push({
-      id: `C-2051`,
-      caseNumber: `C-2051`,
-      departmentId: dept,
-      title: cfg.leadPothole.title,
-      issueFamily: cfg.family,
-      issueSubtype: cfg.leadPothole.issue,
-      publicPlace: segments[0],
-      district: 'District East',
-      locality: 'Gulshan-e-Iqbal',
-      workStatus: 'needs_acceptance',
-      linkedReportCount: 50,
-      uniqueReporterCount: 42,
-      pendingAcceptanceCount: 48,
-      priority: 'normal',
-      priorityReason:
-        'Standard municipal priority. High report volume informs operational scale but routine defects do not automatically escalate to life safety.',
-      firstReportedAt: new Date(Date.UTC(2026, 10, 9, 9, 48)).toISOString(),
-      lastReportedAt: new Date(Date.UTC(2026, 10, 15, 6, 10)).toISOString(),
-      oldestPendingAt: new Date(Date.UTC(2026, 10, 9, 9, 48)).toISOString(),
-      ageDays: 6,
-      assignedStaffId: null,
-      assignedStaffLabel: 'Unassigned',
-      summary: cfg.leadPothole.summary,
-      version: 1,
-      reports: leadReports,
-      activity: leadActivity,
-    });
-
-    // Case 2: Solo Severe Hazard (Priority outranking volume)
-    const urgentSoloReport: CaseReportRow = {
-      complaintId: `khi-comp-${dept}-00480001`,
-      referenceNumber: `KHI-2026-00480001`,
-      submittedAt: new Date(Date.UTC(2026, 10, 14, 9, 15)).toISOString(),
-      updatedAt: new Date(Date.UTC(2026, 10, 14, 9, 15)).toISOString(),
-      status: 'assigned',
-      sanitizedNarrativePreview: cfg.narrativeGen(
-        cfg.urgentSolo.issue,
-        segments[1]
-      ),
-      publicLocation: segments[1],
-      linkState: 'linked',
-      linkMethod: 'auto_asset',
-      uniquePersonId: `resident-${dept}-solo`,
+    const nowMs = Date.now();
+    const hoursAgo = (h: number) => new Date(nowMs - h * 3600 * 1000).toISOString();
+    const daysAgo = (d: number, hour = 10) => {
+      const base = new Date(nowMs - d * 86400000);
+      base.setUTCHours(hour, 15, 0, 0);
+      return base.toISOString();
     };
 
-    result.push({
-      id: `C-2048`,
-      caseNumber: `C-2048`,
-      departmentId: dept,
-      title: cfg.urgentSolo.title,
-      issueFamily: cfg.family,
-      issueSubtype: cfg.urgentSolo.issue,
-      publicPlace: segments[1],
-      district: 'District East',
-      locality: 'Gulshan-e-Iqbal',
-      workStatus: 'needs_acceptance',
-      linkedReportCount: 1,
-      uniqueReporterCount: 1,
-      pendingAcceptanceCount: 1,
-      priority: 'critical',
-      priorityReason:
-        'Life Safety: Acute physical collapse hazard threatening public transit passengers and pedestrians.',
-      firstReportedAt: new Date(Date.UTC(2026, 10, 14, 9, 15)).toISOString(),
-      lastReportedAt: new Date(Date.UTC(2026, 10, 14, 9, 15)).toISOString(),
-      oldestPendingAt: new Date(Date.UTC(2026, 10, 14, 9, 15)).toISOString(),
-      ageDays: 1,
-      assignedStaffId: null,
-      assignedStaffLabel: 'Unassigned',
-      summary: cfg.urgentSolo.summary,
-      version: 1,
-      reports: [urgentSoloReport],
-      activity: [
-        {
-          id: `act-${dept}-003`,
-          caseId: 'C-2048',
-          eventType: 'created',
-          label: 'Critical Hazard Logged',
-          detail: 'Single report escalated immediately to Priority queue due to acute physical collapse risk.',
-          actorLabel: 'Safety Rules Engine',
-          createdAt: new Date(Date.UTC(2026, 10, 14, 9, 15)).toISOString(),
-          formattedWhen: '14 Nov 2026 · 2:15 PM PKT',
-        },
-      ],
-    });
-
-    // Case 3: Secondary Critical Case
-    const manholeReports: CaseReportRow[] = Array.from({ length: 4 }, (_, r) => ({
-      complaintId: `khi-comp-${dept}-0001000${r}`,
-      referenceNumber: `KHI-2026-0001000${r}`,
-      submittedAt: new Date(Date.UTC(2026, 10, 12, 10, 10 + r * 5)).toISOString(),
-      updatedAt: new Date(Date.UTC(2026, 10, 12, 10, 10 + r * 5)).toISOString(),
-      status: 'assigned',
-      sanitizedNarrativePreview: 'Khula gutter playground ke gate ke paas hai, bachay khel rahay hain, hadsay ka dar hai.',
-      publicLocation: segments[11],
-      linkState: 'linked',
-      linkMethod: 'auto_cluster',
-      uniquePersonId: `resident-${dept}-manhole-${r}`,
-    }));
-
-    result.push({
-      id: `C-2001`,
-      caseNumber: `C-2001`,
-      departmentId: dept,
-      title: 'Open manhole beside playground',
-      issueFamily: cfg.family,
-      issueSubtype: 'Road safety',
-      publicPlace: segments[11],
-      district: 'District Central',
-      locality: 'North Nazimabad',
-      workStatus: 'needs_acceptance',
-      linkedReportCount: 4,
-      uniqueReporterCount: 4,
-      pendingAcceptanceCount: 4,
-      priority: 'critical',
-      priorityReason:
-        'Life Safety: Uncovered deep manhole at child recreational area requires urgent physical barrier and slab replacement.',
-      firstReportedAt: new Date(Date.UTC(2026, 10, 12, 10, 10)).toISOString(),
-      lastReportedAt: new Date(Date.UTC(2026, 10, 12, 10, 25)).toISOString(),
-      oldestPendingAt: new Date(Date.UTC(2026, 10, 12, 10, 10)).toISOString(),
-      ageDays: 3,
-      assignedStaffId: null,
-      assignedStaffLabel: 'Unassigned',
-      summary:
-        'Four independent reports describe an uncovered public manhole right beside the park entrance. Immediate emergency cover replacement needed.',
-      version: 1,
-      reports: manholeReports,
-      activity: [
-        {
-          id: `act-${dept}-004`,
-          caseId: 'C-2001',
-          eventType: 'created',
-          label: 'Case Created',
-          detail: 'Emergency case opened for open manhole.',
-          actorLabel: 'Intake Service',
-          createdAt: new Date(Date.UTC(2026, 10, 12, 10, 10)).toISOString(),
-          formattedWhen: '12 Nov 2026 · 3:10 PM PKT',
-        },
-      ],
-    });
-
-    // 9 More Core Seed Cases matching Prototype
-    const otherSeeds = [
+    // V16: Every incoming unconfirmed citizen complaint is kept strictly independent (1 report per record).
+    // No automatic locality or corridor bundling is applied on unconfirmed complaints.
+    const demoSeeds: Array<{
+      id: string;
+      ref: string;
+      title: string;
+      issue: string;
+      area: string;
+      place: string;
+      status: ComplaintStatus;
+      workStatus: 'needs_acceptance' | 'accepted' | 'in_progress' | 'completed';
+      risk: PriorityBand;
+      submittedAt: string;
+      age: number;
+      assignedStaffId?: string | null;
+      assignedStaffLabel?: string;
+      summary: string;
+      narrative: string;
+    }> = [
       {
-        id: 'C-2044',
-        title: 'Road drainage damaged near Sector 35',
-        issue: 'Road drainage',
-        area: 'Korangi',
-        place: 'Sector 35 public service road',
-        vol: 18,
-        status: 'assigned' as ComplaintStatus,
-        risk: 'high' as PriorityBand,
-        age: 5,
-        summary:
-          'Reports describe severe drainage-related road damage in Sector 35. Road foundation is weakening due to persistent waterlogging.',
-      },
-      {
-        id: 'C-2038',
-        title: 'Road surface sinking beside market',
-        issue: 'Road damage',
-        area: 'Gulberg',
-        place: 'Water Pump Chowrangi',
-        vol: 27,
-        status: 'in_progress' as ComplaintStatus,
-        risk: 'high' as PriorityBand,
-        age: 8,
-        summary:
-          'Multiple residents report a sinking road surface near the market square. Field inspection team dispatched.',
-      },
-      {
-        id: 'C-2036',
-        title: 'Debris blocking market access road',
-        issue: 'Road obstruction',
-        area: 'North Nazimabad',
-        place: 'Block H market road',
-        vol: 14,
-        status: 'assigned' as ComplaintStatus,
-        risk: 'normal' as PriorityBand,
-        age: 3,
-        summary:
-          'Residents report substantial construction debris obstructing the public market access street.',
-      },
-      {
-        id: 'C-2032',
-        title: 'Large pothole in service lane',
-        issue: 'Road damage',
-        area: 'PECHS',
-        place: 'Block 6 service lane near park',
-        vol: 3,
-        status: 'accepted' as ComplaintStatus,
-        risk: 'high' as PriorityBand,
-        age: 2,
-        summary:
-          'Three reports describe a deep pothole in the public service lane.',
-      },
-      {
-        id: 'C-2028',
-        title: 'Uneven road at main crossing',
-        issue: 'Road damage',
+        id: `demo-${dept}-001`,
+        ref: `KHI-2026-9001`,
+        title: cfg.leadPothole.title,
+        issue: cfg.leadPothole.issue,
         area: 'Gulshan-e-Iqbal',
-        place: 'Hasan Square crossing',
-        vol: 32,
-        status: 'assigned' as ComplaintStatus,
-        risk: 'normal' as PriorityBand,
-        age: 4,
-        summary:
-          'Multiple reports describe uneven road surface causing vehicular congestion at the crossing.',
+        place: segments[0],
+        status: 'assigned',
+        workStatus: 'needs_acceptance',
+        risk: 'normal',
+        submittedAt: hoursAgo(2),
+        age: 0,
+        summary: cfg.leadPothole.summary,
+        narrative: cfg.narrativeGen(cfg.leadPothole.issue, segments[0]),
       },
       {
-        id: 'C-2020',
-        title: 'Flood-damaged road beside public school',
-        issue: 'Road damage',
+        id: `demo-${dept}-002`,
+        ref: `KHI-2026-9002`,
+        title: cfg.urgentSolo.title,
+        issue: cfg.urgentSolo.issue,
+        area: 'Gulshan-e-Iqbal',
+        place: segments[1],
+        status: 'assigned',
+        workStatus: 'needs_acceptance',
+        risk: 'critical',
+        submittedAt: hoursAgo(3),
+        age: 0,
+        summary: cfg.urgentSolo.summary,
+        narrative: cfg.narrativeGen(cfg.urgentSolo.issue, segments[1]),
+      },
+      {
+        id: `demo-${dept}-003`,
+        ref: `KHI-2026-9003`,
+        title: cfg.titleGen(cfg.issues[1], segments[2]),
+        issue: cfg.issues[1],
         area: 'Korangi',
-        place: 'School Road near sector 5',
-        vol: 12,
-        status: 'in_progress' as ComplaintStatus,
-        risk: 'high' as PriorityBand,
-        age: 7,
-        summary:
-          'Road damage reported beside school entrance following rain. Field crew scheduled for resurfacing.',
+        place: segments[2],
+        status: 'in_progress',
+        workStatus: 'in_progress',
+        risk: 'high',
+        submittedAt: hoursAgo(4),
+        age: 0,
+        assignedStaffId: 'local-officer-a',
+        assignedStaffLabel: 'Field Officer A',
+        summary: cfg.leadPothole.summary,
+        narrative: cfg.narrativeGen(cfg.issues[1], segments[2]),
       },
       {
-        id: 'C-2017',
-        title: 'Damaged traffic lane near public crossing',
-        issue: 'Road damage',
-        area: 'Saddar',
-        place: 'Preedy Street crossing',
-        vol: 8,
-        status: 'assigned' as ComplaintStatus,
-        risk: 'normal' as PriorityBand,
-        age: 4,
-        summary:
-          'Several drivers report pothole damage in the traffic lane near Preedy Street.',
-      },
-      {
-        id: 'C-2011',
-        title: 'Construction debris blocking footpath',
-        issue: 'Footpath obstruction',
-        area: 'Clifton',
-        place: 'Block 4 main footpath',
-        vol: 6,
-        status: 'accepted' as ComplaintStatus,
-        risk: 'normal' as PriorityBand,
-        age: 5,
-        summary:
-          'Pedestrians report commercial building debris obstructing the sidewalk.',
-      },
-      {
-        id: 'C-2005',
-        title: 'Damaged road drain after heavy rain',
-        issue: 'Road drainage',
+        id: `demo-${dept}-004`,
+        ref: `KHI-2026-9004`,
+        title: cfg.titleGen(cfg.issues[2], segments[3]),
+        issue: cfg.issues[2],
         area: 'Gulberg',
-        place: 'Block 12 service road drain',
-        vol: 19,
-        status: 'resolved' as ComplaintStatus,
-        risk: 'normal' as PriorityBand,
+        place: segments[3],
+        status: dept === 'kmc' ? 'under_review' : 'accepted',
+        workStatus: 'accepted',
+        risk: 'normal',
+        submittedAt: hoursAgo(5),
+        age: 0,
+        summary: `Citizens reported ${cfg.issues[2].toLowerCase()} near ${segments[3]}.`,
+        narrative: cfg.narrativeGen(cfg.issues[2], segments[3]),
+      },
+      {
+        id: `demo-${dept}-005`,
+        ref: `KHI-2026-9005`,
+        title: cfg.titleGen(cfg.issues[0], segments[4]),
+        issue: cfg.issues[0],
+        area: 'North Nazimabad',
+        place: segments[4],
+        status: 'in_progress',
+        workStatus: 'in_progress',
+        risk: 'normal',
+        submittedAt: daysAgo(1, 9),
+        age: 1,
+        assignedStaffId: 'local-officer-a',
+        assignedStaffLabel: 'Field Officer A',
+        summary: `Repair verification awaiting supervisor inspection near ${segments[4]}.`,
+        narrative: cfg.narrativeGen(cfg.issues[0], segments[4]),
+      },
+      {
+        id: `demo-${dept}-006`,
+        ref: `KHI-2026-9006`,
+        title: cfg.titleGen(cfg.issues[3], segments[5]),
+        issue: cfg.issues[3],
+        area: 'PECHS',
+        place: segments[5],
+        status: 'accepted',
+        workStatus: 'accepted',
+        risk: 'normal',
+        submittedAt: daysAgo(1, 12),
+        age: 1,
+        summary: `Complaint logged yesterday near ${segments[5]}.`,
+        narrative: cfg.narrativeGen(cfg.issues[3], segments[5]),
+      },
+      {
+        id: `demo-${dept}-007`,
+        ref: `KHI-2026-9007`,
+        title: cfg.titleGen(cfg.issues[4], segments[6]),
+        issue: cfg.issues[4],
+        area: 'Saddar',
+        place: segments[6],
+        status: 'assigned',
+        workStatus: 'needs_acceptance',
+        risk: 'high',
+        submittedAt: daysAgo(4, 11),
         age: 4,
-        summary:
-          'Road drain near Block 12 was damaged and repaired. Field completion verified on ground.',
+        summary: `Earlier complaint this month requiring field dispatch near ${segments[6]}.`,
+        narrative: cfg.narrativeGen(cfg.issues[4], segments[6]),
+      },
+      {
+        id: `demo-${dept}-008`,
+        ref: `KHI-2026-9008`,
+        title: cfg.titleGen(cfg.issues[0], segments[7]),
+        issue: cfg.issues[0],
+        area: 'Clifton',
+        place: segments[7],
+        status: 'resolved',
+        workStatus: 'completed',
+        risk: 'normal',
+        submittedAt: daysAgo(12, 8),
+        age: 12,
+        assignedStaffId: 'local-officer-a',
+        assignedStaffLabel: 'Field Officer A',
+        summary: `Resolved and verified earlier this month near ${segments[7]}.`,
+        narrative: cfg.narrativeGen(cfg.issues[0], segments[7]),
       },
     ];
 
-    for (const seed of otherSeeds) {
-      const caseReports: CaseReportRow[] = Array.from(
-        { length: seed.vol },
-        (_, r) => {
-          const submitted = new Date(
-            Date.UTC(2026, 10, 15 - seed.age, 10, r * 4)
-          ).toISOString();
-          return {
-            complaintId: `khi-comp-${dept}-${seed.id}-${r}`,
-            referenceNumber: `KHI-2026-${seed.id.replace('C-', '')}${String(
-              r
-            ).padStart(4, '0')}`,
-            submittedAt: submitted,
-            updatedAt: submitted,
-            status: seed.status,
-            sanitizedNarrativePreview: `${seed.issue} ka issue ${seed.place} par hai, barah-e-karam hal karein.`,
-            publicLocation: seed.place,
-            linkState: 'linked',
-            linkMethod: 'auto_cluster',
-            uniquePersonId: `resident-${dept}-${seed.id}-${r % 11}`,
-          };
-        }
-      );
+    for (let i = 0; i < 92; i++) {
+      const area = areas[i % areas.length];
+      const place = segments[(i + 8) % segments.length];
+      const issue = cfg.issues[i % cfg.issues.length];
+      const age = i < 12 ? 0 : i < 24 ? 1 : 2 + (i % 20);
+      const status: ComplaintStatus = i % 5 === 0 ? 'resolved' : i % 3 === 0 ? 'accepted' : 'assigned';
+      const workStatus =
+        status === 'resolved'
+          ? 'completed'
+          : status === 'accepted'
+          ? 'accepted'
+          : 'needs_acceptance';
+      demoSeeds.push({
+        id: `demo-${dept}-${String(i + 9).padStart(3, '0')}`,
+        ref: `KHI-2026-${9010 + i}`,
+        title: `${cfg.titleGen(issue, place)} #${i + 9}`,
+        issue,
+        area,
+        place,
+        status,
+        workStatus,
+        risk: age > 14 ? 'high' : 'normal',
+        submittedAt: age === 0 ? hoursAgo(1 + (i % 6)) : daysAgo(age, 7 + (i % 8)),
+        age,
+        assignedStaffId: status === 'resolved' ? 'local-officer-a' : null,
+        assignedStaffLabel: status === 'resolved' ? 'Field Officer A' : 'Unassigned',
+        summary: `Citizen reported ${issue.toLowerCase()} near ${place}, ${area}.`,
+        narrative: cfg.narrativeGen(issue, place),
+      });
+    }
 
-      const pendingCount =
-        seed.status === 'assigned'
-          ? seed.vol
-          : seed.status === 'accepted' || seed.status === 'in_progress'
-          ? 0
-          : 0;
+    for (const seed of demoSeeds) {
+      const reportRow: CaseReportRow = {
+        complaintId: seed.id,
+        referenceNumber: seed.ref,
+        submittedAt: seed.submittedAt,
+        updatedAt: seed.submittedAt,
+        status: seed.status,
+        sanitizedNarrativePreview: seed.narrative,
+        publicLocation: seed.place,
+        linkState: 'linked',
+        linkMethod: 'manual_staff',
+        uniquePersonId: `resident-${seed.id}`,
+      };
 
+      const pendingCount = seed.status === 'assigned' || seed.status === 'submitted' ? 1 : 0;
       result.push({
         id: seed.id,
-        caseNumber: seed.id,
+        caseNumber: seed.ref,
         departmentId: dept,
         title: seed.title,
         issueFamily: cfg.family,
@@ -659,162 +572,34 @@ export class CaseOperationsService implements ICaseOperationsService {
             ? 'District Korangi'
             : 'District South',
         locality: seed.area,
-        workStatus:
-          seed.status === 'assigned'
-            ? 'needs_acceptance'
-            : seed.status === 'accepted'
-            ? 'accepted'
-            : seed.status === 'in_progress'
-            ? 'in_progress'
-            : 'completed',
-        linkedReportCount: seed.vol,
-        uniqueReporterCount: Math.min(
-          seed.vol,
-          new Set(caseReports.map((r) => r.uniquePersonId)).size
-        ),
+        workStatus: seed.workStatus,
+        linkedReportCount: 1,
+        uniqueReporterCount: 1,
         pendingAcceptanceCount: pendingCount,
         priority: seed.risk,
         priorityReason:
-          seed.risk === 'high'
-            ? 'Sustained service disruption and multi-day citizen wait.'
-            : 'Routine municipal grievance.',
-        firstReportedAt: new Date(
-          Date.UTC(2026, 10, 15 - seed.age, 10, 0)
-        ).toISOString(),
-        lastReportedAt: new Date(
-          Date.UTC(2026, 10, 15 - seed.age, 10, seed.vol * 4)
-        ).toISOString(),
-        oldestPendingAt:
-          pendingCount > 0
-            ? new Date(
-                Date.UTC(2026, 10, 15 - seed.age, 10, 0)
-              ).toISOString()
-            : null,
+          seed.risk === 'critical'
+            ? 'Urgent public safety concern reported by resident.'
+            : 'Standard independent citizen complaint.',
+        firstReportedAt: seed.submittedAt,
+        lastReportedAt: seed.submittedAt,
+        oldestPendingAt: pendingCount > 0 ? seed.submittedAt : null,
         ageDays: seed.age,
-        assignedStaffId: null,
-        assignedStaffLabel:
-          seed.id === 'C-2038'
-            ? 'Road works team'
-            : seed.id === 'C-2020'
-            ? 'Field crew B'
-            : 'Unassigned',
+        assignedStaffId: seed.assignedStaffId ?? null,
+        assignedStaffLabel: seed.assignedStaffLabel ?? 'Unassigned',
         summary: seed.summary,
         version: 1,
-        reports: caseReports,
+        reports: [reportRow],
         activity: [
           {
-            id: `act-${dept}-${seed.id}-01`,
+            id: `act-${seed.id}`,
             caseId: seed.id,
             eventType: 'created',
-            label: 'Case opened',
-            detail: `Case created with ${seed.vol} linked reports.`,
+            label: 'Complaint received',
+            detail: `Independent complaint ${seed.ref} logged for department triage.`,
             actorLabel: 'Citizen Intake',
-            createdAt: new Date(Date.UTC(2026, 10, Math.max(1, 15 - seed.age), 10, 0)).toISOString(),
-            formattedWhen: `${Math.max(1, 15 - seed.age)} Nov 2026 · 10:00 AM PKT`,
-          },
-        ],
-      });
-    }
-
-    // Generate 92 more distinct cases across genuine landmarks to reach 104 total cases & 1,252 reports
-    for (let n = 0; n < 92; n++) {
-      const area = areas[n % areas.length];
-      const place = segments[n % segments.length];
-      const issue = cfg.issues[n % cfg.issues.length];
-      const volume = 1 + ((n * 7) % 22);
-      const age = 1 + (n % 15);
-      const status: ComplaintStatus =
-        n % 8 === 0 ? 'resolved' : n % 9 === 0 ? 'in_progress' : 'assigned';
-      const id = `C-${1700 - n}`;
-      const title = cfg.titleGen(issue, place);
-      const risk: PriorityBand = age > 11 ? 'high' : 'normal';
-
-      const syntheticReports: CaseReportRow[] = Array.from(
-        { length: volume },
-        (_, r) => {
-          const submitted = new Date(
-            Date.UTC(2026, 10, 15 - age, 10, r % 60)
-          ).toISOString();
-          return {
-            complaintId: `khi-comp-${dept}-${id}-${r}`,
-            referenceNumber: `KHI-2026-${String(650000 + n * 30 + r).padStart(
-              8,
-              '0'
-            )}`,
-            submittedAt: submitted,
-            updatedAt: submitted,
-            status,
-            sanitizedNarrativePreview: `${issue} ka issue ${place} ke qareeb hai, action karein.`,
-            publicLocation: place,
-            linkState: 'linked',
-            linkMethod: 'auto_cluster',
-            uniquePersonId: `synthetic-${dept}-${n}-${r}`,
-          };
-        }
-      );
-
-      const pendingCount = status === 'assigned' ? volume : 0;
-
-      result.push({
-        id,
-        caseNumber: id,
-        departmentId: dept,
-        title,
-        issueFamily: cfg.family,
-        issueSubtype: issue,
-        publicPlace: place,
-        district:
-          area === 'Gulshan-e-Iqbal'
-            ? 'District East'
-            : area === 'Gulberg' || area === 'North Nazimabad'
-            ? 'District Central'
-            : area === 'Korangi'
-            ? 'District Korangi'
-            : 'District South',
-        locality: area,
-        workStatus:
-          status === 'assigned'
-            ? 'needs_acceptance'
-            : status === 'in_progress'
-            ? 'in_progress'
-            : 'completed',
-        linkedReportCount: volume,
-        uniqueReporterCount: Math.min(
-          volume,
-          new Set(syntheticReports.map((r) => r.uniquePersonId)).size
-        ),
-        pendingAcceptanceCount: pendingCount,
-        priority: risk,
-        priorityReason:
-          risk === 'high'
-            ? 'Oldest unaddressed public report exceeds 10 days.'
-            : 'Standard municipal backlog.',
-        firstReportedAt: new Date(
-          Date.UTC(2026, 10, 15 - age, 10, 0)
-        ).toISOString(),
-        lastReportedAt: new Date(
-          Date.UTC(2026, 10, 15 - age, 10, volume % 60)
-        ).toISOString(),
-        oldestPendingAt:
-          pendingCount > 0
-            ? new Date(Date.UTC(2026, 10, 15 - age, 10, 0)).toISOString()
-            : null,
-        ageDays: age,
-        assignedStaffId: null,
-        assignedStaffLabel: 'Unassigned',
-        summary: `People have reported ${issue.toLowerCase()} near ${place}, ${area}.`,
-        version: 1,
-        reports: syntheticReports,
-        activity: [
-          {
-            id: `act-${dept}-${id}-01`,
-            caseId: id,
-            eventType: 'created',
-            label: 'Case opened',
-            detail: 'Case opened from citizen report.',
-            actorLabel: 'Citizen Intake',
-            createdAt: new Date(Date.UTC(2026, 10, Math.max(1, 15 - age), 9, 0)).toISOString(),
-            formattedWhen: `${Math.max(1, 15 - age)} Nov 2026 · 9:00 AM PKT`,
+            createdAt: seed.submittedAt,
+            formattedWhen: seed.submittedAt,
           },
         ],
       });
@@ -833,15 +618,15 @@ export class CaseOperationsService implements ICaseOperationsService {
     try {
       const { data, error } = await supabase
         .from('complaints')
-        // Staff must never request the guest claim/tracking credential digests.
-        .select('id, citizen_id, reference_number, created_at, updated_at, status, sanitized_description, description, incident_public_location, incident_locality, generated_heading, title, predicted_department_id, assigned_department_id, assigned_department_ids, incident_district, manual_priority, manual_priority_reason, factual_summary')
-        .or(`assigned_department_id.eq.${deptId},assigned_department_ids.cs.{${deptId}}`);
+        // Staff must never request raw private description or guest claim/tracking credential digests.
+        .select('id, citizen_id, reference_number, created_at, updated_at, status, sanitized_description, incident_public_location, incident_locality, generated_heading, title, predicted_department_id, assigned_department_id, assigned_department_ids, incident_district, manual_priority, manual_priority_reason, factual_summary')
+        .or(`assigned_department_id.eq.${deptId},assigned_department_ids.cs.{${deptId}}`)
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
       if (!data || !Array.isArray(data)) throw new Error('The case service returned an invalid response.');
 
       // STRICT DATA INTEGRITY: Never mix seeded demo cases with live Supabase cases.
-      // If live records exist, the department queue is built strictly and solely from live data.
       if (data.length === 0) {
         if (!this.isDemonstrationWorkspace()) {
           this.casesByDept.set(deptId, []);
@@ -849,106 +634,131 @@ export class CaseOperationsService implements ICaseOperationsService {
         return;
       }
 
-      const { data: issueRows, error: issueError } = await supabase
-        .from('complaint_issues')
-        .select('complaint_id,issue_type,department_id')
-        .eq('department_id', deptId)
-        .in('complaint_id', data.map((item) => item.id));
+      const complaintIds = data.map((item) => item.id);
+      const [{ data: issueRows, error: issueError }, { data: orderLinks }] = await Promise.all([
+        supabase
+          .from('complaint_issues')
+          .select('complaint_id,issue_type,department_id,status')
+          .eq('department_id', deptId)
+          .in('complaint_id', complaintIds),
+        supabase
+          .from('department_work_order_reports')
+          .select('complaint_id, order_id, department_work_orders(id, officer_id, status)')
+          .eq('department_id', deptId)
+          .in('complaint_id', complaintIds),
+      ]);
       if (issueError) throw issueError;
-      const issueByComplaint = new Map<string, string>();
+
+      const issueByComplaint = new Map<string, string[]>();
+      const issueStatusByComplaint = new Map<string, string>();
       for (const issue of issueRows || []) {
-        if (issue.issue_type) issueByComplaint.set(issue.complaint_id, issue.issue_type);
+        if (issue.issue_type) {
+          const list = issueByComplaint.get(issue.complaint_id) || [];
+          list.push(issue.issue_type);
+          issueByComplaint.set(issue.complaint_id, list);
+        }
+        if (issue.status) {
+          issueStatusByComplaint.set(issue.complaint_id, issue.status);
+        }
       }
 
-      // Build cases exclusively from live Supabase complaints
+      const workLinkByComplaint = new Map<string, { orderId: string; officerId: string | null; status: string | null }>();
+      for (const link of (orderLinks || []) as Array<Record<string, unknown>>) {
+        const wo = (link.department_work_orders || {}) as Record<string, unknown>;
+        workLinkByComplaint.set(String(link.complaint_id), {
+          orderId: String(link.order_id),
+          officerId: wo.officer_id ? String(wo.officer_id) : null,
+          status: wo.status ? String(wo.status) : null,
+        });
+      }
+
+      // Build cases exclusively from live Supabase complaints with stable UUID identity (never raw text fallback)
       const liveCases: StoredCase[] = [];
-      const existingRefMap = new Map<string, { caseItem: StoredCase; report: CaseReportRow }>();
+      const seenCaseNumbers = new Set<string>();
 
       for (const row of data) {
-        const mapped = existingRefMap.get(row.id);
-        if (mapped) {
-          mapped.report.status = row.status || mapped.report.status;
-          mapped.report.updatedAt = row.updated_at || mapped.report.updatedAt;
-          const reports = mapped.caseItem.reports;
-          mapped.caseItem.pendingAcceptanceCount = reports.filter(
-            (r) => r.status === 'assigned' || r.status === 'submitted'
-          ).length;
-          if (reports.every((r) => r.status === 'resolved' || r.status === 'rejected')) {
-            mapped.caseItem.workStatus = 'completed';
-          } else if (reports.some((r) => r.status === 'in_progress')) {
-            mapped.caseItem.workStatus = 'in_progress';
-          } else if (reports.some((r) => r.status === 'accepted')) {
-            mapped.caseItem.workStatus = 'accepted';
-          } else {
-            mapped.caseItem.workStatus = 'needs_acceptance';
-          }
-        } else {
-          const newReport: CaseReportRow = {
-            complaintId: row.id,
-            referenceNumber: row.reference_number || `KHI-2026-${row.id.slice(0, 8).toUpperCase()}`,
-            submittedAt: row.created_at || new Date().toISOString(),
-            updatedAt: row.updated_at || new Date().toISOString(),
-            status: row.status || 'assigned',
-            sanitizedNarrativePreview:
-              row.sanitized_description || row.description || 'Public complaint',
-            publicLocation: row.incident_public_location || row.incident_locality || 'Karachi',
-            linkState: 'linked',
-            uniquePersonId: row.citizen_id ? `citizen-${row.citizen_id.slice(0, 8)}` : `guest-${row.id.slice(0, 8)}`,
-          };
-
-          const locality = row.incident_locality || 'General';
-          // V16: one incoming complaint per row. Only explicit work-order links may join reports.
-          let caseNum = `C-${(row.reference_number || row.id).slice(-4).toUpperCase()}`;
-          if (liveCases.some((c) => c.id === caseNum)) {
-            caseNum = `C-${row.id.replace(/-/g, '').slice(0, 4).toUpperCase()}`;
-          }
-
-          let initialStatus: 'needs_acceptance' | 'accepted' | 'in_progress' | 'completed' = 'needs_acceptance';
-          if (row.status === 'accepted') initialStatus = 'accepted';
-          else if (row.status === 'in_progress') initialStatus = 'in_progress';
-          else if (row.status === 'resolved' || row.status === 'rejected') initialStatus = 'completed';
-
-          const newCase: StoredCase = {
-            id: caseNum,
-            caseNumber: caseNum,
-            departmentId: deptId,
-            title: row.generated_heading || row.title || 'Citizen Public Report',
-            issueFamily: 'Municipal Infrastructure',
-            issueSubtype: issueByComplaint.get(row.id) || 'General',
-            publicPlace: row.incident_public_location || locality,
-            district: row.incident_district || 'District East',
-            locality: locality,
-            workStatus: initialStatus,
-            linkedReportCount: 1,
-            uniqueReporterCount: 1,
-            pendingAcceptanceCount: (row.status === 'assigned' || row.status === 'submitted') ? 1 : 0,
-            priority: (row.manual_priority as any) || 'normal',
-            priorityReason: row.manual_priority_reason || 'Live submission received from citizen portal.',
-            firstReportedAt: row.created_at || new Date().toISOString(),
-            lastReportedAt: row.created_at || new Date().toISOString(),
-            oldestPendingAt: row.created_at || new Date().toISOString(),
-            ageDays: 0,
-            assignedStaffId: null,
-            assignedStaffLabel: 'Unassigned',
-            summary: row.factual_summary || row.description || 'Live citizen complaint',
-            version: 1,
-            reports: [newReport],
-            activity: [
-              {
-                id: `act-live-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-                caseId: caseNum,
-                eventType: 'created',
-                label: 'Complaint submitted',
-                detail: `Citizen submitted live complaint ${newReport.referenceNumber}.`,
-                actorLabel: 'Citizen Portal',
-                createdAt: row.created_at || new Date().toISOString(),
-                formattedWhen: 'Just now',
-              },
-            ],
-          };
-          liveCases.unshift(newCase);
-          existingRefMap.set(newReport.complaintId, { caseItem: newCase, report: newReport });
+        const refNumber = row.reference_number || `KHI-2026-${row.id.replace(/-/g, '').slice(0, 8).toUpperCase()}`;
+        let caseNum = refNumber;
+        if (seenCaseNumbers.has(caseNum)) {
+          caseNum = `${refNumber}-${row.id.slice(0, 4).toUpperCase()}`;
         }
+        seenCaseNumbers.add(caseNum);
+
+        const sanitizedText =
+          row.sanitized_description ||
+          row.factual_summary ||
+          row.generated_heading ||
+          row.title ||
+          'Sanitized summary unavailable.';
+
+        const newReport: CaseReportRow = {
+          complaintId: row.id,
+          referenceNumber: refNumber,
+          submittedAt: row.created_at || new Date().toISOString(),
+          updatedAt: row.updated_at || row.created_at || new Date().toISOString(),
+          status: row.status || 'assigned',
+          sanitizedNarrativePreview: sanitizedText,
+          publicLocation: row.incident_public_location || row.incident_locality || 'Karachi',
+          linkState: 'linked',
+          linkMethod: workLinkByComplaint.has(row.id) ? 'manual_staff' : undefined,
+          uniquePersonId: row.citizen_id ? `citizen-${row.citizen_id.slice(0, 8)}` : `guest-${row.id.slice(0, 8)}`,
+        };
+
+        const locality = row.incident_locality || 'General';
+        const linkedWork = workLinkByComplaint.get(row.id);
+        const deptIssueStatus = issueStatusByComplaint.get(row.id);
+
+        let initialStatus: 'needs_acceptance' | 'accepted' | 'in_progress' | 'completed' = 'needs_acceptance';
+        if (row.status === 'resolved' || row.status === 'rejected' || deptIssueStatus === 'resolved') {
+          initialStatus = 'completed';
+        } else if (linkedWork || row.status === 'in_progress' || deptIssueStatus === 'in_progress') {
+          initialStatus = 'in_progress';
+        } else if (row.status === 'accepted' || deptIssueStatus === 'accepted') {
+          initialStatus = 'accepted';
+        }
+
+        const issueList = issueByComplaint.get(row.id) || [];
+        const createdMs = row.created_at ? new Date(row.created_at).getTime() : Date.now();
+        const ageDays = Number.isFinite(createdMs) ? Math.max(0, Math.floor((Date.now() - createdMs) / 86400000)) : 0;
+
+        liveCases.push({
+          id: row.id,
+          caseNumber: caseNum,
+          departmentId: deptId,
+          title: row.generated_heading || row.title || 'Citizen Public Report',
+          issueFamily: 'Municipal Infrastructure',
+          issueSubtype: issueList[0] || 'General',
+          publicPlace: row.incident_public_location || locality,
+          district: row.incident_district || 'District East',
+          locality,
+          workStatus: initialStatus,
+          linkedReportCount: 1,
+          uniqueReporterCount: 1,
+          pendingAcceptanceCount: (row.status === 'assigned' || row.status === 'submitted') && !linkedWork ? 1 : 0,
+          priority: (row.manual_priority as PriorityBand) || 'normal',
+          priorityReason: row.manual_priority_reason || 'Live submission received from citizen portal.',
+          firstReportedAt: newReport.submittedAt,
+          lastReportedAt: newReport.updatedAt,
+          oldestPendingAt: newReport.submittedAt,
+          ageDays,
+          assignedStaffId: linkedWork?.officerId || null,
+          assignedStaffLabel: linkedWork?.officerId ? 'Assigned officer' : 'Unassigned',
+          summary: row.factual_summary || sanitizedText,
+          version: 1,
+          reports: [newReport],
+          activity: [
+            {
+              id: `act-live-${row.id}`,
+              caseId: row.id,
+              eventType: 'created',
+              label: 'Complaint submitted',
+              detail: `Citizen submitted independent complaint ${refNumber}.`,
+              actorLabel: 'Citizen Portal',
+              createdAt: newReport.submittedAt,
+              formattedWhen: newReport.submittedAt,
+            },
+          ],
+        });
       }
 
       this.casesByDept.set(deptId, liveCases);
@@ -1116,7 +926,12 @@ export class CaseOperationsService implements ICaseOperationsService {
 
   async getCaseDetail(caseId: string): Promise<IncidentCaseSummary | null> {
     for (const list of this.casesByDept.values()) {
-      const found = list.find((c) => c.id === caseId || c.caseNumber === caseId);
+      const found = list.find(
+        (c) =>
+          c.id === caseId ||
+          c.caseNumber === caseId ||
+          c.reports.some((r) => r.complaintId === caseId || r.referenceNumber === caseId)
+      );
       if (found) return found;
     }
     return null;
@@ -1130,7 +945,12 @@ export class CaseOperationsService implements ICaseOperationsService {
   ): Promise<CursorPage<CaseReportRow>> {
     let found: StoredCase | undefined;
     for (const list of this.casesByDept.values()) {
-      found = list.find((c) => c.id === caseId || c.caseNumber === caseId);
+      found = list.find(
+        (c) =>
+          c.id === caseId ||
+          c.caseNumber === caseId ||
+          c.reports.some((r) => r.complaintId === caseId || r.referenceNumber === caseId)
+      );
       if (found) break;
     }
     if (!found) {
@@ -1296,7 +1116,10 @@ export class CaseOperationsService implements ICaseOperationsService {
     // the entire batch; never commit just the first N reports.
     if (live && supabase) {
       if (eligibleReports.length === 0) {
-        throw new Error('This case has no assigned reports awaiting acceptance.');
+        throw new Error('This complaint is not awaiting acceptance.');
+      }
+      if (eligibleReports.length > 1) {
+        throw new Error('Unconfirmed multi-report batch acceptance is disabled in V16. Assign or review complaints individually.');
       }
       const { data, error } = await supabase.rpc('staff_accept_department_report_batch', {
         p_department_id: found.departmentId,
@@ -1304,10 +1127,12 @@ export class CaseOperationsService implements ICaseOperationsService {
         p_idempotency_key: idempotencyKey,
       });
       if (error || !data?.success || data.acceptedCount !== eligibleReports.length) {
-        throw new Error('Atomic acceptance was not confirmed. Refresh the case and retry with the same operation key.');
+        throw new Error('Atomic acceptance was not confirmed. Refresh the complaint and retry with the same operation key.');
       }
     } else if (!this.isDemonstrationWorkspace()) {
       throw new Error('Secure case acceptance is unavailable without a live department connection.');
+    } else if (eligibleReports.length > 1) {
+      throw new Error('Unconfirmed multi-report batch acceptance is disabled in V16. Assign or review complaints individually.');
     }
 
     let acceptedCount = 0;
@@ -1483,6 +1308,177 @@ export class CaseOperationsService implements ICaseOperationsService {
 
     views.sort((a, b) => b.submittedAt.localeCompare(a.submittedAt));
     return views;
+  }
+
+  /**
+   * V16 Head period overview metrics computed strictly using distinct complaint IDs
+   * received within Asia/Karachi calendar boundaries whose status is active.
+   */
+  async getHeadPeriodOverview(
+    deptId: DepartmentId,
+    period: HeadOverviewPeriod,
+    orders: Array<{ anchor_complaint_id: string; status: string }> = [],
+    orderLinksMap?: Map<string, Array<{ complaint_id: string }>>
+  ): Promise<HeadPeriodOverview> {
+    await this.syncWithSupabase(deptId);
+    const list = this.casesByDept.get(deptId) || [];
+    const { startMs, endMs } = getPktPeriodBounds(period);
+
+    const orderStatusByComplaint = new Map<string, string>();
+    for (const order of orders) {
+      orderStatusByComplaint.set(order.anchor_complaint_id, order.status);
+      const linked = orderLinksMap?.get((order as unknown as { id?: string }).id || '');
+      if (linked) {
+        for (const item of linked) {
+          orderStatusByComplaint.set(item.complaint_id, order.status);
+        }
+      }
+    }
+
+    const seenIds = new Set<string>();
+    let newComplaints = 0;
+    let underReview = 0;
+    let inProgress = 0;
+    let awaitingVerification = 0;
+
+    for (const item of list) {
+      const report = item.reports[0];
+      const complaintId = report?.complaintId || item.id;
+      if (seenIds.has(complaintId)) continue;
+
+      const status = report?.status || (item.workStatus === 'completed' ? 'resolved' : 'assigned');
+      if (status === 'resolved' || status === 'rejected' || item.workStatus === 'completed') {
+        continue;
+      }
+
+      const ts = new Date(item.firstReportedAt).getTime();
+      if (!Number.isFinite(ts) || ts < startMs || ts > endMs) continue;
+      seenIds.add(complaintId);
+
+      const woStatus = orderStatusByComplaint.get(complaintId);
+      if (woStatus === 'pending_review') {
+        awaitingVerification += 1;
+      } else if (
+        status === 'in_progress' ||
+        item.workStatus === 'in_progress' ||
+        woStatus === 'assigned' ||
+        woStatus === 'in_progress' ||
+        woStatus === 'returned'
+      ) {
+        inProgress += 1;
+      } else if (status === 'under_review' || status === 'accepted' || item.workStatus === 'accepted') {
+        underReview += 1;
+      } else {
+        newComplaints += 1;
+      }
+    }
+
+    return {
+      period,
+      totalActive: newComplaints + underReview + inProgress + awaitingVerification,
+      newComplaints,
+      underReview,
+      inProgress,
+      awaitingVerification,
+    };
+  }
+
+  /**
+   * V16 flat independent incoming & active complaint rows for Head triage and detail reading.
+   */
+  async listIndependentComplaintsForHead(
+    deptId: DepartmentId,
+    options: {
+      period?: ComplaintsDateFilter;
+      area?: string;
+      searchQuery?: string;
+      includeResolved?: boolean;
+      orders?: Array<{ id: string; anchor_complaint_id: string; officer_id: string; status: string }>;
+      orderLinksMap?: Map<string, Array<{ complaint_id: string }>>;
+      officerNames?: Map<string, string>;
+    } = {}
+  ): Promise<HeadIndependentComplaintRow[]> {
+    await this.syncWithSupabase(deptId);
+    const list = this.casesByDept.get(deptId) || [];
+    const period = options.period ?? 'today';
+    const { startMs, endMs } = getPktPeriodBounds(period);
+    const areaFilter = options.area && options.area !== 'All areas' ? options.area : null;
+    const query = (options.searchQuery || '').trim().toLowerCase();
+
+    const orderMetaByComplaint = new Map<string, { orderId: string; status: string; officerId: string }>();
+    for (const order of options.orders || []) {
+      orderMetaByComplaint.set(order.anchor_complaint_id, {
+        orderId: order.id,
+        status: order.status,
+        officerId: order.officer_id,
+      });
+      const linked = options.orderLinksMap?.get(order.id);
+      if (linked) {
+        for (const item of linked) {
+          orderMetaByComplaint.set(item.complaint_id, {
+            orderId: order.id,
+            status: order.status,
+            officerId: order.officer_id,
+          });
+        }
+      }
+    }
+
+    const seenIds = new Set<string>();
+    const rows: HeadIndependentComplaintRow[] = [];
+
+    for (const item of list) {
+      const report = item.reports[0];
+      const complaintId = report?.complaintId || item.id;
+      if (seenIds.has(complaintId)) continue;
+      seenIds.add(complaintId);
+
+      const status = report?.status || 'assigned';
+      if (!options.includeResolved && (status === 'resolved' || status === 'rejected' || item.workStatus === 'completed')) {
+        continue;
+      }
+
+      const ts = new Date(item.firstReportedAt).getTime();
+      if (period !== 'all' && (!Number.isFinite(ts) || ts < startMs || ts > endMs)) {
+        continue;
+      }
+
+      if (areaFilter && item.locality !== areaFilter) {
+        continue;
+      }
+
+      const ref = report?.referenceNumber || item.caseNumber;
+      const heading = item.title;
+      const sanitizedText = report?.sanitizedNarrativePreview || item.summary;
+      if (query) {
+        const haystack = `${heading} ${ref} ${item.locality} ${item.publicPlace}`.toLowerCase();
+        if (!haystack.includes(query)) continue;
+      }
+
+      const wo = orderMetaByComplaint.get(complaintId);
+      rows.push({
+        id: complaintId,
+        referenceNumber: ref,
+        heading,
+        sanitizedText,
+        factualSummary: item.summary,
+        locality: item.locality,
+        publicPlace: item.publicPlace,
+        district: item.district,
+        issueTypes: [item.issueSubtype],
+        status,
+        workOrderStatus: (wo?.status as HeadIndependentComplaintRow['workOrderStatus']) ?? null,
+        workOrderId: wo?.orderId ?? null,
+        assignedOfficerId: wo?.officerId ?? item.assignedStaffId,
+        assignedOfficerName: wo?.officerId ? options.officerNames?.get(wo.officerId) || null : null,
+        submittedAt: item.firstReportedAt,
+        updatedAt: item.lastReportedAt,
+        priority: item.priority,
+      });
+    }
+
+    rows.sort((a, b) => b.submittedAt.localeCompare(a.submittedAt));
+    return rows;
   }
 }
 

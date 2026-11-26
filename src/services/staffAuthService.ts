@@ -30,6 +30,7 @@ export interface StaffSession {
   departmentId?: string;
   departmentName?: string;
   departmentCode?: string;
+  mustChangePassword?: boolean;
   authenticatedAt: string;
 }
 
@@ -182,6 +183,7 @@ class StaffAuthService {
             departmentId: activeMembership.department_id,
             departmentName: activeMembership.departments?.name,
             departmentCode: activeMembership.departments?.code,
+            mustChangePassword: Boolean(activeMembership.must_change_password),
             authenticatedAt: new Date().toISOString(),
           };
           this.setStoredStaffSession(staffSession);
@@ -189,6 +191,19 @@ class StaffAuthService {
             success: true,
             status: 'approved',
             session: staffSession,
+          };
+        }
+
+        const suspendedMembership = memberships?.find((m) => m.status === 'suspended');
+        if (suspendedMembership) {
+          await supabase.auth.signOut();
+          return {
+            success: false,
+            status: 'revoked',
+            rejectionReason: suspendedMembership.suspension_reason,
+            error: `Your departmental access has been suspended: ${
+              suspendedMembership.suspension_reason || 'Suspended by Department Head.'
+            }`,
           };
         }
 
@@ -315,12 +330,101 @@ class StaffAuthService {
     }
 
     if (!identity) {
-      if (isSupabaseConfigured()) {
-        return {
-          success: false,
-          status: 'invalid_password',
-          error: 'Invalid username or access key.',
-        };
+      if (isSupabaseConfigured() && supabase) {
+        try {
+          const cleanId = rawUsername.trim().toLowerCase();
+          const rpcRes =
+            cleanId.includes('@') || typeof supabase.rpc !== 'function'
+              ? { data: cleanId.includes('@') ? cleanId : null, error: null }
+              : await supabase.rpc('v16_resolve_staff_login_email', {
+                  p_identifier: cleanId,
+                  p_department: expectedDeptId ?? null,
+                });
+          const resolvedEmail = rpcRes?.data;
+          if (!resolvedEmail || typeof resolvedEmail !== 'string') {
+            return {
+              success: false,
+              status: 'invalid_password',
+              error: 'Invalid username or access key.',
+            };
+          }
+          const { data: authData, error: authErr } = await supabase.auth.signInWithPassword({
+            email: resolvedEmail,
+            password: accessKey,
+          });
+          if (authErr || !authData.user) {
+            return {
+              success: false,
+              status: authErr && staffAuthUnavailable(authErr) ? 'unavailable' : 'invalid_password',
+              error: authErr && staffAuthUnavailable(authErr)
+                ? 'Authentication service is unavailable. Check your connection, then try again.'
+                : 'Invalid username or access key.',
+            };
+          }
+
+          const { data: memberships, error: memErr } = await supabase
+            .from('department_memberships')
+            .select('*, departments(*)')
+            .eq('user_id', authData.user.id);
+          if (memErr) {
+            await supabase.auth.signOut();
+            return { success: false, status: 'unavailable', error: 'Unable to verify department access.' };
+          }
+          const relevant = expectedDeptId
+            ? memberships?.filter((m) => m.department_id === expectedDeptId)
+            : memberships;
+          const suspended = relevant?.find((m) => m.status === 'suspended');
+          if (suspended) {
+            await supabase.auth.signOut();
+            return {
+              success: false,
+              status: 'revoked',
+              rejectionReason: suspended.suspension_reason,
+              error: `Your departmental access has been suspended: ${suspended.suspension_reason || 'Suspended by Department Head.'}`,
+            };
+          }
+          const revoked = relevant?.find((m) => m.status === 'revoked');
+          if (revoked) {
+            await supabase.auth.signOut();
+            return {
+              success: false,
+              status: 'revoked',
+              rejectionReason: revoked.revocation_reason,
+              error: `Your departmental access has been revoked: ${revoked.revocation_reason || 'Access withdrawn.'}`,
+            };
+          }
+          const active = relevant?.find((m) => m.status === 'active');
+          if (!active) {
+            await supabase.auth.signOut();
+            return {
+              success: false,
+              status: expectedDeptId && memberships?.some((m) => m.status === 'active') ? 'wrong_department' : 'not_found',
+              error: expectedDeptId && memberships?.some((m) => m.status === 'active')
+                ? 'This staff account is not authorized for the selected department.'
+                : 'No active department membership found for this account.',
+            };
+          }
+          const staffSession: StaffSession = {
+            userId: authData.user.id,
+            email: resolvedEmail,
+            username: active.staff_username || cleanId,
+            fullName: authData.user.user_metadata?.full_name || 'Field Officer',
+            role: 'department_staff',
+            departmentId: active.department_id,
+            departmentName: active.departments?.name,
+            departmentCode: active.departments?.code,
+            mustChangePassword: Boolean(active.must_change_password),
+            authenticatedAt: new Date().toISOString(),
+          };
+          this.setStoredStaffSession(staffSession);
+          return { success: true, status: 'approved', session: staffSession };
+        } catch {
+          return {
+            success: false,
+            status: 'unavailable',
+            error: 'Authentication service is unavailable. Please try again later.',
+          };
+        }
       }
       // Fallback for test suites or legacy accounts
       const result = localSupabaseAdapter.authenticateStaffWithUsername(
@@ -428,6 +532,7 @@ class StaffAuthService {
             departmentId: activeMembership.department_id,
             departmentName: activeMembership.departments?.name || identity.departmentName,
             departmentCode: activeMembership.departments?.code || identity.departmentCode,
+            mustChangePassword: Boolean(activeMembership.must_change_password),
             authenticatedAt: new Date().toISOString(),
           };
           this.setStoredStaffSession(staffSession);

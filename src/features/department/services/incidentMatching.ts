@@ -44,6 +44,14 @@ function knownIssueTypes(types: readonly string[]): string[] {
   return [...new Set(types.map(t => t.trim().toLowerCase()).filter(t => t && !unknownTypes.has(t)))].sort();
 }
 
+export interface IncidentMatchCandidate<T extends ActiveIncident> {
+  incident: T;
+  distanceMetres: number;
+  matchConfidence: 'exact_issue_and_pin' | 'uncertain_subtype_pin';
+  canDirectAttach: boolean;
+  blockReason?: string;
+}
+
 /** Compare the entire department-specific issue set; avoid linking mixed issues on a partial match. */
 export function findPotentialIncidentMatches<T extends ActiveIncident>(
   incoming: IncidentIdentity,
@@ -64,4 +72,69 @@ export function findPotentialIncidentMatches<T extends ActiveIncident>(
       ? [{ incident, distanceMetres }]
       : [];
   }).sort((a, b) => a.distanceMetres - b.distanceMetres || a.incident.orderId.localeCompare(b.incident.orderId));
+}
+
+/**
+ * Extended advisory matcher supporting optional uncertain candidates when subtype
+ * is generic/unknown, and flagging proof-pending work orders so they cannot be
+ * attached without explicit proof review.
+ */
+export function findAdvisoryIncidentMatches<T extends ActiveIncident>(
+  incoming: IncidentIdentity,
+  activeOrders: readonly T[],
+  options: { includeUncertain?: boolean; radiusMetres?: number } = {},
+): Array<IncidentMatchCandidate<T>> {
+  const radius = options.radiusMetres && options.radiusMetres > 0 ? options.radiusMetres : INCIDENT_MATCH_RADIUS_METRES;
+  const rawNormalized = [...new Set(incoming.issueTypes.map((t) => t.trim().toLowerCase()).filter(Boolean))];
+  const sourceTypes = knownIssueTypes(incoming.issueTypes);
+  const isUnknownSubtype = sourceTypes.length === 0;
+  const hasMixedUnknown = sourceTypes.length > 0 && sourceTypes.length !== rawNormalized.length;
+
+  if (hasMixedUnknown) return [];
+  if (isUnknownSubtype && !options.includeUncertain) return [];
+
+  return activeOrders
+    .flatMap((incident) => {
+      if (
+        !['assigned', 'in_progress', 'returned', 'pending_review'].includes(incident.status) ||
+        incident.departmentId !== incoming.departmentId ||
+        incident.complaintId === incoming.complaintId
+      ) {
+        return [];
+      }
+
+      const targetRaw = [...new Set(incident.issueTypes.map((t) => t.trim().toLowerCase()).filter(Boolean))];
+      const targetTypes = knownIssueTypes(incident.issueTypes);
+      if (targetTypes.length > 0 && targetTypes.length !== targetRaw.length) {
+        return [];
+      }
+
+      const exactSetMatch =
+        !isUnknownSubtype &&
+        targetTypes.length === sourceTypes.length &&
+        sourceTypes.every((t, i) => t === targetTypes[i]);
+
+      if (!exactSetMatch && !isUnknownSubtype) {
+        return [];
+      }
+
+      const distanceMetres = incidentDistanceMetres(incoming.pin, incident.pin);
+      if (distanceMetres === null || distanceMetres > radius) {
+        return [];
+      }
+
+      const canDirectAttach = ['assigned', 'in_progress', 'returned'].includes(incident.status);
+      return [
+        {
+          incident,
+          distanceMetres,
+          matchConfidence: isUnknownSubtype ? ('uncertain_subtype_pin' as const) : ('exact_issue_and_pin' as const),
+          canDirectAttach,
+          blockReason: canDirectAttach
+            ? undefined
+            : 'Proof review is pending on this work order. Complete proof verification or assign separately.',
+        },
+      ];
+    })
+    .sort((a, b) => a.distanceMetres - b.distanceMetres || a.incident.orderId.localeCompare(b.incident.orderId));
 }

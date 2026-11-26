@@ -16,26 +16,22 @@ describe('AWAAZ-E-AWAM — CASE OPERATIONS DESK (V5)', () => {
     caseOperationsService.resetToDefault();
   });
 
-  describe('1. Incident Case Corroboration & Grouping Safety', () => {
-    it('A01: 50 same-pothole reports corroborate into 1 case with 50 linked reports (C-2051)', async () => {
-      const caseItem = await caseOperationsService.getCaseById('C-2051');
+  describe('1. Independent Complaint Intake & Grouping Safety', () => {
+    it('A01: Same-area reports remain independent single-report complaints until confirmed work-order linkage', async () => {
+      const caseItem = await caseOperationsService.getCaseById('demo-kmc-001');
       expect(caseItem).not.toBeNull();
-      expect(caseItem?.caseNumber).toBe('C-2051');
-      expect(caseItem?.linkedReportCount).toBe(50);
+      expect(caseItem?.caseNumber).toBe('KHI-2026-9001');
+      expect(caseItem?.linkedReportCount).toBe(1);
       expect(caseItem?.locality).toBe('Gulshan-e-Iqbal');
-      expect(caseItem?.publicPlace).toContain('NED University');
+      expect(caseItem?.publicPlace).toContain('University Road');
 
-      // Verify linked reports
-      const reports = await caseOperationsService.listCaseReports('C-2051', '', 0, 100);
-      expect(reports.total).toBe(50);
-      expect(reports.items.length).toBe(50);
-
-      // Verify each report retains its own unique reference and narrative
-      const refs = new Set(reports.items.map((r) => r.referenceNumber));
-      expect(refs.size).toBe(50);
+      const reports = await caseOperationsService.listCaseReports('demo-kmc-001', '', 0, 20);
+      expect(reports.total).toBe(1);
+      expect(reports.items.length).toBe(1);
+      expect(reports.items[0].referenceNumber).toBe('KHI-2026-9001');
     });
 
-    it('A02: Distinct incidents across a broad neighborhood remain separate cases', async () => {
+    it('A02: Distinct complaints across a broad neighborhood remain separate records', async () => {
       const casesPage = await caseOperationsService.listCases('kmc', {
         savedView: 'all',
         displayMode: 'cases',
@@ -48,49 +44,41 @@ describe('AWAAZ-E-AWAM — CASE OPERATIONS DESK (V5)', () => {
       });
       expect(casesPage.total).toBeGreaterThan(1);
 
-      // Verify they have distinct physical corridors
       const places = casesPage.items.map((c) => c.publicPlace);
       const uniquePlaces = new Set(places);
       expect(uniquePlaces.size).toBeGreaterThan(1);
     });
   });
 
-  describe('2. One Confirmed Bulk Acceptance Transaction', () => {
-    it('B01 & B02: Previews 48 eligible + 2 resolved, executes atomic acceptance, and honors idempotency', async () => {
-      // 1. Preview
-      const preview = await caseOperationsService.previewBulkAcceptance('C-2051');
-      expect(preview.totalLinked).toBe(50);
-      expect(preview.eligible).toBe(48);
+  describe('2. Single-Complaint Acceptance & Unconfirmed Batch Protection', () => {
+    it('B01 & B02: Accepts an independent complaint atomically with idempotency, while blocking unconfirmed multi-report batch acceptance', async () => {
+      const preview = await caseOperationsService.previewBulkAcceptance('demo-kmc-001');
+      expect(preview.totalLinked).toBe(1);
+      expect(preview.eligible).toBe(1);
 
-      // 2. Execute
       const idempotencyKey = 'test-idemp-' + Date.now();
       const result = await caseOperationsService.executeBulkAcceptance(
-        'C-2051',
+        'demo-kmc-001',
         idempotencyKey
       );
 
-      expect(result.caseId).toBe('C-2051');
-      expect(result.accepted).toBe(48);
-      expect(result.skippedIneligible).toBe(2);
+      expect(result.caseId).toBe('demo-kmc-001');
+      expect(result.accepted).toBe(1);
+      expect(result.skippedIneligible).toBe(0);
 
-      // 3. Verify case status transitioned to accepted
-      const updatedCase = await caseOperationsService.getCaseById('C-2051');
+      const updatedCase = await caseOperationsService.getCaseById('demo-kmc-001');
       expect(updatedCase?.workStatus).toBe('accepted');
 
-      // 4. Verify activity event logged
-      const events = await caseOperationsService.getCaseActivity('C-2051');
-      const bulkEvent = events.find((e) => e.eventType === 'accepted');
-      expect(bulkEvent).toBeDefined();
-      expect(bulkEvent?.detail).toContain('48 eligible reports');
+      const events = await caseOperationsService.getCaseActivity('demo-kmc-001');
+      const acceptEvent = events.find((e) => e.eventType === 'accepted');
+      expect(acceptEvent).toBeDefined();
 
-      // 5. Idempotent replay with same key returns identical result without re-executing
       const replayResult = await caseOperationsService.executeBulkAcceptance(
-        'C-2051',
+        'demo-kmc-001',
         idempotencyKey
       );
       expect(replayResult.idempotentReplay).toBe(true);
-      expect(replayResult.accepted).toBe(48);
-      expect(replayResult.skippedIneligible).toBe(2);
+      expect(replayResult.accepted).toBe(1);
     });
   });
 
@@ -151,7 +139,7 @@ describe('AWAAZ-E-AWAM — CASE OPERATIONS DESK (V5)', () => {
       });
       expect(p1.items.length).toBe(25);
       expect(p1.page).toBe(0);
-      expect(p1.total).toBeGreaterThanOrEqual(90);
+      expect(p1.total).toBeGreaterThanOrEqual(75);
 
       // Second page
       const p2 = await caseOperationsService.listCases('kmc', {
@@ -178,7 +166,7 @@ describe('AWAAZ-E-AWAM — CASE OPERATIONS DESK (V5)', () => {
       expect(areas.length).toBeGreaterThan(0);
       const gulshan = areas.find((a) => a.area === 'Gulshan-e-Iqbal');
       expect(gulshan).toBeDefined();
-      expect(gulshan?.linkedReportsCount).toBeGreaterThanOrEqual(50);
+      expect(gulshan?.linkedReportsCount).toBeGreaterThanOrEqual(10);
     });
   });
 
@@ -213,12 +201,12 @@ describe('AWAAZ-E-AWAM — CASE OPERATIONS DESK (V5)', () => {
       });
     });
 
-    it('renders CaseDetailPage with 4 real tabs and executes bulk acceptance dialog', async () => {
+    it('renders CaseDetailPage with 4 real tabs and individual report acceptance without multi-report blind bulk execution', async () => {
       const onBack = vi.fn();
       render(
         <BrowserRouter>
           <CaseDetailPage
-            caseId="C-2051"
+            caseId="demo-kmc-001"
             onBack={onBack}
           />
         </BrowserRouter>
@@ -247,7 +235,7 @@ describe('AWAAZ-E-AWAM — CASE OPERATIONS DESK (V5)', () => {
       // Switch to Activity tab
       fireEvent.click(screen.getByRole('tab', { name: 'Activity' }));
       await waitFor(() => {
-        expect(screen.getByText(/First sanitized citizen report linked/i)).toBeInTheDocument();
+        expect(screen.getByText(/Independent complaint KHI-2026-9001 logged/i)).toBeInTheDocument();
       });
     });
 

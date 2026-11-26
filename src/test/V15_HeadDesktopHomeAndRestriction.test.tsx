@@ -120,39 +120,44 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-describe('V15.0 Department Head Home, Collapsible Rail, and Desktop Access Boundary', () => {
-  it('renders HeadHomePage with PKT greeting, 4 interactive inline counts, deterministic 5-row priority cap on 100+ items, filters, and retry recovery', async () => {
-    const cases: IncidentCaseSummary[] = Array.from({ length: 105 }, (_, i) =>
-      makeCase(i + 1, {
-        priority: i === 0 ? 'critical' : i === 1 ? 'high' : 'low',
-        assignedStaffId: i === 1 ? 'off-2' : undefined,
-        assignedStaffLabel: i === 1 ? 'Officer Two' : 'Unassigned',
-        linkedReportCount: i === 0 ? 12 : 1,
-        ageDays: i === 2 ? 14 : 2,
-      })
-    );
-
-    vi.spyOn(caseOperationsService, 'getDepartmentWorkSummary').mockResolvedValue({
-      casesNeedingResponse: 105,
-      casesUnassigned: 98,
-      casesInProgress: 5,
-      casesCompleted: 40,
-      linkedReportsTotal: 140,
-    });
-    vi.spyOn(caseOperationsService, 'listDepartmentCases').mockResolvedValue({
-      items: cases,
-      totalCount: 105,
-    });
-    vi.spyOn(fieldOperations, 'orders').mockResolvedValue([
-      makeOrder({ id: 'wo-overdue', anchor_complaint_id: 'case-10', case_label: 'Shahrah-e-Faisal subsidence', due_at: '2020-01-01T00:00:00.000Z', status: 'in_progress' }),
-      makeOrder({ id: 'wo-proof', anchor_complaint_id: 'case-11', case_label: 'Nazimabad underpass patch', due_at: '2099-01-01T00:00:00.000Z', status: 'pending_review' }),
-    ]);
-    vi.spyOn(fieldOperations, 'team').mockResolvedValue([
-      { user_id: 'off-1', display_name: 'Bilal Tariq', staff_role: 'officer', active_cases: 2, verified_cases: 10, on_time_cases: 9, overdue_cases: 1, disputed_cases: 0 },
-    ]);
+describe('V15.0 / V16 Department Head Home, Collapsible Rail, and Desktop Access Boundary', () => {
+  it('renders HeadHomePage with PKT greeting, Today default period overview, single segmented bar, 4 exact labels, and period switching', async () => {
+    const overviewSpy = vi
+      .spyOn(caseOperationsService, 'getHeadPeriodOverview')
+      .mockImplementation(async (_deptId, period) => {
+        if (period === 'today') {
+          return {
+            period: 'today',
+            totalActive: 14,
+            newComplaints: 5,
+            underReview: 3,
+            inProgress: 4,
+            awaitingVerification: 2,
+          };
+        }
+        if (period === 'yesterday') {
+          return {
+            period: 'yesterday',
+            totalActive: 8,
+            newComplaints: 2,
+            underReview: 1,
+            inProgress: 3,
+            awaitingVerification: 2,
+          };
+        }
+        return {
+          period,
+          totalActive: 36,
+          newComplaints: 10,
+          underReview: 6,
+          inProgress: 12,
+          awaitingVerification: 8,
+        };
+      });
+    vi.spyOn(fieldOperations, 'orders').mockResolvedValue([]);
+    vi.spyOn(fieldOperations, 'orderLinksMap').mockResolvedValue(new Map());
 
     const onNavigate = vi.fn();
-    const onSelectCase = vi.fn();
 
     render(
       <HeadHomePage
@@ -164,14 +169,14 @@ describe('V15.0 Department Head Home, Collapsible Rail, and Desktop Access Bound
         onToggleTheme={vi.fn()}
         onOpenPasswordModal={vi.fn()}
         onNavigate={onNavigate}
-        onSelectCase={onSelectCase}
+        onSelectCase={vi.fn()}
       />
     );
 
-    expect(screen.getByRole('status')).toHaveTextContent('Loading priority inbox…');
+    expect(screen.getByRole('status')).toHaveTextContent('Loading overview…');
 
     await waitFor(() => {
-      expect(screen.getByTestId('v15-inbox-list')).toBeInTheDocument();
+      expect(screen.getByTestId('v16-overview-body')).toBeInTheDocument();
     });
 
     // Greeting reflects PKT time-of-day wording and header keeps operational identity concise
@@ -179,65 +184,45 @@ describe('V15.0 Department Head Home, Collapsible Rail, and Desktop Access Bound
     expect(screen.getByText('Roads & Infrastructure')).toBeInTheDocument();
     expect(screen.getByText('Department Head')).toBeInTheDocument();
 
-    // Four inline overview counts map cleanly and trigger exact destinations
-    const overview = screen.getByLabelText('Department operational overview');
-    expect(within(overview).getByText('105')).toBeInTheDocument();
-    expect(within(overview).getByText('98')).toBeInTheDocument();
-    expect(within(within(overview).getByRole('button', { name: /Proof review/i })).getByText('1')).toBeInTheDocument();
-    expect(within(within(overview).getByRole('button', { name: /Overdue/i })).getByText('1')).toBeInTheDocument();
+    // Today is active by default, shows one large total, one segmented bar, and 4 exact labels
+    expect(screen.getByRole('button', { name: 'Today' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByTestId('v16-overview-total')).toHaveTextContent('14');
+    expect(screen.getByRole('img', { name: /Active status breakdown/i })).toBeInTheDocument();
+    expect(screen.getByText('New complaints')).toBeInTheDocument();
+    expect(screen.getByText('Under review')).toBeInTheDocument();
+    expect(screen.getByText('In progress')).toBeInTheDocument();
+    expect(screen.getByText('Awaiting verification')).toBeInTheDocument();
 
-    fireEvent.click(within(overview).getByRole('button', { name: /Incoming/i }));
-    expect(onNavigate).toHaveBeenCalledWith('queue', { queueView: 'needs' });
+    // No priority inbox or overdue line on V16 Head Home
+    expect(screen.queryByTestId('v15-inbox-list')).not.toBeInTheDocument();
 
-    fireEvent.click(within(overview).getByRole('button', { name: /Unassigned/i }));
-    expect(onNavigate).toHaveBeenCalledWith('queue', { queueView: 'unassigned' });
+    // Switching period updates overview without page reload
+    fireEvent.click(screen.getByRole('button', { name: 'Yesterday' }));
+    await waitFor(() => {
+      expect(screen.getByTestId('v16-overview-total')).toHaveTextContent('8');
+    });
 
-    fireEvent.click(within(overview).getByRole('button', { name: /Proof review/i }));
-    expect(onNavigate).toHaveBeenCalledWith('verification');
-
-    fireEvent.click(within(overview).getByRole('button', { name: /Overdue/i }));
-    expect(onNavigate).toHaveBeenCalledWith('work_orders');
-
-    // Priority inbox caps 105 eligible items at 5 visible rows with deterministic order
-    const rows = screen.getAllByTestId('v15-inbox-row');
-    expect(rows).toHaveLength(5);
-    expect(within(rows[0]).getByText('Shahrah-e-Faisal subsidence')).toBeInTheDocument();
-    expect(within(rows[1]).getByText('Nazimabad underpass patch')).toBeInTheDocument();
-    expect(screen.getByText('Showing 5 of 105 priority records')).toBeInTheDocument();
-
-    // Filter switching isolates subset accurately
-    fireEvent.click(screen.getByRole('button', { name: 'Urgent' }));
-    const urgentRows = screen.getAllByTestId('v15-inbox-row');
-    expect(urgentRows.length).toBeGreaterThan(0);
-    expect(within(urgentRows[0]).getByText('Shahrah-e-Faisal subsidence')).toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole('button', { name: 'Overdue' }));
-    const overdueRows = screen.getAllByTestId('v15-inbox-row');
-    expect(overdueRows).toHaveLength(2);
-    expect(screen.getByText('Showing 2 of 2 priority records')).toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole('button', { name: 'Unassigned' }));
-    expect(screen.getAllByTestId('v15-inbox-row')).toHaveLength(5);
+    fireEvent.click(screen.getByRole('button', { name: 'Open complaints' }));
+    expect(onNavigate).toHaveBeenCalledWith('queue');
+    expect(overviewSpy).toHaveBeenCalledWith('kmc', 'today', expect.any(Array), expect.any(Map));
+    expect(overviewSpy).toHaveBeenCalledWith('kmc', 'yesterday', expect.any(Array), expect.any(Map));
   });
 
-  it('handles empty, empty-filter, and error retry recovery states cleanly on HeadHomePage', async () => {
-    const summarySpy = vi
-      .spyOn(caseOperationsService, 'getDepartmentWorkSummary')
+  it('handles error retry recovery and empty window states cleanly on HeadHomePage', async () => {
+    const overviewSpy = vi
+      .spyOn(caseOperationsService, 'getHeadPeriodOverview')
       .mockRejectedValueOnce(new Error('Network timeout while loading KMC summary.'))
       .mockResolvedValueOnce({
-        casesNeedingResponse: 1,
-        casesUnassigned: 0,
-        casesInProgress: 1,
-        casesCompleted: 2,
-        linkedReportsTotal: 1,
+        period: 'today',
+        totalActive: 0,
+        newComplaints: 0,
+        underReview: 0,
+        inProgress: 0,
+        awaitingVerification: 0,
       });
 
-    vi.spyOn(caseOperationsService, 'listDepartmentCases').mockResolvedValue({
-      items: [makeCase(50, { priority: 'low', assignedStaffId: 'off-1', assignedStaffLabel: 'Assigned Officer' })],
-      totalCount: 1,
-    });
     vi.spyOn(fieldOperations, 'orders').mockResolvedValue([]);
-    vi.spyOn(fieldOperations, 'team').mockResolvedValue([]);
+    vi.spyOn(fieldOperations, 'orderLinksMap').mockResolvedValue(new Map());
 
     render(
       <HeadHomePage
@@ -253,22 +238,16 @@ describe('V15.0 Department Head Home, Collapsible Rail, and Desktop Access Bound
       />
     );
 
-    expect(await screen.findByRole('alert')).toHaveTextContent('Unable to load priority inbox');
+    expect(await screen.findByRole('alert')).toHaveTextContent('Unable to load overview');
     expect(screen.getByText('Network timeout while loading KMC summary.')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: /Retry/i }));
 
     await waitFor(() => {
-      expect(summarySpy).toHaveBeenCalledTimes(2);
-      expect(screen.getByTestId('v15-inbox-list')).toBeInTheDocument();
+      expect(overviewSpy).toHaveBeenCalledTimes(2);
+      expect(screen.getByTestId('v16-overview-empty')).toBeInTheDocument();
     });
-
-    // Low-priority assigned record triggers empty-filter state under "Urgent"
-    fireEvent.click(screen.getByRole('button', { name: 'Urgent' }));
-    expect(screen.getByTestId('v15-inbox-empty')).toHaveTextContent('No urgent complaints match this view.');
-
-    fireEvent.click(screen.getByRole('button', { name: 'Show all priorities' }));
-    expect(screen.getByTestId('v15-inbox-list')).toBeInTheDocument();
+    expect(screen.getByText('No active complaints in this window')).toBeInTheDocument();
   });
 
   it('renders HeadSidebarNav with all 8 destinations, single active illumination, collapse tooltips, and Escape-dismissible Settings popover', () => {
@@ -357,16 +336,18 @@ describe('V15.0 Department Head Home, Collapsible Rail, and Desktop Access Bound
     sessionStorage.setItem('awaaz_demo_staff_session', JSON.stringify({ userId: 'head-user-1', departmentId: 'kmc' }));
 
     const listCasesSpy = vi.spyOn(caseOperationsService, 'listDepartmentCases').mockResolvedValue({ items: [], totalCount: 0 });
-    const summarySpy = vi.spyOn(caseOperationsService, 'getDepartmentWorkSummary').mockResolvedValue({
-      casesNeedingResponse: 0,
-      casesUnassigned: 0,
-      casesInProgress: 0,
-      casesCompleted: 0,
-      linkedReportsTotal: 0,
+    const overviewSpy = vi.spyOn(caseOperationsService, 'getHeadPeriodOverview').mockResolvedValue({
+      period: 'today',
+      totalActive: 0,
+      newComplaints: 0,
+      underReview: 0,
+      inProgress: 0,
+      awaitingVerification: 0,
     });
     const listComplaintsSpy = vi.spyOn(complaintService, 'getDepartmentComplaints').mockResolvedValue([]);
     vi.spyOn(fieldOperations, 'getMyRole').mockResolvedValue('head');
     vi.spyOn(fieldOperations, 'orders').mockResolvedValue([]);
+    vi.spyOn(fieldOperations, 'orderLinksMap').mockResolvedValue(new Map());
     vi.spyOn(fieldOperations, 'team').mockResolvedValue([]);
 
     const authVal = createAuthValue();
@@ -388,7 +369,7 @@ describe('V15.0 Department Head Home, Collapsible Rail, and Desktop Access Bound
 
     // Operational queries must not execute while restricted, and session must stay intact
     expect(listCasesSpy).not.toHaveBeenCalled();
-    expect(summarySpy).not.toHaveBeenCalled();
+    expect(overviewSpy).not.toHaveBeenCalled();
     expect(listComplaintsSpy).not.toHaveBeenCalled();
     expect(authVal.signOut).not.toHaveBeenCalled();
     expect(sessionStorage.getItem('awaaz_demo_staff_session')).toContain('head-user-1');
@@ -404,7 +385,7 @@ describe('V15.0 Department Head Home, Collapsible Rail, and Desktop Access Bound
       expect(screen.getByTestId('head-home-page')).toBeInTheDocument();
       expect(screen.getByTestId('head-sidebar')).toBeInTheDocument();
     });
-    expect(summarySpy).toHaveBeenCalled();
+    expect(overviewSpy).toHaveBeenCalled();
   });
 
   it('prevents direct DepartmentDashboardPage operational fetches for authenticated Heads on mobile, while allowing Field Officers on mobile', async () => {

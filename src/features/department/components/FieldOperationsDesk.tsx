@@ -27,6 +27,7 @@ import {
   type DepartmentProof,
   type DepartmentWorkOrder,
   type StaffPosition,
+  type WorkOrderLinkedReport,
 } from '../services/fieldOperations';
 import { supabase } from '../../../lib/supabase';
 import { DepartmentDeadlinePicker } from './DepartmentDeadlinePicker';
@@ -102,18 +103,56 @@ export const FieldOperationsDesk: React.FC<Props> = ({
   const [locationError, setLocationError] = useState('');
   const [closureReasons, setClosureReasons] = useState<Record<string, string>>({});
   const [minimumDeadlineInput] = useState(() => localInputDateTime(new Date()));
+  // V16 Head Officer Management & Work Order Confirmed Link States
+  const [addFullName, setAddFullName] = useState('');
+  const [addEmployeeId, setAddEmployeeId] = useState('');
+  const [tempKeyBanner, setTempKeyBanner] = useState<{
+    staffUsername?: string;
+    employeeId?: string;
+    key: string;
+    mode: 'created' | 'reset';
+  } | null>(null);
+  const [suspendTargetId, setSuspendTargetId] = useState<string | null>(null);
+  const [suspendReason, setSuspendReason] = useState('');
+  const [orderLinksMap, setOrderLinksMap] = useState<Map<string, WorkOrderLinkedReport[]>>(new Map());
+  const [reassignOrderId, setReassignOrderId] = useState<string | null>(null);
+  const [reassignOfficerId, setReassignOfficerId] = useState('');
+  const [reassignReason, setReassignReason] = useState('');
 
   const reload = useCallback(async () => {
     setLoading(true);
     try {
-      const [work, roster, casePage] = await Promise.all([
+      const [work, teamRoster, dirRoster, casePage, links] = await Promise.all([
         fieldOperations.orders(departmentId),
         role === 'head' ? fieldOperations.team(departmentId) : Promise.resolve([]),
+        role === 'head'
+          ? fieldOperations.officersDirectory(departmentId).catch(() => [])
+          : Promise.resolve([]),
         role === 'head' ? caseOperationsService.listDepartmentCases(departmentId as never, filter) : Promise.resolve({ items: [] }),
+        fieldOperations.orderLinksMap(departmentId).catch(() => new Map<string, WorkOrderLinkedReport[]>()),
       ]);
+      const dirById = new Map(dirRoster.map((d) => [d.user_id, d]));
+      const mergedRoster = teamRoster.map((member) => {
+        const dirEntry = dirById.get(member.user_id);
+        return dirEntry
+          ? {
+              ...member,
+              staff_username: dirEntry.staff_username ?? member.staff_username,
+              membership_status: dirEntry.membership_status ?? member.membership_status,
+              must_change_password: dirEntry.must_change_password ?? member.must_change_password,
+            }
+          : member;
+      });
+      const teamIds = new Set(mergedRoster.map((m) => m.user_id));
+      for (const dirEntry of dirRoster) {
+        if (!teamIds.has(dirEntry.user_id) && dirEntry.membership_status === 'suspended') {
+          mergedRoster.push(dirEntry);
+        }
+      }
       setOrders(work);
-      setTeam(roster);
+      setTeam(mergedRoster);
       setCases(casePage.items);
+      setOrderLinksMap(links);
       setMessage(null);
     } catch (error) {
       setMessage({
@@ -339,40 +378,160 @@ export const FieldOperationsDesk: React.FC<Props> = ({
         </div>
       ) : (
         <>
-          {/* VIEW: Officer Roster */}
+          {/* VIEW: Officer Roster & Head-Scoped Officer Account Management */}
           {view === 'team' && isHead && (
             <div className="v21-case-card" style={{ padding: '20px' }}>
-              <div style={{ marginBottom: '16px' }}>
-                <h2 style={{ fontSize: '16px', fontWeight: 700, margin: '0 0 4px 0' }}>Officer roster</h2>
+              <div style={{ marginBottom: '14px' }}>
+                <h2 style={{ fontSize: '16px', fontWeight: 700, margin: '0 0 4px 0' }}>Officer roster & access</h2>
                 <p style={{ fontSize: '12px', color: 'var(--v21-text-muted)', margin: 0 }}>
-                  Performance is based on verified cases, completion time and citizen disputes—not raw complaint volume.
+                  Add department officers, issue one-time temporary access keys, reset credentials, or suspend access within {departmentId.toUpperCase()} only. Temporary keys are displayed once and never persisted.
                 </p>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '12px' }}>
+              {/* Add Field Officer Form (Head-scoped strictly to own department) */}
+              <div className="v16-officer-manage-bar">
+                <form
+                  className="v16-officer-form"
+                  onSubmit={async (e) => {
+                    e.preventDefault();
+                    if (addFullName.trim().length < 2 || addEmployeeId.trim().length < 2) return;
+                    setBusy(true);
+                    setMessage(null);
+                    try {
+                      const res = await fieldOperations.provisionOfficer({
+                        departmentId,
+                        fullName: addFullName.trim(),
+                        employeeId: addEmployeeId.trim(),
+                      });
+                      setTempKeyBanner({
+                        staffUsername: res.staffUsername,
+                        employeeId: res.employeeId,
+                        key: res.temporaryAccessKey,
+                        mode: 'created',
+                      });
+                      setAddFullName('');
+                      setAddEmployeeId('');
+                      await reload();
+                      setMessage({ success: true, text: `Provisioned officer ${res.staffUsername}. Share the one-time key securely.` });
+                    } catch (err) {
+                      setMessage({
+                        success: false,
+                        text: err instanceof Error ? err.message : 'Unable to add field officer.',
+                      });
+                    } finally {
+                      setBusy(false);
+                    }
+                  }}
+                >
+                  <div className="v16-officer-field">
+                    <label htmlFor="v16-officer-fullname">Officer full name</label>
+                    <input
+                      id="v16-officer-fullname"
+                      type="text"
+                      value={addFullName}
+                      onChange={(e) => setAddFullName(e.target.value)}
+                      placeholder="e.g. Tariq Mahmood"
+                      minLength={2}
+                      maxLength={100}
+                      required
+                    />
+                  </div>
+                  <div className="v16-officer-field">
+                    <label htmlFor="v16-officer-empid">Employee ID</label>
+                    <input
+                      id="v16-officer-empid"
+                      type="text"
+                      value={addEmployeeId}
+                      onChange={(e) => setAddEmployeeId(e.target.value)}
+                      placeholder="e.g. emp042"
+                      minLength={2}
+                      maxLength={40}
+                      required
+                    />
+                  </div>
+                  <button type="submit" className="v21-btn v21-btn-primary" disabled={busy} style={{ height: '38px' }}>
+                    Add officer
+                  </button>
+                </form>
+
+                {tempKeyBanner && (
+                  <div className="v16-temp-key-banner" role="alert" data-testid="v16-temp-key-banner">
+                    <div>
+                      <strong style={{ fontSize: '13px', display: 'block', color: 'var(--v15-ink, var(--v21-text-main))' }}>
+                        {tempKeyBanner.mode === 'created' ? 'One-time temporary access key issued' : 'New temporary access key issued'}
+                      </strong>
+                      <span style={{ fontSize: '12px', color: 'var(--v15-muted, var(--v21-text-muted))' }}>
+                        {tempKeyBanner.staffUsername ? `Login ID: ${tempKeyBanner.staffUsername} · ` : ''}
+                        Copy now — displayed once only and never stored in logs or browser storage. First sign-in enforces a personal passphrase update.
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                      <code className="v16-temp-key-code" data-testid="v16-temp-key-value">{tempKeyBanner.key}</code>
+                      <button
+                        type="button"
+                        className="v21-btn"
+                        onClick={() => {
+                          try {
+                            void navigator.clipboard?.writeText(tempKeyBanner.key);
+                          } catch {
+                            // Ignore clipboard denial
+                          }
+                        }}
+                      >
+                        Copy key
+                      </button>
+                      <button type="button" className="v21-btn" onClick={() => setTempKeyBanner(null)}>
+                        Dismiss
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(290px, 1fr))', gap: '12px' }}>
                 {team
                   .filter((o) => o.staff_role === 'officer')
                   .map((o) => {
                     const score = officerRating(o);
+                    const isSuspended = o.membership_status === 'suspended';
                     return (
                       <div
                         key={o.user_id}
                         className="v21-officer-card"
-                        style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}
+                        style={{ display: 'flex', flexDirection: 'column', gap: '10px', opacity: isSuspended ? 0.8 : 1 }}
                       >
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%' }}>
                           <div className="v21-user-avatar" style={{ width: '32px', height: '32px', fontSize: '13px' }}>
                             {o.display_name.slice(0, 1).toUpperCase()}
                           </div>
                           <div style={{ flex: 1, minWidth: 0 }}>
-                            <strong style={{ fontSize: '14px', color: 'var(--v21-text-main)', display: 'block' }}>
-                              {o.display_name}
-                            </strong>
-                            <small style={{ fontSize: '11px', color: 'var(--v21-text-muted)' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                              <strong style={{ fontSize: '14px', color: 'var(--v21-text-main)' }}>
+                                {o.display_name}
+                              </strong>
+                              {isSuspended && (
+                                <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--v21-danger)', background: 'var(--v21-danger-light)', padding: '1px 6px', borderRadius: '4px' }}>
+                                  Suspended
+                                </span>
+                              )}
+                              {!isSuspended && o.must_change_password && (
+                                <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--v21-warning)', background: 'var(--v15-warning-bg, #fffbeb)', padding: '1px 6px', borderRadius: '4px' }}>
+                                  First-login pending
+                                </span>
+                              )}
+                            </div>
+                            <small style={{ fontSize: '11px', color: 'var(--v21-text-muted)', display: 'block' }}>
+                              {o.staff_username ? `${o.staff_username} · ` : ''}
                               {o.active_cases} open · {o.overdue_cases} overdue · {o.verified_cases} verified
                             </small>
                           </div>
                         </div>
+
+                        {isSuspended && o.suspension_reason && (
+                          <p style={{ margin: 0, fontSize: '11.5px', color: 'var(--v21-danger)' }}>
+                            Suspended: {o.suspension_reason}
+                          </p>
+                        )}
 
                         <div
                           style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', paddingTop: '8px', borderTop: '1px solid var(--v21-border-subtle)' }}
@@ -395,6 +554,107 @@ export const FieldOperationsDesk: React.FC<Props> = ({
                             {score !== null ? `${score.toFixed(1)} / 5.0` : 'New (Awaiting 5 cases)'}
                           </span>
                         </div>
+
+                        {/* Officer Credential & Suspension Controls */}
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', paddingTop: '6px', borderTop: '1px solid var(--v21-border-subtle)' }}>
+                          {!isSuspended && (
+                            <button
+                              type="button"
+                              className="v21-btn"
+                              disabled={busy}
+                              onClick={async () => {
+                                setBusy(true);
+                                setMessage(null);
+                                try {
+                                  const res = await fieldOperations.resetOfficerCredentials({
+                                    departmentId,
+                                    targetUserId: o.user_id,
+                                  });
+                                  setTempKeyBanner({
+                                    staffUsername: o.staff_username || o.display_name,
+                                    employeeId: o.employee_id || undefined,
+                                    key: res.temporaryAccessKey,
+                                    mode: 'reset',
+                                  });
+                                  await reload();
+                                  setMessage({ success: true, text: `Reset temporary access key for ${o.display_name}.` });
+                                } catch (err) {
+                                  setMessage({ success: false, text: err instanceof Error ? err.message : 'Unable to reset key.' });
+                                } finally {
+                                  setBusy(false);
+                                }
+                              }}
+                            >
+                              Reset credentials
+                            </button>
+                          )}
+
+                          {!isSuspended ? (
+                            <button
+                              type="button"
+                              className="v21-btn"
+                              disabled={busy}
+                              onClick={() => {
+                                setSuspendTargetId(o.user_id);
+                                setSuspendReason('');
+                              }}
+                            >
+                              Suspend
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              className="v21-btn v21-btn-primary"
+                              disabled={busy}
+                              onClick={() =>
+                                void execute(
+                                  () => fieldOperations.reactivateOfficer({ departmentId, targetUserId: o.user_id }),
+                                  `Reactivated officer ${o.display_name}.`
+                                )
+                              }
+                            >
+                              Reactivate
+                            </button>
+                          )}
+                        </div>
+
+                        {suspendTargetId === o.user_id && (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', paddingTop: '6px' }}>
+                            <input
+                              type="text"
+                              value={suspendReason}
+                              onChange={(e) => setSuspendReason(e.target.value)}
+                              placeholder="Reason for suspension (min 8 chars)"
+                              aria-label={`Suspension reason for ${o.display_name}`}
+                              style={{ padding: '7px 9px', borderRadius: '6px', border: '1px solid var(--v21-border-strong)', fontSize: '12px' }}
+                            />
+                            <div style={{ display: 'flex', gap: '6px' }}>
+                              <button
+                                type="button"
+                                className="v21-btn v21-btn-primary"
+                                disabled={busy || suspendReason.trim().length < 8}
+                                onClick={async () => {
+                                  await execute(
+                                    () =>
+                                      fieldOperations.suspendOfficer({
+                                        departmentId,
+                                        targetUserId: o.user_id,
+                                        reason: suspendReason.trim(),
+                                      }),
+                                    `Suspended ${o.display_name}. Existing active tasks preserved for reassignment.`
+                                  );
+                                  setSuspendTargetId(null);
+                                  setSuspendReason('');
+                                }}
+                              >
+                                Confirm suspension
+                              </button>
+                              <button type="button" className="v21-btn" onClick={() => setSuspendTargetId(null)}>
+                                Cancel
+                              </button>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     );
                   })}
@@ -402,7 +662,7 @@ export const FieldOperationsDesk: React.FC<Props> = ({
 
               {!team.some((o) => o.staff_role === 'officer') && (
                 <p style={{ padding: '24px 0', textAlign: 'center', color: 'var(--v21-text-muted)', fontSize: '13px' }}>
-                  No approved officers. The central administrator must approve officers first.
+                  No department officers registered yet. Add your first field officer above.
                 </p>
               )}
             </div>
@@ -674,7 +934,7 @@ export const FieldOperationsDesk: React.FC<Props> = ({
                           >
                             <option value="">Choose approved officer</option>
                             {team
-                              .filter((o) => o.staff_role === 'officer')
+                              .filter((o) => o.staff_role === 'officer' && o.membership_status !== 'suspended')
                               .map((o) => (
                                 <option key={o.user_id} value={o.user_id}>
                                   {o.display_name} — {o.active_cases} active workloads ({o.verified_cases} verified)
@@ -993,6 +1253,136 @@ export const FieldOperationsDesk: React.FC<Props> = ({
                               Extension requested until {formatPKT(o.extension_requested_due_at)}. Reason: {o.extension_reason}
                             </p>
                           )}
+
+                          {isHead && (() => {
+                            const assignedOfficer = team.find((t) => t.user_id === o.officer_id);
+                            const officerSuspended = assignedOfficer?.membership_status === 'suspended';
+                            const linked = orderLinksMap.get(o.id) || [];
+                            return (
+                              <>
+                                {officerSuspended && o.status !== 'verified' && (
+                                  <div
+                                    role="alert"
+                                    style={{
+                                      marginTop: '8px',
+                                      padding: '8px 10px',
+                                      borderRadius: '6px',
+                                      background: 'var(--v21-danger-light)',
+                                      color: 'var(--v21-danger)',
+                                      fontSize: '12px',
+                                      display: 'flex',
+                                      flexWrap: 'wrap',
+                                      alignItems: 'center',
+                                      justifyContent: 'space-between',
+                                      gap: '8px',
+                                    }}
+                                  >
+                                    <span>Assigned officer is suspended. Active order preserved — reassign to an active officer.</span>
+                                    <button
+                                      type="button"
+                                      className="v21-btn"
+                                      onClick={() => {
+                                        setReassignOrderId(o.id);
+                                        setReassignOfficerId('');
+                                        setReassignReason('Reassigned due to prior officer suspension');
+                                      }}
+                                    >
+                                      Reassign officer
+                                    </button>
+                                  </div>
+                                )}
+
+                                {reassignOrderId === o.id && (
+                                  <div style={{ marginTop: '8px', display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
+                                    <select
+                                      aria-label="New active officer"
+                                      value={reassignOfficerId}
+                                      onChange={(e) => setReassignOfficerId(e.target.value)}
+                                      style={{ padding: '6px 8px', borderRadius: '6px', border: '1px solid var(--v21-border-strong)', fontSize: '12px' }}
+                                    >
+                                      <option value="">Select active officer</option>
+                                      {team
+                                        .filter((t) => t.staff_role === 'officer' && t.membership_status !== 'suspended')
+                                        .map((t) => (
+                                          <option key={t.user_id} value={t.user_id}>
+                                            {t.display_name}
+                                          </option>
+                                        ))}
+                                    </select>
+                                    <input
+                                      type="text"
+                                      value={reassignReason}
+                                      onChange={(e) => setReassignReason(e.target.value)}
+                                      placeholder="Reason (min 8 chars)"
+                                      style={{ padding: '6px 8px', borderRadius: '6px', border: '1px solid var(--v21-border-strong)', fontSize: '12px', minWidth: '180px' }}
+                                    />
+                                    <button
+                                      type="button"
+                                      className="v21-btn v21-btn-primary"
+                                      disabled={busy || !reassignOfficerId || reassignReason.trim().length < 8}
+                                      onClick={async () => {
+                                        await execute(
+                                          () =>
+                                            fieldOperations.reassignWorkOrderOfficer({
+                                              departmentId,
+                                              orderId: o.id,
+                                              newOfficerId: reassignOfficerId,
+                                              reason: reassignReason.trim(),
+                                            }),
+                                          'Work order reassigned to active officer.'
+                                        );
+                                        setReassignOrderId(null);
+                                      }}
+                                    >
+                                      Confirm reassign
+                                    </button>
+                                  </div>
+                                )}
+
+                                {linked.length > 1 && (
+                                  <div style={{ marginTop: '10px', paddingTop: '8px', borderTop: '1px solid var(--v21-border-subtle)' }}>
+                                    <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--v21-text-muted)', marginBottom: '4px' }}>
+                                      Confirmed linked reports ({linked.length})
+                                    </div>
+                                    <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                      {linked.map((rep) => (
+                                        <li
+                                          key={rep.complaint_id}
+                                          style={{ fontSize: '11.5px', color: 'var(--v21-text-main)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}
+                                        >
+                                          <span>
+                                            <strong>{rep.reference_number}</strong> · {rep.heading} ({rep.status.replace('_', ' ')})
+                                          </span>
+                                          {rep.complaint_id !== o.anchor_complaint_id && !['verified', 'pending_review'].includes(o.status) && (
+                                            <button
+                                              type="button"
+                                              className="v21-btn"
+                                              style={{ padding: '2px 8px', fontSize: '11px' }}
+                                              disabled={busy}
+                                              onClick={() =>
+                                                void execute(
+                                                  () =>
+                                                    fieldOperations.detachReportFromWorkOrder({
+                                                      departmentId,
+                                                      orderId: o.id,
+                                                      complaintId: rep.complaint_id,
+                                                      reason: 'Supervisor corrected mistaken duplicate attachment',
+                                                    }),
+                                                  `Detached ${rep.reference_number} for separate handling.`
+                                                )
+                                              }
+                                            >
+                                              Detach link
+                                            </button>
+                                          )}
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                )}
+                              </>
+                            );
+                          })()}
                         </div>
 
                         {/* Lifecycle action buttons */}

@@ -1,5 +1,6 @@
 import { isSupabaseConfigured, supabase } from '../../../lib/supabase';
 import { getLocalDemoStaffRole } from '../auth/departmentIdentities';
+import { findAdvisoryIncidentMatches, type IncidentPin } from './incidentMatching';
 
 export type WorkState = 'assigned' | 'in_progress' | 'pending_review' | 'verified' | 'returned';
 export type StaffPosition = 'head' | 'officer';
@@ -13,6 +14,52 @@ export interface DepartmentOfficer {
   on_time_cases: number;
   overdue_cases: number;
   disputed_cases: number;
+  employee_id?: string | null;
+  staff_username?: string | null;
+  membership_status?: 'active' | 'suspended' | 'revoked';
+  must_change_password?: boolean;
+  suspension_reason?: string | null;
+}
+
+export interface CandidateWorkOrderMatch {
+  order_id: string;
+  anchor_complaint_id: string;
+  anchor_reference: string;
+  case_label: string;
+  public_location: string;
+  officer_id: string;
+  officer_name: string;
+  status: WorkState;
+  due_at: string;
+  distance_m: number;
+  linked_count: number;
+  issue_types: string[];
+  match_confidence: 'exact_issue_and_pin' | 'uncertain_subtype_pin';
+  can_direct_attach: boolean;
+}
+
+export interface WorkOrderLinkedReport {
+  order_id: string;
+  complaint_id: string;
+  reference_number: string;
+  status: string;
+  heading: string;
+  public_location: string;
+  attached_at?: string;
+}
+
+export interface ProvisionOfficerResult {
+  officerUserId: string;
+  employeeId: string;
+  staffUsername: string;
+  temporaryAccessKey: string;
+  mustChangePassword: boolean;
+}
+
+export interface ResetOfficerCredentialsResult {
+  officerUserId: string;
+  temporaryAccessKey: string;
+  mustChangePassword: boolean;
 }
 
 export interface DepartmentWorkOrder {
@@ -226,7 +273,7 @@ class FieldOperationsService {
   }
 
   async team(departmentId: string): Promise<DepartmentOfficer[]> {
-    if (isLocalFieldDemo()) return [...devTeam];
+    if (isLocalFieldDemo()) return devTeam.filter((o) => o.membership_status !== 'suspended').map((o) => ({ ...o }));
     return requireSuccess(await requireSupabase().rpc('v1318_department_team', { p_department: departmentId })) as DepartmentOfficer[];
   }
 
@@ -241,9 +288,7 @@ class FieldOperationsService {
       const old = devOrders.find((o) => o.department_id === input.departmentId && o.anchor_complaint_id === input.anchorComplaintId);
       const now = new Date().toISOString();
       if (old) {
-        if (old.status === 'verified') throw new Error('Verified cases cannot be reassigned.');
-        Object.assign(old, { officer_id: input.officerId, instructions: input.instructions, due_at: input.dueAt, status: 'assigned' });
-        return old.id;
+        throw new Error(`Work order ${old.id} already exists for this anchor report. Use append-only attachment instead of resetting links.`);
       }
       const id = crypto.randomUUID();
       devOrders.push({ id, department_id: input.departmentId,
@@ -252,7 +297,7 @@ class FieldOperationsService {
         instructions: input.instructions, assigned_at: now, original_due_at: input.dueAt,
         due_at: input.dueAt, started_at: null, status: 'assigned',
         extension_requested_due_at: null, extension_reason: null, reviewed_at: null, review_note: null,
-        citizen_dispute_pending:false });
+        citizen_dispute_pending: false });
       return id;
     }
     return requireSuccess(await requireSupabase().rpc('v1318_assign_work', {
@@ -260,6 +305,336 @@ class FieldOperationsService {
       p_reports: input.reportIds, p_case_label: input.caseLabel,
       p_officer: input.officerId, p_due: input.dueAt, p_instructions: input.instructions,
     })) as string;
+  }
+
+  async officersDirectory(departmentId: string): Promise<DepartmentOfficer[]> {
+    if (isLocalFieldDemo()) {
+      return devTeam.map((o) => ({
+        ...o,
+        employee_id: o.employee_id ?? o.user_id.replace(/^local-/, ''),
+        staff_username: o.staff_username ?? `${departmentId}-${o.user_id.replace(/^local-/, '')}`,
+        membership_status: o.membership_status ?? 'active',
+        must_change_password: o.must_change_password ?? false,
+      }));
+    }
+    const client = requireSupabase();
+    const res = await client.rpc('v16_department_officers', { p_department: departmentId });
+    if (!res.error && Array.isArray(res.data)) {
+      return res.data.map((row: Record<string, unknown>) => ({
+        user_id: String(row.user_id),
+        display_name: String(row.display_name || 'Field officer'),
+        staff_role: row.staff_role === 'head' ? 'head' : 'officer',
+        active_cases: Number(row.active_cases || 0),
+        verified_cases: Number(row.verified_cases || 0),
+        on_time_cases: Number(row.on_time_cases || 0),
+        overdue_cases: Number(row.overdue_cases || 0),
+        disputed_cases: Number(row.disputed_cases || 0),
+        employee_id: row.employee_id ? String(row.employee_id) : null,
+        staff_username: row.staff_username ? String(row.staff_username) : null,
+        membership_status: (row.membership_status as DepartmentOfficer['membership_status']) || 'active',
+        must_change_password: Boolean(row.must_change_password),
+        suspension_reason: row.suspension_reason ? String(row.suspension_reason) : null,
+      }));
+    }
+    return this.team(departmentId);
+  }
+
+  async orderLinksMap(departmentId: string): Promise<Map<string, WorkOrderLinkedReport[]>> {
+    const map = new Map<string, WorkOrderLinkedReport[]>();
+    if (isLocalFieldDemo()) {
+      for (const order of devOrders) {
+        if (order.department_id !== departmentId) continue;
+        map.set(order.id, [{
+          order_id: order.id,
+          complaint_id: order.anchor_complaint_id,
+          reference_number: `KHI-2026-${order.anchor_complaint_id.slice(-4).toUpperCase()}`,
+          status: order.status === 'verified' ? 'resolved' : 'in_progress',
+          heading: order.case_label,
+          public_location: 'Karachi',
+          attached_at: order.assigned_at,
+        }]);
+      }
+      return map;
+    }
+    const client = requireSupabase();
+    const { data: links, error } = await client
+      .from('department_work_order_reports')
+      .select('order_id, complaint_id, attached_at, complaints(id, reference_number, status, generated_heading, title, incident_public_location, incident_locality)')
+      .eq('department_id', departmentId);
+    if (error || !Array.isArray(links)) return map;
+    for (const row of links as Array<Record<string, unknown>>) {
+      const orderId = String(row.order_id);
+      const comp = (row.complaints || {}) as Record<string, unknown>;
+      const list = map.get(orderId) || [];
+      list.push({
+        order_id: orderId,
+        complaint_id: String(row.complaint_id),
+        reference_number: String(comp.reference_number || String(row.complaint_id).slice(0, 12)),
+        status: String(comp.status || 'in_progress'),
+        heading: String(comp.generated_heading || comp.title || 'Linked citizen report'),
+        public_location: String(comp.incident_public_location || comp.incident_locality || 'Karachi'),
+        attached_at: row.attached_at ? String(row.attached_at) : undefined,
+      });
+      map.set(orderId, list);
+    }
+    return map;
+  }
+
+  async findCandidateOrders(
+    departmentId: string,
+    complaintId: string,
+    radiusMetres = 30,
+    includeUncertain = false,
+    demoIncoming?: { issueTypes: string[]; pin: IncidentPin | null; orderLocations?: Map<string, { pin: IncidentPin | null; issueTypes: string[]; location: string; ref: string }> }
+  ): Promise<CandidateWorkOrderMatch[]> {
+    if (isLocalFieldDemo()) {
+      if (!demoIncoming) return [];
+      const activeIncidents = devOrders
+        .filter((o) => o.department_id === departmentId && ['assigned', 'in_progress', 'returned', 'pending_review'].includes(o.status))
+        .map((o) => {
+          const meta = demoIncoming.orderLocations?.get(o.anchor_complaint_id);
+          return {
+            orderId: o.id,
+            complaintId: o.anchor_complaint_id,
+            departmentId,
+            status: o.status,
+            issueTypes: meta?.issueTypes || ['road_damage'],
+            pin: meta?.pin || null,
+            order: o,
+            meta,
+          };
+        });
+      return findAdvisoryIncidentMatches(
+        {
+          complaintId,
+          departmentId,
+          issueTypes: demoIncoming.issueTypes,
+          pin: demoIncoming.pin,
+        },
+        activeIncidents,
+        { includeUncertain, radiusMetres }
+      ).map((m) => ({
+        order_id: m.incident.orderId,
+        anchor_complaint_id: m.incident.complaintId,
+        anchor_reference: m.incident.meta?.ref || `WO-${m.incident.orderId.slice(0, 8)}`,
+        case_label: m.incident.order.case_label,
+        public_location: m.incident.meta?.location || 'Karachi',
+        officer_id: m.incident.order.officer_id,
+        officer_name: devTeam.find((t) => t.user_id === m.incident.order.officer_id)?.display_name || 'Field Officer',
+        status: m.incident.order.status,
+        due_at: m.incident.order.due_at,
+        distance_m: Math.round(m.distanceMetres * 100) / 100,
+        linked_count: 1,
+        issue_types: [...m.incident.issueTypes],
+        match_confidence: m.matchConfidence,
+        can_direct_attach: m.canDirectAttach,
+      }));
+    }
+
+    const client = requireSupabase();
+    const res = await client.rpc('v16_find_candidate_orders', {
+      p_department: departmentId,
+      p_complaint_id: complaintId,
+      p_radius_m: radiusMetres,
+      p_include_uncertain: includeUncertain,
+    });
+    if (res.error) throw new Error(res.error.message);
+    return (Array.isArray(res.data) ? res.data : []) as CandidateWorkOrderMatch[];
+  }
+
+  async createWorkOrderWithAdvisory(input: {
+    departmentId: string;
+    complaintId: string;
+    officerId: string;
+    dueAt: string;
+    instructions: string;
+    caseLabel: string;
+    idempotencyKey: string;
+    expectedCandidateOrderIds?: string[];
+  }): Promise<{ orderId: string; mode: 'created'; idempotentReplay: boolean }> {
+    if (isLocalFieldDemo()) {
+      const id = await this.assign({
+        departmentId: input.departmentId,
+        anchorComplaintId: input.complaintId,
+        reportIds: [input.complaintId],
+        caseLabel: input.caseLabel,
+        officerId: input.officerId,
+        dueAt: input.dueAt,
+        instructions: input.instructions,
+      });
+      return { orderId: id, mode: 'created', idempotentReplay: false };
+    }
+    const client = requireSupabase();
+    const data = requireSuccess(await client.rpc('v16_create_work_order_with_advisory', {
+      p_department: input.departmentId,
+      p_complaint_id: input.complaintId,
+      p_officer: input.officerId,
+      p_due: input.dueAt,
+      p_instructions: input.instructions,
+      p_case_label: input.caseLabel,
+      p_idempotency_key: input.idempotencyKey,
+      p_expected_candidate_order_ids: input.expectedCandidateOrderIds || [],
+    })) as { orderId: string; mode: 'created'; idempotentReplay: boolean };
+    return data;
+  }
+
+  async attachReportToWorkOrder(input: {
+    departmentId: string;
+    orderId: string;
+    complaintId: string;
+    idempotencyKey: string;
+    reason?: string;
+  }): Promise<{ orderId: string; complaintId: string; mode: 'attached'; idempotentReplay: boolean }> {
+    if (isLocalFieldDemo()) {
+      const target = devOrders.find((o) => o.id === input.orderId && o.department_id === input.departmentId);
+      if (!target) throw new Error('Target work order not found in this department.');
+      if (target.status === 'verified' || target.status === 'pending_review') {
+        throw new Error('Cannot attach reports to completed or proof-pending work orders.');
+      }
+      return { orderId: input.orderId, complaintId: input.complaintId, mode: 'attached', idempotentReplay: false };
+    }
+    const client = requireSupabase();
+    return requireSuccess(await client.rpc('v16_attach_report_to_work_order', {
+      p_department: input.departmentId,
+      p_order_id: input.orderId,
+      p_complaint_id: input.complaintId,
+      p_idempotency_key: input.idempotencyKey,
+      p_reason: input.reason || 'Confirmed same physical incident by department head',
+    })) as { orderId: string; complaintId: string; mode: 'attached'; idempotentReplay: boolean };
+  }
+
+  async detachReportFromWorkOrder(input: {
+    departmentId: string;
+    orderId: string;
+    complaintId: string;
+    reason: string;
+  }): Promise<void> {
+    if (isLocalFieldDemo()) return;
+    requireSuccess(await requireSupabase().rpc('v16_detach_report_from_work_order', {
+      p_department: input.departmentId,
+      p_order_id: input.orderId,
+      p_complaint_id: input.complaintId,
+      p_reason: input.reason,
+    }));
+  }
+
+  async reassignWorkOrderOfficer(input: {
+    departmentId: string;
+    orderId: string;
+    newOfficerId: string;
+    reason: string;
+  }): Promise<void> {
+    if (isLocalFieldDemo()) {
+      const order = devOrders.find((o) => o.id === input.orderId && o.department_id === input.departmentId);
+      if (!order) throw new Error('Work order not found.');
+      if (order.status === 'verified') throw new Error('Completed verified orders cannot be reassigned.');
+      order.officer_id = input.newOfficerId;
+      return;
+    }
+    requireSuccess(await requireSupabase().rpc('v16_reassign_work_order_officer', {
+      p_department: input.departmentId,
+      p_order_id: input.orderId,
+      p_new_officer: input.newOfficerId,
+      p_reason: input.reason,
+    }));
+  }
+
+  async provisionOfficer(input: {
+    departmentId: string;
+    fullName: string;
+    employeeId: string;
+  }): Promise<ProvisionOfficerResult> {
+    if (isLocalFieldDemo()) {
+      const cleanEmp = input.employeeId.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '');
+      if (devTeam.some((o) => (o.employee_id || o.user_id) === cleanEmp)) {
+        throw new Error(`Employee ID '${cleanEmp}' is already registered in this department.`);
+      }
+      const userId = `local-officer-${cleanEmp}`;
+      const key = `TMP-${crypto.randomUUID().replace(/-/g, '').slice(0, 14).toUpperCase()}`;
+      devTeam.push({
+        user_id: userId,
+        display_name: input.fullName.trim(),
+        staff_role: 'officer',
+        active_cases: 0,
+        verified_cases: 0,
+        on_time_cases: 0,
+        overdue_cases: 0,
+        disputed_cases: 0,
+        employee_id: cleanEmp,
+        staff_username: `${input.departmentId}-${cleanEmp}`,
+        membership_status: 'active',
+        must_change_password: true,
+      });
+      return {
+        officerUserId: userId,
+        employeeId: cleanEmp,
+        staffUsername: `${input.departmentId}-${cleanEmp}`,
+        temporaryAccessKey: key,
+        mustChangePassword: true,
+      };
+    }
+    const { data, error } = await requireSupabase().functions.invoke('manage-department-officers', {
+      body: { action: 'create_officer', departmentId: input.departmentId, fullName: input.fullName, employeeId: input.employeeId },
+    });
+    if (error || data?.error) throw new Error(data?.error || error?.message || 'Unable to provision field officer.');
+    return data as ProvisionOfficerResult;
+  }
+
+  async resetOfficerCredentials(input: {
+    departmentId: string;
+    targetUserId: string;
+  }): Promise<ResetOfficerCredentialsResult> {
+    if (isLocalFieldDemo()) {
+      const off = devTeam.find((o) => o.user_id === input.targetUserId);
+      if (!off || off.staff_role !== 'officer') throw new Error('Officer not found in your department.');
+      off.must_change_password = true;
+      return {
+        officerUserId: input.targetUserId,
+        temporaryAccessKey: `RST-${crypto.randomUUID().replace(/-/g, '').slice(0, 14).toUpperCase()}`,
+        mustChangePassword: true,
+      };
+    }
+    const { data, error } = await requireSupabase().functions.invoke('manage-department-officers', {
+      body: { action: 'reset_credentials', departmentId: input.departmentId, targetUserId: input.targetUserId },
+    });
+    if (error || data?.error) throw new Error(data?.error || error?.message || 'Unable to reset officer credentials.');
+    return data as ResetOfficerCredentialsResult;
+  }
+
+  async suspendOfficer(input: { departmentId: string; targetUserId: string; reason: string }): Promise<void> {
+    if (isLocalFieldDemo()) {
+      const off = devTeam.find((o) => o.user_id === input.targetUserId);
+      if (!off || off.staff_role !== 'officer') throw new Error('Officer not found.');
+      off.membership_status = 'suspended';
+      off.suspension_reason = input.reason;
+      return;
+    }
+    const { data, error } = await requireSupabase().functions.invoke('manage-department-officers', {
+      body: { action: 'suspend_officer', departmentId: input.departmentId, targetUserId: input.targetUserId, reason: input.reason },
+    });
+    if (error || data?.error) throw new Error(data?.error || error?.message || 'Unable to suspend officer.');
+  }
+
+  async reactivateOfficer(input: { departmentId: string; targetUserId: string }): Promise<void> {
+    if (isLocalFieldDemo()) {
+      const off = devTeam.find((o) => o.user_id === input.targetUserId);
+      if (!off || off.staff_role !== 'officer') throw new Error('Officer not found.');
+      off.membership_status = 'active';
+      off.suspension_reason = null;
+      return;
+    }
+    const { data, error } = await requireSupabase().functions.invoke('manage-department-officers', {
+      body: { action: 'reactivate_officer', departmentId: input.departmentId, targetUserId: input.targetUserId },
+    });
+    if (error || data?.error) throw new Error(data?.error || error?.message || 'Unable to reactivate officer.');
+  }
+
+  async completeFirstLoginPassword(newPassword: string): Promise<void> {
+    if (isLocalFieldDemo()) return;
+    const { data, error } = await requireSupabase().functions.invoke('manage-department-officers', {
+      body: { action: 'complete_first_login_password', newPassword },
+    });
+    if (error || data?.error) throw new Error(data?.error || error?.message || 'Unable to update passphrase.');
   }
 
   async start(orderId: string) {

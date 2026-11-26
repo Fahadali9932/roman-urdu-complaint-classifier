@@ -216,7 +216,7 @@ export const CaseDetailPage: React.FC<CaseDetailPageProps> = ({
           <button className="ops-icon-action" type="button" title="Refresh case" aria-label="Refresh case" onClick={loadCase}><RefreshCw size={17} /></button>
           {caseItem.workStatus === 'completed' ? (
             <span className="tag" style={{ background: 'var(--success-bg)', color: 'var(--success)' }}>Filed in Completed cases</span>
-          ) : eligibleCount > 0 ? (
+          ) : eligibleCount === 1 ? (
             <button
               type="button"
               className="button primary"
@@ -224,11 +224,15 @@ export const CaseDetailPage: React.FC<CaseDetailPageProps> = ({
               onClick={() => setIsModalOpen(true)}
             >
               <Check className="ico" style={{ width: 16, height: 16 }} />
-              Accept {eligibleCount} eligible reports
+              Accept complaint
             </button>
+          ) : eligibleCount > 1 ? (
+            <span className="tag" style={{ background: 'var(--warn-bg)', color: 'var(--warn)' }}>
+              Inspect reports individually
+            </span>
           ) : (
             <span className="tag" style={{ background: 'var(--success-bg)', color: 'var(--success)' }}>
-              ✓ All reports acknowledged
+              ✓ Complaint acknowledged
             </span>
           )}
         </div>

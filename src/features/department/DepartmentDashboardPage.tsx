@@ -25,6 +25,7 @@ import { CaseDetailPage } from './components/CaseDetailPage';
 import { AreasPage } from './components/AreasPage';
 import { OverviewPage } from './components/OverviewPage';
 import { HeadHomePage } from './components/HeadHomePage';
+import { HeadComplaintsPage } from './components/HeadComplaintsPage';
 import { HeadSidebarNav } from './components/HeadSidebarNav';
 import { HeadDesktopRestrictionScreen } from './components/HeadDesktopRestrictionScreen';
 import { useHeadDesktopAccess } from './hooks/useHeadDesktopAccess';
@@ -51,7 +52,7 @@ import './department-operations-v16.css';
 import './v15-head-desktop.css';
 
 export const DepartmentDashboardPage: React.FC = () => {
-  const { departmentId, departmentMeta, session, isAuthenticated, isCheckingSession, checkRevocationStatus, signOut } =
+  const { departmentId, departmentMeta, session, isAuthenticated, isCheckingSession, checkRevocationStatus, signOut, clearMustChangePassword } =
     useDepartmentAuth();
   const navigate = useNavigate();
   const { referenceNumber: urlRef } = useParams<{ referenceNumber?: string }>();
@@ -782,6 +783,90 @@ export const DepartmentDashboardPage: React.FC = () => {
     );
   }
 
+  if (session?.mustChangePassword && staffPosition) {
+    return (
+      <div className="v15-restriction-shell" data-theme={themeMode} data-testid="forced-password-change-gate">
+        <header className="v15-restriction-topbar">
+          <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--v15-ink)' }}>
+            Awaaz-e-Awam · First-login passphrase setup
+          </span>
+          <button type="button" className="v15-surface-btn" onClick={() => signOut()}>
+            Sign out
+          </button>
+        </header>
+        <main className="v15-restriction-card" aria-labelledby="forced-pw-heading">
+          <h1 id="forced-pw-heading" style={{ margin: 0, fontSize: '22px', fontWeight: 600, color: 'var(--v15-ink)' }}>
+            Update temporary access key
+          </h1>
+          <p style={{ margin: 0, fontSize: '14px', lineHeight: 1.6, color: 'var(--v15-muted)' }}>
+            Your account was issued a temporary access key. Create a personal passphrase (minimum 15 characters) before accessing operational records.
+          </p>
+          <form
+            style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '12px' }}
+            onSubmit={async (e) => {
+              e.preventDefault();
+              if (newPassword.length < 15) {
+                setPasswordStatus({ type: 'error', message: 'Passphrase must be at least 15 characters long.' });
+                return;
+              }
+              if (newPassword !== confirmPassword) {
+                setPasswordStatus({ type: 'error', message: 'Passphrase and confirmation do not match.' });
+                return;
+              }
+              try {
+                setPasswordStatus({ type: 'loading', message: 'Updating passphrase securely…' });
+                await fieldOperations.completeFirstLoginPassword(newPassword);
+                clearMustChangePassword?.();
+                setNewPassword('');
+                setConfirmPassword('');
+                setPasswordStatus({ type: 'idle' });
+              } catch (err) {
+                setPasswordStatus({
+                  type: 'error',
+                  message: err instanceof Error ? err.message : 'Unable to update passphrase.',
+                });
+              }
+            }}
+          >
+            {passwordStatus.type === 'error' && (
+              <div role="alert" style={{ color: 'var(--v15-danger)', fontSize: '13px' }}>
+                {passwordStatus.message}
+              </div>
+            )}
+            <label style={{ fontSize: '13px', fontWeight: 500, color: 'var(--v15-ink)' }}>
+              New passphrase
+              <input
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                minLength={15}
+                required
+                placeholder="At least 15 characters"
+                style={{ width: '100%', marginTop: '6px', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--v15-border)', background: 'var(--v15-surface)', color: 'var(--v15-ink)' }}
+              />
+            </label>
+            <label style={{ fontSize: '13px', fontWeight: 500, color: 'var(--v15-ink)' }}>
+              Confirm passphrase
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                minLength={15}
+                required
+                placeholder="Confirm new passphrase"
+                style={{ width: '100%', marginTop: '6px', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--v15-border)', background: 'var(--v15-surface)', color: 'var(--v15-ink)' }}
+              />
+            </label>
+            <button type="submit" className="v15-primary-btn" disabled={passwordStatus.type === 'loading'}>
+              {passwordStatus.type === 'loading' ? 'Updating…' : 'Set personal passphrase'}
+            </button>
+          </form>
+        </main>
+        <footer style={{ fontSize: '12px', color: 'var(--v15-muted)' }}>Awaaz-e-Awam · Staff security</footer>
+      </div>
+    );
+  }
+
   const isHeadDesktopShell = staffPosition === 'head';
 
   if (isHeadDesktopShell && !isHeadDesktopAllowed) {
@@ -1158,8 +1243,13 @@ export const DepartmentDashboardPage: React.FC = () => {
                     />
                   ) : null}
                 </div>
+              ) : staffPosition === 'head' && (currentSection === 'queue' || currentSection === 'tasks') ? (
+                <HeadComplaintsPage
+                  departmentId={departmentId || 'kmc'}
+                  initialComplaintId={selectedCaseId}
+                />
               ) : (
-                /* CASE OPERATIONS WORK QUEUE */
+                /* CASE OPERATIONS WORK QUEUE (Archive & legacy test fallback) */
                 <WorkQueuePage
                   departmentId={departmentId!}
                   actorId={session?.userId}
