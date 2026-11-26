@@ -75,11 +75,49 @@ export interface DepartmentWorkOrder {
   original_due_at: string;
   started_at: string | null;
   status: WorkState;
+  assigned_duration_hours?: number;
+  effective_deadline_at?: string | null;
+  rejection_reason?: string | null;
+  gps_latitude?: number | null;
+  gps_longitude?: number | null;
+  gps_accuracy_m?: number | null;
+  gps_distance_m?: number | null;
+  gps_verified?: boolean;
   extension_requested_due_at: string | null;
   extension_reason: string | null;
   reviewed_at: string | null;
   review_note: string | null;
   citizen_dispute_pending: boolean;
+}
+
+export interface StaffNotification {
+  id: string;
+  user_id?: string | null;
+  department_id: string;
+  title: string;
+  message: string;
+  notification_type: 'general' | 'assignment' | 'warning' | 'deadline' | 'verification' | 'system';
+  is_read: boolean;
+  link_url?: string | null;
+  created_at: string;
+}
+
+export interface OfficerWarning {
+  id: string;
+  officer_id: string;
+  department_id: string;
+  issued_by: string;
+  reason: string;
+  severity: 'advisory' | 'formal' | 'final';
+  issued_at: string;
+}
+
+export interface OfficerActivityHeartbeat {
+  id: string;
+  officer_id: string;
+  department_id: string;
+  last_active_at: string;
+  active_view: string;
 }
 
 export interface DepartmentProof {
@@ -775,6 +813,205 @@ class FieldOperationsService {
     requireSuccess(await requireSupabase().rpc('v1318_citizen_feedback', {
       p_order: orderId, p_complaint: complaintId, p_verdict: decision, p_note: note,
     }));
+  }
+
+  // --- V19 ENHANCED METHODS (Commencement Deadlines, GPS Audit & Lifecycle) ---
+
+  async startWorkOrder(orderId: string): Promise<{ success: boolean; effectiveDeadlineAt: string }> {
+    if (isLocalFieldDemo()) {
+      const order = devOrders.find((o) => o.id === orderId);
+      const startTime = new Date().toISOString();
+      const deadline = new Date(Date.now() + (order?.assigned_duration_hours || 72) * 3600000).toISOString();
+      if (order) {
+        order.status = 'in_progress';
+        order.started_at = startTime;
+        order.effective_deadline_at = deadline;
+        order.due_at = deadline;
+      }
+      return { success: true, effectiveDeadlineAt: deadline };
+    }
+    const res = requireSuccess(await requireSupabase().rpc('v19_start_work_order', { p_order_id: orderId })) as {
+      success: boolean;
+      effectiveDeadlineAt: string;
+    };
+    return res;
+  }
+
+  async submitWorkCompletion(
+    orderId: string,
+    storagePath: string,
+    coords: { latitude: number; longitude: number; accuracy: number }
+  ): Promise<{ success: boolean; gpsVerified: boolean; distanceMeters?: number }> {
+    if (isLocalFieldDemo()) {
+      const order = devOrders.find((o) => o.id === orderId);
+      if (order) {
+        order.status = 'pending_review';
+        order.gps_latitude = coords.latitude;
+        order.gps_longitude = coords.longitude;
+        order.gps_accuracy_m = coords.accuracy;
+        order.gps_distance_m = 14.5;
+        order.gps_verified = true;
+      }
+      const proofId = 'local-v19-proof-' + Date.now();
+      devProofs.unshift({
+        id: proofId,
+        order_id: orderId,
+        storage_path: storagePath,
+        location_result: 'near',
+        original_distance_m: 14.5,
+        accuracy_m: coords.accuracy,
+        duplicate_warning: false,
+        submitted_at: new Date().toISOString(),
+        decision: 'pending',
+      });
+      return { success: true, gpsVerified: true, distanceMeters: 14.5 };
+    }
+    const res = requireSuccess(await requireSupabase().rpc('v19_submit_work_completion', {
+      p_order_id: orderId,
+      p_storage_path: storagePath,
+      p_lat: coords.latitude,
+      p_lng: coords.longitude,
+      p_accuracy: coords.accuracy,
+    })) as { success: boolean; gpsVerified: boolean; distanceMeters?: number };
+    return res;
+  }
+
+  async approveResolution(orderId: string): Promise<{ success: boolean }> {
+    if (isLocalFieldDemo()) {
+      const order = devOrders.find((o) => o.id === orderId);
+      if (order) {
+        order.status = 'verified';
+        order.reviewed_at = new Date().toISOString();
+        order.review_note = 'Supervisory approval granted.';
+      }
+      const p = devProofs.find((item) => item.order_id === orderId);
+      if (p) p.decision = 'approved';
+      return { success: true };
+    }
+    const res = requireSuccess(await requireSupabase().rpc('v19_approve_resolution', { p_order_id: orderId })) as {
+      success: boolean;
+    };
+    return res;
+  }
+
+  async returnCorrection(orderId: string, reason: string, correctionHours = 24): Promise<{ success: boolean; newDeadline: string }> {
+    if (isLocalFieldDemo()) {
+      const order = devOrders.find((o) => o.id === orderId);
+      const newDeadline = new Date(Date.now() + correctionHours * 3600000).toISOString();
+      if (order) {
+        order.status = 'returned';
+        order.review_note = reason;
+        order.effective_deadline_at = newDeadline;
+        order.due_at = newDeadline;
+        order.instructions = (order.instructions || '') + '\n[CORRECTION REQUIRED]: ' + reason;
+      }
+      const p = devProofs.find((item) => item.order_id === orderId);
+      if (p) p.decision = 'rejected';
+      return { success: true, newDeadline };
+    }
+    const res = requireSuccess(await requireSupabase().rpc('v19_return_correction', {
+      p_order_id: orderId,
+      p_reason: reason,
+      p_correction_hours: correctionHours,
+    })) as { success: boolean; newDeadline: string };
+    return res;
+  }
+
+  async rejectDepartmentComplaint(complaintId: string, reason: string): Promise<{ success: boolean }> {
+    if (isLocalFieldDemo()) {
+      return { success: true };
+    }
+    const res = requireSuccess(await requireSupabase().rpc('v19_reject_department_complaint', {
+      p_complaint_id: complaintId,
+      p_reason: reason,
+    })) as { success: boolean };
+    return res;
+  }
+
+  async fetchNotifications(departmentId: string, userId?: string): Promise<StaffNotification[]> {
+    if (isLocalFieldDemo()) {
+      return [
+        {
+          id: 'notif-01',
+          user_id: userId || 'local-demo',
+          department_id: departmentId,
+          title: 'Resolution Evidence Submitted',
+          message: 'Field Officer Tariq submitted evidence for Order #local-dev-order-02.',
+          notification_type: 'verification',
+          is_read: false,
+          created_at: new Date(Date.now() - 3600000).toISOString(),
+        },
+        {
+          id: 'notif-02',
+          user_id: userId || 'local-demo',
+          department_id: departmentId,
+          title: 'New Urgent Complaint Intake',
+          message: 'High priority asphalt failure reported on University Road.',
+          notification_type: 'assignment',
+          is_read: true,
+          created_at: new Date(Date.now() - 14400000).toISOString(),
+        },
+      ];
+    }
+    const query = requireSupabase()
+      .from('staff_notifications')
+      .select('*')
+      .eq('department_id', departmentId)
+      .order('created_at', { ascending: false });
+    if (userId) {
+      query.eq('user_id', userId);
+    }
+    const { data, error } = await query;
+    if (error) throw new Error(error.message);
+    return (data || []) as StaffNotification[];
+  }
+
+  async markNotificationRead(notificationId: string): Promise<void> {
+    if (isLocalFieldDemo()) return;
+    const { error } = await requireSupabase()
+      .from('staff_notifications')
+      .update({ is_read: true })
+      .eq('id', notificationId);
+    if (error) throw new Error(error.message);
+  }
+
+  async fetchOfficerWarnings(departmentId: string, officerId: string): Promise<OfficerWarning[]> {
+    if (isLocalFieldDemo()) {
+      return [
+        {
+          id: 'warn-01',
+          officer_id: officerId,
+          department_id: departmentId,
+          issued_by: 'local-hod',
+          reason: 'Late arrival to urgent water pipe burst site.',
+          severity: 'formal',
+          issued_at: new Date(Date.now() - 86400000).toISOString(),
+        },
+      ];
+    }
+    const { data, error } = await requireSupabase()
+      .from('officer_warnings')
+      .select('*')
+      .eq('department_id', departmentId)
+      .eq('officer_id', officerId)
+      .order('issued_at', { ascending: false });
+    if (error) throw new Error(error.message);
+    return (data || []) as OfficerWarning[];
+  }
+
+  async recordHeartbeat(departmentId: string, officerId: string, view: string): Promise<void> {
+    if (isLocalFieldDemo()) return;
+    await requireSupabase()
+      .from('officer_activity_heartbeats')
+      .upsert(
+        {
+          officer_id: officerId,
+          department_id: departmentId,
+          last_active_at: new Date().toISOString(),
+          active_view: view,
+        },
+        { onConflict: 'officer_id' }
+      );
   }
 }
 
