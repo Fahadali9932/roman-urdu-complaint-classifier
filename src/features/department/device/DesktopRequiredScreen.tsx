@@ -1,12 +1,15 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Monitor, ArrowLeft, ArrowRight, LogOut, Briefcase } from 'lucide-react';
+import { canonicalizeDepartmentKey } from '../services/departmentThemes';
+import { useDepartmentAtmosphereEffect } from '../hooks/useCivicTheme';
 
 export interface DesktopRequiredScreenProps {
   portalType?: 'department' | 'admin';
   departmentCode?: string;
   departmentName?: string;
   role?: 'head' | 'officer' | 'admin';
+  themeMode?: 'light' | 'dark';
   isAuthenticated?: boolean;
   onSignOut?: () => void;
   onNavigateToWork?: () => void;
@@ -18,7 +21,7 @@ export interface DesktopRequiredScreenProps {
  * Designed as a clean, intentional part of the Awaaz-e-Awam civic platform:
  * - Replaces unsupported desktop management layouts completely.
  * - Prevents mounting of complex desktop navbar, cursor spotlight, or scroll controllers.
- * - Department atmospheric gradient for staff portals; platinum/slate dark aesthetic for Central Admin.
+ * - Preserves approved department atmospheric gradient across both dark and light modes.
  * - Responsive down to 320px with generous negative space and zero horizontal overflow.
  */
 export const DesktopRequiredScreen: React.FC<DesktopRequiredScreenProps> = ({
@@ -26,6 +29,7 @@ export const DesktopRequiredScreen: React.FC<DesktopRequiredScreenProps> = ({
   departmentCode = 'KMC',
   departmentName = 'Karachi Metropolitan Corporation',
   role = 'head',
+  themeMode,
   isAuthenticated = false,
   onSignOut,
   onNavigateToWork,
@@ -33,11 +37,17 @@ export const DesktopRequiredScreen: React.FC<DesktopRequiredScreenProps> = ({
   const navigate = useNavigate();
   const isAdmin = portalType === 'admin' || role === 'admin';
   const isOfficer = role === 'officer';
+  const canonicalDept = isAdmin ? 'admin' : canonicalizeDepartmentKey(departmentCode);
+  const activeTheme = themeMode || (typeof document !== 'undefined' && document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark');
+
+  useDepartmentAtmosphereEffect(canonicalDept);
 
   return (
     <div
-      className={`v20-desktop-restriction-root ${isAdmin ? 'v20-admin-restriction' : ''}`}
+      className={`v20-desktop-restriction-root v20-portal-root ${activeTheme === 'light' ? 'v20-light-mode' : ''} ${isAdmin ? 'v20-admin-restriction' : ''}`}
       data-testid="v20-desktop-required-screen"
+      data-dept={canonicalDept}
+      data-theme={activeTheme}
       style={{
         position: 'fixed',
         inset: 0,

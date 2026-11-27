@@ -5,6 +5,8 @@ import { DepartmentSelectionScreen } from './DepartmentSelectionScreen';
 import { ThemedDepartmentLoginScreen } from './ThemedDepartmentLoginScreen';
 import { DepartmentSelectionModal } from './design-system/DepartmentSelectionModal';
 import type { StaffPosition } from './services/fieldOperations';
+import { HodLoginPage } from './auth/HodLoginPage';
+import { OfficerLoginPage } from './auth/OfficerLoginPage';
 
 const VALID_DEPARTMENT_IDS: Record<string, DepartmentId> = {
   kmc: 'kmc',
@@ -24,6 +26,16 @@ const VALID_DEPARTMENT_IDS: Record<string, DepartmentId> = {
 
 export const DepartmentLoginPage: React.FC<{ targetRole?: StaffPosition }> = ({ targetRole }) => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const roleParam = searchParams.get('role')?.toLowerCase();
+  const effectiveRole = targetRole || (roleParam === 'head' || roleParam === 'officer' ? roleParam : undefined);
+
+  if (effectiveRole === 'head') {
+    return <HodLoginPage />;
+  }
+  if (effectiveRole === 'officer') {
+    return <OfficerLoginPage />;
+  }
+
   const deptParam = searchParams.get('dept')?.toLowerCase() || null;
 
   // Derive active department view directly from URL search params

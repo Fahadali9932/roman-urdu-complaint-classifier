@@ -1546,31 +1546,66 @@
 }
 
 /* Light mode overrides for restriction screen */
+.v20-light-mode.v20-desktop-restriction-root:not(.v20-admin-restriction),
+.v20-light-mode .v20-desktop-restriction-root:not(.v20-admin-restriction),
 [data-theme="light"] .v20-desktop-restriction-root:not(.v20-admin-restriction) {
-  background-color: var(--v20-bg-base, #F8F9FA) !important;
-  color: var(--v20-text-primary, #111827) !important;
+  background-color: var(--v20-bg-base, #FAF7F0) !important;
+  color: #171717 !important;
 }
 
+.v20-light-mode.v20-desktop-restriction-root:not(.v20-admin-restriction) h1,
+.v20-light-mode .v20-desktop-restriction-root:not(.v20-admin-restriction) h1,
+[data-theme="light"] .v20-desktop-restriction-root:not(.v20-admin-restriction) h1 {
+  color: #171717 !important;
+}
+
+.v20-light-mode.v20-desktop-restriction-root:not(.v20-admin-restriction) p,
+.v20-light-mode .v20-desktop-restriction-root:not(.v20-admin-restriction) p,
+[data-theme="light"] .v20-desktop-restriction-root:not(.v20-admin-restriction) p {
+  color: #454545 !important;
+}
+
+.v20-light-mode.v20-desktop-restriction-root:not(.v20-admin-restriction) .v20-restriction-btn-secondary,
+.v20-light-mode .v20-desktop-restriction-root:not(.v20-admin-restriction) .v20-restriction-btn-secondary,
 [data-theme="light"] .v20-desktop-restriction-root:not(.v20-admin-restriction) .v20-restriction-btn-secondary {
   background: rgba(0, 0, 0, 0.05);
   border: 1px solid rgba(0, 0, 0, 0.12);
-  color: #111827;
+  color: #171717;
 }
 
+.v20-light-mode.v20-desktop-restriction-root:not(.v20-admin-restriction) .v20-restriction-btn-secondary:hover,
+.v20-light-mode .v20-desktop-restriction-root:not(.v20-admin-restriction) .v20-restriction-btn-secondary:hover,
 [data-theme="light"] .v20-desktop-restriction-root:not(.v20-admin-restriction) .v20-restriction-btn-secondary:hover {
   background: rgba(0, 0, 0, 0.08);
   border-color: rgba(0, 0, 0, 0.2);
 }
 
-/* Focused Mobile Officer Header */
+/* Focused Mobile Officer Root & Header */
+.v20-mobile-officer-root {
+  transition: background 400ms ease, color 200ms ease;
+}
+
+.v20-light-mode.v20-mobile-officer-root,
+.v20-light-mode .v20-mobile-officer-root,
+[data-theme="light"] .v20-mobile-officer-root {
+  background-color: var(--v20-bg-base, #FAF7F0) !important;
+  color: #171717 !important;
+}
+
 .v20-mobile-officer-header {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
 }
 
+.v20-light-mode .v20-mobile-officer-header,
 [data-theme="light"] .v20-mobile-officer-header {
-  background-color: rgba(255, 255, 255, 0.9) !important;
+  background-color: rgba(255, 255, 255, 0.92) !important;
   border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+}
+
+.v20-light-mode .v20-mobile-officer-header div,
+[data-theme="light"] .v20-mobile-officer-header div {
+  color: #171717;
 }
 
 [data-theme="light"] .v20-mobile-officer-header button {

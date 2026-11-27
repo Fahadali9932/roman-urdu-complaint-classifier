@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Camera, RefreshCw, CheckCircle2, AlertTriangle, Shield, Upload, Info } from 'lucide-react';
 import { validateProfilePhoto, type FaceValidationResult } from '../../services/faceValidation';
 import { fieldOperations } from '../../services/fieldOperations';
+import { canonicalizeDepartmentKey } from '../../services/departmentThemes';
 
 export interface ProfilePhotoSetupPageProps {
   userId: string;
@@ -176,6 +177,7 @@ export const ProfilePhotoSetupPage: React.FC<ProfilePhotoSetupPageProps> = ({
     <div
       className="v22-profile-setup-container"
       data-testid="v22-profile-photo-setup"
+      data-dept={canonicalizeDepartmentKey(departmentId)}
       style={{
         maxWidth: '560px',
         margin: '40px auto',

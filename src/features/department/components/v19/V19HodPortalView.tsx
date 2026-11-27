@@ -19,6 +19,7 @@ import {
 } from '../../services/fieldOperations';
 import { CheckCircle2 } from 'lucide-react';
 import { useDeviceSupport, DesktopRequiredScreen } from '../../device';
+import { useDepartmentAtmosphereEffect } from '../../hooks/useCivicTheme';
 
 export interface V19HodPortalViewProps {
   departmentId: string;
@@ -47,6 +48,8 @@ export const V19HodPortalView: React.FC<V19HodPortalViewProps> = ({
   const session = auth?.session;
   const effectiveStaffName = session?.displayName || username;
   const { isDesktop } = useDeviceSupport();
+
+  useDepartmentAtmosphereEffect(departmentCode);
 
   const [activeTab, setActiveTab] = useState(initialTab);
   const [complaints, setComplaints] = useState<HeadIndependentComplaintRow[]>([]);
@@ -304,6 +307,7 @@ export const V19HodPortalView: React.FC<V19HodPortalViewProps> = ({
         departmentCode={departmentCode}
         departmentName={departmentName}
         role="head"
+        themeMode={themeMode}
         isAuthenticated={true}
         onSignOut={onSignOut}
       />

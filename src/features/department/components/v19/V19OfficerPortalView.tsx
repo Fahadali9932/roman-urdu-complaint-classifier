@@ -12,6 +12,8 @@ import { OfficerProfileView } from './OfficerProfileView';
 import { OfficerMobileGate } from './OfficerMobileGate';
 import { useDepartmentAuth } from '../../../../context/DepartmentAuthContext';
 import { useDeviceSupport, DesktopRequiredScreen } from '../../device';
+import { canonicalizeDepartmentKey } from '../../services/departmentThemes';
+import { useDepartmentAtmosphereEffect } from '../../hooks/useCivicTheme';
 import { Sun, Moon, LogOut } from 'lucide-react';
 import {
   fieldOperations,
@@ -239,13 +241,19 @@ export const V19OfficerPortalView: React.FC<V19OfficerPortalViewProps> = ({
   const session = auth?.session;
   const effectiveStaffName = session?.displayName || officerProfile?.display_name || username;
 
+  useDepartmentAtmosphereEffect(departmentCode);
+
   // Mobile / Tablet Viewport Boundary Enforcement
   if (!deviceSupport.isDesktop) {
+    const canonicalDept = canonicalizeDepartmentKey(departmentCode);
+
     if (activeTab === 'work') {
       return (
         <div
-          className="v20-mobile-officer-root"
+          className={`v20-mobile-officer-root ${themeMode === 'light' ? 'v20-light-mode' : ''}`}
           data-testid="v20-mobile-officer-work-root"
+          data-dept={canonicalDept}
+          data-theme={themeMode}
           style={{
             minHeight: '100vh',
             display: 'flex',
@@ -372,6 +380,7 @@ export const V19OfficerPortalView: React.FC<V19OfficerPortalViewProps> = ({
         departmentCode={departmentCode}
         departmentName={departmentName}
         role="officer"
+        themeMode={themeMode}
         isAuthenticated={true}
         onSignOut={onSignOut}
         onNavigateToWork={() => setActiveTab('work')}

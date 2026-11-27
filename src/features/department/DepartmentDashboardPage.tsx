@@ -32,6 +32,7 @@ import './v19-unified.css';
 import { LiquidGlassRibbon, type RibbonMetrics } from './components/glass/LiquidGlassRibbon';
 import { FieldOperationsDesk } from './components/FieldOperationsDesk';
 import { fieldOperations, type StaffPosition } from './services/fieldOperations';
+import { canonicalizeDepartmentKey } from './services/departmentThemes';
 import { StatusUpdateModal } from './components/StatusUpdateModal';
 import { ReviewAssignmentModal } from './components/ReviewAssignmentModal';
 import {
@@ -822,9 +823,17 @@ export const DepartmentDashboardPage: React.FC = () => {
   }
 
   if (session?.mustChangePassword && staffPosition) {
+    const canonicalDept = canonicalizeDepartmentKey(departmentId);
     return (
-      <div className="v15-restriction-shell" data-theme={themeMode} data-testid="forced-password-change-gate">
-        <header className="v15-restriction-topbar">
+      <div
+        className={`v20-portal-root ${themeMode === 'light' ? 'v20-light-mode' : ''} v15-restriction-shell`}
+        data-dept={canonicalDept}
+        data-theme={themeMode}
+        data-testid="forced-password-change-gate"
+        style={{ minHeight: '100vh', position: 'relative' }}
+      >
+        <div className="v20-atmospheric-background" aria-hidden="true" style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none' }} />
+        <header className="v15-restriction-topbar" style={{ position: 'relative', zIndex: 1 }}>
           <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--v15-ink)' }}>
             Awaaz-e-Awam · First-login verification &amp; setup
           </span>
@@ -1005,9 +1014,11 @@ export const DepartmentDashboardPage: React.FC = () => {
     return (
       <div
         data-testid="department-workspace"
+        data-dept={canonicalizeDepartmentKey(departmentId)}
         data-dept-theme={departmentId}
         data-theme={themeMode}
         data-dept-mode={themeMode}
+        className={themeMode === 'light' ? 'v20-light-mode' : ''}
       >
         <V19HodPortalView
           departmentId={departmentId || 'kmc'}
@@ -1030,9 +1041,11 @@ export const DepartmentDashboardPage: React.FC = () => {
     return (
       <div
         data-testid="department-workspace"
+        data-dept={canonicalizeDepartmentKey(departmentId)}
         data-dept-theme={departmentId}
         data-theme={themeMode}
         data-dept-mode={themeMode}
+        className={themeMode === 'light' ? 'v20-light-mode' : ''}
       >
         <V19OfficerPortalView
           departmentId={departmentId || 'kmc'}

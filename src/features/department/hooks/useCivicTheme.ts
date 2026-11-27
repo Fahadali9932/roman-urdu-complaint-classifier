@@ -1,9 +1,33 @@
 import { useState, useEffect, useCallback } from 'react';
+import { canonicalizeDepartmentKey } from '../services/departmentThemes';
 
 export type CivicThemeMode = 'light' | 'dark';
 
 const THEME_STORAGE_KEY = 'awaaz_dept_theme_mode';
 const LEGACY_STORAGE_KEY = 'aawaaz-demo-theme';
+
+export function syncDocumentDepartment(deptKey?: string | null) {
+  if (typeof document === 'undefined') return;
+  if (deptKey) {
+    const canonical = canonicalizeDepartmentKey(deptKey);
+    document.documentElement.setAttribute('data-dept', canonical);
+  } else {
+    document.documentElement.removeAttribute('data-dept');
+  }
+}
+
+export function useDepartmentAtmosphereEffect(departmentCode?: string | null) {
+  useEffect(() => {
+    if (!departmentCode) return;
+    const canonical = canonicalizeDepartmentKey(departmentCode);
+    if (typeof document !== 'undefined') {
+      document.documentElement.setAttribute('data-dept', canonical);
+    }
+    return () => {
+      // Keep or reset on unmount if navigating away from department
+    };
+  }, [departmentCode]);
+}
 
 export function useCivicTheme() {
   const [theme, setThemeState] = useState<CivicThemeMode>(() => {

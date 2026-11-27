@@ -5,6 +5,42 @@ Verified on **27 November 2026 (Pakistan time)**. Internal delivery target:
 This document distinguishes inspected source, automated checks, and unverified
 hosted behavior. Update it after every significant verified milestone.
 
+## Development update, 27 November 2026 — Phase V22.2: Final Department Color Consistency & Separate Staff Authentication (Mobile Grey Root Fallback Elimination, Multi-Viewport Atmospheric Scoping, Separate HOD Editorial Sign-In, Centered Field Officer Sign-In, Live Swatch Crossfade & Strict Role Isolation)
+
+- **Git & Protected Baseline (`D:\RomanUrdu_V13_19_Review`, branch `fix/v22-2-final-authentication-and-theme-consistency`):**
+  - Branched from V22.1 (`dee0f23`) with safety rollback checkpoint tag `checkpoint/before-v22-2-final-frontend` pushed to remote.
+  - Dedicated branch `fix/v22-2-final-authentication-and-theme-consistency` active and tracking `origin`.
+  - Protected primary worktree `D:\RomanUrdu_ComplaintClassifier_staff_auth` remained **100% untouched**.
+  - Total expenditure: **$0.00**; zero paid external APIs, Google Maps billing, SMS gateways, computer vision APIs, or credit card dependencies.
+  - Zero database schema migrations applied; production DB `akbwiedtmxjxcjscgitw` and staging DB `jvbulmmdwovtgaxojxhn` remain completely untouched.
+- **Architectural Deliverables & Verification:**
+  - **Elimination of Mobile Viewport Grey Regression (`DesktopRequiredScreen.tsx`, `useCivicTheme.ts`, `v20-atmospheric.css`):**
+    - Isolated root cause: CSS department variables were scoped to `[data-dept="<slug>"]` which was only applied on `V20PortalLayout`. When switching to mobile emulation or mobile viewports on HOD routes, `DesktopRequiredScreen` mounted without `data-dept`, causing CSS variable lookups to fall back to neutral grey `:root` (`#101318`).
+    - Fixed by attaching `data-dept={canonicalDept}`, `data-theme={themeMode}`, and `v20-light-mode` to `DesktopRequiredScreen`, `DesktopAccessGate`, `V19HodPortalView`, `V19OfficerPortalView` (mobile fieldwork console), and OTP onboarding gate.
+    - Synchronized `data-dept` on `document.documentElement` via `useDepartmentAtmosphereEffect` and `syncDocumentDepartment`.
+    - Real Chrome CDP verification confirmed SSWMB and KE maintain their deep emerald green (`#0C1B14`) and cobalt blue (`#0C1220`) gradients on mobile viewports.
+  - **Dedicated Department Head Sign-In Experience (`HodLoginPage.tsx`):**
+    - Desktop-first asymmetric editorial composition: left column features monumental `Department Head.` typography, agency context badge, and return link; right column features `.v20-glass-card` with `DepartmentThemeSelector`, light/dark mode switch, username/email and password inputs, and primary sign-in CTA.
+    - Gated by `DesktopRequiredScreen` on mobile/tablet devices (< 1024px) with matching department atmosphere.
+  - **Dedicated Field Officer Sign-In Experience (`OfficerLoginPage.tsx`):**
+    - Centered mobile-first composition: glass card $\le 440\text{px}$, responsive 320px–1920px with $\ge 44\text{px}$ touch targets.
+    - Heading: "Officer access." with supporting microcopy "Sign in to your department to access active fieldwork tasks." and footer "Accounts are issued by your department head."
+    - Zero morphing navbar on officer login or fieldwork surfaces.
+  - **Live Department Theme Selector with Visual Swatches (`DepartmentThemeSelector.tsx`):**
+    - Features circular colored swatches for all 7 departments (KMC `#E5A044`, KE `#548EFF`, KWSC `#42C6C9`, SSWMB `#58C78C`, Gas `#EC667B`, SBCA `#AA80E8`, Admin `#A4B2C5`).
+    - Immediate 400–650ms background crossfade without page reload or credential wiping.
+  - **Strict Server Boundary Role Separation & Department Isolation:**
+    - Officer credentials entered at `/department/head/login` are rejected with helpful alert and redirection link to Officer sign-in.
+    - Head credentials entered at `/department/officer/login` are rejected with helpful alert and redirection link to Head sign-in.
+    - Cross-department account leakage is strictly blocked.
+- **Automated Quality Gates & Test Verification:**
+  - TypeScript project build (`npx tsc -b ; npm run build`): **Exit code `0` cleanly (0 errors, bundled in 2.10s)**.
+  - Vitest test suite (`npm test -- --run`): **88 passed test files (893 passed total, 0 regressions)**.
+  - Dedicated new test suite: `src/test/V22_2_DepartmentColorConsistencyAndSeparateAuth.test.tsx` (**11 passed in 456ms**).
+  - Headless Chrome CDP Verification (`tools/ai_factory/capture_v22_2_qa.mjs`):
+    - Verified all 22 scenarios across Desktop 1920 (Dark & Light for all 7 depts), HOD Login, Officer Login, Tablet 768 restriction, Mobile 390 restriction (SSWMB Emerald Green, KE Cobalt Blue, etc.), Mobile 320 compact, and Mobile fieldwork console.
+    - Saved 22 screenshot artifacts in `brain/screenshots/v22_2/`.
+
 ## Development update, 27 November 2026 — Phase V22.1: Department Identity, Theme Architecture, Profile Verification & Privacy (Single-Hue Gradients, Zero Color Leakage, Permanent Light-Mode WCAG AA Contrast, Morphing Navbar Notch Lock, Human Microcopy, Client-Side Canvas 2D Face Validation, Department-Isolated Profile Approvals Desk & Realistic Screenshot Deterrence)
 
 - **Git & Protected Baseline (`D:\RomanUrdu_V13_19_Review`, branch `feature/v22-1-theme-identity-and-profile-verification`):**

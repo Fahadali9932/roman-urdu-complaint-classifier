@@ -21,6 +21,7 @@ export const DesktopAccessGate: React.FC<DesktopAccessGateProps> = ({
   departmentCode = 'KMC',
   departmentName = 'Karachi Metropolitan Corporation',
   role = 'head',
+  themeMode,
   isAuthenticated = false,
   onSignOut,
   onNavigateToWork,
@@ -35,6 +36,7 @@ export const DesktopAccessGate: React.FC<DesktopAccessGateProps> = ({
         departmentCode={departmentCode}
         departmentName={departmentName}
         role={role}
+        themeMode={themeMode}
         isAuthenticated={isAuthenticated}
         onSignOut={onSignOut}
         onNavigateToWork={onNavigateToWork}
