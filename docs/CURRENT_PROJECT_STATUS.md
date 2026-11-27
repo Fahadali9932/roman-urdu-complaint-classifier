@@ -5,6 +5,27 @@ Verified on **27 November 2026 (Pakistan time)**. Internal delivery target:
 This document distinguishes inspected source, automated checks, and unverified
 hosted behavior. Update it after every significant verified milestone.
 
+## Development update, 27 November 2026 — Phase V20: Original Frontend Restoration (Visual Acceptance Gate A — Continuous Morphing Nav, Atmospheric Backgrounds, Separate Landing & Cardless Dashboard)
+
+- **Git & Protected Baseline (`D:\RomanUrdu_V13_19_Review`, branch `feature/v20-original-frontend-restoration`):**
+  - Branched from V19.1 verified commit `3db14050f432e8e589b5da627b7103ea77141302`.
+  - Created and pinned rollback safety checkpoint `checkpoint/v19-1-before-v20`.
+  - Current Gate A commit: `6d96e74c76b91c28c89c8a002bc0f5ea2bb2c92e` pushed to origin.
+  - Primary worktree `D:\RomanUrdu_ComplaintClassifier_staff_auth` remained completely untouched.
+  - Total expenditure: `$0.00`; zero paid external APIs or fonts used.
+  - Zero database schema migrations; all V19.1 backend RPCs, monotonic trusted PKT clock, Haversine GPS, and forensic screening preserved intact.
+- **Visual Acceptance Gate A Restoration Achievements:**
+  - **Atmospheric Gradient Architecture (`v20-atmospheric.css`):** Implemented authoritative departmental palettes from Greenwich Project 3 (Screenshots 639-641): KMC dark gold glow (`#10100E` base, `#82500E` radial glow), K-Electric electric blue (`#080D1A` base, `#245AB9` glow), KW&SC teal (`#041014` base, `#168D9E` glow), and SSWMB green.
+  - **Oleg Matskov Top-Edge Morphing Navigation (`TopEdgeMorphingNav.tsx`):** Engineered solid top-edge bar (`#0E0E0E`) spanning viewport with curved concave downward notch. Resting state displays compact menu trigger (`≡ Home` / active tab). Expanded state fluidly widens to a 720px ribbon with smooth concave-to-convex shoulders revealing all destinations, trusted Asia/Karachi PKT clock (`TrustedClock`), theme toggle, and sign-out.
+  - **Dedicated Landing Page (`V20LandingPage.tsx`):** Restored strict separation between Landing and Dashboard (Screenshots 650 & 654). Landing is a calm entry with intentional negative space, bold time-based greeting, authenticated staff name, and clean action controls (`Open Dashboard →`, `View Complaints`). Zero statistics, cards, or charts.
+  - **Cardless Dashboard Composition (`V20DashboardPage.tsx`):** Reconstructed Screenshot 655 composition with large standalone numbers (`TOTAL ACTIVE CASES 128`, `TOTAL CASES SOLVED 342`) rendered directly on atmospheric canvas with zero surrounding cards.
+  - **NameThatUI Interactive Donut Chart (`V20InteractiveDonut.tsx`):** Pure SVG circular donut with separated slices, interactive hover highlighting, dynamic period filters (`Today`, `Yesterday`, `This Month`, `This Year`), and central counter (`48 TODAY'S CASES`).
+- **Quality Gates, Test Suite & Browser Verification:**
+  - `tsc -b && vite build`: exit `0` cleanly.
+  - Vitest test suite: **755 passed | 1 skipped across 76 test suites (0 regressions)**.
+  - Browser QA (`tools/ai_factory/v20_gate_a_browser_qa.mjs`): 15 high-res screenshots across 1920px, 1440px, 1024px, 768px, 390px, 320px, Dark/Light modes, K-Electric theme, plus 12-frame morphing navigation animation (`v20_morphing_nav_animation.gif` & `v20_morphing_nav_animation.mp4`).
+  - Halted at Visual Acceptance Gate A awaiting user review.
+
 ## Development update, 27 November 2026 — Phase V19.1: Independent Audit Corrections (Frontend Simulation Remediation, Database Concurrency, Monotonic Server Clock & Truthful Forensic Screening)
 
 - **Git & Protected Baseline (`D:\RomanUrdu_V13_19_Review`, branch `fix/v19-1-functional-integration-and-security`):**
