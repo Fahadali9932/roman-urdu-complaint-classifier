@@ -194,178 +194,108 @@
 
 /* ==========================================================================
    TOP-EDGE CONTINUOUS NOTCH NAVIGATION
+   Authoritative Reference: Option A Continuous Morphing Notch (Prototype)
    ========================================================================== */
 .v20-top-edge-nav-container {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
+  inset: 0 0 auto;
+  height: 120px;
   z-index: 1000;
   pointer-events: none;
 }
 
-/* Continuous solid top edge bar running edge-to-edge */
-.v20-top-edge-bar {
+/* Continuous SVG geometry running full width */
+.v20-nav-shape {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 38px;
-  background: #0E0E0E;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  pointer-events: auto;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 24px;
-}
-
-/* The Morphing Notch physically connected to the top edge */
-.v20-morphing-notch-wrapper {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  pointer-events: auto;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  transition: all var(--v20-duration-nav) var(--v20-ease-spring);
-}
-
-/* SVG continuous curve geometry shell */
-.v20-notch-shell {
-  position: relative;
-  background: #0E0E0E;
-  border-bottom-left-radius: 28px;
-  border-bottom-right-radius: 28px;
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  border-top: none;
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.55), 0 2px 10px rgba(0, 0, 0, 0.35);
-  transition: width var(--v20-duration-nav) var(--v20-ease-spring),
-              height var(--v20-duration-nav) var(--v20-ease-spring),
-              padding var(--v20-duration-nav) var(--v20-ease-spring);
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Shoulder curve enhancements linking notch to horizontal bar */
-.v20-notch-shell::before,
-.v20-notch-shell::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  width: 20px;
-  height: 20px;
-  pointer-events: none;
-  background: transparent;
-}
-
-.v20-notch-shell::before {
-  left: -20px;
-  border-top-right-radius: 20px;
-  box-shadow: 8px -8px 0 8px #0E0E0E;
-}
-
-.v20-notch-shell::after {
-  right: -20px;
-  border-top-left-radius: 20px;
-  box-shadow: -8px -8px 0 8px #0E0E0E;
-}
-
-/* Collapsed Resting State */
-.v20-notch-collapsed {
-  width: 170px;
-  height: 44px;
-  cursor: pointer;
-  padding: 0 16px;
-}
-
-.v20-notch-collapsed:hover {
-  background: #141414;
-  border-color: rgba(255, 255, 255, 0.16);
-}
-
-/* Expanded State */
-.v20-notch-expanded {
-  width: min(720px, calc(100vw - 32px));
-  height: 68px;
-  padding: 0 20px;
-}
-
-/* Nav Item styling inside expanded notch */
-.v20-nav-destinations-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
+  inset: 0;
   width: 100%;
-  justify-content: center;
+  height: 180px;
+  pointer-events: none;
 }
 
-.v20-nav-link-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
-  border-radius: 9999px;
-  background: transparent;
-  color: var(--v20-text-secondary);
-  font-family: var(--v20-font-body);
-  font-size: 13.5px;
-  font-weight: 500;
-  border: none;
-  cursor: pointer;
-  transition: all 180ms ease;
+.v20-notch-path {
+  fill: #080808;
+}
+
+/* Top-Left Brand Identity */
+.v20-brand-label {
+  position: absolute;
+  top: 36px;
+  left: clamp(22px, 5vw, 76px);
+  font-size: 13px;
+  letter-spacing: -0.02em;
+  font-weight: 600;
   white-space: nowrap;
-}
-
-.v20-nav-link-btn:hover {
+  pointer-events: auto;
   color: var(--v20-text-primary);
-  background: rgba(255, 255, 255, 0.08);
 }
 
-.v20-nav-link-btn.is-active {
-  color: #0E0E0E;
-  background: var(--v20-text-primary);
-  font-weight: 600;
-  box-shadow: 0 2px 12px rgba(255, 255, 255, 0.15);
-}
-
-/* Compact trigger inside collapsed notch */
-.v20-notch-trigger-content {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12.5px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  color: var(--v20-text-primary);
-  text-transform: uppercase;
+.v20-brand-label span {
+  display: block;
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--v20-text-muted);
+  letter-spacing: 0.14em;
+  margin-top: 5px;
 }
 
 /* Right Header Controls (Clock & Date & Theme) */
 .v20-header-right-strip {
+  position: absolute;
+  top: 29px;
+  right: clamp(20px, 5vw, 76px);
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 14px;
+  pointer-events: auto;
   font-size: 13px;
   color: var(--v20-text-secondary);
 }
 
+.v20-clock-block {
+  text-align: right;
+  display: grid;
+  gap: 4px;
+  margin-right: 8px;
+}
+
 .v20-header-clock {
   font-family: var(--v20-font-body);
-  font-size: 13.5px;
-  font-weight: 500;
+  font-size: 20px;
+  font-weight: 300;
   color: var(--v20-text-primary);
   letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.v20-header-clock small {
+  font-size: 9px;
+  margin-left: 5px;
+  color: var(--v20-text-muted);
 }
 
 .v20-header-date {
-  font-size: 12.5px;
+  font-size: 11px;
   color: var(--v20-text-muted);
   font-weight: 400;
+}
+
+.v20-clock-slot {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: bottom;
+}
+
+.v20-clock-slot b {
+  display: inline-block;
+  font-weight: 300;
+  animation: v20-digit-roll 0.26s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@keyframes v20-digit-roll {
+  from { transform: translateY(70%); opacity: 0.1; }
+  to { transform: none; opacity: 1; }
 }
 
 .v20-icon-btn {
@@ -376,8 +306,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   transition: all 160ms ease;
 }
@@ -387,100 +317,147 @@
   background: rgba(255, 255, 255, 0.08);
 }
 
+/* Center Notch Trigger Button */
+.v20-notch-trigger-btn {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: 10px;
+  color: #F4EFE5;
+  z-index: 2;
+  pointer-events: auto;
+  width: 48px;
+  height: 40px;
+  border: 0;
+  background: transparent;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: left 0.22s ease, transform 0.22s ease;
+}
+
+.v20-top-edge-nav-container.open .v20-notch-trigger-btn {
+  left: calc(50% + var(--menu-half, 360px) - 28px);
+  top: 14px;
+}
+
+.v20-top-edge-nav-container.open .v20-notch-trigger-btn svg {
+  transform: rotate(90deg);
+}
+
+/* Nav Items inside morphing notch */
+.v20-nav-destinations-row {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(10px, 1.8vw, 24px);
+  white-space: nowrap;
+  pointer-events: auto;
+  color: #D2CBC0;
+  opacity: 0;
+  transition: opacity 0.19s ease;
+  padding: 8px 40px 18px 15px;
+}
+
+.v20-nav-destinations-row.visible,
+.v20-nav-destinations-row.is-visible {
+  opacity: 1;
+}
+
+.v20-nav-destinations-row.is-collapsed {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.v20-nav-link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 4px;
+  background: transparent;
+  color: #D2CBC0;
+  font-family: var(--v20-font-body);
+  font-size: 14px;
+  font-weight: 500;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: all 160ms ease;
+  white-space: nowrap;
+}
+
+.v20-nav-link-btn:hover {
+  color: #FFFFFF;
+}
+
+.v20-nav-link-btn.is-active,
+.v20-nav-link-btn[aria-current="page"] {
+  color: #FFF4DE;
+  border-color: var(--v20-accent, #DFA51D);
+  font-weight: 600;
+}
+
+.v20-nav-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 9999px;
+  background: var(--v20-accent, #DFA51D);
+  color: #0E0E0E;
+  margin-left: 2px;
+}
+
 /* ==========================================================================
-   LANDING PAGE — CALM, SPACIOUS EDITORIAL COMPOSITION
+   LANDING PAGE — CALM, SPACIOUS CENTERED EDITORIAL COMPOSITION
+   Authoritative Reference: Greenwich Project 3 (Centered Greeting & Name)
    ========================================================================== */
 .v20-landing-container {
-  flex: 1;
+  min-height: 100vh;
+  min-height: 100svh;
   display: flex;
   flex-direction: column;
+  align-items: center;
   justify-content: center;
-  align-items: flex-start;
-  padding: 0 clamp(24px, 7vw, 120px);
-  min-height: 100vh;
+  text-align: center;
+  padding: 120px 24px 90px;
   box-sizing: border-box;
 }
 
 .v20-landing-dept-badge {
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.24em;
+  font-size: clamp(10px, 1vw, 13px);
+  font-weight: 500;
+  letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: var(--v20-accent);
-  opacity: 0.92;
-  margin-bottom: 16px;
+  color: var(--v20-accent, #DFA51D);
+  max-width: 620px;
+  line-height: 1.6;
+  margin: 0 0 24px;
 }
 
 .v20-landing-greeting-title {
-  font-family: var(--v20-font-display);
-  font-size: clamp(54px, 7vw, 100px);
-  font-weight: 800;
-  line-height: 1.02;
-  letter-spacing: -0.035em;
-  color: var(--v20-text-primary);
-  margin: 0 0 14px 0;
+  font-family: var(--v20-font-display, "Inter Display", "Inter", sans-serif);
+  font-size: clamp(48px, 7.6vw, 114px);
+  font-weight: 650;
+  letter-spacing: -0.04em;
+  line-height: 1.06;
+  margin: 0;
+  color: var(--v20-text-primary, #F8F2E8);
+  text-wrap: balance;
   text-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
 }
 
 .v20-landing-staff-name {
-  font-family: var(--v20-font-body);
-  font-size: clamp(22px, 2.8vw, 36px);
-  font-weight: 500;
-  color: var(--v20-text-secondary);
-  margin: 0 0 36px 0;
-  letter-spacing: -0.015em;
-}
-
-.v20-landing-action-row {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-
-.v20-primary-cta-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 14px 28px;
-  border-radius: 9999px;
-  background: var(--v20-accent);
-  color: #0E0E0E;
-  font-family: var(--v20-font-body);
-  font-size: 14.5px;
-  font-weight: 600;
-  border: none;
-  cursor: pointer;
-  box-shadow: 0 4px 20px rgba(223, 165, 29, 0.28);
-  transition: all 200ms ease;
-}
-
-.v20-primary-cta-btn:hover {
-  transform: translateY(-1px);
-  filter: brightness(1.08);
-  box-shadow: 0 6px 26px rgba(223, 165, 29, 0.38);
-}
-
-.v20-secondary-cta-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 13px 24px;
-  border-radius: 9999px;
-  background: var(--v20-glass-surface);
-  color: var(--v20-text-primary);
-  font-family: var(--v20-font-body);
-  font-size: 14px;
-  font-weight: 500;
-  border: 1px solid var(--v20-glass-border);
-  cursor: pointer;
-  backdrop-filter: blur(var(--v20-glass-blur));
-  transition: all 200ms ease;
-}
-
-.v20-secondary-cta-btn:hover {
-  background: var(--v20-glass-surface-hover);
-  border-color: var(--v20-glass-border-highlight);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(24px, 2.8vw, 40px);
+  font-weight: 400;
+  color: var(--v20-text-secondary, #C5BBA9);
+  margin: 20px 0 0;
+  letter-spacing: -0.025em;
 }
 
 /* ==========================================================================

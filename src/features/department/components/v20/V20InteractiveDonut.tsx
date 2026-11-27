@@ -37,8 +37,12 @@ export const V20InteractiveDonut: React.FC<V20InteractiveDonutProps> = ({
   const gapPx = 6;
   let accumulatedAngle = 0;
 
+  const toggleHighlight = (seg: DonutSegment) => {
+    setHoveredSegment((prev) => (prev?.id === seg.id ? null : seg));
+  };
+
   return (
-    <div className="v20-donut-svg-wrapper" data-testid="v20-donut-chart">
+    <div className="v20-donut-svg-wrapper donut" data-testid="v20-donut-chart">
       <svg
         width={size}
         height={size}
@@ -64,7 +68,7 @@ export const V20InteractiveDonut: React.FC<V20InteractiveDonutProps> = ({
         />
 
         {/* Render separated slices */}
-        {segments.map((segment) => {
+        {segments.map((segment, idx) => {
           const percentage = segment.value / sum;
           const sliceLength = Math.max(0, percentage * circumference - gapPx);
           const dashArray = `${sliceLength} ${circumference - sliceLength}`;
@@ -76,6 +80,7 @@ export const V20InteractiveDonut: React.FC<V20InteractiveDonutProps> = ({
           return (
             <circle
               key={segment.id}
+              data-slice={idx}
               cx={size / 2}
               cy={size / 2}
               r={radius}
@@ -89,52 +94,77 @@ export const V20InteractiveDonut: React.FC<V20InteractiveDonutProps> = ({
               style={{
                 cursor: 'pointer',
                 transition: 'stroke-width 240ms cubic-bezier(0.16, 1, 0.3, 1), opacity 200ms ease',
-                opacity: hoveredSegment ? (isHovered ? 1 : 0.45) : 0.95,
+                opacity: hoveredSegment ? (isHovered ? 1 : 0.28) : 0.95,
               }}
               onMouseEnter={() => setHoveredSegment(segment)}
               onMouseLeave={() => setHoveredSegment(null)}
+              onClick={() => toggleHighlight(segment)}
             />
           );
         })}
       </svg>
 
       {/* Central Metric (Pure standalone typography at the heart of the donut) */}
-      <div className="v20-donut-center-metric">
-        <span className="v20-donut-center-number" data-testid="v20-donut-center-total">
+      <div className="v20-donut-center-metric donut-center">
+        <strong
+          id="chart-total"
+          className="v20-donut-center-number"
+          data-testid="v20-donut-center-total"
+        >
           {displayValue}
-        </span>
-        <span className="v20-donut-center-label" data-testid="v20-donut-center-label">
+        </strong>
+        <span
+          id="chart-label"
+          className="v20-donut-center-label"
+          data-testid="v20-donut-center-label"
+        >
           {displayLabel}
         </span>
       </div>
 
       {/* Donut Legend */}
-      <div className="v20-donut-legend-grid">
-        {segments.map((segment) => {
+      <div className="v20-donut-legend-grid legend">
+        {segments.map((segment, idx) => {
           const isHovered = hoveredSegment?.id === segment.id;
           return (
-            <div
+            <button
               key={segment.id}
-              className="v20-legend-item"
+              type="button"
+              data-legend={idx}
+              data-value={segment.value}
+              aria-pressed={isHovered}
+              className={`v20-legend-item ${isHovered ? 'is-active' : ''}`}
               style={{
                 cursor: 'pointer',
                 opacity: hoveredSegment ? (isHovered ? 1 : 0.45) : 0.9,
                 transition: 'opacity 200ms ease',
+                background: 'transparent',
+                border: 0,
+                textAlign: 'left',
               }}
               onMouseEnter={() => setHoveredSegment(segment)}
               onMouseLeave={() => setHoveredSegment(null)}
+              onClick={() => toggleHighlight(segment)}
             >
-              <div
+              <i
                 className="v20-legend-dot"
                 style={{
                   background: segment.color,
                   boxShadow: `0 0 8px ${segment.color}66`,
+                  display: 'inline-block',
+                  width: '9px',
+                  height: '9px',
+                  borderRadius: '50%',
+                  marginRight: '8px',
                 }}
               />
               <span style={{ fontWeight: isHovered ? 600 : 400 }}>
-                {segment.label} ({segment.value})
+                {segment.label}
               </span>
-            </div>
+              <strong style={{ marginLeft: 'auto', fontWeight: 600, paddingLeft: '8px' }}>
+                {segment.value}
+              </strong>
+            </button>
           );
         })}
       </div>

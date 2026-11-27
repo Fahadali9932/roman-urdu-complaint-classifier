@@ -1,6 +1,5 @@
 import React from 'react';
 import { TopEdgeMorphingNav, type V20NavOption } from './TopEdgeMorphingNav';
-import { WatermarkOverlay } from '../v19/WatermarkOverlay';
 
 export interface V20PortalLayoutProps {
   departmentCode: string;
@@ -47,10 +46,7 @@ export const V20PortalLayout: React.FC<V20PortalLayoutProps> = ({
       {/* 1. Persistent Continuous Departmental Atmospheric Background */}
       <div className="v20-atmospheric-background" aria-hidden="true" />
 
-      {/* 2. Official Anti-Tamper Watermark Overlay */}
-      <WatermarkOverlay departmentCode={departmentCode} userId={username} />
-
-      {/* 3. Top-Edge Morphing Notch Navigation */}
+      {/* 2. Top-Edge Morphing Notch Navigation */}
       <TopEdgeMorphingNav
         departmentCode={departmentCode}
         departmentName={departmentName}
@@ -65,7 +61,7 @@ export const V20PortalLayout: React.FC<V20PortalLayoutProps> = ({
         onOpenNotifications={onOpenNotifications}
       />
 
-      {/* 4. Active Destination Content */}
+      {/* 3. Active Destination Content */}
       <div className="v20-portal-content" data-active-tab={activeTab}>
         {children}
       </div>

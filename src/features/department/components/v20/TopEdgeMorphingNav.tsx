@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Menu, X, Bell, Moon, Sun, LogOut } from 'lucide-react';
 import { trustedTimeService } from '../../../../services/trustedTimeService';
 
@@ -35,261 +35,318 @@ export const TopEdgeMorphingNav: React.FC<TopEdgeMorphingNavProps> = ({
   unreadNotifications = 0,
   onOpenNotifications,
 }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [timeStr, setTimeStr] = useState<string>('');
-  const [dateStr, setDateStr] = useState<string>('');
-  const collapseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const [isOpen, setIsOpen] = useState(false);
+  const [clock, setClock] = useState(() => trustedTimeService.formatPkt());
+  const [synced, setSynced] = useState(() => trustedTimeService.isSynced());
+  const [viewportWidth, setViewportWidth] = useState(() =>
+    typeof window !== 'undefined' ? window.innerWidth : 1440
+  );
 
-  // Live trusted PKT clock updates
+  // Animated dimensions for SVG notch
+  const [w, setW] = useState(110);
+  const [h, setH] = useState(48);
+
+  const navRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const rafRef = useRef<number>(0);
+  const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const currentDims = useRef({ w: 110, h: 48 });
+
+  const isMobile = viewportWidth < 768;
+  const targetW = isOpen
+    ? Math.min(viewportWidth - 48, role === 'head' ? 730 : 810)
+    : 110;
+  const targetH = isOpen ? (isMobile ? 148 : 74) : 48;
+
+  // Spring animation loop for continuous SVG notch interpolation (factor 0.17 from prototype)
+  const animateToTarget = useCallback(() => {
+    if (typeof window === 'undefined') return;
+    const prefersReduced =
+      typeof window.matchMedia === 'function'
+        ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        : false;
+
+    if (prefersReduced) {
+      currentDims.current = { w: targetW, h: targetH };
+      setW(targetW);
+      setH(targetH);
+      return;
+    }
+
+    const dw = targetW - currentDims.current.w;
+    const dh = targetH - currentDims.current.h;
+
+    if (Math.abs(dw) > 0.2 || Math.abs(dh) > 0.2) {
+      currentDims.current.w += dw * 0.17;
+      currentDims.current.h += dh * 0.17;
+      setW(currentDims.current.w);
+      setH(currentDims.current.h);
+      rafRef.current = requestAnimationFrame(animateToTarget);
+    } else {
+      currentDims.current = { w: targetW, h: targetH };
+      setW(targetW);
+      setH(targetH);
+      rafRef.current = 0;
+    }
+  }, [targetW, targetH]);
+
   useEffect(() => {
-    const updateTime = () => {
-      const pkt = trustedTimeService.formatPkt();
-      setTimeStr(pkt.timeStr + ' PKT');
-      setDateStr(pkt.dateStr);
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    rafRef.current = requestAnimationFrame(animateToTarget);
+    return () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
-    updateTime();
-    const interval = setInterval(updateTime, 1000);
-    return () => clearInterval(interval);
+  }, [animateToTarget]);
+
+  // Window resize listener
+  useEffect(() => {
+    const handleResize = () => {
+      setViewportWidth(window.innerWidth);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Keyboard navigation & Escape dismissal
+  // Live PKT clock updates
+  useEffect(() => {
+    const tick = () => {
+      setClock(trustedTimeService.formatPkt());
+      setSynced(trustedTimeService.isSynced());
+    };
+    const interval = window.setInterval(tick, 1000);
+    return () => {
+      window.clearInterval(interval);
+      if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+    };
+  }, []);
+
+  // Escape key & Click outside dismissal
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isExpanded) {
-        setIsExpanded(false);
+      if (e.key === 'Escape' && isOpen) {
+        setIsOpen(false);
+        triggerRef.current?.focus();
       }
     };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isExpanded]);
-
-  // Click outside to collapse
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setIsExpanded(false);
+    const handlePointerDown = (e: PointerEvent) => {
+      if (isOpen && navRef.current && !navRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
       }
     };
-    if (isExpanded) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isExpanded]);
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('pointerdown', handlePointerDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('pointerdown', handlePointerDown);
+    };
+  }, [isOpen]);
 
-  // Hover handlers with debounce
-  const handleMouseEnter = () => {
-    if (collapseTimeoutRef.current) {
-      clearTimeout(collapseTimeoutRef.current);
-      collapseTimeoutRef.current = null;
+  // Debounced hover handlers
+  const handlePointerEnter = (e: React.PointerEvent) => {
+    if (e.pointerType === 'mouse') {
+      if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+      hoverTimerRef.current = setTimeout(() => {
+        setIsOpen(true);
+      }, 170);
     }
-    setIsExpanded(true);
   };
 
-  const handleMouseLeave = () => {
-    collapseTimeoutRef.current = setTimeout(() => {
-      setIsExpanded(false);
-    }, 380);
+  const handlePointerLeave = (e: React.PointerEvent) => {
+    if (e.pointerType === 'mouse') {
+      if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+      hoverTimerRef.current = setTimeout(() => {
+        if (!navRef.current?.contains(document.activeElement)) {
+          setIsOpen(false);
+        }
+      }, 500);
+    }
   };
 
-  // Role-specific destinations
-  const defaultNavTabs: V20NavOption[] = role === 'head'
-    ? [
-        { id: 'home', label: 'Home' },
-        { id: 'dashboard', label: 'Dashboard' },
-        { id: 'complaints', label: 'Complaints' },
-        { id: 'verification', label: 'Verification' },
-        { id: 'officers', label: 'Officers' },
-        { id: 'profile', label: 'Profile' },
-      ]
-    : [
-        { id: 'home', label: 'Home' },
-        { id: 'dashboard', label: 'Dashboard' },
-        { id: 'complaints', label: 'Complaints' },
-        { id: 'work', label: 'Work' },
-        { id: 'performance', label: 'Performance' },
-        { id: 'notifications', label: 'Notices', badge: unreadNotifications },
-        { id: 'profile', label: 'Profile' },
-      ];
+  // Default tabs for role
+  const destinations: V20NavOption[] = tabs ?? [
+    { id: 'home', label: 'Home' },
+    { id: 'dashboard', label: 'Dashboard' },
+    { id: 'complaints', label: 'Complaints' },
+    ...(role === 'head'
+      ? [
+          { id: 'verification', label: 'Verification' },
+          { id: 'officers', label: 'Officers' },
+        ]
+      : [
+          { id: 'work', label: 'Work' },
+          { id: 'performance', label: 'Performance' },
+          { id: 'notifications', label: 'Notifications' },
+        ]),
+    { id: 'profile', label: 'Profile' },
+  ];
 
-  const effectiveTabs = tabs || defaultNavTabs;
-  const currentLabel = effectiveTabs.find((t) => t.id === activeTab)?.label || 'Menu';
+  const handleSelectTab = (tabId: string) => {
+    onSelectTab(tabId);
+    setIsOpen(false);
+    triggerRef.current?.focus();
+  };
+
+  // Exact continuous SVG cubic bezier curve formula from prototype
+  const c = viewportWidth / 2;
+  const l = c - w / 2;
+  const r = c + w / 2;
+  const top = 7;
+  const k = Math.min(27, h / 2);
+  const s = Math.min(38, w / 3);
+  const pathD = `M0 0 H${viewportWidth} V${top} H${r + s} C${r + 7} ${top} ${r + 5} ${h} ${r - k} ${h} H${l + k} C${l - 5} ${h} ${l - 7} ${top} ${l - s} ${top} H0 Z`;
 
   return (
-    <header className="v20-top-edge-nav-container" ref={containerRef}>
-      {/* 1. Continuous Top Edge Bar extending across the full viewport */}
-      <div className="v20-top-edge-bar">
-        {/* Left: Department Identity */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.14em', color: 'var(--v20-accent)' }}>
-            AWAAZ-E-AWAM
-          </span>
-          <span style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.3)' }}>/</span>
-          <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--v20-text-secondary)' }} title={departmentName}>
-            {departmentCode.toUpperCase()}
-          </span>
-        </div>
+    <header
+      id="header"
+      className={`v20-top-edge-nav-container ${isOpen ? 'open' : ''}`}
+      ref={navRef}
+      onPointerEnter={handlePointerEnter}
+      onPointerLeave={handlePointerLeave}
+    >
+      {/* 1. Continuous SVG Morphing Notch Geometry from Top Ceiling */}
+      <svg
+        id="nav-shape"
+        className="v20-nav-shape"
+        preserveAspectRatio="none"
+        viewBox={`0 0 ${viewportWidth} 180`}
+        aria-hidden="true"
+      >
+        <path id="notch" className="v20-notch-path" d={pathD} />
+      </svg>
 
-        {/* Right: Date, PKT Clock, Theme Toggle & Sign Out */}
-        <div className="v20-header-right-strip">
-          <span className="v20-header-date" data-testid="v20-header-date">
-            {dateStr || 'Pakistan Standard Time'}
-          </span>
-          <span className="v20-header-clock" data-testid="v20-trusted-clock">
-            <span data-testid="v19-trusted-clock">{timeStr || '12:00:00 PKT'}</span>
-          </span>
-
-          <div style={{ width: '1px', height: '14px', background: 'rgba(255, 255, 255, 0.15)' }} />
-
-          {/* Theme toggle */}
-          <button
-            type="button"
-            className="v20-icon-btn"
-            onClick={onToggleTheme}
-            title={`Switch to ${themeMode === 'dark' ? 'Light' : 'Dark'} Mode`}
-            data-testid="v20-theme-toggle"
-          >
-            {themeMode === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
-          </button>
-
-          {/* Sign out */}
-          <button
-            type="button"
-            className="v20-icon-btn"
-            onClick={onSignOut}
-            title="Sign Out"
-            data-testid="v20-signout-btn"
-          >
-            <LogOut size={15} />
-          </button>
-        </div>
+      {/* 2. Top-Left Department Brand Identity */}
+      <div className="brand v20-brand-label" title={departmentName}>
+        AWAAZ-E-AWAM
+        <span id="brand-dept">
+          {departmentCode.toUpperCase()} / {role === 'head' ? 'Department head' : 'Field officer'}
+        </span>
       </div>
 
-      {/* 2. Central Morphing Notch physically connected to top bar */}
-      <div
-        className="v20-morphing-notch-wrapper"
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
-      >
+      {/* 3. Top-Right Utility Strip (Trusted PKT Clock, Theme, Sign Out) */}
+      <div className="utility v20-header-right-strip">
         <div
-          className={`v20-notch-shell ${isExpanded ? 'v20-notch-expanded' : 'v20-notch-collapsed'}`}
-          onClick={() => {
-            if (!isExpanded) setIsExpanded(true);
-          }}
-          role="navigation"
-          aria-label="Department Morphing Navigation"
+          className="clock v20-clock-block"
+          title={synced ? 'Origin server time (Asia/Karachi PKT)' : 'Time not yet synchronized'}
         >
-          {/* Destination Row (always in DOM for accessibility, styled according to expanded state) */}
-          <div
-            className={`v20-nav-destinations-row ${isExpanded ? 'is-visible' : 'is-collapsed'}`}
-            role="tablist"
-            style={
-              !isExpanded
-                ? {
-                    position: 'absolute',
-                    opacity: 0,
-                    pointerEvents: 'none',
-                    height: 0,
-                    overflow: 'hidden',
-                  }
-                : undefined
-            }
+          <span id="date" className="v20-header-date" data-testid="v20-header-date">
+            {clock.dateStr}
+          </span>
+          <span
+            id="time"
+            className="v20-header-clock"
+            data-testid="v20-trusted-clock"
           >
-            {effectiveTabs.map((tab) => {
-              const isActive = activeTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  type="button"
-                  role="tab"
-                  aria-selected={isActive}
-                  data-tab-id={tab.id}
-                  className={`v20-nav-link-btn ${isActive ? 'is-active' : ''}`}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onSelectTab(tab.id);
-                    setIsExpanded(false);
-                  }}
-                >
-                  <span>{tab.label}</span>
-                  {tab.badge !== undefined && tab.badge > 0 && (
-                    <span
-                      style={{
-                        fontSize: '10.5px',
-                        fontWeight: 700,
-                        padding: '1px 6px',
-                        borderRadius: '9999px',
-                        background: isActive ? '#0E0E0E' : 'var(--v20-accent)',
-                        color: isActive ? '#FFF' : '#0E0E0E',
-                        marginLeft: '2px',
-                      }}
-                    >
-                      {tab.badge}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-
-            {/* Notification Quick Bell for HOD */}
-            {role === 'head' && (
-              <button
-                type="button"
-                className="v20-nav-link-btn"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (onOpenNotifications) {
-                    onOpenNotifications();
-                  } else {
-                    onSelectTab('notifications');
-                  }
-                  setIsExpanded(false);
-                }}
-                title="Operational Notices"
-                style={{ padding: '8px 12px' }}
-              >
-                <Bell size={15} />
-                {unreadNotifications > 0 && (
-                  <span
-                    style={{
-                      fontSize: '10px',
-                      fontWeight: 700,
-                      padding: '1px 5px',
-                      borderRadius: '9999px',
-                      background: 'var(--v20-accent)',
-                      color: '#0E0E0E',
-                    }}
-                  >
-                    {unreadNotifications}
-                  </span>
-                )}
-              </button>
-            )}
-
-            {/* Close Notch Button */}
-            <button
-              type="button"
-              className="v20-icon-btn"
-              style={{ marginLeft: '4px' }}
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsExpanded(false);
-              }}
-              title="Collapse Navigation"
-            >
-              <X size={15} />
-            </button>
-          </div>
-
-          {!isExpanded && (
-            /* Collapsed Resting State Trigger */
-            <div className="v20-notch-trigger-content">
-              <Menu size={16} style={{ color: 'var(--v20-accent)' }} />
-              <span>{currentLabel}</span>
-            </div>
+            <span data-testid="v19-trusted-clock" aria-label={`${clock.timeStr} PKT`}>
+              {clock.timeStr.split('').map((char, idx) => (
+                <span className="digit v20-clock-slot" key={idx}>
+                  <b key={char}>{char}</b>
+                </span>
+              ))}
+              <small>PKT</small>
+            </span>
+          </span>
+          {!synced && (
+            <small style={{ color: '#E53935', fontSize: '9px', display: 'block' }}>
+              Not synchronized
+            </small>
           )}
         </div>
+
+        <button
+          id="theme"
+          type="button"
+          className="v20-icon-btn"
+          onClick={onToggleTheme}
+          aria-label="Toggle theme"
+          data-testid="v20-theme-toggle"
+        >
+          {themeMode === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
+        </button>
+
+        <button
+          id="logout"
+          type="button"
+          className="v20-icon-btn"
+          onClick={onSignOut}
+          aria-label="Sign out"
+          data-testid="v20-signout-btn"
+        >
+          <LogOut size={17} />
+        </button>
       </div>
+
+      {/* 4. Notch Center Toggle Button */}
+      <button
+        id="nav-toggle"
+        ref={triggerRef}
+        type="button"
+        className="v20-notch-trigger-btn"
+        aria-expanded={isOpen}
+        aria-controls="v20-nav-destinations"
+        aria-label={isOpen ? 'Close navigation' : 'Open navigation'}
+        onClick={() => setIsOpen((prev) => !prev)}
+      >
+        {isOpen ? (
+          <X size={20} />
+        ) : (
+          <Menu size={20} />
+        )}
+      </button>
+
+      {/* 5. Expanded Segmented Tab Destinations Bar */}
+      <nav
+        id="v20-nav-destinations"
+        className={`v20-nav-destinations-row ${isOpen ? 'visible is-visible' : 'is-collapsed'}`}
+        role="tablist"
+        aria-label="Department Navigation"
+      >
+        {destinations.map((tab) => {
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              role="tab"
+              aria-selected={isActive}
+              aria-controls="v20-portal-content"
+              aria-current={isActive ? 'page' : undefined}
+              data-tab-id={tab.id}
+              data-go={tab.id}
+              className={`v20-nav-link-btn ${isActive ? 'is-active' : ''}`}
+              onClick={() => handleSelectTab(tab.id)}
+            >
+              <span>{tab.label}</span>
+              {tab.badge !== undefined && tab.badge > 0 && (
+                <small className="v20-nav-badge">{tab.badge}</small>
+              )}
+            </button>
+          );
+        })}
+
+        {/* HOD Compact Notices Access */}
+        {role === 'head' && (
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === 'notifications'}
+            aria-label="Notifications"
+            className={`v20-nav-link-btn ${activeTab === 'notifications' ? 'is-active' : ''}`}
+            onClick={() => {
+              if (onOpenNotifications) {
+                onOpenNotifications();
+              } else {
+                handleSelectTab('notifications');
+              }
+            }}
+          >
+            <Bell size={16} />
+            <span className="sr-only">Notices</span>
+            {unreadNotifications > 0 && (
+              <small className="v20-nav-badge">{unreadNotifications}</small>
+            )}
+          </button>
+        )}
+      </nav>
     </header>
   );
 };
