@@ -305,32 +305,22 @@ export const OfficerWorkView: React.FC<OfficerWorkViewProps> = ({
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '4px' }}>
                 <button
                   type="button"
-                  className="v19-nav-tab v20-round-btn"
+                  className="v20-field-btn secondary"
                   onClick={() => setIsExtModalOpen(false)}
-                  style={{
-                    padding: '9px 18px',
-                    borderRadius: '9999px',
-                    background: 'var(--v20-card-subsurface, rgba(255, 255, 255, 0.08))',
-                    color: 'var(--v20-text-primary, #F3EEE4)',
-                    border: '1px solid var(--v20-glass-border, rgba(255, 255, 255, 0.12))',
-                    fontSize: '13px',
-                  }}
+                  style={{ minHeight: '38px', padding: '8px 18px', fontSize: '13px' }}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmittingExt || !extReason.trim()}
-                  className="v19-nav-tab v20-pill-btn"
+                  className="v20-field-btn warning"
                   style={{
-                    padding: '9px 22px',
-                    borderRadius: '9999px',
-                    background: 'var(--warning, #E59B2F)',
-                    color: '#0E121A',
-                    fontWeight: 700,
+                    minHeight: '38px',
+                    padding: '8px 22px',
                     fontSize: '13px',
-                    border: 'none',
                     cursor: isSubmittingExt || !extReason.trim() ? 'not-allowed' : 'pointer',
+                    opacity: isSubmittingExt || !extReason.trim() ? 0.6 : 1,
                   }}
                 >
                   {isSubmittingExt ? 'Submitting…' : 'Submit Extension Request'}

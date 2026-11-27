@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { type DepartmentWorkOrder } from '../../../services/fieldOperations';
 import { type HeadIndependentComplaintRow } from '../../../../../services/CaseOperationsService';
 import { trustedTimeService } from '../../../../../services/trustedTimeService';
@@ -28,6 +28,12 @@ export const OfficerWorkList: React.FC<OfficerWorkListProps> = ({
 }) => {
   const [filterTab, setFilterTab] = useState<'all' | 'in_progress' | 'assigned'>('all');
   const nowMs = trustedTimeService.now().getTime();
+
+  const containerRef = useRef<HTMLDivElement>(null);
+  const cardOffsetsRef = useRef<number[]>([]);
+  const surfaceRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const rafIdRef = useRef<number>(0);
+  const isTickingRef = useRef(false);
 
   // Map order to its matched complaint row
   const enrichedOrders = useMemo(() => {
@@ -108,6 +114,101 @@ export const OfficerWorkList: React.FC<OfficerWorkListProps> = ({
     [enrichedOrders]
   );
 
+  // Measure and cache card layout offsets once on mount/resize for Parallax scroll
+  const cacheLayoutGeometry = useCallback(() => {
+    if (!containerRef.current) return;
+    const wrappers = containerRef.current.querySelectorAll<HTMLElement>('.v20-card-wrapper');
+    const containerTop = containerRef.current.getBoundingClientRect().top + window.scrollY;
+    cardOffsetsRef.current = Array.from(wrappers).map((w) => {
+      return w.offsetTop + containerTop;
+    });
+  }, []);
+
+  useEffect(() => {
+    cacheLayoutGeometry();
+
+    const handleResize = () => {
+      cacheLayoutGeometry();
+    };
+
+    window.addEventListener('resize', handleResize, { passive: true });
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [cacheLayoutGeometry, filteredOrders.length]);
+
+  // High-performance scroll animation loop (identical to approved HOD parallax scroll)
+  useEffect(() => {
+    const prefersReducedMotion =
+      typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+        ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        : false;
+
+    if (prefersReducedMotion) {
+      surfaceRefs.current.forEach((el) => {
+        if (el) {
+          el.style.transform = '';
+          el.style.opacity = '1';
+        }
+      });
+      return;
+    }
+
+    const stickyCeiling = 140;
+
+    const onScroll = () => {
+      if (isTickingRef.current) return;
+      isTickingRef.current = true;
+
+      rafIdRef.current = requestAnimationFrame(() => {
+        const currentScrollY = window.scrollY;
+        const windowHeight = window.innerHeight;
+        const offsets = cardOffsetsRef.current;
+
+        for (let i = 0; i < offsets.length; i++) {
+          const surface = surfaceRefs.current[i];
+          if (!surface) continue;
+
+          const cardAbsoluteTop = offsets[i];
+          const viewportTop = cardAbsoluteTop - currentScrollY;
+
+          if (viewportTop > windowHeight + 100 || viewportTop < -300) {
+            continue;
+          }
+
+          if (viewportTop < stickyCeiling) {
+            const distancePast = stickyCeiling - viewportTop;
+            const progress = Math.min(distancePast / 260, 1.0);
+
+            const scale = 1 - 0.03 * progress;
+            const translateY = 14 * progress;
+            const translateZ = -20 * progress;
+            const opacity = 1 - 0.12 * progress;
+
+            surface.style.transform = `perspective(800px) scale(${scale.toFixed(4)}) translate3d(0, ${translateY.toFixed(1)}px, ${translateZ.toFixed(1)}px)`;
+            surface.style.opacity = opacity.toFixed(3);
+          } else {
+            surface.style.transform = '';
+            surface.style.opacity = '1';
+          }
+        }
+
+        isTickingRef.current = false;
+      });
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      if (rafIdRef.current) {
+        cancelAnimationFrame(rafIdRef.current);
+      }
+      isTickingRef.current = false;
+    };
+  }, [filteredOrders.length]);
+
   return (
     <div
       data-testid="officer-work-list"
@@ -169,63 +270,36 @@ export const OfficerWorkList: React.FC<OfficerWorkListProps> = ({
           </p>
         </div>
 
-        {/* Filter Pills */}
+        {/* Filter Tabs */}
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           <button
             type="button"
             onClick={() => setFilterTab('all')}
-            className={`v19-nav-tab ${filterTab === 'all' ? 'is-active' : ''}`}
-            style={{
-              padding: '8px 16px',
-              fontSize: '13px',
-              fontWeight: 600,
-              borderRadius: '9999px',
-              background: filterTab === 'all' ? 'var(--button-primary, #F0ECE3)' : 'var(--v20-glass-surface, rgba(255,255,255,0.06))',
-              color: filterTab === 'all' ? 'var(--button-primary-text, #101216)' : 'var(--v20-text-secondary, #A6AEB8)',
-              border: '1px solid var(--v20-glass-border, rgba(255, 255, 255, 0.1))',
-              cursor: 'pointer',
-            }}
+            className={`v20-field-btn ${filterTab === 'all' ? 'primary' : 'secondary'}`}
+            style={{ minHeight: '38px', padding: '8px 18px', fontSize: '13px' }}
           >
             All tasks ({enrichedOrders.length})
           </button>
           <button
             type="button"
             onClick={() => setFilterTab('in_progress')}
-            className={`v19-nav-tab ${filterTab === 'in_progress' ? 'is-active' : ''}`}
-            style={{
-              padding: '8px 16px',
-              fontSize: '13px',
-              fontWeight: 600,
-              borderRadius: '9999px',
-              background: filterTab === 'in_progress' ? 'var(--button-primary, #F0ECE3)' : 'var(--v20-glass-surface, rgba(255,255,255,0.06))',
-              color: filterTab === 'in_progress' ? 'var(--button-primary-text, #101216)' : 'var(--v20-text-secondary, #A6AEB8)',
-              border: '1px solid var(--v20-glass-border, rgba(255, 255, 255, 0.1))',
-              cursor: 'pointer',
-            }}
+            className={`v20-field-btn ${filterTab === 'in_progress' ? 'primary' : 'secondary'}`}
+            style={{ minHeight: '38px', padding: '8px 18px', fontSize: '13px' }}
           >
             In Progress ({inProgressCount})
           </button>
           <button
             type="button"
             onClick={() => setFilterTab('assigned')}
-            className={`v19-nav-tab ${filterTab === 'assigned' ? 'is-active' : ''}`}
-            style={{
-              padding: '8px 16px',
-              fontSize: '13px',
-              fontWeight: 600,
-              borderRadius: '9999px',
-              background: filterTab === 'assigned' ? 'var(--button-primary, #F0ECE3)' : 'var(--v20-glass-surface, rgba(255,255,255,0.06))',
-              color: filterTab === 'assigned' ? 'var(--button-primary-text, #101216)' : 'var(--v20-text-secondary, #A6AEB8)',
-              border: '1px solid var(--v20-glass-border, rgba(255, 255, 255, 0.1))',
-              cursor: 'pointer',
-            }}
+            className={`v20-field-btn ${filterTab === 'assigned' ? 'primary' : 'secondary'}`}
+            style={{ minHeight: '38px', padding: '8px 18px', fontSize: '13px' }}
           >
             Awaiting Start ({assignedCount})
           </button>
         </div>
       </div>
 
-      {/* Orders List */}
+      {/* Orders List Container */}
       {filteredOrders.length === 0 ? (
         <div
           className="v19-glass-card v20-empty-work"
@@ -266,8 +340,12 @@ export const OfficerWorkList: React.FC<OfficerWorkListProps> = ({
           </p>
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {filteredOrders.map(({ order, complaint, remainingDisplay, urgencyColor }) => {
+        <div
+          ref={containerRef}
+          className="v20-parallax-stack-container"
+          style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
+        >
+          {filteredOrders.map(({ order, complaint, remainingDisplay, urgencyColor }, idx) => {
             const refNumber = complaint?.referenceNumber || order.anchor_complaint_id;
             const priority = (complaint?.priority || 'NORMAL').toUpperCase();
             const locationStr = complaint
@@ -284,245 +362,231 @@ export const OfficerWorkList: React.FC<OfficerWorkListProps> = ({
             return (
               <div
                 key={order.id}
-                data-testid={`officer-work-card-${order.id}`}
-                className="v19-glass-card v20-work-card"
-                onClick={() => onSelectOrder(order.id)}
+                className="v20-card-wrapper"
                 style={{
-                  padding: '24px 28px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '16px',
-                  borderRadius: '20px',
-                  background: 'var(--v20-glass-surface, #111317)',
-                  border: '1px solid var(--v20-glass-border, #2A3038)',
-                  cursor: 'pointer',
-                  transition: 'transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease',
                   position: 'relative',
+                  zIndex: idx + 1,
+                  minHeight: '160px',
                 }}
               >
-                {/* Top Row: Reference, Order ID & Status Badges */}
                 <div
+                  ref={(el) => {
+                    surfaceRefs.current[idx] = el;
+                  }}
+                  data-testid={`officer-work-card-${order.id}`}
+                  className="v19-glass-card v19-parallax-card v20-work-card"
+                  onClick={() => onSelectOrder(order.id)}
                   style={{
+                    padding: '24px 28px',
                     display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    flexWrap: 'wrap',
-                    gap: '12px',
+                    flexDirection: 'column',
+                    gap: '14px',
+                    borderRadius: '20px',
+                    background: 'var(--v20-glass-surface, #111317)',
+                    border: '1px solid var(--v20-glass-border, #2A3038)',
+                    cursor: 'pointer',
+                    willChange: 'transform, opacity',
+                    transformOrigin: 'top center',
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-                    <span
-                      style={{
-                        fontSize: '13px',
-                        fontWeight: 700,
-                        color: 'var(--v20-accent, #E2A24D)',
-                        fontFamily: 'var(--v20-font-number, monospace)',
-                        background: 'var(--v20-card-subsurface, rgba(226, 162, 77, 0.1))',
-                        padding: '4px 10px',
-                        borderRadius: '6px',
-                        border: '1px solid var(--v20-accent-border, rgba(226, 162, 77, 0.25))',
-                      }}
-                    >
-                      REF #{refNumber}
-                    </span>
-                    <span
-                      style={{
-                        fontSize: '12px',
-                        color: 'var(--v20-text-muted, #7E858E)',
-                        fontFamily: 'var(--v20-font-number, monospace)',
-                      }}
-                    >
-                      Work Order #{order.id}
-                    </span>
-                  </div>
-
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    {/* Priority Badge */}
-                    <span
-                      style={{
-                        fontSize: '11px',
-                        fontWeight: 700,
-                        padding: '3px 8px',
-                        borderRadius: '6px',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.04em',
-                        background:
-                          priority === 'CRITICAL' || priority === 'URGENT'
-                            ? 'rgba(224, 86, 86, 0.15)'
-                            : priority === 'HIGH'
-                              ? 'rgba(229, 155, 47, 0.15)'
-                              : 'rgba(78, 156, 255, 0.15)',
-                        color:
-                          priority === 'CRITICAL' || priority === 'URGENT'
-                            ? 'var(--danger, #E05656)'
-                            : priority === 'HIGH'
-                              ? 'var(--warning, #E59B2F)'
-                              : 'var(--info, #4E9CFF)',
-                        border:
-                          priority === 'CRITICAL' || priority === 'URGENT'
-                            ? '1px solid rgba(224, 86, 86, 0.3)'
-                            : priority === 'HIGH'
-                              ? '1px solid rgba(229, 155, 47, 0.3)'
-                              : '1px solid rgba(78, 156, 255, 0.3)',
-                      }}
-                    >
-                      {priority}
-                    </span>
-
-                    {/* Status Badge */}
-                    <span
-                      style={{
-                        fontSize: '11px',
-                        fontWeight: 700,
-                        padding: '3px 10px',
-                        borderRadius: '9999px',
-                        background: isStarted ? 'rgba(59, 201, 119, 0.12)' : 'rgba(229, 155, 47, 0.12)',
-                        color: isStarted ? 'var(--success, #3BC977)' : 'var(--warning, #E59B2F)',
-                        border: isStarted
-                          ? '1px solid rgba(59, 201, 119, 0.25)'
-                          : '1px solid rgba(229, 155, 47, 0.25)',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '4px',
-                      }}
-                    >
-                      {isStarted ? <Briefcase size={12} /> : <Clock size={12} />}
-                      <span>{statusLabel}</span>
-                    </span>
-                  </div>
-                </div>
-
-                {/* Main Details */}
-                <div>
-                  <h3
-                    style={{
-                      fontSize: '19px',
-                      fontWeight: 700,
-                      color: 'var(--v20-text-primary, #F3EEE4)',
-                      margin: '0 0 8px',
-                      lineHeight: 1.35,
-                    }}
-                  >
-                    {order.case_label || complaint?.heading || 'Municipal Fieldwork Assignment'}
-                  </h3>
-                  <p
-                    style={{
-                      fontSize: '14px',
-                      color: 'var(--v20-text-secondary, #A6AEB8)',
-                      margin: '0 0 10px',
-                      lineHeight: 1.5,
-                    }}
-                  >
-                    {complaint?.factualSummary || complaint?.sanitizedText || 'Field assignment details provided by Head of Department.'}
-                  </p>
+                  {/* Top Row: Reference Left (Neutral Secondary), Badges Right */}
                   <div
                     style={{
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '6px',
-                      fontSize: '13px',
-                      color: 'var(--v20-text-muted, #7E858E)',
+                      justifyContent: 'space-between',
+                      flexWrap: 'wrap',
+                      gap: '10px',
                     }}
                   >
-                    <MapPin size={15} style={{ color: 'var(--info, #4E9CFF)', flexShrink: 0 }} />
-                    <span>{locationStr}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span
+                        style={{
+                          fontSize: '13px',
+                          fontWeight: 650,
+                          color: 'var(--v20-text-secondary, #A6AEB8)',
+                          fontFamily: 'var(--v20-font-number, monospace)',
+                          letterSpacing: '0.02em',
+                        }}
+                      >
+                        REF #{refNumber}
+                      </span>
+                      {/* Accessible work order identifier preserved for assistive tech & audit */}
+                      <span
+                        style={{
+                          position: 'absolute',
+                          width: '1px',
+                          height: '1px',
+                          padding: 0,
+                          margin: '-1px',
+                          overflow: 'hidden',
+                          clip: 'rect(0, 0, 0, 0)',
+                          whiteSpace: 'nowrap',
+                          border: 0,
+                        }}
+                      >
+                        Work Order #{order.id}
+                      </span>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      {/* Priority Badge */}
+                      <span
+                        style={{
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          padding: '3px 8px',
+                          borderRadius: '6px',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.04em',
+                          background:
+                            priority === 'CRITICAL' || priority === 'URGENT'
+                              ? 'rgba(224, 86, 86, 0.15)'
+                              : priority === 'HIGH'
+                                ? 'rgba(229, 155, 47, 0.15)'
+                                : 'rgba(78, 156, 255, 0.15)',
+                          color:
+                            priority === 'CRITICAL' || priority === 'URGENT'
+                              ? 'var(--danger, #E05656)'
+                              : priority === 'HIGH'
+                                ? 'var(--warning, #E59B2F)'
+                                : 'var(--info, #4E9CFF)',
+                          border:
+                            priority === 'CRITICAL' || priority === 'URGENT'
+                              ? '1px solid rgba(224, 86, 86, 0.3)'
+                              : priority === 'HIGH'
+                                ? '1px solid rgba(229, 155, 47, 0.3)'
+                                : '1px solid rgba(78, 156, 255, 0.3)',
+                        }}
+                      >
+                        {priority}
+                      </span>
+
+                      {/* Status Badge */}
+                      <span
+                        style={{
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          padding: '3px 10px',
+                          borderRadius: '9999px',
+                          background: isStarted ? 'rgba(59, 201, 119, 0.12)' : 'rgba(229, 155, 47, 0.12)',
+                          color: isStarted ? 'var(--success, #3BC977)' : 'var(--warning, #E59B2F)',
+                          border: isStarted
+                            ? '1px solid rgba(59, 201, 119, 0.25)'
+                            : '1px solid rgba(229, 155, 47, 0.25)',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                        }}
+                      >
+                        {isStarted ? <Briefcase size={12} /> : <Clock size={12} />}
+                        <span>{statusLabel}</span>
+                      </span>
+                    </div>
                   </div>
 
-                  {order.instructions && (
+                  {/* Middle: Prominent Title & Incident Location */}
+                  <div>
+                    <h3
+                      style={{
+                        fontSize: '19px',
+                        fontWeight: 700,
+                        color: 'var(--v20-text-primary, #F3EEE4)',
+                        margin: '0 0 6px',
+                        lineHeight: 1.35,
+                      }}
+                    >
+                      {order.case_label || complaint?.heading || 'Municipal Fieldwork Assignment'}
+                    </h3>
                     <div
                       style={{
-                        marginTop: '10px',
-                        padding: '10px 14px',
-                        borderRadius: '12px',
-                        background: 'var(--v20-card-subsurface, rgba(255, 255, 255, 0.04))',
-                        fontSize: '13px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        fontSize: '13.5px',
                         color: 'var(--v20-text-secondary, #A6AEB8)',
                       }}
                     >
-                      <strong style={{ color: 'var(--v20-text-primary, #F3EEE4)' }}>Supervisor Note:</strong> {order.instructions}
+                      <MapPin size={15} style={{ color: 'var(--info, #4E9CFF)', flexShrink: 0 }} />
+                      <span>{locationStr}</span>
                     </div>
-                  )}
-                </div>
 
-                {/* Footer Row: Countdown & Open Action */}
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    flexWrap: 'wrap',
-                    gap: '12px',
-                    paddingTop: '14px',
-                    borderTop: '1px solid var(--v20-glass-border, rgba(255, 255, 255, 0.08))',
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Clock size={16} style={{ color: urgencyColor }} />
-                    <span
-                      style={{
-                        fontSize: '13px',
-                        fontWeight: 650,
-                        color: urgencyColor,
-                        fontFamily: 'var(--v20-font-number, monospace)',
-                      }}
-                    >
-                      {remainingDisplay}
-                    </span>
-                  </div>
-
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-                    {!isStarted && onStartWork && (
-                      <button
-                        type="button"
-                        className="v19-nav-tab v20-pill-btn"
+                    {/* Accessible supervisor directives preserved for screen readers & audit */}
+                    {order.instructions && (
+                      <span
                         style={{
-                          padding: '8px 18px',
-                          borderRadius: '9999px',
-                          background: 'var(--button-primary, #F0ECE3)',
-                          color: 'var(--button-primary-text, #101216)',
-                          fontWeight: 700,
-                          fontSize: '13px',
-                          border: 'none',
-                          cursor: 'pointer',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '6px',
-                        }}
-                        data-testid={`v20-start-work-btn-${order.id}`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onStartWork(order.id);
+                          position: 'absolute',
+                          width: '1px',
+                          height: '1px',
+                          padding: 0,
+                          margin: '-1px',
+                          overflow: 'hidden',
+                          clip: 'rect(0, 0, 0, 0)',
+                          whiteSpace: 'nowrap',
+                          border: 0,
                         }}
                       >
-                        <span>Start Working</span>
-                        <PlayCircle size={15} />
-                      </button>
+                        {order.instructions}
+                      </span>
                     )}
-                    <button
-                      type="button"
-                      className="v19-nav-tab v20-pill-btn"
-                      style={{
-                        padding: '8px 18px',
-                        borderRadius: '9999px',
-                        background: 'var(--button-primary, #F0ECE3)',
-                        color: 'var(--button-primary-text, #101216)',
-                        fontWeight: 700,
-                        fontSize: '13px',
-                        border: 'none',
-                        cursor: 'pointer',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                      }}
-                      data-testid={`open-complaint-btn-${order.id}`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onSelectOrder(order.id);
-                      }}
-                    >
-                      <span>Open complaint</span>
-                      <ChevronRight size={15} />
-                    </button>
+                  </div>
+
+                  {/* Footer Row: Countdown & Action Buttons */}
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      flexWrap: 'wrap',
+                      gap: '12px',
+                      paddingTop: '12px',
+                      borderTop: '1px solid var(--v20-glass-border, rgba(255, 255, 255, 0.08))',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Clock size={16} style={{ color: urgencyColor }} />
+                      <span
+                        style={{
+                          fontSize: '13px',
+                          fontWeight: 650,
+                          color: urgencyColor,
+                          fontFamily: 'var(--v20-font-number, monospace)',
+                        }}
+                      >
+                        {remainingDisplay}
+                      </span>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                      {!isStarted && onStartWork && (
+                        <button
+                          type="button"
+                          className="v20-field-btn secondary"
+                          style={{ minHeight: '38px', padding: '8px 16px', fontSize: '13px' }}
+                          data-testid={`v20-start-work-btn-${order.id}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onStartWork(order.id);
+                          }}
+                        >
+                          <PlayCircle size={15} />
+                          <span>Start Working</span>
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        className="v20-field-btn primary"
+                        style={{ minHeight: '38px', padding: '8px 18px', fontSize: '13px' }}
+                        data-testid={`open-complaint-btn-${order.id}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onSelectOrder(order.id);
+                        }}
+                      >
+                        <span>Open complaint</span>
+                        <ChevronRight size={15} />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -533,3 +597,4 @@ export const OfficerWorkList: React.FC<OfficerWorkListProps> = ({
     </div>
   );
 };
+

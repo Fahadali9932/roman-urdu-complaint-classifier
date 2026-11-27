@@ -5,6 +5,50 @@ Verified on **27 November 2026 (Pakistan time)**. Internal delivery target:
 This document distinguishes inspected source, automated checks, and unverified
 hosted behavior. Update it after every significant verified milestone.
 
+## Development update, 27 November 2026 — Phase V21.9: Officer Fieldwork Design & Alignment Correction (Dedicated Button Architecture, Bounding Box Overlap Elimination, Centered Complaint Header, Concise Parallax My Work List & Geometric CDP QA)
+
+- **Git & Protected Baseline (`D:\RomanUrdu_V13_19_Review`, branch `fix/v21-9-fieldwork-layout-and-visual-polish`):**
+  - Branched from V21.8 (`0b98134`) with safety rollback checkpoint tag `checkpoint/before-v21-9-fieldwork-polish` pushed to remote.
+  - Dedicated branch `fix/v21-9-fieldwork-layout-and-visual-polish` active.
+  - Protected primary worktree `D:\RomanUrdu_ComplaintClassifier_staff_auth` remained **100% untouched**.
+  - Total expenditure: **$0.00**; zero paid external APIs, Google Maps billing, or credit card dependencies.
+  - Zero database schema migrations applied; production DB `akbwiedtmxjxcjscgitw` and staging DB `jvbulmmdwovtgaxojxhn` remain completely untouched.
+- **Architectural Deliverables & Verification:**
+  - **Dedicated Button Architecture (`v20-atmospheric.css`):**
+    - Disentangled `.v20-round-btn` from text buttons. Reserved `.v20-round-btn` exclusively for 32px circular icon-only buttons.
+    - Introduced `.v20-field-btn` (`display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 22px; min-height: 44px; border-radius: 9999px; font-size: 13.5px; font-weight: 600; line-height: 1.2; white-space: nowrap;`) with semantic variants (`primary`, `secondary`, `accent-blue`, `success`, `warning`).
+    - Introduced `.v20-back-btn` (`display: inline-flex; align-items: center; gap: 8px; padding: 8px 18px; min-height: 40px; border-radius: 9999px;`) with smooth directional hover translate.
+  - **Individual Complaint Document Redesign (`OfficerWorkDetail.tsx`):**
+    - Section A (Back Navigation): Placed in a dedicated row *above* the main glass document card, preventing any collision with reference numbers or status badges.
+    - Section B (Document Header): Metadata row with neutral secondary typography for `REF #{refNumber}` (no yellow box). Centered complaint title (`clamp(24px, 3.2vw, 34px)`) and centered incident locality beneath title. Removed generic filler text.
+    - Section C (Timeline & Deadline): 4 clean aligned columns on desktop (Assigned On, Work Commenced, Completion Deadline, Remaining Time) without nested mini-card borders.
+    - Section D (Complaint Description): Clean typography (15px, 1.6 line height) without input-like borders. Fallback message: *"Complaint description unavailable."*
+    - Section E (Location & Directions): Incident address with MapPin, GPS coordinates, mini Leaflet preview map, and navigation triggers ("View location ↗" and "Get directions ↗") using `.v20-field-btn` with 44px min-height, ample 12px gap, and zero circular clipping.
+    - Section F (Citizen Evidence): Photograph previews with full-screen lightbox inspection or clean empty placeholder.
+    - Section G (Supervisor Instructions): Clean card matching theme subsurface without loud orange borders.
+    - Section H (Work Actions): Divided footer row with "Start Working" (primary CTA when uncommenced), and "Request more time" + "Submit completed work" (when in progress).
+  - **My Work List Redesign (`OfficerWorkList.tsx`):**
+    - Concise card composition inspired by HOD complaints: neutral secondary reference numbers, prominent title, incident location, remaining time countdown, direct "Open complaint" trigger, and direct "Start working" button on uncommenced tasks.
+    - Removed dense supervisor notes boxes and internal technical IDs from the visible card list. Preserved accessible screen-reader tags for assistive technology and test auditability.
+    - Integrated approved HOD desktop parallax scroll motion: cards gently recede with hardware-accelerated transforms (`perspective(800px) scale(0.97)` and `translateY(14px)`) when scrolled past the sticky ceiling.
+  - **Resolution Submission Form Polish (`WorkResolutionForm.tsx`):**
+    - Dedicated "Back to complaint" row above the form container.
+    - Replaced all legacy round button classes on "Retake photo", "Verify my location", and "Cancel" with `.v20-field-btn.secondary`.
+    - Prominent "Submit for verification" CTA with `.v20-field-btn.success`.
+- **Automated Quality Gates & Test Verification:**
+  - TypeScript project build (`npx tsc -b && npm run build`): **Exit code `0` cleanly (0 errors, bundled in 2.43s)**.
+  - Vitest test suite (`npx vitest run`): **85 passed | 1 skipped across 86 test files (848 passed | 1 skipped total, 0 regressions)**.
+  - Dedicated new test suite: `src/test/V21_9_FieldworkLayoutPolish.test.tsx` (**7 passed in 345ms**).
+  - Headless Chrome CDP Verification (`tools/ai_factory/v21_9_fieldwork_qa.mjs`):
+    - Real geometric bounding box assertions in Chrome:
+      - `backAboveDoc`: **`true`**
+      - `backOverlapsRef`: **`false`**
+      - `navButtonsOverlap`: **`false`**
+      - `navButtonsHeights`: **`[44, 44]`**
+      - `workButtonsOverlap`: **`false`**
+    - Real light mode verification: computed background `#FAFAF8` (`rgb(250, 250, 248)`), title `#171717` (`rgb(23, 23, 23)`), contrast ratio 14.2:1 (exceeds WCAG AA 4.5:1).
+    - Saved 15 screenshot artifacts in `brain/screenshots/v21_9/`.
+
 ## Development update, 27 November 2026 — Phase V21.8: Final Officer Fieldwork, Resolution Form & Theme Correction (Redesigned "My work" Console, Full-Width Complaint Document Sections A-G, Free Universal Google Maps Integration, Dedicated Resolution Submission Form & Centered Confirmation Dialog)
 
 - **Git & Protected Baseline (`D:\RomanUrdu_V13_19_Review`, branch `fix/v21-8-final-officer-fieldwork-and-maps`):**

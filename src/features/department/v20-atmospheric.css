@@ -1753,8 +1753,130 @@
 
 
 /* ==========================================================================
-   V21.8 OFFICER FIELDWORK, RESOLUTION FORM & THEME REFINEMENT
+   V21.8 / V21.9 OFFICER FIELDWORK, RESOLUTION FORM & THEME REFINEMENT
    ========================================================================== */
+
+/* Dedicated Fieldwork Button Architecture (No Fixed Circular Dimensions) */
+.v20-field-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 22px;
+  min-height: 44px;
+  border-radius: 9999px;
+  font-family: var(--v20-font-body, system-ui, -apple-system, sans-serif);
+  font-size: 13.5px;
+  font-weight: 600;
+  width: auto;
+  min-width: 0;
+  flex-shrink: 0;
+  white-space: nowrap;
+  box-sizing: border-box;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 180ms ease;
+  line-height: 1.2;
+}
+
+.v20-field-btn.primary {
+  background: var(--button-primary, #F0ECE3);
+  color: var(--button-primary-text, #101216);
+  border: 1px solid transparent;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.v20-field-btn.primary:hover {
+  background: #FFFFFF;
+  color: #101216;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28);
+}
+
+.v20-field-btn.secondary {
+  background: var(--v20-card-subsurface, rgba(255, 255, 255, 0.08));
+  color: var(--v20-text-primary, #F3EEE4);
+  border: 1px solid var(--v20-glass-border, rgba(255, 255, 255, 0.12));
+}
+
+.v20-field-btn.secondary:hover {
+  background: rgba(255, 255, 255, 0.13);
+  color: #FFFFFF;
+  border-color: var(--v20-glass-border-highlight, rgba(255, 255, 255, 0.22));
+  transform: translateY(-1px);
+}
+
+.v20-field-btn.accent-blue {
+  background: #007AFF;
+  color: #FFFFFF;
+  border: 1px solid transparent;
+  box-shadow: 0 4px 14px rgba(0, 122, 255, 0.35);
+}
+
+.v20-field-btn.accent-blue:hover {
+  background: #1A8CFF;
+  color: #FFFFFF;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(0, 122, 255, 0.45);
+}
+
+.v20-field-btn.success {
+  background: #3BC977;
+  color: #0B0B0B;
+  border: 1px solid transparent;
+  box-shadow: 0 4px 14px rgba(59, 201, 119, 0.3);
+}
+
+.v20-field-btn.success:hover {
+  background: #46D984;
+  color: #0B0B0B;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(59, 201, 119, 0.4);
+}
+
+.v20-field-btn.warning {
+  background: rgba(229, 155, 47, 0.12);
+  color: #E59B2F;
+  border: 1px solid rgba(229, 155, 47, 0.3);
+}
+
+.v20-field-btn.warning:hover {
+  background: rgba(229, 155, 47, 0.2);
+  color: #FFB347;
+  border-color: rgba(229, 155, 47, 0.45);
+  transform: translateY(-1px);
+}
+
+/* Dedicated Back Button */
+.v20-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  min-height: 40px;
+  border-radius: 9999px;
+  background: var(--v20-card-subsurface, rgba(255, 255, 255, 0.06));
+  color: var(--v20-text-secondary, #A6AEB8);
+  border: 1px solid var(--v20-glass-border, rgba(255, 255, 255, 0.1));
+  font-family: var(--v20-font-body, system-ui, -apple-system, sans-serif);
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 160ms ease;
+  width: auto;
+  min-width: 0;
+  flex-shrink: 0;
+  white-space: nowrap;
+  box-sizing: border-box;
+}
+
+.v20-back-btn:hover {
+  color: var(--v20-text-primary, #F3EEE4);
+  background: var(--v20-glass-surface-hover, rgba(255, 255, 255, 0.12));
+  border-color: var(--v20-glass-border-highlight, rgba(255, 255, 255, 0.22));
+  transform: translateX(-2px);
+}
 
 .v20-work-card {
   transition: transform 0.2s var(--v20-ease-spring), border-color 0.2s ease, box-shadow 0.2s ease;
@@ -1767,6 +1889,60 @@
 }
 
 /* Light Mode Overrides for Officer Fieldwork Console */
+.v20-light-mode .v20-back-btn,
+[data-theme="light"] .v20-back-btn {
+  background: rgba(0, 0, 0, 0.04) !important;
+  color: #454545 !important;
+  border-color: rgba(0, 0, 0, 0.12) !important;
+}
+
+.v20-light-mode .v20-back-btn:hover,
+[data-theme="light"] .v20-back-btn:hover {
+  background: rgba(0, 0, 0, 0.08) !important;
+  color: #171717 !important;
+  border-color: rgba(0, 0, 0, 0.2) !important;
+}
+
+.v20-light-mode .v20-field-btn.primary,
+[data-theme="light"] .v20-field-btn.primary {
+  background: #171717 !important;
+  color: #FFFFFF !important;
+}
+
+.v20-light-mode .v20-field-btn.primary:hover,
+[data-theme="light"] .v20-field-btn.primary:hover {
+  background: #000000 !important;
+  color: #FFFFFF !important;
+}
+
+.v20-light-mode .v20-field-btn.secondary,
+[data-theme="light"] .v20-field-btn.secondary {
+  background: rgba(0, 0, 0, 0.04) !important;
+  color: #171717 !important;
+  border-color: rgba(0, 0, 0, 0.14) !important;
+}
+
+.v20-light-mode .v20-field-btn.secondary:hover,
+[data-theme="light"] .v20-field-btn.secondary:hover {
+  background: rgba(0, 0, 0, 0.08) !important;
+  color: #000000 !important;
+  border-color: rgba(0, 0, 0, 0.22) !important;
+}
+
+.v20-light-mode .v20-field-btn.warning,
+[data-theme="light"] .v20-field-btn.warning {
+  background: rgba(229, 155, 47, 0.1) !important;
+  color: #B26A00 !important;
+  border-color: rgba(229, 155, 47, 0.3) !important;
+}
+
+.v20-light-mode .v20-field-btn.warning:hover,
+[data-theme="light"] .v20-field-btn.warning:hover {
+  background: rgba(229, 155, 47, 0.18) !important;
+  color: #945700 !important;
+  border-color: rgba(229, 155, 47, 0.45) !important;
+}
+
 .v20-light-mode .v20-work-card,
 [data-theme="light"] .v20-work-card,
 .v20-light-mode .v20-work-document,

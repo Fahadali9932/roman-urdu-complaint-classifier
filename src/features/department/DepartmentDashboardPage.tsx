@@ -951,6 +951,7 @@ export const DepartmentDashboardPage: React.FC = () => {
             navigate(staffPosition ? `/department/${staffPosition}/login?dept=${departmentId}` : '/department/login');
           }}
           onOpenPasswordModal={() => setIsPasswordModalOpen(true)}
+          initialTab={searchParams.get('tab') || undefined}
         />
       </div>
     );
