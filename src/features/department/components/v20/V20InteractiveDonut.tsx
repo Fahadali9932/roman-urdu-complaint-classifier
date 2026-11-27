@@ -1,142 +1,38 @@
 import React, { useState } from 'react';
 
-export interface DonutSegment {
-  id: string;
-  label: string;
-  value: number;
-  color: string;
-}
+export interface DonutSegment { id: string; label: string; value: number; color: string }
+export interface V20InteractiveDonutProps { segments: DonutSegment[]; periodLabel: string; totalCases: number }
 
-export interface V20InteractiveDonutProps {
-  segments: DonutSegment[];
-  periodLabel: string;
-  totalCases: number;
-}
-
-export const V20InteractiveDonut: React.FC<V20InteractiveDonutProps> = ({
-  segments,
-  periodLabel,
-  totalCases,
-}) => {
-  const [hoveredSegment, setHoveredSegment] = useState<DonutSegment | null>(null);
-
-  // SVG dimensions
-  const size = 320;
-  const strokeWidth = 32;
-  const radius = (size - strokeWidth) / 2;
-  const circumference = 2 * Math.PI * radius;
-
-  // Calculate total sum of segment values
-  const sum = segments.reduce((acc, s) => acc + s.value, 0) || 1;
-
-  // Display value and label at the center of the donut
-  const displayValue = hoveredSegment ? hoveredSegment.value : totalCases;
-  const displayLabel = hoveredSegment ? hoveredSegment.label : `${periodLabel.toUpperCase()} CASES`;
-
-  // Gap between slices in radians/strokeDashoffset
-  const gapPx = 6;
-  let accumulatedAngle = 0;
-
+export const V20InteractiveDonut: React.FC<V20InteractiveDonutProps> = ({ segments, periodLabel, totalCases }) => {
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [hoverId, setHoverId] = useState<string | null>(null);
+  const focused = segments.find(s => s.id === (hoverId ?? activeId));
+  const radius = 135, circumference = 2 * Math.PI * radius;
+  const sum = segments.reduce((a, s) => a + Math.max(0, s.value), 0);
+  let offset = 0;
+  const toggle = (id: string) => setActiveId(old => old === id ? null : id);
   return (
     <div className="v20-donut-svg-wrapper" data-testid="v20-donut-chart">
-      <svg
-        width={size}
-        height={size}
-        viewBox={`0 0 ${size} ${size}`}
-        style={{ transform: 'rotate(-90deg)', overflow: 'visible' }}
-        role="img"
-        aria-label="Complaint distribution donut chart"
-      >
-        <defs>
-          <filter id="v20-donut-glow" x="-20%" y="-20%" width="140%" height="140%">
-            <feDropShadow dx="0" dy="2" stdDeviation="6" floodColor="rgba(0,0,0,0.5)" />
-          </filter>
-        </defs>
-
-        {/* Background track circle */}
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          fill="none"
-          stroke="rgba(255, 255, 255, 0.05)"
-          strokeWidth={strokeWidth}
-        />
-
-        {/* Render separated slices */}
-        {segments.map((segment) => {
-          const percentage = segment.value / sum;
-          const sliceLength = Math.max(0, percentage * circumference - gapPx);
-          const dashArray = `${sliceLength} ${circumference - sliceLength}`;
-          const currentOffset = -accumulatedAngle;
-          accumulatedAngle += percentage * circumference;
-
-          const isHovered = hoveredSegment?.id === segment.id;
-
-          return (
-            <circle
-              key={segment.id}
-              cx={size / 2}
-              cy={size / 2}
-              r={radius}
-              fill="none"
-              stroke={segment.color}
-              strokeWidth={isHovered ? strokeWidth + 6 : strokeWidth}
-              strokeDasharray={dashArray}
-              strokeDashoffset={currentOffset}
-              strokeLinecap="round"
-              filter="url(#v20-donut-glow)"
-              style={{
-                cursor: 'pointer',
-                transition: 'stroke-width 240ms cubic-bezier(0.16, 1, 0.3, 1), opacity 200ms ease',
-                opacity: hoveredSegment ? (isHovered ? 1 : 0.45) : 0.95,
-              }}
-              onMouseEnter={() => setHoveredSegment(segment)}
-              onMouseLeave={() => setHoveredSegment(null)}
-            />
-          );
-        })}
-      </svg>
-
-      {/* Central Metric (Pure standalone typography at the heart of the donut) */}
-      <div className="v20-donut-center-metric">
-        <span className="v20-donut-center-number" data-testid="v20-donut-center-total">
-          {displayValue}
-        </span>
-        <span className="v20-donut-center-label" data-testid="v20-donut-center-label">
-          {displayLabel}
-        </span>
+      <div className="v20-donut-ring">
+        <svg viewBox="0 0 320 320" role="img" aria-label={periodLabel + ' case distribution: ' + totalCases}>
+          <circle cx="160" cy="160" r={radius} fill="none" stroke="var(--v20-glass-border)" strokeWidth="38"/>
+          {segments.filter(s => s.value > 0).map(s => {
+            const length = s.value / sum * circumference;
+            const gap = sum === s.value ? 0 : Math.min(6, length * 0.2);
+            const start = offset;
+            offset += length;
+            return <circle key={s.id} cx="160" cy="160" r={radius} fill="none" stroke={s.color} strokeWidth={focused?.id === s.id ? 42 : 38} strokeLinecap="butt" strokeDasharray={`${length - gap} ${circumference - length + gap}`} strokeDashoffset={-start - gap / 2} transform="rotate(-90 160 160)" opacity={!focused || focused.id === s.id ? 1 : 0.35} style={{ cursor: 'pointer', transition: 'opacity 200ms ease, stroke-width 200ms ease' }} onMouseEnter={() => setHoverId(s.id)} onMouseLeave={() => setHoverId(null)} onClick={() => toggle(s.id)}/>;
+          })}
+        </svg>
+        <div className="v20-donut-center-metric">
+          <span className="v20-donut-center-number" data-testid="v20-donut-center-total">{focused?.value ?? totalCases}</span>
+          <span className="v20-donut-center-label" data-testid="v20-donut-center-label">{focused?.label ?? 'Total cases'}</span>
+        </div>
       </div>
-
-      {/* Donut Legend */}
       <div className="v20-donut-legend-grid">
-        {segments.map((segment) => {
-          const isHovered = hoveredSegment?.id === segment.id;
-          return (
-            <div
-              key={segment.id}
-              className="v20-legend-item"
-              style={{
-                cursor: 'pointer',
-                opacity: hoveredSegment ? (isHovered ? 1 : 0.45) : 0.9,
-                transition: 'opacity 200ms ease',
-              }}
-              onMouseEnter={() => setHoveredSegment(segment)}
-              onMouseLeave={() => setHoveredSegment(null)}
-            >
-              <div
-                className="v20-legend-dot"
-                style={{
-                  background: segment.color,
-                  boxShadow: `0 0 8px ${segment.color}66`,
-                }}
-              />
-              <span style={{ fontWeight: isHovered ? 600 : 400 }}>
-                {segment.label} ({segment.value})
-              </span>
-            </div>
-          );
-        })}
+        {segments.map(s => <button type="button" key={s.id} className="v20-legend-item" aria-pressed={activeId === s.id} onClick={() => toggle(s.id)} onMouseEnter={() => setHoverId(s.id)} onMouseLeave={() => setHoverId(null)} style={{ opacity: !focused || focused.id === s.id ? 1 : 0.45 }}>
+          <span className="v20-legend-dot" style={{ background: s.color }}/><span>{s.label}</span><strong>{s.value}</strong>
+        </button>)}
       </div>
     </div>
   );
