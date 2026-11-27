@@ -5,6 +5,40 @@ Verified on **27 November 2026 (Pakistan time)**. Internal delivery target:
 This document distinguishes inspected source, automated checks, and unverified
 hosted behavior. Update it after every significant verified milestone.
 
+## Development update, 27 November 2026 — Phase V21.6: Complete Responsive Architecture Repair (Mobile 2-Column Compact Morphing Navbar, Content-Aware Dynamic Height Capping <= 48% dvh, Scalable SVG Donut & Complete Zero-Overflow Viewport Matrix)
+
+- **Git & Protected Baseline (`D:\RomanUrdu_V13_19_Review`, branch `fix/v21-6-complete-responsive-architecture`):**
+  - Branched from V21.5 commit (`8a93a1f`) with safety rollback checkpoint tag `checkpoint/before-v21-6-responsive-repair` pushed to remote.
+  - Dedicated branch `fix/v21-6-complete-responsive-architecture` active.
+  - Protected primary worktree `D:\RomanUrdu_ComplaintClassifier_staff_auth` remained **100% untouched**.
+  - Total expenditure: **$0.00**; zero paid external APIs, fonts, or credit card dependencies.
+  - Zero database schema migrations applied; production DB `akbwiedtmxjxcjscgitw` and staging DB `jvbulmmdwovtgaxojxhn` remain completely untouched.
+- **Architectural Deliverables & Verification:**
+  - **Mobile 2-Column Morphing Navigation Architecture (`TopEdgeMorphingNav.tsx` & `v20-atmospheric.css`):**
+    - Eliminated rigid 240px mobile minimum height that covered > 50% of mobile viewports.
+    - Implemented compact 2-column CSS grid for navigation destinations (`display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 8px; width: calc(100% - 24px);`).
+    - Bounded expanded mobile width to `Math.min(viewportWidth - 16, 360)` (360px on 390px screens, 304px on 320px screens).
+    - Dynamic content-aware height capped at `Math.min(mobileMaxH, Math.max(140, (measuredContentHeight || 130) + 48))` where `mobileMaxH = Math.round(window.innerHeight * 0.48)`. Settles at **220–236px**, keeping the operational page visible beneath.
+    - Centered `#nav-toggle` when collapsed (`44px` touch target); pinned close `X` button to top-right corner (`top: 8px; right: 12px; 36px x 36px`) when open.
+    - Single tap on menu opens; single tap on any destination tab selects tab and triggers fluid auto-close; single tap outside (or Escape key) dismisses immediately without leaving invisible overlays.
+    - Touch events (`pointerType === 'touch'`) bypass desktop mouse hover expansion.
+  - **Infinite Scalable Vector Donut Chart (`V20InteractiveDonut.tsx` & `v20-atmospheric.css`):**
+    - Eliminated fixed `320px x 320px` width/height that caused horizontal overflow on narrow mobile viewports.
+    - Refactored `.v20-donut-ring-box` to `width: 100%; max-width: 320px; aspect-ratio: 1 / 1; height: auto;`.
+    - Set SVG to `width="100%" height="100%" viewBox="0 0 320 320" preserveAspectRatio="xMidYMid meet"`, scaling cleanly down to 200px on 320px viewports with zero horizontal scrolling.
+  - **Cross-Viewport Component Normalization (`HodOfficersView.tsx`, `OfficerWorkView.tsx`, `v20-atmospheric.css`):**
+    - Replaced rigid grid column definitions with responsive formulas (`minmax(min(100%, 280px), 1fr)` and `minmax(min(100%, 260px), 1fr)`).
+    - Standardized modal dialogs to `max-width: min(94vw, 480px); max-height: 85dvh; overflow-y: auto;`.
+- **Automated Quality Gates & Test Verification:**
+  - TypeScript build (`npx tsc -b && npm run build`): **Exit code `0` cleanly (0 errors, bundled in 1.87s)**.
+  - Vitest test suite (`npm test -- --run`): **82 passed | 1 skipped across 83 test files (816 passed | 1 skipped total, 0 regressions)**.
+  - Dedicated new test suite: `src/test/V21_6_ResponsiveArchitecture.test.tsx` (**9 passed in 306ms**).
+  - Headless Chrome CDP Verification (`tools/ai_factory/v21_6_mobile_qa.mjs`):
+    - Verified **zero horizontal scroll overflow (`scrollWidth <= innerWidth`)** across all 8 target viewports: 1920x1080, 1440x900, 1024x768, 768x1024, 430x932, 390x844, 360x780, and 320x568.
+    - Verified 2-column mobile nav layout (`display=grid, cols=158px 158px` on 390px, `cols=133px 133px` on 320px).
+    - Verified 20-cycle rapid tap stress test in real Chrome with **0 stuck states**.
+    - Captured 24 high-resolution screenshot artifacts and 7 in-flight motion progression frames.
+
 ## Development update, 27 November 2026 — Phase V21.5: Critical Navbar Interaction Repair (Root Cause Elimination, Authoritative Window Pointer Position Controller, Stationary Cursor Auto-Closure Guarantee & 100-Sequence Real Chrome Immunity)
 
 - **Git & Protected Baseline (`D:\RomanUrdu_V13_19_Review`, branch `fix/v21-5-navbar-interaction-root-cause`):**

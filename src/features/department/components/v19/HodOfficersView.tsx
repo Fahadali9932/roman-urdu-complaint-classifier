@@ -751,7 +751,7 @@ export const HodOfficersView: React.FC<HodOfficersViewProps> = ({
               Warnings &amp; Extension Requests
             </h3>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '16px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '16px' }}>
               {/* Warnings Sub-section */}
               <div
                 style={{

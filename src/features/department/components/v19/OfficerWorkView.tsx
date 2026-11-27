@@ -354,7 +354,7 @@ export const OfficerWorkView: React.FC<OfficerWorkViewProps> = ({
           </div>
 
           {/* Action Row: Directions, Request Extension, Work Is Done */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))', gap: '16px' }}>
             {/* Universal Directions Card */}
             <div className="v19-glass-card" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--v19-cyan)' }}>

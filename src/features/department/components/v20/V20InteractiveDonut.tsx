@@ -60,8 +60,9 @@ export const V20InteractiveDonut: React.FC<V20InteractiveDonutProps> = ({
         className="v20-donut-ring-box"
         style={{
           position: 'relative',
-          width: `${size}px`,
-          height: `${size}px`,
+          width: '100%',
+          maxWidth: `${size}px`,
+          aspectRatio: '1 / 1',
           margin: '0 auto',
           display: 'flex',
           alignItems: 'center',
@@ -69,9 +70,10 @@ export const V20InteractiveDonut: React.FC<V20InteractiveDonutProps> = ({
         }}
       >
         <svg
-          width={size}
-          height={size}
+          width="100%"
+          height="100%"
           viewBox={`0 0 ${size} ${size}`}
+          preserveAspectRatio="xMidYMid meet"
           style={{ transform: 'rotate(-90deg)', overflow: 'visible', display: 'block' }}
           role="img"
           aria-label="Complaint distribution donut chart"

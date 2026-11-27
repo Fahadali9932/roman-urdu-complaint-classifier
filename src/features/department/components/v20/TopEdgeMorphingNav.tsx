@@ -206,15 +206,23 @@ export const TopEdgeMorphingNav: React.FC<TopEdgeMorphingNavProps> = ({
   const currentDims = useRef({ w: 110, h: 48, vw: 0, vh: 0 });
 
   const isMobile = viewportWidth < 768;
+  const maxMobileWidth = Math.min(viewportWidth - 16, 360);
   const halfContent = (measuredContentWidth || (role === 'head' ? 520 : 590)) / 2;
   const maxCloseOffset = Math.max(60, viewportWidth / 2 - 36);
   const closeBtnOffset = isMobile
     ? Math.min(maxCloseOffset, viewportWidth / 2 - 32)
     : Math.min(maxCloseOffset, halfContent + 32);
   const requiredHalf = Math.max(closeBtnOffset + 34, halfContent + 50);
-  const safeNotchWidth = Math.max(isMobile ? 300 : 680, requiredHalf * 2 + 54);
-  const targetW = isOpen ? Math.min(viewportWidth - 16, safeNotchWidth) : 110;
-  const targetH = isOpen ? Math.max(isMobile ? 240 : 74, (measuredContentHeight || 44) + (isMobile ? 54 : 26)) : 48;
+  const safeNotchWidth = isMobile
+    ? maxMobileWidth
+    : Math.max(680, requiredHalf * 2 + 54);
+  const targetW = isOpen ? (isMobile ? maxMobileWidth : Math.min(viewportWidth - 16, safeNotchWidth)) : 110;
+  const mobileMaxH = typeof window !== 'undefined' ? Math.round(window.innerHeight * 0.48) : 240;
+  const targetH = isOpen
+    ? isMobile
+      ? Math.min(mobileMaxH, Math.max(140, (measuredContentHeight || 130) + 48))
+      : Math.max(74, (measuredContentHeight || 44) + 26)
+    : 48;
 
   // Geometric containment check against current visible geometry
   const checkPointerInside = useCallback((x: number, y: number, open: boolean): boolean => {
