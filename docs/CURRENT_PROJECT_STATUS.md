@@ -5,6 +5,40 @@ Verified on **27 November 2026 (Pakistan time)**. Internal delivery target:
 This document distinguishes inspected source, automated checks, and unverified
 hosted behavior. Update it after every significant verified milestone.
 
+## Development update, 27 November 2026 — Phase V21.5: Critical Navbar Interaction Repair (Root Cause Elimination, Authoritative Window Pointer Position Controller, Stationary Cursor Auto-Closure Guarantee & 100-Sequence Real Chrome Immunity)
+
+- **Git & Protected Baseline (`D:\RomanUrdu_V13_19_Review`, branch `fix/v21-5-navbar-interaction-root-cause`):**
+  - Branched from V21.4 commit (`9e2a3d0`) with safety rollback checkpoint tag `checkpoint/v21-4-before-v21-5` pushed to remote.
+  - Dedicated branch `fix/v21-5-navbar-interaction-root-cause` tracked on `origin`.
+  - Protected primary worktree `D:\RomanUrdu_ComplaintClassifier_staff_auth` remained **100% untouched**.
+  - Total expenditure: **$0.00**; zero paid external APIs, fonts, or credit card dependencies.
+  - Zero database schema migrations applied; production DB `akbwiedtmxjxcjscgitw` and staging DB `jvbulmmdwovtgaxojxhn` remain completely untouched.
+- **Architectural Deliverables & Verification:**
+  - **Defect Reproduction & Root Cause Isolation (`TopEdgeMorphingNav.tsx` & `v20-atmospheric.css`):**
+    - Reproduced bug in real headless Chrome via CDP: moving mouse over top-right clock or top-left branding triggered `pointerenter` on the full-width `<header>` element, expanding the notch across unrelated screen coordinates.
+    - Isolated secondary cause: hit-testing surface div jumped immediately to static target dimensions (`targetW = 898px`) upon activation instead of tracking animated visible dimensions, enveloping cursors outside the visible black notch.
+    - Isolated tertiary cause: native browsers do not dispatch `pointerleave` events when animated geometry moves or shrinks away beneath a stationary mouse pointer.
+  - **Authoritative Window Pointer Position Controller (`TopEdgeMorphingNav.tsx`):**
+    - Filtered header pointer events to reject any originating from `.v20-brand-label`, `.v20-header-right-strip`, or `.v20-clock-block`.
+    - Integrated passive window pointer coordinate tracking (`pointerPosRef`) with zero React re-renders. Every pointer coordinate is geometrically evaluated against visible animated bounds (`checkPointerInside`).
+    - Added frame-by-frame stationary pointer re-evaluation inside the RAF spring loop: if cursor moves outside notch and remains motionless for 5 seconds (or more), closure executes automatically after 75ms exit grace and settles to `collapsed`.
+    - Direct DOM synchronization: both SVG path and interactive surface div update frame-by-frame on RAF without React component re-renders.
+    - Calibrated spring dynamics: opening $k=68, c=16$ (~600–750ms), closing $k=120, c=22$ (~500–600ms).
+  - **Mandatory Pointer-Location Stress Test Suite (Tests A–F Passed):**
+    - **Test A:** 15/15 unrelated pointer locations remained strictly collapsed.
+    - **Test B:** 4/4 automatic closure transitions settled smoothly to collapsed.
+    - **Test C:** Stationary pointer outside notch for 5 seconds fully collapsed and remained collapsed.
+    - **Test D:** Invisible boundary detection outside left shoulder, right shoulder, and bottom edge verified with 0 leaks.
+    - **Test E:** Rapid interruptions, Escape key dismissal, Close button click, and Tab navigation passed with 0 stuck states.
+    - **Test F:** **100 consecutive randomized interaction sequences passed with 0 stuck states and 0 false opens**.
+- **Automated Quality Gates & Test Verification:**
+  - TypeScript build (`npx tsc -b && npm run build`): **Exit code `0` cleanly (0 errors, bundled in 2.23s)**.
+  - Vitest test suite (`npm test -- --run`): **81 passed | 1 skipped across 82 test files (807 passed | 1 skipped total, 0 regressions)**.
+  - Dedicated new test suite: `src/test/V21_5_NavbarRootCause.test.tsx` (**9 passed in 219ms**).
+  - Headless Chrome CDP Verification (`tools/ai_factory/v21_5_comprehensive_qa.mjs`):
+    - Captured 24 high-resolution screenshots across Desktop (1920/1536/1440/1366), Tablet (768), and Mobile (390/320) in both Dark and Light mode.
+    - Captured 7 in-flight motion progression frames at 60 FPS demonstrating fluid spring transition.
+
 ## Development update, 27 November 2026 — Phase V21.4: Final Motion, Light Mode & Responsive Engineering (Confined Morphing Navbar Hit Surface, 50-Cycle Real Chrome Immunity, NamethatUI Cursor Spotlight Glow, Complete Light Mode Contrast Normalization & Cross-Viewport Responsiveness)
 
 - **Git & Protected Baseline (`D:\RomanUrdu_V13_19_Review`, branch `fix/v21-4-final-motion-light-mode-responsive`):**

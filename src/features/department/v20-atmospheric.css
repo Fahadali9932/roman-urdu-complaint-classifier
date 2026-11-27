@@ -585,11 +585,13 @@
 .v20-nav-destinations-row.is-visible {
   opacity: 1;
   pointer-events: auto;
+  visibility: visible;
 }
 
 .v20-nav-destinations-row.is-collapsed {
   opacity: 0;
-  pointer-events: none;
+  pointer-events: none !important;
+  visibility: hidden;
 }
 
 .v20-nav-link-btn {
