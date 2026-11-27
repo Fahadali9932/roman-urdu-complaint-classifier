@@ -40,6 +40,7 @@ export const V20PortalLayout: React.FC<V20PortalLayoutProps> = ({
       data-dept={normalizedDept}
       data-theme={themeMode}
       data-role={role}
+      data-username={username}
       data-testid="v20-portal-root"
       data-shell-testid="v19-staff-portal-shell"
     >

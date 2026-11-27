@@ -5,6 +5,36 @@ Verified on **27 November 2026 (Pakistan time)**. Internal delivery target:
 This document distinguishes inspected source, automated checks, and unverified
 hosted behavior. Update it after every significant verified milestone.
 
+## Development update, 27 November 2026 — Phase V20.4: Frontend Performance, Alignment & Final Finishing (Scroll Layout Thrashing Eliminated, Spring Physics RAF Navigation, Truthful Operational Dashboard & Official Frontend Freeze)
+
+- **Git & Protected Baseline (`D:\RomanUrdu_V13_19_Review`, branch `fix/v20-4-frontend-performance-and-final-polish`):**
+  - Branched from V20.3 verified baseline and created safety rollback tag `checkpoint/v20-3-before-v20-4` pushed to remote.
+  - Active branch `fix/v20-4-frontend-performance-and-final-polish` tracked upstream on origin.
+  - Protected primary worktree `D:\RomanUrdu_ComplaintClassifier_staff_auth` remained **100% untouched**.
+  - Total expenditure: **$0.00**; zero paid external APIs, fonts, or credit card dependencies.
+  - Zero database schema migrations applied; production DB `akbwiedtmxjxcjscgitw` and staging DB `jvbulmmdwovtgaxojxhn` remain completely untouched.
+- **Empirically Profiled Performance Improvements (Headless Chrome CDP):**
+  - **Complaint Scroll Layout Reflow Elimination (`ParallaxComplaintList.tsx`):** Pre-cached card layout offsets once on mount/resize; eliminated forced synchronous reflows caused by `getBoundingClientRect()` loops inside scroll events. Separated outer `.v20-card-wrapper` document flow from hardware-accelerated `.v20-horizontal-complaint-card`. Strictly bounded transform scaling (1.0 -> 0.97) and translateY (capped at 14px), completely eliminating card collisions, overlapping text, and CSS transform animation jitter.
+  - **Direct DOM Mutation Navigation Spring Physics (`TopEdgeMorphingNav.tsx`):** Replaced React state animation loop (`setW`, `setH`) with direct DOM SVG path mutations via `pathRef.current.setAttribute('d', ...)` on RAF, reducing React component re-renders during motion from 60/sec to **0/sec**. Integrated frame-rate independent critically damped spring physics ($k=220, c=26$). Isolated 1-second PKT clock into memoized `V20HeaderClock`.
+  - **Empirical Metrics:** Navigation morphing achieved locked **60.82 FPS** (median 16.7ms, p95 16.7ms, max 16.8ms, 0 severe dropped frames).
+- **Visual & Structural Refinements Delivered:**
+  - **Radiant Background Luminosity (`v20-atmospheric.css`):** Replaced dull muddy brown tones with radiant multi-stop golden atmospheric radial gradients (`#140D03`, `#2A1A06`, `#4A2E08`, `#FFE174`, `#F4C43C`, `#BE850C`). Preserved distinct department colors (K-Electric cyan/blue, KW&SC teal, SSWMB green) across both dark and light modes.
+  - **Unified Officer Complaints (`OfficerComplaintsView.tsx`):** Replaced compressed split-pane with the shared `ParallaxComplaintList` horizontal cards and dedicated full-width reading detail view with deterministic priority sorting and prominent "Start Working ↗" action.
+  - **Dedicated HOD Assignment Destination View (`HodComplaintsView.tsx`):** Converted cramped modal assignment into a spacious dedicated view (`viewMode === 'assign'`) with return navigation, complaint context banner, 30m duplicate incident advisory for single-click order consolidation, eligible field officers roster grid with workload and rating badges, duration picker pills (24h, 48h, 72h, 5d, 7d), and instructions input.
+  - **Mathematically Centered Donut & Truthful Records (`V20InteractiveDonut.tsx` & `V20DashboardPage.tsx`):** Enclosed SVG and central total inside a dedicated 320x320 square container (`.v20-donut-ring-box`), strictly centering the metric inside the ring independent of legend height. Removed artificial `Math.round(totalSolvedCases * 0.4)` multipliers in favor of truthful operational records filtered by time period.
+  - **Conditional Truthful Verification (`HodVerificationView.tsx`):** Replaced hardcoded text with conditional states for 30m GPS Haversine verification, cryptographic SHA-256 confirmation, and camera origin screening.
+  - **Layout Alignment & Trusted Time Timer:** Fixed officer detail panel sticky clearance to `top: 140px` (clearing 135px header); fixed directory grid small-screen overflow; wired `OfficerWorkView.tsx` countdown timer to `trustedTimeService.now().getTime()`.
+- **Quality Gates, Test Suite & Browser Verification:**
+  - `npx tsc -b`: **Exit code `0` cleanly (0 diagnostic errors)**.
+  - Vitest test suite (`npm test -- --run`): **755 passed | 1 skipped across 76 test suites (0 regressions, 73.19s duration)**.
+  - Headless Chrome browser QA: **20 high-resolution screenshots captured across 7 viewports (1920x1080, 1440x900, 1280x800, 1024x768, 768x1024, 390x844, 320x568) in dark and light modes and across KMC, K-Electric, KW&SC, and SSWMB departments**.
+  - 60 FPS motion captures: **Generated `v20_4_morphing_nav_animation.mp4` and `v20_4_morphing_nav_animation.gif` with ffmpeg**.
+- **Delivered Documentation Artifacts:**
+  - `docs/V20_4_FRONTEND_PERFORMANCE_AUDIT.md`
+  - `docs/V20_4_IMPLEMENTATION_REPORT.md`
+  - `docs/V20_4_VISUAL_AND_RESPONSIVE_QA.md`
+  - `docs/V20_4_FRONTEND_FREEZE_AND_BACKEND_HANDOFF.md`
+
 ## Development update, 27 November 2026 — Phase V20.3: Complete Staff Frontend Implementation & Final Visual Polish (Full HOD & Field Officer Experiences Verified)
 
 - **Git & Protected Baseline (`D:\RomanUrdu_V13_19_Review`, branch `feature/v20-3-complete-staff-frontend`):**

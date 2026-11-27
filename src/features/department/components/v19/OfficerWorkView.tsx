@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { type DepartmentWorkOrder } from '../../services/fieldOperations';
 import { type HeadIndependentComplaintRow } from '../../../../services/CaseOperationsService';
 import { syntheticImageDetector, type ForensicScreeningReport } from '../../../../services/syntheticImageDetector';
+import { trustedTimeService } from '../../../../services/trustedTimeService';
 import { ImageLightbox } from './ImageLightbox';
 import {
   Clock,
@@ -50,7 +51,7 @@ export const OfficerWorkView: React.FC<OfficerWorkViewProps> = ({
 }) => {
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [lightboxImg, setLightboxImg] = useState<string | null>(null);
-  const [nowMs, setNowMs] = useState<number>(() => Date.now());
+  const [nowMs, setNowMs] = useState<number>(() => trustedTimeService.now().getTime());
 
   // Extension Modal State
   const [isExtModalOpen, setIsExtModalOpen] = useState(false);
@@ -72,9 +73,9 @@ export const OfficerWorkView: React.FC<OfficerWorkViewProps> = ({
   } | null>(null);
   const [isSubmittingDone, setIsSubmittingDone] = useState(false);
 
-  // Live timer tick every 10 seconds for deadline display
+  // Live timer tick every 10 seconds for deadline display using trusted server time
   useEffect(() => {
-    const timer = setInterval(() => setNowMs(Date.now()), 10000);
+    const timer = setInterval(() => setNowMs(trustedTimeService.now().getTime()), 10000);
     return () => clearInterval(timer);
   }, []);
 

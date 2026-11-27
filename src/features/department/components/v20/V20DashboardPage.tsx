@@ -64,8 +64,6 @@ export const V20DashboardPage: React.FC<V20DashboardPageProps> = ({
 }) => {
   const [selectedPeriod, setSelectedPeriod] = useState<PeriodFilter>('today');
 
-  const { dateStr, timeStr } = trustedTimeService.formatPkt();
-
   const periodOptions: { id: PeriodFilter; label: string }[] = [
     { id: 'today', label: 'Today' },
     { id: 'yesterday', label: 'Yesterday' },
@@ -115,14 +113,8 @@ export const V20DashboardPage: React.FC<V20DashboardPageProps> = ({
     ];
     periodTotal = filtered.length;
   } else {
-    // Truthful operational cohorts from live state
-    const solvedForPeriod = selectedPeriod === 'today'
-      ? Math.round(totalSolvedCases * 0.4)
-      : selectedPeriod === 'yesterday'
-      ? Math.round(totalSolvedCases * 0.3)
-      : selectedPeriod === 'month'
-      ? Math.round(totalSolvedCases * 0.8)
-      : totalSolvedCases;
+    // Truthful operational cohorts from live state without artificial multipliers
+    const solvedForPeriod = totalSolvedCases;
 
     segments = [
       {

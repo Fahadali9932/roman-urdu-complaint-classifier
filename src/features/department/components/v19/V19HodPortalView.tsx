@@ -313,6 +313,17 @@ export const V19HodPortalView: React.FC<V19HodPortalViewProps> = ({
           inProgressCount={complaints.filter((c) => c.status === 'in_progress').length}
           pendingCount={complaints.filter((c) => c.status === 'submitted' || c.status === 'under_review').length}
           verificationCount={verificationPendingCount}
+          records={complaints.map((c) => ({
+            timestamp: c.submittedAt || new Date().toISOString(),
+            status: c.status === 'resolved'
+              ? 'solved'
+              : c.status === 'in_progress'
+              ? 'progress'
+              : c.status === 'under_review' || c.workOrderStatus === 'pending_review'
+              ? 'verification'
+              : 'pending',
+          }))}
+          isLoading={isLoading}
         />
       )}
 

@@ -262,6 +262,17 @@ export const V19OfficerPortalView: React.FC<V19OfficerPortalViewProps> = ({
             inProgressCount={orders.filter((o) => o.status === 'in_progress').length}
             pendingCount={orders.filter((o) => o.status === 'assigned' && !o.started_at).length}
             verificationCount={orders.filter((o) => o.status === 'pending_review').length}
+            records={orders.map((o) => ({
+              timestamp: o.assigned_at || new Date().toISOString(),
+              status: o.status === 'verified'
+                ? 'solved'
+                : o.status === 'in_progress'
+                ? 'progress'
+                : o.status === 'pending_review'
+                ? 'verification'
+                : 'pending',
+            }))}
+            isLoading={isLoading}
           />
         )}
 

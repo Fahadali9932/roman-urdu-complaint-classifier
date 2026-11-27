@@ -156,9 +156,9 @@ export const HodOfficersView: React.FC<HodOfficersViewProps> = ({
       </div>
 
       {/* Main Grid: Officers Cards & Detail Panel */}
-      <div style={{ display: 'grid', gridTemplateColumns: activeOfficer ? '1.2fr 1fr' : '1fr', gap: '20px', alignItems: 'start' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: activeOfficer ? 'minmax(0, 1.2fr) minmax(0, 1fr)' : '1fr', gap: '20px', alignItems: 'start', minWidth: 0 }}>
         {/* Officers Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(260px, 100%), 1fr))', gap: '16px', minWidth: 0 }}>
           {filteredOfficers.map((off) => {
             const isSelected = selectedOfficerId === off.user_id;
             const isSuspended = off.membership_status === 'suspended';
@@ -251,7 +251,7 @@ export const HodOfficersView: React.FC<HodOfficersViewProps> = ({
 
         {/* Selected Officer Detail Sheet */}
         {activeOfficer && (
-          <div className="v19-glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '20px', position: 'sticky', top: '90px' }}>
+          <div className="v19-glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '20px', position: 'sticky', top: '140px', minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--v19-glass-border)', paddingBottom: '12px' }}>
               <div>
                 <span style={{ fontSize: '18px', fontWeight: 600, color: 'var(--v19-text-primary)' }}>

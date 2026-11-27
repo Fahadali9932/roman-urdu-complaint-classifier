@@ -57,12 +57,12 @@ export const OfficerProfileView: React.FC<OfficerProfileViewProps> = ({
               width: '64px',
               height: '64px',
               borderRadius: '50%',
-              background: 'var(--v19-lime-soft)',
-              border: '2px solid var(--v19-lime)',
+              background: 'var(--v20-accent-soft, rgba(223, 165, 29, 0.16))',
+              border: '2px solid var(--v20-accent, #DFA51D)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: 'var(--v19-lime)',
+              color: 'var(--v20-accent, #DFA51D)',
               fontSize: '24px',
               fontWeight: 700,
               overflow: 'hidden',
@@ -84,13 +84,13 @@ export const OfficerProfileView: React.FC<OfficerProfileViewProps> = ({
               width: '24px',
               height: '24px',
               borderRadius: '50%',
-              background: 'var(--v19-lime)',
+              background: 'var(--v20-accent, #DFA51D)',
               color: '#0E121A',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               cursor: 'pointer',
-              border: '2px solid var(--v19-card-bg)',
+              border: '2px solid var(--v20-bg-base, #140D03)',
             }}
           >
             <Camera size={12} />
@@ -106,30 +106,30 @@ export const OfficerProfileView: React.FC<OfficerProfileViewProps> = ({
         </div>
 
         <div>
-          <h2 style={{ fontSize: '20px', fontWeight: 600, color: 'var(--v19-text-primary)', margin: 0 }}>
+          <h2 style={{ fontSize: '20px', fontWeight: 600, color: 'var(--v20-text-primary)', margin: 0 }}>
             {officerName}
           </h2>
-          <div style={{ fontSize: '13px', color: 'var(--v19-text-muted)', marginTop: '4px' }}>
+          <div style={{ fontSize: '13px', color: 'var(--v20-text-secondary)', marginTop: '4px' }}>
             Field Officer · {departmentName}
           </div>
-          <div style={{ fontSize: '11px', color: 'var(--v19-lime)', marginTop: '2px', fontFamily: 'var(--v19-font-mono)' }}>
-            USER: {staffUsername} · {employeeId ? `ID: ${employeeId}` : ''} · DEPT: {departmentCode}
+          <div style={{ fontSize: '11px', color: 'var(--v20-accent)', marginTop: '2px', fontFamily: 'var(--v20-font-display, sans-serif)' }}>
+            Officer Operations · {employeeId ? `ID: ${employeeId} · ` : ''}{departmentCode}
           </div>
         </div>
       </div>
 
       {/* Security & Operational Controls */}
       <div className="v19-glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-        <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--v19-text-muted)', textTransform: 'uppercase' }}>
+        <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--v20-text-muted)', textTransform: 'uppercase' }}>
           Credentials &amp; Jurisdiction
         </span>
 
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px', borderRadius: '10px', background: 'var(--v19-glass-subtle)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px', borderRadius: '10px', background: 'var(--v20-glass-surface)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <KeyRound size={18} style={{ color: 'var(--v19-cyan)' }} />
+            <KeyRound size={18} style={{ color: 'var(--v20-accent)' }} />
             <div>
-              <div style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--v19-text-primary)' }}>Officer Passphrase</div>
-              <div style={{ fontSize: '12px', color: 'var(--v19-text-muted)' }}>Update individual operational access credentials</div>
+              <div style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--v20-text-primary)' }}>Officer Passphrase</div>
+              <div style={{ fontSize: '12px', color: 'var(--v20-text-muted)' }}>Update individual operational access credentials</div>
             </div>
           </div>
           {onOpenPasswordModal && (
@@ -139,19 +139,19 @@ export const OfficerProfileView: React.FC<OfficerProfileViewProps> = ({
           )}
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px', borderRadius: '10px', background: 'var(--v19-glass-subtle)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px', borderRadius: '10px', background: 'var(--v20-glass-surface)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <Building2 size={18} style={{ color: 'var(--v19-lime)' }} />
+            <Building2 size={18} style={{ color: 'var(--v20-accent)' }} />
             <div>
-              <div style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--v19-text-primary)' }}>Assigned Department</div>
-              <div style={{ fontSize: '12px', color: 'var(--v19-text-muted)' }}>{departmentName} ({departmentCode})</div>
+              <div style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--v20-text-primary)' }}>Assigned Department</div>
+              <div style={{ fontSize: '12px', color: 'var(--v20-text-muted)' }}>{departmentName} ({departmentCode})</div>
             </div>
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px', borderRadius: '10px', background: 'var(--v19-glass-subtle)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px', borderRadius: '10px', background: 'var(--v20-glass-surface)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <Smartphone size={18} style={{ color: 'var(--v19-blue)' }} />
+            <Smartphone size={18} style={{ color: 'var(--v20-accent-light)' }} />
             <div>
               <div style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--v19-text-primary)' }}>Mobile Field Mode</div>
               <div style={{ fontSize: '12px', color: 'var(--v19-text-muted)' }}>Work console, camera capture, and 30m GPS authorized</div>

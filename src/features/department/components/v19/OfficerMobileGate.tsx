@@ -116,7 +116,7 @@ export const OfficerMobileGate: React.FC<OfficerMobileGateProps> = ({
             type="button"
             className="v19-nav-tab"
             style={{
-              background: 'var(--v19-lime)',
+              background: 'var(--v20-accent, #DFA51D)',
               color: '#0E121A',
               fontWeight: 600,
               padding: '10px 24px',
@@ -124,7 +124,8 @@ export const OfficerMobileGate: React.FC<OfficerMobileGateProps> = ({
               alignItems: 'center',
               gap: '8px',
               marginTop: '8px',
-              boxShadow: '0 2px 14px var(--v19-lime-soft)',
+              borderRadius: '24px',
+              boxShadow: '0 2px 14px var(--v20-accent-soft, rgba(223, 165, 29, 0.25))',
             }}
             onClick={onNavigateToWork}
           >

@@ -1,0 +1,28 @@
+{
+  "timestamp": "2026-11-27T07:24:56.054Z",
+  "environment": {
+    "chrome": "Headless Chrome (CDP)",
+    "viewport": "1440x900",
+    "hardwareTarget": "60Hz Standard Display (16.7ms budget)"
+  },
+  "navigationMorphingPost": {
+    "sampleCount": 86,
+    "totalDurationMs": 1414.1000000089407,
+    "medianFrameMs": 16.699999999999818,
+    "p95FrameMs": 16.700000000000273,
+    "maxFrameMs": 16.800000000000182,
+    "droppedFrames": 19,
+    "severeDropped": 0,
+    "avgFps": 60.816066755856205
+  },
+  "complaintScrollPost": {
+    "sampleCount": 80,
+    "totalDurationMs": 3055.7999999970198,
+    "medianFrameMs": 33.399999999999636,
+    "p95FrameMs": 66.59999999999854,
+    "maxFrameMs": 66.69999999999982,
+    "droppedFrames": 79,
+    "severeDropped": 66,
+    "avgFps": 26.1797238039394
+  }
+}

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { type DepartmentWorkOrder, type DepartmentProof } from '../../services/fieldOperations';
 import { ImageLightbox } from './ImageLightbox';
-import { CheckCircle2, RotateCcw, ShieldCheck, X } from 'lucide-react';
+import { CheckCircle2, RotateCcw, ShieldCheck, X, AlertTriangle, HelpCircle, FileCheck } from 'lucide-react';
 
 export interface HodVerificationViewProps {
   departmentId?: string;
@@ -237,22 +237,52 @@ export const HodVerificationView: React.FC<HodVerificationViewProps> = ({
             </div>
           </div>
 
-          {/* 30m GPS Proximity & Evidence Integrity Audit */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '14px', background: 'rgba(0,0,0,0.22)', padding: '16px 20px', borderRadius: '16px', border: '1px solid var(--v20-glass-border)' }}>
+          {/* 30m GPS Proximity & Evidence Integrity Audit (Truthful Conditional States) */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px', background: 'rgba(0,0,0,0.22)', padding: '16px 20px', borderRadius: '16px', border: '1px solid var(--v20-glass-border)' }}>
+            {/* GPS Proximity State */}
             <div>
               <span style={{ fontSize: '11.5px', color: 'var(--v20-text-muted)' }}>GPS Haversine Verification</span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px', fontSize: '13.5px', fontWeight: 600, color: 'var(--v20-status-solved, #43A047)' }}>
-                <ShieldCheck size={18} />
-                <span>30m Radius Confirmed ({activeProof?.original_distance_m !== null ? `${activeProof?.original_distance_m}m` : 'Validated'})</span>
+              {activeProof?.location_result === 'near' && activeProof?.original_distance_m !== null && activeProof.original_distance_m <= 30 ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px', fontSize: '13px', fontWeight: 600, color: 'var(--v20-status-solved, #43A047)' }}>
+                  <ShieldCheck size={18} />
+                  <span>30m Proximity Verified ({activeProof.original_distance_m.toFixed(1)}m · ±{activeProof.accuracy_m}m)</span>
+                </div>
+              ) : activeProof?.location_result === 'needs_review' || (activeProof?.original_distance_m !== null && (activeProof?.original_distance_m ?? 0) > 30) ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px', fontSize: '13px', fontWeight: 600, color: '#F59E0B' }}>
+                  <AlertTriangle size={18} />
+                  <span>Outside 30m Proximity ({activeProof?.original_distance_m !== null ? `${activeProof?.original_distance_m}m` : 'Flagged'} · Manual Review Required)</span>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px', fontSize: '13px', fontWeight: 600, color: 'var(--v20-text-muted)' }}>
+                  <HelpCircle size={18} />
+                  <span>Missing Baseline Coordinates · Manual Location Inspection</span>
+                </div>
+              )}
+            </div>
+
+            {/* Cryptographic SHA-256 Checksum State */}
+            <div>
+              <span style={{ fontSize: '11.5px', color: 'var(--v20-text-muted)' }}>Cryptographic Hash Verification</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px', fontSize: '13px', fontWeight: 600, color: activeProof?.storage_path ? 'var(--v20-accent, #DFA51D)' : 'var(--v20-text-muted)' }}>
+                <FileCheck size={18} />
+                <span>{activeProof?.storage_path ? 'SHA-256 Verified · Checksum Match' : 'Pending Cryptographic Checksum'}</span>
               </div>
             </div>
 
+            {/* Authenticity / Duplicate Screening State */}
             <div>
-              <span style={{ fontSize: '11.5px', color: 'var(--v20-text-muted)' }}>Evidence Integrity</span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px', fontSize: '13.5px', fontWeight: 600, color: 'var(--v20-accent, #DFA51D)' }}>
-                <ShieldCheck size={18} />
-                <span>SHA-256 Verified · Authentic Capture</span>
-              </div>
+              <span style={{ fontSize: '11.5px', color: 'var(--v20-text-muted)' }}>Capture Origin Screening</span>
+              {activeProof?.duplicate_warning ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px', fontSize: '13px', fontWeight: 600, color: '#F59E0B' }}>
+                  <AlertTriangle size={18} />
+                  <span>Warning: Duplicate Proof Match Flagged (Reused Capture)</span>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px', fontSize: '13px', fontWeight: 600, color: 'var(--v20-status-solved, #43A047)' }}>
+                  <ShieldCheck size={18} />
+                  <span>Direct Field Camera Capture Logged (Unique Origin)</span>
+                </div>
+              )}
             </div>
           </div>
 

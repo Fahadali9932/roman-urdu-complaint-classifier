@@ -535,30 +535,27 @@
 }
 
 /* ==========================================================================
-   NAMETHATUI PARALLAX COMPLAINT LIST
+   PARALLAX COMPLAINT LIST (Scoped & Hardware-Optimized)
    ========================================================================== */
 .v19-parallax-viewport {
   position: relative;
   display: flex;
   flex-direction: column;
   gap: 12px;
-  perspective: 1000px;
 }
 
 .v19-parallax-card {
-  will-change: transform;
-  transition: transform 160ms var(--v19-ease-out), border-color 160ms ease, box-shadow 160ms ease;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
   cursor: pointer;
   display: flex;
-  align-items: center;
+  flex-direction: column;
   justify-content: space-between;
-  padding: 18px 24px;
+  padding: 24px 28px;
 }
 
 .v19-parallax-card:hover {
-  transform: translateY(-2px) scale(1.005);
-  border-color: var(--v19-lime);
-  box-shadow: 0 16px 40px -8px rgba(0, 0, 0, 0.5), 0 0 16px var(--v19-lime-soft);
+  border-color: var(--v20-accent-border, rgba(223, 165, 29, 0.35));
+  box-shadow: 0 14px 36px -6px rgba(0, 0, 0, 0.45);
 }
 
 .v19-priority-square {
