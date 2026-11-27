@@ -222,9 +222,13 @@ export const HodOfficersView: React.FC<HodOfficersViewProps> = ({
                       color: isSuspended ? '#EF5350' : '#66BB6A',
                       border: isSuspended ? '1px solid rgba(229,57,53,0.35)' : '1px solid rgba(67,160,71,0.35)',
                       textTransform: 'uppercase',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
                     }}
                   >
-                    {isSuspended ? 'Suspended' : 'Active'}
+                    <span>{isSuspended ? '✕' : '●'}</span>
+                    <span>{isSuspended ? 'Suspended' : 'Active'}</span>
                   </span>
                 </div>
 

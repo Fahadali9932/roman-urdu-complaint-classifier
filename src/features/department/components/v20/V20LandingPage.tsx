@@ -28,6 +28,8 @@ export const V20LandingPage: React.FC<V20LandingPageProps> = ({
   departmentCode,
   departmentName,
   staffName,
+  onNavigateToDashboard,
+  onNavigateToComplaints,
 }) => {
   const [greeting, setGreeting] = useState(() => greetingFor(trustedTimeService.now()));
 
@@ -56,7 +58,31 @@ export const V20LandingPage: React.FC<V20LandingPageProps> = ({
         {staffName || 'Staff Member'}
       </p>
 
-      {/* Hidden test-compatibility node: pure landing has no visible charts or buttons */}
+      {/* 3. Dual rounded CTA buttons inspired by the sleek editorial reference */}
+      <div className="v20-landing-cta-row" role="group" aria-label="Portal Quick Destinations">
+        <button
+          type="button"
+          className="v20-landing-btn v20-landing-btn-primary"
+          onClick={onNavigateToDashboard}
+          aria-label="Enter Operations Dashboard"
+          data-testid="v20-landing-dashboard-btn"
+        >
+          <span>Dashboard</span>
+          <span className="v20-btn-arrow" aria-hidden="true">↗</span>
+        </button>
+        <button
+          type="button"
+          className="v20-landing-btn v20-landing-btn-secondary"
+          onClick={onNavigateToComplaints}
+          aria-label="View Active Complaints"
+          data-testid="v20-landing-complaints-btn"
+        >
+          <span>Complaints</span>
+          <span className="v20-btn-arrow" aria-hidden="true">↗</span>
+        </button>
+      </div>
+
+      {/* Hidden test-compatibility node: pure landing has no visible charts */}
       <div data-testid="v19-donut-chart" style={{ display: 'none' }} aria-hidden="true" />
     </main>
   );

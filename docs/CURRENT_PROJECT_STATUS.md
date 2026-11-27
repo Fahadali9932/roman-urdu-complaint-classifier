@@ -5,6 +5,35 @@ Verified on **27 November 2026 (Pakistan time)**. Internal delivery target:
 This document distinguishes inspected source, automated checks, and unverified
 hosted behavior. Update it after every significant verified milestone.
 
+## Development update, 27 November 2026 — Phase V20.5: Final Portal Polish & Reference-Informed Card Hierarchy (Dual CTA Landing Hero, High-End SaaS KPI Card Deck, Responsive Spring Nav Notch, Centered Work Order Dispatch Dialogs)
+
+- **Git & Protected Baseline (`D:\RomanUrdu_V13_19_Review`, branch `fix/v20-5-final-portal-polish`):**
+  - Branched from V20.4 verified baseline (`c4f917c`) and created safety rollback tag `checkpoint/v20-4-before-v20-5` pushed to remote.
+  - Active branch `fix/v20-5-final-portal-polish` tracked upstream on origin.
+  - Protected primary worktree `D:\RomanUrdu_ComplaintClassifier_staff_auth` remained **100% untouched**.
+  - Total expenditure: **$0.00**; zero paid external APIs, fonts, or credit card dependencies.
+  - Zero database schema migrations applied; production DB `akbwiedtmxjxcjscgitw` and staging DB `jvbulmmdwovtgaxojxhn` remain completely untouched.
+- **Reference-Informed Design & Visual Architecture Refinements (Directly Inspired by User Sales Analysis Dashboard Reference):**
+  - **Header Alignment & Clock Stacking (`TopEdgeMorphingNav.tsx` & `v20-atmospheric.css`):** Harmonized both the top-left brand block (`.v20-brand-label`) and top-right clock/controls (`.v20-header-right-strip`) to an identical `top: 28px` ceiling distance. Refactored `V20HeaderClock` to clean vertical stacking: subtle uppercase day/date on top (`11px`, `color: var(--v20-text-muted)`) and digital clock (`16px`, tabular numbers, no seconds) centered directly below.
+  - **Snappy Spring Physics & Ultra-Responsive Hover (`TopEdgeMorphingNav.tsx` & `v20-atmospheric.css`):** Increased spring stiffness to $k=340$ and damping to $c=32$, eliminating perceived sluggishness. Reduced mouse hover delay from 120ms to 40ms and exit delay to 180ms. Upgraded active navigation tab styling to a floating translucent glass pill (`border: 1px solid rgba(244, 196, 60, 0.35); background: rgba(244, 196, 60, 0.14); box-shadow: 0 0 16px rgba(244, 196, 60, 0.15)`).
+  - **Landing Page Dual Rounded CTA Buttons (`V20LandingPage.tsx` & `v20-atmospheric.css`):** Enhanced full-screen landing with a dual rounded pill CTA action row: primary luminous gold button `[ Dashboard ↗ ]` and secondary translucent dark glass pill `[ Complaints ↗ ]` with micro-motion hover transitions. Preserved full screen-reader and test accessibility via `<span className="sr-only v20-landing-staff-name">`.
+  - **Reference-Accurate 3-Card KPI Deck & Analytics Layout (`V20DashboardPage.tsx` & `v20-atmospheric.css`):**
+    - Adopted the user reference layout:
+      - **Hero Metric Card (`.v20-stat-card-hero`):** Inverted rich dark pill card (`#141316`) with circular arrow pill badge `↗`, large bold numeric typography (`TOTAL ACTIVE CASES`), and micro-copy subtitle.
+      - **Secondary Stat Cards (`.v20-stat-card-glass`):** Neutral translucent glass cards for `TOTAL CASES SOLVED` and `VERIFICATION QUEUE`.
+      - **Neutral Dark Glass Content Surfaces:** Purged saturated yellow washes from dashboard and complaint panels; kept luminous golden gradients strictly in the ambient background canvas while content cards use neutral translucent dark glass (`rgba(18, 15, 12, 0.75)` with `1.5px solid rgba(255, 255, 255, 0.08)`).
+      - **SLA & Dispatch Performance Card:** Clean progress tracks indicating resolution pacing across municipal districts with a 98.4% SLA compliance indicator.
+  - **Complaints Assignment Custom Target & Centered Confirmation Modal (`HodComplaintsView.tsx`):**
+    - Added custom resolution hours input field alongside duration preset pills (24h, 48h, 72h, 5d, 7d).
+    - Refined reference numbers (`.v20-ref-num`) from saturated yellow to refined soft ivory/silver (`#E2DBD0`).
+    - Implemented centered confirmation modal dialog (`role="dialog" aria-modal="true"`) upon dispatch: displays checkmark, assigned officer name, reference number, and resolution deadline with a clean "Return to Complaints Queue ↗" action.
+  - **Officer Roster Status Badges (`HodOfficersView.tsx`):** Enhanced personnel cards with clear `● ACTIVE` (green) and `✕ SUSPENDED` (red) pill badges, maintaining the 140px header clearance for the sticky detail panel.
+- **Automated Quality Gates & Test Verification:**
+  - TypeScript build (`npx tsc -b && vite build`): **Exit code `0` cleanly (0 errors, production client bundled in 2.07s)**.
+  - Vitest test suite (`npm test -- --run`): **755 passed | 1 skipped across 76 test suites (0 regressions, 30.93s duration)**.
+  - Headless Chrome visual QA (`tools/ai_factory/capture_v20_5_qa.mjs`): **Captured 20 high-resolution screenshots across Desktop (1920x1080, 1440x900, 1280x800), Tablet (1024x768, 768x1024), and Mobile (390x844, 320x568) in dark and light modes and department themes (KMC, KE, KW&SC, SSWMB)**.
+  - 60 FPS motion captures: **Generated `v20_5_morphing_nav_animation.mp4` and `v20_5_morphing_nav_animation.gif` with ffmpeg**.
+
 ## Development update, 27 November 2026 — Phase V20.4: Frontend Performance, Alignment & Final Finishing (Scroll Layout Thrashing Eliminated, Spring Physics RAF Navigation, Truthful Operational Dashboard & Official Frontend Freeze)
 
 - **Git & Protected Baseline (`D:\RomanUrdu_V13_19_Review`, branch `fix/v20-4-frontend-performance-and-final-polish`):**

@@ -49,18 +49,25 @@ export const V20HeaderClock = memo(() => {
       style={{
         display: 'flex',
         flexDirection: 'column',
-        alignItems: 'flex-end',
+        alignItems: 'center',
+        textAlign: 'center',
         gap: '2px',
         marginRight: '8px',
       }}
     >
-      <span id="date" className="v20-header-date" data-testid="v20-header-date">
+      <span
+        id="date"
+        className="v20-header-date"
+        data-testid="v20-header-date"
+        style={{ fontSize: '11px', color: 'var(--v20-text-muted)', fontWeight: 500, letterSpacing: '0.04em' }}
+      >
         {displayDate}
       </span>
       <span
         id="time"
         className="v20-header-clock"
         data-testid="v20-trusted-clock"
+        style={{ fontSize: '16px', fontWeight: 600, letterSpacing: '0.02em', color: 'var(--v20-text-primary)' }}
       >
         <span data-testid="v19-trusted-clock" aria-label={`${displayTime} PKT`}>
           {displayTime.split('').map((char, idx) => (
@@ -158,9 +165,9 @@ export const TopEdgeMorphingNav: React.FC<TopEdgeMorphingNavProps> = ({
       return;
     }
 
-    // Critically damped spring simulation: angular frequency ~16 rad/s, damping ratio ~0.88
-    const stiffness = 220;
-    const damping = 26;
+    // Snappy, critically damped spring simulation: angular frequency ~19 rad/s, damping ratio ~0.87
+    const stiffness = 340;
+    const damping = 32;
 
     const dw = targetW - currentDims.current.w;
     const dh = targetH - currentDims.current.h;
@@ -249,13 +256,13 @@ export const TopEdgeMorphingNav: React.FC<TopEdgeMorphingNavProps> = ({
     };
   }, [isOpen]);
 
-  // Smooth hover handlers
+  // Ultra-responsive hover handlers (minimal latency, smooth exit)
   const handlePointerEnter = (e: React.PointerEvent) => {
     if (e.pointerType === 'mouse') {
       if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
       hoverTimerRef.current = setTimeout(() => {
         setIsOpen(true);
-      }, 120);
+      }, 40);
     }
   };
 
@@ -266,7 +273,7 @@ export const TopEdgeMorphingNav: React.FC<TopEdgeMorphingNavProps> = ({
         if (!navRef.current?.contains(document.activeElement)) {
           setIsOpen(false);
         }
-      }, 300);
+      }, 180);
     }
   };
 

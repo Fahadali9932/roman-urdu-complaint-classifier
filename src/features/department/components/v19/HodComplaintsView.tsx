@@ -64,6 +64,12 @@ export const HodComplaintsView: React.FC<HodComplaintsViewProps> = ({
   const [isSubmittingAssign, setIsSubmittingAssign] = useState(false);
   const [candidateMatches, setCandidateMatches] = useState<CandidateWorkOrderMatch[]>([]);
   const [selectedAttachOrderId, setSelectedAttachOrderId] = useState<string | undefined>(undefined);
+  const [isAssignSuccessOpen, setIsAssignSuccessOpen] = useState(false);
+  const [assignedDetails, setAssignedDetails] = useState<{
+    officerName: string;
+    refNum: string;
+    deadlineHours: number;
+  } | null>(null);
 
   // Filter only actionable, unassigned incoming complaints
   const unassignedComplaints = useMemo(() => {
@@ -176,10 +182,14 @@ export const HodComplaintsView: React.FC<HodComplaintsViewProps> = ({
         instructions.trim(),
         selectedAttachOrderId
       );
+      const officer = officers.find((o) => o.user_id === selectedOfficerId);
+      setAssignedDetails({
+        officerName: officer?.display_name || 'Assigned Officer',
+        refNum: activeComplaint.referenceNumber,
+        deadlineHours: durationHours,
+      });
       setIsAssignOpen(false);
-      setSelectedOfficerId('');
-      setInstructions('');
-      setSelectedComplaintId(null);
+      setIsAssignSuccessOpen(true);
     } finally {
       setIsSubmittingAssign(false);
     }
@@ -538,6 +548,31 @@ export const HodComplaintsView: React.FC<HodComplaintsViewProps> = ({
                     {h}h ({Math.round(h / 24)}d)
                   </button>
                 ))}
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '4px' }}>
+                <span style={{ fontSize: '12px', color: 'var(--v20-text-muted)' }}>Custom Resolution Target:</span>
+                <input
+                  type="number"
+                  min={1}
+                  max={720}
+                  value={durationHours}
+                  onChange={(e) => {
+                    const val = parseInt(e.target.value, 10);
+                    if (!isNaN(val) && val > 0) setDurationHours(val);
+                  }}
+                  style={{
+                    width: '84px',
+                    padding: '6px 12px',
+                    borderRadius: '10px',
+                    background: 'rgba(0, 0, 0, 0.3)',
+                    border: '1px solid var(--v20-glass-border)',
+                    color: 'var(--v20-text-primary)',
+                    fontSize: '13px',
+                    fontFamily: 'var(--v20-font-number, monospace)',
+                    outline: 'none',
+                  }}
+                />
+                <span style={{ fontSize: '12px', color: 'var(--v20-text-muted)' }}>hours</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'var(--v20-text-muted)' }}>
                 <Clock size={14} style={{ color: 'var(--v20-accent, #DFA51D)' }} />
@@ -911,6 +946,68 @@ export const HodComplaintsView: React.FC<HodComplaintsViewProps> = ({
                 {isSubmittingReject ? 'Rejecting…' : 'Confirm Rejection'}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Centered Assignment Success Confirmation Modal Dialog */}
+      {isAssignSuccessOpen && (
+        <div className="v19-lightbox-backdrop" role="dialog" aria-modal="true" aria-label="Assignment Confirmed">
+          <div
+            className="v19-glass-card"
+            style={{
+              maxWidth: '460px',
+              width: '100%',
+              padding: '36px 32px',
+              textAlign: 'center',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '16px',
+              borderRadius: '28px',
+              background: 'rgba(18, 15, 12, 0.96)',
+              border: '1.5px solid rgba(255, 255, 255, 0.12)',
+              boxShadow: '0 24px 64px rgba(0, 0, 0, 0.6)',
+            }}
+          >
+            <div
+              style={{
+                width: '60px',
+                height: '60px',
+                borderRadius: '50%',
+                background: 'rgba(67, 160, 71, 0.16)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#66BB6A',
+                border: '1.5px solid rgba(67, 160, 71, 0.35)',
+              }}
+            >
+              <CheckCircle2 size={34} />
+            </div>
+
+            <h3 style={{ fontSize: '20px', fontWeight: 700, margin: 0, color: 'var(--v20-text-primary)' }}>
+              Work Order Dispatched
+            </h3>
+
+            <p style={{ fontSize: '13.5px', color: 'var(--v20-text-secondary)', margin: 0, lineHeight: 1.55 }}>
+              Complaint <strong style={{ color: '#E2DBD0' }}>#{assignedDetails?.refNum}</strong> has been assigned to <strong style={{ color: 'var(--v20-accent, #F4C43C)' }}>{assignedDetails?.officerName}</strong> with a {assignedDetails?.deadlineHours}h resolution deadline.
+            </p>
+
+            <button
+              type="button"
+              className="v20-landing-btn v20-landing-btn-primary"
+              style={{ width: '100%', justifyContent: 'center', marginTop: '10px' }}
+              onClick={() => {
+                setIsAssignSuccessOpen(false);
+                setSelectedOfficerId('');
+                setInstructions('');
+                setSelectedComplaintId(null);
+              }}
+            >
+              <span>Return to Complaints Queue</span>
+              <span className="v20-btn-arrow" aria-hidden="true">↗</span>
+            </button>
           </div>
         </div>
       )}
