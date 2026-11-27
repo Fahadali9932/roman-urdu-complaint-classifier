@@ -269,8 +269,10 @@ export const OfficerWorkView: React.FC<OfficerWorkViewProps> = ({
                 style={{
                   fontSize: '12px',
                   padding: '6px 14px',
-                  background: activeOrder?.id === o.id ? 'var(--v19-lime)' : 'var(--v19-glass-surface)',
-                  color: activeOrder?.id === o.id ? '#0E121A' : 'var(--v19-text-secondary)',
+                  background: activeOrder?.id === o.id ? 'var(--v20-accent, #DFA51D)' : 'var(--v20-glass-surface, rgba(255,255,255,0.06))',
+                  color: activeOrder?.id === o.id ? '#0B0B0B' : 'var(--v20-ink-muted, rgba(248,242,232,0.7))',
+                  borderRadius: '20px',
+                  fontWeight: 600,
                 }}
                 onClick={() => setSelectedOrderId(o.id)}
               >
@@ -303,12 +305,12 @@ export const OfficerWorkView: React.FC<OfficerWorkViewProps> = ({
               justifyContent: 'space-between',
               flexWrap: 'wrap',
               gap: '20px',
-              borderLeft: `4px solid ${deadlineInfo?.urgencyColor || 'var(--v19-lime)'}`,
+              borderLeft: `4px solid ${deadlineInfo?.urgencyColor || 'var(--v20-accent, #DFA51D)'}`,
             }}
           >
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--v19-lime)', fontFamily: 'var(--v19-font-mono)' }}>
+                <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--v20-accent, #DFA51D)', fontFamily: 'var(--v20-font-number, monospace)' }}>
                   ACTIVE WORK ORDER #{activeOrder.id.slice(0, 8)}
                 </span>
                 <span style={{ fontSize: '11px', color: 'var(--v19-text-muted)' }}>
@@ -554,7 +556,7 @@ export const OfficerWorkView: React.FC<OfficerWorkViewProps> = ({
                   {photoPreviewUrl ? (
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
                       <img src={photoPreviewUrl} alt="Captured evidence" style={{ maxHeight: '160px', borderRadius: '8px', objectFit: 'cover' }} />
-                      <span style={{ fontSize: '12px', color: 'var(--v19-lime)', fontWeight: 600 }}>Tap to retake photo 📷</span>
+                      <span style={{ fontSize: '12px', color: 'var(--v20-accent, #DFA51D)', fontWeight: 600 }}>Tap to retake photo 📷</span>
                       {screeningReport && (
                         <div
                           style={{
@@ -590,7 +592,7 @@ export const OfficerWorkView: React.FC<OfficerWorkViewProps> = ({
                     </div>
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', color: 'var(--v19-text-muted)' }}>
-                      <Camera size={32} style={{ color: 'var(--v19-lime)' }} />
+                      <Camera size={32} style={{ color: 'var(--v20-accent, #DFA51D)' }} />
                       <span style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--v19-text-primary)' }}>Capture on-site photo</span>
                       <span style={{ fontSize: '11.5px' }}>Uses device camera with hardware EXIF capture</span>
                     </div>

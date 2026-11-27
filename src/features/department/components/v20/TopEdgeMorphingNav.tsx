@@ -222,27 +222,27 @@ export const TopEdgeMorphingNav: React.FC<TopEdgeMorphingNavProps> = ({
         </span>
       </div>
 
-      {/* 3. Top-Right Utility Strip (Trusted PKT Clock, Theme, Sign Out) */}
+      {/* 3. Top-Right Utility Strip (Clean Clock without seconds, Theme, Sign Out) */}
       <div className="utility v20-header-right-strip">
         <div
           className="clock v20-clock-block"
-          title={synced ? 'Origin server time (Asia/Karachi PKT)' : 'Time not yet synchronized'}
+          title={synced ? 'Authoritative Asia/Karachi time' : 'Time not yet synchronized'}
         >
           <span id="date" className="v20-header-date" data-testid="v20-header-date">
-            {clock.dateStr}
+            {clock.cleanDateStr || clock.dateStr}
           </span>
           <span
             id="time"
             className="v20-header-clock"
             data-testid="v20-trusted-clock"
           >
-            <span data-testid="v19-trusted-clock" aria-label={`${clock.timeStr} PKT`}>
-              {clock.timeStr.split('').map((char, idx) => (
+            <span data-testid="v19-trusted-clock" aria-label={`${clock.cleanTimeStr || clock.timeStr} PKT`}>
+              {(clock.cleanTimeStr || clock.timeStr.slice(0, 5)).split('').map((char, idx) => (
                 <span className="digit v20-clock-slot" key={idx}>
                   <b key={char}>{char}</b>
                 </span>
               ))}
-              <small>PKT</small>
+              <span className="sr-only">PKT</span>
             </span>
           </span>
           {!synced && (

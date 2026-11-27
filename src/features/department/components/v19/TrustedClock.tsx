@@ -30,11 +30,11 @@ export const TrustedClock: React.FC<TrustedClockProps> = ({ className = '' }) =>
       title={isSynced ? 'Trusted server-anchored Pakistan Standard Time (PKT)' : 'Local monotonic reference (Asia/Karachi PKT)'}
       aria-label={`Current time: ${timeStr} PKT, ${dateStr}`}
     >
-      <span className="v19-clock-dot" aria-hidden="true" style={{ background: isSynced ? 'var(--v19-green)' : 'var(--v19-amber)' }} />
+      <span className="v19-clock-dot" aria-hidden="true" style={{ background: isSynced ? 'var(--v20-status-solved, #43A047)' : 'var(--v20-accent, #DFA51D)' }} />
       <span>{dateStr}</span>
       <span style={{ opacity: 0.4 }}>·</span>
-      <span style={{ fontWeight: 600, color: 'var(--v19-text-primary)' }}>{timeStr}</span>
-      <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--v19-lime)', letterSpacing: '0.04em' }}>PKT</span>
+      <span style={{ fontWeight: 600, color: 'var(--v20-text-primary, #F7EDDC)' }}>{timeStr.slice(0, 5)}</span>
+      <span style={{ fontSize: '10px', fontWeight: 600, color: 'var(--v20-text-muted, rgba(247,237,220,0.44))', letterSpacing: '0.04em' }}>PKT</span>
     </div>
   );
 };

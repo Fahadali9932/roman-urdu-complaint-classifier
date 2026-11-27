@@ -61,9 +61,15 @@ export const V20PortalLayout: React.FC<V20PortalLayoutProps> = ({
         onOpenNotifications={onOpenNotifications}
       />
 
-      {/* 3. Active Destination Content */}
+      {/* 3. Active Destination Content with Unified Layout Containment */}
       <div className="v20-portal-content" data-active-tab={activeTab}>
-        {children}
+        {activeTab === 'home' || activeTab === 'dashboard' ? (
+          children
+        ) : (
+          <div className="v20-page-container v20-operational-container">
+            {children}
+          </div>
+        )}
       </div>
     </div>
   );

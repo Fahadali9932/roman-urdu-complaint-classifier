@@ -99,6 +99,8 @@ class TrustedTimeService {
     dateStr: string;
     fullStr: string;
     isoPkt: string;
+    cleanTimeStr: string;
+    cleanDateStr: string;
   } {
     const d = targetTime instanceof Date
       ? targetTime
@@ -121,11 +123,27 @@ class TrustedTimeService {
       year: 'numeric',
     }).format(d);
 
+    const cleanTimeFmt = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'Asia/Karachi',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    }).format(d);
+
+    const cleanDateFmt = new Intl.DateTimeFormat('en-GB', {
+      timeZone: 'Asia/Karachi',
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+    }).format(d);
+
     return {
       timeStr: timeFmt,
       dateStr: dateFmt,
       fullStr: `${dateFmt} · ${timeFmt} PKT`,
       isoPkt: d.toISOString(),
+      cleanTimeStr: cleanTimeFmt,
+      cleanDateStr: cleanDateFmt,
     };
   }
 

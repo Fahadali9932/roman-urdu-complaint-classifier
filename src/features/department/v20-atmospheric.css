@@ -441,10 +441,10 @@
 
 .v20-landing-greeting-title {
   font-family: var(--v20-font-display, "Inter Display", "Inter", sans-serif);
-  font-size: clamp(48px, 7.6vw, 114px);
+  font-size: clamp(64px, 9.2vw, 150px);
   font-weight: 650;
   letter-spacing: -0.04em;
-  line-height: 1.06;
+  line-height: 1.02;
   margin: 0;
   color: var(--v20-text-primary, #F8F2E8);
   text-wrap: balance;
@@ -453,11 +453,26 @@
 
 .v20-landing-staff-name {
   font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(24px, 2.8vw, 40px);
+  font-size: clamp(26px, 3.2vw, 44px);
   font-weight: 400;
   color: var(--v20-text-secondary, #C5BBA9);
-  margin: 20px 0 0;
+  margin: 24px 0 0;
   letter-spacing: -0.025em;
+}
+
+/* ==========================================================================
+   GLOBAL OPERATIONAL CONTAINMENT
+   ========================================================================== */
+.v20-page-container,
+.v20-operational-container {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 135px clamp(24px, 5vw, 80px) 64px;
+  box-sizing: border-box;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 /* ==========================================================================
@@ -468,7 +483,10 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 72px clamp(24px, 6vw, 96px) 40px;
+  padding: 135px clamp(24px, 5vw, 80px) 48px;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
   min-height: 100vh;
   box-sizing: border-box;
 }
@@ -701,4 +719,325 @@
   .v20-stat-number {
     font-size: 72px;
   }
+}
+
+/* ==========================================================================
+   V20 UNIFIED STAFF DESIGN SYSTEM (HOD & OFFICER SHARED SURFACES)
+   Authoritative Reference: Minimal Sales Analytics & Reference 1 Stacking Cards
+   ========================================================================== */
+
+/* Universal Glass Cards */
+.v19-glass-card,
+.v20-glass-card {
+  background: var(--v20-glass-surface);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1.5px solid var(--v20-glass-border);
+  border-radius: 28px;
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.25);
+  color: var(--v20-text-primary);
+  box-sizing: border-box;
+  position: relative;
+  transition: border-color 200ms ease, box-shadow 200ms ease;
+}
+
+.v19-glass-card:hover,
+.v20-glass-card:hover {
+  border-color: var(--v20-glass-border-highlight);
+}
+
+/* Large Horizontal Complaint Card */
+.v20-horizontal-complaint-card,
+.v19-parallax-card {
+  min-height: 180px;
+  padding: 24px 28px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  cursor: pointer;
+  margin-bottom: 20px;
+  border-radius: 28px;
+  border: 1.5px solid var(--v20-glass-border);
+  background: var(--v20-glass-surface);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.24);
+  transform-origin: top center;
+  transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.v20-horizontal-complaint-card:hover,
+.v19-parallax-card:hover {
+  border-color: var(--v20-accent-border, rgba(223, 165, 29, 0.35));
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.36);
+}
+
+.v20-horizontal-complaint-card.is-selected,
+.v19-parallax-card.is-selected {
+  border-color: var(--v20-accent, #DFA51D);
+  box-shadow: 0 0 0 2px var(--v20-accent-soft, rgba(223, 165, 29, 0.2)), 0 14px 44px rgba(0, 0, 0, 0.42);
+}
+
+/* Card Structure */
+.v20-card-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.v20-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.v20-ref-num {
+  font-family: var(--v20-font-number, monospace);
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--v20-accent, #DFA51D);
+  letter-spacing: 0.04em;
+}
+
+.v20-card-date {
+  font-size: 12px;
+  color: var(--v20-text-muted);
+}
+
+/* Priority Badges */
+.v20-priority-badge,
+.v19-priority-square {
+  padding: 4px 14px;
+  border-radius: 9999px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.v20-priority-badge.critical,
+.v20-priority-badge.urgent,
+.v19-priority-square.critical,
+.v19-priority-square.urgent {
+  background: rgba(229, 57, 53, 0.16);
+  color: #EF5350;
+  border: 1px solid rgba(229, 57, 53, 0.36);
+}
+
+.v20-priority-badge.high,
+.v19-priority-square.high {
+  background: rgba(245, 158, 11, 0.16);
+  color: #F59E0B;
+  border: 1px solid rgba(245, 158, 11, 0.36);
+}
+
+.v20-priority-badge.normal,
+.v20-priority-badge.medium,
+.v19-priority-square.normal,
+.v19-priority-square.medium {
+  background: rgba(2, 136, 209, 0.16);
+  color: #29B6F6;
+  border: 1px solid rgba(2, 136, 209, 0.32);
+}
+
+.v20-priority-badge.routine,
+.v19-priority-square.routine {
+  background: rgba(67, 160, 71, 0.16);
+  color: #66BB6A;
+  border: 1px solid rgba(67, 160, 71, 0.32);
+}
+
+/* Card Heading & Location */
+.v20-card-title {
+  font-family: var(--v20-font-display, inherit);
+  font-size: clamp(19px, 1.8vw, 23px);
+  font-weight: 650;
+  color: var(--v20-text-primary);
+  margin: 12px 0 8px;
+  line-height: 1.25;
+  letter-spacing: -0.015em;
+}
+
+.v20-card-bottom-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 8px;
+}
+
+.v20-card-location {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--v20-text-muted);
+}
+
+.v20-pin-icon {
+  color: var(--v20-accent, #DFA51D);
+  flex-shrink: 0;
+}
+
+.v20-card-actions-hint {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.v20-status-capsule {
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--v20-text-secondary);
+  border: 1px solid var(--v20-glass-border);
+}
+
+.v20-arrow-circle {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--v20-glass-surface);
+  border: 1px solid var(--v20-glass-border);
+  display: grid;
+  place-items: center;
+  color: var(--v20-text-primary);
+  transition: all 180ms ease;
+}
+
+.v20-horizontal-complaint-card:hover .v20-arrow-circle {
+  background: var(--v20-accent, #DFA51D);
+  color: #0E1017;
+  border-color: var(--v20-accent);
+}
+
+/* Action Buttons & Tabs */
+.v19-nav-tab,
+.v20-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 18px;
+  border-radius: 9999px;
+  font-family: var(--v20-font-body);
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px solid var(--v20-glass-border);
+  background: var(--v20-glass-surface);
+  color: var(--v20-text-secondary);
+  cursor: pointer;
+  transition: all 160ms ease;
+}
+
+.v19-nav-tab:hover,
+.v20-pill-btn:hover {
+  color: var(--v20-text-primary);
+  border-color: var(--v20-glass-border-highlight);
+  background: var(--v20-glass-surface-hover);
+}
+
+.v19-action-icon-btn,
+.v20-round-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--v20-glass-border);
+  background: var(--v20-glass-surface);
+  color: var(--v20-text-secondary);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: all 160ms ease;
+}
+
+.v19-action-icon-btn:hover,
+.v20-round-btn:hover {
+  color: var(--v20-text-primary);
+  border-color: var(--v20-glass-border-highlight);
+  background: var(--v20-glass-surface-hover);
+}
+
+/* Modals & Backdrop Blur */
+.v19-lightbox-backdrop,
+.v20-modal-scrim {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  z-index: 2500;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+/* ==========================================================================
+   OTP 6-SLOT AUTHENTICATION INPUT (NameThatUI Reference)
+   ========================================================================== */
+.v19-otp-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  position: relative;
+  cursor: text;
+  margin: 16px 0;
+}
+
+.v19-otp-hidden-input {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: text;
+  z-index: 2;
+  border: none;
+  background: transparent;
+}
+
+.v19-otp-slot {
+  width: 48px;
+  height: 56px;
+  border-radius: 14px;
+  border: 1.5px solid var(--v20-glass-border);
+  background: var(--v20-glass-surface);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--v20-font-number, "Inter Display", sans-serif);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--v20-text-primary);
+  transition: all 180ms cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
+}
+
+/* 3+3 Visual Split */
+.v19-otp-slot:nth-child(4) {
+  margin-left: 8px;
+}
+
+.v19-otp-slot.is-active {
+  border-color: var(--v20-accent, #DFA51D);
+  box-shadow: 0 0 16px rgba(223, 165, 29, 0.3);
+  transform: translateY(-2px);
+}
+
+.v19-otp-slot.has-value {
+  border-color: var(--v20-glass-border-highlight);
+  background: var(--v20-glass-surface-hover);
+}
+
+.v19-otp-container.has-error .v19-otp-slot {
+  border-color: var(--v20-status-pending, #E65100);
+  box-shadow: 0 0 12px rgba(230, 81, 0, 0.25);
 }

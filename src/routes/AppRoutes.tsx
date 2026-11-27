@@ -68,6 +68,7 @@ export const AppRoutes: React.FC = () => {
       {/* Department Portal Workspace */}
       <Route element={<DepartmentPortalLayout />}>
         <Route path="/department" element={<DepartmentDashboardPage />} />
+        <Route path="/department/dashboard" element={<Navigate to="/department" replace />} />
         <Route path="/department/login" element={<DepartmentLoginPage />} />
         <Route path="/department/head/login" element={<DepartmentLoginPage targetRole="head" />} />
         <Route path="/department/officer/login" element={<DepartmentLoginPage targetRole="officer" />} />

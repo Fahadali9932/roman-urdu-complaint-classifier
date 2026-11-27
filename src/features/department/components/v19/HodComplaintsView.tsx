@@ -249,149 +249,269 @@ export const HodComplaintsView: React.FC<HodComplaintsViewProps> = ({
         </div>
       </div>
 
-      {/* Main Two-Column View: Left List (Parallax) / Right Detail Panel */}
-      <div style={{ display: 'grid', gridTemplateColumns: activeComplaint ? '1fr 1.25fr' : '1fr', gap: '24px', alignItems: 'start' }}>
-        {/* Left: Scroll-Linked Parallax Complaint List */}
-        <div>
-          <ParallaxComplaintList
-            items={parallaxItems}
-            selectedId={selectedComplaintId}
-            onSelectItem={(item) => setSelectedComplaintId(item.id)}
-            emptyMessage={isLoading ? 'Loading actionable complaints…' : 'No unassigned complaints in this view.'}
-          />
-        </div>
-
-        {/* Right: Individual Dedicated Complaint Reading View */}
-        {activeComplaint && (
-          <div className="v19-glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '20px', position: 'sticky', top: '90px' }}>
-            {/* Top Close / Reference Row */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--v19-glass-border)', paddingBottom: '12px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--v19-lime)', fontFamily: 'var(--v19-font-mono)' }}>
-                  #{activeComplaint.referenceNumber}
-                </span>
-                <span className={`v19-priority-square ${activeComplaint.priority.toLowerCase()}`} style={{ width: '22px', height: '22px', fontSize: '10px' }}>
-                  {activeComplaint.priority[0]}
-                </span>
-              </div>
-
+      {/* Main Content: Dedicated Full-Width Reading View or Parallax Complaint List */}
+      {activeComplaint ? (
+        <div
+          className="v19-glass-card v20-reading-container"
+          style={{
+            width: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '24px',
+            padding: '36px 40px',
+            boxSizing: 'border-box',
+          }}
+        >
+          {/* Top Nav: Back Button, Reference, Priority Badge */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              borderBottom: '1px solid var(--v20-glass-border)',
+              paddingBottom: '16px',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
               <button
                 type="button"
-                className="v19-action-icon-btn"
-                style={{ width: '28px', height: '28px' }}
+                className="v19-nav-tab"
                 onClick={() => setSelectedComplaintId(null)}
-                aria-label="Close detail view"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  fontSize: '13px',
+                }}
               >
-                <X size={14} />
+                <span>← Back to Complaints</span>
               </button>
-            </div>
-
-            {/* 1. Prominently Centered Complaint Title */}
-            <div style={{ textAlign: 'center', padding: '4px 12px' }}>
-              <h3 style={{ fontSize: '20px', fontWeight: 600, color: 'var(--v19-text-primary)', margin: 0, letterSpacing: '-0.015em' }}>
-                {activeComplaint.heading}
-              </h3>
-            </div>
-
-            {/* 2. Dedicated Location Information Area */}
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', background: 'rgba(0,0,0,0.25)', padding: '12px 16px', borderRadius: '12px', border: '1px solid var(--v19-glass-border)' }}>
-              <MapPin size={18} style={{ color: 'var(--v19-cyan)', marginTop: '2px', flexShrink: 0 }} />
-              <div style={{ fontSize: '13px' }}>
-                <div style={{ fontWeight: 600, color: 'var(--v19-text-primary)' }}>
-                  {activeComplaint.publicPlace || 'Location unspecified'}
-                  {activeComplaint.locality ? `, ${activeComplaint.locality}` : ''}
-                </div>
-                {activeComplaint.latitude && activeComplaint.longitude ? (
-                  <div style={{ fontSize: '11.5px', color: 'var(--v19-text-muted)', marginTop: '2px', fontFamily: 'var(--v19-font-mono)' }}>
-                    GPS: {activeComplaint.latitude.toFixed(5)}, {activeComplaint.longitude.toFixed(5)} ·{' '}
-                    <a
-                      href={`https://www.google.com/maps/dir/?api=1&destination=${activeComplaint.latitude},${activeComplaint.longitude}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{ color: 'var(--v19-blue)', textDecoration: 'none' }}
-                    >
-                      Open Directions ↗
-                    </a>
-                  </div>
-                ) : (
-                  <div style={{ fontSize: '11.5px', color: 'var(--v19-text-dim)', marginTop: '2px' }}>
-                    No precise GPS coordinates captured
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* 3. Sanitized Complaint Description */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--v19-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                Citizen Description
+              <span className="v20-ref-num" style={{ fontSize: '14px' }}>
+                #{activeComplaint.referenceNumber}
               </span>
-              <p style={{ fontSize: '13.5px', lineHeight: '1.5', color: 'var(--v19-text-secondary)', background: 'var(--v19-glass-subtle)', padding: '12px', borderRadius: '10px', margin: 0 }}>
-                {activeComplaint.rawText || activeComplaint.sanitizedText || 'No detailed narrative provided.'}
-              </p>
+              <span className={`v20-priority-badge ${activeComplaint.priority.toLowerCase()}`}>
+                {activeComplaint.priority}
+              </span>
             </div>
 
-            {/* 4. Citizen-Uploaded Photograph(s) */}
-            {activeComplaint.photoUrl && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--v19-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                  Citizen Photographic Evidence (Click to inspect)
-                </span>
-                <div
-                  style={{ position: 'relative', borderRadius: '12px', overflow: 'hidden', cursor: 'zoom-in', maxHeight: '160px', border: '1px solid var(--v19-glass-border)' }}
-                  onClick={() => setLightboxImg(activeComplaint.photoUrl || null)}
-                >
-                  <img
-                    src={activeComplaint.photoUrl}
-                    alt="Citizen evidence thumbnail"
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                  />
-                  <span style={{ position: 'absolute', bottom: '8px', right: '8px', fontSize: '10px', fontWeight: 600, padding: '2px 8px', borderRadius: '9999px', background: 'rgba(0,0,0,0.6)', color: '#FFFFFF' }}>
-                    Inspect Lightbox ↗
-                  </span>
-                </div>
+            <button
+              type="button"
+              className="v19-action-icon-btn"
+              onClick={() => setSelectedComplaintId(null)}
+              aria-label="Close detail view"
+            >
+              <X size={15} />
+            </button>
+          </div>
+
+          {/* 1. Prominently Centered Complaint Title */}
+          <div style={{ textAlign: 'center', padding: '8px 16px' }}>
+            <h3
+              style={{
+                fontSize: 'clamp(24px, 2.6vw, 32px)',
+                fontWeight: 700,
+                color: 'var(--v20-text-primary)',
+                margin: 0,
+                letterSpacing: '-0.02em',
+              }}
+            >
+              {activeComplaint.heading}
+            </h3>
+          </div>
+
+          {/* 2. Dedicated Location Information Area */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: '12px',
+              background: 'rgba(0,0,0,0.25)',
+              padding: '16px 20px',
+              borderRadius: '16px',
+              border: '1px solid var(--v20-glass-border)',
+            }}
+          >
+            <MapPin size={20} style={{ color: 'var(--v20-accent, #DFA51D)', marginTop: '2px', flexShrink: 0 }} />
+            <div style={{ fontSize: '13.5px' }}>
+              <div style={{ fontWeight: 600, color: 'var(--v20-text-primary)' }}>
+                {activeComplaint.publicPlace || 'Location unspecified'}
+                {activeComplaint.locality ? `, ${activeComplaint.locality}` : ''}
               </div>
-            )}
-
-            {/* 5. Reject & Accept Controls at Bottom Right */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '12px', paddingTop: '12px', borderTop: '1px solid var(--v19-glass-border)' }}>
-              <button
-                type="button"
-                className="v19-nav-tab"
-                style={{ color: 'var(--v19-red)', background: 'var(--v19-red-soft)', padding: '8px 16px' }}
-                onClick={() => setIsRejectOpen(true)}
-              >
-                Reject Complaint
-              </button>
-
-              <button
-                type="button"
-                className="v19-nav-tab"
-                style={{ background: 'var(--v19-lime)', color: '#0E121A', fontWeight: 600, padding: '8px 20px', boxShadow: '0 2px 10px var(--v19-lime-soft)' }}
-                onClick={handleOpenAssign}
-              >
-                Accept &amp; Assign ↗
-              </button>
+              {activeComplaint.latitude && activeComplaint.longitude ? (
+                <div
+                  style={{
+                    fontSize: '12px',
+                    color: 'var(--v20-text-muted)',
+                    marginTop: '4px',
+                    fontFamily: 'var(--v20-font-number, monospace)',
+                  }}
+                >
+                  GPS: {activeComplaint.latitude.toFixed(5)}, {activeComplaint.longitude.toFixed(5)} ·{' '}
+                  <a
+                    href={`https://www.google.com/maps/dir/?api=1&destination=${activeComplaint.latitude},${activeComplaint.longitude}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ color: 'var(--v20-accent, #DFA51D)', textDecoration: 'none' }}
+                  >
+                    Open Directions ↗
+                  </a>
+                </div>
+              ) : (
+                <div style={{ fontSize: '12px', color: 'var(--v20-text-muted)', marginTop: '4px' }}>
+                  No precise GPS coordinates captured
+                </div>
+              )}
             </div>
           </div>
-        )}
-      </div>
+
+          {/* 3. Sanitized Citizen Description Narrative */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <span
+              style={{
+                fontSize: '11.5px',
+                fontWeight: 700,
+                color: 'var(--v20-text-muted)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.06em',
+              }}
+            >
+              Citizen Description
+            </span>
+            <p
+              style={{
+                fontSize: '14.5px',
+                lineHeight: '1.65',
+                color: 'var(--v20-text-secondary)',
+                background: 'rgba(255,255,255,0.03)',
+                padding: '18px 20px',
+                borderRadius: '14px',
+                margin: 0,
+                border: '1px solid var(--v20-glass-border)',
+              }}
+            >
+              {activeComplaint.rawText || activeComplaint.sanitizedText || 'No detailed narrative provided.'}
+            </p>
+          </div>
+
+          {/* 4. Citizen Photographic Evidence */}
+          {activeComplaint.photoUrl && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <span
+                style={{
+                  fontSize: '11.5px',
+                  fontWeight: 700,
+                  color: 'var(--v20-text-muted)',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.06em',
+                }}
+              >
+                Citizen Photographic Evidence (Click to inspect)
+              </span>
+              <div
+                style={{
+                  position: 'relative',
+                  borderRadius: '16px',
+                  overflow: 'hidden',
+                  cursor: 'zoom-in',
+                  maxHeight: '280px',
+                  border: '1.5px solid var(--v20-glass-border)',
+                  width: 'fit-content',
+                }}
+                onClick={() => setLightboxImg(activeComplaint.photoUrl || null)}
+              >
+                <img
+                  src={activeComplaint.photoUrl}
+                  alt="Citizen evidence thumbnail"
+                  style={{ maxHeight: '280px', maxWidth: '100%', objectFit: 'cover', display: 'block' }}
+                />
+                <span
+                  style={{
+                    position: 'absolute',
+                    bottom: '10px',
+                    right: '10px',
+                    fontSize: '11px',
+                    fontWeight: 600,
+                    padding: '4px 10px',
+                    borderRadius: '9999px',
+                    background: 'rgba(0,0,0,0.65)',
+                    color: '#FFFFFF',
+                    backdropFilter: 'blur(8px)',
+                  }}
+                >
+                  Inspect Fullscreen ↗
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* 5. Reject & Accept Controls */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'flex-end',
+              gap: '14px',
+              paddingTop: '16px',
+              borderTop: '1px solid var(--v20-glass-border)',
+            }}
+          >
+            <button
+              type="button"
+              className="v19-nav-tab"
+              style={{
+                color: '#EF5350',
+                background: 'rgba(229,57,53,0.12)',
+                border: '1px solid rgba(229,57,53,0.3)',
+                padding: '10px 22px',
+                fontWeight: 600,
+              }}
+              onClick={() => setIsRejectOpen(true)}
+            >
+              Reject Complaint
+            </button>
+
+            <button
+              type="button"
+              className="v19-nav-tab"
+              style={{
+                background: 'var(--v20-accent, #DFA51D)',
+                color: '#0E1017',
+                fontWeight: 700,
+                padding: '10px 26px',
+                border: 'none',
+                boxShadow: '0 4px 16px rgba(0,0,0,0.35)',
+              }}
+              onClick={handleOpenAssign}
+            >
+              Accept &amp; Assign ↗
+            </button>
+          </div>
+        </div>
+      ) : (
+        /* Full-Width Scroll-Linked Parallax Complaint List */
+        <ParallaxComplaintList
+          items={parallaxItems}
+          selectedId={selectedComplaintId}
+          onSelectItem={(item) => setSelectedComplaintId(item.id)}
+          emptyMessage={isLoading ? 'Loading actionable complaints…' : 'No unassigned complaints in this view.'}
+        />
+      )}
 
       {/* Rejection Modal */}
       {isRejectOpen && (
         <div className="v19-lightbox-backdrop" role="dialog" aria-modal="true" aria-label="Reject complaint">
           <div className="v19-glass-card" style={{ width: '100%', maxWidth: '460px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--v19-red)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#EF5350' }}>
                 <AlertTriangle size={18} />
                 <span style={{ fontSize: '16px', fontWeight: 600 }}>Reject Department Responsibility</span>
               </div>
-              <button type="button" className="v19-action-icon-btn" style={{ width: '28px', height: '28px' }} onClick={() => setIsRejectOpen(false)}>
+              <button type="button" className="v19-action-icon-btn" onClick={() => setIsRejectOpen(false)}>
                 <X size={14} />
               </button>
             </div>
 
-            <p style={{ fontSize: '13px', color: 'var(--v19-text-secondary)', margin: 0 }}>
+            <p style={{ fontSize: '13px', color: 'var(--v20-text-secondary)', margin: 0 }}>
               Specify the operational reason for rejecting this complaint from {departmentCode}. The citizen will receive an official update.
             </p>
 
@@ -403,10 +523,10 @@ export const HodComplaintsView: React.FC<HodComplaintsViewProps> = ({
               style={{
                 width: '100%',
                 padding: '10px 12px',
-                borderRadius: '10px',
+                borderRadius: '12px',
                 background: 'rgba(0,0,0,0.3)',
-                border: '1px solid var(--v19-glass-border)',
-                color: 'var(--v19-text-primary)',
+                border: '1.5px solid var(--v20-glass-border)',
+                color: 'var(--v20-text-primary)',
                 fontSize: '13px',
                 resize: 'none',
                 boxSizing: 'border-box',
@@ -421,7 +541,7 @@ export const HodComplaintsView: React.FC<HodComplaintsViewProps> = ({
                 type="button"
                 className="v19-nav-tab"
                 disabled={!rejectReason.trim() || isSubmittingReject}
-                style={{ background: 'var(--v19-red)', color: '#FFFFFF', fontWeight: 600 }}
+                style={{ background: '#EF5350', color: '#FFFFFF', fontWeight: 600, border: 'none' }}
                 onClick={handleConfirmReject}
               >
                 {isSubmittingReject ? 'Rejecting…' : 'Confirm Rejection'}
@@ -434,29 +554,29 @@ export const HodComplaintsView: React.FC<HodComplaintsViewProps> = ({
       {/* Assignment Drawer / Modal */}
       {isAssignOpen && (
         <div className="v19-lightbox-backdrop" role="dialog" aria-modal="true" aria-label="Assign complaint to officer">
-          <div className="v19-glass-card" style={{ width: '100%', maxWidth: '580px', display: 'flex', flexDirection: 'column', gap: '18px', maxHeight: '90vh', overflowY: 'auto' }}>
+          <div className="v19-glass-card" style={{ width: '100%', maxWidth: '620px', display: 'flex', flexDirection: 'column', gap: '18px', maxHeight: '90vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div>
-                <span style={{ fontSize: '18px', fontWeight: 600, color: 'var(--v19-text-primary)' }}>
+                <span style={{ fontSize: '18px', fontWeight: 600, color: 'var(--v20-text-primary)' }}>
                   Assign Field Officer
                 </span>
-                <div style={{ fontSize: '12px', color: 'var(--v19-text-muted)', marginTop: '2px' }}>
+                <div style={{ fontSize: '12px', color: 'var(--v20-text-muted)', marginTop: '2px' }}>
                   Select an active officer and specify the authorized completion duration.
                 </div>
               </div>
-              <button type="button" className="v19-action-icon-btn" style={{ width: '28px', height: '28px' }} onClick={() => setIsAssignOpen(false)}>
+              <button type="button" className="v19-action-icon-btn" onClick={() => setIsAssignOpen(false)}>
                 <X size={14} />
               </button>
             </div>
 
             {/* V16 Duplicate Incident Advisory (30m matching) */}
             {candidateMatches.length > 0 && (
-              <div style={{ background: 'rgba(245, 158, 11, 0.1)', border: '1px solid var(--v19-amber-soft)', borderRadius: '12px', padding: '12px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 700, color: 'var(--v19-amber)' }}>
-                  <AlertTriangle size={14} />
+              <div style={{ background: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.35)', borderRadius: '14px', padding: '14px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12.5px', fontWeight: 700, color: '#F59E0B' }}>
+                  <AlertTriangle size={15} />
                   <span>30m Incident Advisory: Existing Work Order Found Nearby</span>
                 </div>
-                <p style={{ fontSize: '12px', color: 'var(--v19-text-secondary)', margin: '4px 0 8px' }}>
+                <p style={{ fontSize: '12px', color: 'var(--v20-text-secondary)', margin: '4px 0 8px' }}>
                   An active work order exists within 30 metres. You may attach this complaint to consolidate work without duplicate dispatch.
                 </p>
                 {candidateMatches.map((cand) => (
@@ -467,7 +587,7 @@ export const HodComplaintsView: React.FC<HodComplaintsViewProps> = ({
                       alignItems: 'center',
                       gap: '8px',
                       fontSize: '12px',
-                      color: 'var(--v19-text-primary)',
+                      color: 'var(--v20-text-primary)',
                       cursor: 'pointer',
                       padding: '4px 0',
                     }}
@@ -489,10 +609,10 @@ export const HodComplaintsView: React.FC<HodComplaintsViewProps> = ({
 
             {/* Officer Selection Cards */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--v19-text-muted)', textTransform: 'uppercase' }}>
+              <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--v20-text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                 Eligible Department Officers
               </span>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '8px', maxHeight: '200px', overflowY: 'auto' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '10px', maxHeight: '220px', overflowY: 'auto' }}>
                 {officers
                   .filter((o) => o.membership_status !== 'suspended')
                   .map((off) => {
@@ -502,26 +622,26 @@ export const HodComplaintsView: React.FC<HodComplaintsViewProps> = ({
                         key={off.user_id}
                         onClick={() => setSelectedOfficerId(off.user_id)}
                         style={{
-                          padding: '10px 12px',
-                          borderRadius: '10px',
-                          background: isSelected ? 'var(--v19-lime-soft)' : 'var(--v19-glass-surface)',
-                          border: isSelected ? '1.5px solid var(--v19-lime)' : '1px solid var(--v19-glass-border)',
+                          padding: '12px 14px',
+                          borderRadius: '14px',
+                          background: isSelected ? 'var(--v20-accent-soft, rgba(223, 165, 29, 0.16))' : 'var(--v20-glass-surface)',
+                          border: isSelected ? '1.5px solid var(--v20-accent, #DFA51D)' : '1px solid var(--v20-glass-border)',
                           cursor: 'pointer',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'space-between',
-                          transition: 'all 120ms ease',
+                          transition: 'all 140ms ease',
                         }}
                       >
                         <div>
-                          <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--v19-text-primary)' }}>
+                          <div style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--v20-text-primary)' }}>
                             {off.display_name}
                           </div>
-                          <div style={{ fontSize: '11px', color: 'var(--v19-text-muted)' }}>
+                          <div style={{ fontSize: '11.5px', color: 'var(--v20-text-muted)', marginTop: '2px' }}>
                             {off.active_cases} active · {off.verified_cases} resolved
                           </div>
                         </div>
-                        {isSelected && <CheckCircle2 size={16} style={{ color: 'var(--v19-lime)' }} />}
+                        {isSelected && <CheckCircle2 size={16} style={{ color: 'var(--v20-accent, #DFA51D)' }} />}
                       </div>
                     );
                   })}
@@ -531,10 +651,10 @@ export const HodComplaintsView: React.FC<HodComplaintsViewProps> = ({
             {/* Completion Duration Controls */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--v19-text-muted)', textTransform: 'uppercase' }}>
+                <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--v20-text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                   Permitted Duration
                 </span>
-                <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--v19-lime)' }}>
+                <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--v20-accent, #DFA51D)' }}>
                   {durationHours} Hours ({Math.round(durationHours / 24)} Days)
                 </span>
               </div>
@@ -544,21 +664,30 @@ export const HodComplaintsView: React.FC<HodComplaintsViewProps> = ({
                     key={h}
                     type="button"
                     className={`v19-nav-tab ${durationHours === h ? 'is-active' : ''}`}
-                    style={{ flex: 1, padding: '6px 0', fontSize: '12px', textAlign: 'center', background: durationHours === h ? 'var(--v19-lime)' : 'rgba(0,0,0,0.2)' }}
+                    style={{
+                      flex: 1,
+                      padding: '8px 0',
+                      fontSize: '12.5px',
+                      textAlign: 'center',
+                      background: durationHours === h ? 'var(--v20-accent, #DFA51D)' : 'rgba(0,0,0,0.2)',
+                      color: durationHours === h ? '#0E1017' : 'var(--v20-text-primary)',
+                      border: durationHours === h ? 'none' : '1px solid var(--v20-glass-border)',
+                      fontWeight: durationHours === h ? 700 : 500,
+                    }}
                     onClick={() => setDurationHours(h)}
                   >
                     {h}h
                   </button>
                 ))}
               </div>
-              <span style={{ fontSize: '11px', color: 'var(--v19-text-dim)' }}>
+              <span style={{ fontSize: '11px', color: 'var(--v20-text-muted)' }}>
                 Notice: Completion countdown begins strictly when the officer presses &quot;Start Working&quot;.
               </span>
             </div>
 
             {/* Instructions Input */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--v19-text-muted)', textTransform: 'uppercase' }}>
+              <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--v20-text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                 Operational Instructions
               </span>
               <textarea
@@ -568,12 +697,12 @@ export const HodComplaintsView: React.FC<HodComplaintsViewProps> = ({
                 onChange={(e) => setInstructions(e.target.value)}
                 style={{
                   width: '100%',
-                  padding: '8px 12px',
-                  borderRadius: '10px',
+                  padding: '10px 12px',
+                  borderRadius: '12px',
                   background: 'rgba(0,0,0,0.3)',
-                  border: '1px solid var(--v19-glass-border)',
-                  color: 'var(--v19-text-primary)',
-                  fontSize: '12.5px',
+                  border: '1.5px solid var(--v20-glass-border)',
+                  color: 'var(--v20-text-primary)',
+                  fontSize: '13px',
                   resize: 'none',
                   boxSizing: 'border-box',
                 }}
@@ -589,7 +718,13 @@ export const HodComplaintsView: React.FC<HodComplaintsViewProps> = ({
                 type="button"
                 className="v19-nav-tab"
                 disabled={!selectedOfficerId || isSubmittingAssign}
-                style={{ background: 'var(--v19-lime)', color: '#0E121A', fontWeight: 600 }}
+                style={{
+                  background: 'var(--v20-accent, #DFA51D)',
+                  color: '#0E1017',
+                  fontWeight: 700,
+                  border: 'none',
+                  padding: '10px 24px',
+                }}
                 onClick={handleConfirmAssign}
               >
                 {isSubmittingAssign ? 'Assigning…' : 'Confirm Assignment'}

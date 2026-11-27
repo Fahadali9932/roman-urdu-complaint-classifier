@@ -91,179 +91,260 @@ export const HodVerificationView: React.FC<HodVerificationViewProps> = ({
       </div>
 
       {pendingOrders.length === 0 ? (
-        <div className="v19-glass-card" style={{ padding: '64px', textAlign: 'center', color: 'var(--v19-text-muted)' }}>
-          <CheckCircle2 size={36} style={{ color: 'var(--v19-green)', margin: '0 auto 12px' }} />
-          <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--v19-text-primary)', margin: '0 0 6px' }}>
+        <div className="v19-glass-card" style={{ padding: '64px', textAlign: 'center', color: 'var(--v20-text-muted)' }}>
+          <CheckCircle2 size={36} style={{ color: 'var(--v20-status-solved, #43A047)', margin: '0 auto 12px' }} />
+          <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--v20-text-primary)', margin: '0 0 6px' }}>
             All Field Resolutions Verified
           </h3>
           <p style={{ fontSize: '13px', margin: 0 }}>
             There are no field orders currently awaiting supervisor proof review.
           </p>
         </div>
+      ) : activeOrder ? (
+        /* Dedicated Full-Width Verification Inspection View */
+        <div
+          className="v19-glass-card v20-verification-detail"
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '24px',
+            padding: '36px 40px',
+            boxSizing: 'border-box',
+          }}
+        >
+          {/* Header row with back button and close */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              borderBottom: '1px solid var(--v20-glass-border)',
+              paddingBottom: '16px',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+              <button
+                type="button"
+                className="v19-nav-tab"
+                onClick={() => setSelectedOrderId(null)}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '13px' }}
+              >
+                <span>← Back to Queue</span>
+              </button>
+              <span className="v20-ref-num" style={{ fontSize: '13.5px' }}>
+                ORDER #{activeOrder.id.slice(0, 8)}
+              </span>
+              <span style={{ fontSize: '12px', color: 'var(--v20-text-muted)' }}>
+                · Assigned to Officer: {activeOrder.officer_id}
+              </span>
+            </div>
+
+            <button
+              type="button"
+              className="v19-action-icon-btn"
+              onClick={() => setSelectedOrderId(null)}
+              aria-label="Close detail view"
+            >
+              <X size={15} />
+            </button>
+          </div>
+
+          {/* Centered Task Title */}
+          <div style={{ textAlign: 'center', padding: '6px 12px' }}>
+            <h3 style={{ fontSize: 'clamp(22px, 2.4vw, 28px)', fontWeight: 700, color: 'var(--v20-text-primary)', margin: 0, letterSpacing: '-0.02em' }}>
+              {activeOrder.case_label}
+            </h3>
+          </div>
+
+          {/* Dual-Evidence Photo Inspection (Citizen Before vs Officer After) */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
+            {/* Citizen Before Photo */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--v20-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                Citizen Initial Report (Before)
+              </span>
+              <div
+                style={{
+                  position: 'relative',
+                  borderRadius: '16px',
+                  overflow: 'hidden',
+                  height: '240px',
+                  background: 'rgba(0,0,0,0.3)',
+                  border: '1.5px solid var(--v20-glass-border)',
+                  cursor: 'zoom-in',
+                }}
+                onClick={() => {
+                  if (activeProof?.before_storage_path) {
+                    setLightboxImg(activeProof.before_storage_path);
+                    setLightboxCaption('Citizen initial report photographic evidence');
+                  }
+                }}
+              >
+                {activeProof?.before_storage_path ? (
+                  <img
+                    src={activeProof.before_storage_path}
+                    alt="Before work evidence"
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                  />
+                ) : (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', fontSize: '13px', color: 'var(--v20-text-muted)' }}>
+                    No before photo attached
+                  </div>
+                )}
+                <span style={{ position: 'absolute', bottom: '10px', right: '10px', fontSize: '11px', fontWeight: 600, padding: '4px 10px', borderRadius: '9999px', background: 'rgba(0,0,0,0.65)', color: '#FFFFFF' }}>
+                  Inspect Fullscreen ↗
+                </span>
+              </div>
+            </div>
+
+            {/* Officer Completed Photo */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--v20-accent, #DFA51D)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                Officer Completed Work (After)
+              </span>
+              <div
+                style={{
+                  position: 'relative',
+                  borderRadius: '16px',
+                  overflow: 'hidden',
+                  height: '240px',
+                  background: 'rgba(0,0,0,0.3)',
+                  border: '1.5px solid var(--v20-accent, #DFA51D)',
+                  cursor: 'zoom-in',
+                }}
+                onClick={() => {
+                  if (activeProof?.storage_path) {
+                    setLightboxImg(activeProof.storage_path);
+                    setLightboxCaption('Officer completed field evidence');
+                  }
+                }}
+              >
+                {activeProof?.storage_path ? (
+                  <img
+                    src={activeProof.storage_path}
+                    alt="Officer completed field evidence"
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                  />
+                ) : (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', fontSize: '13px', color: 'var(--v20-text-muted)' }}>
+                    Completed photo pending
+                  </div>
+                )}
+                <span style={{ position: 'absolute', bottom: '10px', right: '10px', fontSize: '11px', fontWeight: 600, padding: '4px 10px', borderRadius: '9999px', background: 'rgba(0,0,0,0.65)', color: '#FFFFFF' }}>
+                  Inspect Fullscreen ↗
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* 30m GPS Proximity & Evidence Integrity Audit */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '14px', background: 'rgba(0,0,0,0.22)', padding: '16px 20px', borderRadius: '16px', border: '1px solid var(--v20-glass-border)' }}>
+            <div>
+              <span style={{ fontSize: '11.5px', color: 'var(--v20-text-muted)' }}>GPS Haversine Verification</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px', fontSize: '13.5px', fontWeight: 600, color: 'var(--v20-status-solved, #43A047)' }}>
+                <ShieldCheck size={18} />
+                <span>30m Radius Confirmed ({activeProof?.original_distance_m !== null ? `${activeProof?.original_distance_m}m` : 'Validated'})</span>
+              </div>
+            </div>
+
+            <div>
+              <span style={{ fontSize: '11.5px', color: 'var(--v20-text-muted)' }}>Evidence Integrity</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px', fontSize: '13.5px', fontWeight: 600, color: 'var(--v20-accent, #DFA51D)' }}>
+                <ShieldCheck size={18} />
+                <span>SHA-256 Verified · Authentic Capture</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Action Controls */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '14px', borderTop: '1px solid var(--v20-glass-border)', paddingTop: '20px' }}>
+            <button
+              type="button"
+              className="v19-nav-tab"
+              style={{ color: '#F59E0B', background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.3)', padding: '10px 20px', fontWeight: 600 }}
+              onClick={() => setIsCorrectionOpen(true)}
+            >
+              <RotateCcw size={15} style={{ marginRight: '6px' }} />
+              <span>Return for Correction</span>
+            </button>
+
+            <button
+              type="button"
+              className="v19-nav-tab"
+              disabled={isSubmitting}
+              style={{
+                background: 'var(--v20-status-solved, #43A047)',
+                color: '#FFFFFF',
+                fontWeight: 700,
+                padding: '10px 24px',
+                border: 'none',
+                boxShadow: '0 4px 16px rgba(0,0,0,0.35)',
+              }}
+              onClick={handleApprove}
+            >
+              <CheckCircle2 size={16} style={{ marginRight: '6px' }} />
+              <span>{isSubmitting ? 'Approving…' : 'Approve Resolution'}</span>
+            </button>
+          </div>
+        </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: activeOrder ? '1fr 1.25fr' : '1fr', gap: '24px', alignItems: 'start' }}>
-          {/* Left: Queue List */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {pendingOrders.map((order) => {
-              const isSelected = selectedOrderId === order.id;
-              const proof = proofs[order.id];
+        /* Full-Width Queue List */
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {pendingOrders.map((order) => {
+            const isSelected = selectedOrderId === order.id;
+            const proof = proofs[order.id];
 
-              return (
-                <div
-                  key={order.id}
-                  className={`v19-glass-card v19-parallax-card ${isSelected ? 'is-selected' : ''}`}
-                  onClick={() => setSelectedOrderId(order.id)}
-                  style={{ cursor: 'pointer', padding: '18px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderColor: isSelected ? 'var(--v19-cyan)' : undefined }}
-                >
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--v19-cyan)', fontFamily: 'var(--v19-font-mono)' }}>
-                        ORDER #{order.id.slice(0, 8)}
-                      </span>
-                      <span style={{ fontSize: '11px', color: 'var(--v19-text-muted)' }}>
-                        · Officer: {order.officer_id}
-                      </span>
-                    </div>
-
-                    <div style={{ fontSize: '14.5px', fontWeight: 600, color: 'var(--v19-text-primary)' }}>
-                      {order.case_label}
-                    </div>
-
-                    <div style={{ fontSize: '12px', color: 'var(--v19-text-muted)' }}>
-                      Submitted: {order.started_at ? new Date(order.started_at).toLocaleDateString() : 'Recent'}
-                    </div>
+            return (
+              <div
+                key={order.id}
+                className={`v19-glass-card v19-parallax-card v20-horizontal-complaint-card ${isSelected ? 'is-selected' : ''}`}
+                onClick={() => setSelectedOrderId(order.id)}
+                style={{ cursor: 'pointer' }}
+              >
+                <div className="v20-card-top-row">
+                  <div className="v20-card-meta">
+                    <span className="v20-ref-num">
+                      ORDER #{order.id.slice(0, 8)}
+                    </span>
+                    <span className="v20-card-date">
+                      · Officer: {order.officer_id}
+                    </span>
                   </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div>
                     {proof?.location_result === 'near' ? (
-                      <span style={{ fontSize: '11px', fontWeight: 600, padding: '3px 8px', borderRadius: '9999px', background: 'var(--v19-green-soft)', color: 'var(--v19-green)' }}>
+                      <span className="v20-priority-badge routine">
                         GPS 30m Match ✓
                       </span>
                     ) : (
-                      <span style={{ fontSize: '11px', fontWeight: 600, padding: '3px 8px', borderRadius: '9999px', background: 'var(--v19-amber-soft)', color: 'var(--v19-amber)' }}>
+                      <span className="v20-priority-badge high">
                         GPS Review
                       </span>
                     )}
-                    <span style={{ fontSize: '16px', color: 'var(--v19-text-muted)' }}>›</span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Right: Individual Verification Inspection View */}
-          {activeOrder && (
-            <div className="v19-glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '20px', position: 'sticky', top: '90px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--v19-glass-border)', paddingBottom: '12px' }}>
-                <div>
-                  <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--v19-cyan)', fontFamily: 'var(--v19-font-mono)' }}>
-                    RESOLUTION VERIFICATION · ORDER #{activeOrder.id.slice(0, 8)}
-                  </span>
-                  <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--v19-text-primary)', margin: '4px 0 0' }}>
-                    {activeOrder.case_label}
-                  </h3>
-                </div>
-
-                <button type="button" className="v19-action-icon-btn" style={{ width: '28px', height: '28px' }} onClick={() => setSelectedOrderId(null)}>
-                  <X size={14} />
-                </button>
-              </div>
-
-              {/* Dual-Evidence Photo Inspection */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                {/* Citizen Before Photo */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--v19-text-muted)', textTransform: 'uppercase' }}>
-                    Citizen Initial Report (Before)
-                  </span>
-                  <div
-                    style={{ position: 'relative', borderRadius: '10px', overflow: 'hidden', height: '140px', background: 'rgba(0,0,0,0.3)', border: '1px solid var(--v19-glass-border)', cursor: 'zoom-in' }}
-                    onClick={() => {
-                      if (activeProof?.before_storage_path) {
-                        setLightboxImg(activeProof.before_storage_path);
-                        setLightboxCaption('Citizen initial report photographic evidence');
-                      }
-                    }}
-                  >
-                    {activeProof?.before_storage_path ? (
-                      <img src={activeProof.before_storage_path} alt="Before work evidence" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    ) : (
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', fontSize: '11.5px', color: 'var(--v19-text-dim)' }}>
-                        No before photo attached
-                      </div>
-                    )}
                   </div>
                 </div>
 
-                {/* Officer Completed Photo */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--v19-lime)', textTransform: 'uppercase' }}>
-                    Officer Completed Work (After)
-                  </span>
-                  <div
-                    style={{ position: 'relative', borderRadius: '10px', overflow: 'hidden', height: '140px', background: 'rgba(0,0,0,0.3)', border: '1px solid var(--v19-lime)', cursor: 'zoom-in' }}
-                    onClick={() => {
-                      if (activeProof?.storage_path) {
-                        setLightboxImg(activeProof.storage_path);
-                        setLightboxCaption('Officer completed field evidence');
-                      }
-                    }}
-                  >
-                    {activeProof?.storage_path ? (
-                      <img src={activeProof.storage_path} alt="Officer completed field evidence" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    ) : (
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', fontSize: '11.5px', color: 'var(--v19-text-dim)' }}>
-                        Completed photo pending
-                      </div>
-                    )}
+                <h4 className="v20-card-title">
+                  {order.case_label}
+                </h4>
+
+                <div className="v20-card-bottom-row">
+                  <div className="v20-card-location">
+                    <span>Submitted: {order.started_at ? new Date(order.started_at).toLocaleDateString() : 'Recent'}</span>
+                  </div>
+
+                  <div className="v20-card-actions-hint">
+                    <span className="v20-status-capsule">
+                      Pending Review
+                    </span>
+                    <span className="v20-arrow-circle">
+                      ›
+                    </span>
                   </div>
                 </div>
               </div>
-
-              {/* 30m GPS Proximity & Evidence Integrity Audit */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', background: 'rgba(0,0,0,0.25)', padding: '12px', borderRadius: '10px' }}>
-                <div>
-                  <span style={{ fontSize: '11px', color: 'var(--v19-text-muted)' }}>GPS Haversine Verification</span>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px', fontSize: '13px', fontWeight: 600, color: 'var(--v19-green)' }}>
-                    <ShieldCheck size={16} />
-                    <span>30m Radius Confirmed ({activeProof?.original_distance_m !== null ? `${activeProof?.original_distance_m}m` : 'Validated'})</span>
-                  </div>
-                </div>
-
-                <div>
-                  <span style={{ fontSize: '11px', color: 'var(--v19-text-muted)' }}>Evidence Integrity</span>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px', fontSize: '13px', fontWeight: 600, color: 'var(--v19-cyan)' }}>
-                    <ShieldCheck size={16} />
-                    <span>SHA-256 Verified · No Tampering</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Action Controls */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '12px', borderTop: '1px solid var(--v19-glass-border)', paddingTop: '16px' }}>
-                <button
-                  type="button"
-                  className="v19-nav-tab"
-                  style={{ color: 'var(--v19-amber)', background: 'var(--v19-amber-soft)', padding: '8px 16px' }}
-                  onClick={() => setIsCorrectionOpen(true)}
-                >
-                  <RotateCcw size={14} style={{ marginRight: '6px' }} />
-                  <span>Return for Correction</span>
-                </button>
-
-                <button
-                  type="button"
-                  className="v19-nav-tab"
-                  disabled={isSubmitting}
-                  style={{ background: 'var(--v19-green)', color: '#FFFFFF', fontWeight: 600, padding: '8px 20px' }}
-                  onClick={handleApprove}
-                >
-                  <CheckCircle2 size={14} style={{ marginRight: '6px' }} />
-                  <span>{isSubmitting ? 'Approving…' : 'Approve Resolution'}</span>
-                </button>
-              </div>
-            </div>
-          )}
+            );
+          })}
         </div>
       )}
 

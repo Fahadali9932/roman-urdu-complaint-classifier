@@ -58,11 +58,18 @@ export const OfficerNotificationsView: React.FC<OfficerNotificationsViewProps> =
             </button>
           )}
 
-          <div style={{ display: 'flex', gap: '4px', background: 'rgba(0,0,0,0.25)', padding: '3px', borderRadius: '9999px', border: '1px solid var(--v19-glass-border)' }}>
+          <div style={{ display: 'flex', gap: '4px', background: 'rgba(0,0,0,0.25)', padding: '4px', borderRadius: '9999px', border: '1.5px solid var(--v20-glass-border)' }}>
             <button
               type="button"
               className={`v19-nav-tab ${filter === 'all' ? 'is-active' : ''}`}
-              style={{ padding: '4px 12px', fontSize: '11.5px', background: filter === 'all' ? 'var(--v19-lime)' : 'transparent', color: filter === 'all' ? '#0E121A' : 'var(--v19-text-secondary)' }}
+              style={{
+                padding: '5px 14px',
+                fontSize: '12px',
+                background: filter === 'all' ? 'var(--v20-accent, #DFA51D)' : 'transparent',
+                color: filter === 'all' ? '#0E1017' : 'var(--v20-text-secondary)',
+                fontWeight: filter === 'all' ? 700 : 500,
+                border: 'none',
+              }}
               onClick={() => setFilter('all')}
             >
               All ({notifications.length})
@@ -70,7 +77,14 @@ export const OfficerNotificationsView: React.FC<OfficerNotificationsViewProps> =
             <button
               type="button"
               className={`v19-nav-tab ${filter === 'unread' ? 'is-active' : ''}`}
-              style={{ padding: '4px 12px', fontSize: '11.5px', background: filter === 'unread' ? 'var(--v19-lime)' : 'transparent', color: filter === 'unread' ? '#0E121A' : 'var(--v19-text-secondary)' }}
+              style={{
+                padding: '5px 14px',
+                fontSize: '12px',
+                background: filter === 'unread' ? 'var(--v20-accent, #DFA51D)' : 'transparent',
+                color: filter === 'unread' ? '#0E1017' : 'var(--v20-text-secondary)',
+                fontWeight: filter === 'unread' ? 700 : 500,
+                border: 'none',
+              }}
               onClick={() => setFilter('unread')}
             >
               Unread ({unreadCount})
@@ -81,9 +95,9 @@ export const OfficerNotificationsView: React.FC<OfficerNotificationsViewProps> =
 
       {/* Notifications List */}
       {filteredNotifs.length === 0 ? (
-        <div className="v19-glass-card" style={{ padding: '64px', textAlign: 'center', color: 'var(--v19-text-muted)' }}>
-          <Bell size={36} style={{ color: 'var(--v19-lime)', margin: '0 auto 12px' }} />
-          <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--v19-text-primary)', margin: '0 0 6px' }}>
+        <div className="v19-glass-card" style={{ padding: '64px', textAlign: 'center', color: 'var(--v20-text-muted)' }}>
+          <Bell size={36} style={{ color: 'var(--v20-accent, #DFA51D)', margin: '0 auto 12px' }} />
+          <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--v20-text-primary)', margin: '0 0 6px' }}>
             No Notifications
           </h3>
           <p style={{ fontSize: '13px', margin: 0 }}>
@@ -91,25 +105,26 @@ export const OfficerNotificationsView: React.FC<OfficerNotificationsViewProps> =
           </p>
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {filteredNotifs.map((n) => {
-            let icon = <Bell size={16} style={{ color: 'var(--v19-lime)' }} />;
-            if (n.type === 'verification') icon = <CheckCircle2 size={16} style={{ color: 'var(--v19-green)' }} />;
-            else if (n.type === 'deadline') icon = <Clock size={16} style={{ color: 'var(--v19-cyan)' }} />;
-            else if (n.type === 'warning') icon = <AlertTriangle size={16} style={{ color: 'var(--v19-amber)' }} />;
+            let icon = <Bell size={16} style={{ color: 'var(--v20-accent, #DFA51D)' }} />;
+            if (n.type === 'verification') icon = <CheckCircle2 size={16} style={{ color: 'var(--v20-status-solved, #43A047)' }} />;
+            else if (n.type === 'deadline') icon = <Clock size={16} style={{ color: '#29B6F6' }} />;
+            else if (n.type === 'warning') icon = <AlertTriangle size={16} style={{ color: '#F59E0B' }} />;
 
             return (
               <div
                 key={n.id}
                 className={`v19-glass-card ${!n.read ? 'is-unread' : ''}`}
                 style={{
-                  padding: '16px 20px',
+                  padding: '18px 22px',
+                  borderRadius: '18px',
                   display: 'flex',
                   alignItems: 'flex-start',
                   justifyContent: 'space-between',
                   gap: '16px',
-                  background: !n.read ? 'rgba(255,255,255,0.05)' : 'var(--v19-glass-card)',
-                  borderColor: !n.read ? 'var(--v19-lime-soft)' : undefined,
+                  background: !n.read ? 'var(--v20-accent-soft, rgba(223, 165, 29, 0.08))' : 'var(--v20-glass-surface)',
+                  borderColor: !n.read ? 'var(--v20-accent, #DFA51D)' : 'var(--v20-glass-border)',
                 }}
                 onClick={() => {
                   if (!n.read) onMarkAsRead(n.id);

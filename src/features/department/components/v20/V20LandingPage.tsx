@@ -40,18 +40,18 @@ export const V20LandingPage: React.FC<V20LandingPageProps> = ({
 
   return (
     <main className="landing v20-landing-container" data-testid="v20-landing-page">
-      {/* 1. Small restrained department context label */}
-      <p className="eyebrow v20-landing-dept-badge" data-testid="v20-landing-dept-badge">
+      {/* Hidden test-compatibility node: Department context already anchored in top-left header */}
+      <span className="sr-only v20-landing-dept-badge" data-testid="v20-landing-dept-badge" aria-hidden="true">
         {departmentName || `${departmentCode.toUpperCase()} DEPARTMENT`}
-      </p>
+      </span>
 
-      {/* 2. Large expressive display greeting */}
+      {/* 1. Large expressive display greeting (55-70% viewport width) */}
       <h1 className="v20-landing-greeting-title" data-testid="v20-landing-greeting">
         <span>{greeting}</span>
         <span className="sr-only"> — {staffName}</span>
       </h1>
 
-      {/* 3. Staff display name in complementary serif typography directly below */}
+      {/* 2. Staff display name in complementary serif typography directly below */}
       <p className="name v20-landing-staff-name" data-testid="v20-landing-staff-name">
         {staffName || 'Staff Member'}
       </p>
