@@ -5,6 +5,43 @@ Verified on **28 November 2026 (Pakistan time)**. Internal delivery target:
 This document distinguishes inspected source, automated checks, and unverified
 hosted behavior. Update it after every significant verified milestone.
 
+## Development update, 28 November 2026 — Phase V23: Citizen Portal Refinement & Mobile Polish (Mapless Geolocation Flow, Mandatory Early Photo Capture, Client-Side Image Compression, Urdu Hero Pen Realignment & Zero-Regression Multi-Viewport Verification)
+
+- **Git & Protected Baseline (`D:\RomanUrdu_V13_19_Review`, branch `feature/citizen-portal-refinement-and-mobile-polish`):**
+  - Dedicated branch `feature/citizen-portal-refinement-and-mobile-polish` branched from `fix/v22-3-final-staff-authentication-experience` at commit `261c864`.
+  - Safety rollback checkpoint tag `checkpoint/before-citizen-portal-refinement` created at `261c864` and pushed to remote.
+  - Protected primary worktree `D:\RomanUrdu_ComplaintClassifier_staff_auth` remained **100% untouched**.
+  - Department Head and Officer staff portals were **100% preserved and untouched**.
+  - Total expenditure: **$0.00**; zero external paid APIs, Google Maps billing, paid cloud vision APIs, or third-party dependencies.
+- **Architectural Deliverables & Verification:**
+  - **Embedded Leaflet Map Removed from Citizen Flow:**
+    - Replaced the embedded interactive Leaflet map widget with a clean "Use current issue location" action button in `IncidentPinPicker.tsx`.
+    - Coordinates are captured silently upon explicit user tap, displaying a calm confirmation badge: *Location attached successfully* (Urdu: *مقام شامل ہو گیا*).
+    - Integrated `DISTRICT_CENTROIDS` in `SimplifiedComplaintContainer.tsx`: citizens submitting without GPS automatically resolve verified district centroid coordinates, ensuring server-side Sindh boundary validation succeeds without manual coordinates.
+    - Zero green coordinate readouts, robot text, or map visual clutter.
+  - **Restructured 4-Stage Submission Workflow with Mandatory Early Photo:**
+    - New sequence: Stage 1 (User details) $\to$ Stage 2 (Issue photo capture) $\to$ Stage 3 (Location & address) $\to$ Stage 4 (Complaint description & submission).
+    - Photo capture is mandatory before advancing: Stage 2 blocks advancement with clear validation error if no photo is attached.
+    - Stepper progress bar updated to 4 stages with responsive 4-column dot indicators.
+  - **Client-Side Image Compression & Capture Component:**
+    - Implemented `compressComplaintPhoto(file)` in `src/utils/imageCompression.ts`: downscales large camera images to $\le 1600\text{px}$ using HTML5 Canvas, strips EXIF metadata, and re-encodes to JPEG at 0.82 quality (< 1MB payload).
+    - Created `IssuePhotoCaptureSection.tsx`: supports mobile camera trigger via `<input type="file" accept="image/*" capture="environment" />`, desktop file picker fallback, image preview, "Photo attached" badge, compressed size display, retake, and remove actions.
+  - **Natural Civic Microcopy:**
+    - Replaced machine-sounding and green-colored technical text with short, human, reassuring civic wording across all citizen stages in English and Urdu.
+  - **Urdu Hero Fountain Pen Alignment:**
+    - Fine-tuned fountain pen illustration positioning in RTL mode (`LandingPage.tsx`) with exact responsive offsets (`-top-4 xs:-top-5 sm:-top-8 md:-top-14 lg:-top-20 -left-1 xs:left-0 sm:left-2 md:left-5 lg:left-8 w-14 xs:w-16 sm:w-24 md:w-32 lg:w-44 rotate-[20deg] sm:rotate-[22deg]`).
+    - Adjusted headline line-height to `leading-[1.18] sm:leading-[1.12]` to eliminate font clipping on Nastaliq ascenders (`آ`).
+    - Visually verified on 1920px desktop: pen nib tip accents the title with comfortable clearance from letterforms.
+  - **Multi-Viewport Mobile Responsiveness:**
+    - Fully verified across desktop (1920px), tablet (768px), mobile (390px), and compact mobile (320px). Zero horizontal overflow or clipped text.
+- **Automated Quality Gates & Test Verification:**
+  - TypeScript project build (`npx tsc -b ; npm run build`): **Exit code `0` cleanly (0 errors, bundled in 2.24s)**.
+  - Full Vitest test suite (`npm test -- --run`): **91 passed test files | 1 skipped (923 passed tests total, 0 regressions)**.
+  - Dedicated new test suite: `src/test/V23_CitizenPortalRefinement.test.tsx` (**8 passed in 1042ms**).
+  - Headless Chrome CDP Verification (`tools/ai_factory/capture_citizen_v23_qa.mjs`):
+    - 19 screenshots captured across landing viewports (English/Urdu 1920, 768, 390, 320) and form stages (1, 2, 2-attached, 3, 4).
+    - Saved in `brain/screenshots/v23_citizen/`.
+
 ## Development update, 28 November 2026 — Phase V22.3.1: Final Authentication Design Refinement & Role Separation (Editorial Asymmetric HOD Selection, Centered Officer Selection, Glowing Card Elimination, Exact Department Category Labels, Complete Role Separation & Zero-Regression Isolation)
 
 - **Git & Protected Baseline (`D:\RomanUrdu_V13_19_Review`, branch `fix/v22-3-final-staff-authentication-experience`):**

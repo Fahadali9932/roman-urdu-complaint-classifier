@@ -11,6 +11,11 @@ const reachLocation = async () => {
   fireEvent.change(screen.getByLabelText(/full name/i), { target: { value: 'Tariq Mehmood' } });
   fireEvent.change(screen.getByLabelText(/phone number/i), { target: { value: '03001234567' } });
   fireEvent.click(screen.getByRole('button', { name: /continue/i }));
+  await screen.findByRole('heading', { level: 2, name: /issue photograph/i });
+  const dummyFile = new File(['mock photo bytes'], 'issue-photo.jpg', { type: 'image/jpeg' });
+  fireEvent.change(screen.getByLabelText(/upload issue photo from files/i), { target: { files: [dummyFile] } });
+  await screen.findByText(/photo attached/i);
+  fireEvent.click(screen.getByRole('button', { name: /continue/i }));
   await screen.findByRole('heading', { level: 2, name: /tell us where/i });
 };
 

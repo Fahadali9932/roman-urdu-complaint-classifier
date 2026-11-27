@@ -1,229 +1,213 @@
-import { useEffect, useRef, useState } from 'react';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
-import './incident-map.css';
-import { Crosshair, MapPin, AlertTriangle } from 'lucide-react';
+import { useState } from 'react';
+import { Crosshair, MapPin, CheckCircle2, AlertTriangle, RotateCcw } from 'lucide-react';
 import { verifySindhLocation } from '../../../lib/geo/sindhEligibility';
 import { useLanguage } from '../../../context/LanguageContext';
 
 export type IncidentPin = { latitude: number; longitude: number };
 
+export interface IncidentPinPickerProps {
+  value: IncidentPin | null;
+  onChange: (point: IncidentPin | null) => void;
+  error?: string;
+}
+
 /**
- * Mandatory incident location picker validated strictly against the local
- * Sindh boundary GeoJSON polygon (never bbox-only, never trusted client-side alone).
- * Never requests geolocation automatically on mount; only explicit user action triggers GPS.
+ * Clean, mapless incident location attachment flow.
+ * - No heavy map canvas or third-party tile dependencies.
+ * - One-click browser geolocation with silent Sindh verification.
+ * - Restrained, human confirmation (zero raw green coordinates).
+ * - Accessible fallback for keyboard entry / automated integration tests.
  */
 export function IncidentPinPicker({
   value,
   onChange,
   error,
-}: {
-  value: IncidentPin | null;
-  onChange: (point: IncidentPin | null) => void;
-  error?: string;
-}) {
+}: IncidentPinPickerProps) {
   const { language } = useLanguage();
   const ur = language === 'ur';
-  const container = useRef<HTMLDivElement>(null);
-  const map = useRef<L.Map | null>(null);
-  const marker = useRef<L.Marker | null>(null);
-  const onChangeRef = useRef(onChange);
-  const urRef = useRef(ur);
-  urRef.current = ur;
-  const [status, setStatus] = useState('');
+
+  const [isLocating, setIsLocating] = useState(false);
   const [regionAlert, setRegionAlert] = useState<string | null>(null);
   const [manualLat, setManualLat] = useState(() => (value ? String(value.latitude) : ''));
   const [manualLon, setManualLon] = useState(() => (value ? String(value.longitude) : ''));
+  const [statusMessage, setStatusMessage] = useState<string>('');
 
-  onChangeRef.current = onChange;
-
-  const applyCoordinates = (lat: number, lon: number, sourceLabel: string) => {
+  const handleApplyCoordinates = (lat: number, lon: number) => {
     const check = verifySindhLocation(lat, lon);
+    setManualLat(lat.toFixed(6));
+    setManualLon(lon.toFixed(6));
+    onChange({ latitude: lat, longitude: lon });
+
     if (!check.eligible) {
       setRegionAlert(ur ? check.messageUrdu : check.message);
-      setStatus('');
+      setStatusMessage('');
       return false;
     }
     setRegionAlert(null);
-    setManualLat(lat.toFixed(6));
-    setManualLon(lon.toFixed(6));
-    onChangeRef.current({ latitude: lat, longitude: lon });
-    setStatus(sourceLabel);
-    map.current?.setView([lat, lon], Math.max(map.current.getZoom(), 12), { animate: false });
+    setStatusMessage('');
     return true;
   };
 
-  useEffect(() => {
-    if (!container.current || map.current) return;
-    const instance = L.map(container.current, {
-      scrollWheelZoom: false,
-      zoomControl: true,
-      zoomAnimation: false,
-      fadeAnimation: false,
-      markerZoomAnimation: false,
-    }).setView([24.8607, 67.0011], 10);
-    map.current = instance;
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors',
-      maxZoom: 18,
-    }).addTo(instance);
-
-    instance.on('click', (event: L.LeafletMouseEvent) => {
-      const { lat, lng } = event.latlng;
-      const isUrdu = urRef.current;
-      const check = verifySindhLocation(lat, lng);
-      if (!check.eligible) {
-        setRegionAlert(isUrdu ? check.messageUrdu : check.message);
-        return;
-      }
-      setRegionAlert(null);
-      setManualLat(lat.toFixed(6));
-      setManualLon(lng.toFixed(6));
-      setStatus(
-        isUrdu
-          ? 'مقام کی تصدیق ہو گئی۔ تبدیل کرنے کے لیے نقشے پر کسی اور جگہ ٹیپ کریں۔'
-          : 'Sindh location verified. Tap another point on the map to adjust.'
-      );
-      onChangeRef.current({ latitude: lat, longitude: lng });
-    });
-
-    const timer = window.setTimeout(() => instance.invalidateSize(), 60);
-    return () => {
-      window.clearTimeout(timer);
-      try {
-        instance.stop();
-        instance.off();
-        instance.remove();
-      } catch {
-        // Ignore teardown race during unmount
-      }
-      map.current = null;
-      marker.current = null;
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!map.current) return;
-    if (!value) {
-      marker.current?.remove();
-      marker.current = null;
-      return;
-    }
-    const latLng: L.LatLngExpression = [value.latitude, value.longitude];
-    if (marker.current) marker.current.setLatLng(latLng);
-    else {
-      marker.current = L.marker(latLng, {
-        icon: L.divIcon({
-          className: 'incident-pin-marker',
-          html: '<span aria-hidden="true"></span>',
-          iconSize: [22, 22],
-        }),
-      }).addTo(map.current);
-    }
-    map.current.panTo(latLng);
-  }, [value]);
-
-  const locate = () => {
+  const handleLocate = () => {
     setRegionAlert(null);
     if (!navigator.geolocation) {
-      setStatus(
+      setStatusMessage(
         ur
-          ? 'اس آلے پر GPS دستیاب نہیں ہے۔ نقشے پر مقام منتخب کریں یا نقاط درج کریں۔'
-          : 'GPS is unavailable. Tap the map or enter coordinates within Sindh.'
+          ? 'اس ڈیوائس پر لوکیشن دستیاب نہیں ہے۔ نیچے علاقہ اور نشانی درج کریں۔'
+          : 'Location access is unavailable. Please enter the area and landmark below.'
       );
       return;
     }
-    setStatus(ur ? 'مقام کی اجازت طلب کی جا رہی ہے…' : 'Requesting current location…');
+
+    setIsLocating(true);
+    setStatusMessage(ur ? 'مقام کی تصدیق کی جا رہی ہے…' : 'Locating issue site…');
+
     navigator.geolocation.getCurrentPosition(
       ({ coords }) => {
-        applyCoordinates(
-          coords.latitude,
-          coords.longitude,
+        setIsLocating(false);
+        const verified = handleApplyCoordinates(coords.latitude, coords.longitude);
+        if (verified) {
+          setStatusMessage('');
+        }
+      },
+      () => {
+        setIsLocating(false);
+        setStatusMessage(
           ur
-            ? 'آپ کا موجودہ مقام سندھ میں تصدیق شدہ ہے۔'
-            : 'GPS position verified inside Sindh. Confirm it matches the incident site.'
+            ? 'مقام کی اجازت نہیں ملی۔ نیچے دیا گیا فارم پُر کریں۔'
+            : 'Location access was not granted. Please enter the area and landmark below.'
         );
       },
-      () =>
-        setStatus(
-          ur
-            ? 'مقام کی اجازت دستیاب نہیں تھی۔ براہِ کرم نقشے پر واقعے کا مقام منتخب کریں۔'
-            : 'Location permission was unavailable. Tap the incident location on the map.'
-        ),
-      { enableHighAccuracy: false, timeout: 10000, maximumAge: 0 },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
   };
 
-  const applyManualCoordinates = () => {
+  const handleManualVerify = () => {
     const lat = Number(manualLat.trim());
     const lon = Number(manualLon.trim());
-    if (!manualLat.trim() || !manualLon.trim()) {
+    if (!manualLat.trim() || !manualLon.trim() || isNaN(lat) || isNaN(lon)) {
       const check = verifySindhLocation(undefined, undefined);
       setRegionAlert(ur ? check.messageUrdu : check.message);
       return;
     }
-    applyCoordinates(
-      lat,
-      lon,
-      ur
-        ? 'درج کردہ جغرافیائی نقاط سندھ کے اندر تصدیق شدہ ہیں۔'
-        : 'Coordinates verified inside Sindh.'
-    );
+    handleApplyCoordinates(lat, lon);
   };
 
+  const handleClear = () => {
+    onChange(null);
+    setManualLat('');
+    setManualLon('');
+    setRegionAlert(null);
+    setStatusMessage('');
+  };
+
+  const isAttached = Boolean(value && !regionAlert);
+
   return (
-    <div className="incident-pin-picker" id="incidentLocation" data-testid="incident-pin-picker">
-      <div className="incident-picker-heading">
-        <MapPin size={17} />
-        <div>
-          <strong>
-            {ur
-              ? 'نقشے پر واقعے کا مقام منتخب کریں (لازمی) *'
-              : 'Mark the incident location on the map (required) *'}
-          </strong>
-          <p>
-            {ur
-              ? 'آوازِ عوام فی الحال صرف سندھ کے اندر شکایات قبول کرتا ہے۔ نقشے پر ٹیپ کریں، GPS استعمال کریں، یا نقاط درج کریں۔'
-              : 'Service is restricted to Sindh. Tap the incident spot on the map, use GPS, or verify coordinates.'}
-          </p>
+    <div
+      id="incidentLocation"
+      data-testid="incident-pin-picker"
+      className="rounded-2xl border border-[#E0DCD6] bg-[#FAF9F7] p-4 sm:p-5 space-y-3.5 text-start"
+    >
+      {/* Header */}
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-[#F7EFF0] text-[#681822] flex items-center justify-center shrink-0">
+            <MapPin className="w-4 h-4" />
+          </div>
+          <div>
+            <h3 className="text-xs sm:text-[13px] font-bold text-[#141414]">
+              {ur ? 'مسئلے کا درست مقام' : 'Precise issue location'}
+            </h3>
+            <p className="text-[11px] text-[#77716E]">
+              {ur
+                ? 'فیلڈ انسپکشن کے لیے اپنے موجودہ مقام کی تصدیق کریں۔'
+                : 'Confirm device location to help field officers reach the spot.'}
+            </p>
+          </div>
         </div>
+
+        {/* Status Confirmation Badge */}
+        {isAttached && (
+          <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#126B53] bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full">
+            <CheckCircle2 className="w-3.5 h-3.5 text-[#126B53]" />
+            {ur ? 'مقام شامل ہو گیا' : 'Location attached successfully'}
+          </span>
+        )}
       </div>
 
-      <div
-        ref={container}
-        className="incident-picker-map"
-        aria-label={ur ? 'سندھ واقعے کا انٹرایکٹو نقشہ' : 'Interactive Sindh incident location map'}
-      />
-
-      <div className="incident-picker-actions">
-        <button type="button" onClick={locate}>
-          <Crosshair size={16} /> {ur ? 'میرا موجودہ مقام استعمال کریں' : 'Use my location'}
+      {/* Main Action Bar */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 pt-1">
+        <button
+          type="button"
+          onClick={handleLocate}
+          disabled={isLocating}
+          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white hover:bg-[#F2EFEA] border border-[#D9D3CC] text-[#141414] font-ui font-semibold text-xs transition shadow-2xs active:scale-[0.99] cursor-pointer"
+        >
+          {isLocating ? (
+            <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-[#681822] border-t-transparent motion-reduce:animate-none" />
+          ) : (
+            <Crosshair className="w-3.5 h-3.5 text-[#681822]" />
+          )}
+          <span>
+            {isLocating
+              ? ur
+                ? 'مقام دیکھا جا رہا ہے…'
+                : 'Checking location…'
+              : isAttached
+                ? ur
+                  ? 'مقام تبدیل کریں'
+                  : 'Update current location'
+                : ur
+                  ? 'موجودہ مقام استعمال کریں'
+                  : 'Use current issue location'}
+          </span>
         </button>
-        {value && (
+
+        {isAttached && (
           <button
             type="button"
-            onClick={() => {
-              onChange(null);
-              setManualLat('');
-              setManualLon('');
-              setStatus(
-                ur
-                  ? 'مقام ہٹا دیا گیا۔ جمع کرانے کے لیے نیا مقام منتخب کرنا لازمی ہے۔'
-                  : 'Pin cleared. Select an eligible Sindh location to continue.'
-              );
-            }}
+            onClick={handleClear}
+            className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium text-[#77716E] hover:text-red-700 hover:bg-red-50 transition cursor-pointer"
           >
-            {ur ? 'مقام ہٹائیں' : 'Clear location'}
+            <RotateCcw className="w-3 h-3" />
+            <span>{ur ? 'مقام ہٹائیں' : 'Clear'}</span>
           </button>
         )}
       </div>
 
-      {/* Keyboard-accessible coordinate verification fallback */}
-      <details className="mt-2 rounded-lg border border-[#E0DCD6] bg-[#FAF9F7] px-3 py-2 text-xs">
-        <summary className="cursor-pointer font-semibold text-[#171717]">
-          {ur ? 'کی بورڈ سے نقاط (Latitude / Longitude) درج کریں' : 'Enter latitude / longitude manually'}
+      {/* Informative status or permission guidance */}
+      {statusMessage && (
+        <p className="text-xs text-[#625D58] leading-relaxed" aria-live="polite">
+          {statusMessage}
+        </p>
+      )}
+
+      {/* Geographic Boundary Alert */}
+      {regionAlert && (
+        <div
+          role="alert"
+          data-testid="outside-sindh-alert"
+          className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-xs font-medium text-red-900"
+        >
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-red-600" />
+          <span>{regionAlert}</span>
+        </div>
+      )}
+
+      {/* Form Error */}
+      {error && !regionAlert && (
+        <p role="alert" className="text-xs font-semibold text-[#B4233E]">
+          {error}
+        </p>
+      )}
+
+      {/* Keyboard-Accessible Coordinate Verification Fallback (Accessible & Automated Tests) */}
+      <details className="pt-1 text-[11px] text-[#77716E]">
+        <summary className="cursor-pointer font-medium hover:text-[#141414] select-none">
+          {ur ? 'کی بورڈ سے نقاط درج کریں (اختیاری)' : 'Manual coordinates fallback (optional)'}
         </summary>
-        <div className="mt-2.5 grid grid-cols-1 gap-2 sm:grid-cols-3 sm:items-end" dir="ltr">
+        <div className="mt-2.5 grid grid-cols-1 gap-2 sm:grid-cols-3 sm:items-end p-3 rounded-xl bg-white border border-[#E8E5E1]" dir="ltr">
           <div>
             <label htmlFor="incident-lat-input" className="block text-[11px] font-medium text-[#55524D]">
               Latitude
@@ -235,7 +219,7 @@ export function IncidentPinPicker({
               placeholder="24.8607"
               value={manualLat}
               onChange={(e) => setManualLat(e.target.value)}
-              className="mt-1 w-full rounded-md border border-[#D4CEC6] bg-white px-2.5 py-2 text-xs text-[#171717]"
+              className="mt-1 w-full rounded-lg border border-[#D4CEC6] bg-[#FAF9F7] px-2.5 py-1.5 text-xs text-[#171717] outline-none focus:bg-white focus:border-[#141414]"
             />
           </div>
           <div>
@@ -249,50 +233,18 @@ export function IncidentPinPicker({
               placeholder="67.0011"
               value={manualLon}
               onChange={(e) => setManualLon(e.target.value)}
-              className="mt-1 w-full rounded-md border border-[#D4CEC6] bg-white px-2.5 py-2 text-xs text-[#171717]"
+              className="mt-1 w-full rounded-lg border border-[#D4CEC6] bg-[#FAF9F7] px-2.5 py-1.5 text-xs text-[#171717] outline-none focus:bg-white focus:border-[#141414]"
             />
           </div>
           <button
             type="button"
-            onClick={applyManualCoordinates}
-            className="min-h-[38px] rounded-md bg-[#171717] px-3 py-2 text-xs font-semibold text-white hover:bg-[#323232] cursor-pointer"
+            onClick={handleManualVerify}
+            className="min-h-[34px] rounded-lg bg-[#141414] hover:bg-[#323232] px-3 py-1.5 text-xs font-semibold text-white transition cursor-pointer"
           >
             {ur ? 'مقام کی تصدیق کریں' : 'Verify location'}
           </button>
         </div>
       </details>
-
-      {regionAlert && (
-        <div
-          role="alert"
-          data-testid="outside-sindh-alert"
-          className="mt-2 flex items-start gap-2 rounded-lg border border-[#B4233E]/30 bg-[#FEF2F2] px-3 py-2.5 text-xs font-medium text-[#8D1B30]"
-        >
-          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-          <span>{regionAlert}</span>
-        </div>
-      )}
-
-      {error && !regionAlert && (
-        <p role="alert" className="mt-2 text-xs font-semibold text-[#B4233E]">
-          {error}
-        </p>
-      )}
-
-      {value && !regionAlert && (
-        <p className="incident-pin-confirmed">
-          {ur
-            ? `واقعے کا مقام سندھ میں محفوظ ہو گیا (${value.latitude.toFixed(4)}, ${value.longitude.toFixed(4)})؛ درست مقام صرف مجاز عملے کو نظر آتا ہے۔`
-            : `Sindh incident location verified (${value.latitude.toFixed(4)}, ${value.longitude.toFixed(4)}); exact coordinates remain visible only to authorized staff.`}
-        </p>
-      )}
-
-      <p className="incident-picker-status" aria-live="polite">
-        {status ||
-          (ur
-            ? 'سندھ کے اندر واقعے کا مقام منتخب کرنا ضروری ہے۔'
-            : 'Selecting an incident location within Sindh is required before submission.')}
-      </p>
     </div>
   );
 }

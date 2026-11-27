@@ -240,7 +240,14 @@ describe('PHASE V13.0 — REAL CITIZEN SUBMISSION & V11 INTEGRATION', () => {
 
       fireEvent.click(screen.getByRole('button', { name: /Continue|آگے بڑھیں/i }));
 
-      // Step 2: Location & Residential Address
+      // Step 2: Photo Capture (Mandatory)
+      const fileInput1 = container.querySelector('#file-photo-input')!;
+      const dummyPhoto1 = new File(['mock photo bytes'], 'issue-photo.jpg', { type: 'image/jpeg' });
+      fireEvent.change(fileInput1, { target: { files: [dummyPhoto1] } });
+      await screen.findByText(/photo attached/i);
+      fireEvent.click(screen.getByRole('button', { name: /Continue|آگے بڑھیں/i }));
+
+      // Step 3: Location & Residential Address
       fireEvent.change(container.querySelector('#locality')!, { target: { value: 'Gulshan-e-Iqbal' } });
       fireEvent.change(container.querySelector('#publicLocation')!, { target: { value: 'Near Disco Bakery' } });
       fireEvent.change(container.querySelector('#applicantAddress')!, { target: { value: 'House 123, Street 4' } });
@@ -299,7 +306,14 @@ describe('PHASE V13.0 — REAL CITIZEN SUBMISSION & V11 INTEGRATION', () => {
       fireEvent.change(container.querySelector('#citizenPhone')!, { target: { value: '03001234567' } });
       fireEvent.click(screen.getByRole('button', { name: /Continue|آگے بڑھیں/i }));
 
-      // Step 2
+      // Step 2: Photo Capture (Mandatory)
+      const fileInput2 = container.querySelector('#file-photo-input')!;
+      const dummyPhoto2 = new File(['mock photo bytes'], 'issue-photo.jpg', { type: 'image/jpeg' });
+      fireEvent.change(fileInput2, { target: { files: [dummyPhoto2] } });
+      await screen.findByText(/photo attached/i);
+      fireEvent.click(screen.getByRole('button', { name: /Continue|آگے بڑھیں/i }));
+
+      // Step 3
       fireEvent.change(container.querySelector('#locality')!, { target: { value: 'Gulshan-e-Iqbal' } });
       fireEvent.change(container.querySelector('#publicLocation')!, { target: { value: 'Near Disco Bakery' } });
       fireEvent.change(container.querySelector('#applicantAddress')!, { target: { value: 'House 123, Street 4' } });
@@ -371,7 +385,14 @@ describe('PHASE V13.0 — REAL CITIZEN SUBMISSION & V11 INTEGRATION', () => {
       fireEvent.change(container.querySelector('#citizenPhone')!, { target: { value: '03001234567' } });
       fireEvent.click(screen.getByRole('button', { name: /Continue|آگے بڑھیں/i }));
 
-      // Step 2
+      // Step 2: Photo Capture (Mandatory)
+      const fileInput2 = container.querySelector('#file-photo-input')!;
+      const dummyPhoto2 = new File(['mock photo bytes'], 'issue-photo.jpg', { type: 'image/jpeg' });
+      fireEvent.change(fileInput2, { target: { files: [dummyPhoto2] } });
+      await screen.findByText(/photo attached/i);
+      fireEvent.click(screen.getByRole('button', { name: /Continue|آگے بڑھیں/i }));
+
+      // Step 3
       fireEvent.change(container.querySelector('#locality')!, { target: { value: 'Gulshan-e-Iqbal' } });
       fireEvent.change(container.querySelector('#publicLocation')!, { target: { value: 'Near Disco Bakery' } });
       fireEvent.change(container.querySelector('#applicantAddress')!, { target: { value: 'House 123, Street 4' } });
@@ -443,7 +464,14 @@ describe('PHASE V13.0 — REAL CITIZEN SUBMISSION & V11 INTEGRATION', () => {
       fireEvent.change(container.querySelector('#citizenPhone')!, { target: { value: '03001234567' } });
       fireEvent.click(screen.getByRole('button', { name: /Continue|آگے بڑھیں/i }));
 
-      // Step 2
+      // Step 2: Photo Capture (Mandatory)
+      const fileInput4 = container.querySelector('#file-photo-input')!;
+      const dummyPhoto4 = new File(['mock photo bytes'], 'issue-photo.jpg', { type: 'image/jpeg' });
+      fireEvent.change(fileInput4, { target: { files: [dummyPhoto4] } });
+      await screen.findByText(/photo attached/i);
+      fireEvent.click(screen.getByRole('button', { name: /Continue|آگے بڑھیں/i }));
+
+      // Step 3
       fireEvent.change(container.querySelector('#locality')!, { target: { value: 'Gulshan Block 7' } });
       fireEvent.change(container.querySelector('#publicLocation')!, { target: { value: 'Street 4 Main Market' } });
       fireEvent.change(container.querySelector('#applicantAddress')!, { target: { value: 'House 12, Block 7' } });

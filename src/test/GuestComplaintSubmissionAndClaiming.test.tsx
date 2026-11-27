@@ -31,7 +31,14 @@ describe('AWAAZ-E-AWAM — Guest Complaint Submission & Ownership Claiming', () 
     fireEvent.change(screen.getByLabelText(/phone number/i), { target: { value: '03001234567' } });
     fireEvent.click(screen.getByRole('button', { name: /continue/i }));
 
-    // Step 2: Fill location
+    // Step 2: Attach required issue photo
+    await screen.findByRole('heading', { level: 2, name: /issue photograph/i });
+    const dummyFile1 = new File(['mock photo bytes'], 'issue-photo.jpg', { type: 'image/jpeg' });
+    fireEvent.change(screen.getByLabelText(/upload issue photo from files/i), { target: { files: [dummyFile1] } });
+    await screen.findByText(/photo attached/i);
+    fireEvent.click(screen.getByRole('button', { name: /continue/i }));
+
+    // Step 3: Fill location
     const locality = await screen.findByLabelText(/area \/ locality/i);
     fireEvent.change(locality, { target: { value: 'Gulshan-e-Iqbal' } });
     fireEvent.change(screen.getByLabelText(/street, block or nearby landmark/i), { target: { value: 'Block 13-D' } });
@@ -71,7 +78,14 @@ describe('AWAAZ-E-AWAM — Guest Complaint Submission & Ownership Claiming', () 
     fireEvent.change(screen.getByLabelText(/موبائل نمبر/i), { target: { value: '03001234567' } });
     fireEvent.click(screen.getByRole('button', { name: /آگے بڑھیں/i }));
 
-    // Step 2: Fill location
+    // Step 2: Attach required issue photo
+    await screen.findByRole('heading', { level: 2, name: /مسئلے کی تصویر/i });
+    const dummyFile2 = new File(['mock photo bytes'], 'issue-photo.jpg', { type: 'image/jpeg' });
+    fireEvent.change(screen.getByLabelText(/upload issue photo from files/i), { target: { files: [dummyFile2] } });
+    await screen.findByText(/تصویر منسلک ہو گئی/i);
+    fireEvent.click(screen.getByRole('button', { name: /آگے بڑھیں/i }));
+
+    // Step 3: Fill location
     const locality = await screen.findByLabelText(/علاقہ \/ محلہ/i);
     fireEvent.change(locality, { target: { value: 'Gulshan-e-Iqbal' } });
     fireEvent.change(screen.getByLabelText(/گلی، بلاک یا قریبی نشانی/i), { target: { value: 'Block 13-D' } });
@@ -99,7 +113,14 @@ describe('AWAAZ-E-AWAM — Guest Complaint Submission & Ownership Claiming', () 
     fireEvent.change(screen.getByLabelText(/phone number/i), { target: { value: '03112345678' } });
     fireEvent.click(screen.getByRole('button', { name: /continue/i }));
 
-    // Step 2
+    // Step 2: Attach required issue photo
+    await screen.findByRole('heading', { level: 2, name: /issue photograph/i });
+    const dummyFile3 = new File(['mock photo bytes'], 'issue-photo.jpg', { type: 'image/jpeg' });
+    fireEvent.change(screen.getByLabelText(/upload issue photo from files/i), { target: { files: [dummyFile3] } });
+    await screen.findByText(/photo attached/i);
+    fireEvent.click(screen.getByRole('button', { name: /continue/i }));
+
+    // Step 3
     const locality = await screen.findByLabelText(/area \/ locality/i);
     fireEvent.change(locality, { target: { value: 'Clifton' } });
     fireEvent.change(screen.getByLabelText(/street, block or nearby landmark/i), { target: { value: 'Block 2' } });

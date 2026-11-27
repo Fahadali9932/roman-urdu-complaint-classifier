@@ -7,6 +7,13 @@ import React from 'react';
 
 const renderForm = () => render(<BrowserRouter><LanguageProvider><ComplaintForm /></LanguageProvider></BrowserRouter>);
 
+const attachMockPhoto = async () => {
+  const dummyFile = new File(['mock photo bytes'], 'issue-photo.jpg', { type: 'image/jpeg' });
+  const fileInput = screen.getByLabelText(/upload issue photo from files/i);
+  fireEvent.change(fileInput, { target: { files: [dummyFile] } });
+  await screen.findByText(/photo attached/i);
+};
+
 const LanguageSwitcher: React.FC = () => {
   const { language, setLanguage } = useLanguage();
   React.useEffect(() => { if (language !== 'ur') setLanguage('ur'); }, [language, setLanguage]);
@@ -14,22 +21,34 @@ const LanguageSwitcher: React.FC = () => {
 };
 
 describe('Simplified Write your complaint flow', () => {
-  it('renders a light three-step form with a thick progress bar and no subject input', () => {
+  it('renders a light four-step form with a thick progress bar and no subject input', () => {
     renderForm();
     expect(screen.getByRole('heading', { level: 1, name: /write your complaint/i })).toBeInTheDocument();
-    expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '12');
+    expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '8');
     expect(screen.getByLabelText(/full name/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/phone number/i)).toBeInTheDocument();
     expect(screen.queryByLabelText(/subject/i)).not.toBeInTheDocument();
   });
 
-  it('validates contact details before advancing to the location stage', async () => {
+  it('validates contact details and requires photo before advancing to the location stage', async () => {
     renderForm();
     fireEvent.click(screen.getByRole('button', { name: /continue/i }));
     expect(await screen.findByText(/enter your full name/i)).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText(/full name/i), { target: { value: 'Fatima Noor' } });
     fireEvent.change(screen.getByLabelText(/phone number/i), { target: { value: '03001234567' } });
     fireEvent.click(screen.getByRole('button', { name: /continue/i }));
+
+    // Stage 2: Photo Capture
+    expect(await screen.findByRole('heading', { level: 2, name: /issue photograph/i })).toBeInTheDocument();
+    // Attempting to advance without photo is blocked
+    fireEvent.click(screen.getByRole('button', { name: /continue/i }));
+    expect(await screen.findByText(/attach a photo of the issue/i)).toBeInTheDocument();
+
+    // Attach valid photo and proceed
+    await attachMockPhoto();
+    fireEvent.click(screen.getByRole('button', { name: /continue/i }));
+
+    // Stage 3: Location
     expect(await screen.findByRole('heading', { level: 2, name: /tell us where/i })).toBeInTheDocument();
   });
 
@@ -37,6 +56,9 @@ describe('Simplified Write your complaint flow', () => {
     renderForm();
     fireEvent.change(screen.getByLabelText(/full name/i), { target: { value: 'Fatima Noor' } });
     fireEvent.change(screen.getByLabelText(/phone number/i), { target: { value: '03001234567' } });
+    fireEvent.click(screen.getByRole('button', { name: /continue/i }));
+    await screen.findByRole('heading', { level: 2, name: /issue photograph/i });
+    await attachMockPhoto();
     fireEvent.click(screen.getByRole('button', { name: /continue/i }));
     await screen.findByRole('heading', { level: 2, name: /tell us where/i });
 
@@ -49,10 +71,13 @@ describe('Simplified Write your complaint flow', () => {
     expect(await screen.findByText(/enter your home address/i)).toBeInTheDocument();
     expect(screen.queryByRole('heading', { level: 2, name: /describe what happened/i })).not.toBeInTheDocument();
 
-    // Attempt to continue without selecting Sindh incident location -> blocked
+    // Attempt to continue with an incident location outside Sindh -> blocked
     fireEvent.change(screen.getByLabelText(/home address/i), { target: { value: 'House 12-B, Clifton Block 4' } });
+    fireEvent.change(screen.getByLabelText(/^Latitude$/i), { target: { value: '33.6844' } });
+    fireEvent.change(screen.getByLabelText(/^Longitude$/i), { target: { value: '73.0479' } });
+    fireEvent.click(screen.getByRole('button', { name: /verify location/i }));
     fireEvent.click(screen.getByRole('button', { name: /continue/i }));
-    expect(await screen.findByText(/within Sindh before submitting/i)).toBeInTheDocument();
+    expect(await screen.findByText(/within Sindh/i)).toBeInTheDocument();
 
     // Enter valid Sindh incident location coordinates & verify
     fireEvent.change(screen.getByLabelText(/^Latitude$/i), { target: { value: '24.8138' } });
@@ -68,6 +93,10 @@ describe('Simplified Write your complaint flow', () => {
     fireEvent.change(screen.getByLabelText(/full name/i), { target: { value: 'Fatima Noor' } });
     fireEvent.change(screen.getByLabelText(/phone number/i), { target: { value: '03129876543' } });
     fireEvent.click(screen.getByRole('button', { name: /continue/i }));
+    await screen.findByRole('heading', { level: 2, name: /issue photograph/i });
+    await attachMockPhoto();
+    fireEvent.click(screen.getByRole('button', { name: /continue/i }));
+
     const locality = await screen.findByLabelText(/area \/ locality/i);
     fireEvent.change(locality, { target: { value: 'DHA Phase 6' } });
     expect(await screen.findByText(/automatically identified/i)).toBeInTheDocument();

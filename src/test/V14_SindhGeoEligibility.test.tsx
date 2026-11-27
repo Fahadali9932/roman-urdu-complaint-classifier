@@ -139,6 +139,13 @@ describe('V14 Sindh Geographical Eligibility & Service Coverage', () => {
     fireEvent.change(screen.getByLabelText(/phone number/i), { target: { value: '03001234567' } });
     fireEvent.click(screen.getByRole('button', { name: /continue/i }));
 
+    // Step 2: Photo Capture
+    await screen.findByRole('heading', { level: 2, name: /issue photograph/i });
+    const dummyFile1 = new File(['mock photo bytes'], 'issue-photo.jpg', { type: 'image/jpeg' });
+    fireEvent.change(screen.getByLabelText(/upload issue photo from files/i), { target: { files: [dummyFile1] } });
+    await screen.findByText(/photo attached/i);
+    fireEvent.click(screen.getByRole('button', { name: /continue/i }));
+
     const locality = await screen.findByLabelText(/area \/ locality/i);
     fireEvent.change(locality, { target: { value: 'Clifton' } });
     fireEvent.change(screen.getByLabelText(/street, block or nearby landmark/i), { target: { value: 'Street 9' } });
@@ -168,6 +175,13 @@ describe('V14 Sindh Geographical Eligibility & Service Coverage', () => {
 
     fireEvent.change(await screen.findByLabelText(/پورا نام/i), { target: { value: 'بلال احمد' } });
     fireEvent.change(screen.getByLabelText(/موبائل نمبر/i), { target: { value: '03001234567' } });
+    fireEvent.click(screen.getByRole('button', { name: /آگے بڑھیں/i }));
+
+    // Step 2: Photo Capture
+    await screen.findByRole('heading', { level: 2, name: /مسئلے کی تصویر/i });
+    const dummyFile2 = new File(['mock photo bytes'], 'issue-photo.jpg', { type: 'image/jpeg' });
+    fireEvent.change(screen.getByLabelText(/upload issue photo from files/i), { target: { files: [dummyFile2] } });
+    await screen.findByText(/تصویر منسلک ہو گئی/i);
     fireEvent.click(screen.getByRole('button', { name: /آگے بڑھیں/i }));
 
     await screen.findByLabelText(/علاقہ \/ محلہ/i);

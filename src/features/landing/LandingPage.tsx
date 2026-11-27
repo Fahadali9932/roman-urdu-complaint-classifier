@@ -45,7 +45,11 @@ export const LandingPage: React.FC = () => {
             <div className="relative inline-block w-full max-w-5xl my-2 sm:my-4">
 
               {/* Monumental Display Headline */}
-              <h1 className="font-display text-[1.95rem] xs:text-[2.4rem] sm:text-5xl md:text-[3.75rem] lg:text-[8rem] xl:text-[10.5rem] text-[#141414] uppercase leading-[0.88] tracking-tight relative z-10">
+              <h1
+                className={`font-display text-[1.95rem] xs:text-[2.4rem] sm:text-5xl md:text-[3.75rem] lg:text-[7.5rem] xl:text-[9.5rem] text-[#141414] uppercase tracking-tight relative z-10 ${
+                  ur ? 'leading-[1.18] sm:leading-[1.12]' : 'leading-[0.88]'
+                }`}
+              >
                 {ur ? (
                   <>
                     <span className="block text-lg sm:text-2xl md:text-3xl text-[#323232] font-medium tracking-normal mb-1">
@@ -67,7 +71,7 @@ export const LandingPage: React.FC = () => {
               <div
                 className={`absolute h-auto pointer-events-none z-20 transition-transform duration-700 ease-out hover:scale-105 ${
                   isRTL
-                    ? '-top-6 sm:-top-10 lg:-top-24 left-0 sm:left-2 md:left-6 lg:left-24 w-16 xs:w-20 sm:w-28 md:w-36 lg:w-56 rotate-[26deg] sm:rotate-[28deg]'
+                    ? '-top-4 xs:-top-5 sm:-top-8 md:-top-14 lg:-top-20 -left-1 xs:left-0 sm:left-2 md:left-5 lg:left-8 w-14 xs:w-16 sm:w-24 md:w-32 lg:w-44 rotate-[20deg] sm:rotate-[22deg]'
                     : '-top-6 sm:-top-10 lg:-top-24 right-0 sm:right-2 md:right-6 lg:right-24 w-16 xs:w-20 sm:w-28 md:w-36 lg:w-56 -rotate-[26deg] sm:-rotate-[28deg]'
                 }`}
                 aria-hidden="true"

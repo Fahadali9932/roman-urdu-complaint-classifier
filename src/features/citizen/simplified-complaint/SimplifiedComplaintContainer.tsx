@@ -11,7 +11,6 @@ import {
   Copy,
   Home,
   Info,
-  ImagePlus,
   Lock,
   Mail,
   MapPin,
@@ -25,6 +24,7 @@ import {
 import { useLanguage } from '../../../context/LanguageContext';
 import { KarachiAreaCombobox } from '../components/KarachiAreaCombobox';
 import { IncidentPinPicker, type IncidentPin } from '../components/IncidentPinPicker';
+import { IssuePhotoCaptureSection } from '../components/IssuePhotoCaptureSection';
 import { verifySindhLocation } from '../../../lib/geo/sindhEligibility';
 import { defaultLocalityResolver } from '../../../data/karachi/locationResolver';
 import { KARACHI_DISTRICTS_DATA } from '../../../data/karachi/districts';
@@ -46,7 +46,17 @@ import {
 } from '../../../types';
 import { MAX_COMPLAINT_WORDS } from '../../../utils/wordCounter';
 
-type Stage = 1 | 2 | 3;
+type Stage = 1 | 2 | 3 | 4;
+
+const DISTRICT_CENTROIDS: Record<KarachiDistrict, { latitude: number; longitude: number }> = {
+  'District Central': { latitude: 24.9144, longitude: 67.0321 },
+  'District East': { latitude: 24.9182, longitude: 67.0971 },
+  'District South': { latitude: 24.8594, longitude: 67.0241 },
+  'District West': { latitude: 24.9450, longitude: 66.9750 },
+  'District Keamari': { latitude: 24.8475, longitude: 66.9854 },
+  'District Korangi': { latitude: 24.8326, longitude: 67.1512 },
+  'District Malir': { latitude: 24.9000, longitude: 67.1900 },
+};
 
 const LEGACY_DRAFT_KEY = 'awaaz_complaint_draft_v1';
 const GUEST_SESSION_KEY = 'awaaz_guest_draft_token_v2';
@@ -201,7 +211,7 @@ export const SimplifiedComplaintContainer: React.FC = () => {
   const [submission, setSubmission] = useState<SubmissionResult | null>(null);
   const [incidentPin, setIncidentPin] = useState<IncidentPin | null>(null);
   const [photo, setPhoto] = useState<File | null>(null);
-  const [photoInputError, setPhotoInputError] = useState('');
+  const [photoPreviewUrl, setPhotoPreviewUrl] = useState<string | null>(null);
   const [evidenceNotice, setEvidenceNotice] = useState('');
   const [photoRetrying, setPhotoRetrying] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
@@ -248,7 +258,11 @@ export const SimplifiedComplaintContainer: React.FC = () => {
       },
     });
     setIncidentPin({ latitude: preset.latitude, longitude: preset.longitude });
-    setStage(3);
+    const dummyBlob = new Blob(['preset-photo-evidence-test-bytes'], { type: 'image/jpeg' });
+    const dummyFile = new File([dummyBlob], 'preset-evidence.jpg', { type: 'image/jpeg' });
+    setPhoto(dummyFile);
+    setPhotoPreviewUrl('');
+    setStage(4);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -345,22 +359,22 @@ export const SimplifiedComplaintContainer: React.FC = () => {
   const emailIsValid = !email || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const complete = [
     Boolean(formData.applicant.citizenName.trim() && phoneIsValid && emailIsValid),
+    Boolean(photo),
     Boolean(
       formData.location.locality &&
       formData.location.district &&
       formData.location.publicLocation.trim() &&
-      formData.applicant.applicantAddress.trim() &&
-      incidentPin &&
-      verifySindhLocation(incidentPin.latitude, incidentPin.longitude).eligible
+      formData.applicant.applicantAddress.trim()
     ),
     words > 0 && words <= MAX_COMPLAINT_WORDS,
   ];
-  const progress = Math.max(0, Math.min(100, ((stage - 1) * 33) + (complete[stage - 1] ? 34 : 12)));
+  const progress = Math.max(0, Math.min(100, ((stage - 1) * 25) + (complete[stage - 1] ? 25 : 8)));
 
   const copy = ur ? {
-    title: 'اپنی شکایت درج کریں', intro: 'تین مختصر مراحل میں اپنا عوامی مسئلہ درج کریں۔',
-    details: 'آپ کی تفصیلات', location: 'مقام', complaint: 'شکایت',
+    title: 'اپنی شکایت درج کریں', intro: 'چار مختصر مراحل میں اپنا عوامی مسئلہ درج کریں۔',
+    details: 'آپ کی تفصیلات', photo: 'مسئلے کی تصویر', location: 'مقام', complaint: 'شکایت',
     detailsLead: 'آپ سے رابطے کے لیے صرف ضروری معلومات لیں گے۔',
+    photoLead: 'مسئلے کی واضح تصویر بنائیں یا اپلوڈ کریں۔',
     locationLead: 'کراچی میں اس عوامی مسئلے کی جگہ بتائیں۔',
     complaintLead: 'اپنے الفاظ میں بتائیں کہ کیا ہوا۔',
     name: 'پورا نام', phone: 'پاکستانی موبائل نمبر', email: 'ای میل (اختیاری)',
@@ -372,9 +386,10 @@ export const SimplifiedComplaintContainer: React.FC = () => {
     streetHelp: 'سڑک، بلاک یا قریبی نشانی مسئلے کی جگہ سمجھنے میں مدد دیتی ہے۔',
     success: 'شکایت درج ہو گئی', close: 'بند کریں',
   } : {
-    title: 'Write your complaint', intro: 'Report a public issue in three straightforward steps.',
-    details: 'Your details', location: 'Location', complaint: 'Complaint',
+    title: 'Write your complaint', intro: 'Report a public issue in four straightforward steps.',
+    details: 'Your details', photo: 'Issue photo', location: 'Location', complaint: 'Complaint',
     detailsLead: 'We only collect the contact details needed to reach you.',
+    photoLead: 'Capture or attach a clear photograph of the issue.',
     locationLead: 'Tell us where this public issue is happening in Karachi.',
     complaintLead: 'Describe what happened in your own words.',
     name: 'Full name', phone: 'Pakistani mobile number', email: 'Email (optional)',
@@ -419,16 +434,23 @@ export const SimplifiedComplaintContainer: React.FC = () => {
       if (!emailIsValid) next.citizenEmail = ur ? 'درست ای میل درج کریں۔' : 'Enter a valid email address.';
     }
     if (target === 2) {
+      if (!photo) {
+        next.photo = ur ? 'براہِ کرم آگے بڑھنے کے لیے مسئلے کی تصویر لیں۔' : 'Please take or attach a photo of the issue to proceed.';
+      }
+    }
+    if (target === 3) {
       if (!formData.location.locality.trim()) next.locality = ur ? 'علاقہ درج کریں۔' : 'Enter an area or locality.';
       if (!formData.location.district) next.district = ur ? 'ضلع منتخب کریں۔' : 'Select a Karachi district.';
       if (!formData.location.publicLocation.trim()) next.publicLocation = ur ? 'قریبی نشانی درج کریں۔' : 'Enter the incident street or landmark.';
       if (!formData.applicant.applicantAddress.trim()) next.applicantAddress = ur ? 'رہائشی پتہ درج کریں۔' : 'Enter your home address.';
-      const pinCheck = verifySindhLocation(incidentPin?.latitude, incidentPin?.longitude);
-      if (!pinCheck.eligible) {
-        next.incidentLocation = ur ? pinCheck.messageUrdu : pinCheck.message;
+      if (incidentPin) {
+        const pinCheck = verifySindhLocation(incidentPin.latitude, incidentPin.longitude);
+        if (!pinCheck.eligible) {
+          next.incidentLocation = ur ? pinCheck.messageUrdu : pinCheck.message;
+        }
       }
     }
-    if (target === 3) {
+    if (target === 4) {
       if (!words) next.description = ur ? 'شکایت کی تفصیل درج کریں۔' : 'Describe the complaint.';
       if (words > MAX_COMPLAINT_WORDS) next.description = ur ? 'شکایت ۲۰۰ الفاظ سے زیادہ ہے۔' : 'Keep the complaint within 200 words.';
     }
@@ -447,9 +469,10 @@ export const SimplifiedComplaintContainer: React.FC = () => {
   };
   const submit = async (overrideAnswer?: ClarificationAnswer) => {
     if (isSubmittingRef.current || isSubmitting) return;
-    if (!validate(3)) return;
+    if (!validate(4)) return;
 
-    const pinCheck = verifySindhLocation(incidentPin?.latitude, incidentPin?.longitude);
+    const effectiveCoords = incidentPin || (formData.location.district ? DISTRICT_CENTROIDS[formData.location.district as KarachiDistrict] : undefined);
+    const pinCheck = verifySindhLocation(effectiveCoords?.latitude, effectiveCoords?.longitude);
     if (!pinCheck.eligible) {
       const msg = ur ? pinCheck.messageUrdu : pinCheck.message;
       setErrors((current) => ({
@@ -493,8 +516,8 @@ export const SimplifiedComplaintContainer: React.FC = () => {
         locality: formData.location.locality,
         district: formData.location.district as KarachiDistrict,
         publicLocation: formData.location.publicLocation,
-        incidentLatitude: incidentPin?.latitude,
-        incidentLongitude: incidentPin?.longitude,
+        incidentLatitude: effectiveCoords?.latitude,
+        incidentLongitude: effectiveCoords?.longitude,
         title: formData.complaint.description.trim().slice(0, 50) || 'Public complaint',
         description: formData.complaint.description.trim(),
         isDemonstration: Boolean(import.meta.env.DEV && isTestMode),
@@ -602,7 +625,7 @@ export const SimplifiedComplaintContainer: React.FC = () => {
     `field-refined w-full px-4 py-3 text-[14px] sm:text-[15px] placeholder:text-[#88827A] ${
       hasError ? 'field-refined-error' : ''
     }`;
-  const stages = [copy.details, copy.location, copy.complaint];
+  const stages = [copy.details, copy.photo, copy.location, copy.complaint];
 
   return (
     <div
@@ -751,7 +774,7 @@ export const SimplifiedComplaintContainer: React.FC = () => {
             aria-label={ur ? 'فارم کی پیش رفت' : 'Form progress'}
           >
             <div className="mb-3 flex items-center justify-between text-xs font-semibold text-[#625D58]">
-              <span>{ur ? `مرحلہ ${stage} از ۳` : `Step ${stage} of 3`}</span>
+              <span>{ur ? `مرحلہ ${stage} از ۴` : `Step ${stage} of 4`}</span>
               <span className="font-mono text-xs font-bold text-[#681822]">
                 {Math.round(progress)}%
               </span>
@@ -768,7 +791,7 @@ export const SimplifiedComplaintContainer: React.FC = () => {
                 style={{ width: `${progress}%` }}
               />
             </div>
-            <ol className="mt-4 grid grid-cols-3 gap-2 text-center">
+            <ol className="mt-4 grid grid-cols-4 gap-1.5 sm:gap-2 text-center">
               {stages.map((label, index) => {
                 const itemStage = (index + 1) as Stage;
                 const active = itemStage === stage;
@@ -778,7 +801,7 @@ export const SimplifiedComplaintContainer: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => (itemStage <= stage || complete[index]) && setStage(itemStage)}
-                      className={`mx-auto flex min-h-9 items-center gap-2 rounded-full px-2 text-xs sm:text-[13px] font-semibold transition ${
+                      className={`mx-auto flex min-h-9 items-center gap-1.5 sm:gap-2 rounded-full px-1.5 sm:px-2 text-xs sm:text-[13px] font-semibold transition ${
                         active ? 'text-[#681822]' : 'text-[#817A73]'
                       } ${
                         itemStage <= stage || complete[index]
@@ -787,7 +810,7 @@ export const SimplifiedComplaintContainer: React.FC = () => {
                       }`}
                     >
                       <span
-                        className={`grid h-6 w-6 place-items-center rounded-full border text-[11px] font-semibold transition-colors ${
+                        className={`grid h-6 w-6 place-items-center rounded-full border text-[11px] font-semibold transition-colors shrink-0 ${
                           passed
                             ? 'border-[#681822] bg-[#681822] text-white'
                             : active
@@ -797,7 +820,7 @@ export const SimplifiedComplaintContainer: React.FC = () => {
                       >
                         {passed ? <Check className="h-3.5 w-3.5" /> : index + 1}
                       </span>
-                      <span className="hidden sm:inline">{label}</span>
+                      <span className="hidden sm:inline truncate">{label}</span>
                     </button>
                   </li>
                 );
@@ -817,7 +840,13 @@ export const SimplifiedComplaintContainer: React.FC = () => {
                     {stages[stage - 1]}
                   </p>
                   <h2 className="mt-0.5 text-lg font-bold text-[#141414] sm:text-xl lg:text-[22px] tracking-tight">
-                    {stage === 1 ? copy.detailsLead : stage === 2 ? copy.locationLead : copy.complaintLead}
+                    {stage === 1
+                      ? copy.detailsLead
+                      : stage === 2
+                        ? copy.photoLead
+                        : stage === 3
+                          ? copy.locationLead
+                          : copy.complaintLead}
                   </h2>
                 </div>
               </div>
@@ -950,6 +979,49 @@ export const SimplifiedComplaintContainer: React.FC = () => {
               )}
 
               {stage === 2 && (
+                <div className="mx-auto max-w-2xl space-y-5 text-start">
+                  <IssuePhotoCaptureSection
+                    photo={photo}
+                    photoPreviewUrl={photoPreviewUrl}
+                    onPhotoCaptured={(compressedFile, previewUrl) => {
+                      setPhoto(compressedFile);
+                      setPhotoPreviewUrl(previewUrl);
+                      setErrors((current) => {
+                        const next = { ...current };
+                        delete next.photo;
+                        return next;
+                      });
+                    }}
+                    onPhotoRemoved={() => {
+                      setPhoto(null);
+                      setPhotoPreviewUrl(null);
+                    }}
+                    error={errors.photo}
+                    isSubmitting={isSubmitting}
+                  />
+
+                  <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-between">
+                    <button
+                      type="button"
+                      onClick={() => setStage(1)}
+                      className="inline-flex min-h-[50px] items-center justify-center gap-2 rounded-xl border border-[#D9D3CC] bg-[#FAF9F7] px-5 text-sm sm:text-[15px] font-semibold text-[#171717] hover:bg-[#F2EFEA] transition cursor-pointer"
+                    >
+                      <ArrowLeft className={`h-4 w-4 ${isRTL ? 'rotate-180' : ''}`} />
+                      {copy.back}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={continueStage}
+                      className="inline-flex min-h-[50px] w-full items-center justify-center gap-2 rounded-xl bg-[#681822] px-6 text-sm sm:text-[15px] font-bold text-white shadow-[0_4px_16px_rgba(104,24,34,0.20)] transition hover:bg-[#53131B] active:scale-[0.99] sm:w-auto cursor-pointer"
+                    >
+                      <span>{copy.continue}</span>
+                      <ChevronRight className={`h-4 w-4 ${isRTL ? 'rotate-180' : ''}`} />
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {stage === 3 && (
                 <form
                   noValidate
                   onSubmit={(event) => {
@@ -1060,7 +1132,7 @@ export const SimplifiedComplaintContainer: React.FC = () => {
                   <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-between">
                     <button
                       type="button"
-                      onClick={() => setStage(1)}
+                      onClick={() => setStage(2)}
                       className="inline-flex min-h-[50px] items-center justify-center gap-2 rounded-xl border border-[#D9D3CC] bg-[#FAF9F7] px-5 text-sm sm:text-[15px] font-semibold text-[#171717] hover:bg-[#F2EFEA] transition cursor-pointer"
                     >
                       <ArrowLeft className={`h-4 w-4 ${isRTL ? 'rotate-180' : ''}`} />
@@ -1071,7 +1143,7 @@ export const SimplifiedComplaintContainer: React.FC = () => {
                 </form>
               )}
 
-              {stage === 3 && (
+              {stage === 4 && (
                 <form
                   noValidate
                   onSubmit={(event) => {
@@ -1155,32 +1227,6 @@ export const SimplifiedComplaintContainer: React.FC = () => {
                         {ur ? 'شکایت ۲۰۰ الفاظ سے زیادہ ہے۔' : 'Keep the complaint within 200 words.'}
                       </p>
                     )}
-                  </div>
-
-                  <div className="rounded-2xl border border-[#DED9D3] bg-[#FAF9F7] p-4 sm:p-5">
-                    <label htmlFor="incident-photo" className="flex items-center gap-2 text-sm font-bold text-[#171717]">
-                      <ImagePlus className="h-5 w-5 text-[#681822]" /> Photo of the issue (optional)
-                    </label>
-                    <p className="my-2 text-xs leading-relaxed text-[#6B6864]">
-                      Add one JPG, PNG or WebP image, maximum 1 MB. Avoid faces, identity documents and house numbers. Only authorized staff can view it.
-                    </p>
-                    <input
-                      id="incident-photo" type="file" accept="image/jpeg,image/png,image/webp"
-                      className="block w-full text-xs file:mr-3 file:rounded-lg file:border file:border-[#D9D3CC] file:bg-white file:px-3 file:py-2 file:font-bold file:text-[#681822]"
-                      onChange={(event) => {
-                        const selected = event.currentTarget.files?.[0] || null;
-                        if (selected && (selected.size > 1024 * 1024 || !['image/jpeg', 'image/png', 'image/webp'].includes(selected.type))) {
-                          setPhoto(null);
-                          setPhotoInputError('Choose a JPG, PNG or WebP image no larger than 1 MB.');
-                          event.currentTarget.value = '';
-                        } else {
-                          setPhoto(selected);
-                          setPhotoInputError('');
-                        }
-                      }}
-                    />
-                    {photo && <p className="mt-2 text-xs font-semibold text-[#126B53]">Selected: {photo.name}</p>}
-                    {photoInputError && <p className="mt-2 text-xs font-semibold text-[#B4233E]" role="alert">{photoInputError}</p>}
                   </div>
 
                   {activeClarification && (
@@ -1283,7 +1329,7 @@ export const SimplifiedComplaintContainer: React.FC = () => {
                   <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-between">
                     <button
                       type="button"
-                      onClick={() => setStage(2)}
+                      onClick={() => setStage(3)}
                       disabled={isSubmitting}
                       className="inline-flex min-h-[50px] items-center justify-center gap-2 rounded-xl border border-[#D9D3CC] bg-[#FAF9F7] px-5 text-sm sm:text-[15px] font-semibold text-[#171717] hover:bg-[#F2EFEA] disabled:opacity-50 transition cursor-pointer"
                     >
@@ -1327,7 +1373,7 @@ export const SimplifiedComplaintContainer: React.FC = () => {
             }}
             onReset={() => {
               setSubmission(null);
-              setStage(3);
+              setStage(4);
             }}
           />
         ) : (
