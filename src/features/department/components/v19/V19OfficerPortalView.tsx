@@ -315,14 +315,17 @@ export const V19OfficerPortalView: React.FC<V19OfficerPortalViewProps> = ({
           <OfficerNotificationsView
             notifications={notifications}
             onMarkAsRead={async (id) => {
-              await fieldOperations.markNotificationRead(id).catch(() => null);
               setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
+              await fieldOperations.markNotificationRead(id).catch(() => null);
             }}
             onMarkAllAsRead={async () => {
-              await Promise.all(
-                notifications.filter((n) => !n.read).map((n) => fieldOperations.markNotificationRead(n.id).catch(() => null))
-              );
               setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+              const unreadNotifs = notifications.filter((n) => !n.read);
+              if (unreadNotifs.length > 0) {
+                await Promise.all(
+                  unreadNotifs.map((n) => fieldOperations.markNotificationRead(n.id).catch(() => null))
+                );
+              }
             }}
             onNavigateToOrder={(_orderId) => {
               setActiveTab('work');

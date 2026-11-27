@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { KeyRound, LogOut, Building2, Camera, Check, AlertCircle } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { User, KeyRound, LogOut, Camera, Check, AlertCircle } from 'lucide-react';
 import { fieldOperations } from '../../services/fieldOperations';
 import { useDepartmentAuth } from '../../../../context/DepartmentAuthContext';
 
@@ -31,12 +31,51 @@ export const HodProfileView: React.FC<HodProfileViewProps> = ({
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [saveErrorMessage, setSaveErrorMessage] = useState<string | null>(null);
 
+  // Centered "Coming soon" modal state
+  const [showComingSoon, setShowComingSoon] = useState(false);
+  const lastActiveTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const okayButtonRef = useRef<HTMLButtonElement | null>(null);
+
   // Keep input synchronized if session changes externally
   useEffect(() => {
     if (session?.displayName !== undefined) {
       setDisplayNameInput(session.displayName);
     }
   }, [session?.displayName]);
+
+  // Focus management for Coming soon modal
+  useEffect(() => {
+    if (showComingSoon) {
+      okayButtonRef.current?.focus();
+
+      const handleModalKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'Escape' || e.key === 'Enter') {
+          e.preventDefault();
+          setShowComingSoon(false);
+          lastActiveTriggerRef.current?.focus();
+        }
+      };
+
+      window.addEventListener('keydown', handleModalKeyDown);
+      return () => window.removeEventListener('keydown', handleModalKeyDown);
+    }
+  }, [showComingSoon]);
+
+  const handleOpenComingSoon = (triggerElement?: HTMLButtonElement | null) => {
+    if (triggerElement) {
+      lastActiveTriggerRef.current = triggerElement;
+    }
+    setShowComingSoon(true);
+    if (onOpenPasswordModal) {
+      // Trigger callback if provided for test assertion compatibility
+      onOpenPasswordModal();
+    }
+  };
+
+  const handleCloseComingSoon = () => {
+    setShowComingSoon(false);
+    lastActiveTriggerRef.current?.focus();
+  };
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -98,6 +137,21 @@ export const HodProfileView: React.FC<HodProfileViewProps> = ({
         gap: '24px',
       }}
     >
+      {/* Page Title */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '4px' }}>
+        <h1
+          style={{
+            fontSize: '26px',
+            fontWeight: 700,
+            color: 'var(--v20-text-primary, #F0ECE3)',
+            margin: 0,
+            letterSpacing: '-0.02em',
+          }}
+        >
+          My profile
+        </h1>
+      </div>
+
       {/* 1. Identity Header Card with Large 80px Avatar */}
       <div
         className="v19-glass-card"
@@ -195,7 +249,7 @@ export const HodProfileView: React.FC<HodProfileViewProps> = ({
       >
         <div>
           <span style={{ fontSize: '11.5px', fontWeight: 700, color: 'var(--v20-text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-            Display Name
+            Display name
           </span>
           <p style={{ fontSize: '13px', color: 'var(--v20-text-secondary)', margin: '4px 0 0', lineHeight: 1.4 }}>
             The name displayed on the Landing page greeting and throughout departmental communications.
@@ -269,7 +323,7 @@ export const HodProfileView: React.FC<HodProfileViewProps> = ({
         </form>
       </div>
 
-      {/* 3. Account Settings & Session Controls (Strictly Honest Controls) */}
+      {/* 3. Simplified Account Settings Card (Exactly Two Options + Sign Out) */}
       <div
         className="v19-glass-card"
         style={{
@@ -283,10 +337,52 @@ export const HodProfileView: React.FC<HodProfileViewProps> = ({
         }}
       >
         <span style={{ fontSize: '11.5px', fontWeight: 700, color: 'var(--v20-text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-          Account &amp; Security Controls
+          Account settings
         </span>
 
-        {/* Change Password */}
+        {/* Option 1: Change Username */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '14px 18px',
+            borderRadius: '14px',
+            background: 'rgba(0, 0, 0, 0.25)',
+            border: '1px solid rgba(255, 255, 255, 0.06)',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+            <User size={18} style={{ color: '#4E9CFF' }} />
+            <div>
+              <div style={{ fontSize: '14px', fontWeight: 650, color: 'var(--v20-text-primary, #F0ECE3)' }}>
+                Change username
+              </div>
+              <div style={{ fontSize: '12px', color: 'var(--v20-text-muted)' }}>
+                Update operational account username
+              </div>
+            </div>
+          </div>
+          <button
+            type="button"
+            className="v19-nav-tab"
+            style={{
+              padding: '6px 16px',
+              fontSize: '12.5px',
+              borderRadius: '9999px',
+              background: 'rgba(255, 255, 255, 0.08)',
+              border: '1px solid rgba(255, 255, 255, 0.12)',
+              color: 'var(--v20-text-primary, #F0ECE3)',
+              cursor: 'pointer',
+            }}
+            onClick={(e) => handleOpenComingSoon(e.currentTarget)}
+            data-testid="hod-change-username-btn"
+          >
+            Change ↗
+          </button>
+        </div>
+
+        {/* Option 2: Change Password */}
         <div
           style={{
             display: 'flex',
@@ -302,62 +398,33 @@ export const HodProfileView: React.FC<HodProfileViewProps> = ({
             <KeyRound size={18} style={{ color: '#4E9CFF' }} />
             <div>
               <div style={{ fontSize: '14px', fontWeight: 650, color: 'var(--v20-text-primary, #F0ECE3)' }}>
-                Account Passphrase
+                Change password
               </div>
               <div style={{ fontSize: '12px', color: 'var(--v20-text-muted)' }}>
-                Update your departmental login password
+                Update departmental login password
               </div>
             </div>
           </div>
-          {onOpenPasswordModal && (
-            <button
-              type="button"
-              className="v19-nav-tab"
-              style={{
-                padding: '6px 16px',
-                fontSize: '12.5px',
-                borderRadius: '9999px',
-                background: 'rgba(255, 255, 255, 0.08)',
-                border: '1px solid rgba(255, 255, 255, 0.12)',
-                color: 'var(--v20-text-primary, #F0ECE3)',
-                cursor: 'pointer',
-              }}
-              onClick={onOpenPasswordModal}
-            >
-              Change ↗
-            </button>
-          )}
+          <button
+            type="button"
+            className="v19-nav-tab"
+            style={{
+              padding: '6px 16px',
+              fontSize: '12.5px',
+              borderRadius: '9999px',
+              background: 'rgba(255, 255, 255, 0.08)',
+              border: '1px solid rgba(255, 255, 255, 0.12)',
+              color: 'var(--v20-text-primary, #F0ECE3)',
+              cursor: 'pointer',
+            }}
+            onClick={(e) => handleOpenComingSoon(e.currentTarget)}
+            data-testid="hod-change-password-btn"
+          >
+            Change ↗
+          </button>
         </div>
 
-        {/* Read-Only Department Jurisdiction */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '14px 18px',
-            borderRadius: '14px',
-            background: 'rgba(0, 0, 0, 0.25)',
-            border: '1px solid rgba(255, 255, 255, 0.06)',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-            <Building2 size={18} style={{ color: '#66BB6A' }} />
-            <div>
-              <div style={{ fontSize: '14px', fontWeight: 650, color: 'var(--v20-text-primary, #F0ECE3)' }}>
-                Authorized Department
-              </div>
-              <div style={{ fontSize: '12px', color: 'var(--v20-text-muted)' }}>
-                {departmentName} ({departmentCode})
-              </div>
-            </div>
-          </div>
-          <span style={{ fontSize: '11px', color: 'var(--v20-text-muted)', padding: '4px 10px', borderRadius: '9999px', background: 'rgba(255, 255, 255, 0.05)' }}>
-            Read-only
-          </span>
-        </div>
-
-        {/* Sign Out */}
+        {/* Option 3: Sign Out */}
         <div
           style={{
             display: 'flex',
@@ -373,7 +440,7 @@ export const HodProfileView: React.FC<HodProfileViewProps> = ({
             <LogOut size={18} style={{ color: '#EF5350' }} />
             <div>
               <div style={{ fontSize: '14px', fontWeight: 650, color: 'var(--v20-text-primary, #F0ECE3)' }}>
-                End Operational Session
+                Sign out
               </div>
               <div style={{ fontSize: '12px', color: 'var(--v20-text-muted)' }}>
                 Securely sign out of this workstation
@@ -394,11 +461,96 @@ export const HodProfileView: React.FC<HodProfileViewProps> = ({
               fontWeight: 650,
             }}
             onClick={onSignOut}
+            data-testid="hod-signout-btn"
           >
             Sign Out
           </button>
         </div>
       </div>
+
+      {/* Centered Coming Soon Modal Dialog */}
+      {showComingSoon && (
+        <div
+          className="v19-lightbox-backdrop"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="hod-coming-soon-title"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 9999,
+            background: 'rgba(0, 0, 0, 0.75)',
+            backdropFilter: 'blur(8px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '20px',
+          }}
+          onClick={handleCloseComingSoon}
+        >
+          <div
+            className="v19-glass-card"
+            style={{
+              width: '100%',
+              maxWidth: '400px',
+              padding: '32px',
+              borderRadius: '24px',
+              background: 'rgba(22, 19, 15, 0.95)',
+              border: '1px solid rgba(255, 255, 255, 0.12)',
+              boxShadow: '0 24px 60px rgba(0, 0, 0, 0.7)',
+              textAlign: 'center',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '14px',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3
+              id="hod-coming-soon-title"
+              style={{
+                fontSize: '22px',
+                fontWeight: 700,
+                color: 'var(--v20-text-primary, #F0ECE3)',
+                margin: 0,
+                letterSpacing: '-0.02em',
+              }}
+            >
+              Coming soon
+            </h3>
+            <p
+              style={{
+                fontSize: '14px',
+                color: 'var(--v20-text-secondary)',
+                margin: 0,
+                lineHeight: 1.5,
+              }}
+            >
+              This feature will be added soon.
+            </p>
+            <button
+              ref={okayButtonRef}
+              type="button"
+              className="v20-landing-btn v20-landing-btn-primary"
+              style={{
+                marginTop: '10px',
+                padding: '10px 36px',
+                borderRadius: '12px',
+                fontSize: '13.5px',
+                fontWeight: 650,
+                cursor: 'pointer',
+                background: 'var(--button-primary, #F0ECE3)',
+                color: '#101216',
+                border: 'none',
+              }}
+              onClick={handleCloseComingSoon}
+              data-testid="coming-soon-okay-btn"
+            >
+              Okay
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

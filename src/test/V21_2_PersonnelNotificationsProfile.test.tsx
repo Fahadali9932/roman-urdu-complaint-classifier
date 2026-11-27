@@ -251,10 +251,10 @@ describe('AWAAZ-E-AWAM V21.2 — Personnel, Notifications & Profile Refinement',
       expect(screen.getByText('Active Account')).toBeInTheDocument();
       expect(screen.getByText('Online · Operational')).toBeInTheDocument();
 
-      // Operational Tabs
-      expect(screen.getByRole('button', { name: /Active Tasks/i })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /Work History/i })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /Supervisory Notices/i })).toBeInTheDocument();
+      // Operational Sections
+      expect(screen.getByText(/Current Assignments/i)).toBeInTheDocument();
+      expect(screen.getByText(/Work History/i)).toBeInTheDocument();
+      expect(screen.getByText(/Warnings & Extension Requests/i)).toBeInTheDocument();
 
       // Active task content
       expect(screen.getByText('Pothole restoration near NED University')).toBeInTheDocument();
@@ -475,13 +475,13 @@ describe('AWAAZ-E-AWAM V21.2 — Personnel, Notifications & Profile Refinement',
         </DepartmentAuthProvider>
       );
 
-      expect(screen.getByText('Account & Jurisdiction')).toBeInTheDocument();
-      expect(screen.getByText('Officer Passphrase')).toBeInTheDocument();
-      expect(screen.getByText('Authorized Department')).toBeInTheDocument();
-      expect(screen.getByText(/Roads & Infrastructure \(KMC\)/i)).toBeInTheDocument();
+      expect(screen.getByText('Account settings')).toBeInTheDocument();
+      expect(screen.getByText('Change username')).toBeInTheDocument();
+      expect(screen.getByText('Change password')).toBeInTheDocument();
 
-      // Password modal trigger
-      fireEvent.click(screen.getByRole('button', { name: /Change ↗/i }));
+      // Password modal trigger (first Change ↗ button)
+      const changeButtons = screen.getAllByRole('button', { name: /Change ↗/i });
+      fireEvent.click(changeButtons[1]); // Change password
       expect(onOpenPassword).toHaveBeenCalled();
 
       // Sign out trigger

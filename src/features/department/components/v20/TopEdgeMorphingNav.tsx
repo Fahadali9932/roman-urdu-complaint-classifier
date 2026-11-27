@@ -4,6 +4,8 @@ import { trustedTimeService } from '../../../../services/trustedTimeService';
 
 declare const process: any;
 
+export type NavInteractionState = 'collapsed' | 'opening' | 'expanded' | 'closing';
+
 export interface V20NavOption {
   id: string;
   label: string;
@@ -103,13 +105,14 @@ function computeSvgPath(viewportWidth: number, w: number, h: number): string {
 }
 
 /**
- * Re-engineered TopEdgeMorphingNav
+ * Re-engineered TopEdgeMorphingNav (V21.3 Deterministic Interaction Controller)
  * Improvements:
- * - Frame-rate-independent spring animation using monotonic timestamps (dt).
+ * - Deterministic 4-state controller ('collapsed' | 'opening' | 'expanded' | 'closing').
+ * - isManualCloseRef prevents hover re-opening when user manually closes via toggle, Esc, or tab select.
+ * - Removed focus-trapped pointerLeave block: 100% immune to stuck expanded state.
+ * - Frame-rate independent spring physics loop using monotonic dt timestamps.
  * - Direct DOM SVG attribute mutation on RAF: zero React component re-renders during motion.
  * - Clock ticks isolated into memoized V20HeaderClock component.
- * - Interruptible animations: opening or closing midway transitions smoothly without snapping.
- * - Accessible keyboard navigation and proper collapse state.
  */
 export const TopEdgeMorphingNav: React.FC<TopEdgeMorphingNavProps> = ({
   departmentCode,
@@ -125,6 +128,7 @@ export const TopEdgeMorphingNav: React.FC<TopEdgeMorphingNavProps> = ({
   onOpenNotifications,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [navState, setNavState] = useState<NavInteractionState>('collapsed');
   const [viewportWidth, setViewportWidth] = useState(() =>
     typeof window !== 'undefined' ? window.innerWidth : 1440
   );
@@ -138,6 +142,7 @@ export const TopEdgeMorphingNav: React.FC<TopEdgeMorphingNavProps> = ({
   const rafRef = useRef<number>(0);
   const lastTimeRef = useRef<number>(0);
   const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isManualCloseRef = useRef(false);
 
   // Default tabs for role
   const destinations: V20NavOption[] = tabs ?? [
@@ -184,7 +189,7 @@ export const TopEdgeMorphingNav: React.FC<TopEdgeMorphingNavProps> = ({
 
   const isMobile = viewportWidth < 768;
   // Dynamic layout sizing:
-  // - Flat bottom span must accommodate all destination buttons plus notification bell
+  // - Flat bottom span accommodates all destination buttons plus notification bell
   // - 28-32px safe horizontal padding beyond outermost controls
   // - 54px curved shoulder margins (2k)
   // - Dedicated non-overlapping slot for close toggle button on right
@@ -213,14 +218,15 @@ export const TopEdgeMorphingNav: React.FC<TopEdgeMorphingNavProps> = ({
       if (pathRef.current) {
         pathRef.current.setAttribute('d', computeSvgPath(viewportWidth, targetW, targetH));
       }
+      setNavState(isOpen ? 'expanded' : 'collapsed');
       return;
     }
 
-    // Calm, elegant, slow spring dynamics:
-    // Opening: 550-750ms (k=70, c=16.5)
-    // Closing: 450-650ms (k=95, c=19.5)
-    const stiffness = isOpen ? 70 : 95;
-    const damping = isOpen ? 16.5 : 19.5;
+    // Calm, elegant, smooth spring dynamics:
+    // Opening: 600-750ms (k=68, c=16)
+    // Closing: 500-650ms (k=92, c=19)
+    const stiffness = isOpen ? 68 : 92;
+    const damping = isOpen ? 16 : 19;
 
     const dw = targetW - currentDims.current.w;
     const dh = targetH - currentDims.current.h;
@@ -246,6 +252,7 @@ export const TopEdgeMorphingNav: React.FC<TopEdgeMorphingNavProps> = ({
       currentDims.current.h = targetH;
       currentDims.current.vw = 0;
       currentDims.current.vh = 0;
+      setNavState(isOpen ? 'expanded' : 'collapsed');
     }
 
     // Direct DOM mutation for SVG geometry (ZERO React renders during motion)
@@ -292,13 +299,23 @@ export const TopEdgeMorphingNav: React.FC<TopEdgeMorphingNavProps> = ({
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isOpen) {
+        isManualCloseRef.current = true;
         setIsOpen(false);
+        setNavState('closing');
+        if (navRef.current?.contains(document.activeElement)) {
+          (document.activeElement as HTMLElement)?.blur();
+        }
         triggerRef.current?.focus();
       }
     };
     const handlePointerDown = (e: PointerEvent) => {
       if (isOpen && navRef.current && !navRef.current.contains(e.target as Node)) {
+        isManualCloseRef.current = false;
         setIsOpen(false);
+        setNavState('closing');
+        if (navRef.current?.contains(document.activeElement)) {
+          (document.activeElement as HTMLElement)?.blur();
+        }
       }
     };
     document.addEventListener('keydown', handleKeyDown);
@@ -309,28 +326,60 @@ export const TopEdgeMorphingNav: React.FC<TopEdgeMorphingNavProps> = ({
     };
   }, [isOpen]);
 
-  // Deliberate hover handlers (0ms enter delay for immediate responsiveness, 300ms leave debounce)
+  // Deliberate hover handlers (0ms enter delay for immediate responsiveness, 250ms leave debounce)
   const handlePointerEnter = (e: React.PointerEvent) => {
     if (e.pointerType === 'mouse') {
-      if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+      if (hoverTimerRef.current) {
+        clearTimeout(hoverTimerRef.current);
+        hoverTimerRef.current = null;
+      }
+      // If user deliberately closed manually, don't reopen until cursor leaves the container
+      if (isManualCloseRef.current) return;
+
       setIsOpen(true);
+      setNavState((s) => (s === 'expanded' ? 'expanded' : 'opening'));
     }
   };
 
   const handlePointerLeave = (e: React.PointerEvent) => {
     if (e.pointerType === 'mouse') {
       if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+      // Reset manual close flag when mouse fully leaves the header
+      isManualCloseRef.current = false;
+
       hoverTimerRef.current = setTimeout(() => {
-        if (!navRef.current?.contains(document.activeElement)) {
-          setIsOpen(false);
+        setIsOpen(false);
+        setNavState('closing');
+        if (navRef.current?.contains(document.activeElement)) {
+          (document.activeElement as HTMLElement)?.blur();
         }
-      }, 300);
+      }, 250);
+    }
+  };
+
+  const handleToggle = () => {
+    if (isOpen) {
+      isManualCloseRef.current = true;
+      setIsOpen(false);
+      setNavState('closing');
+      if (navRef.current?.contains(document.activeElement)) {
+        (document.activeElement as HTMLElement)?.blur();
+      }
+    } else {
+      isManualCloseRef.current = false;
+      setIsOpen(true);
+      setNavState('opening');
     }
   };
 
   const handleSelectTab = (tabId: string) => {
     onSelectTab(tabId);
+    isManualCloseRef.current = true;
     setIsOpen(false);
+    setNavState('closing');
+    if (navRef.current?.contains(document.activeElement)) {
+      (document.activeElement as HTMLElement)?.blur();
+    }
     triggerRef.current?.focus();
   };
 
@@ -339,7 +388,9 @@ export const TopEdgeMorphingNav: React.FC<TopEdgeMorphingNavProps> = ({
   return (
     <header
       id="header"
-      className={`v20-top-edge-nav-container ${isOpen ? 'open' : ''}`}
+      className={`v20-top-edge-nav-container ${isOpen ? 'open' : ''} state-${navState}`}
+      data-testid="v20-top-edge-nav"
+      data-nav-state={navState}
       ref={navRef}
       onPointerEnter={handlePointerEnter}
       onPointerLeave={handlePointerLeave}
@@ -412,7 +463,7 @@ export const TopEdgeMorphingNav: React.FC<TopEdgeMorphingNavProps> = ({
         aria-controls="v20-nav-destinations"
         aria-label={isOpen ? 'Close navigation' : 'Open navigation'}
         data-testid="v20-nav-toggle"
-        onClick={() => setIsOpen((prev) => !prev)}
+        onClick={handleToggle}
       >
         {isOpen ? (
           <X size={20} />

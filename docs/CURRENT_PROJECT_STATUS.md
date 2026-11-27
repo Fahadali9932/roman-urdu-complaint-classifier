@@ -5,6 +5,44 @@ Verified on **27 November 2026 (Pakistan time)**. Internal delivery target:
 This document distinguishes inspected source, automated checks, and unverified
 hosted behavior. Update it after every significant verified milestone.
 
+## Development update, 27 November 2026 — Phase V21.3: Final Personnel & Interaction Corrections (Enlarged Officer Cards, Parallax Scroll Motion, Comprehensive Officer Personnel File, Simplified Profile "Coming Soon" Modals, "Mark All Read" Optimistic Fix & Deterministic Morphing Navbar Controller)
+
+- **Git & Protected Baseline (`D:\RomanUrdu_V13_19_Review`, branch `fix/v21-3-final-personnel-and-interactions`):**
+  - Branched from V21.2 commit (`2ef0df7`) with safety rollback checkpoint tag `checkpoint/v21-2-before-v21-3` pushed to remote.
+  - Dedicated branch `fix/v21-3-final-personnel-and-interactions` tracked on `origin`.
+  - Protected primary worktree `D:\RomanUrdu_ComplaintClassifier_staff_auth` remained **100% untouched**.
+  - Total expenditure: **$0.00**; zero paid external APIs, fonts, or credit card dependencies.
+  - Zero database schema migrations applied; production DB `akbwiedtmxjxcjscgitw` and staging DB `jvbulmmdwovtgaxojxhn` remain completely untouched.
+- **Architectural Deliverables & Verification:**
+  - **Enlarged Officer Cards & Prominent Standalone Metrics (`HodOfficersView.tsx`):**
+    - 20–25% larger proportions: card width 340–400px, min-height 330px, padding 30px with 28px corner radius.
+    - Large 84px circular avatar with 34px bold initials; 19px name type.
+    - Standalone prominent numerical stats (Assigned, Resolved, Overdue) without nested card boxes; neutral ivory/charcoal/silver styling with zero yellow accents.
+    - Responsive 3-col desktop (1920/1440), 2-col tablet (768), 1-col mobile (390/320).
+  - **Parallax Scroll Motion Depth Integration (`HodOfficersView.tsx`):**
+    - Exact subtle scroll-linked depth effect from `ParallaxComplaintList.tsx` applied to officer cards with single RAF loop, `perspective: 800px`, bounded scale (1.0 -> 0.97), translateY (14px), translateZ (-20px), and sticky ceiling at 140px. Respects `prefers-reduced-motion`.
+  - **Comprehensive Individual Officer Personnel File (`HodOfficersView.tsx`):**
+    - Authoritative personnel file with clear `← Back to officers` preserving search and scroll state.
+    - Sections: identity header (92px avatar, presence indicator, officer ID), personnel info grid, performance overview (rating, on-time rate, assigned, resolved, overdue), full-width active assignments with PKT deadlines and supervisor instructions, work history, warnings & extension requests, and dedicated administrative controls (Issue formal warning, Suspend/Reactivate) with modal confirmation dialogs. Natural document scrolling throughout.
+  - **Simplified Profile Settings & Centered "Coming Soon" Modals (`HodProfileView.tsx` & `OfficerProfileView.tsx`):**
+    - Removed "Account Passphrase" and "Authorized Department" rows.
+    - Added exactly two account settings: "Change username" and "Change password", each opening a centered modal dialog (Title: "Coming soon", Message: "This feature will be added soon.", Button: "Okay") with Escape/Enter keyboard dismissal and focus restoration.
+    - Retained "Sign out" and working profile photo upload, display name editing with live Landing page synchronization and "Admin" fallback when empty.
+  - **Optimistic "Mark All as Read" & Derived Alert Resolution (`StaffNotificationsView.tsx`, `V19HodPortalView.tsx`, `V19OfficerPortalView.tsx`):**
+    - Fixed root cause: synthetic alerts (`overdue-*`, `ext-*`, `verif-pending`) tracked via `dismissedDerivedIds` so unread count reaches 0 and navbar badge clears immediately.
+    - Added optimistic local read state, in-flight button disablement, and loading indicator. Bounded execution with zero UI lag.
+  - **Deterministic Morphing Navbar Interaction Controller (`TopEdgeMorphingNav.tsx`):**
+    - Fixed root cause: removed activeElement focus-trapping blocker in `handlePointerLeave` that prevented navbar from closing when any tab button was clicked.
+    - Implemented 4-state deterministic controller (`'collapsed' | 'opening' | 'expanded' | 'closing'`) with `isManualCloseRef` to prevent premature re-opening when manually toggled.
+    - Verified 30 consecutive open/close cycles in real Chrome with **0 stuck states**.
+- **Automated Quality Gates & Test Verification:**
+  - TypeScript build (`npx tsc -b && npm run build`): **Exit code `0` cleanly (0 errors, bundled in 2.23s)**.
+  - Vitest test suite (`npm test -- --run`): **79 passed | 1 skipped across 80 test suites (784 passed | 1 skipped across 785 tests total, 0 regressions)**.
+  - Dedicated new test suite: `src/test/V21_3_InteractionCorrections.test.tsx` (**11 passed in 588ms**).
+  - Headless Chrome CDP Verification (`tools/ai_factory/capture_v21_3_qa.mjs`):
+    - Captured 18 high-resolution screenshots across Desktop (1920/1440), Tablet (768), and Mobile (390/320).
+    - Verified 30-cycle open/close interaction in real Chrome with zero stuck states.
+
 ## Development update, 27 November 2026 — Phase V21.2: Final Personnel, Notifications & Profile Refinement (3-Column Officer Directory, Dedicated Full-Width Officer File, Dedicated Full-Page Notifications & Live Editable Display Name Synchronization)
 
 - **Git & Protected Baseline (`D:\RomanUrdu_V13_19_Review`, branch `fix/v21-2-final-personnel-notifications-profile`):**

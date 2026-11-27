@@ -56,6 +56,7 @@ export const V19HodPortalView: React.FC<V19HodPortalViewProps> = ({
   const [currentTime] = useState<number>(() => Date.now());
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [departmentNotifs, setDepartmentNotifs] = useState<any[]>([]);
+  const [dismissedDerivedIds, setDismissedDerivedIds] = useState<Set<string>>(new Set());
 
   // Load operational data
   useEffect(() => {
@@ -255,7 +256,7 @@ export const V19HodPortalView: React.FC<V19HodPortalViewProps> = ({
       message: n.message,
       type: (n.notification_type === 'warning' ? 'warning' : 'general') as any,
       createdAt: n.created_at || new Date().toISOString(),
-      read: Boolean(n.is_read),
+      read: Boolean(n.is_read) || dismissedDerivedIds.has(String(n.id)),
       linkUrl: n.link_url,
     })),
     ...overdueOrders.map((o) => ({
@@ -264,7 +265,7 @@ export const V19HodPortalView: React.FC<V19HodPortalViewProps> = ({
       message: `Work Order #${o.id.slice(0, 8)} (${o.case_label}) assigned to officer ${o.officer_id} is overdue.`,
       type: 'overdue' as const,
       createdAt: o.due_at,
-      read: false,
+      read: dismissedDerivedIds.has(`overdue-${o.id}`),
       orderId: o.id,
     })),
     ...extensionRequests.map((o) => ({
@@ -273,7 +274,7 @@ export const V19HodPortalView: React.FC<V19HodPortalViewProps> = ({
       message: `Officer ${o.officer_id} requested deadline extension for #${o.id.slice(0, 8)} (${o.case_label}): ${o.extension_reason || 'Fieldwork delay'}.`,
       type: 'extension' as const,
       createdAt: o.extension_requested_due_at || new Date().toISOString(),
-      read: false,
+      read: dismissedDerivedIds.has(`ext-${o.id}`),
       orderId: o.id,
     })),
     ...(verificationPendingCount > 0
@@ -284,13 +285,13 @@ export const V19HodPortalView: React.FC<V19HodPortalViewProps> = ({
             message: `${verificationPendingCount} field order resolutions submitted with on-site GPS evidence await HOD supervisory inspection.`,
             type: 'verification' as const,
             createdAt: new Date().toISOString(),
-            read: false,
+            read: dismissedDerivedIds.has('verif-pending'),
           },
         ]
       : []),
   ];
 
-  const unreadCount = overdueOrders.length + extensionRequests.length + verificationPendingCount + departmentNotifs.filter(n => !n.is_read).length;
+  const unreadCount = combinedNotifs.filter((n) => !n.read).length;
 
   return (
     <V20PortalLayout
@@ -466,14 +467,26 @@ export const V19HodPortalView: React.FC<V19HodPortalViewProps> = ({
         <StaffNotificationsView
           notifications={combinedNotifs}
           onMarkAsRead={async (id) => {
-            await fieldOperations.markNotificationRead(id).catch(() => null);
-            setDepartmentNotifs((prev) => prev.map((n) => (String(n.id) === id ? { ...n, is_read: true } : n)));
+            setDismissedDerivedIds((prev) => new Set(prev).add(id));
+            if (!id.startsWith('overdue-') && !id.startsWith('ext-') && id !== 'verif-pending') {
+              await fieldOperations.markNotificationRead(id).catch(() => null);
+              setDepartmentNotifs((prev) => prev.map((n) => (String(n.id) === id ? { ...n, is_read: true } : n)));
+            }
           }}
           onMarkAllAsRead={async () => {
-            await Promise.all(
-              departmentNotifs.filter((n) => !n.is_read).map((n) => fieldOperations.markNotificationRead(n.id).catch(() => null))
-            );
+            const allIds = combinedNotifs.map((n) => n.id);
+            setDismissedDerivedIds((prev) => {
+              const next = new Set(prev);
+              allIds.forEach((id) => next.add(id));
+              return next;
+            });
             setDepartmentNotifs((prev) => prev.map((n) => ({ ...n, is_read: true })));
+            const realUnreadNotifs = departmentNotifs.filter((n) => !n.is_read);
+            if (realUnreadNotifs.length > 0) {
+              await Promise.all(
+                realUnreadNotifs.map((n) => fieldOperations.markNotificationRead(n.id).catch(() => null))
+              );
+            }
           }}
           onNavigateToItem={(item) => {
             if (item.type === 'verification') {

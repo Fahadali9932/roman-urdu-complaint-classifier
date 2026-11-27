@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Bell, CheckCircle2, Clock, AlertTriangle, ArrowRight, Check, ClipboardList } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Bell, CheckCircle2, Clock, AlertTriangle, ArrowRight, Check, ClipboardList, Loader2 } from 'lucide-react';
 
 export interface StaffNotificationItem {
   id: string;
@@ -46,13 +46,55 @@ export const StaffNotificationsView: React.FC<StaffNotificationsViewProps> = ({
   isLoading: _isLoading = false,
 }) => {
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
+  const [localReadIds, setLocalReadIds] = useState<Set<string>>(new Set());
+  const [isMarkingAllRead, setIsMarkingAllRead] = useState(false);
+
+  // Sync localReadIds if notifications update from parent
+  useEffect(() => {
+    // If all notifications in parent are marked read, keep localReadIds clean
+    const hasUnread = notifications.some((n) => !n.read);
+    if (!hasUnread) {
+      setLocalReadIds(new Set());
+    }
+  }, [notifications]);
+
+  const isItemRead = (item: StaffNotificationItem) => item.read || localReadIds.has(item.id);
 
   const filteredNotifs = notifications.filter((n) => {
-    if (filter === 'unread') return !n.read;
+    if (filter === 'unread') return !isItemRead(n);
     return true;
   });
 
-  const unreadCount = notifications.filter((n) => !n.read).length;
+  const unreadCount = notifications.filter((n) => !isItemRead(n)).length;
+
+  const handleMarkAllAsRead = async () => {
+    if (isMarkingAllRead || unreadCount === 0) return;
+    setIsMarkingAllRead(true);
+    const prevSet = new Set(localReadIds);
+    // Optimistic update: mark all current notifications read immediately
+    const nextSet = new Set(localReadIds);
+    notifications.forEach((n) => nextSet.add(n.id));
+    setLocalReadIds(nextSet);
+
+    try {
+      await onMarkAllAsRead();
+    } catch (err) {
+      console.error('Failed to mark all as read:', err);
+      // Rollback on error
+      setLocalReadIds(prevSet);
+    } finally {
+      setIsMarkingAllRead(false);
+    }
+  };
+
+  const handleMarkOneAsRead = async (id: string) => {
+    setLocalReadIds((prev) => new Set(prev).add(id));
+    try {
+      await onMarkAsRead(id);
+    } catch (err) {
+      console.error('Failed to mark notification read:', err);
+    }
+  };
 
   return (
     <div
@@ -97,29 +139,39 @@ export const StaffNotificationsView: React.FC<StaffNotificationsViewProps> = ({
 
         {/* Controls: Mark All Read & Compact Filter Pills */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          {unreadCount > 0 && (
-            <button
-              type="button"
-              className="v19-nav-tab"
-              onClick={() => onMarkAllAsRead()}
-              style={{
-                fontSize: '12.5px',
-                padding: '7px 16px',
-                borderRadius: '9999px',
-                background: 'rgba(255, 255, 255, 0.08)',
-                border: '1px solid rgba(255, 255, 255, 0.12)',
-                color: 'var(--v20-text-primary, #F0ECE3)',
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-              }}
-              data-testid="v20-mark-all-read-btn"
-            >
-              <Check size={14} />
-              <span>Mark all as read</span>
-            </button>
-          )}
+          <button
+            type="button"
+            className="v19-nav-tab"
+            disabled={unreadCount === 0 || isMarkingAllRead}
+            onClick={handleMarkAllAsRead}
+            style={{
+              fontSize: '12.5px',
+              padding: '7px 16px',
+              borderRadius: '9999px',
+              background: unreadCount === 0 ? 'rgba(255, 255, 255, 0.03)' : 'rgba(255, 255, 255, 0.08)',
+              border: '1px solid rgba(255, 255, 255, 0.12)',
+              color: unreadCount === 0 ? 'var(--v20-text-muted)' : 'var(--v20-text-primary, #F0ECE3)',
+              cursor: unreadCount === 0 || isMarkingAllRead ? 'not-allowed' : 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              opacity: unreadCount === 0 ? 0.6 : 1,
+              transition: 'all 0.15s ease',
+            }}
+            data-testid="v20-mark-all-read-btn"
+          >
+            {isMarkingAllRead ? (
+              <>
+                <Loader2 size={14} className="v20-spin" />
+                <span>Marking as read...</span>
+              </>
+            ) : (
+              <>
+                <Check size={14} />
+                <span>Mark all as read</span>
+              </>
+            )}
+          </button>
 
           {/* Filter Pills */}
           <div
@@ -199,6 +251,8 @@ export const StaffNotificationsView: React.FC<StaffNotificationsViewProps> = ({
           </div>
         ) : (
           filteredNotifs.map((item, idx) => {
+            const itemRead = isItemRead(item);
+
             // Icon selection
             let iconElement = <Bell size={18} style={{ color: 'var(--v20-text-muted)' }} />;
             if (item.type === 'verification') {
@@ -222,7 +276,7 @@ export const StaffNotificationsView: React.FC<StaffNotificationsViewProps> = ({
                   gap: '16px',
                   padding: '20px 24px',
                   borderBottom: hasDivider ? '1px solid rgba(255, 255, 255, 0.06)' : 'none',
-                  background: !item.read ? 'rgba(255, 255, 255, 0.02)' : 'transparent',
+                  background: !itemRead ? 'rgba(255, 255, 255, 0.02)' : 'transparent',
                   transition: 'background 0.15s ease',
                   position: 'relative',
                 }}
@@ -230,7 +284,7 @@ export const StaffNotificationsView: React.FC<StaffNotificationsViewProps> = ({
               >
                 {/* Unread dot indicator */}
                 <div style={{ width: '8px', paddingTop: '6px', flexShrink: 0 }}>
-                  {!item.read && (
+                  {!itemRead && (
                     <span
                       style={{
                         display: 'block',
@@ -269,7 +323,7 @@ export const StaffNotificationsView: React.FC<StaffNotificationsViewProps> = ({
                     <h4
                       style={{
                         fontSize: '15px',
-                        fontWeight: item.read ? 600 : 700,
+                        fontWeight: itemRead ? 600 : 700,
                         color: 'var(--v20-text-primary, #F0ECE3)',
                         margin: 0,
                       }}
@@ -311,7 +365,7 @@ export const StaffNotificationsView: React.FC<StaffNotificationsViewProps> = ({
                           border: 'none',
                           color: '#4E9CFF',
                           fontSize: '12px',
-                          fontWeight: 600,
+                          fontWeight: 650,
                           cursor: 'pointer',
                           padding: 0,
                           display: 'inline-flex',
@@ -324,10 +378,10 @@ export const StaffNotificationsView: React.FC<StaffNotificationsViewProps> = ({
                       </button>
                     )}
 
-                    {!item.read && (
+                    {!itemRead && (
                       <button
                         type="button"
-                        onClick={() => onMarkAsRead(item.id)}
+                        onClick={() => handleMarkOneAsRead(item.id)}
                         style={{
                           background: 'none',
                           border: 'none',
