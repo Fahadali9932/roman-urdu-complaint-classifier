@@ -10,6 +10,7 @@ import { OfficerPerformanceView } from './OfficerPerformanceView';
 import { OfficerNotificationsView, type OfficerNotificationItem } from './OfficerNotificationsView';
 import { OfficerProfileView } from './OfficerProfileView';
 import { OfficerMobileGate } from './OfficerMobileGate';
+import { useDepartmentAuth } from '../../../../context/DepartmentAuthContext';
 import {
   fieldOperations,
   type DepartmentWorkOrder,
@@ -225,12 +226,16 @@ export const V19OfficerPortalView: React.FC<V19OfficerPortalViewProps> = ({
     setReloadKey((k) => k + 1);
   };
 
+  const auth = useDepartmentAuth();
+  const session = auth?.session;
+  const effectiveStaffName = session?.displayName || officerProfile?.display_name || username;
+
   return (
     <V20PortalLayout
       departmentCode={departmentCode}
       departmentName={departmentName}
       role="officer"
-      username={username}
+      username={effectiveStaffName}
       themeMode={themeMode}
       tabs={officerTabs}
       activeTab={activeTab}
@@ -246,7 +251,7 @@ export const V19OfficerPortalView: React.FC<V19OfficerPortalViewProps> = ({
             departmentCode={departmentCode}
             departmentName={departmentName}
             role="officer"
-            staffName={officerProfile?.display_name || username}
+            staffName={effectiveStaffName}
             onNavigateToDashboard={() => setActiveTab('dashboard')}
             onNavigateToComplaints={() => setActiveTab('complaints')}
           />
@@ -329,7 +334,7 @@ export const V19OfficerPortalView: React.FC<V19OfficerPortalViewProps> = ({
           <OfficerProfileView
             departmentCode={departmentCode}
             departmentName={departmentName}
-            officerName={officerProfile?.display_name || username}
+            officerName={effectiveStaffName}
             employeeId={officerProfile?.employee_id || undefined}
             staffUsername={username}
             onSignOut={onSignOut}

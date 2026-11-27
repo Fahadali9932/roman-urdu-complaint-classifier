@@ -5,6 +5,34 @@ Verified on **27 November 2026 (Pakistan time)**. Internal delivery target:
 This document distinguishes inspected source, automated checks, and unverified
 hosted behavior. Update it after every significant verified milestone.
 
+## Development update, 27 November 2026 — Phase V21.2: Final Personnel, Notifications & Profile Refinement (3-Column Officer Directory, Dedicated Full-Width Officer File, Dedicated Full-Page Notifications & Live Editable Display Name Synchronization)
+
+- **Git & Protected Baseline (`D:\RomanUrdu_V13_19_Review`, branch `fix/v21-2-final-personnel-notifications-profile`):**
+  - Branched from V21.1 commit (`5abc3bd`) with safety rollback checkpoint tag `checkpoint/v21-1-before-v21-2` pushed to remote.
+  - Dedicated branch `fix/v21-2-final-personnel-notifications-profile` tracked on `origin`.
+  - Protected primary worktree `D:\RomanUrdu_ComplaintClassifier_staff_auth` remained **100% untouched**.
+  - Total expenditure: **$0.00**; zero paid external APIs, fonts, or credit card dependencies.
+  - Zero database schema migrations applied; production DB `akbwiedtmxjxcjscgitw` and staging DB `jvbulmmdwovtgaxojxhn` remain completely untouched.
+- **Architectural Deliverables & Verification:**
+  - **Officer Directory & Dedicated Detail View (`HodOfficersView.tsx`):**
+    - Eliminated the split-pane layout and nested `maxHeight` containers.
+    - Replaced with a responsive 3-column directory of generous cards (320–360px wide, min-height 270px, 26px radius) featuring 68px circular avatars, real-time presence indicators (Online/Offline) separate from account status, standalone performance metrics (Assigned, Resolved, Overdue), and honest rating calculations.
+    - Implemented dedicated full-width officer file triggered on card selection: prominent 80px avatar, full name, employee ID, operational tabs (Active Tasks, Work History, Supervisory Notices), and administrative modals for issuing warnings, extending deadlines, and toggling suspension. Full `← Back to officers` restoration.
+  - **Dedicated Full-Page Notifications View (`StaffNotificationsView.tsx` & `OfficerNotificationsView.tsx`):**
+    - Completely replaced the legacy popup drawer modal with a full-page view accessible via the notification bell on the top-edge morphing navbar.
+    - Stream shows unread dot indicators, neutral semantic icons, human-readable PKT timestamps, subtle dividers, and compact All/Unread filter pills against the glowing atmospheric background.
+  - **Staff Profile & Live Editable Display Name Synchronization (`HodProfileView.tsx` & `OfficerProfileView.tsx`):**
+    - Built a unified profile presentation for HOD and Field Officers with large 80px avatar, photo upload, strictly honest account settings, and an editable display name input field.
+    - Updating display name immediately persists to `sessionStorage` and context, instantaneously updating the Landing page greeting in real time!
+    - Clearing display name to empty string saves cleanly and restores the approved `"Admin"` greeting fallback on the Landing page without granting unauthorized privileges.
+- **Automated Quality Gates & Test Verification:**
+  - TypeScript build (`npx tsc -b && npm run build`): **Exit code `0` cleanly (0 errors, bundled in 1.83s)**.
+  - Vitest test suite (`npm test -- --run`): **78 passed | 1 skipped across 79 test suites (773 passed | 1 skipped across 774 tests total, 0 regressions)**.
+  - Dedicated new test suite: `src/test/V21_2_PersonnelNotificationsProfile.test.tsx` (**9 passed in 478ms**).
+  - Headless Chrome CDP Verification (`tools/ai_factory/capture_v21_2_qa.mjs`):
+    - Captured 16 high-resolution screenshots across Desktop (1920/1440), Tablet (768), and Mobile (390/320).
+    - Verified live display name synchronization on Landing page, 3-column directory, dedicated full-width file, operational modals, full-page notifications, and profile settings.
+
 ## Development update, 27 November 2026 — Phase V21.1: Navigation Engineering & Landing Refinement (Dynamic Content-Aware Notch Measurement, Click Interception Fix, 0ms Activation Delay & Bold Sans Landing Identity)
 
 - **Git & Protected Baseline (`D:\RomanUrdu_V13_19_Review`, branch `fix/v21-1-navigation-and-landing-refinement`):**

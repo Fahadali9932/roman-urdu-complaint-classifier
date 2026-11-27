@@ -8,6 +8,8 @@ import { HodComplaintsView } from './HodComplaintsView';
 import { HodVerificationView } from './HodVerificationView';
 import { HodOfficersView } from './HodOfficersView';
 import { HodProfileView } from './HodProfileView';
+import { StaffNotificationsView, type StaffNotificationItem } from './StaffNotificationsView';
+import { useDepartmentAuth } from '../../../../context/DepartmentAuthContext';
 import { type HeadIndependentComplaintRow, caseOperationsService } from '../../../../services/CaseOperationsService';
 import {
   fieldOperations,
@@ -15,7 +17,7 @@ import {
   type DepartmentWorkOrder,
   type DepartmentProof,
 } from '../../services/fieldOperations';
-import { Bell, X, CheckCircle2 } from 'lucide-react';
+import { CheckCircle2 } from 'lucide-react';
 
 export interface V19HodPortalViewProps {
   departmentId: string;
@@ -40,6 +42,10 @@ export const V19HodPortalView: React.FC<V19HodPortalViewProps> = ({
   onOpenPasswordModal,
   initialTab = 'home',
 }) => {
+  const auth = useDepartmentAuth();
+  const session = auth?.session;
+  const effectiveStaffName = session?.displayName || username;
+
   const [activeTab, setActiveTab] = useState(initialTab);
   const [complaints, setComplaints] = useState<HeadIndependentComplaintRow[]>([]);
   const [officers, setOfficers] = useState<DepartmentOfficer[]>([]);
@@ -50,9 +56,6 @@ export const V19HodPortalView: React.FC<V19HodPortalViewProps> = ({
   const [currentTime] = useState<number>(() => Date.now());
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [departmentNotifs, setDepartmentNotifs] = useState<any[]>([]);
-
-  // Notification Drawer State
-  const [isNotifOpen, setIsNotifOpen] = useState(false);
 
   // Load operational data
   useEffect(() => {
@@ -245,14 +248,56 @@ export const V19HodPortalView: React.FC<V19HodPortalViewProps> = ({
     setReloadKey((k) => k + 1);
   };
 
-  const unreadCount = overdueOrders.length + extensionRequests.length + verificationPendingCount;
+  const combinedNotifs: StaffNotificationItem[] = [
+    ...departmentNotifs.map((n) => ({
+      id: String(n.id),
+      title: n.title,
+      message: n.message,
+      type: (n.notification_type === 'warning' ? 'warning' : 'general') as any,
+      createdAt: n.created_at || new Date().toISOString(),
+      read: Boolean(n.is_read),
+      linkUrl: n.link_url,
+    })),
+    ...overdueOrders.map((o) => ({
+      id: `overdue-${o.id}`,
+      title: 'Overdue Assignment Alert',
+      message: `Work Order #${o.id.slice(0, 8)} (${o.case_label}) assigned to officer ${o.officer_id} is overdue.`,
+      type: 'overdue' as const,
+      createdAt: o.due_at,
+      read: false,
+      orderId: o.id,
+    })),
+    ...extensionRequests.map((o) => ({
+      id: `ext-${o.id}`,
+      title: 'Time Extension Requested',
+      message: `Officer ${o.officer_id} requested deadline extension for #${o.id.slice(0, 8)} (${o.case_label}): ${o.extension_reason || 'Fieldwork delay'}.`,
+      type: 'extension' as const,
+      createdAt: o.extension_requested_due_at || new Date().toISOString(),
+      read: false,
+      orderId: o.id,
+    })),
+    ...(verificationPendingCount > 0
+      ? [
+          {
+            id: 'verif-pending',
+            title: 'Resolutions Pending Verification',
+            message: `${verificationPendingCount} field order resolutions submitted with on-site GPS evidence await HOD supervisory inspection.`,
+            type: 'verification' as const,
+            createdAt: new Date().toISOString(),
+            read: false,
+          },
+        ]
+      : []),
+  ];
+
+  const unreadCount = overdueOrders.length + extensionRequests.length + verificationPendingCount + departmentNotifs.filter(n => !n.is_read).length;
 
   return (
     <V20PortalLayout
       departmentCode={departmentCode}
       departmentName={departmentName}
       role="head"
-      username={username}
+      username={effectiveStaffName}
       tabs={hodTabs}
       activeTab={activeTab}
       onSelectTab={setActiveTab}
@@ -260,7 +305,7 @@ export const V19HodPortalView: React.FC<V19HodPortalViewProps> = ({
       themeMode={themeMode}
       onToggleTheme={onToggleTheme}
       unreadNotifications={unreadCount}
-      onOpenNotifications={() => setIsNotifOpen(true)}
+      onOpenNotifications={() => setActiveTab('notifications')}
     >
       {/* Centered Operational Feedback Modal Dialog (Zero Toasts) */}
       {toastMessage && (
@@ -338,7 +383,7 @@ export const V19HodPortalView: React.FC<V19HodPortalViewProps> = ({
           departmentCode={departmentCode}
           departmentName={departmentName}
           role="head"
-          staffName={username}
+          staffName={effectiveStaffName}
           onNavigateToDashboard={() => setActiveTab('dashboard')}
           onNavigateToComplaints={() => setActiveTab('complaints')}
         />
@@ -410,78 +455,34 @@ export const V19HodPortalView: React.FC<V19HodPortalViewProps> = ({
         <HodProfileView
           departmentCode={departmentCode}
           departmentName={departmentName}
-          username={username}
+          username={effectiveStaffName}
           onSignOut={onSignOut}
           onOpenPasswordModal={onOpenPasswordModal}
         />
       )}
 
-      {/* Notifications Drawer */}
-      {isNotifOpen && (
-        <div className="v19-lightbox-backdrop" role="dialog" aria-modal="true" aria-label="Department Notifications">
-          <div className="v19-glass-card" style={{ width: '100%', maxWidth: '440px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Bell size={18} style={{ color: 'var(--v19-lime)' }} />
-                <span style={{ fontSize: '16px', fontWeight: 600, color: 'var(--v19-text-primary)' }}>
-                  Departmental Operational Alerts
-                </span>
-              </div>
-              <button type="button" className="v19-action-icon-btn" style={{ width: '28px', height: '28px' }} onClick={() => setIsNotifOpen(false)}>
-                <X size={14} />
-              </button>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '360px', overflowY: 'auto' }}>
-              {departmentNotifs.map((n) => (
-                <div key={n.id} style={{ padding: '10px 12px', borderRadius: '10px', background: 'var(--v19-glass-subtle)', border: '1px solid var(--v19-glass-border)', fontSize: '12.5px' }}>
-                  <div style={{ fontWeight: 600, color: n.notification_type === 'warning' ? 'var(--v19-amber)' : 'var(--v19-text-primary)' }}>
-                    {n.title}
-                  </div>
-                  <div style={{ color: 'var(--v19-text-secondary)', marginTop: '2px' }}>{n.message}</div>
-                  <div style={{ fontSize: '11px', color: 'var(--v19-text-muted)', marginTop: '4px' }}>
-                    {new Date(n.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} · {new Date(n.created_at).toLocaleDateString()}
-                  </div>
-                </div>
-              ))}
-
-              {overdueOrders.map((o) => (
-                <div key={o.id} style={{ padding: '10px 12px', borderRadius: '10px', background: 'var(--v19-red-soft)', border: '1px solid var(--v19-red)', fontSize: '12.5px' }}>
-                  <div style={{ fontWeight: 600, color: 'var(--v19-red)' }}>OVERDUE ASSIGNMENT ALERT</div>
-                  <div style={{ color: 'var(--v19-text-primary)', marginTop: '2px' }}>{o.case_label}</div>
-                  <div style={{ fontSize: '11px', color: 'var(--v19-text-muted)', marginTop: '2px' }}>Officer: {o.officer_id}</div>
-                </div>
-              ))}
-
-              {extensionRequests.map((o) => (
-                <div key={o.id} style={{ padding: '10px 12px', borderRadius: '10px', background: 'var(--v19-amber-soft)', border: '1px solid var(--v19-amber)', fontSize: '12.5px' }}>
-                  <div style={{ fontWeight: 600, color: 'var(--v19-amber)' }}>TIME EXTENSION REQUESTED</div>
-                  <div style={{ color: 'var(--v19-text-primary)', marginTop: '2px' }}>{o.case_label}</div>
-                  <div style={{ fontSize: '11px', color: 'var(--v19-text-muted)', marginTop: '2px' }}>Reason: {o.extension_reason || 'Fieldwork delay'}</div>
-                </div>
-              ))}
-
-              {verificationPendingCount > 0 && (
-                <div key="pending-verif" style={{ padding: '10px 12px', borderRadius: '10px', background: 'var(--v19-cyan-soft)', border: '1px solid var(--v19-cyan)', fontSize: '12.5px' }}>
-                  <div style={{ fontWeight: 600, color: 'var(--v19-cyan)' }}>RESOLUTIONS PENDING VERIFICATION</div>
-                  <div style={{ color: 'var(--v19-text-primary)', marginTop: '2px' }}>{verificationPendingCount} completed field orders ready for inspection</div>
-                </div>
-              )}
-
-              {unreadCount === 0 && departmentNotifs.length === 0 && (
-                <p style={{ textAlign: 'center', color: 'var(--v19-text-muted)', fontSize: '13px', margin: '20px 0' }}>
-                  No urgent alerts at this moment.
-                </p>
-              )}
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'flex-end', borderTop: '1px solid var(--v19-glass-border)', paddingTop: '10px' }}>
-              <button type="button" className="v19-nav-tab" onClick={() => setIsNotifOpen(false)}>
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
+      {/* Dedicated Full-Page Notifications View */}
+      {activeTab === 'notifications' && (
+        <StaffNotificationsView
+          notifications={combinedNotifs}
+          onMarkAsRead={async (id) => {
+            await fieldOperations.markNotificationRead(id).catch(() => null);
+            setDepartmentNotifs((prev) => prev.map((n) => (String(n.id) === id ? { ...n, is_read: true } : n)));
+          }}
+          onMarkAllAsRead={async () => {
+            await Promise.all(
+              departmentNotifs.filter((n) => !n.is_read).map((n) => fieldOperations.markNotificationRead(n.id).catch(() => null))
+            );
+            setDepartmentNotifs((prev) => prev.map((n) => ({ ...n, is_read: true })));
+          }}
+          onNavigateToItem={(item) => {
+            if (item.type === 'verification') {
+              setActiveTab('verification');
+            } else if (item.orderId || item.complaintId) {
+              setActiveTab('complaints');
+            }
+          }}
+        />
       )}
     </V20PortalLayout>
   );

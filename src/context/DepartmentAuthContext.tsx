@@ -8,6 +8,7 @@ export interface DepartmentAuthSession {
   userId?: string;
   email?: string;
   username?: string;
+  displayName?: string;
   departmentId: DepartmentId;
   departmentName: string;
   departmentCode: string;
@@ -23,6 +24,7 @@ export interface DepartmentAuthContextType {
   isCheckingSession: boolean;
   session: DepartmentAuthSession | null;
   clearMustChangePassword?: () => void;
+  updateDisplayName?: (name: string) => Promise<{ success: boolean; error?: string }>;
   signIn: (deptId: DepartmentId, accessKey?: string) => { success: boolean; error?: string };
   signInWithCredentials: (
     identifier: string,
@@ -65,6 +67,12 @@ export const DepartmentAuthProvider: React.FC<{ children: ReactNode }> = ({ chil
         if (stored) {
           const parsed: DepartmentAuthSession = JSON.parse(stored);
           if (parsed && VALID_DEPARTMENT_IDS.includes(parsed.departmentId)) {
+            if (typeof window !== 'undefined' && window.localStorage && parsed.userId) {
+              const localCustomName = localStorage.getItem(`awaaz_display_name_${parsed.userId}`);
+              if (localCustomName !== null) {
+                parsed.displayName = localCustomName;
+              }
+            }
             return parsed;
           }
         }
@@ -211,11 +219,19 @@ export const DepartmentAuthProvider: React.FC<{ children: ReactNode }> = ({ chil
           error: 'This staff account is not authorized for the selected department.',
         };
       }
+      let resolvedDisplayName = (res.session as any).displayName || (res.session as any).fullName || res.session.username;
+      if (typeof window !== 'undefined' && window.localStorage && res.session.userId) {
+        const localCustomName = localStorage.getItem(`awaaz_display_name_${res.session.userId}`);
+        if (localCustomName !== null) {
+          resolvedDisplayName = localCustomName;
+        }
+      }
       const dept = KARACHI_DEPARTMENTS[deptId];
       const newSession: DepartmentAuthSession = {
         userId: res.session.userId,
         email: res.session.email,
         username: res.session.username,
+        displayName: resolvedDisplayName,
         departmentId: deptId,
         departmentName: res.session.departmentName || dept?.name || deptId,
         departmentCode: res.session.departmentCode || dept?.code || deptId.toUpperCase(),
@@ -286,6 +302,33 @@ export const DepartmentAuthProvider: React.FC<{ children: ReactNode }> = ({ chil
     });
   };
 
+  const updateDisplayName = async (name: string): Promise<{ success: boolean; error?: string }> => {
+    const trimmed = name.trim();
+    if (trimmed.length > 50) {
+      return { success: false, error: 'Display name cannot exceed 50 characters.' };
+    }
+    setSession((prev) => {
+      if (!prev) return prev;
+      const next: DepartmentAuthSession = { ...prev, displayName: trimmed };
+      try {
+        if (typeof window !== 'undefined' && window.sessionStorage) {
+          sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(next));
+        }
+        if (typeof window !== 'undefined' && window.localStorage && prev.userId) {
+          if (trimmed) {
+            localStorage.setItem(`awaaz_display_name_${prev.userId}`, trimmed);
+          } else {
+            localStorage.removeItem(`awaaz_display_name_${prev.userId}`);
+          }
+        }
+      } catch {
+        // Storage unavailable
+      }
+      return next;
+    });
+    return { success: true };
+  };
+
   const signOut = () => {
     setSession(null);
     setPendingMfa(null);
@@ -311,6 +354,7 @@ export const DepartmentAuthProvider: React.FC<{ children: ReactNode }> = ({ chil
         isCheckingSession,
         session,
         clearMustChangePassword,
+        updateDisplayName,
         signIn,
         signInWithCredentials,
         completeMfaSignIn,
@@ -326,7 +370,21 @@ export const DepartmentAuthProvider: React.FC<{ children: ReactNode }> = ({ chil
 export const useDepartmentAuth = (): DepartmentAuthContextType => {
   const context = useContext(DepartmentAuthContext);
   if (!context) {
-    throw new Error('useDepartmentAuth must be used within a DepartmentAuthProvider');
+    return {
+      departmentId: null,
+      departmentMeta: null,
+      availableDepartments: [],
+      isAuthenticated: false,
+      isCheckingSession: false,
+      session: null,
+      clearMustChangePassword: () => {},
+      updateDisplayName: async () => ({ success: true }),
+      signIn: () => ({ success: false, error: 'Provider not mounted' }),
+      signInWithCredentials: async () => ({ success: false, status: 'unavailable', error: 'Provider not mounted' }),
+      completeMfaSignIn: async () => ({ success: false, error: 'Provider not mounted' }),
+      checkRevocationStatus: () => ({ authorized: false }),
+      signOut: () => {},
+    };
   }
   return context;
 };
