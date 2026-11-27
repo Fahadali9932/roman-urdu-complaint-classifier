@@ -165,9 +165,9 @@ export const TopEdgeMorphingNav: React.FC<TopEdgeMorphingNavProps> = ({
       return;
     }
 
-    // Snappy, critically damped spring simulation: angular frequency ~19 rad/s, damping ratio ~0.87
-    const stiffness = 340;
-    const damping = 32;
+    // Silky-smooth, calm spring simulation: opening k=140 c=22 (~380ms), closing k=190 c=24 (~260ms)
+    const stiffness = isOpen ? 140 : 190;
+    const damping = isOpen ? 22 : 24;
 
     const dw = targetW - currentDims.current.w;
     const dh = targetH - currentDims.current.h;
@@ -256,13 +256,13 @@ export const TopEdgeMorphingNav: React.FC<TopEdgeMorphingNavProps> = ({
     };
   }, [isOpen]);
 
-  // Ultra-responsive hover handlers (minimal latency, smooth exit)
+  // Deliberate hover handlers (80ms enter debounce, 280ms leave debounce for seamless bridging)
   const handlePointerEnter = (e: React.PointerEvent) => {
     if (e.pointerType === 'mouse') {
       if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
       hoverTimerRef.current = setTimeout(() => {
         setIsOpen(true);
-      }, 40);
+      }, 80);
     }
   };
 
@@ -273,7 +273,7 @@ export const TopEdgeMorphingNav: React.FC<TopEdgeMorphingNavProps> = ({
         if (!navRef.current?.contains(document.activeElement)) {
           setIsOpen(false);
         }
-      }, 180);
+      }, 280);
     }
   };
 
@@ -311,6 +311,9 @@ export const TopEdgeMorphingNav: React.FC<TopEdgeMorphingNavProps> = ({
       onPointerEnter={handlePointerEnter}
       onPointerLeave={handlePointerLeave}
     >
+      {/* 0. Invisible Safe Hover Corridor to prevent premature mouse-leave drops */}
+      <div className="v20-nav-hover-corridor" aria-hidden="true" />
+
       {/* 1. Continuous SVG Morphing Notch Geometry from Top Ceiling */}
       <svg
         id="nav-shape"

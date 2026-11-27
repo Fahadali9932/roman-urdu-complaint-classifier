@@ -15,7 +15,7 @@ import {
   type DepartmentWorkOrder,
   type DepartmentProof,
 } from '../../services/fieldOperations';
-import { Bell, X } from 'lucide-react';
+import { Bell, X, CheckCircle2 } from 'lucide-react';
 
 export interface V19HodPortalViewProps {
   departmentId: string;
@@ -262,32 +262,73 @@ export const V19HodPortalView: React.FC<V19HodPortalViewProps> = ({
       unreadNotifications={unreadCount}
       onOpenNotifications={() => setIsNotifOpen(true)}
     >
-      {/* Toast Feedback Banner */}
+      {/* Centered Operational Feedback Modal Dialog (Zero Toasts) */}
       {toastMessage && (
         <div
+          className="v19-lightbox-backdrop"
           role="status"
           aria-live="polite"
+          onClick={() => setToastMessage(null)}
           style={{
             position: 'fixed',
-            top: '20px',
-            right: '20px',
+            inset: 0,
             zIndex: 9999,
-            padding: '12px 18px',
-            background: 'var(--v19-glass-surface)',
-            border: '1px solid var(--v19-lime)',
-            borderRadius: '12px',
-            color: 'var(--v19-text-primary)',
-            fontSize: '13px',
-            fontWeight: 500,
-            boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
-            backdropFilter: 'blur(20px)',
+            background: 'rgba(0, 0, 0, 0.65)',
+            backdropFilter: 'blur(12px)',
             display: 'flex',
             alignItems: 'center',
-            gap: '8px',
+            justifyContent: 'center',
+            padding: '20px',
           }}
         >
-          <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--v19-lime)' }} />
-          <span>{toastMessage}</span>
+          <div
+            className="v19-glass-card"
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              maxWidth: '440px',
+              width: '100%',
+              padding: '28px 26px',
+              borderRadius: '24px',
+              background: 'rgba(18, 15, 12, 0.96)',
+              border: '1.5px solid rgba(255, 255, 255, 0.12)',
+              boxShadow: '0 24px 64px rgba(0, 0, 0, 0.7)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              textAlign: 'center',
+              gap: '14px',
+            }}
+          >
+            <div
+              style={{
+                width: '52px',
+                height: '52px',
+                borderRadius: '50%',
+                background: 'rgba(59, 201, 119, 0.15)',
+                border: '1.5px solid rgba(59, 201, 119, 0.35)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'var(--success, #3BC977)',
+              }}
+            >
+              <CheckCircle2 size={28} />
+            </div>
+            <h4 style={{ fontSize: '18px', fontWeight: 650, margin: 0, color: 'var(--v20-text-primary)' }}>
+              Operational Notice
+            </h4>
+            <p style={{ fontSize: '13.5px', color: 'var(--v20-text-secondary)', margin: 0, lineHeight: 1.5 }}>
+              {toastMessage}
+            </p>
+            <button
+              type="button"
+              className="v20-landing-btn v20-landing-btn-primary"
+              style={{ width: '100%', justifyContent: 'center', marginTop: '6px' }}
+              onClick={() => setToastMessage(null)}
+            >
+              Dismiss
+            </button>
+          </div>
         </div>
       )}
 

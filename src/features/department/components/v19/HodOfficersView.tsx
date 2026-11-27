@@ -133,8 +133,8 @@ export const HodOfficersView: React.FC<HodOfficersViewProps> = ({
             type="button"
             className="v19-nav-tab"
             style={{
-              background: 'var(--v20-accent, #DFA51D)',
-              color: '#0E1017',
+              background: 'var(--button-primary, #F0ECE3)',
+              color: '#101216',
               fontWeight: 700,
               padding: '9px 20px',
               display: 'inline-flex',
@@ -174,9 +174,9 @@ export const HodOfficersView: React.FC<HodOfficersViewProps> = ({
                   flexDirection: 'column',
                   gap: '14px',
                   borderRadius: '24px',
-                  border: isSelected ? '1.5px solid var(--v20-accent, #DFA51D)' : '1.5px solid var(--v20-glass-border)',
-                  background: isSelected ? 'var(--v20-accent-soft, rgba(223, 165, 29, 0.12))' : 'var(--v20-glass-surface)',
-                  boxShadow: isSelected ? '0 0 0 2px var(--v20-accent-soft), 0 10px 32px rgba(0,0,0,0.3)' : '0 8px 24px rgba(0,0,0,0.2)',
+                  border: isSelected ? '1.5px solid rgba(255, 255, 255, 0.45)' : '1.5px solid var(--v20-glass-border)',
+                  background: isSelected ? 'rgba(255, 255, 255, 0.08)' : 'var(--v20-glass-surface)',
+                  boxShadow: isSelected ? '0 0 0 2px rgba(255, 255, 255, 0.15), 0 10px 32px rgba(0,0,0,0.4)' : '0 8px 24px rgba(0,0,0,0.2)',
                   opacity: isSuspended ? 0.6 : 1,
                   transition: 'all 160ms ease',
                 }}
@@ -195,7 +195,7 @@ export const HodOfficersView: React.FC<HodOfficersViewProps> = ({
                         alignItems: 'center',
                         justifyContent: 'center',
                         fontWeight: 700,
-                        color: 'var(--v20-accent, #DFA51D)',
+                        color: 'var(--v20-text-primary)',
                         fontSize: '14px',
                       }}
                     >
@@ -235,7 +235,7 @@ export const HodOfficersView: React.FC<HodOfficersViewProps> = ({
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', background: 'rgba(0,0,0,0.22)', padding: '10px 14px', borderRadius: '14px', border: '1px solid var(--v20-glass-border)' }}>
                   <div style={{ textAlign: 'center' }}>
                     <div style={{ fontSize: '11px', color: 'var(--v20-text-muted)' }}>Active</div>
-                    <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--v20-accent, #DFA51D)' }}>{off.active_cases}</div>
+                    <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--v20-text-primary)' }}>{off.active_cases}</div>
                   </div>
                   <div style={{ textAlign: 'center' }}>
                     <div style={{ fontSize: '11px', color: 'var(--v20-text-muted)' }}>Verified</div>
@@ -275,7 +275,7 @@ export const HodOfficersView: React.FC<HodOfficersViewProps> = ({
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
               <div style={{ background: 'rgba(0,0,0,0.25)', padding: '14px', borderRadius: '16px', border: '1px solid var(--v20-glass-border)' }}>
                 <span style={{ fontSize: '11px', color: 'var(--v20-text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Performance Rating</span>
-                <div style={{ fontSize: '22px', fontWeight: 700, color: 'var(--v20-accent, #DFA51D)', marginTop: '4px' }}>
+                <div style={{ fontSize: '22px', fontWeight: 700, color: 'var(--v20-text-primary)', marginTop: '4px' }}>
                   {activeOfficer.verified_cases > 0 ? (Math.min(5, 3.5 + activeOfficer.verified_cases * 0.1 - activeOfficer.overdue_cases * 0.2)).toFixed(1) : 'Unrated'}
                   <span style={{ fontSize: '12px', color: 'var(--v20-text-muted)' }}> / 5.0</span>
                 </div>

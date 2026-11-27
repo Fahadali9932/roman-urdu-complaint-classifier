@@ -91,8 +91,8 @@ export const HodVerificationView: React.FC<HodVerificationViewProps> = ({
       </div>
 
       {pendingOrders.length === 0 ? (
-        <div className="v19-glass-card" style={{ padding: '64px', textAlign: 'center', color: 'var(--v20-text-muted)' }}>
-          <CheckCircle2 size={36} style={{ color: 'var(--v20-status-solved, #43A047)', margin: '0 auto 12px' }} />
+        <div className="v19-glass-card" style={{ padding: '64px', textAlign: 'center', color: 'var(--v20-text-muted)', borderRadius: '24px', background: 'rgba(18, 15, 12, 0.75)', border: '1.5px solid rgba(255, 255, 255, 0.08)' }}>
+          <CheckCircle2 size={36} style={{ color: 'var(--success, #3BC977)', margin: '0 auto 12px' }} />
           <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--v20-text-primary)', margin: '0 0 6px' }}>
             All Field Resolutions Verified
           </h3>
@@ -263,7 +263,7 @@ export const HodVerificationView: React.FC<HodVerificationViewProps> = ({
             {/* Cryptographic SHA-256 Checksum State */}
             <div>
               <span style={{ fontSize: '11.5px', color: 'var(--v20-text-muted)' }}>Cryptographic Hash Verification</span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px', fontSize: '13px', fontWeight: 600, color: activeProof?.storage_path ? 'var(--v20-accent, #DFA51D)' : 'var(--v20-text-muted)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px', fontSize: '13px', fontWeight: 600, color: activeProof?.storage_path ? 'var(--success, #3BC977)' : 'var(--v20-text-muted)' }}>
                 <FileCheck size={18} />
                 <span>{activeProof?.storage_path ? 'SHA-256 Verified · Checksum Match' : 'Pending Cryptographic Checksum'}</span>
               </div>
@@ -291,7 +291,7 @@ export const HodVerificationView: React.FC<HodVerificationViewProps> = ({
             <button
               type="button"
               className="v19-nav-tab"
-              style={{ color: '#F59E0B', background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.3)', padding: '10px 20px', fontWeight: 600 }}
+              style={{ color: 'var(--warning, #E59B2F)', background: 'rgba(229, 155, 47, 0.12)', border: '1px solid rgba(229, 155, 47, 0.3)', padding: '10px 22px', fontWeight: 600, borderRadius: '9999px' }}
               onClick={() => setIsCorrectionOpen(true)}
             >
               <RotateCcw size={15} style={{ marginRight: '6px' }} />
@@ -303,10 +303,11 @@ export const HodVerificationView: React.FC<HodVerificationViewProps> = ({
               className="v19-nav-tab"
               disabled={isSubmitting}
               style={{
-                background: 'var(--v20-status-solved, #43A047)',
-                color: '#FFFFFF',
+                background: 'var(--button-primary, #F0ECE3)',
+                color: '#101216',
                 fontWeight: 700,
-                padding: '10px 24px',
+                padding: '10px 26px',
+                borderRadius: '9999px',
                 border: 'none',
                 boxShadow: '0 4px 16px rgba(0,0,0,0.35)',
               }}
@@ -381,15 +382,15 @@ export const HodVerificationView: React.FC<HodVerificationViewProps> = ({
       {/* Return for Correction Modal */}
       {isCorrectionOpen && (
         <div className="v19-lightbox-backdrop" role="dialog" aria-modal="true" aria-label="Return for correction">
-          <div className="v19-glass-card" style={{ width: '100%', maxWidth: '460px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: 'var(--v19-amber)' }}>
+          <div className="v19-glass-card" style={{ width: '100%', maxWidth: '460px', display: 'flex', flexDirection: 'column', gap: '16px', borderRadius: '24px', background: 'rgba(18, 15, 12, 0.96)', border: '1.5px solid rgba(255, 255, 255, 0.12)', boxShadow: '0 24px 64px rgba(0, 0, 0, 0.6)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: 'var(--warning, #E59B2F)' }}>
               <span style={{ fontSize: '16px', fontWeight: 600 }}>Return Work for Correction</span>
               <button type="button" className="v19-action-icon-btn" style={{ width: '28px', height: '28px' }} onClick={() => setIsCorrectionOpen(false)}>
                 <X size={14} />
               </button>
             </div>
 
-            <p style={{ fontSize: '12.5px', color: 'var(--v19-text-secondary)', margin: 0 }}>
+            <p style={{ fontSize: '12.5px', color: 'var(--v20-text-secondary)', margin: 0 }}>
               Specify the corrective actions required by the field officer and establish a revised correction deadline.
             </p>
 
@@ -398,11 +399,11 @@ export const HodVerificationView: React.FC<HodVerificationViewProps> = ({
               placeholder="e.g. Surface patch requires additional seal coat; photo unclear..."
               value={correctionNote}
               onChange={(e) => setCorrectionNote(e.target.value)}
-              style={{ width: '100%', padding: '10px', borderRadius: '8px', background: 'rgba(0,0,0,0.3)', border: '1px solid var(--v19-glass-border)', color: 'var(--v19-text-primary)', fontSize: '13px', boxSizing: 'border-box' }}
+              style={{ width: '100%', padding: '10px', borderRadius: '12px', background: 'rgba(0,0,0,0.3)', border: '1px solid var(--v20-glass-border)', color: 'var(--v20-text-primary)', fontSize: '13px', boxSizing: 'border-box' }}
             />
 
             <div>
-              <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--v19-text-muted)', textTransform: 'uppercase' }}>
+              <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--v20-text-muted)', textTransform: 'uppercase' }}>
                 Correction Deadline Extension: {correctionHours}h
               </span>
               <div style={{ display: 'flex', gap: '8px', marginTop: '6px' }}>
@@ -411,7 +412,7 @@ export const HodVerificationView: React.FC<HodVerificationViewProps> = ({
                     key={h}
                     type="button"
                     className={`v19-nav-tab ${correctionHours === h ? 'is-active' : ''}`}
-                    style={{ flex: 1, padding: '4px 0', fontSize: '12px', textAlign: 'center', background: correctionHours === h ? 'var(--v19-amber)' : 'rgba(0,0,0,0.2)', color: correctionHours === h ? '#0E121A' : 'var(--v19-text-secondary)' }}
+                    style={{ flex: 1, padding: '6px 0', fontSize: '12px', textAlign: 'center', borderRadius: '10px', background: correctionHours === h ? 'var(--button-primary, #F0ECE3)' : 'rgba(255, 255, 255, 0.05)', color: correctionHours === h ? '#101216' : 'var(--v20-text-secondary)', border: correctionHours === h ? '1px solid rgba(255, 255, 255, 0.8)' : '1px solid var(--v20-glass-border)', fontWeight: correctionHours === h ? 700 : 500 }}
                     onClick={() => setCorrectionHours(h)}
                   >
                     +{h}h
@@ -422,7 +423,7 @@ export const HodVerificationView: React.FC<HodVerificationViewProps> = ({
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '8px' }}>
               <button type="button" className="v19-nav-tab" onClick={() => setIsCorrectionOpen(false)}>Cancel</button>
-              <button type="button" disabled={!correctionNote.trim() || isSubmitting} className="v19-nav-tab" style={{ background: 'var(--v19-amber)', color: '#0E121A', fontWeight: 600 }} onClick={handleReturnConfirm}>
+              <button type="button" disabled={!correctionNote.trim() || isSubmitting} className="v19-nav-tab" style={{ background: 'var(--warning, #E59B2F)', color: '#101216', fontWeight: 700, borderRadius: '9999px', border: 'none', padding: '9px 20px' }} onClick={handleReturnConfirm}>
                 {isSubmitting ? 'Submitting…' : 'Confirm Return'}
               </button>
             </div>

@@ -1,9 +1,67 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import { ParallaxComplaintList, type ParallaxComplaintItem } from './ParallaxComplaintList';
 import { ImageLightbox } from './ImageLightbox';
 import { type HeadIndependentComplaintRow } from '../../../../services/CaseOperationsService';
 import { type DepartmentOfficer, type CandidateWorkOrderMatch } from '../../services/fieldOperations';
 import { MapPin, CheckCircle2, X, Search, AlertTriangle, ArrowLeft, Send, Clock } from 'lucide-react';
+
+/** Flat read-only GPS map inside an authenticated detail panel using OpenStreetMap free tiles. */
+const AuthorizedComplaintMap: React.FC<{ latitude: number; longitude: number; label: string }> = ({
+  latitude,
+  longitude,
+  label,
+}) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<L.Map | null>(null);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+    if (mapRef.current) {
+      mapRef.current.remove();
+      mapRef.current = null;
+    }
+    const instance = L.map(containerRef.current, {
+      scrollWheelZoom: false,
+      zoomControl: true,
+      zoomAnimation: false,
+      fadeAnimation: false,
+    }).setView([latitude, longitude], 16);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors',
+      maxZoom: 18,
+    }).addTo(instance);
+    L.circleMarker([latitude, longitude], {
+      radius: 8,
+      color: '#FFFFFF',
+      weight: 2,
+      fillColor: '#007AFF',
+      fillOpacity: 0.92,
+    })
+      .addTo(instance)
+      .bindPopup(label);
+    mapRef.current = instance;
+    const t = window.setTimeout(() => instance.invalidateSize(), 60);
+    return () => {
+      window.clearTimeout(t);
+      try {
+        instance.remove();
+      } catch {
+        // Ignore teardown race
+      }
+      mapRef.current = null;
+    };
+  }, [latitude, longitude, label]);
+
+  return (
+    <div
+      ref={containerRef}
+      style={{ width: '100%', height: '100%', minHeight: '200px', borderRadius: '12px' }}
+      aria-label={`Submitted GPS map at ${latitude.toFixed(5)}, ${longitude.toFixed(5)}`}
+    />
+  );
+};
 
 export interface HodComplaintsViewProps {
   departmentId?: string;
@@ -478,15 +536,15 @@ export const HodComplaintsView: React.FC<HodComplaintsViewProps> = ({
                         style={{
                           padding: '16px 18px',
                           borderRadius: '16px',
-                          background: isSelected ? 'var(--v20-accent-soft, rgba(223, 165, 29, 0.16))' : 'var(--v20-glass-surface)',
-                          border: isSelected ? '2px solid var(--v20-accent, #DFA51D)' : '1px solid var(--v20-glass-border)',
+                          background: isSelected ? 'rgba(255, 255, 255, 0.08)' : 'var(--v20-glass-surface)',
+                          border: isSelected ? '2px solid rgba(255, 255, 255, 0.45)' : '1px solid var(--v20-glass-border)',
                           cursor: 'pointer',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'space-between',
                           gap: '12px',
                           transition: 'all 160ms cubic-bezier(0.16, 1, 0.3, 1)',
-                          boxShadow: isSelected ? '0 4px 20px rgba(223, 165, 29, 0.2)' : 'none',
+                          boxShadow: isSelected ? '0 4px 20px rgba(0, 0, 0, 0.35)' : 'none',
                         }}
                       >
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', minWidth: 0 }}>
@@ -504,7 +562,7 @@ export const HodComplaintsView: React.FC<HodComplaintsViewProps> = ({
 
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
                           {isSelected ? (
-                            <CheckCircle2 size={20} style={{ color: 'var(--v20-accent, #DFA51D)' }} />
+                            <CheckCircle2 size={20} style={{ color: 'var(--success, #3BC977)' }} />
                           ) : (
                             <div style={{ width: '18px', height: '18px', borderRadius: '50%', border: '1.5px solid var(--v20-glass-border)' }} />
                           )}
@@ -521,7 +579,7 @@ export const HodComplaintsView: React.FC<HodComplaintsViewProps> = ({
                 <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--v20-text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                   Permitted Duration for Resolution
                 </span>
-                <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--v20-accent, #DFA51D)' }}>
+                <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--v20-text-primary)' }}>
                   {durationHours} Hours ({Math.round(durationHours / 24)} Days)
                 </span>
               </div>
@@ -537,9 +595,9 @@ export const HodComplaintsView: React.FC<HodComplaintsViewProps> = ({
                       padding: '10px 0',
                       fontSize: '13px',
                       textAlign: 'center',
-                      background: durationHours === h ? 'var(--v20-accent, #DFA51D)' : 'rgba(0,0,0,0.25)',
-                      color: durationHours === h ? '#0E1017' : 'var(--v20-text-primary)',
-                      border: durationHours === h ? 'none' : '1px solid var(--v20-glass-border)',
+                      background: durationHours === h ? 'var(--button-primary, #F0ECE3)' : 'rgba(255, 255, 255, 0.05)',
+                      color: durationHours === h ? '#101216' : 'var(--v20-text-primary)',
+                      border: durationHours === h ? '1px solid rgba(255, 255, 255, 0.8)' : '1px solid var(--v20-glass-border)',
                       fontWeight: durationHours === h ? 700 : 500,
                       borderRadius: '12px',
                     }}
@@ -575,7 +633,7 @@ export const HodComplaintsView: React.FC<HodComplaintsViewProps> = ({
                 <span style={{ fontSize: '12px', color: 'var(--v20-text-muted)' }}>hours</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'var(--v20-text-muted)' }}>
-                <Clock size={14} style={{ color: 'var(--v20-accent, #DFA51D)' }} />
+                <Clock size={14} style={{ color: 'var(--v20-text-secondary)' }} />
                 <span>Notice: Official completion countdown begins strictly when the field officer taps &ldquo;Start Working&rdquo;.</span>
               </div>
             </div>
@@ -631,10 +689,11 @@ export const HodComplaintsView: React.FC<HodComplaintsViewProps> = ({
                 className="v19-nav-tab"
                 disabled={!selectedOfficerId || isSubmittingAssign}
                 style={{
-                  background: 'var(--v20-accent, #DFA51D)',
-                  color: '#0E1017',
+                  background: 'var(--button-primary, #F0ECE3)',
+                  color: '#101216',
                   fontWeight: 700,
                   border: 'none',
+                  borderRadius: '9999px',
                   padding: '11px 28px',
                   fontSize: '13.5px',
                   display: 'inline-flex',
@@ -718,11 +777,11 @@ export const HodComplaintsView: React.FC<HodComplaintsViewProps> = ({
               </div>
             </div>
 
-            {/* 2. Structured Location Information */}
+            {/* 2. Structured Location Information & Free Leaflet Map */}
             <div
               style={{
                 display: 'flex',
-                alignItems: 'flex-start',
+                flexDirection: 'column',
                 gap: '12px',
                 background: 'rgba(0,0,0,0.25)',
                 padding: '16px 20px',
@@ -730,37 +789,50 @@ export const HodComplaintsView: React.FC<HodComplaintsViewProps> = ({
                 border: '1px solid var(--v20-glass-border)',
               }}
             >
-              <MapPin size={20} style={{ color: 'var(--v20-accent, #DFA51D)', marginTop: '2px', flexShrink: 0 }} />
-              <div style={{ fontSize: '13.5px' }}>
-                <div style={{ fontWeight: 600, color: 'var(--v20-text-primary)' }}>
-                  {activeComplaint.publicPlace || 'Location unspecified'}
-                  {activeComplaint.locality ? `, ${activeComplaint.locality}` : ''}
-                </div>
-                {activeComplaint.latitude && activeComplaint.longitude ? (
-                  <div
-                    style={{
-                      fontSize: '12px',
-                      color: 'var(--v20-text-muted)',
-                      marginTop: '4px',
-                      fontFamily: 'var(--v20-font-number, monospace)',
-                    }}
-                  >
-                    GPS: {activeComplaint.latitude.toFixed(5)}, {activeComplaint.longitude.toFixed(5)} ·{' '}
-                    <a
-                      href={`https://www.google.com/maps/dir/?api=1&destination=${activeComplaint.latitude},${activeComplaint.longitude}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{ color: 'var(--v20-accent, #DFA51D)', textDecoration: 'none' }}
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                <MapPin size={20} style={{ color: 'var(--info, #4E9CFF)', marginTop: '2px', flexShrink: 0 }} />
+                <div style={{ fontSize: '13.5px', flex: 1 }}>
+                  <div style={{ fontWeight: 600, color: 'var(--v20-text-primary)' }}>
+                    {activeComplaint.publicPlace || 'Location unspecified'}
+                    {activeComplaint.locality ? `, ${activeComplaint.locality}` : ''}
+                  </div>
+                  {activeComplaint.latitude && activeComplaint.longitude ? (
+                    <div
+                      style={{
+                        fontSize: '12px',
+                        color: 'var(--v20-text-muted)',
+                        marginTop: '4px',
+                        fontFamily: 'var(--v20-font-number, monospace)',
+                      }}
                     >
-                      Open Directions ↗
-                    </a>
-                  </div>
-                ) : (
-                  <div style={{ fontSize: '12px', color: 'var(--v20-text-muted)', marginTop: '4px' }}>
-                    No precise GPS coordinates captured
-                  </div>
-                )}
+                      GPS: {activeComplaint.latitude.toFixed(5)}, {activeComplaint.longitude.toFixed(5)} ·{' '}
+                      <a
+                        href={`https://www.google.com/maps/dir/?api=1&destination=${activeComplaint.latitude},${activeComplaint.longitude}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ color: 'var(--info, #4E9CFF)', textDecoration: 'none' }}
+                      >
+                        Open Directions ↗
+                      </a>
+                    </div>
+                  ) : (
+                    <div style={{ fontSize: '12px', color: 'var(--v20-text-muted)', marginTop: '4px' }}>
+                      No precise GPS coordinates captured
+                    </div>
+                  )}
+                </div>
               </div>
+
+              {/* Free OpenStreetMap Leaflet Interactive View */}
+              {activeComplaint.latitude && activeComplaint.longitude && (
+                <div style={{ height: '200px', width: '100%', borderRadius: '12px', overflow: 'hidden', border: '1px solid rgba(255, 255, 255, 0.1)', marginTop: '6px' }}>
+                  <AuthorizedComplaintMap
+                    latitude={activeComplaint.latitude}
+                    longitude={activeComplaint.longitude}
+                    label={`${activeComplaint.referenceNumber} · ${activeComplaint.publicPlace || 'Incident location'}`}
+                  />
+                </div>
+              )}
             </div>
 
             {/* 3. Sanitized Citizen Description Narrative */}
@@ -873,10 +945,11 @@ export const HodComplaintsView: React.FC<HodComplaintsViewProps> = ({
                 type="button"
                 className="v19-nav-tab"
                 style={{
-                  background: 'var(--v20-accent, #DFA51D)',
-                  color: '#0E1017',
+                  background: 'var(--button-primary, #F0ECE3)',
+                  color: '#101216',
                   fontWeight: 700,
                   padding: '10px 26px',
+                  borderRadius: '9999px',
                   border: 'none',
                   boxShadow: '0 4px 16px rgba(0,0,0,0.35)',
                 }}
@@ -991,7 +1064,7 @@ export const HodComplaintsView: React.FC<HodComplaintsViewProps> = ({
             </h3>
 
             <p style={{ fontSize: '13.5px', color: 'var(--v20-text-secondary)', margin: 0, lineHeight: 1.55 }}>
-              Complaint <strong style={{ color: '#E2DBD0' }}>#{assignedDetails?.refNum}</strong> has been assigned to <strong style={{ color: 'var(--v20-accent, #F4C43C)' }}>{assignedDetails?.officerName}</strong> with a {assignedDetails?.deadlineHours}h resolution deadline.
+              Complaint <strong style={{ color: '#E2DBD0' }}>#{assignedDetails?.refNum}</strong> has been assigned to <strong style={{ color: 'var(--text-primary, #F3EEE4)' }}>{assignedDetails?.officerName}</strong> with a {assignedDetails?.deadlineHours}h resolution deadline.
             </p>
 
             <button

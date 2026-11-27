@@ -1,154 +1,168 @@
 /**
- * AWAAZ-E-AWAM — PHASE V20 ORIGINAL FRONTEND RESTORATION
- * Shared Atmospheric Theme & Token Architecture
- * Authoritative References: Greenwich Project 3 (Screenshots 639-655)
+ * AWAAZ-E-AWAM — PHASE V21 CINEMATIC OPERATIONAL PORTAL STYLING
+ * Official Exact Approved Palettes & Token Architecture
  */
 
 :root {
-  /* Bright Luminous KMC Departmental Atmosphere (Golden-Yellow Light) */
-  --v20-bg-base: #140D03;
-  --v20-bg-mid: #2A1A06;
-  --v20-bg-deep: #4A2E08;
-  --v20-glow-highlight: #FFE174;
-  --v20-glow-illumination: #F4C43C;
-  --v20-glow-saturated: #BE850C;
-  --v20-glow-primary: rgba(244, 196, 60, 0.52);
-  --v20-glow-secondary: rgba(190, 133, 12, 0.32);
-  --v20-accent: #E5AC24;
-  --v20-accent-light: #FCE182;
-  --v20-accent-soft: rgba(244, 196, 60, 0.18);
-  --v20-accent-border: rgba(252, 225, 130, 0.38);
-  --v20-text-primary: #FFF9ED;
-  --v20-text-secondary: rgba(255, 249, 237, 0.78);
-  --v20-text-muted: rgba(255, 249, 237, 0.48);
+  /* 1) Shared Neutral UI Tokens (All Portals) */
+  --bg-deep: #070809;
+  --panel: #111317;
+  --panel-soft: #171A1F;
+  --panel-elevated: #1D2128;
+  --stroke: #2A3038;
+  --stroke-soft: rgba(255, 255, 255, 0.08);
+  --text-primary: #F3EEE4;
+  --text-secondary: #A6AEB8;
+  --text-muted: #7E858E;
+  --button-primary: #F0ECE3;
+  --button-primary-text: #101216;
+  --button-secondary: rgba(255, 255, 255, 0.06);
+  --button-secondary-text: #E9E2D5;
+  --button-hover: rgba(255, 255, 255, 0.12);
 
-  /* Shared Dark Glass Tokens (Optimized Performance: 12px blur, clean borders) */
-  --v20-glass-surface: rgba(255, 255, 255, 0.05);
-  --v20-glass-surface-hover: rgba(255, 255, 255, 0.08);
-  --v20-glass-border: rgba(255, 255, 255, 0.10);
-  --v20-glass-border-highlight: rgba(255, 255, 255, 0.22);
-  --v20-glass-blur: 12px;
+  /* 2) Semantic Status Tokens (Strictly for status indicators) */
+  --success: #3BC977;
+  --warning: #E59B2F;
+  --danger: #E05656;
+  --info: #4E9CFF;
 
-  /* Status Colors Harmonized to Dark Atmosphere */
-  --v20-status-solved: #43A047;
-  --v20-status-progress: #DFA51D;
-  --v20-status-pending: #E65100;
-  --v20-status-verification: #0288D1;
-  --v20-status-urgent: #E53935;
+  /* 3) Default Department Palette: KMC / Municipal / Roads (Burnt Orange Atmospheric) */
+  --dept-base-1: #0A0807;
+  --dept-base-2: #241103;
+  --dept-base-3: #5E3208;
+  --dept-glow-1: #B96A14;
+  --dept-glow-2: #E2A24D;
+
+  /* Backward Compatibility Aliases */
+  --v20-bg-base: var(--dept-base-1);
+  --v20-bg-mid: var(--dept-base-2);
+  --v20-bg-deep: var(--dept-base-3);
+  --v20-glow-highlight: var(--dept-glow-2);
+  --v20-glow-illumination: var(--dept-glow-1);
+  --v20-glow-primary: rgba(185, 106, 20, 0.45);
+  --v20-glow-secondary: rgba(94, 50, 8, 0.35);
+  --v20-accent: var(--dept-glow-2);
+  --v20-accent-light: var(--text-primary);
+  --v20-accent-soft: rgba(226, 162, 77, 0.14);
+  --v20-accent-border: rgba(226, 162, 77, 0.28);
+  --v20-text-primary: var(--text-primary);
+  --v20-text-secondary: var(--text-secondary);
+  --v20-text-muted: var(--text-muted);
+
+  /* Shared Dark Glass Tokens */
+  --v20-glass-surface: var(--panel);
+  --v20-glass-surface-hover: var(--panel-soft);
+  --v20-glass-border: var(--stroke);
+  --v20-glass-border-highlight: var(--stroke-soft);
+  --v20-glass-blur: 16px;
+
+  /* Status Tokens Harmonized */
+  --v20-status-solved: var(--success);
+  --v20-status-progress: var(--warning);
+  --v20-status-pending: var(--warning);
+  --v20-status-verification: var(--info);
+  --v20-status-urgent: var(--danger);
 
   /* Typography Stacks */
   --v20-font-display: 'Outfit', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-  --v20-font-number: 'Outfit', 'Space Grotesk', 'Archivo Black', sans-serif;
+  --v20-font-number: 'Outfit', 'Space Grotesk', -apple-system, sans-serif;
   --v20-font-body: 'DM Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 
-  /* Spring Motion Presets */
+  /* Calm & Premium Motion Presets */
   --v20-ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
   --v20-ease-smooth: cubic-bezier(0.22, 1, 0.36, 1);
-  --v20-duration-nav: 360ms;
+  --v20-duration-nav: 380ms;
 }
 
 /* ==========================================================================
-   DEPARTMENT THEME VARIATIONS (Brilliant Luminous Swatches)
+   OFFICIAL DEPARTMENT PALETTES (Atmospheric Backgrounds & Ambient Glows Only)
    ========================================================================== */
 
-/* K-Electric — Electricity (#102B65, #245AB9, #6CA9EE) */
-[data-dept="kelectric"],
-[data-dept="dept-kelectric"] {
-  --v20-bg-base: #060B18;
-  --v20-bg-mid: #0B1630;
-  --v20-bg-deep: #12244E;
-  --v20-glow-highlight: #A3CCFA;
-  --v20-glow-illumination: #6CA9EE;
-  --v20-glow-saturated: #245AB9;
-  --v20-glow-primary: rgba(108, 169, 238, 0.52);
-  --v20-glow-secondary: rgba(36, 90, 185, 0.32);
-  --v20-accent: #3F75D4;
-  --v20-accent-light: #8CBCF7;
-  --v20-accent-soft: rgba(63, 117, 212, 0.20);
-  --v20-accent-border: rgba(140, 188, 247, 0.40);
-  --v20-text-primary: #F0F6FE;
-  --v20-text-secondary: rgba(240, 246, 254, 0.78);
-  --v20-text-muted: rgba(240, 246, 254, 0.48);
+/* KMC / Municipal / Roads (Burnt Orange Atmospheric) */
+[data-dept="kmc"],
+[data-dept="dept-kmc"],
+[data-dept="roads"] {
+  --dept-base-1: #0A0807;
+  --dept-base-2: #241103;
+  --dept-base-3: #5E3208;
+  --dept-glow-1: #B96A14;
+  --dept-glow-2: #E2A24D;
+  --v20-glow-primary: rgba(185, 106, 20, 0.45);
+  --v20-glow-secondary: rgba(94, 50, 8, 0.35);
 }
 
-/* KW&SC — Water & Sewerage (#064E58, #168D9E, #80D7D9) */
+/* KW&SC / Water (Deep Teal Atmospheric) */
 [data-dept="kwsc"],
 [data-dept="dept-kwsc"] {
-  --v20-bg-base: #030F13;
-  --v20-bg-mid: #071C24;
-  --v20-bg-deep: #0E3542;
-  --v20-glow-highlight: #B0EDEE;
-  --v20-glow-illumination: #80D7D9;
-  --v20-glow-saturated: #168D9E;
-  --v20-glow-primary: rgba(128, 215, 217, 0.52);
-  --v20-glow-secondary: rgba(22, 141, 158, 0.32);
-  --v20-accent: #1CB0C4;
-  --v20-accent-light: #9CE7E9;
-  --v20-accent-soft: rgba(28, 176, 196, 0.20);
-  --v20-accent-border: rgba(156, 231, 233, 0.40);
-  --v20-text-primary: #EEFAFB;
-  --v20-text-secondary: rgba(238, 250, 251, 0.78);
-  --v20-text-muted: rgba(238, 250, 251, 0.48);
+  --dept-base-1: #05090A;
+  --dept-base-2: #0A1B1D;
+  --dept-base-3: #114E57;
+  --dept-glow-1: #1FA0A4;
+  --dept-glow-2: #79D8DD;
+  --v20-glow-primary: rgba(31, 160, 164, 0.45);
+  --v20-glow-secondary: rgba(17, 78, 87, 0.35);
 }
 
-/* SSWMB — Solid Waste Management (#164A35, #438A57, #A0CB80) */
+/* K-Electric / Electricity (Cobalt Blue Atmospheric) */
+[data-dept="kelectric"],
+[data-dept="dept-kelectric"],
+[data-dept="ke"] {
+  --dept-base-1: #05080C;
+  --dept-base-2: #0D1A2A;
+  --dept-base-3: #123B72;
+  --dept-glow-1: #2A6DF4;
+  --dept-glow-2: #7FB2FF;
+  --v20-glow-primary: rgba(42, 109, 244, 0.45);
+  --v20-glow-secondary: rgba(18, 59, 114, 0.35);
+}
+
+/* SNGPL / Gas (Emerald Atmospheric) */
+[data-dept="gas"],
+[data-dept="dept-gas"],
+[data-dept="sngpl"] {
+  --dept-base-1: #060907;
+  --dept-base-2: #0E1A12;
+  --dept-base-3: #1B5A3B;
+  --dept-glow-1: #2BB673;
+  --dept-glow-2: #8BE0B0;
+  --v20-glow-primary: rgba(43, 182, 115, 0.45);
+  --v20-glow-secondary: rgba(27, 90, 59, 0.35);
+}
+
+/* SSWMB / Sanitary / Waste (Olive Civic Atmospheric) */
 [data-dept="sswmb"],
 [data-dept="dept-sswmb"] {
-  --v20-bg-base: #041208;
-  --v20-bg-mid: #092312;
-  --v20-bg-deep: #113D21;
-  --v20-glow-highlight: #C2E5AB;
-  --v20-glow-illumination: #A0CB80;
-  --v20-glow-saturated: #438A57;
-  --v20-glow-primary: rgba(160, 203, 128, 0.52);
-  --v20-glow-secondary: rgba(67, 138, 87, 0.32);
-  --v20-accent: #52A86B;
-  --v20-accent-light: #B4DD97;
-  --v20-accent-soft: rgba(82, 168, 107, 0.20);
-  --v20-accent-border: rgba(180, 221, 151, 0.40);
-  --v20-text-primary: #EFF9F2;
-  --v20-text-secondary: rgba(239, 249, 242, 0.78);
-  --v20-text-muted: rgba(239, 249, 242, 0.48);
+  --dept-base-1: #090907;
+  --dept-base-2: #17180F;
+  --dept-base-3: #495122;
+  --dept-glow-1: #8AA336;
+  --dept-glow-2: #C8DB73;
+  --v20-glow-primary: rgba(138, 163, 54, 0.45);
+  --v20-glow-secondary: rgba(73, 81, 34, 0.35);
 }
 
-/* Gas Department — (#8D351C, #D86C29, #FFB375) */
-[data-dept="gas"],
-[data-dept="dept-gas"] {
-  --v20-bg-base: #140703;
-  --v20-bg-mid: #260E06;
-  --v20-bg-deep: #441A0B;
-  --v20-glow-highlight: #FFCCA3;
-  --v20-glow-illumination: #FFB375;
-  --v20-glow-saturated: #D86C29;
-  --v20-glow-primary: rgba(255, 179, 117, 0.52);
-  --v20-glow-secondary: rgba(216, 108, 41, 0.32);
-  --v20-accent: #E67A35;
-  --v20-accent-light: #FFC494;
-  --v20-accent-soft: rgba(230, 122, 53, 0.20);
-  --v20-accent-border: rgba(255, 196, 148, 0.40);
-  --v20-text-primary: #FEF5EF;
-  --v20-text-secondary: rgba(254, 245, 239, 0.78);
-  --v20-text-muted: rgba(254, 245, 239, 0.48);
-}
-
-/* SBCA — Building Control (#392C62, #7853A3, #B9A1D9) */
+/* SBCA — Building Control */
 [data-dept="sbca"],
 [data-dept="dept-sbca"] {
-  --v20-bg-base: #0B0814;
-  --v20-bg-mid: #171129;
-  --v20-bg-deep: #251B42;
-  --v20-glow-highlight: #D4C3EC;
-  --v20-glow-illumination: #B9A1D9;
-  --v20-glow-saturated: #7853A3;
-  --v20-glow-primary: rgba(185, 161, 217, 0.52);
-  --v20-glow-secondary: rgba(120, 83, 163, 0.32);
-  --v20-accent: #8E65BE;
-  --v20-accent-light: #CBB6E5;
-  --v20-accent-soft: rgba(142, 101, 190, 0.20);
-  --v20-accent-border: rgba(203, 182, 229, 0.40);
-  --v20-text-primary: #F5F1FB;
-  --v20-text-secondary: rgba(245, 241, 251, 0.78);
-  --v20-text-muted: rgba(245, 241, 251, 0.48);
+  --dept-base-1: #0B0814;
+  --dept-base-2: #171129;
+  --dept-base-3: #251B42;
+  --dept-glow-1: #7853A3;
+  --dept-glow-2: #B9A1D9;
+  --v20-glow-primary: rgba(120, 83, 163, 0.45);
+  --v20-glow-secondary: rgba(37, 27, 66, 0.35);
+}
+
+/* Global Admin (Platinum Slate) */
+[data-dept="admin"],
+[data-dept="dept-admin"] {
+  --dept-base-1: #070809;
+  --dept-base-2: #11151B;
+  --dept-base-3: #28303A;
+  --dept-glow-1: #8D99A8;
+  --dept-glow-2: #DCE3EA;
+  --v20-glow-primary: rgba(141, 153, 168, 0.45);
+  --v20-glow-secondary: rgba(40, 48, 58, 0.35);
 }
 
 /* ==========================================================================
@@ -303,6 +317,19 @@
 
 .v20-notch-path {
   fill: #080808;
+  pointer-events: auto;
+}
+
+/* Invisible Safe Hover Corridor to prevent premature mouse-leave drops */
+.v20-nav-hover-corridor {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: clamp(320px, 64vw, 880px);
+  height: 68px;
+  pointer-events: auto;
+  z-index: 1;
 }
 
 /* Top-Left Brand Identity - Harmonized 28px Ceiling Distance */
@@ -490,10 +517,10 @@
 
 .v20-nav-link-btn.is-active,
 .v20-nav-link-btn[aria-current="page"] {
-  color: #FFF9ED;
-  background: rgba(244, 196, 60, 0.14);
-  border: 1px solid rgba(244, 196, 60, 0.35);
-  box-shadow: 0 0 16px rgba(244, 196, 60, 0.15);
+  color: var(--text-primary, #F3EEE4);
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  box-shadow: 0 2px 14px rgba(0, 0, 0, 0.4);
   font-weight: 600;
 }
 
@@ -502,8 +529,9 @@
   font-weight: 700;
   padding: 1px 6px;
   border-radius: 9999px;
-  background: var(--v20-accent, #DFA51D);
-  color: #0E0E0E;
+  background: rgba(255, 255, 255, 0.16);
+  color: var(--text-primary, #F3EEE4);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   margin-left: 2px;
 }
 
@@ -528,7 +556,7 @@
   font-weight: 500;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: var(--v20-accent, #DFA51D);
+  color: var(--text-secondary, #A6AEB8);
   max-width: 620px;
   line-height: 1.6;
   margin: 0 0 24px;
@@ -581,29 +609,29 @@
 }
 
 .v20-landing-btn-primary {
-  background: var(--v20-accent, #F4C43C);
-  color: #120D04;
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  box-shadow: 0 4px 20px rgba(244, 196, 60, 0.35);
+  background: var(--button-primary, #F0ECE3);
+  color: var(--button-primary-text, #101216);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 0 16px rgba(240, 236, 227, 0.15);
 }
 
 .v20-landing-btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 28px rgba(244, 196, 60, 0.5);
-  background: #FFE174;
+  background: #FFFFFF;
+  box-shadow: 0 6px 28px rgba(0, 0, 0, 0.5), 0 0 24px rgba(255, 255, 255, 0.25);
 }
 
 .v20-landing-btn-secondary {
-  background: rgba(255, 255, 255, 0.08);
-  color: var(--v20-text-primary);
-  border: 1.5px solid var(--v20-glass-border);
+  background: var(--button-secondary, rgba(255, 255, 255, 0.06));
+  color: var(--button-secondary-text, #E9E2D5);
+  border: 1.5px solid var(--stroke-soft, rgba(255, 255, 255, 0.12));
   backdrop-filter: blur(14px);
 }
 
 .v20-landing-btn-secondary:hover {
   transform: translateY(-2px);
-  background: rgba(255, 255, 255, 0.15);
-  border-color: var(--v20-glass-border-highlight);
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.24);
 }
 
 .v20-btn-arrow {
@@ -930,14 +958,14 @@
 
 .v20-horizontal-complaint-card:hover,
 .v19-parallax-card:hover {
-  border-color: var(--v20-accent-border, rgba(223, 165, 29, 0.35));
+  border-color: rgba(255, 255, 255, 0.25);
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.36);
 }
 
 .v20-horizontal-complaint-card.is-selected,
 .v19-parallax-card.is-selected {
-  border-color: var(--v20-accent, #DFA51D);
-  box-shadow: 0 0 0 2px var(--v20-accent-soft, rgba(223, 165, 29, 0.2)), 0 14px 44px rgba(0, 0, 0, 0.42);
+  border-color: rgba(255, 255, 255, 0.45);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.15), 0 14px 44px rgba(0, 0, 0, 0.42);
 }
 
 /* Card Structure */
@@ -1142,7 +1170,7 @@
 }
 
 .v20-pin-icon {
-  color: var(--v20-accent, #DFA51D);
+  color: var(--info, #4E9CFF);
   flex-shrink: 0;
 }
 
@@ -1175,9 +1203,9 @@
 }
 
 .v20-horizontal-complaint-card:hover .v20-arrow-circle {
-  background: var(--v20-accent, #DFA51D);
-  color: #0E1017;
-  border-color: var(--v20-accent);
+  background: var(--button-primary, #F0ECE3);
+  color: #101216;
+  border-color: rgba(255, 255, 255, 0.85);
 }
 
 /* Action Buttons & Tabs */
@@ -1293,8 +1321,8 @@
 }
 
 .v19-otp-slot.is-active {
-  border-color: var(--v20-accent, #DFA51D);
-  box-shadow: 0 0 16px rgba(223, 165, 29, 0.3);
+  border-color: rgba(255, 255, 255, 0.65);
+  box-shadow: 0 0 16px rgba(255, 255, 255, 0.2);
   transform: translateY(-2px);
 }
 

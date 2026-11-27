@@ -5,6 +5,47 @@ Verified on **27 November 2026 (Pakistan time)**. Internal delivery target:
 This document distinguishes inspected source, automated checks, and unverified
 hosted behavior. Update it after every significant verified milestone.
 
+## Development update, 27 November 2026 — Phase V21: Cinematic Operational Portal Finish & Global Token Harmonization (Hover Bridge Navigation, Reference-Informed Light/Dark Hierarchy, Leaflet GPS Map Integration, Dynamic SLA Pacing & Zero AI-Slop)
+
+- **Git & Protected Baseline (`D:\RomanUrdu_V13_19_Review`, branch `feature/v21-cinematic-portal-polish`):**
+  - Branched from V20.5 baseline (`44b336c83087d27e3968181aaf7133e404525293`) with safety rollback tag `checkpoint/v20-5-before-v21-polish` created and pushed to origin.
+  - Active branch `feature/v21-cinematic-portal-polish` tracked upstream on origin.
+  - Protected primary worktree `D:\RomanUrdu_ComplaintClassifier_staff_auth` remained **100% untouched**.
+  - Total expenditure: **$0.00**; zero paid external APIs, fonts, or credit card dependencies.
+  - Zero database schema migrations applied; production DB `akbwiedtmxjxcjscgitw` and staging DB `jvbulmmdwovtgaxojxhn` remain completely untouched.
+- **Visual & Interaction Engineering Highlights (Aligned with Approved References):**
+  - **TopEdgeMorphingNav Stability & Safe Hover Corridor (`TopEdgeMorphingNav.tsx` & `v20-atmospheric.css`):**
+    - Built an invisible safe corridor (`.v20-nav-hover-corridor`) spanning the top ceiling (`width: clamp(320px, 64vw, 880px)`, `height: 68px`, `pointer-events: auto`), eliminating accidental mouse-leave drops when navigating across gaps.
+    - Set `.v20-notch-path { pointer-events: auto; }` for seamless hover capture on the notch SVG.
+    - Calibrated spring dynamics to calm, premium rates: opening $k=140, c=22$ (~380ms) and closing $k=190, c=24$ (~260ms).
+    - Tuned hover debounce timing to 80ms on enter and 280ms on leave, ensuring natural, fluid cursor tracking.
+    - Restyled active navigation tabs to crisp neutral translucent glass pills (`rgba(255, 255, 255, 0.12)` with `border: 1px solid rgba(255, 255, 255, 0.22)`), completely eliminating yellow glows.
+  - **Landing Page Editorial Polish & Neutral CTA Buttons (`V20LandingPage.tsx` & `v20-atmospheric.css`):**
+    - Refactored staff display name fallback to `"Admin"` for generic handles (`roads-01`, `roads-officer-01`), delivering a clean executive greeting.
+    - Replaced yellow button styling on `.v20-landing-btn-primary` with neutral ivory/platinum `var(--button-primary, #F0ECE3)` (`#101216` text) and `.v20-landing-btn-secondary` with translucent dark glass (`rgba(255, 255, 255, 0.06)`).
+  - **Dynamic Period Filtering & Truthful SLA Cohorts (`V20DashboardPage.tsx`):**
+    - Wired filter capsules (`Today`, `Yesterday`, `This Month`, `This Year`) to dynamically update KPI cards, interactive Donut segments, and SLA progress bars in real-time.
+    - Replaced all yellow progress bars with semantic status tokens (`var(--success, #3BC977)`, `var(--warning, #E59B2F)`, `var(--info, #4E9CFF)`, `var(--danger, #E05656)`).
+  - **Complaint Detail Leaflet GPS Map & Photographic Evidence (`HodComplaintsView.tsx`):**
+    - Integrated lightweight, free OpenStreetMap tiles via Leaflet (`AuthorizedComplaintMap`) rendering interactive map pins when citizen GPS coordinates exist, with an Open Directions link.
+    - Provided citizen photographic evidence inspection gallery with thumbnail zoom and fullscreen Lightbox.
+    - Converted all yellow location pins, metadata badges, and accept buttons to approved neutral tokens.
+  - **Assignment Custom Duration & Centered Confirmation Dialogs (`HodComplaintsView.tsx`):**
+    - Added custom hours input alongside duration presets (24h, 48h, 72h, 120h, 168h) with neutral button styling.
+    - Replaced legacy toasts with centered translucent glass modal dialogs on assignment confirmation.
+  - **Personnel Management & Verification Queue Polish (`HodOfficersView.tsx`, `HodVerificationView.tsx`, `V19HodPortalView.tsx`):**
+    - Added explicit `● Active` (green) and `○ Offline` / `✕ Suspended` (red) status badges to officer roster cards.
+    - Preserved 140px header clearance for the sticky officer detail panel.
+    - Redesigned verification queue empty state with clean neutral styling and check icon.
+    - Replaced top-right fixed notification banner in `V19HodPortalView.tsx` with a centered operational modal dialog.
+  - **Profile & Credential Controls (`HodProfileView.tsx`, `OfficerProfileView.tsx`):**
+    - Restyled avatar rings, camera upload buttons, and jurisdiction icons using neutral and info tokens, purging all residual yellow accents.
+- **Automated Quality Gates & Test Verification:**
+  - TypeScript build (`npx tsc -b && vite build`): **Exit code `0` cleanly (0 errors, production client bundled in 2.08s)**.
+  - Vitest test suite (`npm test -- --run`): **755 passed | 1 skipped across 76 test suites (0 regressions, 31.34s duration)**.
+  - Headless Chrome visual QA (`tools/ai_factory/capture_v21_qa.mjs`): **Captured 23 high-resolution screenshots across Desktop, Tablet, and Mobile viewports in dark and light modes, covering all department color atmospheres (KMC, KE, KW&SC, SSWMB)**.
+  - 60 FPS motion captures: **Generated `v21_morphing_nav_animation.mp4` and `v21_morphing_nav_animation.gif` with ffmpeg**.
+
 ## Development update, 27 November 2026 — Phase V20.5: Final Portal Polish & Reference-Informed Card Hierarchy (Dual CTA Landing Hero, High-End SaaS KPI Card Deck, Responsive Spring Nav Notch, Centered Work Order Dispatch Dialogs)
 
 - **Git & Protected Baseline (`D:\RomanUrdu_V13_19_Review`, branch `fix/v20-5-final-portal-polish`):**

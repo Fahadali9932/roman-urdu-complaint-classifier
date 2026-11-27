@@ -40,6 +40,13 @@ export const V20LandingPage: React.FC<V20LandingPageProps> = ({
     return () => window.clearInterval(timer);
   }, []);
 
+  const isGenericHandle =
+    !staffName ||
+    staffName === 'roads-01' ||
+    staffName === 'roads-officer-01' ||
+    staffName.toLowerCase().startsWith('roads-');
+  const resolvedDisplayName = isGenericHandle ? 'Admin' : staffName;
+
   return (
     <main className="landing v20-landing-container" data-testid="v20-landing-page">
       {/* Hidden test-compatibility node: Department context already anchored in top-left header */}
@@ -50,12 +57,12 @@ export const V20LandingPage: React.FC<V20LandingPageProps> = ({
       {/* 1. Large expressive display greeting (55-70% viewport width) */}
       <h1 className="v20-landing-greeting-title" data-testid="v20-landing-greeting">
         <span>{greeting}</span>
-        <span className="sr-only"> — {staffName}</span>
+        <span className="sr-only"> — {resolvedDisplayName}</span>
       </h1>
 
       {/* 2. Staff display name in complementary serif typography directly below */}
       <p className="name v20-landing-staff-name" data-testid="v20-landing-staff-name">
-        {staffName || 'Staff Member'}
+        {resolvedDisplayName}
       </p>
 
       {/* 3. Dual rounded CTA buttons inspired by the sleek editorial reference */}

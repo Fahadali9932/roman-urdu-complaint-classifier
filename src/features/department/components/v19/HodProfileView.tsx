@@ -52,12 +52,12 @@ export const HodProfileView: React.FC<HodProfileViewProps> = ({
               width: '64px',
               height: '64px',
               borderRadius: '50%',
-              background: 'var(--v20-accent-soft, rgba(223, 165, 29, 0.16))',
-              border: '2px solid var(--v20-accent, #DFA51D)',
+              background: 'rgba(255, 255, 255, 0.08)',
+              border: '2px solid rgba(255, 255, 255, 0.25)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: 'var(--v20-accent, #DFA51D)',
+              color: 'var(--v20-text-primary)',
               fontSize: '24px',
               fontWeight: 700,
               overflow: 'hidden',
@@ -79,8 +79,8 @@ export const HodProfileView: React.FC<HodProfileViewProps> = ({
               width: '24px',
               height: '24px',
               borderRadius: '50%',
-              background: 'var(--v20-accent, #DFA51D)',
-              color: '#0E121A',
+              background: 'var(--button-primary, #F0ECE3)',
+              color: '#101216',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -107,7 +107,7 @@ export const HodProfileView: React.FC<HodProfileViewProps> = ({
           <div style={{ fontSize: '13px', color: 'var(--v20-text-secondary)', marginTop: '4px' }}>
             Department Head · {departmentName}
           </div>
-          <div style={{ fontSize: '11px', color: 'var(--v20-accent)', marginTop: '2px', fontFamily: 'var(--v20-font-display, sans-serif)' }}>
+          <div style={{ fontSize: '11px', color: 'var(--text-secondary, #A6AEB8)', marginTop: '2px', fontFamily: 'var(--v20-font-display, sans-serif)' }}>
             Operational Command · {departmentCode}
           </div>
         </div>
@@ -120,7 +120,7 @@ export const HodProfileView: React.FC<HodProfileViewProps> = ({
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px', borderRadius: '10px', background: 'var(--v20-glass-surface)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <KeyRound size={18} style={{ color: 'var(--v20-accent)' }} />
+            <KeyRound size={18} style={{ color: 'var(--info, #4E9CFF)' }} />
             <div>
               <div style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--v20-text-primary)' }}>Account Passphrase</div>
               <div style={{ fontSize: '12px', color: 'var(--v20-text-muted)' }}>Update individual staff password</div>
@@ -135,7 +135,7 @@ export const HodProfileView: React.FC<HodProfileViewProps> = ({
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px', borderRadius: '10px', background: 'var(--v20-glass-surface)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <Building2 size={18} style={{ color: 'var(--v20-accent)' }} />
+            <Building2 size={18} style={{ color: 'var(--info, #4E9CFF)' }} />
             <div>
               <div style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--v20-text-primary)' }}>Department Jurisdiction</div>
               <div style={{ fontSize: '12px', color: 'var(--v20-text-muted)' }}>{departmentName} ({departmentCode})</div>
