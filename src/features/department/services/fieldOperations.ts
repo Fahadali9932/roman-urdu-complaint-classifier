@@ -111,6 +111,12 @@ export interface DepartmentWorkOrder {
   citizen_dispute_pending: boolean;
 }
 
+export type ProfileApprovalStatus =
+  | 'photograph_required'
+  | 'awaiting_approval'
+  | 'approved'
+  | 'retake_required';
+
 export interface OfficerProfileDetails {
   user_id: string;
   department_id: string;
@@ -121,6 +127,11 @@ export interface OfficerProfileDetails {
   cnic_masked?: string | null;
   cnic_hash?: string | null;
   profile_photo_storage_path?: string | null;
+  approval_status?: ProfileApprovalStatus;
+  rejection_reason?: string | null;
+  reviewed_by?: string | null;
+  reviewed_at?: string | null;
+  submitted_at?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -423,6 +434,7 @@ const devOfficerProfiles: Map<string, OfficerProfileDetails> = new Map([
     cnic_masked: '42101-*******-1',
     cnic_hash: 'mock-hash-1',
     profile_photo_storage_path: null,
+    approval_status: 'approved',
     created_at: new Date(Date.now() - 30 * 86400000).toISOString(),
     updated_at: new Date().toISOString(),
   }],
@@ -436,6 +448,7 @@ const devOfficerProfiles: Map<string, OfficerProfileDetails> = new Map([
     cnic_masked: '42201-*******-3',
     cnic_hash: 'mock-hash-2',
     profile_photo_storage_path: null,
+    approval_status: 'approved',
     created_at: new Date(Date.now() - 20 * 86400000).toISOString(),
     updated_at: new Date().toISOString(),
   }],
@@ -1786,6 +1799,136 @@ class FieldOperationsService {
         },
         { onConflict: 'officer_id' }
       );
+  }
+
+  async submitStaffProfilePhoto(
+    userId: string,
+    departmentId: string,
+    photoDataUrlOrPath: string
+  ): Promise<{ success: boolean; status: ProfileApprovalStatus }> {
+    const existing = await this.fetchOfficerProfile(userId);
+    const updated: OfficerProfileDetails = existing
+      ? {
+          ...existing,
+          profile_photo_storage_path: photoDataUrlOrPath,
+          approval_status: 'awaiting_approval',
+          submitted_at: new Date().toISOString(),
+          rejection_reason: null,
+          updated_at: new Date().toISOString(),
+        }
+      : {
+          user_id: userId,
+          department_id: departmentId,
+          full_name: 'Staff Officer',
+          employee_id: `EMP-${userId.slice(0, 6)}`,
+          official_email: `${userId}@department.gos.pk`,
+          profile_photo_storage_path: photoDataUrlOrPath,
+          approval_status: 'awaiting_approval',
+          submitted_at: new Date().toISOString(),
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+
+    if (isLocalFieldDemo()) {
+      devOfficerProfiles.set(userId, updated);
+      return { success: true, status: 'awaiting_approval' };
+    }
+
+    const { error } = await requireSupabase()
+      .from('officer_profile_details')
+      .upsert({
+        user_id: userId,
+        department_id: departmentId,
+        profile_photo_storage_path: photoDataUrlOrPath,
+        approval_status: 'awaiting_approval',
+        submitted_at: new Date().toISOString(),
+        rejection_reason: null,
+        updated_at: new Date().toISOString(),
+      });
+    if (error) throw new Error(error.message);
+    return { success: true, status: 'awaiting_approval' };
+  }
+
+  async getPendingProfileApprovals(departmentId: string): Promise<OfficerProfileDetails[]> {
+    if (isLocalFieldDemo()) {
+      return Array.from(devOfficerProfiles.values()).filter(
+        (p) => p.department_id === departmentId && p.approval_status === 'awaiting_approval'
+      );
+    }
+    const { data, error } = await requireSupabase()
+      .from('officer_profile_details')
+      .select('*')
+      .eq('department_id', departmentId)
+      .eq('approval_status', 'awaiting_approval')
+      .order('submitted_at', { ascending: false });
+    if (error) throw new Error(error.message);
+    return (data || []) as OfficerProfileDetails[];
+  }
+
+  async reviewStaffProfilePhoto(params: {
+    reviewerId: string;
+    reviewerRole: string;
+    reviewerDepartment: string;
+    targetUserId: string;
+    decision: 'approve' | 'retake';
+    reason?: string;
+  }): Promise<{ success: boolean; newStatus: ProfileApprovalStatus }> {
+    // 1. Prohibit self-approval
+    if (params.reviewerId === params.targetUserId) {
+      throw new Error('Self-approval prohibited: Staff cannot review or approve their own profile photograph.');
+    }
+
+    // 2. Department Isolation: Reviewer must belong to the same department (unless central admin)
+    const targetProfile = await this.fetchOfficerProfile(params.targetUserId);
+    if (!targetProfile) {
+      throw new Error(`Profile for user ${params.targetUserId} was not found.`);
+    }
+
+    if (
+      params.reviewerDepartment !== 'admin' &&
+      params.reviewerDepartment !== targetProfile.department_id
+    ) {
+      throw new Error('Department isolation breach: Cannot review profile photographs across departmental boundaries.');
+    }
+
+    // 3. Mandatory Reason for retake requests
+    if (params.decision === 'retake' && (!params.reason || !params.reason.trim())) {
+      throw new Error('A specific justification reason is mandatory when requesting a profile photograph retake.');
+    }
+
+    const newStatus: ProfileApprovalStatus = params.decision === 'approve' ? 'approved' : 'retake_required';
+
+    if (isLocalFieldDemo()) {
+      const updated: OfficerProfileDetails = {
+        ...targetProfile,
+        approval_status: newStatus,
+        rejection_reason: params.decision === 'retake' ? params.reason!.trim() : null,
+        reviewed_by: params.reviewerId,
+        reviewed_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+      devOfficerProfiles.set(params.targetUserId, updated);
+      return { success: true, newStatus };
+    }
+
+    const { error } = await requireSupabase()
+      .from('officer_profile_details')
+      .update({
+        approval_status: newStatus,
+        rejection_reason: params.decision === 'retake' ? params.reason!.trim() : null,
+        reviewed_by: params.reviewerId,
+        reviewed_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq('user_id', params.targetUserId);
+    if (error) throw new Error(error.message);
+    return { success: true, newStatus };
+  }
+
+  async isStaffProfileApproved(userId: string): Promise<boolean> {
+    const profile = await this.fetchOfficerProfile(userId);
+    if (!profile) return false;
+    return profile.approval_status === 'approved';
   }
 }
 

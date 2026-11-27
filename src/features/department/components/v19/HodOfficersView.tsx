@@ -1,5 +1,11 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { type DepartmentOfficer, type DepartmentWorkOrder, type ProvisionOfficerResult } from '../../services/fieldOperations';
+import {
+  type DepartmentOfficer,
+  type DepartmentWorkOrder,
+  type ProvisionOfficerResult,
+  type OfficerProfileDetails,
+  fieldOperations,
+} from '../../services/fieldOperations';
 import {
   UserPlus,
   CheckCircle2,
@@ -13,6 +19,8 @@ import {
   Calendar,
   Building,
   FileText,
+  RotateCcw,
+  ShieldCheck,
 } from 'lucide-react';
 
 export interface HodOfficersViewProps {
@@ -43,6 +51,16 @@ export const HodOfficersView: React.FC<HodOfficersViewProps> = ({
 }) => {
   const [selectedOfficerId, setSelectedOfficerId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+
+  // V22.1 Profile Approvals Sub-Tab State
+  const [subTab, setSubTab] = useState<'directory' | 'approvals'>('directory');
+  const [pendingApprovals, setPendingApprovals] = useState<OfficerProfileDetails[]>([]);
+  const [isLoadingApprovals, setIsLoadingApprovals] = useState(false);
+  const [retakeTarget, setRetakeTarget] = useState<OfficerProfileDetails | null>(null);
+  const [retakeReason, setRetakeReason] = useState('');
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+  const [reviewFeedback, setReviewFeedback] = useState<string | null>(null);
+  const [activeProfile, setActiveProfile] = useState<OfficerProfileDetails | null>(null);
 
   // Add Officer Modal State
   const [isAddOpen, setIsAddOpen] = useState(false);
@@ -255,6 +273,81 @@ export const HodOfficersView: React.FC<HodOfficersViewProps> = ({
     return `${Math.min(100, Math.max(0, rate))}%`;
   };
 
+  const refreshApprovals = useCallback(async () => {
+    setIsLoadingApprovals(true);
+    try {
+      const list = await fieldOperations.getPendingProfileApprovals(departmentCode.toLowerCase());
+      setPendingApprovals(list);
+    } catch (err) {
+      console.error('Failed to load pending profile approvals:', err);
+    } finally {
+      setIsLoadingApprovals(false);
+    }
+  }, [departmentCode]);
+
+  useEffect(() => {
+    refreshApprovals();
+  }, [refreshApprovals]);
+
+  useEffect(() => {
+    if (selectedOfficerId) {
+      fieldOperations.fetchOfficerProfile(selectedOfficerId).then(setActiveProfile);
+    } else {
+      setActiveProfile(null);
+    }
+  }, [selectedOfficerId]);
+
+  const handleApprovePhoto = async (targetUserId: string) => {
+    setIsSubmittingReview(true);
+    setReviewFeedback(null);
+    try {
+      await fieldOperations.reviewStaffProfilePhoto({
+        reviewerId: 'local-hod',
+        reviewerRole: 'head',
+        reviewerDepartment: departmentCode.toLowerCase(),
+        targetUserId,
+        decision: 'approve',
+      });
+      setReviewFeedback('Profile photograph approved successfully.');
+      await refreshApprovals();
+      if (selectedOfficerId === targetUserId) {
+        const updated = await fieldOperations.fetchOfficerProfile(targetUserId);
+        setActiveProfile(updated);
+      }
+    } catch (err: any) {
+      setReviewFeedback(err.message || 'Failed to approve photograph.');
+    } finally {
+      setIsSubmittingReview(false);
+    }
+  };
+
+  const handleConfirmRetake = async () => {
+    if (!retakeTarget || !retakeReason.trim()) return;
+    setIsSubmittingReview(true);
+    try {
+      await fieldOperations.reviewStaffProfilePhoto({
+        reviewerId: 'local-hod',
+        reviewerRole: 'head',
+        reviewerDepartment: departmentCode.toLowerCase(),
+        targetUserId: retakeTarget.user_id,
+        decision: 'retake',
+        reason: retakeReason.trim(),
+      });
+      setReviewFeedback(`Retake requested for ${retakeTarget.full_name}.`);
+      setRetakeTarget(null);
+      setRetakeReason('');
+      await refreshApprovals();
+      if (selectedOfficerId === retakeTarget.user_id) {
+        const updated = await fieldOperations.fetchOfficerProfile(retakeTarget.user_id);
+        setActiveProfile(updated);
+      }
+    } catch (err: any) {
+      setReviewFeedback(err.message || 'Failed to request retake.');
+    } finally {
+      setIsSubmittingReview(false);
+    }
+  };
+
   return (
     <div
       data-testid="v19-hod-officers"
@@ -330,7 +423,7 @@ export const HodOfficersView: React.FC<HodOfficersViewProps> = ({
           >
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '24px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '26px' }}>
-                {/* Large 92px Avatar with Initials */}
+                {/* Large 92px Avatar with Photo or Initials */}
                 <div
                   style={{
                     width: '92px',
@@ -346,9 +439,19 @@ export const HodOfficersView: React.FC<HodOfficersViewProps> = ({
                     color: 'var(--v20-text-primary, #F0ECE3)',
                     boxShadow: '0 10px 30px rgba(0, 0, 0, 0.45)',
                     flexShrink: 0,
+                    overflow: 'hidden',
                   }}
                 >
-                  {activeOfficer.display_name[0]?.toUpperCase() || 'O'}
+                  {activeProfile?.profile_photo_storage_path ? (
+                    <img
+                      src={activeProfile.profile_photo_storage_path}
+                      alt={activeOfficer.display_name}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      data-testid="officer-detail-photo"
+                    />
+                  ) : (
+                    activeOfficer.display_name[0]?.toUpperCase() || 'O'
+                  )}
                 </div>
 
                 <div>
@@ -364,6 +467,51 @@ export const HodOfficersView: React.FC<HodOfficersViewProps> = ({
                     >
                       {activeOfficer.display_name}
                     </h2>
+
+                    {/* Photo Approval Status Badge */}
+                    {activeProfile?.approval_status && (
+                      <span
+                        data-testid="officer-approval-status-badge"
+                        style={{
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          padding: '4px 10px',
+                          borderRadius: '9999px',
+                          background:
+                            activeProfile.approval_status === 'approved'
+                              ? 'rgba(67, 160, 71, 0.18)'
+                              : activeProfile.approval_status === 'awaiting_approval'
+                              ? 'rgba(229, 155, 47, 0.18)'
+                              : activeProfile.approval_status === 'retake_required'
+                              ? 'rgba(229, 57, 53, 0.18)'
+                              : 'rgba(255, 255, 255, 0.08)',
+                          color:
+                            activeProfile.approval_status === 'approved'
+                              ? '#66BB6A'
+                              : activeProfile.approval_status === 'awaiting_approval'
+                              ? '#E59B2F'
+                              : activeProfile.approval_status === 'retake_required'
+                              ? '#EF5350'
+                              : 'var(--v20-text-muted)',
+                          border:
+                            activeProfile.approval_status === 'approved'
+                              ? '1px solid rgba(67,160,71,0.35)'
+                              : activeProfile.approval_status === 'awaiting_approval'
+                              ? '1px solid rgba(229,155,47,0.35)'
+                              : '1px solid rgba(255,255,255,0.12)',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.04em',
+                        }}
+                      >
+                        {activeProfile.approval_status === 'approved'
+                          ? 'Profile Approved'
+                          : activeProfile.approval_status === 'awaiting_approval'
+                          ? 'Photo Awaiting Approval'
+                          : activeProfile.approval_status === 'retake_required'
+                          ? 'Retake Required'
+                          : 'Photo Required'}
+                      </span>
+                    )}
 
                     {/* Account Status Badge */}
                     <span
@@ -892,7 +1040,7 @@ export const HodOfficersView: React.FC<HodOfficersViewProps> = ({
         <div style={{ display: 'flex', flexDirection: 'column', gap: '26px', width: '100%' }}>
           {/* Header Bar */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
               <h2
                 style={{
                   fontSize: '26px',
@@ -917,58 +1065,279 @@ export const HodOfficersView: React.FC<HodOfficersViewProps> = ({
               >
                 {filteredOfficers.length} personnel
               </span>
-            </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-              {/* Search input by Name or ID */}
-              <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                <Search size={15} style={{ position: 'absolute', left: '16px', color: 'var(--v20-text-muted)', pointerEvents: 'none' }} />
-                <input
-                  type="text"
-                  placeholder="Search officer name or ID..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  style={{
-                    padding: '10px 18px 10px 42px',
-                    borderRadius: '9999px',
-                    background: 'var(--v20-glass-surface)',
-                    border: '1px solid var(--v20-glass-border)',
-                    color: 'var(--v20-text-primary, #F0ECE3)',
-                    fontSize: '13.5px',
-                    outline: 'none',
-                    width: '260px',
-                  }}
-                  data-testid="v20-officer-search-input"
-                />
-              </div>
-
-              {/* Add New Officer Action Button */}
-              <button
-                type="button"
-                className="v20-landing-btn v20-landing-btn-primary"
+              {/* Sub-tab pills */}
+              <div
                 style={{
-                  padding: '10px 22px',
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '8px',
+                  gap: '4px',
+                  background: 'rgba(0, 0, 0, 0.25)',
+                  padding: '3px',
                   borderRadius: '9999px',
-                  fontSize: '13.5px',
-                  fontWeight: 650,
-                  cursor: 'pointer',
-                }}
-                onClick={() => {
-                  setProvisionResult(null);
-                  setIsAddOpen(true);
+                  border: '1px solid var(--v20-glass-border)',
                 }}
               >
-                <UserPlus size={16} />
-                <span>Add New Officer</span>
-              </button>
+                <button
+                  type="button"
+                  className={`v20-filter-capsule-btn ${subTab === 'directory' ? 'is-active' : ''}`}
+                  onClick={() => setSubTab('directory')}
+                  data-testid="hod-officers-subtab-directory"
+                  style={{ borderRadius: '9999px', padding: '5px 14px', fontSize: '12.5px' }}
+                >
+                  Directory
+                </button>
+                <button
+                  type="button"
+                  className={`v20-filter-capsule-btn ${subTab === 'approvals' ? 'is-active' : ''}`}
+                  onClick={() => {
+                    setSubTab('approvals');
+                    refreshApprovals();
+                  }}
+                  data-testid="hod-officers-subtab-approvals"
+                  style={{
+                    borderRadius: '9999px',
+                    padding: '5px 14px',
+                    fontSize: '12.5px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                  }}
+                >
+                  <span>Approvals</span>
+                  {pendingApprovals.length > 0 && (
+                    <span
+                      style={{
+                        background: 'var(--v20-accent, #E5A044)',
+                        color: '#000',
+                        padding: '1px 6px',
+                        borderRadius: '9999px',
+                        fontSize: '10.5px',
+                        fontWeight: 700,
+                      }}
+                    >
+                      {pendingApprovals.length}
+                    </span>
+                  )}
+                </button>
+              </div>
             </div>
+
+            {subTab === 'directory' && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                {/* Search input by Name or ID */}
+                <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                  <Search size={15} style={{ position: 'absolute', left: '16px', color: 'var(--v20-text-muted)', pointerEvents: 'none' }} />
+                  <input
+                    type="text"
+                    placeholder="Search officer name or ID..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    style={{
+                      padding: '10px 18px 10px 42px',
+                      borderRadius: '9999px',
+                      background: 'var(--v20-glass-surface)',
+                      border: '1px solid var(--v20-glass-border)',
+                      color: 'var(--v20-text-primary, #F0ECE3)',
+                      fontSize: '13.5px',
+                      outline: 'none',
+                      width: '260px',
+                    }}
+                    data-testid="v20-officer-search-input"
+                  />
+                </div>
+
+                {/* Add New Officer Action Button */}
+                <button
+                  type="button"
+                  className="v20-landing-btn v20-landing-btn-primary"
+                  style={{
+                    padding: '10px 22px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    borderRadius: '9999px',
+                    fontSize: '13.5px',
+                    fontWeight: 650,
+                    cursor: 'pointer',
+                  }}
+                  onClick={() => {
+                    setProvisionResult(null);
+                    setIsAddOpen(true);
+                  }}
+                >
+                  <UserPlus size={16} />
+                  <span>Add New Officer</span>
+                </button>
+              </div>
+            )}
           </div>
 
-          {/* 3-Column Responsive Officers Grid (340-400px wide, min-height 330-360px, padding 28-32px) */}
-          <div
+          {/* Profile Approvals View */}
+          {subTab === 'approvals' ? (
+            <div
+              className="v20-profile-approvals-view"
+              data-testid="hod-profile-approvals-view"
+              style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}
+            >
+              {reviewFeedback && (
+                <div
+                  style={{
+                    padding: '12px 18px',
+                    borderRadius: '12px',
+                    background: 'rgba(32, 100, 61, 0.15)',
+                    border: '1px solid rgba(88, 199, 140, 0.3)',
+                    color: '#58C78C',
+                    fontSize: '13px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                  }}
+                >
+                  <CheckCircle2 size={16} />
+                  <span>{reviewFeedback}</span>
+                </div>
+              )}
+
+              {isLoadingApprovals ? (
+                <p className="muted" style={{ padding: '32px 0', textAlign: 'center' }}>Loading profile approvals…</p>
+              ) : pendingApprovals.length === 0 ? (
+                <div
+                  className="v19-glass-card"
+                  style={{
+                    padding: '48px 32px',
+                    textAlign: 'center',
+                    borderRadius: '24px',
+                    color: 'var(--v20-text-muted)',
+                  }}
+                >
+                  <ShieldCheck size={36} style={{ color: 'var(--v20-status-solved, #58C78C)', margin: '0 auto 12px' }} />
+                  <div style={{ fontSize: '16px', fontWeight: 650, color: 'var(--v20-text-primary)' }}>All Officer Profiles Approved</div>
+                  <p style={{ fontSize: '13px', margin: '6px 0 0' }}>
+                    There are no staff profile photographs currently awaiting supervisor verification in the {departmentCode} division.
+                  </p>
+                </div>
+              ) : (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px' }}>
+                  {pendingApprovals.map((profile) => (
+                    <div
+                      key={profile.user_id}
+                      className="v19-glass-card"
+                      data-testid={`approval-card-${profile.user_id}`}
+                      style={{
+                        padding: '24px',
+                        borderRadius: '20px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '16px',
+                        background: 'var(--v20-glass-surface)',
+                        border: '1px solid var(--v20-glass-border)',
+                      }}
+                    >
+                      {/* Photo Thumbnail */}
+                      <div
+                        style={{
+                          width: '100%',
+                          height: '240px',
+                          borderRadius: '14px',
+                          overflow: 'hidden',
+                          background: '#080808',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          border: '1px solid rgba(255, 255, 255, 0.1)',
+                        }}
+                      >
+                        {profile.profile_photo_storage_path ? (
+                          <img
+                            src={profile.profile_photo_storage_path}
+                            alt={profile.full_name}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          />
+                        ) : (
+                          <div style={{ fontSize: '40px', fontWeight: 700, color: 'var(--v20-text-muted)' }}>
+                            {profile.full_name[0]?.toUpperCase() || 'O'}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Staff Info */}
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                          <h4 style={{ fontSize: '16px', fontWeight: 700, margin: 0, color: 'var(--v20-text-primary)' }}>
+                            {profile.full_name}
+                          </h4>
+                          <span
+                            style={{
+                              fontSize: '11px',
+                              fontWeight: 700,
+                              padding: '2px 8px',
+                              borderRadius: '9999px',
+                              background: 'rgba(229, 155, 47, 0.15)',
+                              color: '#E59B2F',
+                              border: '1px solid rgba(229, 155, 47, 0.3)',
+                            }}
+                          >
+                            Awaiting Approval
+                          </span>
+                        </div>
+                        <div style={{ fontSize: '12px', color: 'var(--v20-text-muted)', fontFamily: 'var(--v20-font-number, monospace)', marginTop: '4px' }}>
+                          ID: {profile.employee_id} · {departmentCode.toUpperCase()}
+                        </div>
+                        <div style={{ fontSize: '11.5px', color: 'var(--v20-text-muted)', marginTop: '2px' }}>
+                          Submitted: {new Date(profile.submitted_at || profile.updated_at).toLocaleString()}
+                        </div>
+                      </div>
+
+                      {/* Actions */}
+                      <div style={{ display: 'flex', gap: '10px', marginTop: 'auto' }}>
+                        <button
+                          type="button"
+                          onClick={() => setRetakeTarget(profile)}
+                          data-testid={`retake-photo-${profile.user_id}`}
+                          disabled={isSubmittingReview}
+                          style={{
+                            flex: 1,
+                            padding: '10px 14px',
+                            borderRadius: '12px',
+                            background: 'rgba(224, 86, 86, 0.1)',
+                            border: '1px solid rgba(224, 86, 86, 0.25)',
+                            color: '#E05656',
+                            fontSize: '12.5px',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                          }}
+                        >
+                          Request Retake
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleApprovePhoto(profile.user_id)}
+                          data-testid={`approve-photo-${profile.user_id}`}
+                          disabled={isSubmittingReview}
+                          style={{
+                            flex: 1,
+                            padding: '10px 14px',
+                            borderRadius: '12px',
+                            background: 'var(--button-primary, #F2EFE9)',
+                            border: 'none',
+                            color: 'var(--button-primary-text, #171717)',
+                            fontSize: '12.5px',
+                            fontWeight: 650,
+                            cursor: 'pointer',
+                          }}
+                        >
+                          Approve
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : (
+            /* Directory Parallax Grid */
+            <div
             ref={gridContainerRef}
             data-testid="v20-officers-parallax-list"
             style={{
@@ -1199,8 +1568,9 @@ export const HodOfficersView: React.FC<HodOfficersViewProps> = ({
               })
             )}
           </div>
-        </div>
-      )}
+        )}
+      </div>
+    )}
 
       {/* =========================================================================
           MODALS PRESERVED: PROVISIONING, WARNING, SUSPENSION & EXTEND DEADLINE
@@ -1650,6 +2020,95 @@ export const HodOfficersView: React.FC<HodOfficersViewProps> = ({
                 onClick={handleExecuteExtendDeadline}
               >
                 {isSubmittingExtension ? 'Extending...' : 'Authorize Extension'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* 5. Photograph Retake Justification Modal */}
+      {retakeTarget && (
+        <div
+          className="v19-lightbox-backdrop"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Request Photograph Retake"
+          onClick={() => !isSubmittingReview && setRetakeTarget(null)}
+        >
+          <div
+            className="v19-glass-card"
+            style={{
+              width: '100%',
+              maxWidth: '460px',
+              padding: '28px',
+              borderRadius: '24px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '18px',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <RotateCcw size={20} style={{ color: '#E05656' }} />
+              <span style={{ fontSize: '17px', fontWeight: 650, color: 'var(--v20-text-primary, #F0ECE3)' }}>
+                Request Photograph Retake
+              </span>
+            </div>
+
+            <p style={{ fontSize: '13px', color: 'var(--v20-text-secondary)', margin: 0, lineHeight: 1.5 }}>
+              Specify the supervisory reason why the submitted photograph for officer{' '}
+              <strong>{retakeTarget.full_name}</strong> was rejected. This justification will be displayed to the officer.
+            </p>
+
+            <div>
+              <label htmlFor="hod-retake-reason" style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--v20-text-muted)', marginBottom: '6px' }}>
+                Rejection Justification (Mandatory)
+              </label>
+              <textarea
+                id="hod-retake-reason"
+                value={retakeReason}
+                onChange={(e) => setRetakeReason(e.target.value)}
+                placeholder="e.g. Face is partially obscured, lighting is insufficient, or background contains non-official elements..."
+                data-testid="retake-reason-input"
+                rows={3}
+                style={{
+                  width: '100%',
+                  padding: '12px 14px',
+                  borderRadius: '12px',
+                  background: 'var(--v20-glass-surface)',
+                  border: '1px solid var(--v20-glass-border)',
+                  color: 'var(--v20-text-primary)',
+                  fontSize: '13px',
+                  resize: 'none',
+                  outline: 'none',
+                  boxSizing: 'border-box',
+                }}
+              />
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+              <button
+                type="button"
+                className="v19-nav-tab"
+                onClick={() => setRetakeTarget(null)}
+                style={{ padding: '8px 16px', fontSize: '13px', cursor: 'pointer' }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="v20-landing-btn"
+                disabled={isSubmittingReview || !retakeReason.trim()}
+                data-testid="confirm-retake-btn"
+                style={{
+                  padding: '8px 20px',
+                  fontSize: '13px',
+                  background: '#E05656',
+                  color: '#FFF',
+                  cursor: retakeReason.trim() ? 'pointer' : 'not-allowed',
+                }}
+                onClick={handleConfirmRetake}
+              >
+                {isSubmittingReview ? 'Submitting…' : 'Confirm Retake Request'}
               </button>
             </div>
           </div>

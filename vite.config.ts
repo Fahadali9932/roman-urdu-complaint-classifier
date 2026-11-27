@@ -102,7 +102,7 @@ export default defineConfig({
   ],
   server: {
     headers: {
-      'Permissions-Policy': 'display-capture=(self), geolocation=(self)',
+      'Permissions-Policy': 'display-capture=(), geolocation=(self)',
       'X-Content-Type-Options': 'nosniff',
       'X-Frame-Options': 'DENY',
     },

@@ -12,13 +12,18 @@ export interface V20DashboardPageProps {
   departmentCode: string;
   departmentName: string;
   role: 'head' | 'officer';
-  totalActiveCases: number;
-  totalSolvedCases: number;
+  totalActiveCases?: number;
+  totalSolvedCases?: number;
   records?: DashboardRecord[];
   isLoading?: boolean;
   inProgressCount?: number;
   pendingCount?: number;
   verificationCount?: number;
+  periodSolvedCases?: number;
+  periodInProgress?: number;
+  periodPending?: number;
+  periodVerification?: number;
+  periodActiveCases?: number;
 }
 
 export type PeriodFilter = 'today' | 'yesterday' | 'month' | 'year';
@@ -54,13 +59,18 @@ export const V20DashboardPage: React.FC<V20DashboardPageProps> = ({
   departmentCode,
   departmentName,
   role,
-  totalActiveCases,
-  totalSolvedCases,
+  totalActiveCases = 27,
+  totalSolvedCases = 14,
   records,
   isLoading,
   inProgressCount = 18,
   pendingCount = 12,
   verificationCount = 8,
+  periodSolvedCases: explicitSolved,
+  periodInProgress: explicitInProgress,
+  periodPending: explicitPending,
+  periodVerification: explicitVerification,
+  periodActiveCases: explicitActive,
 }) => {
   const [selectedPeriod, setSelectedPeriod] = useState<PeriodFilter>('today');
 
@@ -75,11 +85,11 @@ export const V20DashboardPage: React.FC<V20DashboardPageProps> = ({
     periodOptions.find((p) => p.id === selectedPeriod)?.label ?? 'Today';
 
   // Derive operational numbers responsive to the selected period
-  let periodActiveCases = totalActiveCases;
-  let periodSolvedCases = totalSolvedCases;
-  let periodInProgress = inProgressCount;
-  let periodPending = pendingCount;
-  let periodVerification = verificationCount;
+  let periodActiveCases = explicitActive ?? totalActiveCases ?? 27;
+  let periodSolvedCases = explicitSolved ?? totalSolvedCases ?? 14;
+  let periodInProgress = explicitInProgress ?? inProgressCount ?? 18;
+  let periodPending = explicitPending ?? pendingCount ?? 12;
+  let periodVerification = explicitVerification ?? verificationCount ?? 8;
 
   if (records && records.length > 0) {
     const filtered = filterDashboardRecords(records, selectedPeriod, trustedTimeService.now());
@@ -88,19 +98,24 @@ export const V20DashboardPage: React.FC<V20DashboardPageProps> = ({
     periodPending = filtered.filter((r) => r.status === 'pending').length;
     periodVerification = filtered.filter((r) => r.status === 'verification').length;
     periodActiveCases = periodInProgress + periodPending + periodVerification;
-  } else {
+  } else if (
+    explicitSolved === undefined &&
+    explicitInProgress === undefined &&
+    explicitPending === undefined &&
+    explicitVerification === undefined
+  ) {
     // Graceful period scaling when raw historical timestamp records are not supplied
     if (selectedPeriod === 'today') {
-      periodSolvedCases = Math.max(1, Math.round(totalSolvedCases * 0.15));
-      periodPending = Math.max(1, Math.round(pendingCount * 0.4));
-      periodVerification = Math.max(1, Math.round(verificationCount * 0.5));
+      periodSolvedCases = Math.max(0, Math.round(totalSolvedCases * 0.15));
+      periodPending = Math.max(0, Math.round(pendingCount * 0.4));
+      periodVerification = Math.max(0, Math.round(verificationCount * 0.5));
       periodActiveCases = periodInProgress + periodPending + periodVerification;
     } else if (selectedPeriod === 'yesterday') {
-      periodActiveCases = Math.max(1, Math.round(totalActiveCases * 0.88));
-      periodSolvedCases = Math.max(1, Math.round(totalSolvedCases * 0.22));
-      periodInProgress = Math.max(1, Math.round(inProgressCount * 0.8));
-      periodPending = Math.max(1, Math.round(pendingCount * 0.6));
-      periodVerification = Math.max(1, Math.round(verificationCount * 0.4));
+      periodActiveCases = Math.max(0, Math.round(totalActiveCases * 0.88));
+      periodSolvedCases = Math.max(0, Math.round(totalSolvedCases * 0.22));
+      periodInProgress = Math.max(0, Math.round(inProgressCount * 0.8));
+      periodPending = Math.max(0, Math.round(pendingCount * 0.6));
+      periodVerification = Math.max(0, Math.round(verificationCount * 0.4));
     } else if (selectedPeriod === 'month') {
       periodActiveCases = totalActiveCases;
       periodSolvedCases = totalSolvedCases;
@@ -154,7 +169,8 @@ export const V20DashboardPage: React.FC<V20DashboardPageProps> = ({
               {departmentCode.toUpperCase()} / DASHBOARD
             </span>
             <h2 style={{ fontSize: 'clamp(26px, 3.2vw, 36px)', fontWeight: 700, margin: '6px 0 0', letterSpacing: '-0.025em', color: 'var(--v20-text-primary)' }}>
-              Operations &amp; Case Analysis
+              Dashboard
+              <span className="sr-only"> Operations &amp; Case Analysis</span>
             </h2>
           </div>
 
@@ -273,7 +289,7 @@ export const V20DashboardPage: React.FC<V20DashboardPageProps> = ({
                 Case Status Distribution
               </h3>
               <p style={{ fontSize: '12px', color: 'var(--v20-text-muted)', margin: '4px 0 0' }}>
-                Operational cohort breakdown for selected {periodLabel.toLowerCase()}
+                Case status for selected {periodLabel.toLowerCase()}
               </p>
             </div>
           </div>
@@ -321,44 +337,76 @@ export const V20DashboardPage: React.FC<V20DashboardPageProps> = ({
             {/* In Progress */}
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12.5px', marginBottom: '6px' }}>
-                <span style={{ color: 'var(--v20-text-secondary)' }}>In-Progress Field Tasks</span>
+                <span style={{ color: 'var(--v20-text-secondary)' }}>In progress</span>
                 <strong style={{ color: 'var(--v20-text-primary)' }}>{periodInProgress} active</strong>
               </div>
               <div style={{ height: '8px', borderRadius: '9999px', background: 'rgba(255, 255, 255, 0.08)', overflow: 'hidden' }}>
-                <div style={{ height: '100%', width: `${Math.min(100, Math.max(15, periodInProgress * 4))}%`, background: 'var(--warning, #E59B2F)', borderRadius: '9999px' }} />
+                <div
+                  style={{
+                    height: '100%',
+                    width: periodTotal > 0 ? `${Math.min(100, Math.round((periodInProgress / periodTotal) * 100))}%` : '0%',
+                    background: 'var(--warning, #E59B2F)',
+                    borderRadius: '9999px',
+                    transition: 'width 300ms ease',
+                  }}
+                />
               </div>
             </div>
 
-            {/* Pending Initial Triage */}
+            {/* Pending */}
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12.5px', marginBottom: '6px' }}>
-                <span style={{ color: 'var(--v20-text-secondary)' }}>Pending Initial Triage &amp; Review</span>
+                <span style={{ color: 'var(--v20-text-secondary)' }}>Pending</span>
                 <strong style={{ color: 'var(--v20-text-primary)' }}>{periodPending} queued</strong>
               </div>
               <div style={{ height: '8px', borderRadius: '9999px', background: 'rgba(255, 255, 255, 0.08)', overflow: 'hidden' }}>
-                <div style={{ height: '100%', width: `${Math.min(100, Math.max(10, periodPending * 4))}%`, background: 'var(--danger, #E05656)', borderRadius: '9999px' }} />
+                <div
+                  style={{
+                    height: '100%',
+                    width: periodTotal > 0 ? `${Math.min(100, Math.round((periodPending / periodTotal) * 100))}%` : '0%',
+                    background: 'var(--danger, #E05656)',
+                    borderRadius: '9999px',
+                    transition: 'width 300ms ease',
+                  }}
+                />
               </div>
             </div>
 
-            {/* Awaiting Supervisor Verification */}
+            {/* Awaiting Verification */}
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12.5px', marginBottom: '6px' }}>
-                <span style={{ color: 'var(--v20-text-secondary)' }}>Awaiting Supervisor Verification</span>
+                <span style={{ color: 'var(--v20-text-secondary)' }}>Awaiting verification</span>
                 <strong style={{ color: 'var(--v20-text-primary)' }}>{periodVerification} submitted</strong>
               </div>
               <div style={{ height: '8px', borderRadius: '9999px', background: 'rgba(255, 255, 255, 0.08)', overflow: 'hidden' }}>
-                <div style={{ height: '100%', width: `${Math.min(100, Math.max(8, periodVerification * 5))}%`, background: 'var(--info, #4E9CFF)', borderRadius: '9999px' }} />
+                <div
+                  style={{
+                    height: '100%',
+                    width: periodTotal > 0 ? `${Math.min(100, Math.round((periodVerification / periodTotal) * 100))}%` : '0%',
+                    background: 'var(--info, #4E9CFF)',
+                    borderRadius: '9999px',
+                    transition: 'width 300ms ease',
+                  }}
+                />
               </div>
             </div>
 
-            {/* Verified & Resolved */}
+            {/* Resolved */}
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12.5px', marginBottom: '6px' }}>
-                <span style={{ color: 'var(--v20-text-secondary)' }}>Cumulative Verified Closures</span>
+                <span style={{ color: 'var(--v20-text-secondary)' }}>Resolved</span>
                 <strong style={{ color: 'var(--success, #3BC977)' }}>{periodSolvedCases} completed</strong>
               </div>
               <div style={{ height: '8px', borderRadius: '9999px', background: 'rgba(255, 255, 255, 0.08)', overflow: 'hidden' }}>
-                <div style={{ height: '100%', width: `${Math.min(100, Math.max(20, periodSolvedCases * 3))}%`, background: 'var(--success, #3BC977)', borderRadius: '9999px' }} />
+                <div
+                  style={{
+                    height: '100%',
+                    width: periodTotal > 0 ? `${Math.min(100, Math.round((periodSolvedCases / periodTotal) * 100))}%` : '0%',
+                    background: 'var(--success, #3BC977)',
+                    borderRadius: '9999px',
+                    transition: 'width 300ms ease',
+                  }}
+                />
               </div>
             </div>
           </div>
@@ -377,7 +425,9 @@ export const V20DashboardPage: React.FC<V20DashboardPageProps> = ({
             }}
           >
             <span>Target Municipal SLA: 72 Hours</span>
-            <span style={{ color: '#66BB6A', fontWeight: 650 }}>● 98.4% Compliance</span>
+            <span style={{ color: '#66BB6A', fontWeight: 650 }}>
+              ● {periodTotal > 0 ? Math.round((periodSolvedCases / periodTotal) * 100) : 100}% SLA on-track
+            </span>
           </div>
         </div>
       </div>

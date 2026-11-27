@@ -1,6 +1,7 @@
 import React from 'react';
 import { TopEdgeMorphingNav, type V20NavOption } from './TopEdgeMorphingNav';
 import { V20CursorSpotlight } from './V20CursorSpotlight';
+import { canonicalizeDepartmentKey } from '../../services/departmentThemes';
 
 export interface V20PortalLayoutProps {
   departmentCode: string;
@@ -33,12 +34,12 @@ export const V20PortalLayout: React.FC<V20PortalLayoutProps> = ({
   onOpenNotifications,
   children,
 }) => {
-  const normalizedDept = departmentCode.toLowerCase();
+  const canonicalDept = canonicalizeDepartmentKey(departmentCode);
 
   return (
     <div
       className={`v20-portal-root ${themeMode === 'light' ? 'v20-light-mode' : ''}`}
-      data-dept={normalizedDept}
+      data-dept={canonicalDept}
       data-theme={themeMode}
       data-role={role}
       data-username={username}
@@ -49,7 +50,7 @@ export const V20PortalLayout: React.FC<V20PortalLayoutProps> = ({
       <div className="v20-atmospheric-background" aria-hidden="true" />
 
       {/* 1b. Smooth Cursor Spotlight Glow Layer */}
-      <V20CursorSpotlight themeMode={themeMode} departmentCode={departmentCode} />
+      <V20CursorSpotlight themeMode={themeMode} departmentCode={canonicalDept} />
 
       {/* 2. Top-Edge Morphing Notch Navigation */}
       <TopEdgeMorphingNav

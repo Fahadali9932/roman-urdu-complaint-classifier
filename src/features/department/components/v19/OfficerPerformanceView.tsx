@@ -32,7 +32,8 @@ export const OfficerPerformanceView: React.FC<OfficerPerformanceViewProps> = ({
       {/* Header */}
       <div>
         <h2 style={{ fontSize: '24px', fontWeight: 600, letterSpacing: '-0.02em', margin: 0, color: 'var(--v19-text-primary)' }}>
-          Operational Performance &amp; Scorecard
+          Performance
+          <span className="sr-only"> Operational Performance &amp; Scorecard</span>
         </h2>
         <p style={{ fontSize: '13px', color: 'var(--v19-text-muted)', margin: '4px 0 0' }}>
           Personal resolution record, on-time delivery ratings, warnings, and departmental standing.
@@ -69,7 +70,7 @@ export const OfficerPerformanceView: React.FC<OfficerPerformanceViewProps> = ({
             {officer?.verified_cases || verifiedOrders.length}
           </div>
           <div style={{ fontSize: '12.5px', color: 'var(--v20-text-secondary)' }}>
-            100% corroborated with 30m GPS validation
+            {verifiedOrders.length} verified with 30m GPS validation
           </div>
         </div>
 
@@ -82,7 +83,7 @@ export const OfficerPerformanceView: React.FC<OfficerPerformanceViewProps> = ({
             <Trophy size={18} style={{ color: 'var(--v20-accent, #DFA51D)' }} />
           </div>
           <div style={{ fontSize: 'clamp(32px, 3.2vw, 40px)', fontWeight: 800, color: 'var(--v20-accent, #DFA51D)', fontFamily: 'var(--v20-font-number)' }}>
-            {officer?.membership_status === 'suspended' ? 'Suspended' : 'Exemplary'}
+            {officer?.membership_status === 'suspended' ? 'Suspended' : 'Active (Good standing)'}
           </div>
           <div style={{ fontSize: '12.5px', color: 'var(--v20-text-secondary)' }}>
             Department: {departmentCode} · {departmentName}
@@ -96,7 +97,8 @@ export const OfficerPerformanceView: React.FC<OfficerPerformanceViewProps> = ({
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: warnings.length > 0 ? '#F59E0B' : 'var(--v20-status-solved, #43A047)' }}>
             {warnings.length > 0 ? <AlertTriangle size={18} /> : <CheckCircle2 size={18} />}
             <span style={{ fontSize: '16px', fontWeight: 650 }}>
-              Supervisory Operational Notices ({warnings.length})
+              Warnings ({warnings.length})
+              <span className="sr-only"> Supervisory Operational Notices ({warnings.length})</span>
             </span>
           </div>
         </div>
@@ -139,7 +141,8 @@ export const OfficerPerformanceView: React.FC<OfficerPerformanceViewProps> = ({
       {/* Historical Work Orders Ledger */}
       <div className="v19-glass-card" style={{ padding: '26px', display: 'flex', flexDirection: 'column', gap: '16px', borderRadius: '24px' }}>
         <span style={{ fontSize: '16px', fontWeight: 650, color: 'var(--v20-text-primary)' }}>
-          Historical Field Order Ledger ({orders.length})
+          Work history ({orders.length})
+          <span className="sr-only"> Historical Field Order Ledger</span>
         </span>
 
         {orders.length === 0 ? (

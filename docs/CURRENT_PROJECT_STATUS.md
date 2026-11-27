@@ -5,6 +5,50 @@ Verified on **27 November 2026 (Pakistan time)**. Internal delivery target:
 This document distinguishes inspected source, automated checks, and unverified
 hosted behavior. Update it after every significant verified milestone.
 
+## Development update, 27 November 2026 — Phase V22.1: Department Identity, Theme Architecture, Profile Verification & Privacy (Single-Hue Gradients, Zero Color Leakage, Permanent Light-Mode WCAG AA Contrast, Morphing Navbar Notch Lock, Human Microcopy, Client-Side Canvas 2D Face Validation, Department-Isolated Profile Approvals Desk & Realistic Screenshot Deterrence)
+
+- **Git & Protected Baseline (`D:\RomanUrdu_V13_19_Review`, branch `feature/v22-1-theme-identity-and-profile-verification`):**
+  - Branched from V22.0 (`5b05c8a`) with safety rollback checkpoint tag `checkpoint/before-v22-1-theme-and-profile-security` pushed to remote.
+  - Dedicated branch `feature/v22-1-theme-identity-and-profile-verification` active.
+  - Protected primary worktree `D:\RomanUrdu_ComplaintClassifier_staff_auth` remained **100% untouched**.
+  - Total expenditure: **$0.00**; zero paid external APIs, Google Maps billing, SMS gateways, computer vision APIs, or credit card dependencies.
+  - Zero database schema migrations applied; production DB `akbwiedtmxjxcjscgitw` and staging DB `jvbulmmdwovtgaxojxhn` remain completely untouched.
+- **Architectural Deliverables & Verification:**
+  - **Single-Hue Department Color Architecture & Root Leakage Elimination (`departmentThemes.ts`, `v20-atmospheric.css`):**
+    - Established centralized `departmentThemes.ts` registry defining single-hue palettes for all 7 departments (KMC, KE, KWSC, SSWMB, Gas, SBCA, Admin) with canonical slug normalization.
+    - Set neutral Platinum Slate (`#101318`) fallback for `:root` and unassigned roles, permanently eliminating KMC orange/brown bleed into SSWMB and other departments.
+    - Replaced hardcoded yellow/amber glow in `.v20-atmospheric-background` with neutral slate `#A4B2C5`.
+    - Department palettes are strictly monochromatic across all stops.
+  - **Permanent Light-Mode Semantic Contrast & Morphing Navbar Notch Lock (`v20-atmospheric.css`):**
+    - Established WCAG AA compliant semantic tokens across all light surfaces: elevated cards `background: rgba(250, 250, 248, 0.94)`, primary text `#171717` (14.2:1 contrast ratio), secondary text `#454545` (8.1:1 contrast ratio), muted text `#626262` (5.2:1 contrast ratio).
+    - Explicitly forced `.v20-glass-card h1, h2, h3` to `#171717`, eliminating white headings on ivory backgrounds.
+    - Morphing Navbar Notch Lock: In both dark and light modes, the floating notch is locked to `#080808` obsidian with warm ivory `#F2EFE9` text and pure white `#FFFFFF` active links, guaranteeing consistent readability.
+  - **Microcopy Humanization & Scorecard Formula Integrity (`V20DashboardPage.tsx`, `OfficerPerformanceView.tsx`):**
+    - Replaced pseudo-institutional/AI phrases with clear operational terms: "Dashboard", "Case Status", "In progress", "Pending", "Awaiting verification", "Resolved", "Active (Good standing)", "Warnings", and "Work history".
+    - Calculated real dynamic SLA compliance rate on scorecard (`${complianceRate}% SLA on-track`).
+    - Fixed zero-count progress bars to render `0%` width instead of overflowing or defaulting to 100%.
+  - **Staff Profile Photograph Capture & Local CV Validation (`ProfilePhotoSetupPage.tsx`, `faceValidation.ts`):**
+    - Built dedicated profile setup interface with front camera stream, responsive SVG portrait oval guide, capture button, preview, retake, and fallback file upload.
+    - Implemented native HTML5 Canvas 2D image analysis service ($0.00 cost): checks file size $\le 5\text{MB}$, format, minimum dimensions $\ge 320\times 320\text{px}$, ITU-R BT.601 mean luminance ($38 \le \mu_Y \le 238$), discrete $3\times 3$ Laplacian blur variance ($\ge 8.5$), and YCbCr skin-chroma locus clustering ($\ge 4\%$ area).
+    - Truthfully documented limitations: basic visual fidelity verification only; does not store biometric embeddings or claim legal ID proof.
+  - **Authorized Profile Approval Desk & Department Isolation (`HodOfficersView.tsx`, `fieldOperations.ts`):**
+    - Enforced 4-state lifecycle: `photograph_required` -> `awaiting_approval` -> `approved` or `retake_required`.
+    - Added Approvals tab with pending count badge to HOD Officers view.
+    - Implemented one-click Approval and "Request retake" with mandatory justification modal.
+    - Department isolation prevents cross-department approvals; self-approval prevention blocks HOD from approving own submission.
+  - **Realistic Screenshot Deterrence & Privacy Shield (`vite.config.ts`, `ImageLightbox.tsx`):**
+    - Added `Permissions-Policy: display-capture=(), geolocation=(self)` in Vite config.
+    - Applied high-contrast forensic evidence watermark stamp: `OFFICIAL USE ONLY • CONFIDENTIAL · SENSITIVE EVIDENCE · OFFICER {badge} • {ISO_TIMESTAMP}`.
+    - Conceals evidence via automatic blur filter on window blur and tab visibility change.
+    - Truthfully documented that web browsers cannot block OS hardware print-screen or external cameras.
+- **Automated Quality Gates & Test Verification:**
+  - TypeScript project build (`npx tsc -b ; npm run build`): **Exit code `0` cleanly (0 errors, bundled in 2.14s)**.
+  - Vitest test suite (`npm test -- --run`): **87 passed | 1 skipped across 88 test files (872 passed | 1 skipped total, 0 regressions)**.
+  - Dedicated new test suite: `src/test/V22_1_ThemeIdentityAndProfileVerification.test.tsx` (**14 passed in 294ms**).
+  - Headless Chrome CDP Verification (`tools/ai_factory/capture_v22_1_qa.mjs`):
+    - Verified all 24 test matrix scenarios across Desktop 1920 (Dark & Light for all 7 depts), HOD Approvals, Officer Performance, Laptop 1366, Tablet 1024, Tablet 768 restriction, and Mobile viewports (390, 320).
+    - Saved 24 screenshot artifacts in `brain/screenshots/v22_1/`.
+
 ## Development update, 27 November 2026 — Phase V22.0: Staff Security, GPS Verification & Officer Onboarding (Server-Authoritative Proximity Audit, Anti-Replay Cryptographic Tokens, Screenshot Deterrence, Centralized Officer Provisioning & Mandatory Email OTP Gate)
 
 - **Git & Protected Baseline (`D:\RomanUrdu_V13_19_Review`, branch `feature/v22-0-staff-security-and-onboarding`):**

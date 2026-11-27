@@ -134,7 +134,7 @@ export const ImageLightbox: React.FC<ImageLightboxProps> = ({
               zIndex: 5,
             }}
           >
-            CONFIDENTIAL · SENSITIVE EVIDENCE · {watermarkText ? `${watermarkText} · ` : ''}{currentTimestamp}
+            OFFICIAL USE ONLY • CONFIDENTIAL · SENSITIVE EVIDENCE · {watermarkText ? `${watermarkText} · ` : ''}{currentTimestamp}
           </div>
         </div>
 
