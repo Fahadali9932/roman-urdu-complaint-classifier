@@ -5,6 +5,57 @@ Verified on **27 November 2026 (Pakistan time)**. Internal delivery target:
 This document distinguishes inspected source, automated checks, and unverified
 hosted behavior. Update it after every significant verified milestone.
 
+## Development update, 27 November 2026 — Phase V21.8: Final Officer Fieldwork, Resolution Form & Theme Correction (Redesigned "My work" Console, Full-Width Complaint Document Sections A-G, Free Universal Google Maps Integration, Dedicated Resolution Submission Form & Centered Confirmation Dialog)
+
+- **Git & Protected Baseline (`D:\RomanUrdu_V13_19_Review`, branch `fix/v21-8-final-officer-fieldwork-and-maps`):**
+  - Branched from V21.7 with safety rollback checkpoint tag `checkpoint/before-v21-8-fieldwork` pushed to remote.
+  - Dedicated branch `fix/v21-8-final-officer-fieldwork-and-maps` active.
+  - Protected primary worktree `D:\RomanUrdu_ComplaintClassifier_staff_auth` remained **100% untouched**.
+  - Total expenditure: **$0.00**; zero paid external APIs, Google Maps billing, or credit card dependencies.
+  - Zero database schema migrations applied; production DB `akbwiedtmxjxcjscgitw` and staging DB `jvbulmmdwovtgaxojxhn` remain completely untouched.
+- **Architectural Deliverables & Verification:**
+  - **Light Mode Theme Correction (`v20-atmospheric.css`):**
+    - Corrected contrast tokens: translucent elevated light surfaces (`#FAFAF8`), primary text `#171717`, secondary text `#454545`, and muted text `#626262` satisfying WCAG AA ($\ge 4.5:1$).
+    - Preserved dark mode neutral ivory foregrounds and smoky charcoal glass surfaces.
+  - **Redesigned Officer Work Page (`OfficerWorkList.tsx`):**
+    - Replaced compressed 3-card Active Fieldwork Console with a clean operational dashboard under heading **My work**.
+    - Renders all assigned and active complaints in the approved complaint card design (reference, title, location, priority, status, remaining time/duration, "Open complaint" trigger). Full identifiable IDs without truncation.
+  - **Full-Width Complaint Document (`OfficerWorkDetail.tsx`):**
+    - Section A: Complaint header (Back to my work, reference, assigned date, title, priority, status).
+    - Section B: Work timeline & deadline (assigned date, commenced date, completion deadline, live remaining time via `trustedTimeService`).
+    - Section C: Complaint description (sanitized complaint narrative, citizen privacy protected).
+    - Section D: Location & free maps (incident address, locality, coordinates, mini Leaflet preview map, "View location" and "Get directions" triggers).
+    - Section E: Citizen evidence (original photograph preview with lightbox zoom).
+    - Section F: Supervisor instructions (formatted operational directives).
+    - Section G: Work actions ("Start Working" primary CTA when awaiting commencement; "Submit completed work" and "Request more time" when in progress).
+  - **Free Google Maps Integration (`googleMapsLinks.ts`):**
+    - Built official universal links without Google Maps Platform API keys or billing:
+      - Location search: `https://www.google.com/maps/search/?api=1&query=LAT,LNG`
+      - Turn-by-turn directions: `https://www.google.com/maps/dir/?api=1&destination=LAT,LNG` (automatically uses officer's current GPS location as origin).
+    - Coordinate validation strictly checks finite numbers, -90 to 90 lat, -180 to 180 lng, explicitly supporting 0,0, with automatic text-address fallback and clean unavailable states.
+  - **Dedicated Resolution Submission Form (`WorkResolutionForm.tsx`):**
+    - Replaced cramped modal cards with full-width dedicated form.
+    - Section 1: Original citizen evidence comparison thumbnail.
+    - Section 2: Completed work evidence camera capture with `capture="environment"`, photo preview, retake option, and truthful forensic synthetic screening.
+    - Section 3: High-accuracy GPS verification with truthful proximity audits ($\le 30\text{m}$ verified, $> 30\text{m}$ supervisor exception review required, accuracy warnings, permission denied warnings, insecure context LAN notices). Zero mock coordinate fabrication.
+    - Section 4: Work completion notes textarea.
+    - Section 5: Submission summary.
+    - Section 6: Prominent "Submit for verification" button with duplicate submission prevention.
+  - **Centered Confirmation Modal Dialog (`WorkConfirmationModal.tsx`):**
+    - Centered modal dialog ("Submitted for verification", "Your completed work has been submitted to the Head of Department for review.", complaint reference, work order ID, timestamp, status badge: Awaiting Verification, and "Back to my work" CTA).
+  - **Mobile Fieldwork Usability:**
+    - Preserved dedicated mobile officer header with single-column cards, touch targets $\ge 44\text{px}$, and verified zero horizontal overflow on 320px screens.
+- **Automated Quality Gates & Test Verification:**
+  - TypeScript project build (`npx tsc -b && npm run build`): **Exit code `0` cleanly (0 errors, bundled in 2.01s)**.
+  - Vitest test suite (`npm test -- --run`): **84 passed | 1 skipped across 85 test files (841 passed | 1 skipped total, 0 regressions)**.
+  - Dedicated new test suite: `src/test/V21_8_OfficerFieldworkAndMaps.test.tsx` (**12 passed in 379ms**).
+  - Headless Chrome CDP Verification (`tools/ai_factory/v21_8_fieldwork_qa.mjs`):
+    - Verified all 15 test matrix scenarios across Desktop 1920 (Dark & Light), Tablet 768 restriction, and Mobile viewports (430, 390, 360, 320).
+    - Verified Google Maps Search & Directions URLs generation.
+    - Verified 320px zero horizontal overflow (`{"docW":320,"winW":320,"hasOverflow":false}`).
+    - Verified Citizen portal on mobile 390x844 remains 100% accessible with zero restrictions.
+    - Saved 15 screenshot artifacts in `brain/screenshots/v21_8/`.
+
 ## Development update, 27 November 2026 — Phase V21.7: Desktop-First Access & Final Frontend Stabilization (Centralized Device Support Architecture, Dedicated Mobile Officer Fieldwork Console, Desktop Restriction Screens & Zero Mobile Clumping Overrides)
 
 - **Git & Protected Baseline (`D:\RomanUrdu_V13_19_Review`, branch `fix/v21-7-desktop-first-mobile-fieldwork`):**

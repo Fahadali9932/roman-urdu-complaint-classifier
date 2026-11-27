@@ -195,14 +195,17 @@ describe('V19 Field Officer Portal & Mobile Work Hub', () => {
       // Displays active in-progress task (ord-active-2)
       expect(screen.getByText('Stormwater Culvert Clearing')).toBeInTheDocument();
 
-      // Countdown timer rendered
-      expect(screen.getByText(/Time Remaining to Deadline/i)).toBeInTheDocument();
+      // Open the complaint detail document
+      fireEvent.click(screen.getByTestId('open-complaint-btn-ord-active-2'));
 
-      // Turn-by-Turn GPS link rendered
-      expect(screen.getByText(/Start Turn-by-Turn GPS ↗/i)).toBeInTheDocument();
+      // Countdown / Remaining time rendered in document
+      expect(screen.getByText(/Remaining Time/i)).toBeInTheDocument();
+
+      // Directions link rendered
+      expect(screen.getByTestId('get-directions-btn')).toBeInTheDocument();
 
       // Request More Time modal flow
-      fireEvent.click(screen.getByRole('button', { name: /Request More Time/i }));
+      fireEvent.click(screen.getByTestId('request-more-time-btn'));
       expect(screen.getByRole('dialog', { name: 'Request deadline extension' })).toBeInTheDocument();
 
       const reasonInput = screen.getByPlaceholderText(/Specify why more time is needed/i);
@@ -213,9 +216,9 @@ describe('V19 Field Officer Portal & Mobile Work Hub', () => {
         expect(onExt).toHaveBeenCalledWith('ord-active-2', 24, 'Excavation machinery delayed in traffic.');
       });
 
-      // Work Is Done completion flow
-      fireEvent.click(screen.getByRole('button', { name: /Work Is Done/i }));
-      expect(screen.getByRole('dialog', { name: 'Submit work completion' })).toBeInTheDocument();
+      // Submit completed work flow
+      fireEvent.click(screen.getByTestId('submit-completed-work-btn'));
+      expect(screen.getByTestId('work-resolution-form')).toBeInTheDocument();
 
       // Simulate capturing photo file
       const file = new File(['fake-evidence'], 'evidence.jpg', { type: 'image/jpeg' });
@@ -228,9 +231,9 @@ describe('V19 Field Officer Portal & Mobile Work Hub', () => {
       fireEvent.change(fileInput);
 
       // Wait for photo preview and submit button to be enabled
-      const submitBtn = screen.getByRole('button', { name: /Submit for Supervisor Review/i });
+      const submitBtn = screen.getByTestId('submit-for-verification-btn');
       expect(submitBtn).not.toBeDisabled();
-      fireEvent.submit(submitBtn.closest('form')!);
+      fireEvent.click(submitBtn);
 
       await waitFor(() => {
         expect(onSubmit).toHaveBeenCalled();

@@ -1750,3 +1750,133 @@
   border-color: var(--v20-status-pending, #E65100);
   box-shadow: 0 0 12px rgba(230, 81, 0, 0.25);
 }
+
+
+/* ==========================================================================
+   V21.8 OFFICER FIELDWORK, RESOLUTION FORM & THEME REFINEMENT
+   ========================================================================== */
+
+.v20-work-card {
+  transition: transform 0.2s var(--v20-ease-spring), border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.v20-work-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--v20-glass-border-highlight, rgba(255, 255, 255, 0.18));
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+}
+
+/* Light Mode Overrides for Officer Fieldwork Console */
+.v20-light-mode .v20-work-card,
+[data-theme="light"] .v20-work-card,
+.v20-light-mode .v20-work-document,
+[data-theme="light"] .v20-work-document,
+.v20-light-mode .v20-resolution-form,
+[data-theme="light"] .v20-resolution-form {
+  background: #FAFAF8 !important;
+  border-color: rgba(0, 0, 0, 0.10) !important;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+}
+
+.v20-light-mode .v20-work-card:hover,
+[data-theme="light"] .v20-work-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(0, 0, 0, 0.20) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.10);
+}
+
+.v20-light-mode .v20-empty-work,
+[data-theme="light"] .v20-empty-work {
+  background: #FAFAF8 !important;
+  border-color: rgba(0, 0, 0, 0.10) !important;
+}
+
+/* Subsurface containers in light mode */
+.v20-light-mode .v20-work-document div[style*="background: var(--v20-card-subsurface"],
+[data-theme="light"] .v20-work-document div[style*="background: var(--v20-card-subsurface"],
+.v20-light-mode .v20-resolution-form div[style*="background: var(--v20-card-subsurface"],
+[data-theme="light"] .v20-resolution-form div[style*="background: var(--v20-card-subsurface"],
+.v20-light-mode .v20-resolution-form label[style*="background: var(--v20-card-subsurface"],
+[data-theme="light"] .v20-resolution-form label[style*="background: var(--v20-card-subsurface"] {
+  background: rgba(0, 0, 0, 0.03) !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Light mode text colors */
+.v20-light-mode .v20-work-document h2,
+.v20-light-mode .v20-work-document h3,
+.v20-light-mode .v20-resolution-form h2,
+.v20-light-mode .v20-resolution-form h3,
+.v20-light-mode .v20-work-card h3,
+[data-theme="light"] .v20-work-document h2,
+[data-theme="light"] .v20-work-document h3,
+[data-theme="light"] .v20-resolution-form h2,
+[data-theme="light"] .v20-resolution-form h3,
+[data-theme="light"] .v20-work-card h3 {
+  color: #171717 !important;
+}
+
+.v20-light-mode .v20-work-document p,
+.v20-light-mode .v20-resolution-form p,
+.v20-light-mode .v20-work-card p,
+[data-theme="light"] .v20-work-document p,
+[data-theme="light"] .v20-resolution-form p,
+[data-theme="light"] .v20-work-card p {
+  color: #454545 !important;
+}
+
+/* Light mode form controls */
+.v20-light-mode .v20-resolution-form textarea,
+[data-theme="light"] .v20-resolution-form textarea,
+.v20-light-mode .v20-resolution-form select,
+[data-theme="light"] .v20-resolution-form select {
+  background: #FFFFFF !important;
+  border-color: rgba(0, 0, 0, 0.14) !important;
+  color: #171717 !important;
+}
+
+.v20-light-mode .v20-resolution-form textarea::placeholder,
+[data-theme="light"] .v20-resolution-form textarea::placeholder {
+  color: #767676 !important;
+}
+
+/* Light mode Confirmation Dialog */
+.v20-light-mode .v20-confirmation-dialog,
+[data-theme="light"] .v20-confirmation-dialog {
+  background: #FAFAF8 !important;
+  border-color: rgba(0, 0, 0, 0.12) !important;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.18) !important;
+}
+
+.v20-light-mode .v20-confirmation-dialog h3,
+[data-theme="light"] .v20-confirmation-dialog h3 {
+  color: #171717 !important;
+}
+
+.v20-light-mode .v20-confirmation-dialog p,
+[data-theme="light"] .v20-confirmation-dialog p {
+  color: #454545 !important;
+}
+
+.v20-light-mode .v20-confirmation-dialog div[style*="background: var(--v20-card-subsurface"],
+[data-theme="light"] .v20-confirmation-dialog div[style*="background: var(--v20-card-subsurface"] {
+  background: rgba(0, 0, 0, 0.03) !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Touch Targets for Mobile Officers */
+@media (max-width: 640px) {
+  .v20-work-card,
+  .v20-work-document,
+  .v20-resolution-form {
+    padding: 20px 18px !important;
+    border-radius: 18px !important;
+  }
+
+  .v20-work-card button,
+  .v20-work-document button,
+  .v20-work-document a,
+  .v20-resolution-form button {
+    min-height: 44px !important;
+  }
+}
