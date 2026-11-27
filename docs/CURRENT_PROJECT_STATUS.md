@@ -5,6 +5,27 @@ Verified on **27 November 2026 (Pakistan time)**. Internal delivery target:
 This document distinguishes inspected source, automated checks, and unverified
 hosted behavior. Update it after every significant verified milestone.
 
+## Development update, 27 November 2026 — Phase V20.2: Code-First Staff Frontend Restoration (Gate A Verified — Continuous SVG Cubic Morphing Notch, Full-Screen Watermark Elimination, Centered Landing & Cardless Editorial Dashboard)
+
+- **Git & Protected Baseline (`D:\RomanUrdu_V13_19_Review`, branch `feature/v20-2-code-first-staff-frontend`):**
+  - Branched from V20 verified baseline commit `77c13a706dc53c32ced3dca0289a86af9fe97938`.
+  - Created and pinned rollback safety checkpoint `checkpoint/v20-1-before-v20-2`.
+  - Checkpoint 2 commit: `360da98` pushed cleanly to origin.
+  - Primary worktree `D:\RomanUrdu_ComplaintClassifier_staff_auth` remained completely untouched.
+  - Total expenditure: `$0.00`; zero paid external APIs or font binaries.
+  - Zero database schema migrations; all V19.1 backend RPCs, monotonic trusted PKT clock, Haversine GPS, and forensic screening preserved intact.
+- **Visual Restoration Achievements (Conforming to DESIGN_SPEC.md & REFERENCE_INDEX.md):**
+  - **Full-Screen Repeating Watermark Completely Removed:** Removed `WatermarkOverlay` from `V20PortalLayout.tsx`. No visible diagonal watermark or obscuring overlay across any staff views.
+  - **Exact Continuous SVG Morphing Notch (`TopEdgeMorphingNav.tsx`):** Restored the continuous SVG cubic bezier curve formula from prototype `PREVIEW.html` (`d="M0 0 H{W} V7 H{r+s} C{r+7} 7 {r+5} h {r-k} h H{l+k} C{l-5} h {l-7} 7 {l-s} 7 H0 Z"`). Animated using spring interpolation factor `0.17` on RAF. Seamless physical top-edge connection.
+  - **Centered Calm Landing Page (`V20LandingPage.tsx`):** Restored true centered full-viewport composition with dynamic Asia/Karachi time-based greeting, authenticated staff display name in complementary serif typography, and zero promotional cards, stats, or buttons.
+  - **Cardless Bold Editorial Dashboard (`V20DashboardPage.tsx` & `V20InteractiveDonut.tsx`):** Large standalone bold numerical typography on the left (`Total active cases`, `Total cases solved`) rendered directly on atmospheric canvas. Interactive NameThatUI separated donut chart on the right with separated slices, interactive hover/click focus, and four date filters (`Today`, `Yesterday`, `This Month`, `This Year`) with truthful Asia/Karachi boundaries.
+  - **Department Atmospheric Palettes:** Verified for KMC gold (`#82500E`, `#DFA51D`, `#F7D86B`) and K-Electric electric blue (`#102B65`, `#245AB9`, `#6CA9EE`), with genuine high-contrast Light Theme support.
+- **Quality Gates, Test Suite & Browser Verification:**
+  - `npx tsc -b`: exit code `0` cleanly.
+  - Vitest test suite: **755 passed | 1 skipped across 76 test suites (0 regressions)**.
+  - Browser QA: 15 high-res screenshots across 1920px, 1440px, 768px, 390px, 320px in dark and light modes and KMC and K-Electric themes, plus 12-frame animated GIF (`v20_2_morphing_nav_animation.gif`) and MP4 video (`v20_2_morphing_nav_animation.mp4`) in `screenshots/v20_2_foundation/`.
+  - Artifact created: `V20_2_GATE_A_FOUNDATION_ACCEPTANCE_REPORT.md`.
+
 ## Development update, 27 November 2026 — Phase V20: Original Frontend Restoration (Visual Acceptance Gate A — Continuous Morphing Nav, Atmospheric Backgrounds, Separate Landing & Cardless Dashboard)
 
 - **Git & Protected Baseline (`D:\RomanUrdu_V13_19_Review`, branch `feature/v20-original-frontend-restoration`):**
