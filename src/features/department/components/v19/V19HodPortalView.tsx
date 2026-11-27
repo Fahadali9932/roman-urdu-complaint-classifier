@@ -308,11 +308,13 @@ export const V19HodPortalView: React.FC<V19HodPortalViewProps> = ({
           departmentCode={departmentCode}
           departmentName={departmentName}
           role="head"
-          totalActiveCases={complaints.filter((c) => c.status !== 'resolved' && c.status !== 'rejected').length || 128}
-          totalSolvedCases={complaints.filter((c) => c.status === 'resolved').length || 342}
-          inProgressCount={complaints.filter((c) => c.status === 'in_progress').length || 18}
-          pendingCount={complaints.filter((c) => c.status === 'submitted' || c.status === 'under_review').length || 12}
-          verificationCount={verificationPendingCount || 8}
+          totalActiveCases={complaints.filter((c) => c.status !== 'resolved' && c.status !== 'rejected').length}
+          totalSolvedCases={complaints.filter((c) => c.status === 'resolved').length}
+          inProgressCount={complaints.filter((c) => c.status === 'in_progress').length}
+          pendingCount={complaints.filter((c) => c.status === 'submitted' || c.status === 'under_review').length}
+          verificationCount={verificationPendingCount}
+          records={complaints.filter(c => c.status !== 'rejected').map(c => ({ timestamp: c.submittedAt, status: c.status === 'resolved' ? 'solved' : c.workOrderStatus === 'pending_review' ? 'verification' : c.status === 'in_progress' || c.workOrderStatus === 'in_progress' ? 'progress' : 'pending' }))}
+          isLoading={isLoading}
         />
       )}
 
