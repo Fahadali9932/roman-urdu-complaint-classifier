@@ -169,23 +169,64 @@
    LIGHT MODE (Preserving Individual Department Identities & WCAG Contrast)
    ========================================================================== */
 .v20-light-mode,
-[data-theme="light"] .v20-portal-root {
+[data-theme="light"],
+.v20-portal-root.v20-light-mode,
+[data-theme="light"].v20-portal-root {
+  /* Core text tokens (WCAG AA Compliant >= 4.5:1 on light backgrounds) */
+  --text-primary: #171717;
+  --text-secondary: #454545;
+  --text-muted: #626262;
+  --v20-text-primary: #171717;
+  --v20-text-secondary: #454545;
+  --v20-text-muted: #626262;
+
+  /* Button tokens */
+  --button-primary: #171717;
+  --button-primary-text: #FFFFFF;
+  --button-secondary: rgba(0, 0, 0, 0.06);
+  --button-secondary-text: #171717;
+  --button-hover: rgba(0, 0, 0, 0.10);
+
+  /* Panel & Stroke tokens */
+  --panel: rgba(255, 255, 255, 0.88);
+  --panel-soft: rgba(255, 255, 255, 0.95);
+  --panel-elevated: #FFFFFF;
+  --stroke: rgba(0, 0, 0, 0.10);
+  --stroke-soft: rgba(0, 0, 0, 0.06);
+
+  /* Glass tokens */
+  --v20-glass-surface: rgba(255, 255, 255, 0.88);
+  --v20-glass-surface-hover: rgba(255, 255, 255, 0.96);
+  --v20-glass-border: rgba(0, 0, 0, 0.10);
+  --v20-glass-border-highlight: rgba(0, 0, 0, 0.18);
+  --v20-card-subsurface: rgba(0, 0, 0, 0.04);
+  --v20-input-bg: rgba(0, 0, 0, 0.04);
+  --v20-input-border: rgba(0, 0, 0, 0.14);
+
+  /* Atmospheric Light Department Gradients */
   --v20-bg-base: #FAF7F0;
   --v20-bg-mid: #F3EFE4;
   --v20-bg-deep: #EAE3D2;
-  --v20-text-primary: #1C170E;
-  --v20-text-secondary: rgba(28, 23, 14, 0.78);
-  --v20-text-muted: rgba(28, 23, 14, 0.52);
-  --v20-glass-surface: rgba(255, 255, 255, 0.75);
-  --v20-glass-surface-hover: rgba(255, 255, 255, 0.90);
-  --v20-glass-border: rgba(0, 0, 0, 0.08);
-  --v20-glass-border-highlight: rgba(255, 255, 255, 0.80);
   --v20-accent: #B87C0E;
   --v20-accent-light: #8E5D08;
-  --v20-glow-highlight: rgba(255, 225, 116, 0.40);
-  --v20-glow-illumination: rgba(244, 196, 60, 0.28);
-  --v20-glow-primary: rgba(244, 196, 60, 0.22);
-  --v20-glow-secondary: rgba(190, 133, 12, 0.12);
+  --v20-glow-highlight: rgba(255, 225, 116, 0.35);
+  --v20-glow-illumination: rgba(244, 196, 60, 0.22);
+  --v20-glow-primary: rgba(244, 196, 60, 0.16);
+  --v20-glow-secondary: rgba(190, 133, 12, 0.08);
+
+  /* Status Tokens on Light Mode (WCAG AA Compliant >= 4.5:1) */
+  --success: #137333;
+  --warning: #B06000;
+  --danger: #C5221F;
+  --info: #1A73E8;
+  --v20-status-solved: #137333;
+  --v20-status-progress: #B06000;
+  --v20-status-pending: #B06000;
+  --v20-status-verification: #1A73E8;
+  --v20-status-urgent: #C5221F;
+
+  /* Cursor Spotlight Light Variant */
+  --v20-spotlight-glow: rgba(0, 0, 0, 0.025);
 }
 
 /* Light Mode Individual Department Tokens */
@@ -317,19 +358,69 @@
 
 .v20-notch-path {
   fill: #080808;
-  pointer-events: auto;
+  pointer-events: none;
 }
 
-/* Invisible Safe Hover Corridor to prevent premature mouse-leave drops */
+/* Invisible Safe Hover Corridor disabled in favor of strictly bounded interactive surface */
 .v20-nav-hover-corridor {
+  display: none !important;
+  pointer-events: none !important;
+}
+
+/* Strictly Bounded Interactive Surface (Encompasses strictly the notch dimensions) */
+.v20-notch-interactive-surface {
   position: absolute;
   top: 0;
   left: 50%;
   transform: translateX(-50%);
-  width: clamp(320px, 64vw, 880px);
-  height: 68px;
   pointer-events: auto;
-  z-index: 0;
+  z-index: 15;
+  border-radius: 0 0 24px 24px;
+}
+
+/* ==========================================================================
+   CURSOR SPOTLIGHT GLOW EFFECT (NameThatUI Reference)
+   ========================================================================== */
+.v20-cursor-spotlight {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  transition: opacity 300ms ease;
+  background: radial-gradient(
+    480px circle at var(--spotlight-x, -1000px) var(--spotlight-y, -1000px),
+    var(--v20-spotlight-glow, rgba(255, 225, 116, 0.08)) 0%,
+    transparent 75%
+  );
+}
+
+.v20-cursor-spotlight.light-mode {
+  background: radial-gradient(
+    440px circle at var(--spotlight-x, -1000px) var(--spotlight-y, -1000px),
+    rgba(0, 0, 0, 0.025) 0%,
+    transparent 70%
+  );
+}
+
+/* Department-specific spotlight tinting */
+[data-dept="kmc"], [data-dept="dept-kmc"], [data-dept="roads"] { --v20-spotlight-glow: rgba(226, 162, 77, 0.09); }
+[data-dept="kwsc"], [data-dept="dept-kwsc"] { --v20-spotlight-glow: rgba(121, 216, 221, 0.09); }
+[data-dept="kelectric"], [data-dept="dept-kelectric"], [data-dept="ke"] { --v20-spotlight-glow: rgba(127, 178, 255, 0.09); }
+[data-dept="gas"], [data-dept="dept-gas"], [data-dept="sngpl"] { --v20-spotlight-glow: rgba(139, 224, 176, 0.09); }
+[data-dept="sswmb"], [data-dept="dept-sswmb"] { --v20-spotlight-glow: rgba(200, 219, 115, 0.09); }
+[data-dept="sbca"], [data-dept="dept-sbca"] { --v20-spotlight-glow: rgba(185, 161, 217, 0.09); }
+[data-dept="admin"], [data-dept="dept-admin"] { --v20-spotlight-glow: rgba(220, 227, 234, 0.09); }
+
+@media (hover: none) and (pointer: coarse) {
+  .v20-cursor-spotlight {
+    display: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .v20-cursor-spotlight {
+    display: none !important;
+  }
 }
 
 /* Top-Left Brand Identity - Harmonized 28px Ceiling Distance */
@@ -905,6 +996,13 @@
   .v20-header-right-strip {
     gap: 8px;
     right: 12px;
+    transition: opacity 160ms ease;
+  }
+
+  /* Fade out right header strip when mobile notch expands to avoid control crowding */
+  .v20-top-edge-nav-container.open .v20-header-right-strip {
+    opacity: 0;
+    pointer-events: none;
   }
 
   .v20-brand-label {
@@ -915,20 +1013,31 @@
     padding: 0 12px;
   }
 
-  .v20-notch-expanded {
-    width: calc(100vw - 20px);
-    height: auto;
-    padding: 12px 8px;
+  .v20-notch-interactive-surface {
+    border-radius: 0 0 20px 20px;
+  }
+
+  .v20-top-edge-nav-container.open .v20-notch-trigger-btn {
+    top: 10px;
+    right: 14px;
+    left: auto !important;
+    transform: none !important;
   }
 
   .v20-nav-destinations-row {
+    top: 38px;
+    display: flex;
     flex-wrap: wrap;
-    gap: 4px;
+    justify-content: center;
+    gap: 6px;
+    max-width: calc(100vw - 32px);
+    padding: 6px 8px 24px;
   }
 
   .v20-nav-link-btn {
-    padding: 6px 12px;
-    font-size: 12.5px;
+    padding: 6px 11px;
+    font-size: 11.5px;
+    min-height: 36px;
   }
 
   .v20-landing-container {
@@ -936,12 +1045,91 @@
     justify-content: center;
   }
 
+  .v20-landing-greeting-title {
+    font-size: clamp(32px, 8.5vw, 56px);
+    letter-spacing: -0.03em;
+    text-shadow: 0 2px 16px rgba(0, 0, 0, 0.4);
+  }
+
+  .v20-landing-staff-name {
+    font-size: clamp(22px, 6vw, 36px);
+    margin: 12px 0 24px;
+  }
+
+  .v20-landing-cta-row {
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    align-items: center;
+  }
+
+  .v20-landing-btn {
+    width: 100%;
+    max-width: 260px;
+    justify-content: center;
+    padding: 12px 24px;
+  }
+
   .v20-dashboard-container {
-    padding: 64px 20px 32px;
+    padding: 64px 16px 32px;
   }
 
   .v20-stat-number {
-    font-size: 72px;
+    font-size: 64px;
+  }
+
+  .v20-metric-quad {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .v20-metric-quad {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  .v20-dashboard-container {
+    padding: 56px 12px 24px;
+  }
+
+  .v20-stat-number {
+    font-size: 52px;
+  }
+}
+
+@media (max-width: 380px) {
+  .v20-brand-label {
+    font-size: 11px;
+    left: 8px;
+  }
+
+  .v20-header-right-strip {
+    right: 8px;
+    gap: 6px;
+  }
+
+  .v20-header-clock {
+    font-size: 15px;
+  }
+
+  .v20-landing-container {
+    padding: 0 10px;
+  }
+
+  .v20-landing-greeting-title {
+    font-size: clamp(26px, 8vw, 34px);
+  }
+
+  .v20-landing-staff-name {
+    font-size: 19px;
+    margin: 8px 0 18px;
+  }
+
+  .v20-nav-link-btn {
+    padding: 5px 8px;
+    font-size: 11px;
   }
 }
 
@@ -1061,6 +1249,19 @@
   box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45);
 }
 
+.v20-stat-card-hero .v20-stat-card-value {
+  color: #FFFFFF !important;
+}
+
+.v20-stat-card-hero .v20-stat-card-label,
+.v20-stat-card-hero .v20-stat-card-label label {
+  color: rgba(255, 255, 255, 0.72) !important;
+}
+
+.v20-stat-card-hero .v20-stat-card-subtitle {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
 .v20-stat-card-glass {
   background: rgba(255, 255, 255, 0.05);
   border: 1.5px solid rgba(255, 255, 255, 0.09);
@@ -1068,6 +1269,37 @@
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+}
+
+.v20-light-mode .v20-stat-card-glass,
+[data-theme="light"] .v20-stat-card-glass {
+  background: var(--v20-glass-surface);
+  border: 1.5px solid var(--v20-glass-border);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+}
+
+.v20-light-mode .v20-stat-card-glass .v20-stat-card-label,
+[data-theme="light"] .v20-stat-card-glass .v20-stat-card-label,
+.v20-light-mode .v20-stat-card-glass .v20-stat-card-label label,
+[data-theme="light"] .v20-stat-card-glass .v20-stat-card-label label {
+  color: var(--v20-text-muted);
+}
+
+.v20-light-mode .v20-stat-card-glass .v20-stat-card-value,
+[data-theme="light"] .v20-stat-card-glass .v20-stat-card-value {
+  color: var(--v20-text-primary);
+}
+
+.v20-light-mode .v20-stat-card-glass .v20-stat-card-subtitle,
+[data-theme="light"] .v20-stat-card-glass .v20-stat-card-subtitle {
+  color: var(--v20-text-secondary);
+}
+
+.v20-light-mode .v20-stat-card-glass .v20-stat-card-arrow,
+[data-theme="light"] .v20-stat-card-glass .v20-stat-card-arrow {
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--v20-text-primary);
+  border: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 .v20-stat-card-top {

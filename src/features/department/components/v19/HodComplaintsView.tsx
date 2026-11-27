@@ -1038,8 +1038,8 @@ export const HodComplaintsView: React.FC<HodComplaintsViewProps> = ({
               alignItems: 'center',
               gap: '16px',
               borderRadius: '28px',
-              background: 'rgba(18, 15, 12, 0.96)',
-              border: '1.5px solid rgba(255, 255, 255, 0.12)',
+              background: 'var(--v20-glass-surface)',
+              border: '1.5px solid var(--v20-glass-border)',
               boxShadow: '0 24px 64px rgba(0, 0, 0, 0.6)',
             }}
           >

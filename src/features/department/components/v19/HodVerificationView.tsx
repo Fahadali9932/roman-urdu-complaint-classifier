@@ -91,7 +91,7 @@ export const HodVerificationView: React.FC<HodVerificationViewProps> = ({
       </div>
 
       {pendingOrders.length === 0 ? (
-        <div className="v19-glass-card" style={{ padding: '64px', textAlign: 'center', color: 'var(--v20-text-muted)', borderRadius: '24px', background: 'rgba(18, 15, 12, 0.75)', border: '1.5px solid rgba(255, 255, 255, 0.08)' }}>
+        <div className="v19-glass-card" style={{ padding: '64px', textAlign: 'center', color: 'var(--v20-text-muted)', borderRadius: '24px', background: 'var(--v20-glass-surface)', border: '1.5px solid var(--v20-glass-border)' }}>
           <CheckCircle2 size={36} style={{ color: 'var(--success, #3BC977)', margin: '0 auto 12px' }} />
           <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--v20-text-primary)', margin: '0 0 6px' }}>
             All Field Resolutions Verified
@@ -382,7 +382,7 @@ export const HodVerificationView: React.FC<HodVerificationViewProps> = ({
       {/* Return for Correction Modal */}
       {isCorrectionOpen && (
         <div className="v19-lightbox-backdrop" role="dialog" aria-modal="true" aria-label="Return for correction">
-          <div className="v19-glass-card" style={{ width: '100%', maxWidth: '460px', display: 'flex', flexDirection: 'column', gap: '16px', borderRadius: '24px', background: 'rgba(18, 15, 12, 0.96)', border: '1.5px solid rgba(255, 255, 255, 0.12)', boxShadow: '0 24px 64px rgba(0, 0, 0, 0.6)' }}>
+          <div className="v19-glass-card" style={{ width: '100%', maxWidth: '460px', display: 'flex', flexDirection: 'column', gap: '16px', borderRadius: '24px', background: 'var(--v20-glass-surface)', border: '1.5px solid var(--v20-glass-border)', boxShadow: '0 24px 64px rgba(0, 0, 0, 0.6)' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: 'var(--warning, #E59B2F)' }}>
               <span style={{ fontSize: '16px', fontWeight: 600 }}>Return Work for Correction</span>
               <button type="button" className="v19-action-icon-btn" style={{ width: '28px', height: '28px' }} onClick={() => setIsCorrectionOpen(false)}>

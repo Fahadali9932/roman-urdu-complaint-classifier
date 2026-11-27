@@ -230,8 +230,8 @@ export const StaffNotificationsView: React.FC<StaffNotificationsViewProps> = ({
         className="v19-glass-card"
         style={{
           borderRadius: '26px',
-          background: 'rgba(18, 15, 12, 0.75)',
-          border: '1px solid rgba(255, 255, 255, 0.08)',
+          background: 'var(--v20-glass-surface)',
+          border: '1px solid var(--v20-glass-border)',
           overflow: 'hidden',
           display: 'flex',
           flexDirection: 'column',

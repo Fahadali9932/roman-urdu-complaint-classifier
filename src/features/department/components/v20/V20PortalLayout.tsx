@@ -1,5 +1,6 @@
 import React from 'react';
 import { TopEdgeMorphingNav, type V20NavOption } from './TopEdgeMorphingNav';
+import { V20CursorSpotlight } from './V20CursorSpotlight';
 
 export interface V20PortalLayoutProps {
   departmentCode: string;
@@ -46,6 +47,9 @@ export const V20PortalLayout: React.FC<V20PortalLayoutProps> = ({
     >
       {/* 1. Persistent Continuous Departmental Atmospheric Background */}
       <div className="v20-atmospheric-background" aria-hidden="true" />
+
+      {/* 1b. Smooth Cursor Spotlight Glow Layer */}
+      <V20CursorSpotlight themeMode={themeMode} departmentCode={departmentCode} />
 
       {/* 2. Top-Edge Morphing Notch Navigation */}
       <TopEdgeMorphingNav

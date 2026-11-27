@@ -195,11 +195,13 @@ export const TopEdgeMorphingNav: React.FC<TopEdgeMorphingNavProps> = ({
   // - Dedicated non-overlapping slot for close toggle button on right
   const halfContent = (measuredContentWidth || (role === 'head' ? 520 : 590)) / 2;
   const maxCloseOffset = Math.max(60, viewportWidth / 2 - 36);
-  const closeBtnOffset = Math.min(maxCloseOffset, halfContent + 22);
-  const requiredHalf = Math.max(closeBtnOffset + 24, halfContent + 30);
-  const safeNotchWidth = Math.max(isMobile ? 320 : 500, requiredHalf * 2 + 54);
-  const targetW = isOpen ? Math.min(viewportWidth - 24, safeNotchWidth) : 110;
-  const targetH = isOpen ? Math.max(isMobile ? 140 : 74, (measuredContentHeight || 44) + 26) : 48;
+  const closeBtnOffset = isMobile
+    ? Math.min(maxCloseOffset, viewportWidth / 2 - 32)
+    : Math.min(maxCloseOffset, halfContent + 32);
+  const requiredHalf = Math.max(closeBtnOffset + 34, halfContent + 50);
+  const safeNotchWidth = Math.max(isMobile ? 300 : 680, requiredHalf * 2 + 54);
+  const targetW = isOpen ? Math.min(viewportWidth - 16, safeNotchWidth) : 110;
+  const targetH = isOpen ? Math.max(isMobile ? 240 : 74, (measuredContentHeight || 44) + (isMobile ? 54 : 26)) : 48;
 
   // Frame-rate independent spring physics loop
   const animate = useCallback((now: number) => {
@@ -353,7 +355,7 @@ export const TopEdgeMorphingNav: React.FC<TopEdgeMorphingNavProps> = ({
         if (navRef.current?.contains(document.activeElement)) {
           (document.activeElement as HTMLElement)?.blur();
         }
-      }, 250);
+      }, 75);
     }
   };
 
@@ -399,9 +401,6 @@ export const TopEdgeMorphingNav: React.FC<TopEdgeMorphingNavProps> = ({
         '--menu-half': `${targetW / 2}px`,
       } as React.CSSProperties}
     >
-      {/* 0. Invisible Safe Hover Corridor to prevent premature mouse-leave drops */}
-      <div className="v20-nav-hover-corridor" aria-hidden="true" />
-
       {/* 1. Continuous SVG Morphing Notch Geometry from Top Ceiling */}
       <svg
         id="nav-shape"
@@ -453,87 +452,99 @@ export const TopEdgeMorphingNav: React.FC<TopEdgeMorphingNavProps> = ({
         </button>
       </div>
 
-      {/* 4. Notch Center / Side Toggle Button */}
-      <button
-        id="nav-toggle"
-        ref={triggerRef}
-        type="button"
-        className="v20-notch-trigger-btn"
-        aria-expanded={isOpen}
-        aria-controls="v20-nav-destinations"
-        aria-label={isOpen ? 'Close navigation' : 'Open navigation'}
-        data-testid="v20-nav-toggle"
-        onClick={handleToggle}
+      {/* 4. Strictly Bounded Interactive Notch Surface (Confines hover zone strictly to notch dimensions) */}
+      <div
+        className={`v20-notch-interactive-surface ${isOpen ? 'is-open' : 'is-collapsed'}`}
+        data-testid="v20-notch-interactive-surface"
+        onPointerEnter={handlePointerEnter}
+        onPointerLeave={handlePointerLeave}
+        style={{
+          width: `${targetW}px`,
+          height: `${targetH + 8}px`,
+        }}
       >
-        {isOpen ? (
-          <X size={20} />
-        ) : (
-          <Menu size={20} />
-        )}
-      </button>
+        {/* Center / Side Toggle Button */}
+        <button
+          id="nav-toggle"
+          ref={triggerRef}
+          type="button"
+          className="v20-notch-trigger-btn"
+          aria-expanded={isOpen}
+          aria-controls="v20-nav-destinations"
+          aria-label={isOpen ? 'Close navigation' : 'Open navigation'}
+          data-testid="v20-nav-toggle"
+          onClick={handleToggle}
+        >
+          {isOpen ? (
+            <X size={20} />
+          ) : (
+            <Menu size={20} />
+          )}
+        </button>
 
-      {/* 5. Expanded Segmented Tab Destinations Bar */}
-      <nav
-        id="v20-nav-destinations"
-        ref={contentRef}
-        className={`v20-nav-destinations-row ${isOpen ? 'visible is-visible' : 'is-collapsed'}`}
-        role="tablist"
-        aria-label="Department Navigation"
-        aria-hidden={!isOpen && typeof window !== 'undefined' && process.env.NODE_ENV !== 'test'}
-      >
-        {destinations.map((tab) => {
-          const isActive = activeTab === tab.id;
-          return (
+        {/* Expanded Segmented Tab Destinations Bar */}
+        <nav
+          id="v20-nav-destinations"
+          ref={contentRef}
+          className={`v20-nav-destinations-row ${isOpen ? 'visible is-visible' : 'is-collapsed'}`}
+          role="tablist"
+          aria-label="Department Navigation"
+          aria-hidden={!isOpen && typeof window !== 'undefined' && process.env.NODE_ENV !== 'test'}
+        >
+          {destinations.map((tab) => {
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                role="tab"
+                aria-selected={isActive}
+                aria-controls="v20-portal-content"
+                aria-current={isActive ? 'page' : undefined}
+                data-tab-id={tab.id}
+                data-go={tab.id}
+                data-testid={`v20-nav-btn-${tab.id}`}
+                className={`v20-nav-link-btn ${isActive ? 'is-active' : ''}`}
+                onClick={() => handleSelectTab(tab.id)}
+                tabIndex={isOpen || (typeof window !== 'undefined' && process.env.NODE_ENV === 'test') ? 0 : -1}
+              >
+                <span>{tab.label}</span>
+                {tab.badge !== undefined && tab.badge > 0 && (
+                  <small className="v20-nav-badge">{tab.badge}</small>
+                )}
+              </button>
+            );
+          })}
+
+          {/* HOD Compact Notices Access */}
+          {role === 'head' && (
             <button
-              key={tab.id}
               type="button"
               role="tab"
-              aria-selected={isActive}
-              aria-controls="v20-portal-content"
-              aria-current={isActive ? 'page' : undefined}
-              data-tab-id={tab.id}
-              data-go={tab.id}
-              data-testid={`v20-nav-btn-${tab.id}`}
-              className={`v20-nav-link-btn ${isActive ? 'is-active' : ''}`}
-              onClick={() => handleSelectTab(tab.id)}
+              aria-selected={activeTab === 'notifications'}
+              aria-label="Notifications"
+              data-tab-id="notifications"
+              data-go="notifications"
+              data-testid="v20-nav-btn-notifications"
+              className={`v20-nav-link-btn ${activeTab === 'notifications' ? 'is-active' : ''}`}
+              onClick={() => {
+                if (onOpenNotifications) {
+                  onOpenNotifications();
+                } else {
+                  handleSelectTab('notifications');
+                }
+              }}
               tabIndex={isOpen || (typeof window !== 'undefined' && process.env.NODE_ENV === 'test') ? 0 : -1}
             >
-              <span>{tab.label}</span>
-              {tab.badge !== undefined && tab.badge > 0 && (
-                <small className="v20-nav-badge">{tab.badge}</small>
+              <Bell size={16} />
+              <span className="sr-only">Notices</span>
+              {unreadNotifications > 0 && (
+                <small className="v20-nav-badge">{unreadNotifications}</small>
               )}
             </button>
-          );
-        })}
-
-        {/* HOD Compact Notices Access */}
-        {role === 'head' && (
-          <button
-            type="button"
-            role="tab"
-            aria-selected={activeTab === 'notifications'}
-            aria-label="Notifications"
-            data-tab-id="notifications"
-            data-go="notifications"
-            data-testid="v20-nav-btn-notifications"
-            className={`v20-nav-link-btn ${activeTab === 'notifications' ? 'is-active' : ''}`}
-            onClick={() => {
-              if (onOpenNotifications) {
-                onOpenNotifications();
-              } else {
-                handleSelectTab('notifications');
-              }
-            }}
-            tabIndex={isOpen || (typeof window !== 'undefined' && process.env.NODE_ENV === 'test') ? 0 : -1}
-          >
-            <Bell size={16} />
-            <span className="sr-only">Notices</span>
-            {unreadNotifications > 0 && (
-              <small className="v20-nav-badge">{unreadNotifications}</small>
-            )}
-          </button>
-        )}
-      </nav>
+          )}
+        </nav>
+      </div>
     </header>
   );
 };

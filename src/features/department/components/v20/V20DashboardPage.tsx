@@ -263,8 +263,8 @@ export const V20DashboardPage: React.FC<V20DashboardPageProps> = ({
             flexDirection: 'column',
             justifyContent: 'space-between',
             gap: '20px',
-            background: 'rgba(18, 15, 12, 0.75)',
-            border: '1.5px solid rgba(255, 255, 255, 0.08)',
+            background: 'var(--v20-glass-surface)',
+            border: '1.5px solid var(--v20-glass-border)',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -304,8 +304,8 @@ export const V20DashboardPage: React.FC<V20DashboardPageProps> = ({
             flexDirection: 'column',
             justifyContent: 'space-between',
             gap: '24px',
-            background: 'rgba(18, 15, 12, 0.75)',
-            border: '1.5px solid rgba(255, 255, 255, 0.08)',
+            background: 'var(--v20-glass-surface)',
+            border: '1.5px solid var(--v20-glass-border)',
           }}
         >
           <div>

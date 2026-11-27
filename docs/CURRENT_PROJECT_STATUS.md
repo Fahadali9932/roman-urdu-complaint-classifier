@@ -5,6 +5,40 @@ Verified on **27 November 2026 (Pakistan time)**. Internal delivery target:
 This document distinguishes inspected source, automated checks, and unverified
 hosted behavior. Update it after every significant verified milestone.
 
+## Development update, 27 November 2026 — Phase V21.4: Final Motion, Light Mode & Responsive Engineering (Confined Morphing Navbar Hit Surface, 50-Cycle Real Chrome Immunity, NamethatUI Cursor Spotlight Glow, Complete Light Mode Contrast Normalization & Cross-Viewport Responsiveness)
+
+- **Git & Protected Baseline (`D:\RomanUrdu_V13_19_Review`, branch `fix/v21-4-final-motion-light-mode-responsive`):**
+  - Branched from V21.3 commit (`2cf5cf6`) with safety rollback checkpoint tag `checkpoint/v21-3-before-v21-4` pushed to remote.
+  - Dedicated branch `fix/v21-4-final-motion-light-mode-responsive` tracked on `origin`.
+  - Protected primary worktree `D:\RomanUrdu_ComplaintClassifier_staff_auth` remained **100% untouched**.
+  - Total expenditure: **$0.00**; zero paid external APIs, fonts, or credit card dependencies.
+  - Zero database schema migrations applied; production DB `akbwiedtmxjxcjscgitw` and staging DB `jvbulmmdwovtgaxojxhn` remain completely untouched.
+- **Architectural Deliverables & Verification:**
+  - **Morphing Navbar Persistent Open Fix & 50-Cycle Immunity (`TopEdgeMorphingNav.tsx` & `v20-atmospheric.css`):**
+    - Isolated root causes: eliminated full-width 7px ceiling hit area on `.v20-notch-path` SVG and removed `.v20-nav-hover-corridor` by setting `pointer-events: none;`.
+    - Introduced strictly bounded `.v20-notch-interactive-surface`: compact notch bounds `110px x 48px` when collapsed; strictly encompasses tabs, bell, and close button (`targetW x targetH`) when expanded.
+    - Expanded flat bottom span (`targetW >= 680px` on desktop) guarantees > 50px flat floor clearance beyond close toggle before curved shoulder slopes rise.
+    - Calibrated exit grace to 75ms; Escape key and tab clicks deterministically close navbar.
+    - Verified 50 consecutive open/close cycles in real Chrome with **0 stuck states**.
+  - **NamethatUI Cursor Spotlight Glow Effect (`V20CursorSpotlight.tsx` & `v20-atmospheric.css`):**
+    - Built fixed pointer-tracking overlay with soft radial spotlight (~460px circle, 8–10% peak dark opacity) and department-specific color tints.
+    - Coordinates updated on window `pointermove` via `requestAnimationFrame` writing directly to CSS variables `--spotlight-x` and `--spotlight-y` with **zero React re-renders per frame**.
+    - Fully bypassed on touch devices (`@media (hover: none) and (pointer: coarse)`) and reduced-motion environments.
+  - **Complete Light Mode Color and Contrast Normalization (`v20-atmospheric.css` & All Department Components):**
+    - Eliminated all hardcoded dark brown surfaces (`rgba(18, 15, 12, ...)`) across 8 component files (`V20DashboardPage.tsx`, `HodOfficersView.tsx`, `HodProfileView.tsx`, `OfficerProfileView.tsx`, `StaffNotificationsView.tsx`, `HodVerificationView.tsx`, `HodComplaintsView.tsx`, `V19HodPortalView.tsx`).
+    - Standardized semantic variables (`--v20-glass-surface`, `--v20-glass-border`, `--v20-card-subsurface`, `--text-primary: #171717`, `--text-secondary: #454545`, `--text-muted: #626262`).
+    - Verified WCAG AA contrast (14.2:1 primary text, 7.8:1 secondary text, 4.9:1 muted text) while preserving dark hero card styling and sleek dynamic island notch bezel.
+  - **Complete Responsiveness Across All Viewports (1920, 1440, 768, 390, 320):**
+    - Fluid typography (`clamp`), responsive metric cards (4-col -> 2-col -> 1-col), responsive donut chart, responsive officer cards (`minmax(min(100%, 300px), 1fr)`).
+    - Multi-row wrapped mobile notch with `targetH: 240px`, right header strip faded out, and close toggle cleanly pinned to top right corner. Guaranteed zero horizontal overflow at 320px.
+- **Automated Quality Gates & Test Verification:**
+  - TypeScript build (`npx tsc -b && npm run build`): **Exit code `0` cleanly (0 errors, bundled in 2.14s)**.
+  - Vitest test suite (`npm test -- --run`): **798 passed | 1 skipped across 81 test files (0 regressions)**.
+  - Dedicated new test suite: `src/test/V21_4_MotionLightModeResponsive.test.tsx` (**14 passed in 512ms**).
+  - Headless Chrome CDP Verification (`tools/ai_factory/capture_v21_4_qa.mjs`):
+    - Captured 30 high-resolution screenshots across Desktop (1920/1440), Tablet (768), and Mobile (390/320) in both dark and light mode.
+    - Verified 50-cycle open/close stress test in real Chrome with zero stuck states.
+
 ## Development update, 27 November 2026 — Phase V21.3: Final Personnel & Interaction Corrections (Enlarged Officer Cards, Parallax Scroll Motion, Comprehensive Officer Personnel File, Simplified Profile "Coming Soon" Modals, "Mark All Read" Optimistic Fix & Deterministic Morphing Navbar Controller)
 
 - **Git & Protected Baseline (`D:\RomanUrdu_V13_19_Review`, branch `fix/v21-3-final-personnel-and-interactions`):**

@@ -161,8 +161,8 @@ export const HodProfileView: React.FC<HodProfileViewProps> = ({
           gap: '24px',
           padding: '32px',
           borderRadius: '26px',
-          background: 'rgba(18, 15, 12, 0.75)',
-          border: '1px solid rgba(255, 255, 255, 0.08)',
+          background: 'var(--v20-glass-surface)',
+          border: '1px solid var(--v20-glass-border)',
         }}
       >
         <div style={{ position: 'relative', flexShrink: 0 }}>
@@ -205,7 +205,7 @@ export const HodProfileView: React.FC<HodProfileViewProps> = ({
               alignItems: 'center',
               justifyContent: 'center',
               cursor: 'pointer',
-              border: '2px solid rgba(18, 15, 12, 0.95)',
+              border: '2px solid var(--v20-glass-surface)',
               boxShadow: '0 2px 8px rgba(0,0,0,0.5)',
             }}
           >
@@ -243,8 +243,8 @@ export const HodProfileView: React.FC<HodProfileViewProps> = ({
           gap: '16px',
           padding: '28px',
           borderRadius: '26px',
-          background: 'rgba(18, 15, 12, 0.75)',
-          border: '1px solid rgba(255, 255, 255, 0.08)',
+          background: 'var(--v20-glass-surface)',
+          border: '1px solid var(--v20-glass-border)',
         }}
       >
         <div>
@@ -332,8 +332,8 @@ export const HodProfileView: React.FC<HodProfileViewProps> = ({
           gap: '16px',
           padding: '28px',
           borderRadius: '26px',
-          background: 'rgba(18, 15, 12, 0.75)',
-          border: '1px solid rgba(255, 255, 255, 0.08)',
+          background: 'var(--v20-glass-surface)',
+          border: '1px solid var(--v20-glass-border)',
         }}
       >
         <span style={{ fontSize: '11.5px', fontWeight: 700, color: 'var(--v20-text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
