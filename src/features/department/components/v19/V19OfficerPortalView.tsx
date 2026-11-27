@@ -257,11 +257,13 @@ export const V19OfficerPortalView: React.FC<V19OfficerPortalViewProps> = ({
             departmentCode={departmentCode}
             departmentName={departmentName}
             role="officer"
-            totalActiveCases={orders.filter((o) => o.status !== 'verified').length || 8}
-            totalSolvedCases={orders.filter((o) => o.status === 'verified').length || 24}
-            inProgressCount={orders.filter((o) => o.status === 'in_progress').length || 5}
-            pendingCount={orders.filter((o) => o.status === 'assigned' && !o.started_at).length || 3}
-            verificationCount={orders.filter((o) => o.status === 'pending_review').length || 2}
+            totalActiveCases={orders.filter((o) => o.status !== 'verified').length}
+            totalSolvedCases={orders.filter((o) => o.status === 'verified').length}
+            inProgressCount={orders.filter((o) => o.status === 'in_progress').length}
+            pendingCount={orders.filter((o) => o.status === 'assigned' && !o.started_at).length}
+            verificationCount={orders.filter((o) => o.status === 'pending_review').length}
+          records={orders.map(o => ({ timestamp: o.assigned_at, status: o.status === 'verified' ? 'solved' : o.status === 'pending_review' ? 'verification' : o.status === 'in_progress' || o.status === 'returned' ? 'progress' : 'pending' }))}
+          isLoading={isLoading}
           />
         )}
 
