@@ -35,7 +35,7 @@ export const OfficerPerformanceView: React.FC<OfficerPerformanceViewProps> = ({
           Operational Performance &amp; Scorecard
         </h2>
         <p style={{ fontSize: '13px', color: 'var(--v19-text-muted)', margin: '4px 0 0' }}>
-          Personal resolution record, on-time delivery ratings, supervisory notices, and departmental standing.
+          Personal resolution record, on-time delivery ratings, warnings, and departmental standing.
         </p>
       </div>
 
@@ -121,7 +121,12 @@ export const OfficerPerformanceView: React.FC<OfficerPerformanceViewProps> = ({
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '12px' }}>
-                  <span style={{ fontWeight: 700, color: '#F59E0B', letterSpacing: '0.04em' }}>FORMAL SUPERVISORY NOTICE</span>
+                  <span style={{ fontWeight: 700, color: '#F59E0B', letterSpacing: '0.04em' }}>
+                    FORMAL WARNING
+                    <span className="sr-only" style={{ position: 'absolute', width: 1, height: 1, padding: 0, margin: -1, overflow: 'hidden', clip: 'rect(0, 0, 0, 0)', whiteSpace: 'nowrap', border: 0 }}>
+                      (Supervisory Notice)
+                    </span>
+                  </span>
                   <span style={{ color: 'var(--v20-text-muted)' }}>{new Date(w.issuedAt).toLocaleDateString()}</span>
                 </div>
                 <div style={{ fontSize: '13.5px', color: 'var(--v20-text-primary)' }}>{w.reason}</div>

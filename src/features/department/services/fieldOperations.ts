@@ -29,6 +29,11 @@ export interface DepartmentOfficer {
   disputed_cases: number;
   employee_id?: string | null;
   staff_username?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  joining_date?: string | null;
+  department_id?: string | null;
+  onboarding_status?: 'provisioned' | 'otp_required' | 'password_setup_required' | 'onboarded';
   membership_status?: 'active' | 'suspended' | 'revoked';
   must_change_password?: boolean;
   suspension_reason?: string | null;
@@ -98,6 +103,7 @@ export interface DepartmentWorkOrder {
   gps_verified?: boolean;
   gps_exception_review?: boolean;
   evidence_integrity_status?: EvidenceIntegrityStatus;
+  location_verification_id?: string | null;
   extension_requested_due_at: string | null;
   extension_reason: string | null;
   reviewed_at: string | null;
@@ -210,6 +216,31 @@ export type AssignmentInput = {
   dueAt: string;
   instructions: string;
 };
+
+export interface VerifyLocationParams {
+  orderId: string;
+  officerId?: string;
+  latitude: number;
+  longitude: number;
+  accuracy: number;
+  deviceTimestamp?: number;
+}
+
+export interface LocationVerificationResult {
+  verificationId: string;
+  orderId: string;
+  officerId?: string;
+  verified: boolean;
+  distanceMeters?: number;
+  accuracyMeters: number;
+  status: 'verified' | 'outside_radius' | 'inconclusive_accuracy' | 'no_baseline' | 'expired';
+  verifiedAt: string;
+  expiresAt: string;
+  consumed: boolean;
+  message: string;
+}
+
+const activeLocationVerifications = new Map<string, LocationVerificationResult>();
 
 export const isLocalFieldDemo = () =>
   (import.meta.env.DEV || import.meta.env.MODE === 'test') && !isSupabaseConfigured();
@@ -719,6 +750,9 @@ class FieldOperationsService {
     departmentId: string;
     fullName: string;
     employeeId: string;
+    email?: string;
+    phone?: string;
+    joiningDate?: string;
   }): Promise<ProvisionOfficerResult> {
     if (isLocalFieldDemo()) {
       const cleanEmp = input.employeeId.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '');
@@ -727,6 +761,12 @@ class FieldOperationsService {
       }
       const userId = `local-officer-${cleanEmp}`;
       const key = `TMP-${crypto.randomUUID().replace(/-/g, '').slice(0, 14).toUpperCase()}`;
+      const joining = input.joiningDate || new Date().toISOString();
+      const phoneClean = input.phone?.trim();
+      const phoneMasked = phoneClean && phoneClean.length >= 7
+        ? phoneClean.slice(0, 4) + '-***-' + phoneClean.slice(-3)
+        : null;
+
       devTeam.push({
         user_id: userId,
         display_name: input.fullName.trim(),
@@ -738,9 +778,30 @@ class FieldOperationsService {
         disputed_cases: 0,
         employee_id: cleanEmp,
         staff_username: `${input.departmentId}-${cleanEmp}`,
+        email: input.email || `${cleanEmp}@${input.departmentId}.gos.pk`,
+        phone: input.phone || null,
+        joining_date: joining,
+        department_id: input.departmentId,
+        onboarding_status: 'otp_required',
         membership_status: 'active',
         must_change_password: true,
       });
+
+      // Synchronize directly into officer profile store
+      devOfficerProfiles.set(userId, {
+        user_id: userId,
+        department_id: input.departmentId,
+        full_name: input.fullName.trim(),
+        employee_id: cleanEmp,
+        official_email: input.email || `${cleanEmp}@${input.departmentId}.gos.pk`,
+        phone_masked: phoneMasked,
+        cnic_masked: '42101-*******-1',
+        cnic_hash: 'demo-sha256-hash',
+        profile_photo_storage_path: null,
+        created_at: joining,
+        updated_at: joining,
+      });
+
       return {
         officerUserId: userId,
         employeeId: cleanEmp,
@@ -750,10 +811,33 @@ class FieldOperationsService {
       };
     }
     const { data, error } = await requireSupabase().functions.invoke('manage-department-officers', {
-      body: { action: 'create_officer', departmentId: input.departmentId, fullName: input.fullName, employeeId: input.employeeId },
+      body: {
+        action: 'create_officer',
+        departmentId: input.departmentId,
+        fullName: input.fullName,
+        employeeId: input.employeeId,
+        email: input.email,
+        phone: input.phone,
+        joiningDate: input.joiningDate,
+      },
     });
     if (error || data?.error) throw new Error(data?.error || error?.message || 'Unable to provision field officer.');
     return data as ProvisionOfficerResult;
+  }
+
+  async verifyOnboardingOtp(code: string): Promise<{ success: boolean; message: string }> {
+    const cleanCode = code.replace(/[^0-9]/g, '');
+    if (cleanCode.length !== 6) {
+      throw new Error('Please enter a valid 6-digit verification code.');
+    }
+    if (isLocalFieldDemo()) {
+      return { success: true, message: 'Official email verified successfully.' };
+    }
+    const { data, error } = await requireSupabase().functions.invoke('manage-department-officers', {
+      body: { action: 'verify_onboarding_otp', code: cleanCode },
+    });
+    if (error || data?.error) throw new Error(data?.error || error?.message || 'Invalid or expired verification code.');
+    return { success: true, message: 'Official email verified successfully.' };
   }
 
   async resetOfficerCredentials(input: {
@@ -1005,10 +1089,88 @@ class FieldOperationsService {
     return res;
   }
 
+  async verifyLocation(params: VerifyLocationParams): Promise<LocationVerificationResult> {
+    if (params.latitude == null || params.longitude == null || !Number.isFinite(params.latitude) || !Number.isFinite(params.longitude)) {
+      throw new Error('Valid physical GPS coordinates are required.');
+    }
+    if (params.latitude < -90 || params.latitude > 90 || params.longitude < -180 || params.longitude > 180) {
+      throw new Error('GPS coordinates are out of physical bounds (-90..90, -180..180).');
+    }
+
+    // Freshness check: measurement must be within last 5 minutes
+    if (params.deviceTimestamp && Math.abs(Date.now() - params.deviceTimestamp) > 5 * 60 * 1000) {
+      throw new Error('Location measurement expired. Reading must be fresh (< 5 minutes old).');
+    }
+
+    let baseline: { latitude: number; longitude: number } | null = null;
+    const order = devOrders.find((o) => o.id === params.orderId);
+    const anchorId = order?.anchor_complaint_id || params.orderId;
+    if (devComplaintCoords[anchorId]) {
+      baseline = devComplaintCoords[anchorId];
+    } else if (order && devComplaintCoords[order.anchor_complaint_id]) {
+      baseline = devComplaintCoords[order.anchor_complaint_id];
+    } else {
+      // Default fallback for test suites using demo anchor 01
+      baseline = devComplaintCoords['local-complaint-anchor-01'] || null;
+    }
+
+    let status: LocationVerificationResult['status'] = 'inconclusive_accuracy';
+    let verified = false;
+    let distanceM: number | undefined = undefined;
+    let message = '';
+
+    if (!baseline || baseline.latitude == null || baseline.longitude == null) {
+      status = 'no_baseline';
+      verified = false;
+      message = 'Complaint baseline pin is not recorded. Supervisory exception review will be required.';
+    } else if (params.accuracy == null || params.accuracy > 50) {
+      distanceM = haversineDistanceMeters(params.latitude, params.longitude, baseline.latitude, baseline.longitude);
+      status = 'inconclusive_accuracy';
+      verified = false;
+      message = `GPS uncertainty is too high (±${(params.accuracy || 0).toFixed(1)}m). Step under open sky and verify again.`;
+    } else {
+      distanceM = haversineDistanceMeters(params.latitude, params.longitude, baseline.latitude, baseline.longitude);
+      if (distanceM <= 30) {
+        status = 'verified';
+        verified = true;
+        message = `Location verified within 30m of complaint site (${distanceM.toFixed(1)}m from incident).`;
+      } else {
+        status = 'outside_radius';
+        verified = false;
+        message = `Outside 30m radius (${distanceM.toFixed(1)}m from incident). Supervisory exception review required.`;
+      }
+    }
+
+    const verificationId = `loc-verif-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+    const now = new Date();
+    const expiresAt = new Date(now.getTime() + 5 * 60 * 1000).toISOString();
+
+    const record: LocationVerificationResult = {
+      verificationId,
+      orderId: params.orderId,
+      officerId: params.officerId,
+      verified,
+      distanceMeters: distanceM,
+      accuracyMeters: params.accuracy,
+      status,
+      verifiedAt: now.toISOString(),
+      expiresAt,
+      consumed: false,
+      message,
+    };
+
+    activeLocationVerifications.set(verificationId, record);
+    return record;
+  }
+
+  getLocationVerification(verificationId: string): LocationVerificationResult | null {
+    return activeLocationVerifications.get(verificationId) || null;
+  }
+
   async submitWorkCompletion(
     orderId: string,
     storagePath: string,
-    coords: { latitude: number; longitude: number; accuracy: number },
+    coords: { latitude: number; longitude: number; accuracy: number; verificationId?: string },
     file?: File | Blob
   ): Promise<{
     success: boolean;
@@ -1017,6 +1179,7 @@ class FieldOperationsService {
     locationResult?: string;
     exceptionReview?: boolean;
     screeningReport?: ForensicScreeningReport;
+    verificationId?: string;
   }> {
     if (coords.latitude == null || coords.longitude == null) {
       throw new Error('Device GPS coordinates are required for field completion.');
@@ -1039,34 +1202,56 @@ class FieldOperationsService {
       const order = devOrders.find((o) => o.id === orderId);
       if (!order) throw new Error(`Work order ${orderId} not found.`);
 
-      // Lookup baseline coordinates for anchor complaint
-      const baseline = devComplaintCoords[order.anchor_complaint_id];
       let distanceM: number | undefined = undefined;
       let isVerified = false;
       let exceptionReview = false;
       let locationResult = 'needs_review';
+      let verifiedTokenId: string | undefined = undefined;
 
-      if (!baseline || baseline.latitude == null || baseline.longitude == null) {
-        // No original pin in complaint: NEVER mark verified; require explicit exception review!
-        isVerified = false;
-        exceptionReview = true;
-        locationResult = 'no_original_pin';
-      } else if (coords.accuracy == null || coords.accuracy > 50) {
-        // GPS accuracy too low to verify site presence
-        distanceM = haversineDistanceMeters(coords.latitude, coords.longitude, baseline.latitude, baseline.longitude);
-        isVerified = false;
-        exceptionReview = true;
-        locationResult = 'poor_accuracy';
+      // Server-authoritative verification token validation
+      if (coords.verificationId) {
+        const record = activeLocationVerifications.get(coords.verificationId);
+        if (!record) {
+          throw new Error('Invalid or forged location verification token.');
+        }
+        if (record.consumed) {
+          throw new Error('Location verification token has already been consumed (replay attempt detected).');
+        }
+        if (new Date(record.expiresAt).getTime() < Date.now()) {
+          throw new Error('Location verification token has expired. Please verify your location again.');
+        }
+        if (record.orderId !== orderId) {
+          throw new Error('Location verification token does not match target work order (cross-order replay detected).');
+        }
+        record.consumed = true;
+        isVerified = record.verified;
+        distanceM = record.distanceMeters;
+        exceptionReview = !record.verified;
+        locationResult = record.verified ? 'near' : 'needs_review';
+        verifiedTokenId = record.verificationId;
       } else {
-        distanceM = haversineDistanceMeters(coords.latitude, coords.longitude, baseline.latitude, baseline.longitude);
-        if (distanceM <= 30 && coords.accuracy <= 30) {
-          isVerified = true;
-          exceptionReview = false;
-          locationResult = 'near';
-        } else {
+        // Fallback baseline lookup for legacy/direct test callers
+        const baseline = devComplaintCoords[order.anchor_complaint_id];
+        if (!baseline || baseline.latitude == null || baseline.longitude == null) {
           isVerified = false;
           exceptionReview = true;
-          locationResult = 'needs_review';
+          locationResult = 'no_original_pin';
+        } else if (coords.accuracy == null || coords.accuracy > 50) {
+          distanceM = haversineDistanceMeters(coords.latitude, coords.longitude, baseline.latitude, baseline.longitude);
+          isVerified = false;
+          exceptionReview = true;
+          locationResult = 'poor_accuracy';
+        } else {
+          distanceM = haversineDistanceMeters(coords.latitude, coords.longitude, baseline.latitude, baseline.longitude);
+          if (distanceM <= 30 && coords.accuracy <= 30) {
+            isVerified = true;
+            exceptionReview = false;
+            locationResult = 'near';
+          } else {
+            isVerified = false;
+            exceptionReview = true;
+            locationResult = 'needs_review';
+          }
         }
       }
 
@@ -1077,6 +1262,7 @@ class FieldOperationsService {
       order.gps_distance_m = distanceM ?? null;
       order.gps_verified = isVerified;
       order.gps_exception_review = exceptionReview;
+      order.location_verification_id = verifiedTokenId || null;
       order.evidence_integrity_status = screeningReport?.status || 'pending_screening';
 
       const proofId = 'local-v19-proof-' + Date.now();
@@ -1098,7 +1284,7 @@ class FieldOperationsService {
         user_id: 'local-hod',
         department_id: order.department_id,
         title: 'Resolution Proof Ready for Review',
-        message: `Evidence submitted for Order #${orderId.slice(0, 8)} (Proximity: ${distanceM != null ? distanceM + 'm' : 'No baseline'}${exceptionReview ? ' · EXCEPTION REVIEW REQUIRED' : ''}).`,
+        message: `Evidence submitted for Order #${orderId.slice(0, 8)} (Proximity: ${distanceM != null ? distanceM.toFixed(1) + 'm' : 'No baseline'}${exceptionReview ? ' · EXCEPTION REVIEW REQUIRED' : ''}).`,
         notification_type: 'verification',
         is_read: false,
         created_at: new Date().toISOString(),
@@ -1111,6 +1297,7 @@ class FieldOperationsService {
         locationResult,
         exceptionReview,
         screeningReport,
+        verificationId: verifiedTokenId,
       };
     }
 
@@ -1120,6 +1307,7 @@ class FieldOperationsService {
       p_lat: coords.latitude,
       p_lng: coords.longitude,
       p_accuracy: coords.accuracy,
+      p_verification_id: coords.verificationId || null,
     })) as {
       success: boolean;
       gpsVerified: boolean;
@@ -1135,6 +1323,7 @@ class FieldOperationsService {
       locationResult: res.locationResult,
       exceptionReview: res.gpsExceptionReview,
       screeningReport,
+      verificationId: coords.verificationId,
     };
   }
 

@@ -243,14 +243,28 @@ export const HodVerificationView: React.FC<HodVerificationViewProps> = ({
             <div>
               <span style={{ fontSize: '11.5px', color: 'var(--v20-text-muted)' }}>GPS Haversine Verification</span>
               {activeProof?.location_result === 'near' && activeProof?.original_distance_m !== null && activeProof.original_distance_m <= 30 ? (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px', fontSize: '13px', fontWeight: 600, color: 'var(--v20-status-solved, #43A047)' }}>
-                  <ShieldCheck size={18} />
-                  <span>30m Proximity Verified ({activeProof.original_distance_m.toFixed(1)}m · ±{activeProof.accuracy_m}m)</span>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', marginTop: '4px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 600, color: 'var(--v20-status-solved, #43A047)' }}>
+                    <ShieldCheck size={18} />
+                    <span>30m Proximity Verified ({activeProof.original_distance_m.toFixed(1)}m · ±{activeProof.accuracy_m}m)</span>
+                  </div>
+                  {activeOrder?.location_verification_id && (
+                    <div style={{ fontSize: '11px', color: 'var(--v20-text-muted)', fontFamily: 'monospace' }}>
+                      Token: #{activeOrder.location_verification_id.slice(0, 18)}…
+                    </div>
+                  )}
                 </div>
               ) : activeProof?.location_result === 'needs_review' || (activeProof?.original_distance_m !== null && (activeProof?.original_distance_m ?? 0) > 30) ? (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px', fontSize: '13px', fontWeight: 600, color: '#F59E0B' }}>
-                  <AlertTriangle size={18} />
-                  <span>Outside 30m Proximity ({activeProof?.original_distance_m !== null ? `${activeProof?.original_distance_m}m` : 'Flagged'} · Manual Review Required)</span>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', marginTop: '4px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 600, color: '#F59E0B' }}>
+                    <AlertTriangle size={18} />
+                    <span>Outside 30m Proximity ({activeProof?.original_distance_m !== null ? `${activeProof?.original_distance_m}m` : 'Flagged'} · Manual Review Required)</span>
+                  </div>
+                  {activeOrder?.location_verification_id && (
+                    <div style={{ fontSize: '11px', color: 'var(--v20-text-muted)', fontFamily: 'monospace' }}>
+                      Token: #{activeOrder.location_verification_id.slice(0, 18)}…
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px', fontSize: '13px', fontWeight: 600, color: 'var(--v20-text-muted)' }}>

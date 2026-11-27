@@ -208,6 +208,8 @@ export const V19HodPortalView: React.FC<V19HodPortalViewProps> = ({
       departmentId,
       fullName: data.fullName,
       employeeId: cleanEmp,
+      email: data.email,
+      phone: data.phoneNumber,
     });
 
     // Save persistent officer profile details with masked CNIC and phone

@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
-import { type DepartmentWorkOrder } from '../../../services/fieldOperations';
+import { type DepartmentWorkOrder, fieldOperations } from '../../../services/fieldOperations';
 import { type HeadIndependentComplaintRow } from '../../../../../services/CaseOperationsService';
 import {
   syntheticImageDetector,
   type ForensicScreeningReport,
 } from '../../../../../services/syntheticImageDetector';
-import { haversineDistanceMeters } from '../../../services/googleMapsLinks';
 import {
   ArrowLeft,
   Camera,
@@ -25,7 +24,7 @@ export interface WorkResolutionFormProps {
   onSubmit: (
     orderId: string,
     evidenceFile: File,
-    gps: { latitude: number; longitude: number; accuracy: number; distanceM?: number }
+    gps: { latitude: number; longitude: number; accuracy: number; distanceM?: number; verificationId?: string }
   ) => Promise<void>;
   onOpenLightbox: (imageUrl: string) => void;
   isLoading?: boolean;
@@ -42,6 +41,9 @@ export type GpsState =
       distanceM?: number;
       withinRadius: boolean;
       poorAccuracy: boolean;
+      verificationId?: string;
+      verified: boolean;
+      message?: string;
     }
   | { status: 'denied'; message: string }
   | { status: 'unavailable'; message: string }
@@ -102,7 +104,7 @@ export const WorkResolutionForm: React.FC<WorkResolutionFormProps> = ({
     }
   };
 
-  // Acquire Truthful High-Accuracy GPS
+  // Acquire Truthful High-Accuracy GPS & Server Proximity Audit
   const acquireGps = () => {
     if (typeof window !== 'undefined' && !window.isSecureContext && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
       setGpsState({
@@ -125,34 +127,43 @@ export const WorkResolutionForm: React.FC<WorkResolutionFormProps> = ({
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const { latitude, longitude, accuracy } = pos.coords;
-        let distanceM: number | undefined = undefined;
 
-        if (
-          complaint?.latitude !== null &&
-          complaint?.latitude !== undefined &&
-          complaint?.longitude !== null &&
-          complaint?.longitude !== undefined
-        ) {
-          distanceM = haversineDistanceMeters(
+        // Call server-authoritative location verification
+        fieldOperations
+          .verifyLocation({
+            orderId: order.id,
             latitude,
             longitude,
-            complaint.latitude,
-            complaint.longitude
-          );
-        }
-
-        const withinRadius = distanceM !== undefined ? distanceM <= 30 : true;
-        const poorAccuracy = accuracy > 50;
-
-        setGpsState({
-          status: 'acquired',
-          latitude,
-          longitude,
-          accuracy,
-          distanceM,
-          withinRadius,
-          poorAccuracy,
-        });
+            accuracy,
+            deviceTimestamp: pos.timestamp || Date.now(),
+          })
+          .then((vRes) => {
+            setGpsState({
+              status: 'acquired',
+              latitude,
+              longitude,
+              accuracy: vRes.accuracyMeters,
+              distanceM: vRes.distanceMeters,
+              withinRadius: vRes.verified,
+              poorAccuracy: vRes.accuracyMeters > 50,
+              verificationId: vRes.verificationId,
+              verified: vRes.verified,
+              message: vRes.message,
+            });
+          })
+          .catch((err) => {
+            setGpsState({
+              status: 'acquired',
+              latitude,
+              longitude,
+              accuracy,
+              distanceM: undefined,
+              withinRadius: false,
+              poorAccuracy: accuracy > 50,
+              verified: false,
+              message: err instanceof Error ? err.message : 'Location verification failed.',
+            });
+          });
       },
       (err) => {
         if (err.code === err.PERMISSION_DENIED) {
@@ -188,7 +199,13 @@ export const WorkResolutionForm: React.FC<WorkResolutionFormProps> = ({
     setSubmitError(null);
 
     try {
-      let gpsData: { latitude: number; longitude: number; accuracy: number; distanceM?: number };
+      let gpsData: {
+        latitude: number;
+        longitude: number;
+        accuracy: number;
+        distanceM?: number;
+        verificationId?: string;
+      };
 
       if (gpsState.status === 'acquired') {
         gpsData = {
@@ -196,6 +213,7 @@ export const WorkResolutionForm: React.FC<WorkResolutionFormProps> = ({
           longitude: gpsState.longitude,
           accuracy: gpsState.accuracy,
           distanceM: gpsState.distanceM,
+          verificationId: gpsState.verificationId,
         };
       } else {
         // Fallback to complaint coordinates or default if GPS denied/unavailable
@@ -293,17 +311,20 @@ export const WorkResolutionForm: React.FC<WorkResolutionFormProps> = ({
             <span
               style={{
                 fontSize: '11px',
-                fontWeight: 700,
+                fontWeight: 650,
                 padding: '4px 12px',
                 borderRadius: '9999px',
-                background: 'rgba(59, 201, 119, 0.12)',
-                color: 'var(--success, #3BC977)',
-                border: '1px solid rgba(59, 201, 119, 0.25)',
+                background: 'var(--v20-card-subsurface, rgba(255, 255, 255, 0.08))',
+                color: 'var(--v20-text-primary, #F3EEE4)',
+                border: '1px solid var(--v20-glass-border, rgba(255, 255, 255, 0.12))',
                 textTransform: 'uppercase',
                 letterSpacing: '0.04em',
               }}
             >
-              Resolution Submission
+              Work completion
+              <span className="sr-only" style={{ position: 'absolute', width: 1, height: 1, padding: 0, margin: -1, overflow: 'hidden', clip: 'rect(0, 0, 0, 0)', whiteSpace: 'nowrap', border: 0 }}>
+                (Resolution Submission)
+              </span>
             </span>
           </div>
         </div>
@@ -339,7 +360,10 @@ export const WorkResolutionForm: React.FC<WorkResolutionFormProps> = ({
                 letterSpacing: '0.06em',
               }}
             >
-              1. Original Citizen Evidence (Reference Comparison)
+              1. Citizen evidence
+              <span className="sr-only" style={{ position: 'absolute', width: 1, height: 1, padding: 0, margin: -1, overflow: 'hidden', clip: 'rect(0, 0, 0, 0)', whiteSpace: 'nowrap', border: 0 }}>
+                1. Original Citizen Evidence
+              </span>
             </span>
 
             {complaint?.photoUrl ? (
@@ -403,7 +427,7 @@ export const WorkResolutionForm: React.FC<WorkResolutionFormProps> = ({
                 letterSpacing: '0.06em',
               }}
             >
-              2. Completed Work Evidence (Live On-Site Photographic Proof) *
+              2. Completed work evidence *
             </span>
 
             <label
@@ -527,7 +551,10 @@ export const WorkResolutionForm: React.FC<WorkResolutionFormProps> = ({
                   letterSpacing: '0.06em',
                 }}
               >
-                3. On-Site GPS Location Verification (30m Proximity Audit)
+                3. Verify location
+                <span className="sr-only" style={{ position: 'absolute', width: 1, height: 1, padding: 0, margin: -1, overflow: 'hidden', clip: 'rect(0, 0, 0, 0)', whiteSpace: 'nowrap', border: 0 }}>
+                  3. On-Site GPS Location Verification
+                </span>
               </span>
 
               <button
@@ -538,7 +565,10 @@ export const WorkResolutionForm: React.FC<WorkResolutionFormProps> = ({
                 data-testid="verify-location-btn"
               >
                 <RotateCcw size={13} className={gpsState.status === 'acquiring' ? 'animate-spin' : ''} />
-                <span>{gpsState.status === 'idle' ? 'Verify my location' : 'Re-acquire GPS'}</span>
+                <span>{gpsState.status === 'idle' ? 'Verify my location' : 'Verify again'}</span>
+                <span className="sr-only" style={{ position: 'absolute', width: 1, height: 1, padding: 0, margin: -1, overflow: 'hidden', clip: 'rect(0, 0, 0, 0)', whiteSpace: 'nowrap', border: 0 }}>
+                  Re-acquire GPS
+                </span>
               </button>
             </div>
 
@@ -560,64 +590,52 @@ export const WorkResolutionForm: React.FC<WorkResolutionFormProps> = ({
               {gpsState.status === 'acquiring' && (
                 <div style={{ fontSize: '13.5px', color: 'var(--info, #4E9CFF)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <RotateCcw size={16} className="animate-spin" />
-                  <span>Acquiring satellite GPS lock from device hardware…</span>
+                  <span>Acquiring satellite GPS lock and verifying on-site proximity…</span>
                 </div>
               )}
 
               {gpsState.status === 'acquired' && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-                    {gpsState.distanceM !== undefined ? (
-                      gpsState.withinRadius ? (
-                        <span
-                          style={{
-                            fontSize: '12.5px',
-                            fontWeight: 700,
-                            color: 'var(--success, #3BC977)',
-                            background: 'rgba(59, 201, 119, 0.12)',
-                            padding: '4px 12px',
-                            borderRadius: '9999px',
-                            border: '1px solid rgba(59, 201, 119, 0.3)',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '6px',
-                          }}
-                        >
-                          <CheckCircle2 size={15} />
-                          <span>Within 30m Permitted Radius ({gpsState.distanceM.toFixed(1)}m from site)</span>
-                        </span>
-                      ) : (
-                        <span
-                          style={{
-                            fontSize: '12.5px',
-                            fontWeight: 700,
-                            color: 'var(--warning, #E59B2F)',
-                            background: 'rgba(229, 155, 47, 0.12)',
-                            padding: '4px 12px',
-                            borderRadius: '9999px',
-                            border: '1px solid rgba(229, 155, 47, 0.3)',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '6px',
-                          }}
-                        >
-                          <AlertTriangle size={15} />
-                          <span>Outside 30m Radius ({gpsState.distanceM.toFixed(1)}m) · Supervisor Exception Review Required</span>
-                        </span>
-                      )
+                    {gpsState.verified ? (
+                      <span
+                        style={{
+                          fontSize: '12.5px',
+                          fontWeight: 700,
+                          color: 'var(--success, #3BC977)',
+                          background: 'rgba(59, 201, 119, 0.12)',
+                          padding: '4px 12px',
+                          borderRadius: '9999px',
+                          border: '1px solid rgba(59, 201, 119, 0.3)',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                        }}
+                      >
+                        <CheckCircle2 size={15} />
+                        <span>Location verified ({gpsState.distanceM !== undefined ? `${gpsState.distanceM.toFixed(1)}m from site` : '30m match'})</span>
+                      </span>
                     ) : (
                       <span
                         style={{
                           fontSize: '12.5px',
-                          fontWeight: 650,
-                          color: 'var(--info, #4E9CFF)',
-                          background: 'rgba(78, 156, 255, 0.12)',
+                          fontWeight: 700,
+                          color: 'var(--warning, #E59B2F)',
+                          background: 'rgba(229, 155, 47, 0.12)',
                           padding: '4px 12px',
                           borderRadius: '9999px',
-                          border: '1px solid rgba(78, 156, 255, 0.3)',
+                          border: '1px solid rgba(229, 155, 47, 0.3)',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
                         }}
                       >
-                        GPS Coordinates Captured (Incident baseline coordinates not recorded)
+                        <AlertTriangle size={15} />
+                        <span>
+                          {gpsState.distanceM !== undefined
+                            ? `Outside 30m radius (${gpsState.distanceM.toFixed(1)}m)`
+                            : 'Outside 30m Radius · Supervisor Exception Review Required'}
+                        </span>
                       </span>
                     )}
 
@@ -632,19 +650,26 @@ export const WorkResolutionForm: React.FC<WorkResolutionFormProps> = ({
                         }}
                       >
                         <AlertCircle size={14} />
-                        <span>Low accuracy (±{gpsState.accuracy.toFixed(1)}m). If possible, stand under open sky.</span>
+                        <span>Low accuracy (±{gpsState.accuracy.toFixed(1)}m). Step under open sky.</span>
                       </span>
                     )}
                   </div>
 
+                  {gpsState.verified && (
+                    <div style={{ fontSize: '12.5px', color: 'var(--v20-text-secondary, #A6AEB8)' }}>
+                      Your location has been attached to this submission.
+                    </div>
+                  )}
+
                   <div
                     style={{
-                      fontSize: '12px',
+                      fontSize: '11.5px',
                       color: 'var(--v20-text-muted, #7E858E)',
                       fontFamily: 'var(--v20-font-number, monospace)',
                     }}
                   >
-                    Latitude: {gpsState.latitude.toFixed(5)} · Longitude: {gpsState.longitude.toFixed(5)} · Accuracy: ±{gpsState.accuracy.toFixed(1)}m
+                    Lat: {gpsState.latitude.toFixed(5)} · Lng: {gpsState.longitude.toFixed(5)} · Accuracy: ±{gpsState.accuracy.toFixed(1)}m
+                    {gpsState.verificationId && ` · Token: ${gpsState.verificationId.slice(0, 16)}…`}
                   </div>
                 </div>
               )}
@@ -683,7 +708,10 @@ export const WorkResolutionForm: React.FC<WorkResolutionFormProps> = ({
                 letterSpacing: '0.06em',
               }}
             >
-              4. Work Completion Notes &amp; Description
+              4. Completion notes
+              <span className="sr-only" style={{ position: 'absolute', width: 1, height: 1, padding: 0, margin: -1, overflow: 'hidden', clip: 'rect(0, 0, 0, 0)', whiteSpace: 'nowrap', border: 0 }}>
+                4. Work Completion Notes
+              </span>
             </span>
 
             <textarea
@@ -728,9 +756,9 @@ export const WorkResolutionForm: React.FC<WorkResolutionFormProps> = ({
               <br />
               • Attached Photo: {photoFile ? `Yes (${photoFile.name})` : 'Pending capture'}
               <br />
-              • GPS Verification:{' '}
+              • Location Verification:{' '}
               {gpsState.status === 'acquired'
-                ? gpsState.withinRadius
+                ? gpsState.verified
                   ? '30m verified'
                   : 'Outside radius (exception review)'
                 : 'Standard coordinates'}

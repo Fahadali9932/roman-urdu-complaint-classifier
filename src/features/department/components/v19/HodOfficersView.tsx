@@ -776,7 +776,7 @@ export const HodOfficersView: React.FC<HodOfficersViewProps> = ({
                   </p>
                 ) : (
                   <p style={{ fontSize: '13px', color: 'var(--v20-text-muted)', margin: 0 }}>
-                    No formal disciplinary warnings or notices recorded.
+                    No warnings recorded.
                   </p>
                 )}
               </div>

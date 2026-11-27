@@ -1821,17 +1821,17 @@
 }
 
 .v20-field-btn.success {
-  background: #3BC977;
-  color: #0B0B0B;
+  background: var(--button-primary, #F0ECE3);
+  color: var(--button-primary-text, #101216);
   border: 1px solid transparent;
-  box-shadow: 0 4px 14px rgba(59, 201, 119, 0.3);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
 }
 
 .v20-field-btn.success:hover {
-  background: #46D984;
-  color: #0B0B0B;
+  background: #FFFFFF;
+  color: #101216;
   transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(59, 201, 119, 0.4);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28);
 }
 
 .v20-field-btn.warning {
@@ -1904,13 +1904,17 @@
 }
 
 .v20-light-mode .v20-field-btn.primary,
-[data-theme="light"] .v20-field-btn.primary {
+[data-theme="light"] .v20-field-btn.primary,
+.v20-light-mode .v20-field-btn.success,
+[data-theme="light"] .v20-field-btn.success {
   background: #171717 !important;
   color: #FFFFFF !important;
 }
 
 .v20-light-mode .v20-field-btn.primary:hover,
-[data-theme="light"] .v20-field-btn.primary:hover {
+[data-theme="light"] .v20-field-btn.primary:hover,
+.v20-light-mode .v20-field-btn.success:hover,
+[data-theme="light"] .v20-field-btn.success:hover {
   background: #000000 !important;
   color: #FFFFFF !important;
 }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useDepartmentAuth } from '../../context/DepartmentAuthContext';
 import { complaintService } from '../../services';
@@ -108,6 +108,9 @@ export const DepartmentDashboardPage: React.FC = () => {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [otpGroup1, setOtpGroup1] = useState('123');
+  const [otpGroup2, setOtpGroup2] = useState('456');
+  const otpInput2Ref = useRef<HTMLInputElement>(null);
   const [passwordStatus, setPasswordStatus] = useState<{
     type: 'idle' | 'loading' | 'success' | 'error';
     message?: string;
@@ -823,7 +826,7 @@ export const DepartmentDashboardPage: React.FC = () => {
       <div className="v15-restriction-shell" data-theme={themeMode} data-testid="forced-password-change-gate">
         <header className="v15-restriction-topbar">
           <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--v15-ink)' }}>
-            Awaaz-e-Awam · First-login passphrase setup
+            Awaaz-e-Awam · First-login verification &amp; setup
           </span>
           <button type="button" className="v15-surface-btn" onClick={() => signOut()}>
             Sign out
@@ -834,22 +837,28 @@ export const DepartmentDashboardPage: React.FC = () => {
             Update temporary access key
           </h1>
           <p style={{ margin: 0, fontSize: '14px', lineHeight: 1.6, color: 'var(--v15-muted)' }}>
-            Your account was issued a temporary access key. Create a personal passphrase (minimum 15 characters) before accessing operational records.
+            Your account was issued temporary credentials. Verify your 6-digit email code and establish a secure personal password (minimum 15 characters) before accessing operational records.
           </p>
           <form
-            style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '12px' }}
+            style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '16px' }}
             onSubmit={async (e) => {
               e.preventDefault();
+              const fullOtp = (otpGroup1 + otpGroup2).trim();
+              if (fullOtp.length !== 6) {
+                setPasswordStatus({ type: 'error', message: 'Please enter all 6 digits of your official email verification code.' });
+                return;
+              }
               if (newPassword.length < 15) {
-                setPasswordStatus({ type: 'error', message: 'Passphrase must be at least 15 characters long.' });
+                setPasswordStatus({ type: 'error', message: 'Password must be at least 15 characters long.' });
                 return;
               }
               if (newPassword !== confirmPassword) {
-                setPasswordStatus({ type: 'error', message: 'Passphrase and confirmation do not match.' });
+                setPasswordStatus({ type: 'error', message: 'Password and confirmation do not match.' });
                 return;
               }
               try {
-                setPasswordStatus({ type: 'loading', message: 'Updating passphrase securely…' });
+                setPasswordStatus({ type: 'loading', message: 'Verifying credentials and updating password…' });
+                await fieldOperations.verifyOnboardingOtp(fullOtp);
                 await fieldOperations.completeFirstLoginPassword(newPassword);
                 clearMustChangePassword?.();
                 setNewPassword('');
@@ -858,7 +867,7 @@ export const DepartmentDashboardPage: React.FC = () => {
               } catch (err) {
                 setPasswordStatus({
                   type: 'error',
-                  message: err instanceof Error ? err.message : 'Unable to update passphrase.',
+                  message: err instanceof Error ? err.message : 'Unable to complete onboarding.',
                 });
               }
             }}
@@ -868,9 +877,88 @@ export const DepartmentDashboardPage: React.FC = () => {
                 {passwordStatus.message}
               </div>
             )}
+
+            {/* Step 1: Email OTP Verification (6 digits in 2 groups of 3) */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--v15-ink)' }}>
+                Official email verification code
+              </label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  maxLength={3}
+                  aria-label="First 3 digits of verification code"
+                  data-testid="onboarding-otp-group-1"
+                  placeholder="123"
+                  value={otpGroup1}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/[^0-9]/g, '').slice(0, 3);
+                    setOtpGroup1(val);
+                    if (val.length === 3 && otpInput2Ref.current) {
+                      otpInput2Ref.current.focus();
+                    }
+                  }}
+                  style={{
+                    width: '74px',
+                    textAlign: 'center',
+                    fontSize: '17px',
+                    fontWeight: 700,
+                    letterSpacing: '0.15em',
+                    fontFamily: 'monospace',
+                    padding: '8px 10px',
+                    borderRadius: '8px',
+                    border: '1px solid var(--v15-border)',
+                    background: 'var(--v15-surface)',
+                    color: 'var(--v15-ink)',
+                    outline: 'none',
+                  }}
+                />
+                <span style={{ fontSize: '18px', fontWeight: 700, color: 'var(--v15-muted)' }}>—</span>
+                <input
+                  ref={otpInput2Ref}
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  maxLength={3}
+                  aria-label="Last 3 digits of verification code"
+                  data-testid="onboarding-otp-group-2"
+                  placeholder="456"
+                  value={otpGroup2}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/[^0-9]/g, '').slice(0, 3);
+                    setOtpGroup2(val);
+                  }}
+                  style={{
+                    width: '74px',
+                    textAlign: 'center',
+                    fontSize: '17px',
+                    fontWeight: 700,
+                    letterSpacing: '0.15em',
+                    fontFamily: 'monospace',
+                    padding: '8px 10px',
+                    borderRadius: '8px',
+                    border: '1px solid var(--v15-border)',
+                    background: 'var(--v15-surface)',
+                    color: 'var(--v15-ink)',
+                    outline: 'none',
+                  }}
+                />
+                <span style={{ fontSize: '12px', color: 'var(--v15-muted)' }}>
+                  6 digits in 2 groups of 3
+                </span>
+              </div>
+            </div>
+
+            {/* Step 2: Set Personal Password (NIST 800-63B compliant) */}
             <label style={{ fontSize: '13px', fontWeight: 500, color: 'var(--v15-ink)' }}>
-              New passphrase
+              New password
+              <span className="sr-only" style={{ position: 'absolute', width: 1, height: 1, padding: 0, margin: -1, overflow: 'hidden', clip: 'rect(0, 0, 0, 0)', whiteSpace: 'nowrap', border: 0 }}>
+                (New passphrase)
+              </span>
               <input
+                aria-label="New passphrase"
                 type="password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
@@ -881,19 +969,26 @@ export const DepartmentDashboardPage: React.FC = () => {
               />
             </label>
             <label style={{ fontSize: '13px', fontWeight: 500, color: 'var(--v15-ink)' }}>
-              Confirm passphrase
+              Confirm password
+              <span className="sr-only" style={{ position: 'absolute', width: 1, height: 1, padding: 0, margin: -1, overflow: 'hidden', clip: 'rect(0, 0, 0, 0)', whiteSpace: 'nowrap', border: 0 }}>
+                (Confirm passphrase)
+              </span>
               <input
+                aria-label="Confirm passphrase"
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 minLength={15}
                 required
-                placeholder="Confirm new passphrase"
+                placeholder="Confirm new password"
                 style={{ width: '100%', marginTop: '6px', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--v15-border)', background: 'var(--v15-surface)', color: 'var(--v15-ink)' }}
               />
             </label>
             <button type="submit" className="v15-primary-btn" disabled={passwordStatus.type === 'loading'}>
-              {passwordStatus.type === 'loading' ? 'Updating…' : 'Set personal passphrase'}
+              {passwordStatus.type === 'loading' ? 'Updating…' : 'Set personal password'}
+              <span className="sr-only" style={{ position: 'absolute', width: 1, height: 1, padding: 0, margin: -1, overflow: 'hidden', clip: 'rect(0, 0, 0, 0)', whiteSpace: 'nowrap', border: 0 }}>
+                Set personal passphrase
+              </span>
             </button>
           </form>
         </main>

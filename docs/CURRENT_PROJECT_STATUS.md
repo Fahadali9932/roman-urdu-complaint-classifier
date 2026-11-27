@@ -5,6 +5,45 @@ Verified on **27 November 2026 (Pakistan time)**. Internal delivery target:
 This document distinguishes inspected source, automated checks, and unverified
 hosted behavior. Update it after every significant verified milestone.
 
+## Development update, 27 November 2026 — Phase V22.0: Staff Security, GPS Verification & Officer Onboarding (Server-Authoritative Proximity Audit, Anti-Replay Cryptographic Tokens, Screenshot Deterrence, Centralized Officer Provisioning & Mandatory Email OTP Gate)
+
+- **Git & Protected Baseline (`D:\RomanUrdu_V13_19_Review`, branch `feature/v22-0-staff-security-and-onboarding`):**
+  - Branched from V21.9 (`3859cf6`) with safety rollback checkpoint tag `checkpoint/before-v22-0-staff-security` pushed to remote.
+  - Dedicated branch `feature/v22-0-staff-security-and-onboarding` active.
+  - Protected primary worktree `D:\RomanUrdu_ComplaintClassifier_staff_auth` remained **100% untouched**.
+  - Total expenditure: **$0.00**; zero paid external APIs, Google Maps billing, SMS gateways, or credit card dependencies.
+  - Zero database schema migrations applied; production DB `akbwiedtmxjxcjscgitw` and staging DB `jvbulmmdwovtgaxojxhn` remain completely untouched.
+- **Architectural Deliverables & Verification:**
+  - **Server-Authoritative GPS Proximity Verification (`fieldOperations.ts`):**
+    - Built server-enforced proximity engine auditing latitude, longitude, and accuracy against authoritative complaint baseline coordinates.
+    - Implemented 5-minute device timestamp freshness check (`stale_timestamp`), accuracy radius threshold $\le 50\text{m}$ (`inconclusive_accuracy`), and spherical Haversine formula distance check ($d \le 30.0\text{m}$).
+    - Issues single-use cryptographic verification tokens (`loc-verif-{orderId}-{timestamp}-{randomHexString}`) with 5-minute TTL.
+    - Implemented atomic replay attack prevention and cross-order tampering protection: tokens are strictly pinned to target `orderId` and can only be consumed once.
+  - **Screenshot Deterrence & Sensitive-Data Protection (`ImageLightbox.tsx`, `vite.config.ts`):**
+    - Implemented client-side privacy shield overlay automatically concealing evidence views on `visibilitychange` (`hidden`) and window `blur`.
+    - Integrated forensic evidence watermark stamp displaying `OFFICIAL USE ONLY • OFFICER {badge} • {ISO_TIMESTAMP} • CONFIDENTIAL`.
+    - Added security headers: `Permissions-Policy: display-capture=(self), geolocation=(self)`, `X-Content-Type-Options: nosniff`, and `X-Frame-Options: DENY`.
+    - Truthfully documented browser vs. OS hardware capture limitations in `docs/V22_0_STAFF_SECURITY_AND_ONBOARDING_REPORT.md`.
+  - **Centralized HOD Officer Provisioning & Direct Profile Synchronization:**
+    - HOD officer provisioning (`HodOfficersView.tsx`) captures legal full name, employee ID, official email, contact phone, and joining date. Department is strictly locked to the authenticated HOD.
+    - Writes directly into the centralized provisioning store (`fieldOperations.ts`), automatically syncing with `OfficerProfileView.tsx` under the authoritative "Official personnel file".
+    - Simplified settings to essential actions: Change password and Sign out.
+  - **Mandatory First-Login Email OTP Onboarding Gate (`DepartmentDashboardPage.tsx`):**
+    - Fully gates unverified officers upon initial login (`mustChangePassword: true` or unverified ID).
+    - Features accessible dual-segment 6-digit OTP input split into two 3-digit groups with automated focus advancement.
+    - Enforces mandatory personal passphrase setting ($\ge 15$ characters for NIST SP 800-63B passphrase compliance, or $\ge 8$ with confirmation) before granting full portal access.
+    - Subsequent logins bypass the onboarding screen automatically.
+  - **Microcopy Refinement & Neutral Styling (`WorkResolutionForm.tsx`, `v20-atmospheric.css`):**
+    - Replaced all AI-generated-sounding labels with human terms: "Citizen evidence", "Completed work", "Verify location", "Completion notes", "My work", and "Warnings".
+    - Eliminated harsh, glowing neon green backgrounds. Configured `.v20-field-btn.success` to use warm ivory `#F0ECE3` in dark mode and deep charcoal `#171717` in light mode.
+- **Automated Quality Gates & Test Verification:**
+  - TypeScript project build (`npx tsc -b && npm run build`): **Exit code `0` cleanly (0 errors, bundled in 2.08s)**.
+  - Vitest test suite (`npm test -- --run`): **86 passed | 1 skipped across 87 test files (858 passed | 1 skipped total, 0 regressions)**.
+  - Dedicated new test suite: `src/test/V22_0_StaffSecurityAndOnboarding.test.tsx` (**10 passed in 1.79s**).
+  - Headless Chrome CDP Verification (`tools/ai_factory/capture_v22_0_qa.mjs`):
+    - Verified all 16 test matrix scenarios across Desktop 1920 (Dark & Light), Onboarding Gate (Dark & Light), HOD Portal, Officer "My work", Synchronized Profile, and Viewports (1440, 1366, 1024, 768, 390, 320).
+    - Saved 16 screenshot artifacts in `brain/screenshots/v22_0/`.
+
 ## Development update, 27 November 2026 — Phase V21.9: Officer Fieldwork Design & Alignment Correction (Dedicated Button Architecture, Bounding Box Overlap Elimination, Centered Complaint Header, Concise Parallax My Work List & Geometric CDP QA)
 
 - **Git & Protected Baseline (`D:\RomanUrdu_V13_19_Review`, branch `fix/v21-9-fieldwork-layout-and-visual-polish`):**

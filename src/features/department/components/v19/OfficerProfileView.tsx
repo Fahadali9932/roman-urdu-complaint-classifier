@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { User, KeyRound, LogOut, Camera, Check, AlertCircle } from 'lucide-react';
-import { fieldOperations } from '../../services/fieldOperations';
+import { fieldOperations, type OfficerProfileDetails } from '../../services/fieldOperations';
 import { useDepartmentAuth } from '../../../../context/DepartmentAuthContext';
 
 export interface OfficerProfileViewProps {
@@ -28,6 +28,17 @@ export const OfficerProfileView: React.FC<OfficerProfileViewProps> = ({
 
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [profileDetails, setProfileDetails] = useState<OfficerProfileDetails | null>(null);
+
+  // Load authoritative personnel file
+  useEffect(() => {
+    const uid = session?.userId || staffUsername;
+    if (uid) {
+      fieldOperations.fetchOfficerProfile(uid).then((prof) => {
+        if (prof) setProfileDetails(prof);
+      }).catch(() => null);
+    }
+  }, [session?.userId, staffUsername]);
 
   // Editable Display Name State
   const initialName = session?.displayName !== undefined ? session.displayName : (officerName || staffUsername);
@@ -324,6 +335,55 @@ export const OfficerProfileView: React.FC<OfficerProfileViewProps> = ({
             Leaving the display name empty cleanly restores the approved &ldquo;Admin&rdquo; greeting on the Landing page without granting extra privileges.
           </div>
         </form>
+      </div>
+
+      {/* Official Personnel File Card */}
+      <div
+        className="v19-glass-card"
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '16px',
+          padding: '28px',
+          borderRadius: '26px',
+          background: 'var(--v20-glass-surface)',
+          border: '1px solid var(--v20-glass-border)',
+        }}
+        data-testid="officer-personnel-file-card"
+      >
+        <span style={{ fontSize: '11.5px', fontWeight: 700, color: 'var(--v20-text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+          Official personnel file
+        </span>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
+          <div>
+            <div style={{ fontSize: '12px', color: 'var(--v20-text-muted)' }}>Official Email</div>
+            <div style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--v20-text-primary, #F0ECE3)', marginTop: '2px' }}>
+              {profileDetails?.official_email || session?.email || `${staffUsername}@${departmentCode.toLowerCase()}.gos.pk`}
+            </div>
+          </div>
+
+          <div>
+            <div style={{ fontSize: '12px', color: 'var(--v20-text-muted)' }}>Contact Phone</div>
+            <div style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--v20-text-primary, #F0ECE3)', marginTop: '2px' }}>
+              {profileDetails?.phone_masked || '0300-***-001'}
+            </div>
+          </div>
+
+          <div>
+            <div style={{ fontSize: '12px', color: 'var(--v20-text-muted)' }}>Service Since</div>
+            <div style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--v20-text-primary, #F0ECE3)', marginTop: '2px' }}>
+              {profileDetails?.created_at ? new Date(profileDetails.created_at).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' }) : 'Nov 2026'}
+            </div>
+          </div>
+
+          <div>
+            <div style={{ fontSize: '12px', color: 'var(--v20-text-muted)' }}>Assigned Department</div>
+            <div style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--v20-text-primary, #F0ECE3)', marginTop: '2px' }}>
+              {departmentName} ({departmentCode})
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* 3. Simplified Account Settings Card (Exactly Two Options + Sign Out) */}

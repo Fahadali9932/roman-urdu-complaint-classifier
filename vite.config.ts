@@ -100,6 +100,13 @@ export default defineConfig({
     tailwindcss(),
     aiTelemetryBridgePlugin(),
   ],
+  server: {
+    headers: {
+      'Permissions-Policy': 'display-capture=(self), geolocation=(self)',
+      'X-Content-Type-Options': 'nosniff',
+      'X-Frame-Options': 'DENY',
+    },
+  },
   test: {
     globals: true,
     environment: 'jsdom',

@@ -182,7 +182,7 @@ export const V19OfficerPortalView: React.FC<V19OfficerPortalViewProps> = ({
   const handleSubmitCompletion = async (
     orderId: string,
     evidenceFile: File,
-    gps: { latitude: number; longitude: number; accuracy: number; distanceM?: number }
+    gps: { latitude: number; longitude: number; accuracy: number; distanceM?: number; verificationId?: string }
   ) => {
     const storagePath = `proofs/${departmentCode}/${orderId}_${Date.now()}.jpg`;
     const res = await fieldOperations.submitWorkCompletion(
@@ -192,6 +192,7 @@ export const V19OfficerPortalView: React.FC<V19OfficerPortalViewProps> = ({
         latitude: gps.latitude,
         longitude: gps.longitude,
         accuracy: gps.accuracy,
+        verificationId: gps.verificationId,
       },
       evidenceFile
     );
@@ -299,7 +300,10 @@ export const V19OfficerPortalView: React.FC<V19OfficerPortalViewProps> = ({
                   marginTop: '1px',
                 }}
               >
-                Fieldwork Console
+                My work
+                <span className="sr-only" style={{ position: 'absolute', width: 1, height: 1, padding: 0, margin: -1, overflow: 'hidden', clip: 'rect(0, 0, 0, 0)', whiteSpace: 'nowrap', border: 0 }}>
+                  (Fieldwork Console)
+                </span>
               </div>
             </div>
 

@@ -15,7 +15,7 @@ export interface OfficerWorkViewProps {
   onSubmitCompletion: (
     orderId: string,
     evidenceFile: File,
-    gps: { latitude: number; longitude: number; accuracy: number; distanceM?: number }
+    gps: { latitude: number; longitude: number; accuracy: number; distanceM?: number; verificationId?: string }
   ) => Promise<void>;
   onRequestMoreTime: (orderId: string, additionalHours: number, reason: string) => Promise<void>;
   onStartWork?: (orderId: string) => void | Promise<void>;
@@ -90,7 +90,7 @@ export const OfficerWorkView: React.FC<OfficerWorkViewProps> = ({
   const handleSubmitCompletion = async (
     orderId: string,
     evidenceFile: File,
-    gps: { latitude: number; longitude: number; accuracy: number; distanceM?: number }
+    gps: { latitude: number; longitude: number; accuracy: number; distanceM?: number; verificationId?: string }
   ) => {
     await onSubmitCompletion(orderId, evidenceFile, gps);
 
