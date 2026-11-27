@@ -112,7 +112,7 @@ export const HodLoginPage: React.FC = () => {
         signOut();
         setIsLoading(false);
         setRoleMismatchError(
-          'This sign-in is reserved for Department Heads. Your account belongs to the Field Officer workspace. Use the correct staff login.'
+          'This sign-in is reserved for Department Heads. Your account belongs to the Field Officer workspace and is not authorized for the Department Head workspace.'
         );
         return;
       }
@@ -439,7 +439,7 @@ export const HodLoginPage: React.FC = () => {
               </div>
             )}
 
-            {/* Role Mismatch Warning with Quick Redirection */}
+            {/* Role Mismatch Warning without cross-portal links */}
             {roleMismatchError && (
               <div
                 role="alert"
@@ -452,23 +452,12 @@ export const HodLoginPage: React.FC = () => {
                   fontSize: '13px',
                   lineHeight: 1.45,
                   display: 'flex',
-                  flexDirection: 'column',
+                  alignItems: 'flex-start',
                   gap: '10px',
                 }}
               >
-                <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
-                  <ShieldAlert size={18} style={{ flexShrink: 0, marginTop: '2px' }} />
-                  <div>{roleMismatchError}</div>
-                </div>
-
-                <Link
-                  to={`/department/officer/login?dept=${selectedDeptKey}`}
-                  className="v20-field-btn secondary"
-                  style={{ alignSelf: 'flex-start', textDecoration: 'none' }}
-                >
-                  <span>Open Officer sign-in</span>
-                  <ArrowRight size={14} />
-                </Link>
+                <ShieldAlert size={18} style={{ flexShrink: 0, marginTop: '2px' }} />
+                <div>{roleMismatchError}</div>
               </div>
             )}
 
@@ -588,34 +577,34 @@ export const HodLoginPage: React.FC = () => {
             </button>
           </form>
 
-          {/* Bottom Navigation Switch to Officer Sign-in */}
+          {/* Change Department Footer Control */}
           <div
             style={{
               paddingTop: '16px',
               borderTop: isLight ? '1px solid rgba(0, 0, 0, 0.08)' : '1px solid rgba(255, 255, 255, 0.08)',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'space-between',
+              justifyContent: 'center',
               fontSize: '13px',
             }}
           >
-            <span style={{ color: isLight ? '#626262' : 'rgba(242, 239, 233, 0.6)' }}>
-              Operating in the field?
-            </span>
-            <Link
-              to={`/department/officer/login?dept=${selectedDeptKey}`}
+            <button
+              type="button"
+              onClick={handleChangeDepartment}
+              data-testid="hod-change-dept-footer-btn"
               style={{
-                color: isLight ? '#171717' : '#F2EFE9',
+                background: 'none',
+                border: 'none',
+                color: isLight ? '#555555' : 'rgba(242, 239, 233, 0.65)',
+                fontSize: '12.5px',
                 fontWeight: 600,
-                textDecoration: 'none',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '4px',
+                cursor: 'pointer',
+                padding: '4px',
+                textDecoration: 'underline',
               }}
             >
-              <span>Officer sign-in</span>
-              <ArrowRight size={14} />
-            </Link>
+              Select a different department
+            </button>
           </div>
         </div>
       </main>

@@ -110,7 +110,7 @@ export const OfficerLoginPage: React.FC = () => {
         signOut();
         setIsLoading(false);
         setRoleMismatchError(
-          'This sign-in is for Field Officers. Your account belongs to the Department Head workspace. Use the correct staff login.'
+          'This sign-in is for Field Officers. Your account belongs to the Department Head workspace and is not authorized for the Field Officer workspace.'
         );
         return;
       }
@@ -415,7 +415,7 @@ export const OfficerLoginPage: React.FC = () => {
               </div>
             )}
 
-            {/* Role Mismatch Warning with Quick Redirection */}
+            {/* Role Mismatch Warning without cross-portal links */}
             {roleMismatchError && (
               <div
                 role="alert"
@@ -428,23 +428,12 @@ export const OfficerLoginPage: React.FC = () => {
                   fontSize: '13px',
                   lineHeight: 1.45,
                   display: 'flex',
-                  flexDirection: 'column',
+                  alignItems: 'flex-start',
                   gap: '10px',
                 }}
               >
-                <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
-                  <ShieldAlert size={18} style={{ flexShrink: 0, marginTop: '2px' }} />
-                  <div>{roleMismatchError}</div>
-                </div>
-
-                <Link
-                  to={`/department/head/login?dept=${selectedDeptKey}`}
-                  className="v20-field-btn secondary"
-                  style={{ alignSelf: 'flex-start', textDecoration: 'none' }}
-                >
-                  <span>Open Department Head sign-in</span>
-                  <ArrowRight size={14} />
-                </Link>
+                <ShieldAlert size={18} style={{ flexShrink: 0, marginTop: '2px' }} />
+                <div>{roleMismatchError}</div>
               </div>
             )}
 
@@ -579,7 +568,7 @@ export const OfficerLoginPage: React.FC = () => {
               borderTop: isLight ? '1px solid rgba(0, 0, 0, 0.08)' : '1px solid rgba(255, 255, 255, 0.08)',
               display: 'flex',
               flexDirection: 'column',
-              gap: '10px',
+              gap: '8px',
               fontSize: '12.5px',
             }}
           >
@@ -588,24 +577,6 @@ export const OfficerLoginPage: React.FC = () => {
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'center' }}>
-              <Link
-                to={`/department/head/login?dept=${selectedDeptKey}`}
-                style={{
-                  color: isLight ? '#171717' : '#F2EFE9',
-                  fontWeight: 600,
-                  textDecoration: 'none',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                  fontSize: '13px',
-                }}
-              >
-                <span>Department Head sign-in</span>
-                <ArrowRight size={14} />
-              </Link>
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'center', marginTop: '2px' }}>
               <button
                 type="button"
                 onClick={handleChangeDepartment}

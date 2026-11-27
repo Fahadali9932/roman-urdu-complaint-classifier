@@ -92,17 +92,29 @@ describe('AWAAZ-E-AWAM — Phase V22.3: Final Staff Authentication Experience & 
       const cards = screen.getAllByTestId(/^dept-card-/);
       expect(cards).toHaveLength(6);
 
-      // Verify all 6 department codes exist
+      // Verify all 6 department codes and exact categories exist
       expect(screen.getByText('KMC')).toBeInTheDocument();
+      expect(screen.getByText('Roads & Infrastructure')).toBeInTheDocument();
       expect(screen.getAllByText('K-Electric').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getByText('Electricity')).toBeInTheDocument();
       expect(screen.getByText('KW&SC')).toBeInTheDocument();
+      expect(screen.getByText('Water & Sewerage')).toBeInTheDocument();
       expect(screen.getByText('SSWMB')).toBeInTheDocument();
+      expect(screen.getByText('Solid Waste Management')).toBeInTheDocument();
       expect(screen.getByText('SSGC')).toBeInTheDocument();
+      expect(screen.getByText('Gas')).toBeInTheDocument();
       expect(screen.getByText('SBCA')).toBeInTheDocument();
+      expect(screen.getByText('Building Control')).toBeInTheDocument();
 
       // Ensure Central Admin is NOT present among cards
       expect(screen.queryByText('ADMIN')).not.toBeInTheDocument();
       expect(screen.queryByText(/Central Administration/i)).not.toBeInTheDocument();
+
+      // Zero role-switching links in Stage 1
+      expect(screen.queryByRole('link', { name: /Officer sign-in/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole('link', { name: /Department Head sign-in/i })).not.toBeInTheDocument();
+      expect(screen.queryByText(/Operating in the field\?/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/Assigned to departmental leadership\?/i)).not.toBeInTheDocument();
 
       // Absolutely NO username or password fields in Stage 1
       expect(screen.queryByRole('textbox', { name: 'Username' })).not.toBeInTheDocument();
@@ -196,11 +208,9 @@ describe('AWAAZ-E-AWAM — Phase V22.3: Final Staff Authentication Experience & 
       const userInput = screen.getByRole('textbox', { name: 'Username' });
       expect(userInput).toHaveClass('v20-auth-input');
 
-      // Link to Officer login
-      expect(screen.getByRole('link', { name: /Officer sign-in/i })).toHaveAttribute(
-        'href',
-        '/department/officer/login?dept=kelectric'
-      );
+      // Zero cross-role switching links
+      expect(screen.queryByRole('link', { name: /Officer sign-in/i })).not.toBeInTheDocument();
+      expect(screen.queryByText(/Operating in the field\?/i)).not.toBeInTheDocument();
     });
 
     it('"Change department" action returns to Stage 1 department selection', () => {
@@ -246,7 +256,7 @@ describe('AWAAZ-E-AWAM — Phase V22.3: Final Staff Authentication Experience & 
       expect(
         await screen.findByText(/This sign-in is reserved for Department Heads/i)
       ).toBeInTheDocument();
-      expect(screen.getByRole('link', { name: /Open Officer sign-in/i })).toBeInTheDocument();
+      expect(screen.queryByRole('link', { name: /Open Officer sign-in/i })).not.toBeInTheDocument();
       expect(screen.queryByRole('heading', { name: 'HOD Portal' })).not.toBeInTheDocument();
     });
   });
@@ -296,11 +306,8 @@ describe('AWAAZ-E-AWAM — Phase V22.3: Final Staff Authentication Experience & 
       const userInput = screen.getByRole('textbox', { name: 'Username' });
       expect(userInput).toHaveClass('v20-auth-input');
 
-      // Link to Head login
-      expect(screen.getByRole('link', { name: /Department Head sign-in/i })).toHaveAttribute(
-        'href',
-        '/department/head/login?dept=sswmb'
-      );
+      // Zero cross-role switching links
+      expect(screen.queryByRole('link', { name: /Department Head sign-in/i })).not.toBeInTheDocument();
     });
 
     it('"Change department" actions in Officer login return to Stage 1', () => {
@@ -344,9 +351,9 @@ describe('AWAAZ-E-AWAM — Phase V22.3: Final Staff Authentication Experience & 
       fireEvent.click(screen.getByRole('button', { name: /^Sign In$/i }));
 
       expect(
-        await screen.findByText(/Your account belongs to the Department Head workspace/i)
+        await screen.findByText(/This sign-in is for Field Officers/i)
       ).toBeInTheDocument();
-      expect(screen.getByRole('link', { name: /Open Department Head sign-in/i })).toBeInTheDocument();
+      expect(screen.queryByRole('link', { name: /Open Department Head sign-in/i })).not.toBeInTheDocument();
       expect(screen.queryByRole('heading', { name: 'Officer Portal' })).not.toBeInTheDocument();
     });
   });
@@ -386,6 +393,47 @@ describe('AWAAZ-E-AWAM — Phase V22.3: Final Staff Authentication Experience & 
         <MemoryRouter initialEntries={['/department/login?role=officer&dept=kmc']}>
           <DepartmentAuthProvider>
             <DepartmentLoginPage />
+          </DepartmentAuthProvider>
+        </MemoryRouter>
+      );
+
+      expect(screen.getByTestId('officer-login-page')).toBeInTheDocument();
+    });
+
+    it('AppRoutes legacy /department/login redirects to homepage / without role', async () => {
+      const { AppRoutes } = await import('../routes/AppRoutes');
+      render(
+        <MemoryRouter initialEntries={['/department/login']}>
+          <DepartmentAuthProvider>
+            <AppRoutes />
+          </DepartmentAuthProvider>
+        </MemoryRouter>
+      );
+
+      // Successfully redirected to Homepage (landing page navigation elements present)
+      expect(screen.getByRole('link', { name: /Awaaz-e-Awam Home/i })).toBeInTheDocument();
+      expect(screen.getByRole('link', { name: /Write Your Complaint/i })).toBeInTheDocument();
+    });
+
+    it('AppRoutes legacy /department/login?role=head redirects to dedicated HOD login', async () => {
+      const { AppRoutes } = await import('../routes/AppRoutes');
+      render(
+        <MemoryRouter initialEntries={['/department/login?role=head&dept=kmc']}>
+          <DepartmentAuthProvider>
+            <AppRoutes />
+          </DepartmentAuthProvider>
+        </MemoryRouter>
+      );
+
+      expect(screen.getByTestId('hod-login-page')).toBeInTheDocument();
+    });
+
+    it('AppRoutes legacy /department/login?role=officer redirects to dedicated Officer login', async () => {
+      const { AppRoutes } = await import('../routes/AppRoutes');
+      render(
+        <MemoryRouter initialEntries={['/department/login?role=officer&dept=kmc']}>
+          <DepartmentAuthProvider>
+            <AppRoutes />
           </DepartmentAuthProvider>
         </MemoryRouter>
       );

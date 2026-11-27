@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useSearchParams } from 'react-router-dom';
 import { AppLayout } from '../components/layout/AppLayout';
 import { CitizenLayout } from '../components/layout/CitizenLayout';
 import { LandingPage } from '../features/landing/LandingPage';
@@ -18,7 +18,21 @@ import { ResetPasswordPage } from '../features/auth/ResetPasswordPage';
 import { CitizenRequiredRoute } from '../features/auth/CitizenRequiredRoute';
 import { DepartmentPortalLayout } from '../features/department/DepartmentPortalLayout';
 import { DepartmentDashboardPage } from '../features/department/DepartmentDashboardPage';
-import { StaffRoleChoiceGateway } from '../features/department/auth/StaffRoleChoiceGateway';
+// Legacy /department/login redirector: without role redirects to Homepage (/), otherwise routes to dedicated portal
+const LegacyDepartmentLoginRedirect: React.FC = () => {
+  const [searchParams] = useSearchParams();
+  const role = searchParams.get('role')?.toLowerCase();
+  const dept = searchParams.get('dept');
+  const deptQuery = dept ? `?dept=${encodeURIComponent(dept)}` : '';
+
+  if (role === 'head') {
+    return <Navigate to={`/department/head/login${deptQuery}`} replace />;
+  }
+  if (role === 'officer') {
+    return <Navigate to={`/department/officer/login${deptQuery}`} replace />;
+  }
+  return <Navigate to="/" replace />;
+};
 import { HodLoginPage } from '../features/department/auth/HodLoginPage';
 import { OfficerLoginPage } from '../features/department/auth/OfficerLoginPage';
 import { DepartmentRoleBoundary } from '../features/department/DepartmentRoleBoundary';
@@ -74,7 +88,7 @@ export const AppRoutes: React.FC = () => {
       <Route element={<DepartmentPortalLayout />}>
         <Route path="/department" element={<DepartmentDashboardPage />} />
         <Route path="/department/dashboard" element={<Navigate to="/department" replace />} />
-        <Route path="/department/login" element={<StaffRoleChoiceGateway />} />
+        <Route path="/department/login" element={<LegacyDepartmentLoginRedirect />} />
         <Route path="/department/head/login" element={<HodLoginPage />} />
         <Route path="/department/officer/login" element={<OfficerLoginPage />} />
         <Route path="/department/request-access" element={<StaffAccessRequestPage />} />

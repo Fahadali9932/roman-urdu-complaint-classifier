@@ -5,6 +5,51 @@ Verified on **28 November 2026 (Pakistan time)**. Internal delivery target:
 This document distinguishes inspected source, automated checks, and unverified
 hosted behavior. Update it after every significant verified milestone.
 
+## Development update, 28 November 2026 — Phase V22.3.1: Final Authentication Design Refinement & Role Separation (Editorial Asymmetric HOD Selection, Centered Officer Selection, Glowing Card Elimination, Exact Department Category Labels, Complete Role Separation & Zero-Regression Isolation)
+
+- **Git & Protected Baseline (`D:\RomanUrdu_V13_19_Review`, branch `fix/v22-3-final-staff-authentication-experience`):**
+  - Continuation on dedicated branch `fix/v22-3-final-staff-authentication-experience` with safety rollback checkpoint tag `checkpoint/before-v22-3-1-authentication-refinement` created at commit `12ac0b6` and pushed to remote.
+  - Protected primary worktree `D:\RomanUrdu_ComplaintClassifier_staff_auth` remained **100% untouched**.
+  - Total expenditure: **$0.00**; zero paid external APIs, Google Maps billing, SMS gateways, computer vision APIs, or credit card dependencies.
+  - Zero database schema migrations applied; production DB `akbwiedtmxjxcjscgitw` and staging DB `jvbulmmdwovtgaxojxhn` remain completely untouched.
+- **Architectural Deliverables & Verification:**
+  - **Elimination of Rejected Glowing Cards & Establishment of Clean Editorial System:**
+    - Completely removed all 6 colored gradient cards, neon inner shadows, glowing colored borders, glowing dots, and generic institutional copy ("Municipal Operations", "Agency Command & Oversight").
+    - Established editorial design system using `.v20-dept-row` rows on neutral translucent surfaces (`rgba(255, 255, 255, 0.04)` dark, `rgba(255, 255, 255, 0.88)` light) with 9px solid non-glowing departmental color indicator dots.
+  - **HOD Stage 1 Department Selection (Asymmetric 2-Column Desktop Grid):**
+    - Left column: small role identifier `Department Head.`, monumental bold headline `Select your department.` (`clamp(52px, 6.8vw, 104px)`), and concise instruction `Choose your department to sign in.`
+    - Right column: 6 clean vertical department selection rows (`.v20-dept-row`):
+      1. KMC — Roads & Infrastructure
+      2. K-Electric — Electricity
+      3. KW&SC — Water & Sewerage
+      4. SSWMB — Solid Waste Management
+      5. SSGC — Gas
+      6. SBCA — Building Control
+  - **Officer Stage 1 Department Selection (Centered Composition):**
+    - Independent centered layout: role identifier `Field Officer.`, monumental headline `Select your department.` (`clamp(44px, 5.8vw, 84px)`), and concise instruction `Choose your department to sign in.`
+    - 6 clean selection rows arranged in 2 columns x 3 rows on desktop ($\ge 768\text{px}$) and 1 column on mobile (< 768px). Reuses the exact same neutral selection-row design (`.v20-dept-row`).
+  - **Neutral Atmospheric Selection Background:**
+    - Deep graphite (`#101215`) in the upper-left, slate charcoal (`#303741`), and silver highlight (`#65717F`). Zero departmental colors across selection background before department selection.
+    - Smooth 500–700ms background transition into the chosen department's single-hue gradient upon selection.
+  - **Complete Role Separation (Strict Boundary Enforcement):**
+    - Removed every direct role-switching link:
+      - Excised "Operating in the field? Officer sign-in" and "Assigned to departmental leadership? Department Head sign-in" from selection views.
+      - Excised role-switching links from credential card footers in `HodLoginPage.tsx` and `OfficerLoginPage.tsx`.
+      - Excised cross-portal redirection links from role mismatch error alerts in both logins.
+    - Strict rejection message enforced: *"This account is not authorized for the [Role] workspace"*.
+    - Only unauthenticated exit is "Return to homepage" (`/`).
+    - Legacy `/department/login` without role redirects to `/` (Homepage).
+  - **Preserved Approved Credential Layouts:**
+    - HOD login preserves asymmetric 2-column editorial balance, monumental typography, glass card, and desktop-first boundary.
+    - Officer login preserves centered layout, neutral glass card, and full mobile responsiveness (390px/320px).
+- **Automated Quality Gates & Test Verification:**
+  - TypeScript project build (`npx tsc -b ; npm run build`): **Exit code `0` cleanly (0 errors, bundled in 2.10s)**.
+  - Vitest test suite (`npm test -- --run`): **90 passed test files (915 passed total, 0 regressions, 1 skipped)**.
+  - Dedicated new test suite: `src/test/V22_3_1_FinalAuthenticationRefinement.test.tsx` (**11 passed in 486ms**).
+  - Headless Chrome CDP Verification (`tools/ai_factory/capture_v22_3_1_qa.mjs`):
+    - Verified all 27 visual QA scenarios across HOD Asymmetric Selection (1920 dark/light, 1440, 1024), Officer Centered Selection (1920 dark/light, tablet 768, mobile 390, mobile 320), HOD Stage 2 (all 6 depts, dark/light, desktop required), Officer Stage 2 (all 6 depts, desktop, mobile 390/320), and strict role mismatch errors without cross-role links.
+    - Saved 27 screenshot artifacts in `brain/screenshots/v22_3_1/`.
+
 ## Development update, 28 November 2026 — Phase V22.3: Final Staff Authentication Experience & Legacy Cleanup (Two-Stage Role-Specific Authentication, Central Admin Isolation, Monumental Portal Typography, WebKit Autofill Normalization & Zero-Regression Legacy Excised Routing)
 
 - **Git & Protected Baseline (`D:\RomanUrdu_V13_19_Review`, branch `fix/v22-3-final-staff-authentication-experience`):**

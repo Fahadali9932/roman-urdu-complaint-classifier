@@ -106,10 +106,7 @@ describe('AWAAZ-E-AWAM — Phase V22.2: Final Department Color Consistency & Sep
       expect(screen.getByRole('textbox', { name: 'Username' })).toBeInTheDocument();
       expect(screen.getByLabelText(/Access key \(local demo\)/i)).toBeInTheDocument();
       expect(screen.getByRole('button', { name: /^Sign In$/i })).toBeInTheDocument();
-      expect(screen.getByRole('link', { name: /Officer sign-in/i })).toHaveAttribute(
-        'href',
-        '/department/officer/login?dept=kmc'
-      );
+      expect(screen.queryByRole('link', { name: /Officer sign-in/i })).not.toBeInTheDocument();
     });
 
     it('switching department via change department action navigates to stage 1 selection', () => {
@@ -152,11 +149,11 @@ describe('AWAAZ-E-AWAM — Phase V22.2: Final Department Color Consistency & Sep
       });
       fireEvent.click(screen.getByRole('button', { name: /^Sign In$/i }));
 
-      // Should show role mismatch alert and direct link to officer login
+      // Should show strict role mismatch alert without cross-portal links
       expect(
         await screen.findByText(/This sign-in is reserved for Department Heads/i)
       ).toBeInTheDocument();
-      expect(screen.getByRole('link', { name: /Open Officer sign-in/i })).toBeInTheDocument();
+      expect(screen.queryByRole('link', { name: /Open Officer sign-in/i })).not.toBeInTheDocument();
       expect(screen.queryByRole('heading', { name: 'Head Workspace Loaded' })).not.toBeInTheDocument();
     });
 
@@ -204,10 +201,7 @@ describe('AWAAZ-E-AWAM — Phase V22.2: Final Department Color Consistency & Sep
       expect(screen.getByRole('textbox', { name: 'Username' })).toBeInTheDocument();
       expect(screen.getByLabelText(/Access key \(local demo\)/i)).toBeInTheDocument();
       expect(screen.getByRole('button', { name: /^Sign In$/i })).toBeInTheDocument();
-      expect(screen.getByRole('link', { name: /Department Head sign-in/i })).toHaveAttribute(
-        'href',
-        '/department/head/login?dept=kmc'
-      );
+      expect(screen.queryByRole('link', { name: /Department Head sign-in/i })).not.toBeInTheDocument();
     });
 
     it('enforces role separation by rejecting HOD credentials at Officer sign-in', async () => {
@@ -231,9 +225,9 @@ describe('AWAAZ-E-AWAM — Phase V22.2: Final Department Color Consistency & Sep
       fireEvent.click(screen.getByRole('button', { name: /^Sign In$/i }));
 
       expect(
-        await screen.findByText(/Your account belongs to the Department Head workspace/i)
+        await screen.findByText(/This sign-in is for Field Officers/i)
       ).toBeInTheDocument();
-      expect(screen.getByRole('link', { name: /Open Department Head sign-in/i })).toBeInTheDocument();
+      expect(screen.queryByRole('link', { name: /Open Department Head sign-in/i })).not.toBeInTheDocument();
       expect(screen.queryByRole('heading', { name: 'Officer Workspace Loaded' })).not.toBeInTheDocument();
     });
 
