@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef, useCallback, memo } from 'react';
 import { Menu, X, Bell, Moon, Sun, LogOut } from 'lucide-react';
 import { trustedTimeService } from '../../../../services/trustedTimeService';
 
@@ -128,22 +128,73 @@ export const TopEdgeMorphingNav: React.FC<TopEdgeMorphingNavProps> = ({
   const [viewportWidth, setViewportWidth] = useState(() =>
     typeof window !== 'undefined' ? window.innerWidth : 1440
   );
+  const [measuredContentWidth, setMeasuredContentWidth] = useState<number>(0);
+  const [measuredContentHeight, setMeasuredContentHeight] = useState<number>(0);
 
   const navRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const pathRef = useRef<SVGPathElement>(null);
   const rafRef = useRef<number>(0);
   const lastTimeRef = useRef<number>(0);
   const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Default tabs for role
+  const destinations: V20NavOption[] = tabs ?? [
+    { id: 'home', label: 'Home' },
+    { id: 'dashboard', label: 'Dashboard' },
+    { id: 'complaints', label: 'Complaints' },
+    ...(role === 'head'
+      ? [
+          { id: 'verification', label: 'Verification' },
+          { id: 'officers', label: 'Officers' },
+        ]
+      : [
+          { id: 'work', label: 'Work' },
+          { id: 'performance', label: 'Performance' },
+          { id: 'notifications', label: 'Notifications' },
+        ]),
+    { id: 'profile', label: 'Profile' },
+  ];
+
+  // Dynamic layout measurement of rendered navigation items row
+  useLayoutEffect(() => {
+    if (!contentRef.current) return;
+    const updateDims = () => {
+      if (contentRef.current) {
+        const rect = contentRef.current.getBoundingClientRect();
+        const width = Math.ceil(rect.width || contentRef.current.scrollWidth);
+        const height = Math.ceil(rect.height || contentRef.current.scrollHeight);
+        if (width > 0) setMeasuredContentWidth(width);
+        if (height > 0) setMeasuredContentHeight(height);
+      }
+    };
+    updateDims();
+    if (typeof ResizeObserver !== 'undefined') {
+      const ro = new ResizeObserver(() => {
+        updateDims();
+      });
+      ro.observe(contentRef.current);
+      return () => ro.disconnect();
+    }
+  }, [destinations.length, unreadNotifications, role]);
+
   // Persistent motion state (width, height, velocity)
   const currentDims = useRef({ w: 110, h: 48, vw: 0, vh: 0 });
 
   const isMobile = viewportWidth < 768;
-  const targetW = isOpen
-    ? Math.min(viewportWidth - 48, role === 'head' ? 730 : 810)
-    : 110;
-  const targetH = isOpen ? (isMobile ? 148 : 74) : 48;
+  // Dynamic layout sizing:
+  // - Flat bottom span must accommodate all destination buttons plus notification bell
+  // - 28-32px safe horizontal padding beyond outermost controls
+  // - 54px curved shoulder margins (2k)
+  // - Dedicated non-overlapping slot for close toggle button on right
+  const halfContent = (measuredContentWidth || (role === 'head' ? 520 : 590)) / 2;
+  const maxCloseOffset = Math.max(60, viewportWidth / 2 - 36);
+  const closeBtnOffset = Math.min(maxCloseOffset, halfContent + 22);
+  const requiredHalf = Math.max(closeBtnOffset + 24, halfContent + 30);
+  const safeNotchWidth = Math.max(isMobile ? 320 : 500, requiredHalf * 2 + 54);
+  const targetW = isOpen ? Math.min(viewportWidth - 24, safeNotchWidth) : 110;
+  const targetH = isOpen ? Math.max(isMobile ? 140 : 74, (measuredContentHeight || 44) + 26) : 48;
 
   // Frame-rate independent spring physics loop
   const animate = useCallback((now: number) => {
@@ -165,9 +216,11 @@ export const TopEdgeMorphingNav: React.FC<TopEdgeMorphingNavProps> = ({
       return;
     }
 
-    // Silky-smooth, calm spring simulation: opening k=140 c=22 (~380ms), closing k=190 c=24 (~260ms)
-    const stiffness = isOpen ? 140 : 190;
-    const damping = isOpen ? 22 : 24;
+    // Calm, elegant, slow spring dynamics:
+    // Opening: 550-750ms (k=70, c=16.5)
+    // Closing: 450-650ms (k=95, c=19.5)
+    const stiffness = isOpen ? 70 : 95;
+    const damping = isOpen ? 16.5 : 19.5;
 
     const dw = targetW - currentDims.current.w;
     const dh = targetH - currentDims.current.h;
@@ -206,7 +259,7 @@ export const TopEdgeMorphingNav: React.FC<TopEdgeMorphingNavProps> = ({
     } else {
       rafRef.current = 0;
     }
-  }, [targetW, targetH, viewportWidth]);
+  }, [targetW, targetH, viewportWidth, isOpen]);
 
   // Trigger animation whenever target changes
   useEffect(() => {
@@ -256,13 +309,11 @@ export const TopEdgeMorphingNav: React.FC<TopEdgeMorphingNavProps> = ({
     };
   }, [isOpen]);
 
-  // Deliberate hover handlers (80ms enter debounce, 280ms leave debounce for seamless bridging)
+  // Deliberate hover handlers (0ms enter delay for immediate responsiveness, 300ms leave debounce)
   const handlePointerEnter = (e: React.PointerEvent) => {
     if (e.pointerType === 'mouse') {
       if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
-      hoverTimerRef.current = setTimeout(() => {
-        setIsOpen(true);
-      }, 80);
+      setIsOpen(true);
     }
   };
 
@@ -273,27 +324,9 @@ export const TopEdgeMorphingNav: React.FC<TopEdgeMorphingNavProps> = ({
         if (!navRef.current?.contains(document.activeElement)) {
           setIsOpen(false);
         }
-      }, 280);
+      }, 300);
     }
   };
-
-  // Default tabs for role
-  const destinations: V20NavOption[] = tabs ?? [
-    { id: 'home', label: 'Home' },
-    { id: 'dashboard', label: 'Dashboard' },
-    { id: 'complaints', label: 'Complaints' },
-    ...(role === 'head'
-      ? [
-          { id: 'verification', label: 'Verification' },
-          { id: 'officers', label: 'Officers' },
-        ]
-      : [
-          { id: 'work', label: 'Work' },
-          { id: 'performance', label: 'Performance' },
-          { id: 'notifications', label: 'Notifications' },
-        ]),
-    { id: 'profile', label: 'Profile' },
-  ];
 
   const handleSelectTab = (tabId: string) => {
     onSelectTab(tabId);
@@ -310,6 +343,10 @@ export const TopEdgeMorphingNav: React.FC<TopEdgeMorphingNavProps> = ({
       ref={navRef}
       onPointerEnter={handlePointerEnter}
       onPointerLeave={handlePointerLeave}
+      style={{
+        '--close-btn-left': `calc(50% + ${closeBtnOffset}px)`,
+        '--menu-half': `${targetW / 2}px`,
+      } as React.CSSProperties}
     >
       {/* 0. Invisible Safe Hover Corridor to prevent premature mouse-leave drops */}
       <div className="v20-nav-hover-corridor" aria-hidden="true" />
@@ -365,7 +402,7 @@ export const TopEdgeMorphingNav: React.FC<TopEdgeMorphingNavProps> = ({
         </button>
       </div>
 
-      {/* 4. Notch Center Toggle Button */}
+      {/* 4. Notch Center / Side Toggle Button */}
       <button
         id="nav-toggle"
         ref={triggerRef}
@@ -374,6 +411,7 @@ export const TopEdgeMorphingNav: React.FC<TopEdgeMorphingNavProps> = ({
         aria-expanded={isOpen}
         aria-controls="v20-nav-destinations"
         aria-label={isOpen ? 'Close navigation' : 'Open navigation'}
+        data-testid="v20-nav-toggle"
         onClick={() => setIsOpen((prev) => !prev)}
       >
         {isOpen ? (
@@ -386,6 +424,7 @@ export const TopEdgeMorphingNav: React.FC<TopEdgeMorphingNavProps> = ({
       {/* 5. Expanded Segmented Tab Destinations Bar */}
       <nav
         id="v20-nav-destinations"
+        ref={contentRef}
         className={`v20-nav-destinations-row ${isOpen ? 'visible is-visible' : 'is-collapsed'}`}
         role="tablist"
         aria-label="Department Navigation"
@@ -403,6 +442,7 @@ export const TopEdgeMorphingNav: React.FC<TopEdgeMorphingNavProps> = ({
               aria-current={isActive ? 'page' : undefined}
               data-tab-id={tab.id}
               data-go={tab.id}
+              data-testid={`v20-nav-btn-${tab.id}`}
               className={`v20-nav-link-btn ${isActive ? 'is-active' : ''}`}
               onClick={() => handleSelectTab(tab.id)}
               tabIndex={isOpen || (typeof window !== 'undefined' && process.env.NODE_ENV === 'test') ? 0 : -1}
@@ -422,6 +462,9 @@ export const TopEdgeMorphingNav: React.FC<TopEdgeMorphingNavProps> = ({
             role="tab"
             aria-selected={activeTab === 'notifications'}
             aria-label="Notifications"
+            data-tab-id="notifications"
+            data-go="notifications"
+            data-testid="v20-nav-btn-notifications"
             className={`v20-nav-link-btn ${activeTab === 'notifications' ? 'is-active' : ''}`}
             onClick={() => {
               if (onOpenNotifications) {

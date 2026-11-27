@@ -5,6 +5,38 @@ Verified on **27 November 2026 (Pakistan time)**. Internal delivery target:
 This document distinguishes inspected source, automated checks, and unverified
 hosted behavior. Update it after every significant verified milestone.
 
+## Development update, 27 November 2026 — Phase V21.1: Navigation Engineering & Landing Refinement (Dynamic Content-Aware Notch Measurement, Click Interception Fix, 0ms Activation Delay & Bold Sans Landing Identity)
+
+- **Git & Protected Baseline (`D:\RomanUrdu_V13_19_Review`, branch `fix/v21-1-navigation-and-landing-refinement`):**
+  - Branched from V21 baseline (`7a7fa02`) with safety rollback tag `checkpoint/v21-before-v21-1` created and pushed to origin.
+  - Dedicated branch `fix/v21-1-navigation-and-landing-refinement` tracked upstream on origin.
+  - Protected primary worktree `D:\RomanUrdu_ComplaintClassifier_staff_auth` remained **100% untouched**.
+  - Total expenditure: **$0.00**; zero paid external APIs, fonts, or credit card dependencies.
+  - Zero database schema migrations applied; production DB `akbwiedtmxjxcjscgitw` and staging DB `jvbulmmdwovtgaxojxhn` remain completely untouched.
+- **Root Cause Analysis & Engineering Corrections:**
+  - **Click Interception Elimination (`TopEdgeMorphingNav.tsx` & `v20-atmospheric.css`):**
+    - *Root Cause:* `.v20-nav-hover-corridor` had `z-index: 1; pointer-events: auto;` while `.v20-nav-destinations-row` had default `z-index: auto` (stacking context 0), which placed the invisible hover bridge directly in front of the navigation destination buttons and swallowed all click events.
+    - *Correction:* Assigned `.v20-nav-destinations-row` `z-index: 10; pointer-events: auto;`, `.v20-nav-link-btn` `position: relative; z-index: 10; pointer-events: auto; cursor: pointer; user-select: none;`, and `.v20-notch-trigger-btn` `z-index: 20; pointer-events: auto; cursor: pointer;`. Lowered `.v20-nav-hover-corridor` to `z-index: 0; pointer-events: auto;` so it maintains hover continuity across empty spaces without ever obstructing button clicks.
+  - **Dynamic Content-Aware Notch Geometry Measurement (`TopEdgeMorphingNav.tsx`):**
+    - *Root Cause:* Previously hardcoded expanded notch widths (`730px` for HOD, `810px` for Officer) caused the "Home" tab to clip into the left shoulder curve and the notification bell and close button to crowd into the right shoulder curve and collide with the right-side date/time strip.
+    - *Correction:* Integrated dynamic layout measurement using `useLayoutEffect` and `ResizeObserver` on `contentRef.current` (`.v20-nav-destinations-row`). Sized the SVG notch flat bottom span dynamically to cleanly encompass all tab buttons, notification badge, and a dedicated, non-overlapping slot for the close button (`--close-btn-left: calc(50% + ${closeBtnOffset}px)`). Guaranteed 28–32px safe horizontal margins beyond outermost controls before the 54px curved shoulder slopes begin, with zero encroachment on `.v20-header-right-strip`.
+  - **Zero Opening Delay & Unhurried Spring Dynamics (`TopEdgeMorphingNav.tsx`):**
+    - Removed the 80ms mouseenter debounce, achieving instantaneous 0ms activation response on the next rendered frame upon hover.
+    - Retained 300ms graceful exit debounce to prevent accidental drops when moving between elements.
+    - Calibrated smooth, elegant spring dynamics: opening $k=70, c=16.5$ (~600ms settling time) and closing $k=95, c=19.5$ (~480ms settling time). Velocity and dimensions carry over continuously upon reverse interaction with zero snapping, driven by direct DOM SVG path mutations on RAF.
+  - **Landing Display Name Redesign (`V20LandingPage.tsx` & `v20-atmospheric.css`):**
+    - Replaced the thin, muted serif styling with bold expressive sans typography (`font-family: var(--v20-font-display, "Outfit", "Plus Jakarta Sans", sans-serif); font-size: clamp(38px, 4.5vw, 64px); font-weight: 750; color: var(--text-primary, #F3EEE4); letter-spacing: -0.03em; line-height: 1.1; margin: 20px 0 36px;`).
+    - Implemented authenticated profile display name resolution with clean fallback to `"Admin"` for technical or missing handles (`roads-01`, `roads-officer-01`, `kda-02`, etc.).
+  - **Mobile Header Optimization (`v20-atmospheric.css`):**
+    - On screens under 768px (`max-width: 768px`), suppressed `.v20-header-date` and `.v20-brand-label span` to ensure crystal-clear ceiling spacing without text collision on compact mobile displays (390px and 320px).
+- **Automated Quality Gates & Test Verification:**
+  - TypeScript compile (`npx tsc -b && vite build`): **Exit code `0` cleanly (0 errors, production build bundled in 2.01s)**.
+  - Vitest test suite (`npm test -- --run`): **764 passed | 1 skipped across 77 test suites (0 regressions, 31.83s duration)**, including the dedicated new test suite `src/test/V21_1_NavigationAndLanding.test.tsx` (9 passed in 192ms).
+  - Headless Chrome CDP Verification (`tools/ai_factory/capture_v21_1_qa.mjs`):
+    - Verified single-click navigation on every tab (Home, Dashboard, Complaints, Verification, Officers, Profile, Notifications) in real headless Chrome.
+    - Captured high-resolution screenshots across 1920x1080, 1440x900, 1280x800, 1024x768, 768x1024, 390x844, and 320x568.
+    - Recorded 60 FPS motion artifacts via FFmpeg: `v21_1_morphing_nav_smooth.mp4` and `v21_1_morphing_nav_smooth.gif`.
+
 ## Development update, 27 November 2026 — Phase V21: Cinematic Operational Portal Finish & Global Token Harmonization (Hover Bridge Navigation, Reference-Informed Light/Dark Hierarchy, Leaflet GPS Map Integration, Dynamic SLA Pacing & Zero AI-Slop)
 
 - **Git & Protected Baseline (`D:\RomanUrdu_V13_19_Review`, branch `feature/v21-cinematic-portal-polish`):**

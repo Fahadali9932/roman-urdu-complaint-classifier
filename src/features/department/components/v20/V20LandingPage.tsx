@@ -40,12 +40,14 @@ export const V20LandingPage: React.FC<V20LandingPageProps> = ({
     return () => window.clearInterval(timer);
   }, []);
 
-  const isGenericHandle =
+  const isGenericOrTechnical =
     !staffName ||
-    staffName === 'roads-01' ||
-    staffName === 'roads-officer-01' ||
-    staffName.toLowerCase().startsWith('roads-');
-  const resolvedDisplayName = isGenericHandle ? 'Admin' : staffName;
+    /^[a-z0-9_-]+-(?:head|officer)?-?\d+$/i.test(staffName.trim()) ||
+    staffName.toLowerCase().startsWith('roads-') ||
+    staffName.toLowerCase().startsWith('kda-') ||
+    staffName.toLowerCase().startsWith('water-') ||
+    staffName.toLowerCase().startsWith('waste-');
+  const resolvedDisplayName = isGenericOrTechnical ? 'Admin' : staffName;
 
   return (
     <main className="landing v20-landing-container" data-testid="v20-landing-page">
@@ -60,7 +62,7 @@ export const V20LandingPage: React.FC<V20LandingPageProps> = ({
         <span className="sr-only"> — {resolvedDisplayName}</span>
       </h1>
 
-      {/* 2. Staff display name in complementary serif typography directly below */}
+      {/* 2. Staff display name in bold expressive sans typography directly below */}
       <p className="name v20-landing-staff-name" data-testid="v20-landing-staff-name">
         {resolvedDisplayName}
       </p>
