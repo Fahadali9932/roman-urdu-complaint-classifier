@@ -1,9 +1,55 @@
 # Verified current project status
 
-Verified on **27 November 2026 (Pakistan time)**. Internal delivery target:
+Verified on **28 November 2026 (Pakistan time)**. Internal delivery target:
 **5 December 2026**. Read `PROJECT_MASTER_CONTEXT.md` for requirements/history.
 This document distinguishes inspected source, automated checks, and unverified
 hosted behavior. Update it after every significant verified milestone.
+
+## Development update, 28 November 2026 — Phase V22.3: Final Staff Authentication Experience & Legacy Cleanup (Two-Stage Role-Specific Authentication, Central Admin Isolation, Monumental Portal Typography, WebKit Autofill Normalization & Zero-Regression Legacy Excised Routing)
+
+- **Git & Protected Baseline (`D:\RomanUrdu_V13_19_Review`, branch `fix/v22-3-final-staff-authentication-experience`):**
+  - Branched from V22.2 (`64440ff`) with safety rollback checkpoint tag `checkpoint/before-v22-3-authentication-redesign` pushed to remote.
+  - Dedicated branch `fix/v22-3-final-staff-authentication-experience` active and tracking `origin`.
+  - Protected primary worktree `D:\RomanUrdu_ComplaintClassifier_staff_auth` remained **100% untouched**.
+  - Total expenditure: **$0.00**; zero paid external APIs, Google Maps billing, SMS gateways, computer vision APIs, or credit card dependencies.
+  - Zero database schema migrations applied; production DB `akbwiedtmxjxcjscgitw` and staging DB `jvbulmmdwovtgaxojxhn` remain completely untouched.
+- **Architectural Deliverables & Verification:**
+  - **Complete Removal of Legacy Shared Login Gateway:**
+    - The old shared login presentation and department selection gateway (`DepartmentSelectionScreen.tsx`, `ThemedDepartmentLoginScreen.tsx`) have been completely excised from active routes.
+    - Dedicated routes `/department/head/login` and `/department/officer/login` handle separate staff experiences.
+    - `/department/login` directly mounts `<StaffRoleChoiceGateway />`, providing an atmospheric, clean choice between Department Head and Field Officer portals.
+    - Sign-outs from both HOD and Officer workspaces navigate directly to their role-specific sign-in.
+  - **Strict Central Admin Isolation from Staff Selection:**
+    - Central Admin is an administrative role, not an ordinary municipal service department. It has been strictly removed from HOD and Officer department selectors.
+    - Exactly 6 service departments are available: KMC, K-Electric, KW&SC, SSWMB, SSGC, and SBCA.
+    - Central Admin routes (`/admin/*`) remain intact for administrative capabilities.
+  - **Two-Stage Role-Specific Authentication Architecture:**
+    - Stage 1 (Department Selection): Fresh visits without `?dept=...` render ONLY department selection. Absolutely zero username/password inputs, no submit button, and no default department pre-selected (no automatic KMC selection).
+    - Stage 2 (Credential Entry): Seamlessly transitions into credential entry with the selected department's authoritative single-hue atmospheric gradient, department name badge, and a prominent "Change department" action.
+  - **Monumental Portal Typography & Atmospheric Styling:**
+    - Applied exact portal display font (`var(--v20-font-display, "Inter Display", "Inter", sans-serif)`) with negative letter tracking (`-0.04em`) and compact line height (`1.02`):
+      - Stage 1: **Select your department.** (`clamp(44px, 6.6vw, 104px)`)
+      - Stage 2 HOD: **Department Head.** (`clamp(52px, 7vw, 114px)`)
+      - Stage 2 Officer: **Field Officer.** (`clamp(44px, 6.2vw, 98px)`)
+    - Stage 1 operates on neutral selection atmosphere (`[data-dept="selection"]`) composed of deep graphite (`#101215`), slate charcoal (`#303741`), and silver glow (`#65717F`).
+  - **Editorial Asymmetric HOD Sign-In & Desktop-First Restriction:**
+    - Left column displays monumental typography, department agency context, and "Change department" button.
+    - Right column displays spacious `.v20-glass-card` (width ~420–460px) with clean "Sign in" section title, `.v20-auth-input` fields, password visibility toggle, and neutral ivory CTA. Zero visible demo credentials or promotional copy.
+    - Desktop-only access preserved via `DesktopRequiredScreen` in department colors on mobile and tablet viewports (< 1024px).
+  - **Centered Field Officer Sign-In & Multi-Viewport Responsiveness:**
+    - Centered, vertically organized layout with header ("← Change department"), monumental headline **Field Officer.**, subtitle (`[Department Name] · Field Operations`), and centered `.v20-glass-card`.
+    - Fully responsive across desktop, tablet, 390px, and 320px with all touch targets $\ge 44\text{px}$.
+  - **Form Styling & WebKit Autofill Normalization:**
+    - Injected WebKit autofill normalizer in `v20-atmospheric.css` using `-webkit-box-shadow: 0 0 0 1000px #131722 inset !important;` and `-webkit-text-fill-color: #F2EFE9 !important;` to permanently prevent browser autofill from producing stark white boxes inside dark glass cards.
+  - **Strict Server Boundary Role Separation & Department Isolation:**
+    - Server-enforced role verification (`fieldOperations.getMyRole`): Officer credentials entered at HOD login and Head credentials entered at Officer login are rejected with helpful mismatch alerts and one-click redirection links.
+- **Automated Quality Gates & Test Verification:**
+  - TypeScript project build (`npx tsc -b ; npm run build`): **Exit code `0` cleanly (0 errors, bundled in 2.06s)**.
+  - Full Vitest test suite (`npm test -- --run`): **89 passed test files (901 passed total, 0 regressions, 1 skipped)**.
+  - Dedicated new test suite: `src/test/V22_3_FinalStaffAuthentication.test.tsx` (**18 passed in 1291ms**).
+  - Headless Chrome CDP Verification (`tools/ai_factory/capture_v22_3_qa.mjs`):
+    - Verified all 41 scenarios across Role Choice Gateway, Stage 1 HOD Selection, Stage 1 Officer Selection, Stage 2 HOD Sign-In (all 6 departments, laptop 1366, tablet/mobile restriction), Stage 2 Officer Sign-In (all 6 departments, mobile 390, mobile 320), role mismatch alerts, and input focus styling.
+    - Saved 41 screenshot artifacts in `brain/screenshots/v22_3/`.
 
 ## Development update, 27 November 2026 — Phase V22.2: Final Department Color Consistency & Separate Staff Authentication (Mobile Grey Root Fallback Elimination, Multi-Viewport Atmospheric Scoping, Separate HOD Editorial Sign-In, Centered Field Officer Sign-In, Live Swatch Crossfade & Strict Role Isolation)
 

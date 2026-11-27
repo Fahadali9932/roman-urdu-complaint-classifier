@@ -12,7 +12,16 @@ export type AuthorizedDepartmentKey =
   | 'sswmb'
   | 'gas'
   | 'sbca'
-  | 'admin';
+  | 'admin'
+  | 'selection';
+
+export type StaffDepartmentKey =
+  | 'kmc'
+  | 'kelectric'
+  | 'kwsc'
+  | 'sswmb'
+  | 'gas'
+  | 'sbca';
 
 export interface DepartmentAtmosphere {
   key: AuthorizedDepartmentKey;
@@ -26,6 +35,94 @@ export interface DepartmentAtmosphere {
   lightDeep: string;
   spotlightDark: string;
 }
+
+export interface StaffDepartmentCard {
+  key: StaffDepartmentKey;
+  code: string;
+  name: string;
+  category: string;
+  baseBg: string;
+  midBg: string;
+  accent: string;
+  glow: string;
+}
+
+/** The 6 authorized municipal service departments for staff management (Central Admin excluded) */
+export const STAFF_DEPARTMENTS: StaffDepartmentCard[] = [
+  {
+    key: 'kmc',
+    code: 'KMC',
+    name: 'Karachi Metropolitan Corporation',
+    category: 'Roads & Infrastructure',
+    baseBg: '#1B120C',
+    midBg: '#79400F',
+    accent: '#E5A044',
+    glow: 'rgba(229, 160, 68, 0.35)',
+  },
+  {
+    key: 'kelectric',
+    code: 'K-Electric',
+    name: 'K-Electric (Infrastructure & Distribution)',
+    category: 'Power & Electricity',
+    baseBg: '#0C1220',
+    midBg: '#193F91',
+    accent: '#548EFF',
+    glow: 'rgba(84, 142, 255, 0.35)',
+  },
+  {
+    key: 'kwsc',
+    code: 'KW&SC',
+    name: 'Karachi Water & Sewerage Corporation',
+    category: 'Water & Sewerage',
+    baseBg: '#081B1E',
+    midBg: '#11666E',
+    accent: '#42C6C9',
+    glow: 'rgba(66, 198, 201, 0.35)',
+  },
+  {
+    key: 'sswmb',
+    code: 'SSWMB',
+    name: 'Sindh Solid Waste Management Board',
+    category: 'Solid Waste Management',
+    baseBg: '#0C1B14',
+    midBg: '#20643D',
+    accent: '#58C78C',
+    glow: 'rgba(88, 199, 140, 0.35)',
+  },
+  {
+    key: 'gas',
+    code: 'SSGC',
+    name: 'Sui Southern Gas Company',
+    category: 'Gas & Transmission',
+    baseBg: '#210D13',
+    midBg: '#8C243D',
+    accent: '#EC667B',
+    glow: 'rgba(236, 102, 123, 0.35)',
+  },
+  {
+    key: 'sbca',
+    code: 'SBCA',
+    name: 'Sindh Building Control Authority',
+    category: 'Building Control',
+    baseBg: '#170F24',
+    midBg: '#57328B',
+    accent: '#AA80E8',
+    glow: 'rgba(170, 128, 232, 0.35)',
+  },
+];
+
+export const SELECTION_ATMOSPHERE: DepartmentAtmosphere = {
+  key: 'selection',
+  label: 'Department Selection',
+  category: 'Staff Authentication',
+  deep: '#101215',
+  mid: '#303741',
+  highlight: '#65717F',
+  lightBase: '#F6F7F9',
+  lightMid: '#E8EBEF',
+  lightDeep: '#D5DAE2',
+  spotlightDark: 'rgba(101, 113, 127, 0.10)',
+};
 
 export const DEPARTMENT_ATMOSPHERES: Record<AuthorizedDepartmentKey, DepartmentAtmosphere> = {
   kmc: {
@@ -112,11 +209,12 @@ export const DEPARTMENT_ATMOSPHERES: Record<AuthorizedDepartmentKey, DepartmentA
     lightDeep: '#D5D9E0',
     spotlightDark: 'rgba(164, 178, 197, 0.10)',
   },
+  selection: SELECTION_ATMOSPHERE,
 };
 
 /**
  * Normalizes any department ID, code, or alias to an authorized department key.
- * Unknown codes fallback safely to neutral 'admin' rather than KMC orange.
+ * Unknown codes fallback safely to neutral 'selection' or 'admin'.
  */
 export function canonicalizeDepartmentKey(raw?: string | null): AuthorizedDepartmentKey {
   if (!raw) return 'admin';
@@ -129,11 +227,12 @@ export function canonicalizeDepartmentKey(raw?: string | null): AuthorizedDepart
   if (norm === 'gas' || norm === 'ssgc' || norm === 'sngpl' || norm === 'sui_gas') return 'gas';
   if (norm === 'sbca' || norm === 'building' || norm === 'demolition') return 'sbca';
   if (norm === 'admin' || norm === 'central' || norm === 'superadmin') return 'admin';
+  if (norm === 'selection' || norm === 'none') return 'selection';
 
   return 'admin';
 }
 
 export function getDepartmentAtmosphere(raw?: string | null): DepartmentAtmosphere {
   const key = canonicalizeDepartmentKey(raw);
-  return DEPARTMENT_ATMOSPHERES[key] || DEPARTMENT_ATMOSPHERES.admin;
+  return DEPARTMENT_ATMOSPHERES[key] || DEPARTMENT_ATMOSPHERES.selection;
 }

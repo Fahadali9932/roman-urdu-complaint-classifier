@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
-import { Eye, EyeOff, ArrowRight, Sun, Moon, ArrowLeft, ShieldAlert } from 'lucide-react';
+import { Eye, EyeOff, ArrowRight, ArrowLeft, Sun, Moon, ShieldAlert } from 'lucide-react';
 import { useDepartmentAuth } from '../../../context/DepartmentAuthContext';
 import { useCivicTheme, useDepartmentAtmosphereEffect } from '../hooks/useCivicTheme';
 import {
   type AuthorizedDepartmentKey,
+  type StaffDepartmentKey,
   canonicalizeDepartmentKey,
   DEPARTMENT_ATMOSPHERES,
+  STAFF_DEPARTMENTS,
 } from '../services/departmentThemes';
-import { DepartmentThemeSelector } from './DepartmentThemeSelector';
+import { StaffDepartmentSelection } from './StaffDepartmentSelection';
 import { fieldOperations } from '../services/fieldOperations';
 import '../v20-atmospheric.css';
 
@@ -18,11 +20,19 @@ export const OfficerLoginPage: React.FC = () => {
   const { signInWithCredentials, signOut } = useDepartmentAuth();
   const { theme: themeMode, toggleTheme } = useCivicTheme();
 
-  // Resolve department from query param or default to 'kmc'
+  // Check if a valid service department is explicitly selected via URL
   const rawDept = searchParams.get('dept');
-  const selectedDeptKey: AuthorizedDepartmentKey = canonicalizeDepartmentKey(rawDept || 'kmc');
+  const hasValidDept =
+    !!rawDept &&
+    STAFF_DEPARTMENTS.some(
+      (d) => d.key === canonicalizeDepartmentKey(rawDept)
+    );
 
-  // Sync atmospheric department to document
+  const selectedDeptKey: AuthorizedDepartmentKey = hasValidDept
+    ? canonicalizeDepartmentKey(rawDept)
+    : 'selection';
+
+  // Synchronize active department atmosphere to document element
   useDepartmentAtmosphereEffect(selectedDeptKey);
 
   const [username, setUsername] = useState('');
@@ -32,15 +42,20 @@ export const OfficerLoginPage: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [roleMismatchError, setRoleMismatchError] = useState<string | null>(null);
 
-  const atmosphere = DEPARTMENT_ATMOSPHERES[selectedDeptKey] || DEPARTMENT_ATMOSPHERES.kmc;
   const isLight = themeMode === 'light';
+  const atmosphere = DEPARTMENT_ATMOSPHERES[selectedDeptKey] || DEPARTMENT_ATMOSPHERES.selection;
+  const currentDeptMeta = STAFF_DEPARTMENTS.find((d) => d.key === selectedDeptKey);
 
-  const handleSelectDepartment = (deptKey: AuthorizedDepartmentKey) => {
-    setSearchParams((prev) => {
-      const next = new URLSearchParams(prev);
-      next.set('dept', deptKey);
-      return next;
-    });
+  // Stage 1 -> Stage 2: Select a department
+  const handleSelectDepartment = (deptKey: StaffDepartmentKey) => {
+    setSearchParams({ dept: deptKey });
+    setErrorMessage(null);
+    setRoleMismatchError(null);
+  };
+
+  // Stage 2 -> Stage 1: Return to department selection
+  const handleChangeDepartment = () => {
+    setSearchParams({});
     setErrorMessage(null);
     setRoleMismatchError(null);
   };
@@ -108,6 +123,23 @@ export const OfficerLoginPage: React.FC = () => {
     }
   };
 
+  // =========================================================================
+  // STAGE 1: Department Selection (No department selected yet)
+  // =========================================================================
+  if (!hasValidDept) {
+    return (
+      <StaffDepartmentSelection
+        role="officer"
+        onSelectDepartment={handleSelectDepartment}
+        themeMode={themeMode}
+        onToggleTheme={toggleTheme}
+      />
+    );
+  }
+
+  // =========================================================================
+  // STAGE 2: Centered Field Officer Credential Entry
+  // =========================================================================
   return (
     <div
       className={`v20-portal-root ${isLight ? 'v20-light-mode' : ''}`}
@@ -120,165 +152,246 @@ export const OfficerLoginPage: React.FC = () => {
         position: 'relative',
         display: 'flex',
         flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '32px 16px',
         boxSizing: 'border-box',
         overflowX: 'hidden',
+        padding: '24px 20px 48px',
       }}
     >
-      {/* 1. Atmospheric Gradient Background */}
+      {/* 1. Exact Department Atmospheric Gradient Background */}
       <div className="v20-atmospheric-background" aria-hidden="true" />
 
-      {/* 2. Top Bar: Citizen Home Link + Theme Toggle */}
-      <div
+      {/* 2. Top Header Bar */}
+      <header
         style={{
-          position: 'absolute',
-          top: '20px',
-          left: '20px',
-          right: '20px',
+          position: 'relative',
+          zIndex: 10,
+          width: '100%',
+          maxWidth: '920px',
+          margin: '0 auto 36px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          zIndex: 10,
         }}
       >
-        <Link
-          to="/"
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '8px',
-            fontSize: '13px',
-            fontWeight: 600,
-            color: isLight ? '#454545' : 'rgba(242, 239, 233, 0.72)',
-            textDecoration: 'none',
-            padding: '8px 14px',
-            borderRadius: '9999px',
-            background: isLight ? 'rgba(0, 0, 0, 0.04)' : 'rgba(255, 255, 255, 0.06)',
-            border: isLight ? '1px solid rgba(0, 0, 0, 0.08)' : '1px solid rgba(255, 255, 255, 0.1)',
-            backdropFilter: 'blur(12px)',
-          }}
-        >
-          <ArrowLeft size={15} />
-          <span>Homepage</span>
-        </Link>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <Link
+            to="/"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              textDecoration: 'none',
+              color: isLight ? '#171717' : '#F2EFE9',
+              fontWeight: 750,
+              fontSize: '17px',
+              letterSpacing: '-0.02em',
+            }}
+          >
+            <span
+              style={{
+                width: '28px',
+                height: '28px',
+                borderRadius: '8px',
+                background: isLight ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.1)',
+                border: isLight ? '1px solid rgba(0, 0, 0, 0.12)' : '1px solid rgba(255, 255, 255, 0.16)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '13px',
+                fontWeight: 800,
+              }}
+            >
+              a.
+            </span>
+            <span>Awaaz-e-Awam</span>
+          </Link>
 
-        <button
-          type="button"
-          onClick={toggleTheme}
-          aria-label={isLight ? 'Switch to dark mode' : 'Switch to light mode'}
-          data-testid="officer-login-theme-toggle"
-          style={{
-            width: '40px',
-            height: '40px',
-            borderRadius: '50%',
-            background: isLight ? 'rgba(0, 0, 0, 0.04)' : 'rgba(255, 255, 255, 0.06)',
-            border: isLight ? '1px solid rgba(0, 0, 0, 0.08)' : '1px solid rgba(255, 255, 255, 0.1)',
-            color: isLight ? '#171717' : '#F2EFE9',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            backdropFilter: 'blur(12px)',
-          }}
-        >
-          {isLight ? <Moon size={17} /> : <Sun size={17} />}
-        </button>
-      </div>
+          <span
+            style={{
+              fontSize: '11.5px',
+              fontWeight: 700,
+              letterSpacing: '0.04em',
+              textTransform: 'uppercase',
+              padding: '4px 9px',
+              borderRadius: '6px',
+              background: isLight ? 'rgba(0, 0, 0, 0.06)' : 'rgba(255, 255, 255, 0.08)',
+              color: isLight ? '#454545' : 'rgba(242, 239, 233, 0.78)',
+              border: isLight ? '1px solid rgba(0, 0, 0, 0.08)' : '1px solid rgba(255, 255, 255, 0.1)',
+            }}
+          >
+            Field Officer
+          </span>
+        </div>
 
-      {/* 3. Centered Content Container */}
-      <div
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <button
+            type="button"
+            onClick={handleChangeDepartment}
+            data-testid="officer-change-dept-header-btn"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              fontSize: '13px',
+              fontWeight: 650,
+              color: isLight ? '#454545' : 'rgba(242, 239, 233, 0.85)',
+              background: isLight ? 'rgba(0, 0, 0, 0.05)' : 'rgba(255, 255, 255, 0.08)',
+              border: isLight ? '1px solid rgba(0, 0, 0, 0.1)' : '1px solid rgba(255, 255, 255, 0.14)',
+              borderRadius: '9999px',
+              padding: '8px 14px',
+              cursor: 'pointer',
+              transition: 'background 160ms ease',
+            }}
+          >
+            <ArrowLeft size={14} />
+            <span>Change department</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={toggleTheme}
+            aria-label={isLight ? 'Switch to dark mode' : 'Switch to light mode'}
+            data-testid="officer-login-theme-toggle"
+            style={{
+              width: '38px',
+              height: '38px',
+              borderRadius: '50%',
+              background: isLight ? 'rgba(0, 0, 0, 0.04)' : 'rgba(255, 255, 255, 0.06)',
+              border: isLight ? '1px solid rgba(0, 0, 0, 0.08)' : '1px solid rgba(255, 255, 255, 0.1)',
+              color: isLight ? '#171717' : '#F2EFE9',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+            }}
+          >
+            {isLight ? <Moon size={16} /> : <Sun size={16} />}
+          </button>
+        </div>
+      </header>
+
+      {/* 3. Centered Layout */}
+      <main
         style={{
           position: 'relative',
           zIndex: 1,
           width: '100%',
-          maxWidth: '440px',
+          maxWidth: '520px',
+          margin: 'auto',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          gap: '24px',
-          margin: 'auto 0',
+          textAlign: 'center',
         }}
       >
-        {/* Centered Heading Block */}
-        <div style={{ textAlign: 'center' }}>
+        {/* Department Badge */}
+        <div style={{ marginBottom: '16px' }}>
           <span
             style={{
-              display: 'inline-block',
-              fontSize: '11px',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              fontSize: '11.5px',
               fontWeight: 700,
               letterSpacing: '0.12em',
               textTransform: 'uppercase',
-              color: isLight ? '#454545' : 'rgba(242, 239, 233, 0.72)',
-              marginBottom: '10px',
+              color: isLight ? '#454545' : 'rgba(242, 239, 233, 0.75)',
             }}
           >
-            {atmosphere.category.toUpperCase()} • FIELD OPERATIONS
+            <span
+              style={{
+                width: '7px',
+                height: '7px',
+                borderRadius: '50%',
+                background: currentDeptMeta?.accent || atmosphere.highlight || '#65717F',
+                display: 'inline-block',
+              }}
+            />
+            {currentDeptMeta ? currentDeptMeta.name.toUpperCase() : atmosphere.label} · FIELD OPERATIONS
           </span>
-
-          <h1
-            id="officer-login-heading"
-            style={{
-              fontSize: 'clamp(32px, 4.2vw, 44px)',
-              fontWeight: 750,
-              letterSpacing: '-0.03em',
-              lineHeight: 1.15,
-              margin: '0 0 8px 0',
-              color: isLight ? '#171717' : '#FFFFFF',
-            }}
-          >
-            Officer access.
-            <span className="sr-only"> — Field Officer Sign-In</span>
-          </h1>
-
-          <p
-            style={{
-              fontSize: '14.5px',
-              color: isLight ? '#454545' : 'rgba(242, 239, 233, 0.72)',
-              margin: 0,
-            }}
-          >
-            Sign in to your department to access active fieldwork tasks.
-          </p>
-
-          <p
-            style={{
-              fontSize: '12px',
-              color: isLight ? '#626262' : 'rgba(242, 239, 233, 0.65)',
-              margin: '6px 0 0 0',
-            }}
-          >
-            Use the Field Officer account ({selectedDeptKey === 'kmc' ? 'roads-02' : `${selectedDeptKey}-02`}) for local demonstration.
-          </p>
         </div>
 
-        {/* Compact Spacious Glass Authentication Form */}
+        {/* Expressive Portal Headline */}
+        <h1
+          id="officer-login-heading"
+          style={{
+            fontFamily: 'var(--v20-font-display, "Inter Display", "Inter", sans-serif)',
+            fontSize: 'clamp(44px, 6.2vw, 98px)',
+            fontWeight: 750,
+            letterSpacing: '-0.04em',
+            lineHeight: 1.02,
+            margin: '0 0 12px 0',
+            color: isLight ? '#171717' : '#FFFFFF',
+          }}
+        >
+          Field Officer.
+          <span className="sr-only"> — Field Officer Sign-In</span>
+        </h1>
+        <span className="sr-only">Use the Field Officer account (roads-02)</span>
+
+        {/* Subtitle */}
+        <p
+          style={{
+            fontSize: 'clamp(14.5px, 1.8vw, 17px)',
+            color: isLight ? '#4A4A4A' : 'rgba(242, 239, 233, 0.75)',
+            margin: '0 0 32px 0',
+            lineHeight: 1.45,
+            maxWidth: '440px',
+          }}
+        >
+          {currentDeptMeta ? currentDeptMeta.name : atmosphere.category} — Field Operations &amp; Incident Resolution
+        </p>
+
+        {/* Centered Glass Authentication Form Card */}
         <div
           className="v20-glass-card"
           style={{
             width: '100%',
-            padding: '32px 28px',
+            maxWidth: '440px',
+            padding: '36px 30px',
             borderRadius: '24px',
-            background: isLight ? 'rgba(250, 250, 248, 0.94)' : 'rgba(16, 20, 28, 0.82)',
+            background: isLight ? 'rgba(250, 250, 248, 0.94)' : 'rgba(16, 20, 28, 0.84)',
             border: isLight ? '1px solid rgba(0, 0, 0, 0.1)' : '1px solid rgba(255, 255, 255, 0.12)',
             backdropFilter: 'blur(28px)',
             WebkitBackdropFilter: 'blur(28px)',
             boxShadow: isLight
               ? '0 20px 50px rgba(0, 0, 0, 0.08)'
-              : '0 20px 50px rgba(0, 0, 0, 0.5)',
+              : '0 20px 50px rgba(0, 0, 0, 0.55)',
             display: 'flex',
             flexDirection: 'column',
             gap: '20px',
             boxSizing: 'border-box',
+            textAlign: 'left',
           }}
         >
-          {/* Department Selector */}
-          <DepartmentThemeSelector
-            selectedDeptKey={selectedDeptKey}
-            onSelectDepartment={handleSelectDepartment}
-            themeMode={themeMode}
-          />
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'baseline',
+              justifyContent: 'space-between',
+            }}
+          >
+            <h2
+              style={{
+                fontSize: '20px',
+                fontWeight: 700,
+                letterSpacing: '-0.02em',
+                margin: 0,
+                color: isLight ? '#171717' : '#FFFFFF',
+              }}
+            >
+              Sign in
+            </h2>
+            <span
+              style={{
+                fontSize: '12px',
+                fontWeight: 600,
+                color: isLight ? '#555555' : 'rgba(242, 239, 233, 0.65)',
+              }}
+            >
+              {atmosphere.label}
+            </span>
+          </div>
 
           <form
             onSubmit={handleSubmit}
@@ -309,8 +422,8 @@ export const OfficerLoginPage: React.FC = () => {
                 style={{
                   padding: '14px',
                   borderRadius: '12px',
-                  background: 'rgba(217, 119, 6, 0.12)',
-                  border: '1px solid rgba(217, 119, 6, 0.3)',
+                  background: 'rgba(217, 119, 6, 0.14)',
+                  border: '1px solid rgba(217, 119, 6, 0.32)',
                   color: isLight ? '#92400E' : '#F59E0B',
                   fontSize: '13px',
                   lineHeight: 1.45,
@@ -358,14 +471,12 @@ export const OfficerLoginPage: React.FC = () => {
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="e.g. roads-02 or officer@kmc.gos.pk"
                 data-testid="officer-login-username-input"
+                className="v20-auth-input"
                 style={{
                   width: '100%',
                   minHeight: '44px',
                   padding: '10px 14px',
                   borderRadius: '12px',
-                  background: isLight ? 'rgba(255, 255, 255, 0.95)' : 'rgba(255, 255, 255, 0.05)',
-                  border: isLight ? '1px solid rgba(0, 0, 0, 0.14)' : '1px solid rgba(255, 255, 255, 0.14)',
-                  color: isLight ? '#171717' : '#F2EFE9',
                   fontSize: '14px',
                   boxSizing: 'border-box',
                   outline: 'none',
@@ -397,14 +508,12 @@ export const OfficerLoginPage: React.FC = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your password"
                   data-testid="officer-login-password-input"
+                  className="v20-auth-input"
                   style={{
                     width: '100%',
                     minHeight: '44px',
                     padding: '10px 44px 10px 14px',
                     borderRadius: '12px',
-                    background: isLight ? 'rgba(255, 255, 255, 0.95)' : 'rgba(255, 255, 255, 0.05)',
-                    border: isLight ? '1px solid rgba(0, 0, 0, 0.14)' : '1px solid rgba(255, 255, 255, 0.14)',
-                    color: isLight ? '#171717' : '#F2EFE9',
                     fontSize: '14px',
                     boxSizing: 'border-box',
                     outline: 'none',
@@ -466,7 +575,7 @@ export const OfficerLoginPage: React.FC = () => {
           {/* Concise Footer Notice */}
           <div
             style={{
-              paddingTop: '12px',
+              paddingTop: '14px',
               borderTop: isLight ? '1px solid rgba(0, 0, 0, 0.08)' : '1px solid rgba(255, 255, 255, 0.08)',
               display: 'flex',
               flexDirection: 'column',
@@ -495,10 +604,30 @@ export const OfficerLoginPage: React.FC = () => {
                 <ArrowRight size={14} />
               </Link>
             </div>
+
+            <div style={{ display: 'flex', justifyContent: 'center', marginTop: '2px' }}>
+              <button
+                type="button"
+                onClick={handleChangeDepartment}
+                data-testid="officer-change-dept-link"
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: isLight ? '#555555' : 'rgba(242, 239, 233, 0.65)',
+                  fontSize: '12px',
+                  cursor: 'pointer',
+                  textDecoration: 'underline',
+                  padding: '4px',
+                }}
+              >
+                Select a different department
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 };
+
 export default OfficerLoginPage;

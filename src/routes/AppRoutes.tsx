@@ -18,7 +18,7 @@ import { ResetPasswordPage } from '../features/auth/ResetPasswordPage';
 import { CitizenRequiredRoute } from '../features/auth/CitizenRequiredRoute';
 import { DepartmentPortalLayout } from '../features/department/DepartmentPortalLayout';
 import { DepartmentDashboardPage } from '../features/department/DepartmentDashboardPage';
-import { DepartmentLoginPage } from '../features/department/DepartmentLoginPage';
+import { StaffRoleChoiceGateway } from '../features/department/auth/StaffRoleChoiceGateway';
 import { HodLoginPage } from '../features/department/auth/HodLoginPage';
 import { OfficerLoginPage } from '../features/department/auth/OfficerLoginPage';
 import { DepartmentRoleBoundary } from '../features/department/DepartmentRoleBoundary';
@@ -74,7 +74,7 @@ export const AppRoutes: React.FC = () => {
       <Route element={<DepartmentPortalLayout />}>
         <Route path="/department" element={<DepartmentDashboardPage />} />
         <Route path="/department/dashboard" element={<Navigate to="/department" replace />} />
-        <Route path="/department/login" element={<DepartmentLoginPage />} />
+        <Route path="/department/login" element={<StaffRoleChoiceGateway />} />
         <Route path="/department/head/login" element={<HodLoginPage />} />
         <Route path="/department/officer/login" element={<OfficerLoginPage />} />
         <Route path="/department/request-access" element={<StaffAccessRequestPage />} />

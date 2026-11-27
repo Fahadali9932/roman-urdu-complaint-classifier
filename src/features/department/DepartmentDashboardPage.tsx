@@ -403,13 +403,13 @@ export const DepartmentDashboardPage: React.FC = () => {
     // Redirecting before that check finishes incorrectly bounces valid MFA sessions.
     if (isCheckingSession) return;
     if (!isAuthenticated || !departmentId) {
-      navigate('/department/login', { replace: true });
+      navigate(staffPosition ? `/department/${staffPosition}/login` : '/department/head/login', { replace: true });
       return;
     }
     const revCheck = checkRevocationStatus();
     if (!revCheck.authorized) {
       navigate(
-        `/department/login?revoked=true&reason=${encodeURIComponent(revCheck.reason || '')}`,
+        `${staffPosition ? `/department/${staffPosition}/login` : '/department/head/login'}?revoked=true&reason=${encodeURIComponent(revCheck.reason || '')}`,
         { replace: true }
       );
     }
@@ -1029,7 +1029,7 @@ export const DepartmentDashboardPage: React.FC = () => {
           onToggleTheme={() => handleSetTheme(themeMode === 'light' ? 'dark' : 'light')}
           onSignOut={() => {
             signOut();
-            navigate(staffPosition ? `/department/${staffPosition}/login?dept=${departmentId}` : '/department/login');
+            navigate(staffPosition ? `/department/${staffPosition}/login?dept=${departmentId}` : `/department/head/login?dept=${departmentId}`);
           }}
           onOpenPasswordModal={() => setIsPasswordModalOpen(true)}
         />
@@ -1056,7 +1056,7 @@ export const DepartmentDashboardPage: React.FC = () => {
           onToggleTheme={() => handleSetTheme(themeMode === 'light' ? 'dark' : 'light')}
           onSignOut={() => {
             signOut();
-            navigate(staffPosition ? `/department/${staffPosition}/login?dept=${departmentId}` : '/department/login');
+            navigate(staffPosition ? `/department/${staffPosition}/login?dept=${departmentId}` : `/department/head/login?dept=${departmentId}`);
           }}
           onOpenPasswordModal={() => setIsPasswordModalOpen(true)}
           initialTab={searchParams.get('tab') || undefined}
@@ -1239,7 +1239,7 @@ export const DepartmentDashboardPage: React.FC = () => {
             onOpenPasswordModal={() => setIsPasswordModalOpen(true)}
             onSignOut={() => {
               signOut();
-              navigate(staffPosition ? `/department/${staffPosition}/login?dept=${departmentId}` : '/department/login');
+              navigate(staffPosition ? `/department/${staffPosition}/login?dept=${departmentId}` : `/department/head/login?dept=${departmentId}`);
             }}
             staffPosition={staffPosition}
           />
@@ -1264,7 +1264,7 @@ export const DepartmentDashboardPage: React.FC = () => {
               onClose={() => setIsWorkspaceMenuOpen(false)}
               onSignOut={() => {
                 signOut();
-                navigate(staffPosition ? `/department/${staffPosition}/login?dept=${departmentId}` : '/department/login');
+                navigate(staffPosition ? `/department/${staffPosition}/login?dept=${departmentId}` : `/department/head/login?dept=${departmentId}`);
               }}
             />
           ) : (

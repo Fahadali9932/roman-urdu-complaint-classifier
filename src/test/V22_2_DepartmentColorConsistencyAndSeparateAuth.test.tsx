@@ -102,9 +102,7 @@ describe('AWAAZ-E-AWAM — Phase V22.2: Final Department Color Consistency & Sep
       );
 
       expect(screen.getByRole('heading', { name: /Department Head/i })).toBeInTheDocument();
-      expect(screen.getByText(/Executive oversight, incident assignment/i)).toBeInTheDocument();
-      expect(screen.getByText(/DEPARTMENT OF SINDH/i)).toBeInTheDocument();
-      expect(screen.getByText(/Use the Department Head account \(roads-01\)/i)).toBeInTheDocument();
+      expect(screen.getByText(/KARACHI METROPOLITAN CORPORATION/i)).toBeInTheDocument();
       expect(screen.getByRole('textbox', { name: 'Username' })).toBeInTheDocument();
       expect(screen.getByLabelText(/Access key \(local demo\)/i)).toBeInTheDocument();
       expect(screen.getByRole('button', { name: /^Sign In$/i })).toBeInTheDocument();
@@ -114,7 +112,7 @@ describe('AWAAZ-E-AWAM — Phase V22.2: Final Department Color Consistency & Sep
       );
     });
 
-    it('switching department via theme selector updates data-dept and keeps credentials intact', () => {
+    it('switching department via change department action navigates to stage 1 selection', () => {
       render(
         <MemoryRouter initialEntries={['/department/head/login?dept=kmc']}>
           <DepartmentAuthProvider>
@@ -125,27 +123,13 @@ describe('AWAAZ-E-AWAM — Phase V22.2: Final Department Color Consistency & Sep
         </MemoryRouter>
       );
 
-      // Enter credentials
-      fireEvent.change(screen.getByRole('textbox', { name: 'Username' }), {
-        target: { value: 'water-01' },
-      });
-      fireEvent.change(screen.getByLabelText(/Access key \(local demo\)/i), {
-        target: { value: 'SecretKey123' },
-      });
+      // Click "Change department"
+      const changeBtn = screen.getByTestId('hod-change-dept-header-btn');
+      fireEvent.click(changeBtn);
 
-      // Switch department via dropdown
-      const trigger = screen.getByTestId('department-theme-selector-trigger');
-      fireEvent.click(trigger);
-      const kwscOption = screen.getByTestId('department-option-kwsc');
-      fireEvent.click(kwscOption);
-
-      // Check that data-dept updated
-      const pageRoot = screen.getByTestId('hod-login-page');
-      expect(pageRoot).toHaveAttribute('data-dept', 'kwsc');
-
-      // Verify credentials were not wiped out
-      expect((screen.getByRole('textbox', { name: 'Username' }) as HTMLInputElement).value).toBe('water-01');
-      expect((screen.getByLabelText(/Access key \(local demo\)/i) as HTMLInputElement).value).toBe('SecretKey123');
+      // Now in Stage 1: Department Selection
+      expect(screen.getByRole('heading', { name: /Select your department/i })).toBeInTheDocument();
+      expect(screen.queryByRole('textbox', { name: 'Username' })).not.toBeInTheDocument();
     });
 
     it('enforces role separation by rejecting officer credentials at HOD sign-in', async () => {
@@ -203,7 +187,7 @@ describe('AWAAZ-E-AWAM — Phase V22.2: Final Department Color Consistency & Sep
   });
 
   describe('3. Dedicated Officer Sign-In Experience (OfficerLoginPage)', () => {
-    it('renders centered mobile-friendly layout with Officer access heading and compact form', () => {
+    it('renders centered mobile-friendly layout with Field Officer heading and compact form', () => {
       render(
         <MemoryRouter initialEntries={['/department/officer/login?dept=kmc']}>
           <DepartmentAuthProvider>
@@ -214,12 +198,9 @@ describe('AWAAZ-E-AWAM — Phase V22.2: Final Department Color Consistency & Sep
         </MemoryRouter>
       );
 
-      expect(screen.getByRole('heading', { name: /Officer access/i })).toBeInTheDocument();
-      expect(
-        screen.getByText(/Sign in to your department to access active fieldwork tasks/i)
-      ).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: /Field Officer/i })).toBeInTheDocument();
+      expect(screen.getAllByText(/KARACHI METROPOLITAN CORPORATION/i).length).toBeGreaterThanOrEqual(1);
       expect(screen.getByText(/Accounts are issued by your department head/i)).toBeInTheDocument();
-      expect(screen.getByText(/Use the Field Officer account \(roads-02\)/i)).toBeInTheDocument();
       expect(screen.getByRole('textbox', { name: 'Username' })).toBeInTheDocument();
       expect(screen.getByLabelText(/Access key \(local demo\)/i)).toBeInTheDocument();
       expect(screen.getByRole('button', { name: /^Sign In$/i })).toBeInTheDocument();

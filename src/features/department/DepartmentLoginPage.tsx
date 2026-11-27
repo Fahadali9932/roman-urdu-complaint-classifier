@@ -37,13 +37,9 @@ export const DepartmentLoginPage: React.FC<{ targetRole?: StaffPosition }> = ({ 
   }
 
   const deptParam = searchParams.get('dept')?.toLowerCase() || null;
-
-  // Derive active department view directly from URL search params
   const selectedDept: DepartmentId | null = deptParam ? VALID_DEPARTMENT_IDS[deptParam] || null : null;
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-
-  // Track online/offline network status for PWA
   const [isOnline, setIsOnline] = useState(() =>
     typeof navigator !== 'undefined' ? navigator.onLine : true
   );
@@ -70,10 +66,6 @@ export const DepartmentLoginPage: React.FC<{ targetRole?: StaffPosition }> = ({ 
     });
   };
 
-  const handleOpenModal = () => {
-    setIsModalOpen(true);
-  };
-
   if (selectedDept) {
     return (
       <>
@@ -81,7 +73,7 @@ export const DepartmentLoginPage: React.FC<{ targetRole?: StaffPosition }> = ({ 
           key={targetRole ?? 'department'}
           departmentId={selectedDept}
           targetRole={targetRole}
-          onBackToDepartmentSelection={handleOpenModal}
+          onBackToDepartmentSelection={() => setIsModalOpen(true)}
           isOnline={isOnline}
         />
         <DepartmentSelectionModal
@@ -100,3 +92,5 @@ export const DepartmentLoginPage: React.FC<{ targetRole?: StaffPosition }> = ({ 
     />
   );
 };
+
+export default DepartmentLoginPage;

@@ -257,6 +257,29 @@
   --v20-accent-border: rgba(164, 178, 197, 0.28);
 }
 
+/* Neutral Staff Department Selection Atmosphere (Graphite / Slate / Silver Glow) */
+[data-dept="selection"],
+[data-dept="dept-selection"],
+[data-dept="none"] {
+  --dept-base-1: #101215;
+  --dept-base-2: #303741;
+  --dept-base-3: #65717F;
+  --dept-glow-1: #303741;
+  --dept-glow-2: #65717F;
+  --v20-bg-base: #101215;
+  --v20-bg-mid: #303741;
+  --v20-bg-deep: #101215;
+  --v20-glow-highlight: #65717F;
+  --v20-glow-illumination: #303741;
+  --v20-glow-primary: rgba(48, 55, 65, 0.45);
+  --v20-glow-secondary: rgba(16, 18, 21, 0.35);
+  --v20-spotlight-glow: rgba(101, 113, 127, 0.10);
+  --v20-accent: #65717F;
+  --v20-accent-light: #F2EFE9;
+  --v20-accent-soft: rgba(101, 113, 127, 0.14);
+  --v20-accent-border: rgba(101, 113, 127, 0.28);
+}
+
 /* ==========================================================================
    LIGHT MODE (Preserving Individual Department Identities & WCAG Contrast)
    ========================================================================== */
@@ -500,6 +523,93 @@
   --v20-glow-primary: rgba(65, 75, 90, 0.16);
   --v20-glow-secondary: rgba(16, 19, 24, 0.08);
   --v20-text-primary: #171717;
+}
+
+[data-theme="light"][data-dept="selection"],
+[data-theme="light"] [data-dept="selection"],
+.v20-light-mode[data-dept="selection"],
+.v20-light-mode [data-dept="selection"] {
+  --v20-bg-base: #F6F7F9;
+  --v20-bg-mid: #E8EBEF;
+  --v20-bg-deep: #D5DAE2;
+  --v20-accent: #303741;
+  --v20-accent-light: #1A1F26;
+  --v20-glow-highlight: rgba(101, 113, 127, 0.35);
+  --v20-glow-illumination: rgba(48, 55, 65, 0.22);
+  --v20-glow-primary: rgba(48, 55, 65, 0.16);
+  --v20-glow-secondary: rgba(16, 18, 21, 0.08);
+  --v20-text-primary: #171717;
+}
+
+/* Dedicated Auth input styling & Chrome/Safari Autofill normalizer */
+.v20-auth-input {
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 16px;
+  border-radius: 14px;
+  font-size: 15px;
+  font-family: var(--v20-font-body, inherit);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #F2EFE9;
+  box-sizing: border-box;
+  outline: none;
+  transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
+}
+
+.v20-auth-input:focus {
+  border-color: var(--v20-accent, #548EFF);
+  box-shadow: 0 0 0 3px var(--v20-accent-soft, rgba(84, 142, 255, 0.2));
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.v20-auth-input::placeholder {
+  color: rgba(242, 239, 233, 0.38);
+}
+
+.v20-light-mode .v20-auth-input,
+[data-theme="light"] .v20-auth-input {
+  background: rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  color: #171717;
+}
+
+.v20-light-mode .v20-auth-input:focus,
+[data-theme="light"] .v20-auth-input:focus {
+  border-color: var(--v20-accent, #193F91);
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.08);
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.v20-light-mode .v20-auth-input::placeholder,
+[data-theme="light"] .v20-auth-input::placeholder {
+  color: rgba(0, 0, 0, 0.4);
+}
+
+/* Chrome, Edge & Safari Autofill Styling Normalization - Eliminates stark white box in dark mode */
+input.v20-auth-input:-webkit-autofill,
+input.v20-auth-input:-webkit-autofill:hover,
+input.v20-auth-input:-webkit-autofill:focus,
+input.v20-auth-input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #131722 inset !important;
+  -webkit-text-fill-color: #F2EFE9 !important;
+  caret-color: #F2EFE9 !important;
+  border-color: rgba(255, 255, 255, 0.25) !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+.v20-light-mode input.v20-auth-input:-webkit-autofill,
+.v20-light-mode input.v20-auth-input:-webkit-autofill:hover,
+.v20-light-mode input.v20-auth-input:-webkit-autofill:focus,
+.v20-light-mode input.v20-auth-input:-webkit-autofill:active,
+[data-theme="light"] input.v20-auth-input:-webkit-autofill,
+[data-theme="light"] input.v20-auth-input:-webkit-autofill:hover,
+[data-theme="light"] input.v20-auth-input:-webkit-autofill:focus,
+[data-theme="light"] input.v20-auth-input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #FFFFFF inset !important;
+  -webkit-text-fill-color: #171717 !important;
+  caret-color: #171717 !important;
+  border-color: rgba(0, 0, 0, 0.2) !important;
 }
 
 /* Glass Card & Scorecard Light Mode Overrides */

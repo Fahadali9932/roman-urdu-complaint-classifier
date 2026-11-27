@@ -39,8 +39,13 @@ export const DepartmentHeader: React.FC = () => {
   const navigate = useNavigate();
 
   const handleSignOut = () => {
+    const role = (session as any)?.role || (session as any)?.staffPosition;
     signOut();
-    navigate('/department/login');
+    if (role === 'officer') {
+      navigate(departmentId ? `/department/officer/login?dept=${departmentId}` : '/department/officer/login');
+    } else {
+      navigate(departmentId ? `/department/head/login?dept=${departmentId}` : '/department/head/login');
+    }
   };
 
   const displayName = departmentMeta
