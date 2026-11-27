@@ -1042,36 +1042,6 @@
     justify-content: center;
   }
 
-  /* Two-column compact navigation destination grid */
-  .v20-nav-destinations-row {
-    top: 38px;
-    display: grid !important;
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    gap: 6px 8px !important;
-    width: calc(100% - 24px) !important;
-    max-width: calc(100% - 24px) !important;
-    max-height: calc(48dvh - 44px) !important;
-    overflow-y: auto !important;
-    padding: 4px 6px 14px !important;
-    box-sizing: border-box !important;
-    justify-content: stretch !important;
-    align-items: stretch !important;
-  }
-
-  .v20-nav-link-btn {
-    width: 100% !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: 6px !important;
-    padding: 7px 10px !important;
-    font-size: 12px !important;
-    font-weight: 550 !important;
-    min-height: 36px !important;
-    border-radius: 9999px !important;
-    box-sizing: border-box !important;
-    white-space: nowrap !important;
-  }
 
   .v20-landing-container {
     padding: 0 20px;
@@ -1219,21 +1189,99 @@
     margin: 8px 0 16px;
   }
 
-  .v20-nav-link-btn {
-    padding: 6px 6px !important;
-    font-size: 11px !important;
-    min-height: 34px !important;
-  }
-
-  .v20-nav-destinations-row {
-    gap: 4px 6px !important;
-    padding: 4px 4px 12px !important;
-  }
-
   .v20-glass-card {
     padding: 16px 12px !important;
     border-radius: 16px !important;
   }
+}
+
+/* ==========================================================================
+   V21.7 DESKTOP-FIRST ACCESS POLICY & RESTRICTION SCREEN STYLING
+   ========================================================================== */
+
+.v20-desktop-restriction-root {
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+.v20-restriction-btn {
+  transition: all 180ms cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
+}
+
+.v20-restriction-btn:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.08);
+}
+
+.v20-restriction-btn:active {
+  transform: translateY(0);
+}
+
+.v20-restriction-btn-accent {
+  background: var(--v20-accent, #F0ECE3);
+  color: #101216;
+}
+
+.v20-restriction-btn-secondary {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--v20-text-primary, #F4EFE5);
+}
+
+.v20-restriction-btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.v20-restriction-btn-danger {
+  background: transparent;
+  border: 1px solid rgba(224, 86, 86, 0.28);
+  color: #E05656;
+}
+
+.v20-restriction-btn-danger:hover {
+  background: rgba(224, 86, 86, 0.1);
+  border-color: rgba(224, 86, 86, 0.45);
+}
+
+/* Light mode overrides for restriction screen */
+[data-theme="light"] .v20-desktop-restriction-root:not(.v20-admin-restriction) {
+  background-color: var(--v20-bg-base, #F8F9FA) !important;
+  color: var(--v20-text-primary, #111827) !important;
+}
+
+[data-theme="light"] .v20-desktop-restriction-root:not(.v20-admin-restriction) .v20-restriction-btn-secondary {
+  background: rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  color: #111827;
+}
+
+[data-theme="light"] .v20-desktop-restriction-root:not(.v20-admin-restriction) .v20-restriction-btn-secondary:hover {
+  background: rgba(0, 0, 0, 0.08);
+  border-color: rgba(0, 0, 0, 0.2);
+}
+
+/* Focused Mobile Officer Header */
+.v20-mobile-officer-header {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+}
+
+[data-theme="light"] .v20-mobile-officer-header {
+  background-color: rgba(255, 255, 255, 0.9) !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="light"] .v20-mobile-officer-header button {
+  background: rgba(0, 0, 0, 0.05) !important;
+  border-color: rgba(0, 0, 0, 0.1) !important;
+  color: #111827 !important;
+}
+
+[data-theme="light"] .v20-mobile-officer-root {
+  background-color: #F8F9FA !important;
+  color: #111827 !important;
 }
 
 /* ==========================================================================

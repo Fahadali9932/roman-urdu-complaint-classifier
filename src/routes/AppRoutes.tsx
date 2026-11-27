@@ -25,6 +25,7 @@ import { AdminLoginPage } from '../features/auth/pages/AdminLoginPage';
 import { AdminRequestsPage } from '../features/auth/pages/AdminRequestsPage';
 import { AdminAccessPage } from '../features/auth/pages/AdminAccessPage';
 import { AiControlCenterPage } from '../features/admin/ai/AiControlCenterPage';
+import { AdminDesktopGate } from '../features/admin/AdminDesktopGate';
 
 // Lazy, development-only chunk. The import is eliminated from production builds.
 const DevCitizenDashboard = import.meta.env.DEV
@@ -59,9 +60,11 @@ export const AppRoutes: React.FC = () => {
 
       {/* Staff & Administrator Management Routes */}
       <Route path="/admin/login" element={<AdminLoginPage />} />
-      <Route path="/admin/requests" element={<AdminRequestsPage />} />
-      <Route path="/admin/access" element={<AdminAccessPage />} />
-      <Route path="/admin/ai" element={<AiControlCenterPage />} />
+      <Route element={<AdminDesktopGate />}>
+        <Route path="/admin/requests" element={<AdminRequestsPage />} />
+        <Route path="/admin/access" element={<AdminAccessPage />} />
+        <Route path="/admin/ai" element={<AiControlCenterPage />} />
+      </Route>
       <Route path="/admin/overview" element={<Navigate to="/admin/requests" replace />} />
       <Route path="/admin" element={<Navigate to="/admin/requests" replace />} />
 

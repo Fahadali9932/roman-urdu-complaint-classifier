@@ -5,6 +5,42 @@ Verified on **27 November 2026 (Pakistan time)**. Internal delivery target:
 This document distinguishes inspected source, automated checks, and unverified
 hosted behavior. Update it after every significant verified milestone.
 
+## Development update, 27 November 2026 — Phase V21.7: Desktop-First Access & Final Frontend Stabilization (Centralized Device Support Architecture, Dedicated Mobile Officer Fieldwork Console, Desktop Restriction Screens & Zero Mobile Clumping Overrides)
+
+- **Git & Protected Baseline (`D:\RomanUrdu_V13_19_Review`, branch `fix/v21-7-desktop-first-mobile-fieldwork`):**
+  - Branched from V21.6 with safety rollback checkpoint tag `checkpoint/before-v21-7-desktop-first` pushed to remote.
+  - Dedicated branch `fix/v21-7-desktop-first-mobile-fieldwork` active.
+  - Protected primary worktree `D:\RomanUrdu_ComplaintClassifier_staff_auth` remained **100% untouched**.
+  - Total expenditure: **$0.00**; zero paid external APIs, fonts, or credit card dependencies.
+  - Zero database schema migrations applied; production DB `akbwiedtmxjxcjscgitw` and staging DB `jvbulmmdwovtgaxojxhn` remain completely untouched.
+- **Architectural Deliverables & Verification:**
+  - **Centralized Device Support Classifier (`src/features/department/device/useDeviceSupport.ts`):**
+    - Enforced deterministic device classification: Viewport width $\ge 1024\text{px}$ is Desktop; $< 1024\text{px}$ is Mobile/Tablet.
+    - Added orientation-aware anti-bypass protection: phone rotated into landscape mode (height $< 550\text{px}$ and `pointer: coarse` / `hover: none`) remains strictly restricted for management.
+    - Zero redirect loops or session loss during resize/orientation changes.
+  - **Desktop-Required Restriction Gate (`DesktopRequiredScreen.tsx` & `DesktopAccessGate.tsx`):**
+    - Replaces unsupported mobile/tablet desktop presentations completely without mounting heavy desktop components (morphing navbar, cursor spotlight, or scroll animations never mount).
+    - Features monitor icon, brand context, exact copy (`Desktop access required.` / `Please open this portal on a desktop or laptop to continue.`).
+    - Permitted actions: `Return to homepage`, `Sign out`, and `Open fieldwork` (for authenticated officers).
+    - Implemented `AdminDesktopGate.tsx` wrapping `/admin/requests`, `/admin/access`, and `/admin/ai` in a platinum/slate dark aesthetic.
+  - **Dedicated Mobile Officer Fieldwork Console (`V19OfficerPortalView.tsx` & `OfficerWorkView.tsx`):**
+    - Directly provides mobile fieldwork execution (`work` tab) with clean sticky mobile header (AWAAZ-E-AWAM, KMC, Fieldwork Console, theme toggle, sign out) and single-column cards.
+    - Decoupled work commencement: added `onStartWork` so officers can start assigned work orders directly from mobile without needing the desktop-only Complaints tab.
+    - Automatically initializes `activeTab` to `'work'` on mobile device load.
+  - **Elimination of Obsolete Navigation Overrides (`TopEdgeMorphingNav.tsx` & `v20-atmospheric.css`):**
+    - Removed 2-column mobile grid hacks and restored clean single-row desktop navbar dimensions.
+    - Added clean CSS classes in `v20-atmospheric.css` for restriction screen and mobile officer header.
+- **Automated Quality Gates & Test Verification:**
+  - TypeScript project build (`npx tsc -b && npm run build`): **Exit code `0` cleanly (0 errors, bundled in 2.12s)**.
+  - Vitest test suite (`npm test -- --run`): **83 passed | 1 skipped across 84 test files (829 passed | 1 skipped total, 0 regressions)**.
+  - Dedicated new test suite: `src/test/V21_7_DesktopFirstAccess.test.tsx` (**13 passed in 273ms**).
+  - Headless Chrome CDP Verification (`tools/ai_factory/v21_7_desktop_first_qa.mjs`):
+    - Verified desktop management at 1920x1080 (Dark & Light), 1440x900, 1366x768, 1280x800, and 1024x768.
+    - Verified restriction screens at 768x1024 (Tablet HOD & Admin), 390x844 (Mobile HOD), 320x568 (Small Mobile HOD), and 844x390 (Landscape Phone).
+    - Verified mobile fieldwork console at 430x932, 390x844 (Dark & Light), 360x780, and 320x568 with zero horizontal overflow.
+    - Verified citizen portal on mobile 390x844 remains 100% accessible with zero restriction.
+    - Saved 17 screenshot artifacts in `brain/screenshots/v21_7/`.
+
 ## Development update, 27 November 2026 — Phase V21.6: Complete Responsive Architecture Repair (Mobile 2-Column Compact Morphing Navbar, Content-Aware Dynamic Height Capping <= 48% dvh, Scalable SVG Donut & Complete Zero-Overflow Viewport Matrix)
 
 - **Git & Protected Baseline (`D:\RomanUrdu_V13_19_Review`, branch `fix/v21-6-complete-responsive-architecture`):**

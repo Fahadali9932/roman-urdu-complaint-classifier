@@ -13,6 +13,7 @@ import {
   Navigation,
   Send,
   X,
+  ArrowRight,
 } from 'lucide-react';
 
 export interface OfficerWorkViewProps {
@@ -25,6 +26,7 @@ export interface OfficerWorkViewProps {
     gps: { latitude: number; longitude: number; accuracy: number; distanceM?: number }
   ) => Promise<void>;
   onRequestMoreTime: (orderId: string, additionalHours: number, reason: string) => Promise<void>;
+  onStartWork?: (orderId: string) => void | Promise<void>;
   isLoading?: boolean;
 }
 
@@ -47,6 +49,7 @@ export const OfficerWorkView: React.FC<OfficerWorkViewProps> = ({
   complaints,
   onSubmitCompletion,
   onRequestMoreTime,
+  onStartWork,
   isLoading = false,
 }) => {
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
@@ -285,15 +288,99 @@ export const OfficerWorkView: React.FC<OfficerWorkViewProps> = ({
       </div>
 
       {activeOrders.length === 0 ? (
-        <div className="v19-glass-card" style={{ padding: '64px', textAlign: 'center', color: 'var(--v19-text-muted)' }}>
-          <CheckCircle2 size={36} style={{ color: 'var(--v19-green)', margin: '0 auto 12px' }} />
-          <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--v19-text-primary)', margin: '0 0 6px' }}>
-            No Field Tasks Currently In Progress
-          </h3>
-          <p style={{ fontSize: '13px', margin: 0 }}>
-            {isLoading ? 'Loading active fieldwork…' : 'Go to Assigned Tasks to start your next field assignment.'}
-          </p>
-        </div>
+        orders.filter((o) => o.status === 'assigned' && !o.started_at).length > 0 ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div className="v19-glass-card" style={{ padding: '20px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+              <div>
+                <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--v20-accent, #DFA51D)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                  Fieldwork Intake
+                </span>
+                <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--v20-text-primary)', margin: '4px 0 0' }}>
+                  Assigned Orders Awaiting Commencement ({orders.filter((o) => o.status === 'assigned' && !o.started_at).length})
+                </h3>
+              </div>
+            </div>
+
+            {orders.filter((o) => o.status === 'assigned' && !o.started_at).map((ord) => {
+              const matchedComplaint = complaints.find(
+                (c) => c.id === ord.anchor_complaint_id || c.referenceNumber === ord.anchor_complaint_id
+              );
+              return (
+                <div
+                  key={ord.id}
+                  className="v19-glass-card"
+                  style={{
+                    padding: '24px 28px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '14px',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
+                    <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--v20-accent, #DFA51D)', fontFamily: 'var(--v20-font-number, monospace)' }}>
+                      ASSIGNED WORK ORDER #{ord.id.slice(0, 8)}
+                    </span>
+                    <span className="v20-priority-badge high">
+                      {matchedComplaint?.priority || 'NORMAL'}
+                    </span>
+                  </div>
+
+                  <div>
+                    <h4 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--v20-text-primary)', margin: '0 0 6px' }}>
+                      {ord.case_label}
+                    </h4>
+                    <p style={{ fontSize: '13px', color: 'var(--v20-text-secondary)', margin: 0, lineHeight: 1.5 }}>
+                      {matchedComplaint?.factualSummary || matchedComplaint?.sanitizedText || 'Municipal field order assigned by Department Head.'}
+                    </p>
+                    <p style={{ fontSize: '12.5px', color: 'var(--v20-text-muted)', margin: '6px 0 0' }}>
+                      📍 {matchedComplaint?.publicPlace || 'Location'}, {matchedComplaint?.locality || ''}
+                    </p>
+                  </div>
+
+                  {ord.instructions && (
+                    <div style={{ padding: '10px 14px', borderRadius: '12px', background: 'rgba(255, 255, 255, 0.04)', fontSize: '12.5px', color: 'var(--v20-text-secondary)' }}>
+                      <strong>Supervisor Note:</strong> {ord.instructions}
+                    </div>
+                  )}
+
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '6px' }}>
+                    <button
+                      type="button"
+                      className="v19-nav-tab"
+                      style={{
+                        background: 'var(--v20-accent, #F0ECE3)',
+                        color: '#101216',
+                        fontWeight: 650,
+                        padding: '10px 24px',
+                        borderRadius: '9999px',
+                        border: 'none',
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                      }}
+                      data-testid={`v20-start-work-btn-${ord.id}`}
+                      onClick={() => onStartWork && onStartWork(ord.id)}
+                    >
+                      <span>Start Working</span>
+                      <ArrowRight size={16} />
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="v19-glass-card" style={{ padding: '64px', textAlign: 'center', color: 'var(--v19-text-muted)' }}>
+            <CheckCircle2 size={36} style={{ color: 'var(--v19-green)', margin: '0 auto 12px' }} />
+            <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--v19-text-primary)', margin: '0 0 6px' }}>
+              No Field Tasks Currently In Progress
+            </h3>
+            <p style={{ fontSize: '13px', margin: 0 }}>
+              {isLoading ? 'Loading active fieldwork…' : 'You have completed all assigned work orders.'}
+            </p>
+          </div>
+        )
       ) : activeOrder ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           {/* Top Live Countdown Card */}

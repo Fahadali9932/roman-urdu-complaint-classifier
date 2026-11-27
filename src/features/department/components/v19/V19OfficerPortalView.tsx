@@ -11,6 +11,8 @@ import { OfficerNotificationsView, type OfficerNotificationItem } from './Office
 import { OfficerProfileView } from './OfficerProfileView';
 import { OfficerMobileGate } from './OfficerMobileGate';
 import { useDepartmentAuth } from '../../../../context/DepartmentAuthContext';
+import { useDeviceSupport, DesktopRequiredScreen } from '../../device';
+import { Sun, Moon, LogOut } from 'lucide-react';
 import {
   fieldOperations,
   type DepartmentWorkOrder,
@@ -41,7 +43,13 @@ export const V19OfficerPortalView: React.FC<V19OfficerPortalViewProps> = ({
   onOpenPasswordModal,
   initialTab = 'home',
 }) => {
-  const [activeTab, setActiveTab] = useState(initialTab);
+  const deviceSupport = useDeviceSupport();
+  const [activeTab, setActiveTab] = useState(() => {
+    if (typeof window !== 'undefined' && window.innerWidth < 1024 && initialTab === 'home') {
+      return 'work';
+    }
+    return initialTab;
+  });
   const [orders, setOrders] = useState<DepartmentWorkOrder[]>([]);
   const [complaints, setComplaints] = useState<HeadIndependentComplaintRow[]>([]);
   const [officerProfile, setOfficerProfile] = useState<DepartmentOfficer | null>(null);
@@ -230,6 +238,143 @@ export const V19OfficerPortalView: React.FC<V19OfficerPortalViewProps> = ({
   const session = auth?.session;
   const effectiveStaffName = session?.displayName || officerProfile?.display_name || username;
 
+  // Mobile / Tablet Viewport Boundary Enforcement
+  if (!deviceSupport.isDesktop) {
+    if (activeTab === 'work') {
+      return (
+        <div
+          className="v20-mobile-officer-root"
+          data-testid="v20-mobile-officer-work-root"
+          style={{
+            minHeight: '100vh',
+            display: 'flex',
+            flexDirection: 'column',
+            backgroundColor: 'var(--v20-bg-base, #0D0A08)',
+            color: 'var(--v20-text-primary, #F4EFE5)',
+            fontFamily: 'var(--v20-font-body, "Inter", sans-serif)',
+            position: 'relative',
+          }}
+        >
+          {/* Atmospheric background */}
+          <div
+            className="v20-atmospheric-background"
+            aria-hidden="true"
+            style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none' }}
+          />
+
+          {/* Clean minimal mobile header */}
+          <header
+            className="v20-mobile-officer-header"
+            style={{
+              position: 'sticky',
+              top: 0,
+              zIndex: 100,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '12px 16px',
+              backgroundColor: 'rgba(13, 10, 8, 0.88)',
+              backdropFilter: 'blur(16px)',
+              WebkitBackdropFilter: 'blur(16px)',
+              borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+            }}
+          >
+            <div>
+              <div
+                style={{
+                  fontSize: '10.5px',
+                  fontWeight: 700,
+                  letterSpacing: '0.12em',
+                  textTransform: 'uppercase',
+                  color: 'var(--v20-accent, #E2A24D)',
+                }}
+              >
+                AWAAZ-E-AWAM • {departmentCode.toUpperCase()}
+              </div>
+              <div
+                style={{
+                  fontSize: '14.5px',
+                  fontWeight: 650,
+                  color: 'var(--v20-text-primary, #F4EFE5)',
+                  marginTop: '1px',
+                }}
+              >
+                Fieldwork Console
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <button
+                type="button"
+                onClick={onToggleTheme}
+                aria-label={themeMode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+                style={{
+                  width: '38px',
+                  height: '38px',
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: 'rgba(255, 255, 255, 0.06)',
+                  border: '1px solid rgba(255, 255, 255, 0.12)',
+                  color: 'var(--v20-text-primary, #F4EFE5)',
+                  cursor: 'pointer',
+                }}
+              >
+                {themeMode === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
+              </button>
+
+              <button
+                type="button"
+                onClick={onSignOut}
+                aria-label="Sign out"
+                style={{
+                  width: '38px',
+                  height: '38px',
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: 'rgba(255, 255, 255, 0.06)',
+                  border: '1px solid rgba(255, 255, 255, 0.12)',
+                  color: 'var(--v20-text-primary, #F4EFE5)',
+                  cursor: 'pointer',
+                }}
+              >
+                <LogOut size={17} />
+              </button>
+            </div>
+          </header>
+
+          {/* Focused mobile single-column fieldwork content */}
+          <main style={{ position: 'relative', zIndex: 1, flex: 1, padding: '16px 12px' }}>
+            <OfficerWorkView
+              departmentCode={departmentCode}
+              orders={orders}
+              complaints={complaints}
+              onSubmitCompletion={handleSubmitCompletion}
+              onRequestMoreTime={handleRequestMoreTime}
+              onStartWork={handleStartWork}
+              isLoading={isLoading}
+            />
+          </main>
+        </div>
+      );
+    }
+
+    return (
+      <DesktopRequiredScreen
+        portalType="department"
+        departmentCode={departmentCode}
+        departmentName={departmentName}
+        role="officer"
+        isAuthenticated={true}
+        onSignOut={onSignOut}
+        onNavigateToWork={() => setActiveTab('work')}
+      />
+    );
+  }
+
   return (
     <V20PortalLayout
       departmentCode={departmentCode}
@@ -298,6 +443,7 @@ export const V19OfficerPortalView: React.FC<V19OfficerPortalViewProps> = ({
             complaints={complaints}
             onSubmitCompletion={handleSubmitCompletion}
             onRequestMoreTime={handleRequestMoreTime}
+            onStartWork={handleStartWork}
             isLoading={isLoading}
           />
         )}
