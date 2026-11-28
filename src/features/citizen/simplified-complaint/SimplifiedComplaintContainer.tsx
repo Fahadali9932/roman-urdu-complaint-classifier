@@ -523,7 +523,7 @@ export const SimplifiedComplaintContainer: React.FC = () => {
               }`}
               data-testid="local-ai-test-banner"
             >
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <span
                     className={`flex h-9 w-9 items-center justify-center rounded-xl text-base font-bold shrink-0 shadow-2xs ${
@@ -550,6 +550,7 @@ export const SimplifiedComplaintContainer: React.FC = () => {
                           Model Candidate:
                         </label>
                         <select
+                          dir="ltr"
                           value={selectedEngine}
                           onChange={(e) => {
                             const val = e.target.value as
@@ -560,7 +561,7 @@ export const SimplifiedComplaintContainer: React.FC = () => {
                             setSelectedEngine(val);
                             (localV11ComplaintService as any).setEngineMode?.(val);
                           }}
-                          className="text-xs font-mono font-bold bg-white border border-amber-300 rounded-lg px-2.5 py-1 text-slate-800 shadow-2xs focus:ring-2 focus:ring-amber-500 cursor-pointer"
+                          className="w-full sm:w-auto max-w-full text-xs font-mono font-bold bg-white border border-amber-300 rounded-lg px-2.5 py-1 text-slate-800 shadow-2xs focus:ring-2 focus:ring-amber-500 cursor-pointer"
                         >
                           <option value="v13_5_candidate">
                             V13.5 Candidate (Two-Department Policy • 1-2 Dept Auto-Routing, 3+ Human Review)
@@ -580,7 +581,7 @@ export const SimplifiedComplaintContainer: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2.5 self-end sm:self-auto">
+                <div className="flex items-center gap-2.5 self-end lg:self-auto">
                   <span className="text-xs font-mono font-bold text-slate-600">
                     {isTestMode ? 'ENABLED' : 'OFF'}
                   </span>
