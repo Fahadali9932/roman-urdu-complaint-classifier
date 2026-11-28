@@ -19,7 +19,7 @@ export function PortalMetadata() {
     let canonical = document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]');
     if (!meta.canonical) canonical?.remove();
     else { if(!canonical) { canonical=document.createElement('link');canonical.rel='canonical';document.head.appendChild(canonical); } canonical.href=meta.canonical; }
-    const og: Record<string,string> = {'type':'website','site_name':SITE_NAME,'locale':'en_PK','locale:alternate':'ur_PK','title':meta.title,'description':meta.description,'url':meta.canonical,'image':meta.image,'image:alt':'Awaaz-e-Awam project branding'};
+    const og: Record<string,string> = {'type':'website','site_name':SITE_NAME,'locale':'en_PK','locale:alternate':'ur_PK','title':meta.title,'description':meta.description,'url':meta.canonical,'image':meta.image,'image:width':'1200','image:height':'630','image:type':'image/png','image:alt':'Awaaz-e-Awam project branding'};
     const twitter: Record<string,string> = {card:'summary_large_image',title:meta.title,description:meta.description,image:meta.image,'image:alt':'Awaaz-e-Awam project branding'};
     for(const [k,v] of Object.entries(og)) tag('og:'+k,meta.social?v:'',true);
     for(const [k,v] of Object.entries(twitter)) tag('twitter:'+k,meta.social?v:'');
