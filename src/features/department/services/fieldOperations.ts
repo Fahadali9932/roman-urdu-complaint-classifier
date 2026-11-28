@@ -838,6 +838,17 @@ class FieldOperationsService {
     return data as ProvisionOfficerResult;
   }
 
+  async requestOnboardingOtp(): Promise<{ success: boolean; message: string; cooldownSeconds?: number }> {
+    if (isLocalFieldDemo()) {
+      return { success: true, message: 'Verification code sent to registered officer email.', cooldownSeconds: 60 };
+    }
+    const { data, error } = await requireSupabase().functions.invoke('manage-department-officers', {
+      body: { action: 'send_onboarding_otp' },
+    });
+    if (error || data?.error) throw new Error(data?.error || error?.message || 'Unable to send verification code.');
+    return data;
+  }
+
   async verifyOnboardingOtp(code: string): Promise<{ success: boolean; message: string }> {
     const cleanCode = code.replace(/[^0-9]/g, '');
     if (cleanCode.length !== 6) {

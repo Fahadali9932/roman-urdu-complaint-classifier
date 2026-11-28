@@ -6,6 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:citizen": "tsc -b && vite build --mode citizen",
+    "build:management": "tsc -b && vite build --mode management",
+    "build:fieldwork": "tsc -b && vite build --mode fieldwork",
     "lint": "oxlint",
     "test": "vitest run",
     "test:watch": "vitest",

@@ -94,22 +94,31 @@ function aiTelemetryBridgePlugin() {
 }
 
 // https://vite.dev/config/
-export default defineConfig({
-  plugins: [
-    react(),
-    tailwindcss(),
-    aiTelemetryBridgePlugin(),
-  ],
-  server: {
-    headers: {
-      'Permissions-Policy': 'display-capture=(), geolocation=(self)',
-      'X-Content-Type-Options': 'nosniff',
-      'X-Frame-Options': 'DENY',
+export default defineConfig(({ mode }) => {
+  const portalTarget =
+    process.env.VITE_PORTAL_TARGET ||
+    (mode === 'citizen' || mode === 'management' || mode === 'fieldwork' ? mode : 'all');
+
+  return {
+    define: {
+      'import.meta.env.VITE_PORTAL_TARGET': JSON.stringify(portalTarget),
     },
-  },
-  test: {
-    globals: true,
-    environment: 'jsdom',
-    setupFiles: './src/test/setup.ts',
-  },
-})
+    plugins: [
+      react(),
+      tailwindcss(),
+      aiTelemetryBridgePlugin(),
+    ],
+    server: {
+      headers: {
+        'Permissions-Policy': 'display-capture=(), geolocation=(self)',
+        'X-Content-Type-Options': 'nosniff',
+        'X-Frame-Options': 'DENY',
+      },
+    },
+    test: {
+      globals: true,
+      environment: 'jsdom',
+      setupFiles: './src/test/setup.ts',
+    },
+  };
+});

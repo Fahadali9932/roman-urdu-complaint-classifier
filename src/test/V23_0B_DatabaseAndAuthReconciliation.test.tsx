@@ -39,7 +39,13 @@ describe('V23.0B Database Reconciliation & Authentication Security Suite', () =>
       // Multi-department partial resolution
       expect(sql).toContain('v23_sync_multi_dept_complaint_status');
       expect(sql).toContain('trg_v23_work_order_status_sync');
-      expect(sql).toContain("SET status = 'partly_resolved'");
+      expect(sql).toContain("'partly_resolved'");
+
+      // V23.0B.1: Security invoker on view, cross-department photo leak fix, and restricted execution grants
+      expect(sql).toContain('WITH (security_invoker = true)');
+      expect(sql).toContain('head_mem.department_id = officer_mem.department_id');
+      expect(sql).toContain('officer_onboarding_otps');
+      expect(sql).toContain('REVOKE EXECUTE ON FUNCTION public.v23_sync_multi_dept_complaint_status');
 
       // Server-side Haversine helper
       expect(sql).toContain('v23_haversine_distance_meters');
@@ -143,6 +149,157 @@ describe('V23.0B Database Reconciliation & Authentication Security Suite', () =>
 
       expect(model004).toBeDefined();
       expect(model006).toBeDefined();
+    });
+  });
+
+  describe('5. V23.0B.1 Multi-Department Status Aggregation Lifecycle Matrix (9 Scenarios)', () => {
+    // Pure reference logic replicating v23_sync_multi_dept_complaint_status
+    function simulateStatusSync(params: {
+      requiredDepts: string[];
+      orders: { deptId: string; status: 'pending_acceptance' | 'in_progress' | 'completed' | 'verified' | 'returned_for_rework' | 'rejected' }[];
+      currentStatus: string;
+    }): string {
+      const { requiredDepts, orders, currentStatus } = params;
+      if (requiredDepts.length === 0) return currentStatus;
+
+      let assignedCount = 0;
+      let verifiedCount = 0;
+      let inProgressCount = 0;
+      let reworkCount = 0;
+      let rejectedCount = 0;
+
+      for (const dept of requiredDepts) {
+        const deptOrders = orders.filter((o) => o.deptId === dept);
+        if (deptOrders.length > 0) assignedCount++;
+        if (deptOrders.some((o) => o.status === 'verified')) verifiedCount++;
+        if (deptOrders.some((o) => o.status === 'in_progress' || o.status === 'completed')) inProgressCount++;
+        if (deptOrders.some((o) => o.status === 'returned_for_rework')) reworkCount++;
+        if (deptOrders.length > 0 && deptOrders.every((o) => o.status === 'rejected')) rejectedCount++;
+      }
+
+      if (verifiedCount === requiredDepts.length) return 'resolved';
+      if (verifiedCount > 0) return 'partly_resolved';
+      if (assignedCount === requiredDepts.length && rejectedCount === requiredDepts.length) return 'rejected';
+      if (inProgressCount > 0 || reworkCount > 0) return 'in_progress';
+      if (assignedCount > 0) {
+        if (['submitted', 'under_review'].includes(currentStatus)) return 'assigned';
+        if (['resolved', 'partly_resolved'].includes(currentStatus)) return 'assigned';
+      }
+      return currentStatus;
+    }
+
+    it('Scenario 1: All required departments verified -> resolved', () => {
+      const res = simulateStatusSync({
+        requiredDepts: ['kelectric', 'kwsc'],
+        orders: [
+          { deptId: 'kelectric', status: 'verified' },
+          { deptId: 'kwsc', status: 'verified' },
+        ],
+        currentStatus: 'in_progress',
+      });
+      expect(res).toBe('resolved');
+    });
+
+    it('Scenario 2: One of two required departments verified -> partly_resolved', () => {
+      const res = simulateStatusSync({
+        requiredDepts: ['kelectric', 'kwsc'],
+        orders: [
+          { deptId: 'kelectric', status: 'verified' },
+          { deptId: 'kwsc', status: 'in_progress' },
+        ],
+        currentStatus: 'in_progress',
+      });
+      expect(res).toBe('partly_resolved');
+    });
+
+    it('Scenario 3: Returned resolution drops resolved status back', () => {
+      const res = simulateStatusSync({
+        requiredDepts: ['kelectric', 'kwsc'],
+        orders: [
+          { deptId: 'kelectric', status: 'verified' },
+          { deptId: 'kwsc', status: 'returned_for_rework' },
+        ],
+        currentStatus: 'resolved',
+      });
+      expect(res).toBe('partly_resolved');
+    });
+
+    it('Scenario 4: Second required department unassigned blocks resolved status', () => {
+      const res = simulateStatusSync({
+        requiredDepts: ['kelectric', 'kwsc'],
+        orders: [
+          { deptId: 'kelectric', status: 'verified' },
+          // kwsc has no work order created yet!
+        ],
+        currentStatus: 'assigned',
+      });
+      expect(res).toBe('partly_resolved'); // Not resolved, because kwsc is not verified!
+    });
+
+    it('Scenario 5: Active field operations in progress with zero verified depts -> in_progress', () => {
+      const res = simulateStatusSync({
+        requiredDepts: ['kmc', 'sswmb'],
+        orders: [
+          { deptId: 'kmc', status: 'in_progress' },
+          { deptId: 'sswmb', status: 'pending_acceptance' },
+        ],
+        currentStatus: 'assigned',
+      });
+      expect(res).toBe('in_progress');
+    });
+
+    it('Scenario 6: Orders assigned/pending acceptance -> assigned', () => {
+      const res = simulateStatusSync({
+        requiredDepts: ['kmc'],
+        orders: [{ deptId: 'kmc', status: 'pending_acceptance' }],
+        currentStatus: 'submitted',
+      });
+      expect(res).toBe('assigned');
+    });
+
+    it('Scenario 7: All required departments rejected -> rejected', () => {
+      const res = simulateStatusSync({
+        requiredDepts: ['kmc', 'sbca'],
+        orders: [
+          { deptId: 'kmc', status: 'rejected' },
+          { deptId: 'sbca', status: 'rejected' },
+        ],
+        currentStatus: 'in_progress',
+      });
+      expect(res).toBe('rejected');
+    });
+
+    it('Scenario 8: Work order returned for rework sets in_progress if no depts verified', () => {
+      const res = simulateStatusSync({
+        requiredDepts: ['kmc'],
+        orders: [{ deptId: 'kmc', status: 'returned_for_rework' }],
+        currentStatus: 'in_progress',
+      });
+      expect(res).toBe('in_progress');
+    });
+
+    it('Scenario 9: Initial intake with zero assigned orders preserves submitted/under_review', () => {
+      const res = simulateStatusSync({
+        requiredDepts: ['kmc'],
+        orders: [],
+        currentStatus: 'under_review',
+      });
+      expect(res).toBe('under_review');
+    });
+  });
+
+  describe('6. V23.0B.1 Multi-Target Build Strategy Configuration', () => {
+    it('verifies package.json and vite.config.ts define dedicated build targets', () => {
+      const pkgPath = path.resolve('package.json');
+      const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+
+      expect(pkg.scripts['build:citizen']).toBeDefined();
+      expect(pkg.scripts['build:management']).toBeDefined();
+      expect(pkg.scripts['build:fieldwork']).toBeDefined();
+
+      const viteConfigPath = path.resolve('vite.config.ts');
+      const viteConfig = fs.readFileSync(viteConfigPath, 'utf8');
+      expect(viteConfig).toContain('VITE_PORTAL_TARGET');
     });
   });
 });

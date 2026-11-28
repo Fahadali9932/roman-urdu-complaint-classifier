@@ -49,6 +49,9 @@ const DevCitizenDashboard = import.meta.env.DEV
   : null;
 
 export const AppRoutes: React.FC = () => {
+  const portalTarget = (import.meta.env.VITE_PORTAL_TARGET || 'all').toLowerCase();
+  const isCitizenOnly = portalTarget === 'citizen';
+
   return (
     <Routes>
       {/* Public Citizen Portal routes */}
@@ -74,30 +77,39 @@ export const AppRoutes: React.FC = () => {
         <Route path="/reset-password" element={<ResetPasswordPage />} />
       </Route>
 
-      {/* Staff & Administrator Management Routes */}
-      <Route path="/admin/login" element={<AdminLoginPage />} />
-      <Route element={<AdminDesktopGate />}>
-        <Route path="/admin/requests" element={<AdminRequestsPage />} />
-        <Route path="/admin/access" element={<AdminAccessPage />} />
-        <Route path="/admin/ai" element={<AiControlCenterPage />} />
-      </Route>
-      <Route path="/admin/overview" element={<Navigate to="/admin/requests" replace />} />
-      <Route path="/admin" element={<Navigate to="/admin/requests" replace />} />
+      {/* Staff & Administrator Management Routes (Excluded in Citizen-only builds) */}
+      {!isCitizenOnly ? (
+        <>
+          <Route path="/admin/login" element={<AdminLoginPage />} />
+          <Route element={<AdminDesktopGate />}>
+            <Route path="/admin/requests" element={<AdminRequestsPage />} />
+            <Route path="/admin/access" element={<AdminAccessPage />} />
+            <Route path="/admin/ai" element={<AiControlCenterPage />} />
+          </Route>
+          <Route path="/admin/overview" element={<Navigate to="/admin/requests" replace />} />
+          <Route path="/admin" element={<Navigate to="/admin/requests" replace />} />
 
-      {/* Department Portal Workspace */}
-      <Route element={<DepartmentPortalLayout />}>
-        <Route path="/department" element={<DepartmentDashboardPage />} />
-        <Route path="/department/dashboard" element={<Navigate to="/department" replace />} />
-        <Route path="/department/login" element={<LegacyDepartmentLoginRedirect />} />
-        <Route path="/department/head/login" element={<HodLoginPage />} />
-        <Route path="/department/officer/login" element={<OfficerLoginPage />} />
-        <Route path="/department/request-access" element={<StaffAccessRequestPage />} />
-        <Route path="/department/head" element={<DepartmentRoleBoundary expectedRole="head" />} />
-        <Route path="/department/officer" element={<DepartmentRoleBoundary expectedRole="officer" />} />
-        <Route path="/department/settings" element={<Navigate to="/department?view=overview" replace />} />
-        <Route path="/department/complaints/:referenceNumber" element={<DepartmentDashboardPage />} />
-        <Route path="/department/:referenceNumber" element={<DepartmentDashboardPage />} />
-      </Route>
+          {/* Department Portal Workspace */}
+          <Route element={<DepartmentPortalLayout />}>
+            <Route path="/department" element={<DepartmentDashboardPage />} />
+            <Route path="/department/dashboard" element={<Navigate to="/department" replace />} />
+            <Route path="/department/login" element={<LegacyDepartmentLoginRedirect />} />
+            <Route path="/department/head/login" element={<HodLoginPage />} />
+            <Route path="/department/officer/login" element={<OfficerLoginPage />} />
+            <Route path="/department/request-access" element={<StaffAccessRequestPage />} />
+            <Route path="/department/head" element={<DepartmentRoleBoundary expectedRole="head" />} />
+            <Route path="/department/officer" element={<DepartmentRoleBoundary expectedRole="officer" />} />
+            <Route path="/department/settings" element={<Navigate to="/department?view=overview" replace />} />
+            <Route path="/department/complaints/:referenceNumber" element={<DepartmentDashboardPage />} />
+            <Route path="/department/:referenceNumber" element={<DepartmentDashboardPage />} />
+          </Route>
+        </>
+      ) : (
+        <>
+          <Route path="/admin/*" element={<Navigate to="/" replace />} />
+          <Route path="/department/*" element={<Navigate to="/" replace />} />
+        </>
+      )}
 
       {/* Authenticated Citizen Workspace layout */}
       <Route element={<CitizenLayout />}>

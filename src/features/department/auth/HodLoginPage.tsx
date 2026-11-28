@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { AwaazLogo } from '../../../components/common/AwaazLogo';
 import { Eye, EyeOff, ArrowRight, ArrowLeft, Sun, Moon, ShieldAlert } from 'lucide-react';
 import { useDepartmentAuth } from '../../../context/DepartmentAuthContext';
+import { supabase } from '../../../lib/supabase';
 import { useCivicTheme, useDepartmentAtmosphereEffect } from '../hooks/useCivicTheme';
 import {
   type AuthorizedDepartmentKey,
@@ -19,7 +20,7 @@ import '../v20-atmospheric.css';
 export const HodLoginPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { signInWithCredentials, signOut } = useDepartmentAuth();
+  const { signInWithCredentials, signOut, completeMfaSignIn } = useDepartmentAuth();
   const { theme: themeMode, toggleTheme } = useCivicTheme();
   const { isDesktop } = useDeviceSupport();
 
@@ -45,6 +46,13 @@ export const HodLoginPage: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [roleMismatchError, setRoleMismatchError] = useState<string | null>(null);
 
+  // Authenticator MFA State (AAL2 Step-Up)
+  const [mfaStage, setMfaStage] = useState<'none' | 'challenge' | 'enroll'>('none');
+  const [totpCode, setTotpCode] = useState('');
+  const [mfaFactorId, setMfaFactorId] = useState('');
+  const [mfaSecret, setMfaSecret] = useState('');
+  const [mfaQr, setMfaQr] = useState('');
+
   const isLight = themeMode === 'light';
   const atmosphere = DEPARTMENT_ATMOSPHERES[selectedDeptKey] || DEPARTMENT_ATMOSPHERES.selection;
   const currentDeptMeta = STAFF_DEPARTMENTS.find((d) => d.key === selectedDeptKey);
@@ -54,6 +62,7 @@ export const HodLoginPage: React.FC = () => {
     setSearchParams({ dept: deptKey });
     setErrorMessage(null);
     setRoleMismatchError(null);
+    setMfaStage('none');
   };
 
   // Stage 2 -> Stage 1: Return to department selection
@@ -61,6 +70,61 @@ export const HodLoginPage: React.FC = () => {
     setSearchParams({});
     setErrorMessage(null);
     setRoleMismatchError(null);
+    setMfaStage('none');
+  };
+
+  const handleMfaSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const cleanTotp = totpCode.trim().replace(/[^0-9]/g, '');
+    if (cleanTotp.length !== 6) {
+      setErrorMessage('Please enter a 6-digit authenticator verification code.');
+      return;
+    }
+
+    setIsLoading(true);
+    setErrorMessage(null);
+
+    try {
+      if (!supabase) throw new Error('Supabase authentication client is not available.');
+
+      const challengeRes = await supabase.auth.mfa.challenge({ factorId: mfaFactorId });
+      if (challengeRes.error) throw challengeRes.error;
+
+      const verifyRes = await supabase.auth.mfa.verify({
+        factorId: mfaFactorId,
+        challengeId: challengeRes.data.id,
+        code: cleanTotp,
+      });
+      if (verifyRes.error) throw verifyRes.error;
+
+      const completion = await completeMfaSignIn();
+      if (!completion.success) {
+        throw new Error(completion.error || 'Authenticator verification could not be finalized.');
+      }
+
+      // Verify Role Separation at Boundary
+      const authSession = (await import('../../../services/staffAuthService')).staffAuthService.getCurrentStaffSession();
+      if (authSession?.userId) {
+        const verifiedRole = await fieldOperations.getMyRole(
+          selectedDeptKey === 'gas' ? 'ssgc' : selectedDeptKey,
+          authSession.userId
+        );
+        if (verifiedRole === 'officer') {
+          signOut();
+          setIsLoading(false);
+          setRoleMismatchError(
+            'This sign-in is reserved for Department Heads. Your account belongs to the Field Officer workspace.'
+          );
+          return;
+        }
+      }
+
+      setIsLoading(false);
+      navigate('/department/head', { replace: true });
+    } catch (err: any) {
+      setIsLoading(false);
+      setErrorMessage(err.message || 'Invalid or expired authenticator code.');
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -82,6 +146,33 @@ export const HodLoginPage: React.FC = () => {
       );
 
       if (!res.success) {
+        if (res.status === 'mfa_required') {
+          try {
+            const factorsRes = await supabase?.auth.mfa.listFactors();
+            const totpFactors = factorsRes?.data?.totp || [];
+            const verifiedFactor = totpFactors.find((f: any) => f.status === 'verified');
+            if (verifiedFactor) {
+              setMfaFactorId(verifiedFactor.id);
+              setMfaStage('challenge');
+            } else {
+              const enrollRes = await supabase?.auth.mfa.enroll({ factorType: 'totp', issuer: 'Awaaz-e-Awam' });
+              if (enrollRes?.data) {
+                setMfaFactorId(enrollRes.data.id);
+                setMfaSecret(enrollRes.data.totp.secret);
+                setMfaQr(enrollRes.data.totp.qr_code);
+                setMfaStage('enroll');
+              } else {
+                setMfaStage('challenge');
+              }
+            }
+          } catch (mfaInitErr: any) {
+            setErrorMessage(mfaInitErr.message || 'MFA initialization failed.');
+          } finally {
+            setIsLoading(false);
+          }
+          return;
+        }
+
         setIsLoading(false);
         if (res.status === 'wrong_department') {
           setErrorMessage('This staff account is not authorized for the selected department.');
@@ -379,219 +470,378 @@ export const HodLoginPage: React.FC = () => {
             boxSizing: 'border-box',
           }}
         >
-          <div>
-            <h2
-              style={{
-                fontFamily: 'var(--v20-font-display, "Inter", sans-serif)',
-                fontSize: '22px',
-                fontWeight: 700,
-                letterSpacing: '-0.02em',
-                margin: '0 0 6px 0',
-                color: isLight ? '#171717' : '#F2EFE9',
-              }}
-            >
-              Sign in
-            </h2>
-            <p
-              style={{
-                fontSize: '13.5px',
-                color: isLight ? '#626262' : 'rgba(242, 239, 233, 0.65)',
-                margin: 0,
-              }}
-            >
-              Enter your assigned department head credentials.
-            </p>
-          </div>
-
-          <form
-            onSubmit={handleSubmit}
-            style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
-          >
-            {/* Error Message */}
-            {errorMessage && (
-              <div
-                role="alert"
-                style={{
-                  padding: '12px 14px',
-                  borderRadius: '12px',
-                  background: 'rgba(224, 86, 86, 0.14)',
-                  border: '1px solid rgba(224, 86, 86, 0.3)',
-                  color: '#E05656',
-                  fontSize: '13px',
-                  lineHeight: 1.45,
-                }}
-              >
-                {errorMessage}
-              </div>
-            )}
-
-            {/* Role Mismatch Warning without cross-portal links */}
-            {roleMismatchError && (
-              <div
-                role="alert"
-                style={{
-                  padding: '14px',
-                  borderRadius: '12px',
-                  background: 'rgba(217, 119, 6, 0.12)',
-                  border: '1px solid rgba(217, 119, 6, 0.3)',
-                  color: isLight ? '#92400E' : '#F59E0B',
-                  fontSize: '13px',
-                  lineHeight: 1.45,
-                  display: 'flex',
-                  alignItems: 'flex-start',
-                  gap: '10px',
-                }}
-              >
-                <ShieldAlert size={18} style={{ flexShrink: 0, marginTop: '2px' }} />
-                <div>{roleMismatchError}</div>
-              </div>
-            )}
-
-            {/* Identifier input */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label
-                htmlFor="hod-identifier"
-                style={{
-                  fontSize: '11.5px',
-                  fontWeight: 650,
-                  letterSpacing: '0.06em',
-                  textTransform: 'uppercase',
-                  color: isLight ? '#454545' : 'rgba(242, 239, 233, 0.72)',
-                }}
-              >
-                Username or official email
-              </label>
-              <input
-                id="hod-identifier"
-                type="text"
-                aria-label="Username"
-                autoComplete="username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="e.g. roads-01 or name@kmc.gos.pk"
-                data-testid="hod-login-username-input"
-                className="v20-auth-input"
-              />
-            </div>
-
-            {/* Password input */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label
-                htmlFor="hod-password"
-                style={{
-                  fontSize: '11.5px',
-                  fontWeight: 650,
-                  letterSpacing: '0.06em',
-                  textTransform: 'uppercase',
-                  color: isLight ? '#454545' : 'rgba(242, 239, 233, 0.72)',
-                }}
-              >
-                Password
-              </label>
-              <div style={{ position: 'relative', width: '100%' }}>
-                <input
-                  id="hod-password"
-                  type={showPassword ? 'text' : 'password'}
-                  aria-label="Access key (local demo)"
-                  autoComplete="current-password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter your password"
-                  data-testid="hod-login-password-input"
-                  className="v20-auth-input"
-                  style={{ paddingRight: '44px' }}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((prev) => !prev)}
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
-                  data-testid="hod-toggle-password-visibility"
+          {mfaStage !== 'none' ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }} data-testid="hod-mfa-container">
+              <div>
+                <h2
                   style={{
-                    position: 'absolute',
-                    right: '12px',
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    background: 'none',
+                    fontFamily: 'var(--v20-font-display, "Inter", sans-serif)',
+                    fontSize: '22px',
+                    fontWeight: 700,
+                    letterSpacing: '-0.02em',
+                    margin: '0 0 6px 0',
+                    color: isLight ? '#171717' : '#F2EFE9',
+                  }}
+                >
+                  {mfaStage === 'enroll' ? 'Enroll Authenticator MFA' : 'Authenticator Verification'}
+                </h2>
+                <p
+                  style={{
+                    fontSize: '13.5px',
+                    color: isLight ? '#626262' : 'rgba(242, 239, 233, 0.65)',
+                    margin: 0,
+                  }}
+                >
+                  {mfaStage === 'enroll'
+                    ? 'Scan the code with your authenticator app (Google Authenticator, Microsoft Authenticator) to establish AAL2 protection.'
+                    : 'Enter the 6-digit code generated by your authenticator app to reach AAL2 authorization.'}
+                </p>
+              </div>
+
+              {errorMessage && (
+                <div
+                  role="alert"
+                  style={{
+                    padding: '12px 14px',
+                    borderRadius: '12px',
+                    background: 'rgba(224, 86, 86, 0.14)',
+                    border: '1px solid rgba(224, 86, 86, 0.3)',
+                    color: '#E05656',
+                    fontSize: '13px',
+                    lineHeight: 1.45,
+                  }}
+                >
+                  {errorMessage}
+                </div>
+              )}
+
+              {mfaStage === 'enroll' && (
+                <div
+                  style={{
+                    padding: '16px',
+                    borderRadius: '14px',
+                    background: isLight ? 'rgba(0, 0, 0, 0.04)' : 'rgba(255, 255, 255, 0.05)',
+                    border: isLight ? '1px solid rgba(0, 0, 0, 0.08)' : '1px solid rgba(255, 255, 255, 0.1)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '12px',
+                  }}
+                >
+                  {mfaQr && (
+                    <img
+                      src={mfaQr}
+                      alt="Authenticator QR Code"
+                      style={{ width: '150px', height: '150px', borderRadius: '8px', background: '#FFFFFF', padding: '6px' }}
+                    />
+                  )}
+                  {mfaSecret && (
+                    <div style={{ fontSize: '12px', color: isLight ? '#555' : 'rgba(242, 239, 233, 0.75)', textAlign: 'center' }}>
+                      Secret Key: <code style={{ letterSpacing: '0.08em', fontWeight: 600 }}>{mfaSecret}</code>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <form onSubmit={handleMfaSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <label
+                    htmlFor="hod-totp-code"
+                    style={{
+                      fontSize: '11.5px',
+                      fontWeight: 650,
+                      letterSpacing: '0.06em',
+                      textTransform: 'uppercase',
+                      color: isLight ? '#454545' : 'rgba(242, 239, 233, 0.72)',
+                    }}
+                  >
+                    6-Digit Security Code
+                  </label>
+                  <input
+                    id="hod-totp-code"
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    maxLength={6}
+                    autoComplete="one-time-code"
+                    value={totpCode}
+                    onChange={(e) => setTotpCode(e.target.value.replace(/[^0-9]/g, ''))}
+                    placeholder="000 000"
+                    data-testid="hod-mfa-code-input"
+                    className="v20-auth-input"
+                    style={{ textAlign: 'center', fontSize: '20px', letterSpacing: '0.25em' }}
+                    autoFocus
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isLoading || totpCode.trim().length !== 6}
+                  data-testid="hod-mfa-submit-button"
+                  className="v20-field-btn primary"
+                  style={{
+                    width: '100%',
+                    minHeight: '48px',
+                    fontSize: '14.5px',
+                    fontWeight: 650,
+                    cursor: isLoading || totpCode.trim().length !== 6 ? 'not-allowed' : 'pointer',
+                    opacity: isLoading || totpCode.trim().length !== 6 ? 0.6 : 1,
+                    background: isLight ? '#171717' : '#F0ECE3',
+                    color: isLight ? '#FFFFFF' : '#101216',
                     border: 'none',
-                    color: isLight ? '#626262' : 'rgba(242, 239, 233, 0.6)',
-                    cursor: 'pointer',
+                    borderRadius: '12px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    padding: '4px',
+                    gap: '8px',
                   }}
                 >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  {isLoading ? <span>Verifying code…</span> : (
+                    <>
+                      <span>Verify & Enter Head Workspace</span>
+                      <ArrowRight size={16} />
+                    </>
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMfaStage('none');
+                    setTotpCode('');
+                    signOut();
+                  }}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: isLight ? '#666' : 'rgba(242, 239, 233, 0.6)',
+                    fontSize: '13px',
+                    cursor: 'pointer',
+                    padding: '8px',
+                    textAlign: 'center',
+                  }}
+                >
+                  Cancel and use different credentials
+                </button>
+              </form>
+            </div>
+          ) : (
+            <>
+              <div>
+                <h2
+                  style={{
+                    fontFamily: 'var(--v20-font-display, "Inter", sans-serif)',
+                    fontSize: '22px',
+                    fontWeight: 700,
+                    letterSpacing: '-0.02em',
+                    margin: '0 0 6px 0',
+                    color: isLight ? '#171717' : '#F2EFE9',
+                  }}
+                >
+                  Sign in
+                </h2>
+                <p
+                  style={{
+                    fontSize: '13.5px',
+                    color: isLight ? '#626262' : 'rgba(242, 239, 233, 0.65)',
+                    margin: 0,
+                  }}
+                >
+                  Enter your assigned department head credentials.
+                </p>
+              </div>
+
+              <form
+                onSubmit={handleSubmit}
+                style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
+              >
+                {/* Error Message */}
+                {errorMessage && (
+                  <div
+                    role="alert"
+                    style={{
+                      padding: '12px 14px',
+                      borderRadius: '12px',
+                      background: 'rgba(224, 86, 86, 0.14)',
+                      border: '1px solid rgba(224, 86, 86, 0.3)',
+                      color: '#E05656',
+                      fontSize: '13px',
+                      lineHeight: 1.45,
+                    }}
+                  >
+                    {errorMessage}
+                  </div>
+                )}
+
+                {/* Role Mismatch Warning without cross-portal links */}
+                {roleMismatchError && (
+                  <div
+                    role="alert"
+                    style={{
+                      padding: '14px',
+                      borderRadius: '12px',
+                      background: 'rgba(217, 119, 6, 0.12)',
+                      border: '1px solid rgba(217, 119, 6, 0.3)',
+                      color: isLight ? '#92400E' : '#F59E0B',
+                      fontSize: '13px',
+                      lineHeight: 1.45,
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      gap: '10px',
+                    }}
+                  >
+                    <ShieldAlert size={18} style={{ flexShrink: 0, marginTop: '2px' }} />
+                    <div>{roleMismatchError}</div>
+                  </div>
+                )}
+
+                {/* Identifier input */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <label
+                    htmlFor="hod-identifier"
+                    style={{
+                      fontSize: '11.5px',
+                      fontWeight: 650,
+                      letterSpacing: '0.06em',
+                      textTransform: 'uppercase',
+                      color: isLight ? '#454545' : 'rgba(242, 239, 233, 0.72)',
+                    }}
+                  >
+                    Username or official email
+                  </label>
+                  <input
+                    id="hod-identifier"
+                    type="text"
+                    aria-label="Username"
+                    autoComplete="username"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    placeholder="e.g. roads-01 or name@kmc.gos.pk"
+                    data-testid="hod-login-username-input"
+                    className="v20-auth-input"
+                  />
+                </div>
+
+                {/* Password input */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <label
+                    htmlFor="hod-password"
+                    style={{
+                      fontSize: '11.5px',
+                      fontWeight: 650,
+                      letterSpacing: '0.06em',
+                      textTransform: 'uppercase',
+                      color: isLight ? '#454545' : 'rgba(242, 239, 233, 0.72)',
+                    }}
+                  >
+                    Password
+                  </label>
+                  <div style={{ position: 'relative', width: '100%' }}>
+                    <input
+                      id="hod-password"
+                      type={showPassword ? 'text' : 'password'}
+                      aria-label="Access key (local demo)"
+                      autoComplete="current-password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Enter your password"
+                      data-testid="hod-login-password-input"
+                      className="v20-auth-input"
+                      style={{ paddingRight: '44px' }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((prev) => !prev)}
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                      data-testid="hod-toggle-password-visibility"
+                      style={{
+                        position: 'absolute',
+                        right: '12px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        background: 'none',
+                        border: 'none',
+                        color: isLight ? '#626262' : 'rgba(242, 239, 233, 0.6)',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: '4px',
+                      }}
+                    >
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Submit Button */}
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  aria-label="Sign In"
+                  data-testid="hod-login-submit-button"
+                  className="v20-field-btn primary"
+                  style={{
+                    width: '100%',
+                    minHeight: '48px',
+                    marginTop: '8px',
+                    fontSize: '14.5px',
+                    fontWeight: 650,
+                    cursor: isLoading ? 'wait' : 'pointer',
+                    opacity: isLoading ? 0.7 : 1,
+                    background: isLight ? '#171717' : '#F0ECE3',
+                    color: isLight ? '#FFFFFF' : '#101216',
+                    border: 'none',
+                    borderRadius: '12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    transition: 'opacity 160ms ease, transform 160ms ease',
+                  }}
+                >
+                  {isLoading ? (
+                    <span>Verifying credentials…</span>
+                  ) : (
+                    <>
+                      <span>Sign in as Department Head</span>
+                      <ArrowRight size={16} />
+                    </>
+                  )}
+                </button>
+              </form>
+
+              {/* Change Department Footer Control */}
+              <div
+                style={{
+                  paddingTop: '16px',
+                  borderTop: isLight ? '1px solid rgba(0, 0, 0, 0.08)' : '1px solid rgba(255, 255, 255, 0.08)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '13px',
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={handleChangeDepartment}
+                  data-testid="hod-change-dept-footer-btn"
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: isLight ? '#555555' : 'rgba(242, 239, 233, 0.65)',
+                    fontSize: '12.5px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    padding: '4px',
+                    textDecoration: 'underline',
+                  }}
+                >
+                  Change selected department
                 </button>
               </div>
-            </div>
-
-            {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={isLoading}
-              aria-label="Sign In"
-              data-testid="hod-login-submit-button"
-              className="v20-field-btn primary"
-              style={{
-                width: '100%',
-                minHeight: '48px',
-                marginTop: '8px',
-                fontSize: '14.5px',
-                fontWeight: 650,
-                cursor: isLoading ? 'wait' : 'pointer',
-                opacity: isLoading ? 0.7 : 1,
-                background: isLight ? '#171717' : '#F0ECE3',
-                color: isLight ? '#FFFFFF' : '#101216',
-                border: 'none',
-                borderRadius: '12px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                transition: 'opacity 160ms ease, transform 160ms ease',
-              }}
-            >
-              {isLoading ? (
-                <span>Verifying credentials…</span>
-              ) : (
-                <>
-                  <span>Sign in as Department Head</span>
-                  <ArrowRight size={16} />
-                </>
-              )}
-            </button>
-          </form>
-
-          {/* Change Department Footer Control */}
-          <div
-            style={{
-              paddingTop: '16px',
-              borderTop: isLight ? '1px solid rgba(0, 0, 0, 0.08)' : '1px solid rgba(255, 255, 255, 0.08)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '13px',
-            }}
-          >
-            <button
-              type="button"
-              onClick={handleChangeDepartment}
-              data-testid="hod-change-dept-footer-btn"
-              style={{
-                background: 'none',
-                border: 'none',
-                color: isLight ? '#555555' : 'rgba(242, 239, 233, 0.65)',
-                fontSize: '12.5px',
-                fontWeight: 600,
-                cursor: 'pointer',
-                padding: '4px',
-                textDecoration: 'underline',
-              }}
-            >
-              Select a different department
-            </button>
-          </div>
+            </>
+          )}
         </div>
       </main>
     </div>

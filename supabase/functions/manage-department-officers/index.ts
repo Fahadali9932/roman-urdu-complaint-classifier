@@ -68,6 +68,29 @@ function normalizeEmployeeId(raw: unknown): string | null {
   return cleaned;
 }
 
+async function hashOtp(salt: string, code: string): Promise<string> {
+  const enc = new TextEncoder();
+  const buffer = await crypto.subtle.digest("SHA-256", enc.encode(salt + ":" + code));
+  return Array.from(new Uint8Array(buffer))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+function generateSalt(): string {
+  const arr = new Uint8Array(16);
+  crypto.getRandomValues(arr);
+  return Array.from(arr)
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+function generateOtpCode(): string {
+  const arr = new Uint32Array(1);
+  crypto.getRandomValues(arr);
+  const num = 100000 + (arr[0] % 900000);
+  return num.toString();
+}
+
 Deno.serve(async (request) => {
   if (request.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (request.method !== "POST") return json({ error: "Method not allowed." }, 405);
@@ -168,6 +191,111 @@ Deno.serve(async (request) => {
     return json({ success: true, mustChangePassword: false }, 200);
   }
 
+  // Officer onboarding: Request or resend 6-digit email OTP
+  if (action === "send_onboarding_otp") {
+    const { data: mem, error: memErr } = await admin
+      .from("department_memberships")
+      .select("id, department_id, status, staff_role, employee_id")
+      .eq("user_id", callerData.user.id)
+      .eq("status", "active")
+      .maybeSingle();
+
+    if (memErr || !mem) {
+      return json({ error: "Active department membership required." }, 403);
+    }
+
+    // Check existing OTP for resend cooldown (60 seconds)
+    const { data: latestOtp } = await admin
+      .from("officer_onboarding_otps")
+      .select("id, resend_cooldown_until")
+      .eq("user_id", callerData.user.id)
+      .is("verified_at", null)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    const now = Date.now();
+    if (latestOtp?.resend_cooldown_until && new Date(latestOtp.resend_cooldown_until).getTime() > now) {
+      const waitSec = Math.ceil((new Date(latestOtp.resend_cooldown_until).getTime() - now) / 1000);
+      return json({ error: `Please wait ${waitSec} seconds before requesting a new verification code.`, cooldownSeconds: waitSec }, 429);
+    }
+
+    // Determine deliverable email
+    const { data: prof } = await admin
+      .from("officer_profile_details")
+      .select("contact_email, official_email")
+      .eq("user_id", callerData.user.id)
+      .maybeSingle();
+
+    const recipientEmail = prof?.contact_email || prof?.official_email || callerData.user.email;
+    if (!recipientEmail) {
+      return json({ error: "No contact email address on file for this officer." }, 400);
+    }
+
+    const otpCode = generateOtpCode();
+    const salt = generateSalt();
+    const otpHash = await hashOtp(salt, otpCode);
+
+    const expiresAt = new Date(now + 5 * 60_000).toISOString();
+    const cooldownUntil = new Date(now + 60_000).toISOString();
+
+    const { error: insErr } = await admin.from("officer_onboarding_otps").insert({
+      user_id: callerData.user.id,
+      contact_email: recipientEmail,
+      otp_hash: otpHash,
+      salt: salt,
+      attempts_count: 0,
+      max_attempts: 5,
+      expires_at: expiresAt,
+      resend_cooldown_until: cooldownUntil,
+    });
+
+    if (insErr) {
+      return json({ error: "Failed to issue onboarding verification code." }, 500);
+    }
+
+    // Send email via configured external provider (Resend, Brevo, or Supabase SMTP)
+    // Note: Plaintext OTP is NEVER logged to audit logs or console.
+    const resendApiKey = Deno.env.get("RESEND_API_KEY");
+    let deliveryStatus = "pending_delivery";
+    if (resendApiKey) {
+      try {
+        const mailRes = await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${resendApiKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            from: "Awaaz-e-Awam Staff Onboarding <onboarding@awaaz-e-awam.org>",
+            to: [recipientEmail],
+            subject: "Awaaz-e-Awam Officer Verification Code",
+            text: `Your Awaaz-e-Awam field officer verification code is: ${otpCode}\nThis code will expire in 5 minutes.\nDo not share this code with anyone.`,
+          }),
+        });
+        if (mailRes.ok) deliveryStatus = "dispatched_resend";
+      } catch {
+        deliveryStatus = "dispatch_error";
+      }
+    }
+
+    await admin.from("access_audit_log").insert({
+      action: "officer_otp_dispatched",
+      target_user_id: callerData.user.id,
+      target_email: recipientEmail,
+      department_id: mem.department_id,
+      actor_id: callerData.user.id,
+      details: { deliveryStatus, expiresAt },
+    });
+
+    return json({
+      success: true,
+      message: `Verification code sent to registered officer email.`,
+      cooldownSeconds: 60,
+      expiresAt,
+    }, 200);
+  }
+
   // Officer first-login email OTP verification
   if (action === "verify_onboarding_otp") {
     const code = typeof body.code === "string" ? body.code.trim().replace(/[^0-9]/g, "") : "";
@@ -184,6 +312,47 @@ Deno.serve(async (request) => {
 
     if (memErr || !mem) {
       return json({ error: "Active department membership required." }, 403);
+    }
+
+    // Fetch latest active unverified OTP
+    const { data: activeOtp } = await admin
+      .from("officer_onboarding_otps")
+      .select("id, otp_hash, salt, attempts_count, max_attempts, expires_at, verified_at")
+      .eq("user_id", callerData.user.id)
+      .is("verified_at", null)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    // If an OTP record exists, verify cryptographically against salted hash
+    if (activeOtp) {
+      const now = Date.now();
+      if (new Date(activeOtp.expires_at).getTime() < now) {
+        return json({ error: "Verification code has expired. Please request a new code." }, 400);
+      }
+
+      if (activeOtp.attempts_count >= activeOtp.max_attempts) {
+        return json({ error: "Maximum verification attempts exceeded. Please request a new code." }, 429);
+      }
+
+      const candidateHash = await hashOtp(activeOtp.salt, code);
+      const isMatch = candidateHash === activeOtp.otp_hash;
+
+      await admin
+        .from("officer_onboarding_otps")
+        .update({
+          attempts_count: activeOtp.attempts_count + 1,
+          verified_at: isMatch ? new Date().toISOString() : null,
+        })
+        .eq("id", activeOtp.id);
+
+      if (!isMatch) {
+        const remaining = activeOtp.max_attempts - (activeOtp.attempts_count + 1);
+        return json({
+          error: `Invalid verification code. ${remaining > 0 ? `${remaining} attempts remaining.` : "Please request a new code."}`,
+          attemptsRemaining: remaining,
+        }, 400);
+      }
     }
 
     await admin.from("access_audit_log").insert({
@@ -223,8 +392,14 @@ Deno.serve(async (request) => {
       return json({ error: "Provide a full name (2-100 chars) and valid Employee ID (letters, numbers, hyphens)." }, 400);
     }
 
+    // Support genuine deliverable email input from HOD
+    const rawContactEmail = typeof body.contactEmail === "string" ? body.contactEmail : typeof body.email === "string" ? body.email : "";
+    const cleanContactEmail = rawContactEmail.trim().toLowerCase();
+    const hasValidContactEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanContactEmail);
+
     const staffUsername = `${departmentId}-${employeeId}`;
     const syntheticEmail = `staff+${departmentId}.${employeeId}@awaaz-e-awam.org`;
+    const officerAuthEmail = hasValidContactEmail ? cleanContactEmail : syntheticEmail;
 
     // Enforce uniqueness in department before creating Auth account
     const { data: existingEmp } = await admin
@@ -240,7 +415,7 @@ Deno.serve(async (request) => {
 
     const tempKey = generateTemporaryAccessKey();
     const { data: created, error: createErr } = await admin.auth.admin.createUser({
-      email: syntheticEmail,
+      email: officerAuthEmail,
       password: tempKey,
       email_confirm: true,
       user_metadata: {
@@ -266,7 +441,7 @@ Deno.serve(async (request) => {
     const { error: profErr } = await admin.from("profiles").upsert({
       id: newUserId,
       full_name: fullName,
-      email: syntheticEmail,
+      email: officerAuthEmail,
       role: "department_staff",
     }, { onConflict: "id" });
     if (profErr) {
@@ -291,10 +466,23 @@ Deno.serve(async (request) => {
       return json({ error: "Membership provisioning failed; officer creation rolled back safely." }, 500);
     }
 
+    // Upsert officer details with contact email and masking
+    const phone = typeof body.phone === "string" ? body.phone.trim() : null;
+    await admin.from("officer_profile_details").upsert({
+      user_id: newUserId,
+      department_id: departmentId,
+      full_name: fullName,
+      employee_id: employeeId,
+      contact_email: hasValidContactEmail ? cleanContactEmail : null,
+      official_email: officerAuthEmail,
+      phone_masked: phone ? `${phone.slice(0, 4)}***${phone.slice(-3)}` : null,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: "user_id" });
+
     await admin.from("access_audit_log").insert({
       action: "head_provisioned_officer",
       target_user_id: newUserId,
-      target_email: syntheticEmail,
+      target_email: officerAuthEmail,
       department_id: departmentId,
       actor_id: callerData.user.id,
       details: { employee_id: employeeId, staff_username: staffUsername, staff_role: "officer" },
@@ -306,6 +494,7 @@ Deno.serve(async (request) => {
       officerUserId: newUserId,
       employeeId,
       staffUsername,
+      contactEmail: hasValidContactEmail ? cleanContactEmail : null,
       temporaryAccessKey: tempKey,
       mustChangePassword: true,
     }, 201);
