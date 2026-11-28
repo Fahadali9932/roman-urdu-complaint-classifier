@@ -1,0 +1,63 @@
+-- Staging rollback-only regression for Step 3C
+DO $qa$
+DECLARE c uuid; h uuid; h2 uuid; o uuid; o2 uuid; adm uuid; x uuid; ord uuid; ver uuid; w uuid; nid uuid; a jsonb; res jsonb:='{}'; due timestamptz:=now()+interval '24 hours'; effective timestamptz; nd timestamptz; n int; hrs int; path text; bpath text; stage text:='setup';
+BEGIN
+ BEGIN
+ SELECT id INTO c FROM auth.users WHERE raw_app_meta_data->>'qa_run'='f27d9f3f4d46' AND email LIKE '%-citizen-a@example.com';
+ SELECT id INTO h FROM auth.users WHERE raw_app_meta_data->>'qa_run'='f27d9f3f4d46' AND email LIKE '%-kmc-head@example.com';
+ SELECT id INTO h2 FROM auth.users WHERE raw_app_meta_data->>'qa_run'='f27d9f3f4d46' AND email LIKE '%-kwsc-head@example.com';
+ SELECT id INTO o FROM auth.users WHERE raw_app_meta_data->>'qa_run'='f27d9f3f4d46' AND email LIKE '%-kmc-officer@example.com';
+ SELECT id INTO o2 FROM auth.users WHERE raw_app_meta_data->>'qa_run'='f27d9f3f4d46' AND email LIKE '%-kwsc-officer@example.com';
+ SELECT id INTO adm FROM auth.users WHERE raw_app_meta_data->>'qa_run'='f27d9f3f4d46' AND email LIKE '%-admin@example.com';
+ PERFORM public.submit_citizen_complaint(p_citizen_id=>c,p_description=>'QA road damage',p_sanitized_description=>'QA road damage',p_incident_district=>'QA',p_incident_locality=>'QA',p_incident_public_location=>'QA',p_citizen_name=>'QA synthetic',p_citizen_phone=>'00000000000',p_residential_address=>'QA',p_predicted_department_id=>'kmc',p_prediction_confidence=>0.95,p_needs_review=>false,p_is_demonstration=>true);
+ SELECT id INTO x FROM public.complaints WHERE citizen_id=c; INSERT INTO public.complaint_geo_points(complaint_id,latitude,longitude) VALUES(x,24.86,67.01);
+ PERFORM set_config('request.jwt.claim.sub',h::text,true);PERFORM set_config('request.jwt.claims',jsonb_build_object('sub',h,'role','authenticated','aal','aal2')::text,true);
+ EXECUTE 'SET LOCAL ROLE authenticated'; a:=public.v16_create_work_order_with_advisory('kmc',x,o,due,'Synthetic QA instructions','QA deadline','step3c-'||x::text);EXECUTE 'RESET ROLE';ord:=(a->>'orderId')::uuid;
+ SELECT assigned_duration_hours INTO hrs FROM public.department_work_orders WHERE id=ord; IF hrs<>24 THEN RAISE EXCEPTION 'duration wrong'; END IF; res:=res||'{"assignment_duration_24h":true}';
+ stage:='start'; PERFORM set_config('request.jwt.claim.sub',o::text,true);PERFORM set_config('request.jwt.claims',jsonb_build_object('sub',o,'role','authenticated','aal','aal2')::text,true);
+ EXECUTE 'SET LOCAL ROLE authenticated'; a:=public.v19_start_work_order(ord);effective:=(a->>'effectiveDeadlineAt')::timestamptz;
+ IF effective-(a->>'startedAt')::timestamptz<>interval '24 hours' THEN RAISE EXCEPTION 'deadline wrong'; END IF;
+ a:=public.v19_start_work_order(ord);IF (a->>'idempotentReplay')::boolean IS NOT TRUE OR (a->>'effectiveDeadlineAt')::timestamptz<>effective THEN RAISE EXCEPTION 'replay wrong'; END IF;
+ nd:=effective+interval '6 hours'; PERFORM public.v1318_request_extension(ord,nd,'QA legitimate extension reason'); EXECUTE 'RESET ROLE';res:=res||'{"start_deadline_24h":true,"start_idempotent":true,"officer_requests_extension":true}';
+ stage:='foreign head'; PERFORM set_config('request.jwt.claim.sub',h2::text,true);PERFORM set_config('request.jwt.claims',jsonb_build_object('sub',h2,'role','authenticated','aal','aal2')::text,true);
+ EXECUTE 'SET LOCAL ROLE authenticated';BEGIN PERFORM public.v1318_decide_extension(ord,true);RAISE EXCEPTION USING ERRCODE='ZQ002',MESSAGE='foreign decision allowed';EXCEPTION WHEN insufficient_privilege THEN NULL;END;
+ BEGIN PERFORM public.v19_issue_warning(o,'kmc','QA warning','formal');RAISE EXCEPTION USING ERRCODE='ZQ002',MESSAGE='foreign warning allowed';EXCEPTION WHEN insufficient_privilege THEN NULL;END;EXECUTE 'RESET ROLE';res:=res||'{"foreign_extension_denied":true,"foreign_warning_denied":true}';
+ stage:='approve request'; PERFORM set_config('request.jwt.claim.sub',h::text,true);PERFORM set_config('request.jwt.claims',jsonb_build_object('sub',h,'role','authenticated','aal','aal2')::text,true);
+ EXECUTE 'SET LOCAL ROLE authenticated'; PERFORM public.v1318_decide_extension(ord,true);EXECUTE 'RESET ROLE';
+ IF NOT EXISTS(SELECT 1 FROM public.department_work_orders WHERE id=ord AND due_at=nd AND effective_deadline_at=nd AND extension_requested_due_at IS NULL) THEN RAISE EXCEPTION 'deadline mismatch';END IF;
+ IF NOT EXISTS(SELECT 1 FROM public.work_order_deadline_history WHERE order_id=ord AND previous_deadline=effective AND extended_deadline=nd AND additional_hours=6 AND authorized_by=h) THEN RAISE EXCEPTION 'history missing';END IF;
+ res:=res||'{"approved_request_deadlines_synchronized":true,"approved_request_history":true}';
+ stage:='direct extension warning'; EXECUTE 'SET LOCAL ROLE authenticated'; a:=public.v19_extend_deadline(ord,2,'QA extra time');w:=(public.v19_issue_warning(o,'kmc','QA supervisory warning','formal')->>'warningId')::uuid;EXECUTE 'RESET ROLE';
+ IF NOT EXISTS(SELECT 1 FROM public.department_work_orders WHERE id=ord AND due_at=nd+interval '2 hours' AND effective_deadline_at=nd+interval '2 hours') THEN RAISE EXCEPTION 'direct extension mismatch';END IF;
+ IF NOT EXISTS(SELECT 1 FROM public.officer_warnings WHERE id=w AND officer_id=o AND issued_by=h AND severity='formal') THEN RAISE EXCEPTION 'warning not persisted';END IF;res:=res||'{"direct_extension":true,"warning_persisted":true}';nd:=nd+interval '2 hours';
+ stage:='decline';PERFORM set_config('request.jwt.claim.sub',o::text,true);PERFORM set_config('request.jwt.claims',jsonb_build_object('sub',o,'role','authenticated','aal','aal2')::text,true);
+ EXECUTE 'SET LOCAL ROLE authenticated';PERFORM public.v1318_request_extension(ord,nd+interval '3 hours','QA second extension request');EXECUTE 'RESET ROLE';
+ PERFORM set_config('request.jwt.claim.sub',h::text,true);PERFORM set_config('request.jwt.claims',jsonb_build_object('sub',h,'role','authenticated','aal','aal2')::text,true);
+ EXECUTE 'SET LOCAL ROLE authenticated';PERFORM public.v1318_decide_extension(ord,false);EXECUTE 'RESET ROLE';
+ IF NOT EXISTS(SELECT 1 FROM public.department_work_orders WHERE id=ord AND due_at=nd AND effective_deadline_at=nd AND extension_requested_due_at IS NULL) THEN RAISE EXCEPTION 'decline changed deadline';END IF;
+ IF (SELECT count(*) FROM public.work_order_deadline_history WHERE order_id=ord)<>2 THEN RAISE EXCEPTION 'decline changed history';END IF;res:=res||'{"declined_request_keeps_deadline":true}';
+ stage:='notification isolation';SELECT id INTO nid FROM public.staff_notifications WHERE user_id=o AND department_id='kmc' AND title='Supervisory notice' ORDER BY created_at DESC LIMIT 1;
+ IF nid IS NULL OR NOT EXISTS(SELECT 1 FROM public.staff_notifications WHERE user_id=o AND title='Extension approved') OR NOT EXISTS(SELECT 1 FROM public.staff_notifications WHERE user_id=o AND title='Extension declined') OR NOT EXISTS(SELECT 1 FROM public.staff_notifications WHERE user_id=h AND title='Extension requested') THEN RAISE EXCEPTION 'notification missing';END IF;
+ PERFORM set_config('request.jwt.claim.sub',o2::text,true);PERFORM set_config('request.jwt.claims',jsonb_build_object('sub',o2,'role','authenticated','aal','aal2')::text,true);
+ EXECUTE 'SET LOCAL ROLE authenticated';SELECT count(*) INTO n FROM public.staff_notifications WHERE id=nid;IF n<>0 THEN RAISE EXCEPTION 'notification leaked';END IF;
+ UPDATE public.staff_notifications SET is_read=true WHERE id=nid;GET DIAGNOSTICS n=ROW_COUNT;IF n<>0 THEN RAISE EXCEPTION 'foreign notification updated';END IF;
+ SELECT count(*) INTO n FROM public.officer_warnings WHERE id=w;IF n<>0 THEN RAISE EXCEPTION 'warning leaked';END IF;EXECUTE 'RESET ROLE';res:=res||'{"notification_generated":true,"foreign_notification_hidden":true,"foreign_notification_update_denied":true,"foreign_warning_hidden":true}';
+ stage:='owner read and proof';PERFORM set_config('request.jwt.claim.sub',o::text,true);PERFORM set_config('request.jwt.claims',jsonb_build_object('sub',o,'role','authenticated','aal','aal2')::text,true);
+ EXECUTE 'SET LOCAL ROLE authenticated';UPDATE public.staff_notifications SET is_read=true WHERE id=nid;GET DIAGNOSTICS n=ROW_COUNT;IF n<>1 THEN RAISE EXCEPTION 'mark read failed';END IF;
+ SELECT count(*) INTO n FROM public.officer_warnings WHERE id=w;IF n<>1 THEN RAISE EXCEPTION 'warning missing for officer';END IF;
+ a:=public.v23_verify_work_location(ord,24.86,67.01,10,clock_timestamp());IF (a->>'verified')::boolean IS NOT TRUE THEN RAISE EXCEPTION 'GPS failed';END IF;ver:=(a->>'verificationId')::uuid;EXECUTE 'RESET ROLE';res:=res||'{"owner_notification_mark_read":true,"owner_warning_visible":true}';
+ path:='work/kmc/'||ord||'/qa-after.jpg';bpath:='work/kmc/'||ord||'/qa-before.jpg';INSERT INTO storage.objects(bucket_id,name) VALUES('department-work-proof-private',path),('department-work-proof-private',bpath);
+ EXECUTE 'SET LOCAL ROLE service_role';a:=public.v23_record_verified_proof(ord,o,ver,path,'image/jpeg',100,repeat('a',64),bpath,'image/jpeg',100,repeat('b',64));EXECUTE 'RESET ROLE';IF (a->>'success')::boolean IS NOT TRUE THEN RAISE EXCEPTION 'proof failed';END IF;
+ stage:='approval and ranking';PERFORM set_config('request.jwt.claim.sub',h::text,true);PERFORM set_config('request.jwt.claims',jsonb_build_object('sub',h,'role','authenticated','aal','aal2')::text,true);
+ EXECUTE 'SET LOCAL ROLE authenticated';a:=public.v19_approve_resolution(ord);IF (a->>'onTime')::boolean IS NOT TRUE THEN RAISE EXCEPTION 'not on time';END IF;EXECUTE 'RESET ROLE';
+ IF NOT EXISTS(SELECT 1 FROM public.officer_ranking_events WHERE order_id=ord AND officer_id=o AND event_type='on_time_completion' AND points_delta=10) THEN RAISE EXCEPTION 'ranking missing';END IF;
+ -- Simulate delayed supervisor review while preserving on-time submission.
+ UPDATE public.department_work_orders SET reviewed_at=nd+interval '1 hour' WHERE id=ord;
+ EXECUTE 'SET LOCAL ROLE authenticated';SELECT on_time_cases INTO n FROM public.v16_department_officers('kmc') WHERE user_id=o;IF n<>1 THEN RAISE EXCEPTION 'on-time statistics mismatch';END IF;EXECUTE 'RESET ROLE';res:=res||'{"on_time_ranking_plus_10":true,"late_review_does_not_penalize":true}';
+ stage:='admin oversight';PERFORM set_config('request.jwt.claim.sub',adm::text,true);PERFORM set_config('request.jwt.claims',jsonb_build_object('sub',adm,'role','authenticated','aal','aal2')::text,true);
+ EXECUTE 'SET LOCAL ROLE authenticated';SELECT count(*) INTO n FROM public.officer_ranking_events WHERE order_id=ord;IF n<>1 THEN RAISE EXCEPTION 'admin rank hidden';END IF;SELECT count(*) INTO n FROM public.work_order_deadline_history WHERE order_id=ord;IF n<>2 THEN RAISE EXCEPTION 'admin history hidden';END IF;SELECT count(*) INTO n FROM public.officer_warnings WHERE id=w;IF n<>1 THEN RAISE EXCEPTION 'admin warning hidden';END IF;EXECUTE 'RESET ROLE';res:=res||'{"admin_ranking_visible":true,"admin_deadline_history_visible":true,"admin_warning_visible":true}';
+ RAISE EXCEPTION USING ERRCODE='ZQ001',MESSAGE='rollback';
+ EXCEPTION WHEN SQLSTATE 'ZQ001' THEN NULL;WHEN OTHERS THEN res:=res||jsonb_build_object('failed_stage',stage,'error',SQLERRM,'sqlstate',SQLSTATE);END;
+ PERFORM set_config('qa.results',res::text,false);
+END $qa$;
+SELECT current_setting('qa.results',true)::jsonb results,(select count(*) from public.complaints) complaints,(select count(*) from public.department_work_orders) orders,(select count(*) from storage.objects) storage_objects;
