@@ -138,11 +138,18 @@ class StaffAuthService {
     passwordAttempt: string
   ): Promise<{
     success: boolean;
-    status: 'approved' | 'pending' | 'rejected' | 'revoked' | 'not_found' | 'invalid_password';
+    status: 'approved' | 'pending' | 'rejected' | 'revoked' | 'not_found' | 'invalid_password' | 'unavailable';
     session?: StaffSession;
     rejectionReason?: string | null;
     error?: string;
   }> {
+    if (!isSupabaseConfigured() && import.meta.env.PROD) {
+      return {
+        success: false,
+        status: 'unavailable',
+        error: 'Staff sign-in is not configured. Contact the administrator to connect the authentication service.',
+      };
+    }
     if (isSupabaseConfigured() && supabase) {
       try {
         const { data: authData, error: authErr } = await supabase.auth.signInWithPassword({
