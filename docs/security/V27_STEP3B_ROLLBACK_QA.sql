@@ -1,0 +1,93 @@
+-- Step 3B rollback-only integration test. Run only on staging.
+DO $qa$
+DECLARE c uuid; c2 uuid; h uuid; h2 uuid; o uuid; o2 uuid; adm uuid; x uuid; ids uuid[]:=ARRAY[]::uuid[]; ord uuid; ver uuid; actor uuid; dep text; a jsonb; payload jsonb; results jsonb:='{}'; path text; bpath text; stage text:='fixtures'; st text; cnt int; i int; j int; due timestamptz:=now()+interval '24 hours';
+BEGIN
+ BEGIN
+ SELECT id INTO c FROM auth.users WHERE raw_app_meta_data->>'qa_run'='f27d9f3f4d46' AND email LIKE '%-citizen-a@example.com';
+ SELECT id INTO c2 FROM auth.users WHERE raw_app_meta_data->>'qa_run'='f27d9f3f4d46' AND email LIKE '%-citizen-b@example.com';
+ SELECT id INTO h FROM auth.users WHERE raw_app_meta_data->>'qa_run'='f27d9f3f4d46' AND email LIKE '%-kmc-head@example.com';
+ SELECT id INTO h2 FROM auth.users WHERE raw_app_meta_data->>'qa_run'='f27d9f3f4d46' AND email LIKE '%-kwsc-head@example.com';
+ SELECT id INTO o FROM auth.users WHERE raw_app_meta_data->>'qa_run'='f27d9f3f4d46' AND email LIKE '%-kmc-officer@example.com';
+ SELECT id INTO o2 FROM auth.users WHERE raw_app_meta_data->>'qa_run'='f27d9f3f4d46' AND email LIKE '%-kwsc-officer@example.com';
+ SELECT id INTO adm FROM auth.users WHERE raw_app_meta_data->>'qa_run'='f27d9f3f4d46' AND email LIKE '%-admin@example.com';
+ IF c IS NULL OR c2 IS NULL OR h IS NULL OR h2 IS NULL OR o IS NULL OR o2 IS NULL OR adm IS NULL THEN RAISE EXCEPTION 'missing QA identities'; END IF;
+ payload:=jsonb_build_object('p_citizen_id',c,'p_title','QA road and water','p_description','QA private marker. road toot gai hai aur pani nahi aa raha','p_sanitized_description','road toot gai hai aur pani nahi aa raha','p_generated_heading','Road and water','p_factual_summary','Road damage and water outage','p_redaction_flags',jsonb_build_object('multi_department_routing',jsonb_build_object('is_multilabel',true,'departments',jsonb_build_array('kmc','kwsc'),'issues',jsonb_build_array(jsonb_build_object('departmentId','kmc','issueType','road_damage'),jsonb_build_object('departmentId','kwsc','issueType','water_outage')))),'p_redaction_needs_review',false,'p_incident_district','QA','p_incident_locality','QA','p_incident_public_location','QA','p_citizen_name','QA private marker','p_citizen_phone','03000000000','p_citizen_email','qa-lifecycle@example.com','p_residential_address','QA synthetic address','p_predicted_department_id','kmc','p_prediction_confidence',0.95,'p_needs_review',false);
+ stage:='intake'; EXECUTE 'SET LOCAL ROLE service_role'; a:=public.v23_submit_citizen_with_location(payload,24.86,67.01); EXECUTE 'RESET ROLE'; x:=(a->>'complaint_id')::uuid;
+ IF NOT EXISTS(SELECT 1 FROM public.complaints WHERE id=x AND status='assigned' AND assigned_department_id='kmc' AND assigned_department_ids @> ARRAY['kmc','kwsc'] AND cardinality(assigned_department_ids)=2 AND is_multilabel) THEN RAISE EXCEPTION 'unexpected routing'; END IF;
+ IF (SELECT count(*) FROM public.complaint_issues WHERE complaint_id=x AND status='assigned')<>2 THEN RAISE EXCEPTION 'two issues missing'; END IF;
+ results:=results||'{"two_departments_routed":true,"two_issues_created":true}';
+ stage:='assign both';
+ FOR i IN 1..2 LOOP
+ dep:=(ARRAY['kmc','kwsc'])[i]; actor:=(ARRAY[h,h2])[i];
+ PERFORM set_config('request.jwt.claim.sub',actor::text,true); PERFORM set_config('request.jwt.claims',jsonb_build_object('sub',actor,'role','authenticated','aal','aal2')::text,true);
+ EXECUTE 'SET LOCAL ROLE authenticated';
+ SELECT count(*) INTO cnt FROM public.complaint_issues WHERE complaint_id=x; IF cnt<>1 THEN RAISE EXCEPTION 'head issue visibility % = %',dep,cnt; END IF;
+ SELECT count(*) INTO cnt FROM public.complaint_citizen_private WHERE complaint_id=x; IF cnt<>0 THEN RAISE EXCEPTION 'private contact leaked'; END IF;
+ a:=public.v16_create_work_order_with_advisory(dep,x,(ARRAY[o,o2])[i],due,'QA independent field work','QA dual lifecycle','step3b-'||dep||'-'||x::text);
+ ord:=(a->>'orderId')::uuid; IF ord IS NULL THEN RAISE EXCEPTION 'missing order'; END IF; ids:=array_append(ids,ord);
+ EXECUTE 'RESET ROLE';
+ END LOOP;
+ IF ids[1]=ids[2] OR (SELECT count(*) FROM public.department_work_order_reports WHERE complaint_id=x)<>2 THEN RAISE EXCEPTION 'not independent orders'; END IF;
+ results:=results||'{"independent_work_orders":true,"head_issue_isolation":true,"department_pii_denied":true}';
+ stage:='cross-order access';
+ PERFORM set_config('request.jwt.claim.sub',o::text,true); PERFORM set_config('request.jwt.claims',jsonb_build_object('sub',o,'role','authenticated','aal','aal2')::text,true);
+ EXECUTE 'SET LOCAL ROLE authenticated'; SELECT count(*) INTO cnt FROM public.department_work_orders WHERE id=ANY(ids); IF cnt<>1 THEN RAISE EXCEPTION 'officer order visibility %',cnt; END IF;
+ BEGIN PERFORM public.v19_start_work_order(ids[2]); RAISE EXCEPTION USING ERRCODE='ZQ002',MESSAGE='cross-department start allowed'; EXCEPTION WHEN insufficient_privilege THEN NULL; END;
+ EXECUTE 'RESET ROLE'; results:=results||'{"officer_order_isolation":true,"cross_department_start_denied":true}';
+ FOR i IN 1..2 LOOP
+ dep:=(ARRAY['kmc','kwsc'])[i]; ord:=ids[i]; actor:=(ARRAY[o,o2])[i]; stage:='start and proof '||dep;
+ PERFORM set_config('request.jwt.claim.sub',actor::text,true); PERFORM set_config('request.jwt.claims',jsonb_build_object('sub',actor,'role','authenticated','aal','aal2')::text,true);
+ EXECUTE 'SET LOCAL ROLE authenticated'; a:=public.v19_start_work_order(ord); IF (a->>'success')::boolean IS NOT TRUE THEN RAISE EXCEPTION 'start failed'; END IF;
+ a:=public.v23_verify_work_location(ord,24.86,67.01,10,clock_timestamp()); IF (a->>'verified')::boolean IS NOT TRUE THEN RAISE EXCEPTION 'GPS failed'; END IF; ver:=(a->>'verificationId')::uuid;
+ EXECUTE 'RESET ROLE';
+ path:='work/'||dep||'/'||ord||'/qa-after.jpg'; bpath:='work/'||dep||'/'||ord||'/qa-before.jpg';
+ INSERT INTO storage.objects(bucket_id,name) VALUES('department-work-proof-private',path),('department-work-proof-private',bpath);
+ EXECUTE 'SET LOCAL ROLE service_role'; a:=public.v23_record_verified_proof(ord,actor,ver,path,'image/jpeg',100,repeat((ARRAY['a','c'])[i],64),bpath,'image/jpeg',100,repeat((ARRAY['b','d'])[i],64)); EXECUTE 'RESET ROLE';
+ IF (a->>'success')::boolean IS NOT TRUE THEN RAISE EXCEPTION 'proof failed'; END IF;
+ results:=results||jsonb_build_object(dep||'_started_gps_proof',true);
+ stage:='approve '||dep; actor:=(ARRAY[h,h2])[i];
+ PERFORM set_config('request.jwt.claim.sub',actor::text,true); PERFORM set_config('request.jwt.claims',jsonb_build_object('sub',actor,'role','authenticated','aal','aal2')::text,true);
+ EXECUTE 'SET LOCAL ROLE authenticated';
+ BEGIN PERFORM public.v19_approve_resolution(ids[3-i]); RAISE EXCEPTION USING ERRCODE='ZQ002',MESSAGE='cross-department approval allowed'; EXCEPTION WHEN insufficient_privilege THEN NULL; END;
+ a:=public.v19_approve_resolution(ord); IF (a->>'success')::boolean IS NOT TRUE THEN RAISE EXCEPTION 'approval failed'; END IF; EXECUTE 'RESET ROLE';
+ IF NOT EXISTS(SELECT 1 FROM public.complaint_issues WHERE complaint_id=x AND department_id=dep AND status='completed') THEN RAISE EXCEPTION 'issue not completed'; END IF;
+ results:=results||jsonb_build_object(dep||'_approved',true,dep||'_issue_completed',true,dep||'_cross_approval_denied',true);
+ IF i=1 THEN
+  IF NOT EXISTS(SELECT 1 FROM public.complaint_issues WHERE complaint_id=x AND department_id='kwsc' AND status='in_progress') THEN RAISE EXCEPTION 'secondary issue state changed'; END IF;
+  results:=results||'{"secondary_issue_not_prematurely_completed":true}';
+ END IF;
+ stage:='citizen proof and feedback '||dep;
+ PERFORM set_config('request.jwt.claim.sub',c::text,true); PERFORM set_config('request.jwt.claims',jsonb_build_object('sub',c,'role','authenticated','aal','aal1')::text,true);
+ EXECUTE 'SET LOCAL ROLE authenticated'; SELECT count(*) INTO cnt FROM public.v14_my_work_proofs(x) WHERE can_respond AND order_id=ord; IF cnt<>1 THEN RAISE EXCEPTION 'citizen proof not visible'; END IF;
+ IF i=2 THEN
+  SELECT count(*) INTO cnt FROM public.v14_my_work_proofs(x); IF cnt<>2 THEN RAISE EXCEPTION 'expected both proofs'; END IF;
+ END IF;
+ IF i=1 THEN PERFORM public.v1318_citizen_feedback(ord,x,'confirmed',''); END IF;
+ EXECUTE 'RESET ROLE'; results:=results||jsonb_build_object(dep||'_citizen_proof_visible',true);
+ stage:='premature closure check '||dep;
+ PERFORM set_config('request.jwt.claim.sub',h::text,true); PERFORM set_config('request.jwt.claims',jsonb_build_object('sub',h,'role','authenticated','aal','aal2')::text,true);
+ EXECUTE 'SET LOCAL ROLE authenticated';
+ BEGIN PERFORM public.v1318_close_verified_order(ids[1],''); RAISE EXCEPTION USING ERRCODE='ZQ002',MESSAGE='premature closure accepted'; EXCEPTION WHEN SQLSTATE 'P0001' THEN NULL; END; EXECUTE 'RESET ROLE';
+ IF NOT EXISTS(SELECT 1 FROM public.complaints WHERE id=x AND status='in_progress') THEN RAISE EXCEPTION 'overall status changed'; END IF;
+ results:=results||jsonb_build_object(CASE WHEN i=1 THEN 'one_department_cannot_close' ELSE 'missing_second_citizen_confirmation_blocks_close' END,true);
+ END LOOP;
+ stage:='second feedback'; PERFORM set_config('request.jwt.claim.sub',c::text,true); PERFORM set_config('request.jwt.claims',jsonb_build_object('sub',c,'role','authenticated','aal','aal1')::text,true);
+ EXECUTE 'SET LOCAL ROLE authenticated'; PERFORM public.v1318_citizen_feedback(ids[2],x,'confirmed',''); EXECUTE 'RESET ROLE'; results:=results||'{"both_citizen_confirmations":true}';
+ stage:='secondary closure denied'; PERFORM set_config('request.jwt.claim.sub',h2::text,true); PERFORM set_config('request.jwt.claims',jsonb_build_object('sub',h2,'role','authenticated','aal','aal2')::text,true);
+ EXECUTE 'SET LOCAL ROLE authenticated'; BEGIN PERFORM public.v1318_close_verified_order(ids[2],''); RAISE EXCEPTION USING ERRCODE='ZQ002',MESSAGE='secondary head closed parent'; EXCEPTION WHEN SQLSTATE 'P0001' THEN NULL; END; EXECUTE 'RESET ROLE'; results:=results||'{"secondary_head_cannot_close_parent":true}';
+ stage:='primary closure'; PERFORM set_config('request.jwt.claim.sub',h::text,true); PERFORM set_config('request.jwt.claims',jsonb_build_object('sub',h,'role','authenticated','aal','aal2')::text,true);
+ EXECUTE 'SET LOCAL ROLE authenticated'; cnt:=public.v1318_close_verified_order(ids[1],''); EXECUTE 'RESET ROLE';
+ IF cnt<>1 OR NOT EXISTS(SELECT 1 FROM public.complaints WHERE id=x AND status='resolved') THEN RAISE EXCEPTION 'primary closure failed'; END IF;
+ results:=results||'{"both_departments_complete_parent_resolved":true}';
+ IF (SELECT count(*) FROM public.complaint_notification_outbox WHERE complaint_id=x AND status='resolved')<>1 THEN RAISE EXCEPTION 'resolution outbox not exactly once'; END IF;
+ results:=results||'{"one_resolution_notification":true}';
+ stage:='admin oversight'; PERFORM set_config('request.jwt.claim.sub',adm::text,true); PERFORM set_config('request.jwt.claims',jsonb_build_object('sub',adm,'role','authenticated','aal','aal2')::text,true);
+ EXECUTE 'SET LOCAL ROLE authenticated'; SELECT count(*) INTO cnt FROM public.complaint_issues WHERE complaint_id=x; IF cnt<>2 THEN RAISE EXCEPTION 'admin issue visibility'; END IF; EXECUTE 'RESET ROLE'; results:=results||'{"admin_sees_both_issues":true}';
+ stage:='three department hold'; payload:=jsonb_set(payload,'{p_redaction_flags,multi_department_routing,departments}',jsonb_build_array('kmc','kwsc','kelectric'));
+ EXECUTE 'SET LOCAL ROLE service_role'; a:=public.v23_submit_citizen_with_location(payload,24.86,67.01); EXECUTE 'RESET ROLE';
+ IF a->>'status'<>'under_review' OR jsonb_array_length(a->'assigned_department_ids')<>0 THEN RAISE EXCEPTION 'three departments routed automatically'; END IF; results:=results||'{"three_department_request_held":true}';
+ RAISE EXCEPTION USING ERRCODE='ZQ001',MESSAGE='rollback';
+ EXCEPTION WHEN SQLSTATE 'ZQ001' THEN NULL; WHEN OTHERS THEN results:=results||jsonb_build_object('failed_stage',stage,'error',SQLERRM,'sqlstate',SQLSTATE); END;
+ PERFORM set_config('qa.results',results::text,false);
+END $qa$;
+SELECT current_setting('qa.results',true)::jsonb results,(select count(*) from public.complaints) complaints,(select count(*) from public.department_work_orders) orders,(select count(*) from storage.objects) storage_objects;
