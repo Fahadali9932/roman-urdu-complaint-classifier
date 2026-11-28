@@ -4,6 +4,7 @@ import { LanguageProvider } from './context/LanguageContext';
 import { AdminAuthProvider } from './context/AdminAuthContext';
 import { DepartmentAuthProvider } from './context/DepartmentAuthContext';
 import { AppRoutes } from './routes/AppRoutes';
+import { DocumentMetadata } from './components/layout/DocumentMetadata';
 
 const ScrollToTop: React.FC = () => {
   const { pathname, hash } = useLocation();
@@ -26,6 +27,7 @@ export const App: React.FC = () => {
   return (
     <BrowserRouter>
       <ScrollToTop />
+      <DocumentMetadata />
       <LanguageProvider>
         <AdminAuthProvider>
           <DepartmentAuthProvider>

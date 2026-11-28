@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /department
+Disallow: /dashboard
+Disallow: /login
+Disallow: /register
+Disallow: /reset-password
+Disallow: /submit
+Disallow: /track
