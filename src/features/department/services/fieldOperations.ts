@@ -998,8 +998,13 @@ class FieldOperationsService {
     }
 
     const client = requireSupabase();
+    const verification = await this.verifyLocation({
+      orderId, latitude: coords.latitude, longitude: coords.longitude,
+      accuracy: coords.accuracy, deviceTimestamp: Date.now(),
+    });
     const body = new FormData();
     body.append('orderId', orderId);
+    body.append('verificationId', verification.verificationId);
     body.append('photo', afterPhoto);
     if (beforePhoto) {
       body.append('beforePhoto', beforePhoto);
@@ -1124,6 +1129,21 @@ class FieldOperationsService {
     // Freshness check: measurement must be within last 5 minutes
     if (params.deviceTimestamp && Math.abs(Date.now() - params.deviceTimestamp) > 5 * 60 * 1000) {
       throw new Error('Location measurement expired. Reading must be fresh (< 5 minutes old).');
+    }
+
+    if (!isLocalFieldDemo()) {
+      if (!params.deviceTimestamp || !Number.isFinite(params.deviceTimestamp)) {
+        throw new Error('Capture a fresh device location before verification.');
+      }
+      const record = requireSuccess(await requireSupabase().rpc('v23_verify_work_location', {
+        p_order_id: params.orderId,
+        p_lat: params.latitude,
+        p_lng: params.longitude,
+        p_accuracy: params.accuracy,
+        p_device_timestamp: new Date(params.deviceTimestamp).toISOString(),
+      })) as LocationVerificationResult;
+      activeLocationVerifications.set(record.verificationId, record);
+      return record;
     }
 
     let baseline: { latitude: number; longitude: number } | null = null;
@@ -1325,14 +1345,19 @@ class FieldOperationsService {
       };
     }
 
-    const res = requireSuccess(await requireSupabase().rpc('v19_submit_work_completion', {
-      p_order_id: orderId,
-      p_storage_path: storagePath,
-      p_lat: coords.latitude,
-      p_lng: coords.longitude,
-      p_accuracy: coords.accuracy,
-      p_verification_id: coords.verificationId || null,
-    })) as {
+    if (!file || !coords.verificationId) {
+      throw new Error('A real photograph and fresh location verification are required.');
+    }
+    const body = new FormData();
+    body.append('orderId', orderId);
+    body.append('verificationId', coords.verificationId);
+    body.append('photo', file, file instanceof File ? file.name : 'evidence.jpg');
+    body.append('latitude', String(coords.latitude));
+    body.append('longitude', String(coords.longitude));
+    body.append('accuracy', String(coords.accuracy));
+    const { data, error } = await requireSupabase().functions.invoke('upload-department-work-proof', { body });
+    if (error || data?.error || !data?.submitted) throw new Error(data?.error || error?.message || 'Evidence was not recorded.');
+    const res = data as {
       success: boolean;
       gpsVerified: boolean;
       distanceMeters?: number;
@@ -1683,7 +1708,7 @@ class FieldOperationsService {
     }
     const { data, error } = await requireSupabase()
       .from('officer_profile_details')
-      .select('*')
+      .select('id,user_id,department_id,full_name,employee_id,official_email,phone_masked,cnic_masked,profile_photo_storage_path,created_at,updated_at,approval_status,rejection_reason,reviewed_by,reviewed_at,submitted_at')
       .eq('user_id', userId)
       .maybeSingle();
     if (error) throw new Error(error.message);
@@ -1799,17 +1824,10 @@ class FieldOperationsService {
 
   async recordHeartbeat(departmentId: string, officerId: string, view: string): Promise<void> {
     if (isLocalFieldDemo()) return;
-    await requireSupabase()
-      .from('officer_activity_heartbeats')
-      .upsert(
-        {
-          officer_id: officerId,
-          department_id: departmentId,
-          last_active_at: new Date().toISOString(),
-          active_view: view,
-        },
-        { onConflict: 'officer_id' }
-      );
+    const client = requireSupabase();
+    const { data: identity, error: identityError } = await client.auth.getUser();
+    if (identityError || identity.user?.id !== officerId) throw new Error('Authorized officer session required.');
+    requireSuccess(await client.rpc('v23_record_officer_heartbeat', { p_department: departmentId, p_view: view }));
   }
 
   async submitStaffProfilePhoto(
@@ -1868,7 +1886,7 @@ class FieldOperationsService {
     }
     const { data, error } = await requireSupabase()
       .from('officer_profile_details')
-      .select('*')
+      .select('id,user_id,department_id,full_name,employee_id,official_email,phone_masked,cnic_masked,profile_photo_storage_path,created_at,updated_at,approval_status,rejection_reason,reviewed_by,reviewed_at,submitted_at')
       .eq('department_id', departmentId)
       .eq('approval_status', 'awaiting_approval')
       .order('submitted_at', { ascending: false });
