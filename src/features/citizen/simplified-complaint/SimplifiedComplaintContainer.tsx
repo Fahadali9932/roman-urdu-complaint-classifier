@@ -204,7 +204,6 @@ export const SimplifiedComplaintContainer: React.FC = () => {
   const [photo, setPhoto] = useState<File | null>(null);
   const [photoPreviewUrl, setPhotoPreviewUrl] = useState<string | null>(null);
   const [evidenceNotice, setEvidenceNotice] = useState('');
-  const [photoRetrying, setPhotoRetrying] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [searchParams] = useSearchParams();
   const [isTestMode, setIsTestMode] = useState<boolean>(() => {
@@ -366,7 +365,7 @@ export const SimplifiedComplaintContainer: React.FC = () => {
     title: 'اپنی شکایت درج کریں', intro: 'چار مختصر مراحل میں اپنا عوامی مسئلہ درج کریں۔',
     details: 'آپ کی تفصیلات', photo: 'مسئلے کی تصویر', location: 'مقام', complaint: 'شکایت',
     detailsLead: 'آپ سے رابطے کے لیے صرف ضروری معلومات لیں گے۔',
-    photoLead: 'مسئلے کی واضح تصویر بنائیں یا اپلوڈ کریں۔',
+    photoLead: 'مسئلے کی واضح تصویر لیں۔',
     locationLead: 'کراچی میں اس عوامی مسئلے کی جگہ بتائیں۔',
     complaintLead: 'اپنے الفاظ میں بتائیں کہ کیا ہوا۔',
     name: 'پورا نام', phone: 'پاکستانی موبائل نمبر', email: 'ای میل (اختیاری)',
@@ -381,7 +380,7 @@ export const SimplifiedComplaintContainer: React.FC = () => {
     title: 'Write your complaint', intro: 'Report a public issue in four straightforward steps.',
     details: 'Your details', photo: 'Issue photo', location: 'Location', complaint: 'Complaint',
     detailsLead: 'We only collect the contact details needed to reach you.',
-    photoLead: 'Capture or attach a clear photograph of the issue.',
+    photoLead: 'Capture a clear photograph of the issue.',
     locationLead: 'Tell us where this public issue is happening in Karachi.',
     complaintLead: 'Describe what happened in your own words.',
     name: 'Full name', phone: 'Pakistani mobile number', email: 'Email (optional)',
@@ -427,7 +426,7 @@ export const SimplifiedComplaintContainer: React.FC = () => {
     }
     if (target === 2) {
       if (!photo) {
-        next.photo = ur ? 'براہِ کرم آگے بڑھنے کے لیے مسئلے کی تصویر لیں۔' : 'Please take or attach a photo of the issue to proceed.';
+        next.photo = ur ? 'براہِ کرم آگے بڑھنے کے لیے مسئلے کی تصویر لیں۔' : 'Please capture a photo of the issue to proceed.';
       }
     }
     if (target === 3) {
@@ -464,6 +463,11 @@ export const SimplifiedComplaintContainer: React.FC = () => {
   const submit = async (overrideAnswer?: ClarificationAnswer) => {
     if (isSubmittingRef.current || isSubmitting) return;
     if (!validate(4)) return;
+    if (!photo) {
+      setErrors(current => ({...current,photo:ur?'مسئلے کی تصویر لیں۔':'Capture a photograph of the issue.'}));
+      setStage(2);
+      return;
+    }
 
     if (!incidentPin) {
       const msg = ur ? 'جاری رکھنے کے لیے مقام کی اجازت دیں یا مقام شامل کریں۔' : 'Attach your location while at the issue site to continue.';
@@ -527,28 +531,9 @@ export const SimplifiedComplaintContainer: React.FC = () => {
         description: formData.complaint.description.trim(),
         isDemonstration: Boolean(import.meta.env.DEV && isTestMode),
         clarificationAnswer: overrideAnswer,
+        photo,
       });
-      const evidenceMessages: string[] = [];
-      if (incidentPin && result.incidentLocationSaved === false) {
-        evidenceMessages.push('Your complaint is saved, but its optional map pin could not be attached.');
-      }
-      if (photo && !result.isSimulated && isSupabaseConfigured() && supabase) {
-        try {
-          const data = new FormData();
-          data.append('reference', result.referenceNumber);
-          data.append('tracking', result.guestTrackingNumber || '');
-          data.append('photo', photo);
-          const { data: response, error: uploadError } = await supabase.functions.invoke('upload-complaint-photo', { body: data });
-          if (uploadError || !response?.attached) {
-            evidenceMessages.push('Your complaint is saved, but the optional photo did not upload.');
-          }
-        } catch {
-          evidenceMessages.push('Your complaint is saved, but the optional photo did not upload.');
-        }
-      } else if (photo && result.isSimulated) {
-        evidenceMessages.push('Local test mode does not store photos.');
-      }
-      setEvidenceNotice(evidenceMessages.join(' '));
+      setEvidenceNotice(result.isSimulated ? 'Local test mode does not store photos.' : '');
       if (typeof window !== 'undefined' && window.sessionStorage) {
         sessionStorage.removeItem(getDraftKey(currentUserId));
         sessionStorage.removeItem(LEGACY_DRAFT_KEY);
@@ -565,23 +550,7 @@ export const SimplifiedComplaintContainer: React.FC = () => {
     }
   };
 
-  const retryPhoto = async () => {
-    if (!submission || !photo || !isSupabaseConfigured() || !supabase || photoRetrying) return;
-    setPhotoRetrying(true);
-    try {
-      const data = new FormData();
-      data.append('reference', submission.referenceNumber);
-      data.append('tracking', submission.guestTrackingNumber || '');
-      data.append('photo', photo);
-      const { data: response, error } = await supabase.functions.invoke('upload-complaint-photo', { body: data });
-      if (error || !response?.attached) throw new Error('Upload failed');
-      setEvidenceNotice(incidentPin && submission.incidentLocationSaved === false
-        ? 'Photo attached successfully. The optional map pin could not be saved.'
-        : 'Photo attached successfully.');
-    } catch {
-      setEvidenceNotice('Your complaint is safe, but the photo still could not be attached. Please try again.');
-    } finally { setPhotoRetrying(false); }
-  };
+
 
   const handleClarificationConfirm = () => {
     if (!activeClarification) return;
@@ -1390,9 +1359,6 @@ export const SimplifiedComplaintContainer: React.FC = () => {
             copy={copy}
             ur={ur}
             evidenceNotice={evidenceNotice}
-            canRetryPhoto={Boolean(photo && evidenceNotice.includes('photo') && !submission.isSimulated)}
-            photoRetrying={photoRetrying}
-            onRetryPhoto={retryPhoto}
             onClose={() => {
               setSubmission(null);
               setFormData(INITIAL_FORM);
@@ -1443,11 +1409,8 @@ const SubmissionModal: React.FC<{
   copy: Record<string, string>;
   ur: boolean;
   evidenceNotice?: string;
-  canRetryPhoto?: boolean;
-  photoRetrying?: boolean;
-  onRetryPhoto?: () => void;
   onClose: () => void;
-}> = ({ submission, copy, ur, evidenceNotice, canRetryPhoto, photoRetrying, onRetryPhoto, onClose }) => {
+}> = ({ submission, copy, ur, evidenceNotice, onClose }) => {
   const navigate = useNavigate();
   const [copiedRef, setCopiedRef] = useState(false);
   const [copiedTracking, setCopiedTracking] = useState(false);
@@ -1528,10 +1491,7 @@ const SubmissionModal: React.FC<{
         {evidenceNotice && (
           <div role="status" className="mt-4 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-950">
             <p>{evidenceNotice}</p>
-            {canRetryPhoto && <button type="button" onClick={onRetryPhoto} disabled={photoRetrying}
-              className="mt-2 rounded-lg border border-amber-600 bg-white px-3 py-2 text-xs font-bold text-amber-950 disabled:opacity-50">
-              {photoRetrying ? 'Retrying…' : 'Retry photo without resubmitting complaint'}
-            </button>}
+
           </div>
         )}
 
