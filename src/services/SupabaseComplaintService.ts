@@ -177,7 +177,13 @@ export class SupabaseComplaintService implements IComplaintService {
   }
 
   async submitComplaint(input: ComplaintSubmissionInput): Promise<SubmissionResult> {
-    if (!isSupabaseConfigured() || !supabase) return fallback.submitComplaint(input);
+    if (!isSupabaseConfigured() || !supabase) {
+      if (import.meta.env.DEV || import.meta.env.MODE === 'test') return fallback.submitComplaint(input);
+      throw new ComplaintSubmissionError('Live complaint service is unavailable.', 'SUBMISSION_UNAVAILABLE');
+    }
+    if (!input.photo || !input.photo.size || input.photo.size > 1024 * 1024) {
+      throw new ComplaintSubmissionError('Capture a photograph up to 1 MB before submitting.', 'VALIDATION_FAILED');
+    }
 
     const geoCheck = verifySindhLocation(input.incidentLatitude, input.incidentLongitude);
     if (!geoCheck.eligible) {
@@ -185,8 +191,8 @@ export class SupabaseComplaintService implements IComplaintService {
       throw new ComplaintSubmissionError(geoCheck.message, geoCode);
     }
 
-    const { data, error } = await supabase.functions.invoke('submit-classified-complaint', {
-      body: {
+    const body = new FormData();
+    body.append('payload', JSON.stringify({
         title: input.title,
         description: input.description,
         incidentDistrict: input.district,
@@ -200,8 +206,9 @@ export class SupabaseComplaintService implements IComplaintService {
         residentialAddress: input.residentialAddress,
         isDemonstration: false,
         clarificationAnswer: input.clarificationAnswer,
-      },
-    });
+    }));
+    body.append('photo', input.photo);
+    const { data, error } = await supabase.functions.invoke('submit-classified-complaint', { body });
     if (error) {
       const subError = await safeSubmissionError(error);
       throw subError;
@@ -226,7 +233,10 @@ export class SupabaseComplaintService implements IComplaintService {
         typedCode
       );
     }
-    const routedDepts = data.prediction?.departments ||
+    if (!data?.complaint_id || !data?.reference_number || data.photo_attached !== true || data.incident_location_saved !== true) {
+      throw new ComplaintSubmissionError('The service did not confirm the photograph and location.', 'SUBMISSION_UNAVAILABLE');
+    }
+    const routedDepts = data.assigned_department_ids ||
       (Array.isArray(data.assigned_department_ids) && data.assigned_department_ids.length > 0
         ? data.assigned_department_ids
         : (data.assigned_department_id ? [data.assigned_department_id] : []));
