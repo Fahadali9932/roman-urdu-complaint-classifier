@@ -3,6 +3,7 @@ import { BrowserRouter, useLocation } from 'react-router-dom';
 import { LanguageProvider } from './context/LanguageContext';
 import { AdminAuthProvider } from './context/AdminAuthContext';
 import { DepartmentAuthProvider } from './context/DepartmentAuthContext';
+import { PortalMetadata } from './components/layout/PortalMetadata';
 import { AppRoutes } from './routes/AppRoutes';
 import { useCivicTheme } from './features/department/hooks/useCivicTheme';
 
@@ -28,6 +29,7 @@ export const App: React.FC = () => {
   return (
     <BrowserRouter>
       <ScrollToTop />
+      <PortalMetadata />
       <LanguageProvider>
         <AdminAuthProvider>
           <DepartmentAuthProvider>

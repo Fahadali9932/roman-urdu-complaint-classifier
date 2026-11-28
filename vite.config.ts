@@ -1,5 +1,6 @@
 /// <reference types="vitest/config" />
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
+import { portalMetadataPlugin } from './scripts/portalMetadataPlugin'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import fs from 'node:fs'
@@ -99,14 +100,20 @@ export default defineConfig(({ mode }) => {
     process.env.VITE_PORTAL_TARGET ||
     (mode === 'citizen' || mode === 'management' || mode === 'fieldwork' ? mode : 'all');
 
+  const env = loadEnv(mode, process.cwd(), 'VITE_');
+  const siteUrl = process.env.VITE_PUBLIC_SITE_URL || env.VITE_PUBLIC_SITE_URL || '';
+  const indexing = (process.env.VITE_ENABLE_INDEXING || env.VITE_ENABLE_INDEXING) === 'true';
   return {
     define: {
       'import.meta.env.VITE_PORTAL_TARGET': JSON.stringify(portalTarget),
+      'import.meta.env.VITE_PUBLIC_SITE_URL': JSON.stringify(siteUrl),
+      'import.meta.env.VITE_ENABLE_INDEXING': JSON.stringify(String(indexing)),
     },
     plugins: [
       react(),
       tailwindcss(),
       aiTelemetryBridgePlugin(),
+      portalMetadataPlugin(portalTarget, siteUrl, indexing),
     ],
     server: {
       headers: {
