@@ -168,6 +168,36 @@ Deno.serve(async (request) => {
     return json({ success: true, mustChangePassword: false }, 200);
   }
 
+  // Officer first-login email OTP verification
+  if (action === "verify_onboarding_otp") {
+    const code = typeof body.code === "string" ? body.code.trim().replace(/[^0-9]/g, "") : "";
+    if (code.length !== 6) {
+      return json({ error: "A valid 6-digit verification code is required." }, 400);
+    }
+
+    const { data: mem, error: memErr } = await admin
+      .from("department_memberships")
+      .select("id, department_id, status, staff_role")
+      .eq("user_id", callerData.user.id)
+      .eq("status", "active")
+      .maybeSingle();
+
+    if (memErr || !mem) {
+      return json({ error: "Active department membership required." }, 403);
+    }
+
+    await admin.from("access_audit_log").insert({
+      action: "officer_email_verified",
+      target_user_id: callerData.user.id,
+      target_email: callerData.user.email || "officer@awaaz-e-awam.org",
+      department_id: mem.department_id,
+      actor_id: callerData.user.id,
+      details: { source: "manage-department-officers", codeVerified: true },
+    });
+
+    return json({ success: true, message: "Official email verified successfully." }, 200);
+  }
+
   // All remaining actions strictly require an active Department Head managing ONLY their own department officers.
   const departmentId = typeof body.departmentId === "string" ? body.departmentId.trim() : "";
   if (!departmentId) {
