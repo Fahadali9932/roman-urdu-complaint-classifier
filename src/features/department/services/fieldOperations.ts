@@ -1720,8 +1720,12 @@ class FieldOperationsService {
       return `local-profiles/${userId}-${Date.now()}.jpg`;
     }
     const client = requireSupabase();
-    const storagePath = `profiles/${userId}/${Date.now()}_${photoFile.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
-    const { error } = await client.storage.from('department-work-proof-private').upload(storagePath, photoFile);
+    const identity = await client.auth.getUser();
+    if (identity.error || identity.data.user?.id !== userId) throw new Error('Active staff session required.');
+    const ext = photoFile.type === 'image/png' ? 'png' : photoFile.type === 'image/webp' ? 'webp' : 'jpg';
+    if (!['image/jpeg','image/png','image/webp'].includes(photoFile.type) || photoFile.size > 2 * 1024 * 1024) throw new Error('Use a supported photograph up to 2 MB.');
+    const storagePath = `${userId}/${crypto.randomUUID()}.${ext}`;
+    const { error } = await client.storage.from('staff-profile-photos-private').upload(storagePath, photoFile, { upsert: false });
     if (error) throw new Error(error.message);
     return storagePath;
   }
@@ -1863,18 +1867,13 @@ class FieldOperationsService {
       return { success: true, status: 'awaiting_approval' };
     }
 
-    const { error } = await requireSupabase()
-      .from('officer_profile_details')
-      .upsert({
-        user_id: userId,
-        department_id: departmentId,
-        profile_photo_storage_path: photoDataUrlOrPath,
-        approval_status: 'awaiting_approval',
-        submitted_at: new Date().toISOString(),
-        rejection_reason: null,
-        updated_at: new Date().toISOString(),
-      });
-    if (error) throw new Error(error.message);
+    let path = photoDataUrlOrPath;
+    if (path.startsWith('data:image/')) {
+      const blob = await (await fetch(path)).blob();
+      path = await this.uploadProfilePhoto(userId, new File([blob], 'profile-photo', {type:blob.type}));
+    }
+    const {data,error} = await requireSupabase().rpc('v23_submit_officer_profile_photo', { p_path:path });
+    if (error || !data?.success) throw new Error(error?.message || 'Profile photo was not recorded.');
     return { success: true, status: 'awaiting_approval' };
   }
 
@@ -1940,17 +1939,10 @@ class FieldOperationsService {
       return { success: true, newStatus };
     }
 
-    const { error } = await requireSupabase()
-      .from('officer_profile_details')
-      .update({
-        approval_status: newStatus,
-        rejection_reason: params.decision === 'retake' ? params.reason!.trim() : null,
-        reviewed_by: params.reviewerId,
-        reviewed_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      })
-      .eq('user_id', params.targetUserId);
-    if (error) throw new Error(error.message);
+    const {data,error} = await requireSupabase().rpc('v23_review_officer_profile_photo', {
+      p_target:params.targetUserId,p_decision:params.decision,p_reason:params.reason || null
+    });
+    if (error || !data?.success) throw new Error(error?.message || 'Profile review was not recorded.');
     return { success: true, newStatus };
   }
 
