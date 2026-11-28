@@ -5,7 +5,22 @@ Verified on **20 November 2026 (Pakistan time)**. Internal delivery target:
 This document distinguishes inspected source, automated checks, and unverified
 hosted behavior. Update it after every significant verified milestone.
 
-## Latest verification, 20 November 2026 — Phase V13.5: 2,000-Complaint Human-Like Adversarial Challenge & Two-Department Reliability Assessment
+## Latest verification, 28 November 2026 — Step 2: Secure Authentication Integration & Verification
+
+Step 2 integrated the V25 secure authentication module (`src/services/v25StaffSession.ts`) into the local frontend, establishing genuine server-verified session boundaries across Department Head, Operations Officer, Main Administrator, and Citizen portals.
+
+1. **Edge Credential Exchange:** Client-side email resolution and mock fallbacks were replaced with Edge Function invocation (`staff-credential-exchange`) using explicit department scopes and target roles (`head` vs `officer`). Direct email lookup (`v16_resolve_staff_login_email`) is revoked and forbidden.
+2. **Main Administrator AAL2 MFA:** Removed prototype preview bypass (`SecretAdminPass123`) from `AdminLoginPage.tsx`. Enforced `profiles.role === 'main_admin'`, AAL2 MFA verification, and `is_main_admin` server RPC.
+3. **Dedicated Challenge Gating:** Gated `/department` and `/admin/requests` access strictly on `state: 'ready'`. Handled `mfa_required` (with TOTP QR enrollment and 6-digit challenge), `password_change_required` (NIST SP 800-63B 15-character minimum), and `onboarding_required` (officer operational approval pending).
+4. **Session Re-Verification & Token Lifecycle:** Server-verified `verifyStaffSession` runs on route entry, token refresh, and auth state change outside synchronous listeners. Cached UI state is cleared immediately on sign-out or revocation.
+5. **Quality Assurance & Test Integrity:**
+   - 59/59 Vitest test suites passed (779/779 tests passed, 100% pass rate).
+   - Zero TypeScript compiler errors (`npx tsc -b`).
+   - Production Vite build passed in 1.17s.
+   - 13 browser QA screenshots captured and verified across Desktop (1280px), Tablet (768px), Mobile (390px), and Small Mobile (320px).
+   - Active branch: `feature/v25-step2-secure-auth-integration` pushed to origin at commit `bcbf652`.
+
+## Historical verification, 20 November 2026 — Phase V13.5: 2,000-Complaint Human-Like Adversarial Challenge & Two-Department Reliability Assessment
 
 Phase V13.5 executed an independent adversarial evaluation of the system against 2,000 genuinely new, human-like Roman Urdu complaints and instituted the operational **Two-Department Routing Scope Policy**. Under this policy, automated dispatch is restricted to at most two independent departments; if three or more independent departments are detected, the system safely escalates to the human triage desk (`EXCEEDS_TWO_DEPARTMENTS_HUMAN_TRIAGE_REQUIRED`) while preserving all candidate evidence (`allDetectedDepartments`) and preventing arbitrary truncation or silent drops.
 
