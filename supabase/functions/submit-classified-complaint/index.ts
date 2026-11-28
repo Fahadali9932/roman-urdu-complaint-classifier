@@ -277,6 +277,11 @@ Deno.serve(async (req) => {
       }
     }
 
+    if (departments.length > 2) {
+      needsReview = true;
+      reviewReason = "MORE_THAN_TWO_DEPARTMENTS";
+    }
+
     // Separate check: Sindh eligibility passed; now check per-department service coverage rules
     const serviceCoverage = validateDepartmentCoverageServer(
       Number(input.incidentLatitude),
@@ -345,7 +350,10 @@ Deno.serve(async (req) => {
       multi_department_routing: multiDepartmentMetadata,
     };
 
-    const { data, error } = await admin.rpc("submit_citizen_complaint", {
+    const { data, error } = await admin.rpc("v23_submit_citizen_with_location", {
+      p_lat: input.incidentLatitude,
+      p_lng: input.incidentLongitude,
+      p_input: {
       p_citizen_id: citizenId,
       p_title: safeHeading,
       p_description: input.description, // Raw description stored in private table only
@@ -369,25 +377,15 @@ Deno.serve(async (req) => {
       p_is_demonstration: false,
       p_claim_code_hash: claimCodeHash,
       p_guest_tracking_hash: guestTrackingHash,
+      },
     });
     if (error) {
       console.error("Complaint submission RPC failed", error);
       return json({ error: "Submission service is temporarily unavailable.", code: "SUBMISSION_UNAVAILABLE" }, 500);
     }
-    // Persist mandatory verified incident point
-    let incidentLocationSaved = false;
-    if (data?.complaint_id) {
-      const { error: locationError } = await admin.from("complaint_geo_points").insert({
-        complaint_id: data.complaint_id,
-        latitude: input.incidentLatitude,
-        longitude: input.incidentLongitude,
-      });
-      incidentLocationSaved = !locationError;
-      if (locationError) console.error("Verified incident pin could not be saved", locationError.code);
-    }
     return json({
       ...data,
-      incident_location_saved: incidentLocationSaved,
+      incident_location_saved: data?.incident_location_saved === true,
       prediction: {
         departmentId: primaryDept,
         departments,
@@ -395,8 +393,8 @@ Deno.serve(async (req) => {
         probabilities: prediction.probabilities,
         isMultiLabel,
         hasHazard,
-        needsReview,
-        reviewReason,
+        needsReview: Boolean(data?.needs_review),
+        reviewReason: reviewReason ?? (data?.needs_review ? "ROUTING_REVIEW_REQUIRED" : null),
         issues,
         modelVersion: prediction.modelVersion,
         decisionPolicy: prediction.decisionPolicy,
