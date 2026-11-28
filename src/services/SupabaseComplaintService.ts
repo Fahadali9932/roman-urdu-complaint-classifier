@@ -236,10 +236,12 @@ export class SupabaseComplaintService implements IComplaintService {
     if (!data?.complaint_id || !data?.reference_number || data.photo_attached !== true || data.incident_location_saved !== true) {
       throw new ComplaintSubmissionError('The service did not confirm the photograph and location.', 'SUBMISSION_UNAVAILABLE');
     }
-    const routedDepts = data.assigned_department_ids ||
-      (Array.isArray(data.assigned_department_ids) && data.assigned_department_ids.length > 0
+    // Manual-review predictions are not actual department assignments.
+    const routedDepts = data.needs_review ? [] : (
+      Array.isArray(data.assigned_department_ids) && data.assigned_department_ids.length > 0
         ? data.assigned_department_ids
-        : (data.assigned_department_id ? [data.assigned_department_id] : []));
+        : (data.assigned_department_id ? [data.assigned_department_id] : [])
+    );
 
     return {
       complaintId: data.complaint_id,
@@ -250,7 +252,7 @@ export class SupabaseComplaintService implements IComplaintService {
       message: data.needs_review
         ? 'Your complaint was received and is awaiting safe routing review.'
         : 'Your complaint was securely routed to the responsible department.',
-      departmentId: data.prediction?.departmentId || data.assigned_department_id || data.predicted_department_id,
+      departmentId: data.needs_review ? undefined : (data.assigned_department_id || routedDepts[0]),
       departments: routedDepts,
       status: data.status,
       needsReview: Boolean(data.needs_review),
