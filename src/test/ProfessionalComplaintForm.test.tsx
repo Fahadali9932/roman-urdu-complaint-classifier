@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { LanguageProvider } from '../context/LanguageContext';
@@ -6,15 +6,40 @@ import { ComplaintForm } from '../features/citizen/ComplaintForm';
 
 const renderForm = () => render(<BrowserRouter><LanguageProvider><ComplaintForm /></LanguageProvider></BrowserRouter>);
 
+const mockGeolocation = (lat = 24.8607, lon = 67.0011) => {
+  Object.defineProperty(navigator, 'geolocation', {
+    writable: true,
+    configurable: true,
+    value: {
+      getCurrentPosition: (success: any) =>
+        success({
+          coords: {
+            latitude: lat,
+            longitude: lon,
+            accuracy: 10,
+          },
+        }),
+      watchPosition: vi.fn(),
+      clearWatch: vi.fn(),
+    },
+  });
+};
+
 const reachLocation = async () => {
   renderForm();
   fireEvent.change(screen.getByLabelText(/full name/i), { target: { value: 'Tariq Mehmood' } });
   fireEvent.change(screen.getByLabelText(/phone number/i), { target: { value: '03001234567' } });
   fireEvent.click(screen.getByRole('button', { name: /continue/i }));
-  await screen.findByRole('heading', { level: 2, name: /issue photograph/i });
-  const dummyFile = new File(['mock photo bytes'], 'issue-photo.jpg', { type: 'image/jpeg' });
-  fireEvent.change(screen.getByLabelText(/upload issue photo from files/i), { target: { files: [dummyFile] } });
-  await screen.findByText(/photo attached/i);
+  await screen.findByRole('heading', { level: 2, name: /capture or attach/i });
+  
+  // Camera capture flow
+  fireEvent.click(screen.getByRole('button', { name: /capture photo/i }));
+  const snapBtn = await screen.findByRole('button', { name: /^capture$/i });
+  fireEvent.click(snapBtn);
+  const useBtn = await screen.findByRole('button', { name: /use photo/i });
+  fireEvent.click(useBtn);
+  await screen.findByText(/photo captured\./i);
+
   fireEvent.click(screen.getByRole('button', { name: /continue/i }));
   await screen.findByRole('heading', { level: 2, name: /tell us where/i });
 };
@@ -43,12 +68,22 @@ describe('Complaint form safeguards', () => {
     expect(sessionStorage.getItem('applicantAddress')).toBeNull();
   });
 
-  it('requires a home address before proceeding from the location stage', async () => {
+  it('requires a home address and live location before proceeding from the location stage', async () => {
     await reachLocation();
     fireEvent.change(screen.getByLabelText(/area \/ locality/i), { target: { value: 'Saddar' } });
     fireEvent.change(screen.getByLabelText(/street, block or nearby landmark/i), { target: { value: 'Frere Road' } });
-    fireEvent.click(screen.getByRole('button', { name: /continue/i }));
+    
+    // Continue is disabled without location
+    const continueBtn = screen.getByRole('button', { name: /continue/i });
+    expect(continueBtn).toBeDisabled();
 
+    // Attach location
+    mockGeolocation(24.8594, 67.0241);
+    fireEvent.click(screen.getByRole('button', { name: /add location/i }));
+    await screen.findByText(/location attached\./i);
+
+    // Attempting to continue without home address
+    fireEvent.click(continueBtn);
     expect(screen.getByText(/enter your home address/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/home address/i)).toHaveFocus();
     expect(screen.queryByLabelText(/complaint description/i)).not.toBeInTheDocument();
@@ -59,9 +94,11 @@ describe('Complaint form safeguards', () => {
     fireEvent.change(screen.getByLabelText(/area \/ locality/i), { target: { value: 'Saddar' } });
     fireEvent.change(screen.getByLabelText(/street, block or nearby landmark/i), { target: { value: 'Frere Road' } });
     fireEvent.change(screen.getByLabelText(/home address/i), { target: { value: 'House 99, Saddar' } });
-    fireEvent.change(screen.getByLabelText(/^Latitude$/i), { target: { value: '24.8607' } });
-    fireEvent.change(screen.getByLabelText(/^Longitude$/i), { target: { value: '67.0011' } });
-    fireEvent.click(screen.getByRole('button', { name: /verify location/i }));
+    
+    mockGeolocation(24.8607, 67.0011);
+    fireEvent.click(screen.getByRole('button', { name: /add location/i }));
+    await screen.findByText(/location attached\./i);
+
     fireEvent.click(screen.getByRole('button', { name: /continue/i }));
     const description = await screen.findByLabelText(/complaint description/i);
     fireEvent.change(description, { target: { value: Array.from({ length: 205 }, (_, index) => `word${index}`).join(' ') } });

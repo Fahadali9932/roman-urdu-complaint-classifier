@@ -1,112 +1,92 @@
-import { describe, expect, it, vi, beforeEach } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import React from 'react';
 import { LanguageProvider } from '../context/LanguageContext';
-import { SimplifiedComplaintContainer } from '../features/citizen/simplified-complaint/SimplifiedComplaintContainer';
-import { compressComplaintPhoto, formatFileSize } from '../utils/imageCompression';
+import { ComplaintForm } from '../features/citizen/ComplaintForm';
 
 const renderCitizenForm = () =>
   render(
     <BrowserRouter>
       <LanguageProvider>
-        <SimplifiedComplaintContainer />
+        <ComplaintForm />
       </LanguageProvider>
     </BrowserRouter>
   );
 
-describe('V23 Citizen Portal Refinement & 4-Stage Polish', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
+const captureCameraPhoto = async () => {
+  const startBtn = screen.getByRole('button', { name: /capture photo|تصویر کھینچیں/i });
+  fireEvent.click(startBtn);
+  const snapBtn = await screen.findByRole('button', { name: /^capture$|^تصویر لیں$/i });
+  fireEvent.click(snapBtn);
+  const useBtn = await screen.findByRole('button', { name: /use photo|تصویر استعمال کریں/i });
+  fireEvent.click(useBtn);
+  await screen.findByText(/photo captured\.|تصویر محفوظ ہو گئی۔/i);
+};
 
-  describe('Objective 1: Image Compression & Payload Utilities', () => {
-    it('correctly formats file sizes into human-readable units', () => {
-      expect(formatFileSize(500)).toBe('500 B');
-      expect(formatFileSize(250 * 1024)).toBe('250 KB');
-      expect(formatFileSize(2.5 * 1024 * 1024)).toBe('2.5 MB');
-    });
-
-    it('safely handles non-canvas or mock file compression and returns metadata', async () => {
-      const mockBlob = new Blob(['mock binary image content'], { type: 'image/jpeg' });
-      const testFile = new File([mockBlob], 'street-leak.jpg', { type: 'image/jpeg' });
-
-      const result = await compressComplaintPhoto(testFile, 1600, 0.82);
-      expect(result.file).toBeDefined();
-      expect(result.originalSize).toBe(testFile.size);
-      expect(result.compressedSize).toBeGreaterThan(0);
-    });
-  });
-
-  describe('Objective 2: Mandatory Issue Photo Capture Flow', () => {
-    it('blocks user from advancing to location if no issue photograph is attached', async () => {
-      renderCitizenForm();
-
-      // Complete Step 1: Contact info
-      fireEvent.change(screen.getByLabelText(/full name/i), { target: { value: 'Ayesha Khan' } });
-      fireEvent.change(screen.getByLabelText(/phone number/i), { target: { value: '03331234567' } });
-      fireEvent.click(screen.getByRole('button', { name: /continue/i }));
-
-      // Step 2: Issue photo
-      expect(await screen.findByRole('heading', { level: 2, name: /issue photograph/i })).toBeInTheDocument();
-      expect(screen.getByText(/required/i)).toBeInTheDocument();
-
-      // Click continue without attaching photo
-      fireEvent.click(screen.getByRole('button', { name: /continue/i }));
-
-      // Validation error displayed, still on Step 2
-      expect(await screen.findByText(/attach a photo of the issue/i)).toBeInTheDocument();
-      expect(screen.queryByRole('heading', { level: 2, name: /tell us where/i })).not.toBeInTheDocument();
-    });
-
-    it('allows advancing once a photo is attached and displays attached status', async () => {
+describe('AWAAZ-E-AWAM — Citizen Portal Camera & Location Refinement', () => {
+  describe('Objective 1: Camera-Only Photo Capture', () => {
+    it('disables continue button until photo is captured', async () => {
       renderCitizenForm();
 
       fireEvent.change(screen.getByLabelText(/full name/i), { target: { value: 'Ayesha Khan' } });
       fireEvent.change(screen.getByLabelText(/phone number/i), { target: { value: '03331234567' } });
       fireEvent.click(screen.getByRole('button', { name: /continue/i }));
 
-      await screen.findByRole('heading', { level: 2, name: /issue photograph/i });
+      await screen.findByRole('heading', { level: 2, name: /capture or attach/i });
 
-      // Attach file
-      const dummyPhoto = new File(['mock content'], 'sewage-overflow.jpg', { type: 'image/jpeg' });
-      const fileInput = screen.getByLabelText(/upload issue photo from files/i);
-      fireEvent.change(fileInput, { target: { files: [dummyPhoto] } });
+      // Continue button must be disabled
+      const continueBtn = screen.getByRole('button', { name: /continue/i });
+      expect(continueBtn).toBeDisabled();
 
-      // Check attached indicator
-      expect(await screen.findByText(/photo attached/i)).toBeInTheDocument();
+      // Zero file inputs
+      expect(screen.queryByLabelText(/upload issue photo from files/i)).toBeNull();
+      expect(screen.queryByRole('button', { name: /choose from files/i })).toBeNull();
+      expect(document.querySelector('input[type="file"]')).toBeNull();
+    });
+
+    it('allows advancing once photo is captured via live camera flow', async () => {
+      renderCitizenForm();
+
+      fireEvent.change(screen.getByLabelText(/full name/i), { target: { value: 'Ayesha Khan' } });
+      fireEvent.change(screen.getByLabelText(/phone number/i), { target: { value: '03331234567' } });
+      fireEvent.click(screen.getByRole('button', { name: /continue/i }));
+
+      await screen.findByRole('heading', { level: 2, name: /capture or attach/i });
+
+      await captureCameraPhoto();
+
+      // Continue button should now be enabled
+      const continueBtn = screen.getByRole('button', { name: /continue/i });
+      expect(continueBtn).not.toBeDisabled();
 
       // Advance to Step 3 (Location)
-      fireEvent.click(screen.getByRole('button', { name: /continue/i }));
+      fireEvent.click(continueBtn);
       expect(await screen.findByRole('heading', { level: 2, name: /tell us where/i })).toBeInTheDocument();
     });
 
-    it('supports removing and replacing attached photo', async () => {
+    it('supports retaking captured photo', async () => {
       renderCitizenForm();
 
       fireEvent.change(screen.getByLabelText(/full name/i), { target: { value: 'Ayesha Khan' } });
       fireEvent.change(screen.getByLabelText(/phone number/i), { target: { value: '03331234567' } });
       fireEvent.click(screen.getByRole('button', { name: /continue/i }));
 
-      await screen.findByRole('heading', { level: 2, name: /issue photograph/i });
+      await screen.findByRole('heading', { level: 2, name: /capture or attach/i });
 
-      const dummyPhoto = new File(['mock content'], 'garbage-pile.jpg', { type: 'image/jpeg' });
-      fireEvent.change(screen.getByLabelText(/upload issue photo from files/i), { target: { files: [dummyPhoto] } });
+      await captureCameraPhoto();
 
-      expect(await screen.findByText(/photo attached/i)).toBeInTheDocument();
+      // Retake button
+      const retakeBtn = screen.getByRole('button', { name: /retake/i });
+      fireEvent.click(retakeBtn);
 
-      // Click remove
-      const removeBtn = screen.getByRole('button', { name: /remove/i });
-      fireEvent.click(removeBtn);
-
-      // Photo removed, primary capture buttons visible again
-      expect(screen.queryByText(/photo attached/i)).not.toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /choose from files/i })).toBeInTheDocument();
+      // Back to streaming or idle, photo cleared
+      expect(screen.queryByText(/photo captured\./i)).not.toBeInTheDocument();
     });
   });
 
-  describe('Objective 3: Mapless Geolocation & Sindh Boundary Safeguards', () => {
-    it('renders clean mapless location UI with no embedded OpenStreetMap tiles', async () => {
+  describe('Objective 2: Mandatory Live Geolocation', () => {
+    it('renders clean mapless location UI with no embedded map tiles or manual inputs', async () => {
       renderCitizenForm();
 
       // Advance through Step 1 & Step 2
@@ -114,10 +94,8 @@ describe('V23 Citizen Portal Refinement & 4-Stage Polish', () => {
       fireEvent.change(screen.getByLabelText(/phone number/i), { target: { value: '03211234567' } });
       fireEvent.click(screen.getByRole('button', { name: /continue/i }));
 
-      await screen.findByRole('heading', { level: 2, name: /issue photograph/i });
-      const dummyPhoto = new File(['mock content'], 'broken-pipe.jpg', { type: 'image/jpeg' });
-      fireEvent.change(screen.getByLabelText(/upload issue photo from files/i), { target: { files: [dummyPhoto] } });
-      await screen.findByText(/photo attached/i);
+      await screen.findByRole('heading', { level: 2, name: /capture or attach/i });
+      await captureCameraPhoto();
       fireEvent.click(screen.getByRole('button', { name: /continue/i }));
 
       // Step 3: Location stage
@@ -127,11 +105,15 @@ describe('V23 Citizen Portal Refinement & 4-Stage Polish', () => {
       expect(document.querySelector('.leaflet-container')).toBeNull();
       expect(document.querySelector('.leaflet-tile-pane')).toBeNull();
 
-      // Assert clean location button exists
-      expect(screen.getByRole('button', { name: /use current issue location/i })).toBeInTheDocument();
+      // Assert no manual coordinate inputs exist
+      expect(document.querySelector('#incident-lat-input')).toBeNull();
+      expect(document.querySelector('#incident-lon-input')).toBeNull();
+
+      // Assert clean location button exists with exact text
+      expect(screen.getByRole('button', { name: /add location/i })).toBeInTheDocument();
     });
 
-    it('attaches geolocation silently and displays confirmation badge', async () => {
+    it('attaches geolocation and displays confirmation badge', async () => {
       const mockGeolocation = {
         getCurrentPosition: vi.fn().mockImplementationOnce((success) =>
           success({
@@ -153,24 +135,22 @@ describe('V23 Citizen Portal Refinement & 4-Stage Polish', () => {
       fireEvent.change(screen.getByLabelText(/phone number/i), { target: { value: '03211234567' } });
       fireEvent.click(screen.getByRole('button', { name: /continue/i }));
 
-      await screen.findByRole('heading', { level: 2, name: /issue photograph/i });
-      const dummyPhoto = new File(['mock content'], 'road-pothole.jpg', { type: 'image/jpeg' });
-      fireEvent.change(screen.getByLabelText(/upload issue photo from files/i), { target: { files: [dummyPhoto] } });
-      await screen.findByText(/photo attached/i);
+      await screen.findByRole('heading', { level: 2, name: /capture or attach/i });
+      await captureCameraPhoto();
       fireEvent.click(screen.getByRole('button', { name: /continue/i }));
 
-      // Step 3: Click GPS button
+      // Step 3: Click Add Location button
       await screen.findByRole('heading', { level: 2, name: /tell us where/i });
-      const gpsBtn = screen.getByRole('button', { name: /use current issue location/i });
-      fireEvent.click(gpsBtn);
+      const addBtn = screen.getByRole('button', { name: /add location/i });
+      fireEvent.click(addBtn);
 
-      // Verify human confirmation badge appears
+      // Verify confirmation badge appears
       await waitFor(() => {
-        expect(screen.getByText(/location attached successfully/i)).toBeInTheDocument();
+        expect(screen.getByText(/location attached\./i)).toBeInTheDocument();
       });
     });
 
-    it('automatically uses verified district centroid when text address is entered without GPS', async () => {
+    it('strictly disables continue and blocks advancing when GPS location is not attached', async () => {
       renderCitizenForm();
 
       // Step 1
@@ -179,10 +159,8 @@ describe('V23 Citizen Portal Refinement & 4-Stage Polish', () => {
       fireEvent.click(screen.getByRole('button', { name: /continue/i }));
 
       // Step 2
-      await screen.findByRole('heading', { level: 2, name: /issue photograph/i });
-      const dummyPhoto = new File(['mock content'], 'test.jpg', { type: 'image/jpeg' });
-      fireEvent.change(screen.getByLabelText(/upload issue photo from files/i), { target: { files: [dummyPhoto] } });
-      await screen.findByText(/photo attached/i);
+      await screen.findByRole('heading', { level: 2, name: /capture or attach/i });
+      await captureCameraPhoto();
       fireEvent.click(screen.getByRole('button', { name: /continue/i }));
 
       // Step 3: Fill known Karachi locality and home address (without touching GPS)
@@ -191,10 +169,12 @@ describe('V23 Citizen Portal Refinement & 4-Stage Polish', () => {
       fireEvent.change(screen.getByLabelText(/street, block or nearby landmark/i), { target: { value: 'Block 13-A' } });
       fireEvent.change(screen.getByLabelText(/home address/i), { target: { value: 'House 55, Street 2' } });
 
-      // Click continue - should automatically resolve District East centroid and proceed to Step 4
-      fireEvent.click(screen.getByRole('button', { name: /continue/i }));
+      // Step 3 Continue button MUST BE DISABLED
+      const continueBtn = screen.getByRole('button', { name: /continue/i });
+      expect(continueBtn).toBeDisabled();
 
-      expect(await screen.findByRole('heading', { level: 2, name: /describe what happened/i })).toBeInTheDocument();
+      // Attempting to advance without GPS remains blocked on Step 3
+      expect(screen.queryByRole('heading', { level: 2, name: /describe what happened/i })).toBeNull();
     });
   });
 });

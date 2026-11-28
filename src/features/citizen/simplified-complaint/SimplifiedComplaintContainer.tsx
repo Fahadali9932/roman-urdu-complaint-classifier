@@ -48,16 +48,6 @@ import { MAX_COMPLAINT_WORDS } from '../../../utils/wordCounter';
 
 type Stage = 1 | 2 | 3 | 4;
 
-const DISTRICT_CENTROIDS: Record<KarachiDistrict, { latitude: number; longitude: number }> = {
-  'District Central': { latitude: 24.9144, longitude: 67.0321 },
-  'District East': { latitude: 24.9182, longitude: 67.0971 },
-  'District South': { latitude: 24.8594, longitude: 67.0241 },
-  'District West': { latitude: 24.9450, longitude: 66.9750 },
-  'District Keamari': { latitude: 24.8475, longitude: 66.9854 },
-  'District Korangi': { latitude: 24.8326, longitude: 67.1512 },
-  'District Malir': { latitude: 24.9000, longitude: 67.1900 },
-};
-
 const LEGACY_DRAFT_KEY = 'awaaz_complaint_draft_v1';
 const GUEST_SESSION_KEY = 'awaaz_guest_draft_token_v2';
 
@@ -210,6 +200,7 @@ export const SimplifiedComplaintContainer: React.FC = () => {
   const isSubmittingRef = useRef(false);
   const [submission, setSubmission] = useState<SubmissionResult | null>(null);
   const [incidentPin, setIncidentPin] = useState<IncidentPin | null>(null);
+  const [isLocatingLocation, setIsLocatingLocation] = useState(false);
   const [photo, setPhoto] = useState<File | null>(null);
   const [photoPreviewUrl, setPhotoPreviewUrl] = useState<string | null>(null);
   const [evidenceNotice, setEvidenceNotice] = useState('');
@@ -364,7 +355,8 @@ export const SimplifiedComplaintContainer: React.FC = () => {
       formData.location.locality &&
       formData.location.district &&
       formData.location.publicLocation.trim() &&
-      formData.applicant.applicantAddress.trim()
+      formData.applicant.applicantAddress.trim() &&
+      incidentPin
     ),
     words > 0 && words <= MAX_COMPLAINT_WORDS,
   ];
@@ -443,10 +435,12 @@ export const SimplifiedComplaintContainer: React.FC = () => {
       if (!formData.location.district) next.district = ur ? 'ضلع منتخب کریں۔' : 'Select a Karachi district.';
       if (!formData.location.publicLocation.trim()) next.publicLocation = ur ? 'قریبی نشانی درج کریں۔' : 'Enter the incident street or landmark.';
       if (!formData.applicant.applicantAddress.trim()) next.applicantAddress = ur ? 'رہائشی پتہ درج کریں۔' : 'Enter your home address.';
-      if (incidentPin) {
+      if (!incidentPin) {
+        next.incidentLocation = ur ? 'جاری رکھنے کے لیے مقام کی اجازت دیں یا مقام شامل کریں۔' : 'Attach your location while at the issue site to continue.';
+      } else {
         const pinCheck = verifySindhLocation(incidentPin.latitude, incidentPin.longitude);
         if (!pinCheck.eligible) {
-          next.incidentLocation = ur ? pinCheck.messageUrdu : pinCheck.message;
+          next.incidentLocation = ur ? 'یہ مقام ہماری سروس کے دائرہ کار سے باہر ہے۔' : 'This location is outside our service area.';
         }
       }
     }
@@ -471,16 +465,27 @@ export const SimplifiedComplaintContainer: React.FC = () => {
     if (isSubmittingRef.current || isSubmitting) return;
     if (!validate(4)) return;
 
-    const effectiveCoords = incidentPin || (formData.location.district ? DISTRICT_CENTROIDS[formData.location.district as KarachiDistrict] : undefined);
-    const pinCheck = verifySindhLocation(effectiveCoords?.latitude, effectiveCoords?.longitude);
+    if (!incidentPin) {
+      const msg = ur ? 'جاری رکھنے کے لیے مقام کی اجازت دیں یا مقام شامل کریں۔' : 'Attach your location while at the issue site to continue.';
+      setErrors((current) => ({
+        ...current,
+        incidentLocation: msg,
+        submit: msg,
+      }));
+      setStage(3);
+      return;
+    }
+
+    const pinCheck = verifySindhLocation(incidentPin.latitude, incidentPin.longitude);
     if (!pinCheck.eligible) {
-      const msg = ur ? pinCheck.messageUrdu : pinCheck.message;
+      const msg = ur ? 'یہ مقام ہماری سروس کے دائرہ کار سے باہر ہے۔' : 'This location is outside our service area.';
       setErrors((current) => ({
         ...current,
         incidentLocation: msg,
         submit: msg,
         submitCode: pinCheck.code,
       }));
+      setStage(3);
       return;
     }
 
@@ -516,8 +521,8 @@ export const SimplifiedComplaintContainer: React.FC = () => {
         locality: formData.location.locality,
         district: formData.location.district as KarachiDistrict,
         publicLocation: formData.location.publicLocation,
-        incidentLatitude: effectiveCoords?.latitude,
-        incidentLongitude: effectiveCoords?.longitude,
+        incidentLatitude: incidentPin.latitude,
+        incidentLongitude: incidentPin.longitude,
         title: formData.complaint.description.trim().slice(0, 50) || 'Public complaint',
         description: formData.complaint.description.trim(),
         isDemonstration: Boolean(import.meta.env.DEV && isTestMode),
@@ -1012,7 +1017,8 @@ export const SimplifiedComplaintContainer: React.FC = () => {
                     <button
                       type="button"
                       onClick={continueStage}
-                      className="inline-flex min-h-[50px] w-full items-center justify-center gap-2 rounded-xl bg-[#681822] px-6 text-sm sm:text-[15px] font-bold text-white shadow-[0_4px_16px_rgba(104,24,34,0.20)] transition hover:bg-[#53131B] active:scale-[0.99] sm:w-auto cursor-pointer"
+                      disabled={!photo}
+                      className="inline-flex min-h-[50px] w-full items-center justify-center gap-2 rounded-xl bg-[#681822] px-6 text-sm sm:text-[15px] font-bold text-white shadow-[0_4px_16px_rgba(104,24,34,0.20)] transition hover:bg-[#53131B] active:scale-[0.99] sm:w-auto cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <span>{copy.continue}</span>
                       <ChevronRight className={`h-4 w-4 ${isRTL ? 'rotate-180' : ''}`} />
@@ -1104,6 +1110,7 @@ export const SimplifiedComplaintContainer: React.FC = () => {
                       setIncidentPin(pin);
                       setErrors((current) => ({ ...current, incidentLocation: '', submit: '', submitCode: '' }));
                     }}
+                    onLocatingChange={setIsLocatingLocation}
                     error={errors.incidentLocation}
                   />
 
@@ -1138,7 +1145,7 @@ export const SimplifiedComplaintContainer: React.FC = () => {
                       <ArrowLeft className={`h-4 w-4 ${isRTL ? 'rotate-180' : ''}`} />
                       {copy.back}
                     </button>
-                    <ActionButton label={copy.continue} />
+                    <ActionButton label={copy.continue} disabled={!incidentPin || isLocatingLocation} />
                   </div>
                 </form>
               )}
@@ -1418,10 +1425,12 @@ const Field: React.FC<{
   </div>
 );
 
-const ActionButton: React.FC<{ label: string }> = ({ label }) => (
+const ActionButton: React.FC<{ label: string; disabled?: boolean; id?: string }> = ({ label, disabled, id }) => (
   <button
+    id={id}
     type="submit"
-    className="inline-flex min-h-[50px] w-full items-center justify-center gap-2 rounded-xl bg-[#681822] px-6 text-sm sm:text-[15px] font-bold text-white shadow-[0_4px_16px_rgba(104,24,34,0.20)] transition hover:bg-[#53131B] active:scale-[0.99] sm:w-auto cursor-pointer"
+    disabled={disabled}
+    className="inline-flex min-h-[50px] w-full items-center justify-center gap-2 rounded-xl bg-[#681822] px-6 text-sm sm:text-[15px] font-bold text-white shadow-[0_4px_16px_rgba(104,24,34,0.20)] transition hover:bg-[#53131B] active:scale-[0.99] sm:w-auto cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-[#681822]"
   >
     <span>{label}</span>
     <ChevronRight className="h-4 w-4" />

@@ -18,6 +18,38 @@ import {
 import type { ComplaintSubmissionInput } from '../types';
 
 // Mock supabase client
+const captureCameraPhoto = async () => {
+  const startBtn = screen.getByRole('button', { name: /capture photo|تصویر کھینچیں/i });
+  fireEvent.click(startBtn);
+  const snapBtn = await screen.findByRole('button', { name: /^capture$|^تصویر لیں$/i });
+  fireEvent.click(snapBtn);
+  const useBtn = await screen.findByRole('button', { name: /use photo|تصویر استعمال کریں/i });
+  fireEvent.click(useBtn);
+  await screen.findByText(/photo captured\.|تصویر محفوظ ہو گئی۔/i);
+};
+
+const attachLiveLocation = async (lat = 24.9056, lon = 67.0822) => {
+  Object.defineProperty(navigator, 'geolocation', {
+    writable: true,
+    configurable: true,
+    value: {
+      getCurrentPosition: (success: any) =>
+        success({
+          coords: {
+            latitude: lat,
+            longitude: lon,
+            accuracy: 10,
+          },
+        }),
+      watchPosition: vi.fn(),
+      clearWatch: vi.fn(),
+    },
+  });
+  const addBtn = screen.getByRole('button', { name: /add location|مقام شامل کریں|update location|مقام تبدیل کریں/i });
+  fireEvent.click(addBtn);
+  await screen.findByText(/location attached\.|مقام منسلک ہو گیا۔/i);
+};
+
 vi.mock('../lib/supabase', () => ({
   supabase: {
     auth: {
@@ -241,19 +273,14 @@ describe('PHASE V13.0 — REAL CITIZEN SUBMISSION & V11 INTEGRATION', () => {
       fireEvent.click(screen.getByRole('button', { name: /Continue|آگے بڑھیں/i }));
 
       // Step 2: Photo Capture (Mandatory)
-      const fileInput1 = container.querySelector('#file-photo-input')!;
-      const dummyPhoto1 = new File(['mock photo bytes'], 'issue-photo.jpg', { type: 'image/jpeg' });
-      fireEvent.change(fileInput1, { target: { files: [dummyPhoto1] } });
-      await screen.findByText(/photo attached/i);
+      await captureCameraPhoto();
       fireEvent.click(screen.getByRole('button', { name: /Continue|آگے بڑھیں/i }));
 
       // Step 3: Location & Residential Address
       fireEvent.change(container.querySelector('#locality')!, { target: { value: 'Gulshan-e-Iqbal' } });
       fireEvent.change(container.querySelector('#publicLocation')!, { target: { value: 'Near Disco Bakery' } });
       fireEvent.change(container.querySelector('#applicantAddress')!, { target: { value: 'House 123, Street 4' } });
-      fireEvent.change(container.querySelector('#incident-lat-input')!, { target: { value: '24.9056' } });
-      fireEvent.change(container.querySelector('#incident-lon-input')!, { target: { value: '67.0822' } });
-      fireEvent.click(screen.getByRole('button', { name: /verify location/i }));
+      await attachLiveLocation(24.9056, 67.0822);
 
       fireEvent.click(screen.getByRole('button', { name: /Continue|آگے بڑھیں/i }));
 
@@ -307,19 +334,14 @@ describe('PHASE V13.0 — REAL CITIZEN SUBMISSION & V11 INTEGRATION', () => {
       fireEvent.click(screen.getByRole('button', { name: /Continue|آگے بڑھیں/i }));
 
       // Step 2: Photo Capture (Mandatory)
-      const fileInput2 = container.querySelector('#file-photo-input')!;
-      const dummyPhoto2 = new File(['mock photo bytes'], 'issue-photo.jpg', { type: 'image/jpeg' });
-      fireEvent.change(fileInput2, { target: { files: [dummyPhoto2] } });
-      await screen.findByText(/photo attached/i);
+      await captureCameraPhoto();
       fireEvent.click(screen.getByRole('button', { name: /Continue|آگے بڑھیں/i }));
 
       // Step 3
       fireEvent.change(container.querySelector('#locality')!, { target: { value: 'Gulshan-e-Iqbal' } });
       fireEvent.change(container.querySelector('#publicLocation')!, { target: { value: 'Near Disco Bakery' } });
       fireEvent.change(container.querySelector('#applicantAddress')!, { target: { value: 'House 123, Street 4' } });
-      fireEvent.change(container.querySelector('#incident-lat-input')!, { target: { value: '24.9056' } });
-      fireEvent.change(container.querySelector('#incident-lon-input')!, { target: { value: '67.0822' } });
-      fireEvent.click(screen.getByRole('button', { name: /verify location/i }));
+      await attachLiveLocation(24.9056, 67.0822);
       fireEvent.click(screen.getByRole('button', { name: /Continue|آگے بڑھیں/i }));
 
       // Step 3
@@ -386,19 +408,14 @@ describe('PHASE V13.0 — REAL CITIZEN SUBMISSION & V11 INTEGRATION', () => {
       fireEvent.click(screen.getByRole('button', { name: /Continue|آگے بڑھیں/i }));
 
       // Step 2: Photo Capture (Mandatory)
-      const fileInput2 = container.querySelector('#file-photo-input')!;
-      const dummyPhoto2 = new File(['mock photo bytes'], 'issue-photo.jpg', { type: 'image/jpeg' });
-      fireEvent.change(fileInput2, { target: { files: [dummyPhoto2] } });
-      await screen.findByText(/photo attached/i);
+      await captureCameraPhoto();
       fireEvent.click(screen.getByRole('button', { name: /Continue|آگے بڑھیں/i }));
 
       // Step 3
       fireEvent.change(container.querySelector('#locality')!, { target: { value: 'Gulshan-e-Iqbal' } });
       fireEvent.change(container.querySelector('#publicLocation')!, { target: { value: 'Near Disco Bakery' } });
       fireEvent.change(container.querySelector('#applicantAddress')!, { target: { value: 'House 123, Street 4' } });
-      fireEvent.change(container.querySelector('#incident-lat-input')!, { target: { value: '24.9056' } });
-      fireEvent.change(container.querySelector('#incident-lon-input')!, { target: { value: '67.0822' } });
-      fireEvent.click(screen.getByRole('button', { name: /verify location/i }));
+      await attachLiveLocation(24.9056, 67.0822);
       fireEvent.click(screen.getByRole('button', { name: /Continue|آگے بڑھیں/i }));
 
       // Step 3
@@ -465,19 +482,14 @@ describe('PHASE V13.0 — REAL CITIZEN SUBMISSION & V11 INTEGRATION', () => {
       fireEvent.click(screen.getByRole('button', { name: /Continue|آگے بڑھیں/i }));
 
       // Step 2: Photo Capture (Mandatory)
-      const fileInput4 = container.querySelector('#file-photo-input')!;
-      const dummyPhoto4 = new File(['mock photo bytes'], 'issue-photo.jpg', { type: 'image/jpeg' });
-      fireEvent.change(fileInput4, { target: { files: [dummyPhoto4] } });
-      await screen.findByText(/photo attached/i);
+      await captureCameraPhoto();
       fireEvent.click(screen.getByRole('button', { name: /Continue|آگے بڑھیں/i }));
 
       // Step 3
       fireEvent.change(container.querySelector('#locality')!, { target: { value: 'Gulshan Block 7' } });
       fireEvent.change(container.querySelector('#publicLocation')!, { target: { value: 'Street 4 Main Market' } });
       fireEvent.change(container.querySelector('#applicantAddress')!, { target: { value: 'House 12, Block 7' } });
-      fireEvent.change(container.querySelector('#incident-lat-input')!, { target: { value: '24.9056' } });
-      fireEvent.change(container.querySelector('#incident-lon-input')!, { target: { value: '67.0822' } });
-      fireEvent.click(screen.getByRole('button', { name: /verify location/i }));
+      await attachLiveLocation(24.9056, 67.0822);
       fireEvent.click(screen.getByRole('button', { name: /Continue|آگے بڑھیں/i }));
 
       // Step 3: Enter Fahad's clear complaint

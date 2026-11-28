@@ -154,13 +154,15 @@ export const PublicHeader: React.FC = () => {
     const top = Math.round(btnRect.bottom + 8);
 
     if (language === 'ur') {
-      const rawRight = window.innerWidth - btnRect.right;
-      const right = Math.max(12, Math.min(rawRight, window.innerWidth - menuWidth - 12));
-      setDropdownPosition({ top, right });
-    } else {
+      // In Urdu (RTL), menu button is on the left edge. Anchor drawer to button's left edge.
       const rawLeft = btnRect.left;
       const left = Math.max(12, Math.min(rawLeft, window.innerWidth - menuWidth - 12));
       setDropdownPosition({ top, left });
+    } else {
+      // In English (LTR), menu button is on the right edge. Anchor drawer to button's right edge.
+      const rawRight = window.innerWidth - btnRect.right;
+      const right = Math.max(12, Math.min(rawRight, window.innerWidth - menuWidth - 12));
+      setDropdownPosition({ top, right });
     }
   }, [language]);
 

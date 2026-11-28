@@ -139,11 +139,14 @@ describe('V14 Sindh Geographical Eligibility & Service Coverage', () => {
     fireEvent.change(screen.getByLabelText(/phone number/i), { target: { value: '03001234567' } });
     fireEvent.click(screen.getByRole('button', { name: /continue/i }));
 
-    // Step 2: Photo Capture
-    await screen.findByRole('heading', { level: 2, name: /issue photograph/i });
-    const dummyFile1 = new File(['mock photo bytes'], 'issue-photo.jpg', { type: 'image/jpeg' });
-    fireEvent.change(screen.getByLabelText(/upload issue photo from files/i), { target: { files: [dummyFile1] } });
-    await screen.findByText(/photo attached/i);
+    // Step 2: Camera Capture
+    await screen.findByRole('heading', { level: 2, name: /capture or attach/i });
+    fireEvent.click(screen.getByRole('button', { name: /capture photo/i }));
+    const snapBtn = await screen.findByRole('button', { name: /^capture$/i });
+    fireEvent.click(snapBtn);
+    const useBtn = await screen.findByRole('button', { name: /use photo/i });
+    fireEvent.click(useBtn);
+    await screen.findByText(/photo captured\./i);
     fireEvent.click(screen.getByRole('button', { name: /continue/i }));
 
     const locality = await screen.findByLabelText(/area \/ locality/i);
@@ -151,12 +154,27 @@ describe('V14 Sindh Geographical Eligibility & Service Coverage', () => {
     fireEvent.change(screen.getByLabelText(/street, block or nearby landmark/i), { target: { value: 'Street 9' } });
     fireEvent.change(screen.getByLabelText(/home address/i), { target: { value: 'House 20' } });
 
-    // Enter Lahore coordinates -> blocked with Outside our service region while preserving fields
-    fireEvent.change(screen.getByLabelText(/^Latitude$/i), { target: { value: '31.5204' } });
-    fireEvent.change(screen.getByLabelText(/^Longitude$/i), { target: { value: '74.3587' } });
-    fireEvent.click(screen.getByRole('button', { name: /verify location/i }));
+    // Live location with Lahore coordinates -> blocked with Outside our service area
+    Object.defineProperty(navigator, 'geolocation', {
+      writable: true,
+      configurable: true,
+      value: {
+        getCurrentPosition: (success: any) =>
+          success({
+            coords: {
+              latitude: 31.5204,
+              longitude: 74.3587,
+              accuracy: 10,
+            },
+          }),
+        watchPosition: vi.fn(),
+        clearWatch: vi.fn(),
+      },
+    });
 
-    expect(await screen.findByTestId('outside-sindh-alert')).toHaveTextContent(/Outside our service region/i);
+    fireEvent.click(screen.getByRole('button', { name: /add location/i }));
+
+    expect(await screen.findByTestId('outside-sindh-alert')).toHaveTextContent(/outside our service area/i);
     expect(screen.getByRole('combobox', { name: /area \/ locality/i })).toHaveValue('Clifton');
     expect(screen.getByLabelText(/street, block or nearby landmark/i)).toHaveValue('Street 9');
     expect(screen.getByLabelText(/home address/i)).toHaveValue('House 20');
@@ -177,18 +195,38 @@ describe('V14 Sindh Geographical Eligibility & Service Coverage', () => {
     fireEvent.change(screen.getByLabelText(/موبائل نمبر/i), { target: { value: '03001234567' } });
     fireEvent.click(screen.getByRole('button', { name: /آگے بڑھیں/i }));
 
-    // Step 2: Photo Capture
+    // Step 2: Camera Capture
     await screen.findByRole('heading', { level: 2, name: /مسئلے کی تصویر/i });
-    const dummyFile2 = new File(['mock photo bytes'], 'issue-photo.jpg', { type: 'image/jpeg' });
-    fireEvent.change(screen.getByLabelText(/upload issue photo from files/i), { target: { files: [dummyFile2] } });
-    await screen.findByText(/تصویر منسلک ہو گئی/i);
+    fireEvent.click(screen.getByRole('button', { name: /تصویر کھینچیں/i }));
+    const snapBtn = await screen.findByRole('button', { name: /^تصویر لیں$/i });
+    fireEvent.click(snapBtn);
+    const useBtn = await screen.findByRole('button', { name: /تصویر استعمال کریں/i });
+    fireEvent.click(useBtn);
+    await screen.findByText(/تصویر محفوظ ہو گئی۔/i);
     fireEvent.click(screen.getByRole('button', { name: /آگے بڑھیں/i }));
 
     await screen.findByLabelText(/علاقہ \/ محلہ/i);
-    fireEvent.change(screen.getByLabelText(/^Latitude$/i), { target: { value: '33.6844' } });
-    fireEvent.change(screen.getByLabelText(/^Longitude$/i), { target: { value: '73.0479' } });
-    fireEvent.click(screen.getByRole('button', { name: /مقام کی تصدیق کریں/i }));
+    
+    // Live location with Islamabad coordinates
+    Object.defineProperty(navigator, 'geolocation', {
+      writable: true,
+      configurable: true,
+      value: {
+        getCurrentPosition: (success: any) =>
+          success({
+            coords: {
+              latitude: 33.6844,
+              longitude: 73.0479,
+              accuracy: 10,
+            },
+          }),
+        watchPosition: vi.fn(),
+        clearWatch: vi.fn(),
+      },
+    });
 
-    expect(await screen.findByTestId('outside-sindh-alert')).toHaveTextContent(/ہماری سروس کے دائرہ کار سے باہر/i);
+    fireEvent.click(screen.getByRole('button', { name: /مقام شامل کریں/i }));
+
+    expect(await screen.findByTestId('outside-sindh-alert')).toHaveTextContent(/ہماری سروس کے دائرہ کار سے باہر ہے/i);
   });
 });

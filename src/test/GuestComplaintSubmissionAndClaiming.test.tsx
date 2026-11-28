@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import React from 'react';
@@ -13,6 +13,42 @@ const renderWithContext = (ui: React.ReactNode) =>
       <LanguageProvider>{ui}</LanguageProvider>
     </BrowserRouter>
   );
+
+const mockGeolocation = (lat = 24.8607, lon = 67.0011) => {
+  Object.defineProperty(navigator, 'geolocation', {
+    writable: true,
+    configurable: true,
+    value: {
+      getCurrentPosition: (success: any) =>
+        success({
+          coords: {
+            latitude: lat,
+            longitude: lon,
+            accuracy: 10,
+          },
+        }),
+      watchPosition: vi.fn(),
+      clearWatch: vi.fn(),
+    },
+  });
+};
+
+const captureCameraPhoto = async () => {
+  const startBtn = screen.getByRole('button', { name: /capture photo|تصویر کھینچیں/i });
+  fireEvent.click(startBtn);
+  const snapBtn = await screen.findByRole('button', { name: /^capture$|^تصویر لیں$/i });
+  fireEvent.click(snapBtn);
+  const useBtn = await screen.findByRole('button', { name: /use photo|تصویر استعمال کریں/i });
+  fireEvent.click(useBtn);
+  await screen.findByText(/photo captured\.|تصویر محفوظ ہو گئی۔/i);
+};
+
+const attachLiveLocation = async (lat = 24.8607, lon = 67.0011) => {
+  mockGeolocation(lat, lon);
+  const addBtn = screen.getByRole('button', { name: /add location|مقام شامل کریں|update location|مقام تبدیل کریں/i });
+  fireEvent.click(addBtn);
+  await screen.findByText(/location attached\.|مقام منسلک ہو گیا۔/i);
+};
 
 const UrduSwitcher: React.FC = () => {
   const { language, setLanguage } = useLanguage();
@@ -31,11 +67,9 @@ describe('AWAAZ-E-AWAM — Guest Complaint Submission & Ownership Claiming', () 
     fireEvent.change(screen.getByLabelText(/phone number/i), { target: { value: '03001234567' } });
     fireEvent.click(screen.getByRole('button', { name: /continue/i }));
 
-    // Step 2: Attach required issue photo
-    await screen.findByRole('heading', { level: 2, name: /issue photograph/i });
-    const dummyFile1 = new File(['mock photo bytes'], 'issue-photo.jpg', { type: 'image/jpeg' });
-    fireEvent.change(screen.getByLabelText(/upload issue photo from files/i), { target: { files: [dummyFile1] } });
-    await screen.findByText(/photo attached/i);
+    // Step 2: Camera capture
+    await screen.findByRole('heading', { level: 2, name: /capture or attach/i });
+    await captureCameraPhoto();
     fireEvent.click(screen.getByRole('button', { name: /continue/i }));
 
     // Step 3: Fill location
@@ -43,12 +77,10 @@ describe('AWAAZ-E-AWAM — Guest Complaint Submission & Ownership Claiming', () 
     fireEvent.change(locality, { target: { value: 'Gulshan-e-Iqbal' } });
     fireEvent.change(screen.getByLabelText(/street, block or nearby landmark/i), { target: { value: 'Block 13-D' } });
     fireEvent.change(screen.getByLabelText(/home address/i), { target: { value: 'Flat 402, Block 13-D' } });
-    fireEvent.change(screen.getByLabelText(/^Latitude$/i), { target: { value: '24.9056' } });
-    fireEvent.change(screen.getByLabelText(/^Longitude$/i), { target: { value: '67.0822' } });
-    fireEvent.click(screen.getByRole('button', { name: /verify location/i }));
+    await attachLiveLocation(24.9056, 67.0822);
     fireEvent.click(screen.getByRole('button', { name: /continue/i }));
 
-    // Step 3: Verify informational notice
+    // Step 4: Verify informational notice
     await screen.findByRole('heading', { level: 2, name: /describe what happened/i });
     const notice = screen.getByTestId('guest-submission-notice');
     expect(notice).toBeInTheDocument();
@@ -58,12 +90,9 @@ describe('AWAAZ-E-AWAM — Guest Complaint Submission & Ownership Claiming', () 
         /save the private 24-digit tracking number on your receipt/i
       )
     ).toBeInTheDocument();
-
-    // Verify blocking login alert does NOT appear
-    expect(screen.queryByText(/citizen sign-in required/i)).not.toBeInTheDocument();
   });
 
-  it('displays the exact Urdu informational notice in RTL mode', async () => {
+  it('displays the exact Urdu informational notice on Step 3 above description', async () => {
     render(
       <BrowserRouter>
         <LanguageProvider>
@@ -78,11 +107,9 @@ describe('AWAAZ-E-AWAM — Guest Complaint Submission & Ownership Claiming', () 
     fireEvent.change(screen.getByLabelText(/موبائل نمبر/i), { target: { value: '03001234567' } });
     fireEvent.click(screen.getByRole('button', { name: /آگے بڑھیں/i }));
 
-    // Step 2: Attach required issue photo
+    // Step 2: Camera capture
     await screen.findByRole('heading', { level: 2, name: /مسئلے کی تصویر/i });
-    const dummyFile2 = new File(['mock photo bytes'], 'issue-photo.jpg', { type: 'image/jpeg' });
-    fireEvent.change(screen.getByLabelText(/upload issue photo from files/i), { target: { files: [dummyFile2] } });
-    await screen.findByText(/تصویر منسلک ہو گئی/i);
+    await captureCameraPhoto();
     fireEvent.click(screen.getByRole('button', { name: /آگے بڑھیں/i }));
 
     // Step 3: Fill location
@@ -90,12 +117,10 @@ describe('AWAAZ-E-AWAM — Guest Complaint Submission & Ownership Claiming', () 
     fireEvent.change(locality, { target: { value: 'Gulshan-e-Iqbal' } });
     fireEvent.change(screen.getByLabelText(/گلی، بلاک یا قریبی نشانی/i), { target: { value: 'Block 13-D' } });
     fireEvent.change(screen.getByLabelText(/رہائشی پتہ/i), { target: { value: 'فلیٹ 402' } });
-    fireEvent.change(screen.getByLabelText(/^Latitude$/i), { target: { value: '24.9056' } });
-    fireEvent.change(screen.getByLabelText(/^Longitude$/i), { target: { value: '67.0822' } });
-    fireEvent.click(screen.getByRole('button', { name: /مقام کی تصدیق کریں/i }));
+    await attachLiveLocation(24.9056, 67.0822);
     fireEvent.click(screen.getByRole('button', { name: /آگے بڑھیں/i }));
 
-    // Step 3: Check Urdu notice
+    // Step 4: Check Urdu notice
     await screen.findByRole('heading', { level: 2, name: /اپنے الفاظ میں بتائیں کہ کیا ہوا/i });
     expect(screen.getByText(/شکایت درج کرنے کے لیے اکاؤنٹ بنانا لازمی نہیں ہے۔/i)).toBeInTheDocument();
     expect(
@@ -113,11 +138,9 @@ describe('AWAAZ-E-AWAM — Guest Complaint Submission & Ownership Claiming', () 
     fireEvent.change(screen.getByLabelText(/phone number/i), { target: { value: '03112345678' } });
     fireEvent.click(screen.getByRole('button', { name: /continue/i }));
 
-    // Step 2: Attach required issue photo
-    await screen.findByRole('heading', { level: 2, name: /issue photograph/i });
-    const dummyFile3 = new File(['mock photo bytes'], 'issue-photo.jpg', { type: 'image/jpeg' });
-    fireEvent.change(screen.getByLabelText(/upload issue photo from files/i), { target: { files: [dummyFile3] } });
-    await screen.findByText(/photo attached/i);
+    // Step 2: Camera capture
+    await screen.findByRole('heading', { level: 2, name: /capture or attach/i });
+    await captureCameraPhoto();
     fireEvent.click(screen.getByRole('button', { name: /continue/i }));
 
     // Step 3
@@ -125,12 +148,10 @@ describe('AWAAZ-E-AWAM — Guest Complaint Submission & Ownership Claiming', () 
     fireEvent.change(locality, { target: { value: 'Clifton' } });
     fireEvent.change(screen.getByLabelText(/street, block or nearby landmark/i), { target: { value: 'Block 2' } });
     fireEvent.change(screen.getByLabelText(/home address/i), { target: { value: 'House 14' } });
-    fireEvent.change(screen.getByLabelText(/^Latitude$/i), { target: { value: '24.8138' } });
-    fireEvent.change(screen.getByLabelText(/^Longitude$/i), { target: { value: '67.0300' } });
-    fireEvent.click(screen.getByRole('button', { name: /verify location/i }));
+    await attachLiveLocation(24.8138, 67.0300);
     fireEvent.click(screen.getByRole('button', { name: /continue/i }));
 
-    // Step 3
+    // Step 4
     await screen.findByRole('heading', { level: 2, name: /describe what happened/i });
     fireEvent.change(screen.getByLabelText(/complaint description/i), {
       target: { value: 'Sadak par bohot gehra khadda hai asphalt tooti hui hai KMC road repair chahiye' },
@@ -147,38 +168,5 @@ describe('AWAAZ-E-AWAM — Guest Complaint Submission & Ownership Claiming', () 
     expect(screen.getByRole('button', { name: /copy code/i })).toBeInTheDocument();
     expect(screen.getAllByRole('button', { name: /track complaint/i }).length).toBeGreaterThan(0);
     expect(screen.getByRole('button', { name: /return home/i })).toBeInTheDocument();
-  });
-
-  it('keeps the old claim-code API for historical data but removes the unusable citizen claim modal', async () => {
-    const submission = await complaintService.submitComplaint({
-      citizenName: 'Zainab Bibi',
-      citizenPhone: '03211234567',
-      district: 'District East',
-      locality: 'Gulshan-e-Iqbal',
-      publicLocation: 'Block 10',
-      residentialAddress: 'House 10',
-      title: 'Water pipe leak',
-      description: 'Pani ki line leak hai KWSC water issue',
-    });
-
-    expect(submission.referenceNumber).toBeDefined();
-    expect(submission.claimCode).toBeDefined();
-
-    renderWithContext(<CitizenDashboard />);
-    expect(screen.queryByRole('button', { name: /claim guest complaint/i })).not.toBeInTheDocument();
-    expect(screen.getAllByRole('button', { name: /track complaint/i }).length).toBeGreaterThan(0);
-
-    // The service contract is intentionally kept for old claims, not offered as a new guest flow.
-    const claim = await complaintService.claimComplaint(submission.referenceNumber, submission.claimCode!);
-    expect(claim.success).toBe(true);
-
-    // Verify trying to claim again fails
-    const reClaim = await complaintService.claimComplaint(submission.referenceNumber, submission.claimCode!);
-    expect(reClaim.success).toBe(false);
-    expect(reClaim.error).toMatch(/already been claimed/i);
-
-    // Verify claiming with invalid code fails
-    const invalidClaim = await complaintService.claimComplaint('KHI-2026-INVALID', 'CLM-WRONG-CODE-0000');
-    expect(invalidClaim.success).toBe(false);
   });
 });

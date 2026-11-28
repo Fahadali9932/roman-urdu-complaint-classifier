@@ -5,6 +5,42 @@ Verified on **28 November 2026 (Pakistan time)**. Internal delivery target:
 This document distinguishes inspected source, automated checks, and unverified
 hosted behavior. Update it after every significant verified milestone.
 
+## Development update, 28 November 2026 — Phase V22.4.1: Final Citizen Portal Corrections (Live Camera-Only Capture, Mandatory Live Geolocation Enforcement, Zero Map/Manual Coordinates, PublicHeader Dropdown Alignment & Multi-Viewport Verification)
+
+- **Git & Protected Baseline (`D:\RomanUrdu_V13_19_Review`, branch `fix/v22-4-1-citizen-camera-location-responsive`):**
+  - Dedicated branch `fix/v22-4-1-citizen-camera-location-responsive` active from commit `58155cc`.
+  - Safety rollback checkpoint tag `checkpoint/before-v22-4-1-citizen-corrections` created at `58155cc` and pushed to remote.
+  - Protected primary worktree `D:\RomanUrdu_ComplaintClassifier_staff_auth` remained **100% untouched**.
+  - Department Head and Officer staff portals were **100% preserved and untouched**.
+  - Total expenditure: **$0.00**; zero external paid APIs, Google Maps billing, paid cloud vision APIs, or third-party dependencies.
+- **Architectural Deliverables & Verification:**
+  - **Live Camera-Only Photo Capture (`IssuePhotoCaptureSection.tsx` & `imageCompression.ts`):**
+    - Completely excised all file inputs (`<input type="file">`), desktop file pickers, "Choose from files" buttons, drag-and-drop zones, and visual clutter.
+    - Implemented live camera streaming via `navigator.mediaDevices.getUserMedia()` with real-time video preview.
+    - Added direct canvas frame extraction (`compressCanvasFrame`) downscaling to $\le 1600\text{px}$, stripping EXIF metadata, and running a progressive compression loop down to $< 1\text{MB}$ JPEG.
+    - States: `idle` ("Capture photo" button, privacy note), `streaming` (live feed, capture & cancel), `processing` ("Preparing photo..."), `reviewing` (preview, use photo & retake), and `accepted` ("Photo captured." badge, thumbnail, retake photo).
+    - Resource cleanup: `stopStream()` safely halts tracks on accept, cancel, unmount, or page leave.
+    - Mandatory enforcement: Step 2 Continue button strictly disabled until photo is captured and accepted.
+  - **Mandatory Live Location Section (`IncidentPinPicker.tsx` & `SimplifiedComplaintContainer.tsx`):**
+    - Completely excised all interactive maps, Leaflet containers, and static tile layers.
+    - Completely excised `<details>` manual coordinate fallback, `#incident-lat-input`, `#incident-lon-input`, and "Verify location".
+    - Completely excised all raw latitude, longitude, and precision meters numbers from the citizen UI.
+    - Completely removed silent `DISTRICT_CENTROIDS` substitution: live device coordinates are strictly required.
+    - Concise copy: Heading *"Issue location"* (Urdu: *"مسئلے کا مقام"*), Supporting *"Attach your location while at the issue site."* (Urdu: *"مسئلے کی جگہ پر موجود ہوتے ہوئے اپنا مقام منسلک کریں۔"*), and Primary Action *"Add location"* (Urdu: *"مقام شامل کریں"*).
+    - States: Idle ("Add location"), in-progress ("Getting your location..."), attached ("Location attached." badge with maroon `#681822` checkmark icon, "Update location", "Clear").
+    - Error handling: Permission denied displays *"Allow location access to continue."*, out-of-service area displays *"This location is outside our service area."*.
+    - Mandatory enforcement: Step 3 Continue button strictly disabled (`disabled={!incidentPin || isLocatingLocation}`); step dots block skipping to Step 4; submission blocked if live coordinates absent.
+  - **Mobile Layout & Header Dropdown Alignment (`PublicHeader.tsx`):**
+    - Corrected dropdown position calculations so the mobile navigation menu anchors directly beneath the menu trigger button in both English (right edge alignment) and Urdu RTL (left edge alignment).
+    - Verified all views across 1920px (Desktop), 768px (Tablet), 390px (Mobile), and 320px (Compact Mobile) viewports in English and Urdu.
+- **Automated Quality Gates & Test Verification:**
+  - TypeScript project build (`npx tsc -b ; npm run build`): **Exit code `0` cleanly (0 errors, bundled in 3.45s)**.
+  - Full Vitest test suite (`npx vitest run`): **91 passed test files | 1 skipped (921 passed tests total, 0 regressions)**.
+  - Dedicated new test suite: `src/test/V22_4_1_CitizenCameraLocation.test.tsx` (**10 passed in 1559ms**).
+  - Headless Chrome CDP Verification (`tools/ai_factory/capture_v22_4_1_citizen_qa.mjs`):
+    - All 25 screenshots captured across Landing (1920, 768, 390, 320 EN & UR), Mobile Menu Open (390 EN & UR), Form Steps 1–4 (1920 & 390 EN & UR), Track, and Login.
+    - Saved in `brain/screenshots/v22_4_1_citizen/`.
+
 ## Development update, 28 November 2026 — Phase V23: Citizen Portal Refinement & Mobile Polish (Mapless Geolocation Flow, Mandatory Early Photo Capture, Client-Side Image Compression, Urdu Hero Pen Realignment & Zero-Regression Multi-Viewport Verification)
 
 - **Git & Protected Baseline (`D:\RomanUrdu_V13_19_Review`, branch `feature/citizen-portal-refinement-and-mobile-polish`):**

@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { LanguageProvider, useLanguage } from '../context/LanguageContext';
@@ -7,11 +7,48 @@ import React from 'react';
 
 const renderForm = () => render(<BrowserRouter><LanguageProvider><ComplaintForm /></LanguageProvider></BrowserRouter>);
 
-const attachMockPhoto = async () => {
-  const dummyFile = new File(['mock photo bytes'], 'issue-photo.jpg', { type: 'image/jpeg' });
-  const fileInput = screen.getByLabelText(/upload issue photo from files/i);
-  fireEvent.change(fileInput, { target: { files: [dummyFile] } });
-  await screen.findByText(/photo attached/i);
+const mockGeolocation = (lat = 24.8607, lon = 67.0011, error?: { code: number; message: string }) => {
+  Object.defineProperty(navigator, 'geolocation', {
+    writable: true,
+    configurable: true,
+    value: {
+      getCurrentPosition: (success: any, failure: any) => {
+        if (error) {
+          failure?.(error);
+        } else {
+          success?.({
+            coords: {
+              latitude: lat,
+              longitude: lon,
+              accuracy: 10,
+            },
+          });
+        }
+      },
+      watchPosition: vi.fn(),
+      clearWatch: vi.fn(),
+    },
+  });
+};
+
+const captureCameraPhoto = async () => {
+  const startBtn = screen.getByRole('button', { name: /capture photo|تصویر کھینچیں/i });
+  fireEvent.click(startBtn);
+
+  const snapBtn = await screen.findByRole('button', { name: /^capture$|^تصویر لیں$/i });
+  fireEvent.click(snapBtn);
+
+  const useBtn = await screen.findByRole('button', { name: /use photo|تصویر استعمال کریں/i });
+  fireEvent.click(useBtn);
+
+  await screen.findByText(/photo captured\.|تصویر محفوظ ہو گئی۔/i);
+};
+
+const attachLiveLocation = async (lat = 24.8138, lon = 67.0300) => {
+  mockGeolocation(lat, lon);
+  const addBtn = screen.getByRole('button', { name: /add location|مقام شامل کریں|update location|مقام تبدیل کریں/i });
+  fireEvent.click(addBtn);
+  await screen.findByText(/location attached\.|مقام منسلک ہو گیا۔/i);
 };
 
 const LanguageSwitcher: React.FC = () => {
@@ -39,26 +76,27 @@ describe('Simplified Write your complaint flow', () => {
     fireEvent.click(screen.getByRole('button', { name: /continue/i }));
 
     // Stage 2: Photo Capture
-    expect(await screen.findByRole('heading', { level: 2, name: /issue photograph/i })).toBeInTheDocument();
-    // Attempting to advance without photo is blocked
-    fireEvent.click(screen.getByRole('button', { name: /continue/i }));
-    expect(await screen.findByText(/attach a photo of the issue/i)).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { level: 2, name: /capture or attach/i })).toBeInTheDocument();
+    // Continue button is disabled without photo
+    const continueBtn = screen.getByRole('button', { name: /continue/i });
+    expect(continueBtn).toBeDisabled();
 
-    // Attach valid photo and proceed
-    await attachMockPhoto();
-    fireEvent.click(screen.getByRole('button', { name: /continue/i }));
+    // Capture valid photo via camera flow and proceed
+    await captureCameraPhoto();
+    expect(continueBtn).not.toBeDisabled();
+    fireEvent.click(continueBtn);
 
     // Stage 3: Location
     expect(await screen.findByRole('heading', { level: 2, name: /tell us where/i })).toBeInTheDocument();
   });
 
-  it('requires mandatory home address before advancing from location stage', async () => {
+  it('requires mandatory home address and mandatory live location before advancing from location stage', async () => {
     renderForm();
     fireEvent.change(screen.getByLabelText(/full name/i), { target: { value: 'Fatima Noor' } });
     fireEvent.change(screen.getByLabelText(/phone number/i), { target: { value: '03001234567' } });
     fireEvent.click(screen.getByRole('button', { name: /continue/i }));
-    await screen.findByRole('heading', { level: 2, name: /issue photograph/i });
-    await attachMockPhoto();
+    await screen.findByRole('heading', { level: 2, name: /capture or attach/i });
+    await captureCameraPhoto();
     fireEvent.click(screen.getByRole('button', { name: /continue/i }));
     await screen.findByRole('heading', { level: 2, name: /tell us where/i });
 
@@ -66,25 +104,23 @@ describe('Simplified Write your complaint flow', () => {
     fireEvent.change(locality, { target: { value: 'Clifton' } });
     fireEvent.change(screen.getByLabelText(/street, block or nearby landmark/i), { target: { value: 'Block 4' } });
 
-    // Attempt to continue without home address
-    fireEvent.click(screen.getByRole('button', { name: /continue/i }));
-    expect(await screen.findByText(/enter your home address/i)).toBeInTheDocument();
-    expect(screen.queryByRole('heading', { level: 2, name: /describe what happened/i })).not.toBeInTheDocument();
+    // Location continue button is disabled until location is attached
+    const continueBtn = screen.getByRole('button', { name: /continue/i });
+    expect(continueBtn).toBeDisabled();
 
-    // Attempt to continue with an incident location outside Sindh -> blocked
+    // Attempt to attach location outside Sindh -> blocked
+    mockGeolocation(33.6844, 73.0479);
+    const addBtn = screen.getByRole('button', { name: /add location/i });
+    fireEvent.click(addBtn);
+    expect(await screen.findByTestId('outside-sindh-alert')).toHaveTextContent(/outside our service area/i);
+    expect(continueBtn).toBeDisabled();
+
+    // Enter valid Sindh location & home address
     fireEvent.change(screen.getByLabelText(/home address/i), { target: { value: 'House 12-B, Clifton Block 4' } });
-    fireEvent.change(screen.getByLabelText(/^Latitude$/i), { target: { value: '33.6844' } });
-    fireEvent.change(screen.getByLabelText(/^Longitude$/i), { target: { value: '73.0479' } });
-    fireEvent.click(screen.getByRole('button', { name: /verify location/i }));
-    fireEvent.click(screen.getByRole('button', { name: /continue/i }));
-    expect(await screen.findByText(/within Sindh/i)).toBeInTheDocument();
+    await attachLiveLocation(24.8138, 67.0300);
 
-    // Enter valid Sindh incident location coordinates & verify
-    fireEvent.change(screen.getByLabelText(/^Latitude$/i), { target: { value: '24.8138' } });
-    fireEvent.change(screen.getByLabelText(/^Longitude$/i), { target: { value: '67.0300' } });
-    fireEvent.click(screen.getByRole('button', { name: /verify location/i }));
-
-    fireEvent.click(screen.getByRole('button', { name: /continue/i }));
+    expect(continueBtn).not.toBeDisabled();
+    fireEvent.click(continueBtn);
     expect(await screen.findByRole('heading', { level: 2, name: /describe what happened/i })).toBeInTheDocument();
   });
 
@@ -93,8 +129,8 @@ describe('Simplified Write your complaint flow', () => {
     fireEvent.change(screen.getByLabelText(/full name/i), { target: { value: 'Fatima Noor' } });
     fireEvent.change(screen.getByLabelText(/phone number/i), { target: { value: '03129876543' } });
     fireEvent.click(screen.getByRole('button', { name: /continue/i }));
-    await screen.findByRole('heading', { level: 2, name: /issue photograph/i });
-    await attachMockPhoto();
+    await screen.findByRole('heading', { level: 2, name: /capture or attach/i });
+    await captureCameraPhoto();
     fireEvent.click(screen.getByRole('button', { name: /continue/i }));
 
     const locality = await screen.findByLabelText(/area \/ locality/i);
@@ -102,10 +138,10 @@ describe('Simplified Write your complaint flow', () => {
     expect(await screen.findByText(/automatically identified/i)).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText(/street, block or nearby landmark/i), { target: { value: '26th Street' } });
     fireEvent.change(screen.getByLabelText(/home address/i), { target: { value: 'House 42-A, Street 26, Phase 6' } });
-    fireEvent.change(screen.getByLabelText(/^Latitude$/i), { target: { value: '24.8138' } });
-    fireEvent.change(screen.getByLabelText(/^Longitude$/i), { target: { value: '67.0300' } });
-    fireEvent.click(screen.getByRole('button', { name: /verify location/i }));
+    
+    await attachLiveLocation(24.8138, 67.0300);
     fireEvent.click(screen.getByRole('button', { name: /continue/i }));
+
     expect(await screen.findByRole('heading', { level: 2, name: /describe what happened/i })).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText(/complaint description/i), { target: { value: 'The streetlight has not worked for two weeks.' } });
     expect(screen.getByTestId('word-count-display')).toHaveTextContent('8');
