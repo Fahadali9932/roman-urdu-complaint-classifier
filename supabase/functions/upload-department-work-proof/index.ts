@@ -80,6 +80,7 @@ Deno.serve(async (request) => {
     }).formData();
 
     const orderId = form.get("orderId");
+    const verificationId = form.get("verificationId");
     const afterEntry = form.get("photo") ?? form.get("afterPhoto");
     const beforeEntry = form.get("beforePhoto");
     const latitude = Number(form.get("latitude"));
@@ -90,6 +91,7 @@ Deno.serve(async (request) => {
       typeof orderId !== "string" ||
       !/^[0-9a-f-]{36}$/i.test(orderId) ||
       !(afterEntry instanceof File) ||
+      typeof verificationId !== "string" || !/^[0-9a-f-]{36}$/i.test(verificationId) ||
       !Number.isFinite(accuracy) ||
       accuracy <= 0 ||
       accuracy > 500
@@ -143,9 +145,16 @@ Deno.serve(async (request) => {
 
     const { data: membership, error: membershipError } = await admin.from("department_memberships")
       .select("id").eq("user_id", officerId).eq("department_id", order.department_id)
-      .eq("staff_role", "officer").eq("status", "active").maybeSingle();
+      .eq("staff_role", "officer").eq("status", "active").eq("must_change_password", false).maybeSingle();
     if (membershipError || !membership) return response("Officer membership is inactive.", 403);
 
+    const { data: verification, error: verificationError } = await admin.from("v23_work_location_verifications")
+      .select("latitude,longitude,accuracy,expires_at,consumed_at")
+      .eq("id",verificationId).eq("order_id",orderId).eq("officer_id",officerId).maybeSingle();
+    if (verificationError || !verification || verification.consumed_at || Date.parse(verification.expires_at)<=Date.now() ||
+        Number(verification.latitude)!==latitude || Number(verification.longitude)!==longitude || Number(verification.accuracy)!==accuracy) {
+      return response("Fresh matching location verification required. Verify location again.", 409);
+    }
     const afterSha256 = await computeSha256Hex(afterBytes);
     const afterPath = `work/${order.department_id}/${orderId}/after-${crypto.randomUUID()}.${extensionForMime(afterEntry.type)}`;
 
@@ -174,16 +183,14 @@ Deno.serve(async (request) => {
       }
     }
 
-    const { data: proofId, error: saveError } = await admin.rpc("v1318_record_proof", {
+    const { data: proofResult, error: saveError } = await admin.rpc("v23_record_verified_proof", {
       p_order: orderId,
       p_officer: officerId,
+      p_verification: verificationId,
       p_path: afterPath,
       p_mime: afterEntry.type,
       p_bytes: afterBytes.length,
       p_sha256: afterSha256,
-      p_lat: latitude,
-      p_lon: longitude,
-      p_accuracy: accuracy,
       p_before_path: beforePath,
       p_before_mime: beforeMime,
       p_before_bytes: beforeBytes ? beforeBytes.length : null,
@@ -197,12 +204,7 @@ Deno.serve(async (request) => {
     }
 
     return new Response(
-      JSON.stringify({
-        submitted: true,
-        proofId,
-        storagePath: afterPath,
-        beforeStoragePath: beforePath,
-      }),
+      JSON.stringify(proofResult),
       { status: 201, headers },
     );
   } catch {
