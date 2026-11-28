@@ -123,11 +123,61 @@ Real headless Chrome testing via Chrome DevTools Protocol verified layout integr
 
 ---
 
-## 5. GIT COMMIT INTEGRITY & SAFETY
+## 5. STEP 2A LIVE STAGING PROVISIONING & AUTHENTICATION VERIFICATION
+
+### 5.1 Staging Environment & Provisioning Execution
+- **Staging URL Target:** `https://jvbulmmdwovtgaxojxhn.supabase.co` (verified and enforced).
+- **Credentials Protection:** Server-only service-role key held strictly in `.credentials/staging_admin.env` (permissions 0600, excluded by `.gitignore`).
+- **Provisioning Execution:** `node scripts/provision_v25_step2_staging_qa.mjs --apply` successfully provisioned 10 QA accounts under fixture run `f27d9f3f4d46`.
+- **Private Manifest:** `.credentials/v25-step2-f27d9f3f4d46.json` (untracked, zero passwords or credentials committed).
+
+| Account Name | Primary Role | Department | Staff Role | Boundary Constraints | Staging Verification Status |
+|---|---|---|---|---|---|
+| `citizen-a` | `citizen` | None | None | Standard citizen intake | Live Auth Verified |
+| `citizen-b` | `citizen` | None | None | Citizen isolation audit | Live Auth & Data Isolation Verified |
+| `admin` | `main_admin` | None | None | Mandatory AAL2 TOTP MFA | Live Auth, MFA & `is_main_admin` Verified |
+| `kmc-head` | `department_staff` | `kmc` | `head` | Hosted Edge exchange + AAL2 MFA | Live Auth, Edge Exchange & MFA Verified |
+| `kwsc-head` | `department_staff` | `kwsc` | `head` | Hosted Edge exchange + AAL2 MFA | Live Auth, Edge Exchange & MFA Verified |
+| `kmc-officer` | `department_staff` | `kmc` | `officer` | Hosted Edge exchange + AAL2 MFA | Live Auth, Edge Exchange & MFA Verified |
+| `kwsc-officer` | `department_staff` | `kwsc` | `officer` | Hosted Edge exchange + AAL2 MFA | Live Auth, Edge Exchange & MFA Verified |
+| `kmc-suspended`| `department_staff` | `kmc` | `officer` | Status: `suspended` | Server Boundary Rejected (Access Denied) |
+| `kmc-password` | `department_staff` | `kmc` | `officer` | `must_change_password: true` | Gated in `password_change_required` |
+| `kmc-onboarding`| `department_staff` | `kmc` | `officer` | `requires_officer_onboarding: true` | Gated in `onboarding_required` |
+
+### 5.2 Automated Live Staging Test Suite Results
+Script: `scripts/verify_v25_step2_staging_qa.mjs`
+```bash
+npx tsx scripts/verify_v25_step2_staging_qa.mjs
+```
+- **Total Tests:** 11 | **Passed:** 11 (100% Pass Rate) | **Failed:** 0
+- **Live Test Matrix:**
+  1. `✓ PASS: Citizen A Authentication (User ID: cfd7ca05)`
+  2. `✓ PASS: Citizen B Authentication & Isolation (Memberships visible: 0)`
+  3. `✓ PASS: Main Admin Authentication & AAL2 MFA (AAL2 ready, is_main_admin: true)`
+  4. `✓ PASS: KMC Department Head Authentication & MFA (Role: head, Dept: kmc)`
+  5. `✓ PASS: KWSC Department Head Authentication & MFA (Role: head, Dept: kwsc)`
+  6. `✓ PASS: KMC Officer Authentication & MFA (State: ready, Dept: kmc)`
+  7. `✓ PASS: KWSC Officer Authentication & MFA (State: ready, Dept: kwsc)`
+  8. `✓ PASS: Boundary: Cross-Department Login Denied (KWSC staff on KMC) (Access rejected at server boundary)`
+  9. `✓ PASS: Boundary: Suspended Staff Login Denied (Suspended membership refused login token)`
+  10. `✓ PASS: Boundary: Forced Password Change State Enforced (Resulting state: password_change_required)`
+  11. `✓ PASS: Boundary: Officer Onboarding Restriction Enforced (Resulting state: onboarding_required)`
+
+### 5.3 Full Multi-Tier Quality Audit
+- **Python Unit Tests:** 139 passed out of 139 (`python -m unittest discover tests/v11` in 18.59s).
+- **Vitest Frontend Suites:** 59 passed out of 59, 779 tests passed out of 779 (100%).
+- **Edge Function Security Suites:** 23 passed out of 23 (`security-repair.mjs` & `complaint-boundaries.mjs`).
+- **TypeScript Compiler (`npx tsc -b`):** 0 errors.
+- **Production Vite Build:** Passed in 1.22s.
+
+---
+
+## 6. GIT COMMIT INTEGRITY & SAFETY
 
 - **Branch:** `feature/v25-step2-secure-auth-integration`
 - **Baseline Checkpoint Tag:** `checkpoint/pre-step2-remote-4da4daf` at `4da4daf`
 - **Safety Backup Branch:** `backup/before-step2-auth-integration-4da4daf` at `4da4daf`
+- **Reconciled Remote Commit:** `b058e74` (`Add staging-only Auth Admin QA account provisioning and guarded cleanup`)
 - **Pre-existing Dirty / Untracked State:** Preserved untouched in working tree.
 - **Secret Hygiene:** Cryptographically audited — zero secrets, passwords, MFA seeds, or private keys committed.
 - **Financial Expenditure:** **$0.00** across all phases and tests.

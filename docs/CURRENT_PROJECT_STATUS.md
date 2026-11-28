@@ -1,11 +1,55 @@
 # Verified current project status
 
-Verified on **20 November 2026 (Pakistan time)**. Internal delivery target:
+Verified on **28 November 2026 (Pakistan time)**. Internal delivery target:
 **5 December 2026**. Read `PROJECT_MASTER_CONTEXT.md` for requirements/history.
 This document distinguishes inspected source, automated checks, and unverified
 hosted behavior. Update it after every significant verified milestone.
 
-## Latest verification, 28 November 2026 — Step 2: Secure Authentication Integration & Verification
+## Latest verification, 28 November 2026 — Step 2A: Staging QA Provisioning & Live Authentication Verification
+
+Step 2A executed live provisioning and verification against the designated Supabase staging project (`https://jvbulmmdwovtgaxojxhn.supabase.co`) with zero financial expenditure ($0.00) using authorized Auth Admin credentials kept strictly local and gitignored.
+
+1. **Reconciliation & Dry Run:**
+   - Fast-forward reconciled remote commit `b058e74` (`Add staging-only Auth Admin QA account provisioning and guarded cleanup`).
+   - Verified `scripts/provision_v25_step2_staging_qa.mjs` syntax and executed clean dry run (0 writes, 10 planned fixtures).
+2. **Local Staging Environment Enforcement:**
+   - Configured `.env.local` to point to `VITE_SUPABASE_URL=https://jvbulmmdwovtgaxojxhn.supabase.co` and verified staging public anon key.
+   - Preserved authorized Auth Admin service-role key in local gitignored configuration (`.credentials/staging_admin.env`, mode 0600) with zero credential leaks or logging.
+3. **Staging Fixture Provisioning:**
+   - Successfully executed `scripts/provision_v25_step2_staging_qa.mjs --apply`.
+   - Provisioned 10 verified QA accounts under run `f27d9f3f4d46`:
+     - `citizen-a`, `citizen-b`: Citizen role in `profiles`.
+     - `admin`: Main admin role in `profiles`.
+     - `kmc-head`: Department Head in `department_memberships` for `kmc`.
+     - `kwsc-head`: Department Head in `department_memberships` for `kwsc`.
+     - `kmc-officer`: Operations Officer in `department_memberships` for `kmc`.
+     - `kwsc-officer`: Operations Officer in `department_memberships` for `kwsc`.
+     - `kmc-suspended`: Suspended officer fixture (`status: 'suspended'`).
+     - `kmc-password`: Password-change fixture (`must_change_password: true`).
+     - `kmc-onboarding`: Onboarding-pending fixture (`requires_officer_onboarding: true`).
+   - Manifest safely stored in `.credentials/v25-step2-f27d9f3f4d46.json` (mode 0600, untracked).
+4. **Live Staging Automated Verification (`scripts/verify_v25_step2_staging_qa.mjs`):**
+   - **11/11 Live Staging Tests Passed (100% Pass Rate):**
+     1. `Citizen A Authentication`: Confirmed live token generation and `citizen` profile role.
+     2. `Citizen B Authentication & Isolation`: Confirmed data boundary (0 department memberships readable).
+     3. `Main Admin Authentication & AAL2 MFA`: Initial AAL1 gated, TOTP enrolled, 6-digit challenge verified, elevated to AAL2, `is_main_admin` RPC confirmed `true`.
+     4. `KMC Head Authentication & MFA`: Hosted `staff-credential-exchange` Edge Function returned tokens, TOTP challenged, elevated to AAL2, state `ready`.
+     5. `KWSC Head Authentication & MFA`: Edge Function exchange verified, TOTP challenged, elevated to AAL2, state `ready`.
+     6. `KMC Officer Authentication & MFA`: Edge Function exchange verified, TOTP challenged, elevated to AAL2, state `ready`.
+     7. `KWSC Officer Authentication & MFA`: Edge Function exchange verified, TOTP challenged, elevated to AAL2, state `ready`.
+     8. `Boundary: Wrong Department Denied`: Attempted login of KWSC staff on KMC portal strictly rejected at server boundary.
+     9. `Boundary: Suspended Staff Denied`: Attempted login of suspended account refused tokens (`status !== 'active'`).
+     10. `Boundary: Forced Password Change`: Authenticated and elevated MFA session strictly held in `state: 'password_change_required'`.
+     11. `Boundary: Officer Onboarding`: Authenticated and elevated MFA session strictly held in `state: 'onboarding_required'` pending operational clearance.
+5. **Full Regression and Integrity Audit:**
+   - **Python Tests:** 139/139 unit tests passed (`python -m unittest discover tests/v11` in 18.59s).
+   - **Frontend Vitest:** 59/59 test suites passed, 779/779 tests passed (100%).
+   - **Edge Tests:** 7/7 security repair tests passed, 16/16 complaint boundary tests passed.
+   - **TypeScript Compilation:** 0 errors (`npx tsc -b`).
+   - **Production Vite Build:** Passed in 1.22s.
+   - **Model Weights & Baseline:** 100% frozen (Run004 and Run006). Zero models retrained or promoted.
+
+## Previous verification, 28 November 2026 — Step 2: Secure Authentication Integration & Verification
 
 Step 2 integrated the V25 secure authentication module (`src/services/v25StaffSession.ts`) into the local frontend, establishing genuine server-verified session boundaries across Department Head, Operations Officer, Main Administrator, and Citizen portals.
 
