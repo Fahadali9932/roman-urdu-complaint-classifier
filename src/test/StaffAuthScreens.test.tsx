@@ -74,21 +74,21 @@ describe('Staff & Administrator Access Screens (Figma 35:1282, 35:1332, 35:1363,
       expect(screen.getByText(/Please enter your password/i)).toBeInTheDocument();
     });
 
-    it('shows honest prototype feedback without saving password', () => {
+    it('attempts administrator sign-in without saving password in storage', async () => {
       renderWithProviders('/admin/login');
 
       fireEvent.change(screen.getByLabelText(/Work email/i), {
         target: { value: 'admin@example.org' },
       });
       fireEvent.change(screen.getByLabelText(/^Password$/i), {
-        target: { value: 'SecretAdminPass123' },
+        target: { value: 'AttemptPassword123' },
       });
 
       fireEvent.click(screen.getByRole('button', { name: /^Sign in/i }));
 
-      // Honest prototype feedback
+      // Error message or access restricted feedback appears
       expect(
-        screen.getByText(/Prototype Preview: Live backend authentication for Main Administrators/i)
+        await screen.findByText(/Invalid administrator credentials/i)
       ).toBeInTheDocument();
 
       // Verify ZERO passwords in storage
