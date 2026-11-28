@@ -1,7 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#0d9488" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="#0f172a" />
-  <path d="M8 10h.01" stroke="#5eead4" stroke-width="2.5" />
-  <path d="M12 10h.01" stroke="#5eead4" stroke-width="2.5" />
-  <path d="M16 10h.01" stroke="#5eead4" stroke-width="2.5" />
-  <path d="M9 14c1.2 1 4.8 1 6 0" stroke="#5eead4" stroke-width="2" />
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Awaaz-e-Awam Approved Official Logo Mark -->
+  <!-- Solid deep maroon rounded square (#761D30), rx=112 -->
+  <rect width="512" height="512" rx="112" fill="#761D30" />
+  <!-- Pure vector path for Urdu letter آ (Noto Sans Arabic Bold, OFL) -->
+  <path d="M281.77 143.02L281.77 143.02Q271.18 143.02 262.71 139.31Q254.23 135.60 247.17 132.07Q240.11 128.54 234.11 128.54L234.11 128.54Q227.75 128.54 222.63 131.72Q217.51 134.90 211.87 140.54L211.87 140.54L195.27 125.01Q214.34 101.00 234.11 101.00L234.11 101.00Q242.94 101.00 250.35 104.53Q257.77 108.06 265.36 111.59Q272.95 115.12 281.77 115.12L281.77 115.12Q287.42 115.12 292.37 113.18Q297.31 111.24 304.37 107.00L304.37 107.00L316.73 126.42Q304.02 137.37 295.72 140.19Q287.42 143.02 281.77 143.02ZM290.95 411L241.52 411L234.82 177.26L284.25 177.26L290.95 411Z" fill="#FFFFFF" />
 </svg>

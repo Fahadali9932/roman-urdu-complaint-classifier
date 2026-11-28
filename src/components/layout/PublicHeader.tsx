@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../context/LanguageContext';
 import { type TranslationKey } from '../../i18n/translations';
 import { LanguageToggle } from '../common/LanguageToggle';
+import { AwaazLogo } from '../common/AwaazLogo';
 import { Menu, X, User, Home, HelpCircle, FolderOpen, PenTool, Search } from 'lucide-react';
 
 export interface NavItemConfig {
@@ -290,9 +291,10 @@ export const PublicHeader: React.FC = () => {
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }
             }}
-            className="group flex items-center gap-2 cursor-pointer select-none rounded-lg focus-visible:outline-2 focus-visible:outline-[#141414] z-20 shrink-0"
+            className="group flex items-center gap-2.5 cursor-pointer select-none rounded-lg focus-visible:outline-2 focus-visible:outline-[#141414] z-20 shrink-0"
             aria-label="Awaaz-e-Awam Home"
           >
+            <AwaazLogo size={28} className="w-7 h-7 sm:w-8 sm:h-8 shadow-2xs" />
             <span
               className={`font-wordmark italic font-bold tracking-tight text-xl sm:text-2xl transition-colors select-none ${
                 isDarkHeader

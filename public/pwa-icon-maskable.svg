@@ -1,25 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
-  <defs>
-    <radialGradient id="bgGradMask" cx="50%" cy="40%" r="60%">
-      <stop offset="0%" stop-color="#1A222C" />
-      <stop offset="100%" stop-color="#0A0D12" />
-    </radialGradient>
-    <linearGradient id="goldGradMask" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#F3E5AB" />
-      <stop offset="50%" stop-color="#D4AF37" />
-      <stop offset="100%" stop-color="#B8860B" />
-    </linearGradient>
-  </defs>
-
-  <!-- Full-bleed background for maskable target -->
-  <rect width="512" height="512" fill="url(#bgGradMask)" />
-
-  <!-- Inner Seal Shield / Hexagon (centered in safe zone) -->
-  <circle cx="256" cy="256" r="160" fill="none" stroke="url(#goldGradMask)" stroke-width="2" stroke-dasharray="8 6" opacity="0.3" />
-  <polygon points="256,150 350,205 350,307 256,362 162,307 162,205" fill="#121820" stroke="url(#goldGradMask)" stroke-width="5" />
-
-  <!-- Monogram "a." typography -->
-  <text x="256" y="285" font-family="'Times New Roman', Times, serif" font-size="120" font-weight="900" fill="url(#goldGradMask)" text-anchor="middle">a.</text>
-  <text x="256" y="330" font-family="'Courier New', monospace" font-size="16" font-weight="bold" fill="#F3E5AB" letter-spacing="4" text-anchor="middle">DEPT</text>
+  <!-- Awaaz-e-Awam Approved Official Logo Mark -->
+  <!-- Solid deep maroon rounded square (#761D30), rx=112 -->
+  <rect width="512" height="512" rx="112" fill="#761D30" />
+  <!-- Pure vector path for Urdu letter آ (Noto Sans Arabic Bold, OFL) -->
+  <path d="M281.77 143.02L281.77 143.02Q271.18 143.02 262.71 139.31Q254.23 135.60 247.17 132.07Q240.11 128.54 234.11 128.54L234.11 128.54Q227.75 128.54 222.63 131.72Q217.51 134.90 211.87 140.54L211.87 140.54L195.27 125.01Q214.34 101.00 234.11 101.00L234.11 101.00Q242.94 101.00 250.35 104.53Q257.77 108.06 265.36 111.59Q272.95 115.12 281.77 115.12L281.77 115.12Q287.42 115.12 292.37 113.18Q297.31 111.24 304.37 107.00L304.37 107.00L316.73 126.42Q304.02 137.37 295.72 140.19Q287.42 143.02 281.77 143.02ZM290.95 411L241.52 411L234.82 177.26L284.25 177.26L290.95 411Z" fill="#FFFFFF" />
 </svg>
-

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
+import { AwaazLogo } from '../../../components/common/AwaazLogo';
 import { Eye, EyeOff, ArrowRight, ArrowLeft, Sun, Moon, ShieldAlert } from 'lucide-react';
 import { useDepartmentAuth } from '../../../context/DepartmentAuthContext';
 import { useCivicTheme, useDepartmentAtmosphereEffect } from '../hooks/useCivicTheme';
@@ -187,22 +188,7 @@ export const OfficerLoginPage: React.FC = () => {
               letterSpacing: '-0.02em',
             }}
           >
-            <span
-              style={{
-                width: '28px',
-                height: '28px',
-                borderRadius: '8px',
-                background: isLight ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.1)',
-                border: isLight ? '1px solid rgba(0, 0, 0, 0.12)' : '1px solid rgba(255, 255, 255, 0.16)',
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '13px',
-                fontWeight: 800,
-              }}
-            >
-              a.
-            </span>
+            <AwaazLogo size={28} />
             <span>Awaaz-e-Awam</span>
           </Link>
 
