@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { AwaazLogo } from '../../../components/common/AwaazLogo';
 import { Eye, EyeOff, ArrowRight, ArrowLeft, Sun, Moon, ShieldAlert } from 'lucide-react';
 import { useDepartmentAuth } from '../../../context/DepartmentAuthContext';
+import { supabase } from '../../../lib/supabase';
 import { useCivicTheme, useDepartmentAtmosphereEffect } from '../hooks/useCivicTheme';
 import {
   type AuthorizedDepartmentKey,
@@ -18,7 +19,7 @@ import '../v20-atmospheric.css';
 export const OfficerLoginPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { signInWithCredentials, signOut } = useDepartmentAuth();
+  const { signInWithCredentials, signOut, completeMfaSignIn } = useDepartmentAuth();
   const { theme: themeMode, toggleTheme } = useCivicTheme();
 
   // Check if a valid service department is explicitly selected via URL
@@ -43,6 +44,8 @@ export const OfficerLoginPage: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [roleMismatchError, setRoleMismatchError] = useState<string | null>(null);
 
+  const [mfa, setMfa] = useState<{id:string;qr?:string;secret?:string}|null>(null);
+  const [mfaCode, setMfaCode] = useState('');
   const isLight = themeMode === 'light';
   const atmosphere = DEPARTMENT_ATMOSPHERES[selectedDeptKey] || DEPARTMENT_ATMOSPHERES.selection;
   const currentDeptMeta = STAFF_DEPARTMENTS.find((d) => d.key === selectedDeptKey);
@@ -56,9 +59,30 @@ export const OfficerLoginPage: React.FC = () => {
 
   // Stage 2 -> Stage 1: Return to department selection
   const handleChangeDepartment = () => {
+    if (mfa) { signOut(); setMfa(null); setMfaCode(''); }
     setSearchParams({});
     setErrorMessage(null);
     setRoleMismatchError(null);
+  };
+
+  const handleMfa = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!mfa || !supabase || !/^\d{6}$/.test(mfaCode)) { setErrorMessage('Enter your six-digit authenticator code.'); return; }
+    setIsLoading(true); setErrorMessage(null);
+    try {
+      const c = await supabase.auth.mfa.challenge({factorId:mfa.id});
+      if(c.error) throw c.error;
+      const v = await supabase.auth.mfa.verify({factorId:mfa.id,challengeId:c.data.id,code:mfaCode});
+      if(v.error) throw v.error;
+      const result=await completeMfaSignIn();
+      if(!result.success) throw new Error(result.error || 'Authentication incomplete.');
+      const identity=await supabase.auth.getUser();
+      if(identity.error || !identity.data.user || await fieldOperations.getMyRole(selectedDeptKey === 'gas' ? 'ssgc' : selectedDeptKey,identity.data.user.id)!=='officer'){
+        signOut(); setMfa(null); setMfaCode(''); setRoleMismatchError('This workspace is reserved for Field Officers.'); return;
+      }
+      setMfa(null);setMfaCode('');navigate('/department/officer',{replace:true});
+    } catch(err:unknown) { setErrorMessage(err instanceof Error ? err.message : 'Authenticator verification failed.'); }
+    finally {setIsLoading(false);}
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -80,6 +104,19 @@ export const OfficerLoginPage: React.FC = () => {
       );
 
       if (!res.success) {
+        if (res.status === 'mfa_required') {
+          if (!supabase) throw new Error('Authentication service unavailable.');
+          const factors = await supabase.auth.mfa.listFactors();
+          if(factors.error) throw factors.error;
+          const verified = factors.data.totp.find(f=>f.status==='verified');
+          if(verified) setMfa({id:verified.id});
+          else {
+            const enrollment = await supabase.auth.mfa.enroll({factorType:'totp',issuer:'Awaaz-e-Awam'});
+            if(enrollment.error) throw enrollment.error;
+            setMfa({id:enrollment.data.id,qr:enrollment.data.totp.qr_code,secret:enrollment.data.totp.secret});
+          }
+          setPassword(''); setIsLoading(false); return;
+        }
         setIsLoading(false);
         if (res.status === 'wrong_department') {
           setErrorMessage('This staff account is not authorized for the selected department.');
@@ -380,7 +417,7 @@ export const OfficerLoginPage: React.FC = () => {
           </div>
 
           <form
-            onSubmit={handleSubmit}
+            onSubmit={mfa ? handleMfa : handleSubmit}
             style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
           >
             {/* Error Message */}
@@ -423,6 +460,17 @@ export const OfficerLoginPage: React.FC = () => {
               </div>
             )}
 
+            {mfa ? (
+              <>
+                <p style={{margin:0,color:isLight?'#171717':'#FFFFFF'}}>Authenticator verification</p>
+                {mfa.qr && <><img src={mfa.qr} alt="Authenticator setup QR code" style={{width:'160px',height:'160px',alignSelf:'center'}} /><p style={{overflowWrap:'anywhere',fontSize:'12px',margin:0}}>Setup key: {mfa.secret}</p></>}
+                <label htmlFor="officer-mfa-code">Six-digit code</label>
+                <input id="officer-mfa-code" className="v20-auth-input" inputMode="numeric" autoComplete="one-time-code" value={mfaCode} onChange={e=>setMfaCode(e.target.value.replace(/\D/g,'').slice(0,6))} maxLength={6} />
+                <button type="submit" className="v20-field-btn primary" disabled={isLoading || mfaCode.length!==6}>Verify</button>
+                <button type="button" className="v20-field-btn" onClick={()=>{signOut();setMfa(null);setMfaCode('');setErrorMessage(null);}}>Cancel</button>
+              </>
+            ) : (
+              <>
             {/* Identifier field */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               <label
@@ -545,6 +593,8 @@ export const OfficerLoginPage: React.FC = () => {
                 </>
               )}
             </button>
+              </>
+            )}
           </form>
 
           {/* Concise Footer Notice */}
