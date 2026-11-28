@@ -206,6 +206,8 @@ export type ClarificationAnswer = { draftText: string } & (
 );
 
 export interface ComplaintSubmissionInput {
+  /** Required for live submission; transient compressed camera image, never stored in browser drafts. */
+  photo?: File;
   /** Optional user-confirmed incident location (not home address). */
   incidentLatitude?: number;
   incidentLongitude?: number;
