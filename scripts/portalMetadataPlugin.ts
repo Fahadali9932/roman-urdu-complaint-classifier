@@ -1,7 +1,7 @@
 import type { Plugin, ResolvedConfig } from 'vite';
 import fs from 'node:fs';
 import path from 'node:path';
-import { getPortalMetadata, metadataMarkup, PUBLIC_PAGES, SITE_NAME, SITE_DESCRIPTION, escapeHtml } from '../src/lib/portalMetadata';
+import { getPortalMetadata, metadataMarkup, PUBLIC_PAGES, SITE_NAME, SITE_DESCRIPTION, escapeHtml } from '../src/lib/portalMetadata.ts';
 
 const start = '<!-- portal-metadata:start -->';
 const end = '<!-- portal-metadata:end -->';
