@@ -18,7 +18,17 @@ import { validateDepartmentCoverageServer, validateSindhCoordinatesServer } from
 const classifier = model as unknown as V11ModelArtifact;
 // A 200-word complaint does not justify unbounded request bodies. This also
 // caps optional clarification answers and all other caller-controlled fields.
-const MAX_REQUEST_BYTES = 16 * 1024;
+const MAX_JSON_BYTES = 16 * 1024;
+const MAX_PHOTO_BYTES = 1024 * 1024;
+const MAX_REQUEST_BYTES = MAX_JSON_BYTES + MAX_PHOTO_BYTES + 8192;
+const EVIDENCE_BUCKET = "complaint-evidence-private";
+function acceptedPhoto(bytes: Uint8Array, mime: string): boolean {
+  if (!bytes.length || bytes.length > MAX_PHOTO_BYTES) return false;
+  if (mime === "image/jpeg") return bytes.length > 3 && bytes[0] === 255 && bytes[1] === 216 && bytes[2] === 255 && bytes[bytes.length-2] === 255 && bytes[bytes.length-1] === 217;
+  if (mime === "image/png") return bytes.length > 20 && [137,80,78,71,13,10,26,10].every((b,i)=>bytes[i]===b);
+  if (mime === "image/webp") return bytes.length > 12 && String.fromCharCode(...bytes.slice(0,4)) === "RIFF" && String.fromCharCode(...bytes.slice(8,12)) === "WEBP";
+  return false;
+}
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -70,7 +80,7 @@ async function sha256Hex(text: string): Promise<string> {
     .join("");
 }
 
-async function parseBoundedJson(req: Request): Promise<{ input?: unknown; tooLarge?: boolean; invalid?: boolean }> {
+async function parseBoundedSubmission(req: Request): Promise<{ input?: unknown; photo?: File; tooLarge?: boolean; invalid?: boolean }> {
   const declaredLength = req.headers.get("content-length");
   if (declaredLength !== null && Number(declaredLength) > MAX_REQUEST_BYTES) return { tooLarge: true };
   if (!req.body) return { invalid: true };
@@ -95,7 +105,13 @@ async function parseBoundedJson(req: Request): Promise<{ input?: unknown; tooLar
       bytes.set(chunk, offset);
       offset += chunk.byteLength;
     }
-    return { input: JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes)) };
+    const contentType = req.headers.get("content-type") || "";
+    if (!contentType.toLowerCase().startsWith("multipart/form-data;")) return { invalid: true };
+    const form = await new Request("http://localhost", { method: "POST", headers: { "content-type": contentType }, body: bytes }).formData();
+    const payload = form.get("payload");
+    const photo = form.get("photo");
+    if (typeof payload !== "string" || new TextEncoder().encode(payload).length > MAX_JSON_BYTES || !(photo instanceof File)) return { invalid: true };
+    return { input: JSON.parse(payload), photo };
   } catch {
     return { invalid: true };
   } finally {
@@ -158,13 +174,18 @@ Deno.serve(async (req) => {
       });
     }
 
-    const parsed = await parseBoundedJson(req);
+    const parsed = await parseBoundedSubmission(req);
     if (parsed.tooLarge) {
       return json({ error: "Complaint request is too large.", code: "PAYLOAD_TOO_LARGE" }, 413);
     }
     if (parsed.invalid || !parsed.input || typeof parsed.input !== "object" || Array.isArray(parsed.input)) {
       return json({ error: "Invalid complaint payload.", code: "INVALID_COMPLAINT_PAYLOAD" }, 400);
     }
+
+    if (!parsed.photo || parsed.photo.size > MAX_PHOTO_BYTES) return json({error:"An issue photograph up to 1 MB is required.",code:"PHOTO_REQUIRED"},400);
+    const photo = parsed.photo;
+    const photoBytes = new Uint8Array(await photo.arrayBuffer());
+    if (!acceptedPhoto(photoBytes,photo.type)) return json({error:"Capture a supported JPEG, PNG or WebP photograph.",code:"PHOTO_REQUIRED"},400);
 
     // Bot / spam honeypot rejection
     const rawInput = parsed.input as Record<string, unknown>;
@@ -350,7 +371,15 @@ Deno.serve(async (req) => {
       multi_department_routing: multiDepartmentMetadata,
     };
 
-    const { data, error } = await admin.rpc("v23_submit_citizen_with_location", {
+    const ext = photo.type === "image/jpeg" ? "jpg" : photo.type === "image/png" ? "png" : "webp";
+    const photoPath = `intake/${crypto.randomUUID()}.${ext}`;
+    const {error:uploadError} = await admin.storage.from(EVIDENCE_BUCKET).upload(photoPath,photoBytes,{contentType:photo.type,upsert:false,cacheControl:"300"});
+    if (uploadError) return json({error:"Photo could not be saved. Please retry.",code:"PHOTO_UPLOAD_FAILED"},503);
+
+    const { data, error } = await admin.rpc("v23_submit_citizen_with_evidence", {
+      p_path: photoPath,
+      p_mime: photo.type,
+      p_bytes: photoBytes.length,
       p_lat: input.incidentLatitude,
       p_lng: input.incidentLongitude,
       p_input: {
@@ -380,12 +409,19 @@ Deno.serve(async (req) => {
       },
     });
     if (error) {
-      console.error("Complaint submission RPC failed", error);
+      // Only delete an unreferenced upload after a confirmed SQL failure. On an ambiguous
+      // network failure, retain the private object for later reconciliation.
+      if (/^[0-9A-Z]{5}$/.test(error.code || "")) {
+        const {data:linked,error:lookupError}=await admin.from("complaint_evidence").select("complaint_id").eq("storage_path",photoPath).maybeSingle();
+        if (!lookupError && !linked) await admin.storage.from(EVIDENCE_BUCKET).remove([photoPath]);
+      }
+      console.error("Complaint submission RPC failed", error.code);
       return json({ error: "Submission service is temporarily unavailable.", code: "SUBMISSION_UNAVAILABLE" }, 500);
     }
     return json({
       ...data,
       incident_location_saved: data?.incident_location_saved === true,
+      photo_attached: data?.photo_attached === true,
       prediction: {
         departmentId: primaryDept,
         departments,
