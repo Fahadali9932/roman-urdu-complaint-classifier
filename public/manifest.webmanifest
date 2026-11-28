@@ -1,13 +1,13 @@
 {
-  "name": "Awaaz-e-Awam",
-  "short_name": "Awaaz-e-Awam",
-  "description": "AI-Powered Civic Complaint Management & Field Resolution Platform for Karachi Municipal Services",
-  "start_url": "/",
-  "scope": "/",
+  "name": "Awaaz-e-Awam — Department Portal",
+  "short_name": "Dept Portal",
+  "description": "Department portal for managing civic complaints in Karachi",
+  "start_url": "/department",
+  "scope": "/department",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#FAF8F5",
-  "theme_color": "#761D30",
+  "background_color": "#0A0D12",
+  "theme_color": "#0A0D12",
   "icons": [
     {
       "src": "/favicon.svg",

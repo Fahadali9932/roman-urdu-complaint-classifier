@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-11-19T20:18:29.520Z",
+  "timestamp": "2026-11-28T06:33:01.006Z",
   "holdoutRun004Baseline": {
     "systemName": "Run004 Baseline (V11)",
     "totalCases": 500,
@@ -72,8 +72,8 @@
     },
     "falseExtraRate": 4.6,
     "missedDeptRate": 20.88,
-    "meanLatencyMs": 3,
-    "p95LatencyMs": 5.37,
+    "meanLatencyMs": 8.85,
+    "p95LatencyMs": 15.76,
     "failureCount": 170,
     "failuresSample": [
       {
@@ -173,14 +173,14 @@
   "holdoutRun004Candidate": {
     "systemName": "Run004 + V13.2 Candidate",
     "totalCases": 500,
-    "exactMatches": 418,
-    "exactAccuracy": 83.6,
-    "macroF1": 93.49,
+    "exactMatches": 419,
+    "exactAccuracy": 83.8,
+    "macroF1": 93.57,
     "deptMetrics": {
       "kmc": {
-        "precision": 82.44,
-        "recall": 83.72,
-        "f1": 83.08
+        "precision": 82.58,
+        "recall": 84.5,
+        "f1": 83.52
       },
       "kwsc": {
         "precision": 97.39,
@@ -221,8 +221,8 @@
       },
       "3_dept": {
         "total": 75,
-        "correct": 59,
-        "accuracy": 78.67
+        "correct": 60,
+        "accuracy": 80
       },
       "causal": {
         "total": 15,
@@ -241,10 +241,10 @@
       }
     },
     "falseExtraRate": 12.4,
-    "missedDeptRate": 5.13,
-    "meanLatencyMs": 1.08,
-    "p95LatencyMs": 1.42,
-    "failureCount": 82,
+    "missedDeptRate": 5,
+    "meanLatencyMs": 3.48,
+    "p95LatencyMs": 5.48,
+    "failureCount": 81,
     "failuresSample": [
       {
         "id": "holdout_0049",
@@ -426,8 +426,8 @@
     },
     "falseExtraRate": 3.4,
     "missedDeptRate": 16.63,
-    "meanLatencyMs": 8,
-    "p95LatencyMs": 14.32,
+    "meanLatencyMs": 24.86,
+    "p95LatencyMs": 44.04,
     "failureCount": 140,
     "failuresSample": [
       {
@@ -525,14 +525,14 @@
   "holdoutRun006Candidate": {
     "systemName": "Run006 + V13.2 Candidate",
     "totalCases": 500,
-    "exactMatches": 442,
-    "exactAccuracy": 88.4,
-    "macroF1": 95.34,
+    "exactMatches": 443,
+    "exactAccuracy": 88.6,
+    "macroF1": 95.42,
     "deptMetrics": {
       "kmc": {
-        "precision": 94.69,
-        "recall": 82.95,
-        "f1": 88.43
+        "precision": 94.74,
+        "recall": 83.72,
+        "f1": 88.89
       },
       "kwsc": {
         "precision": 94.9,
@@ -573,8 +573,8 @@
       },
       "3_dept": {
         "total": 75,
-        "correct": 63,
-        "accuracy": 84
+        "correct": 64,
+        "accuracy": 85.33
       },
       "causal": {
         "total": 15,
@@ -593,10 +593,10 @@
       }
     },
     "falseExtraRate": 9.8,
-    "missedDeptRate": 3.13,
-    "meanLatencyMs": 3.05,
-    "p95LatencyMs": 3.52,
-    "failureCount": 58,
+    "missedDeptRate": 3,
+    "meanLatencyMs": 8.67,
+    "p95LatencyMs": 12.38,
+    "failureCount": 57,
     "failuresSample": [
       {
         "id": "holdout_0049",

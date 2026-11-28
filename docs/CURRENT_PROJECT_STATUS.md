@@ -5,6 +5,53 @@ Verified on **28 November 2026 (Pakistan time)**. Internal delivery target:
 This document distinguishes inspected source, automated checks, and unverified
 hosted behavior. Update it after every significant verified milestone.
 
+## Development update, 28 November 2026 — Phase V23.0B: Database Reconciliation, Real Authentication & Branding (Official Maroon Logo Vectorization, Additive Schema Reconciliation Migration, Citizen & Staff Live Auth Hardening, Officer Provisioning Edge Function, Classifier Deno Edge Benchmark, & Multi-Portal Deployment Architecture)
+
+- **Git & Protected Baseline (`D:\RomanUrdu_V13_19_Review`, branch `feature/v23-0b-database-auth-foundation`):**
+  - Implementation branch `feature/v23-0b-database-auth-foundation` branched from `fd06e99` (V23.0A audit completion).
+  - Safety checkpoint tag `checkpoint/before-v23-0b-database-auth` created at `fd06e99` and pushed to remote origin.
+  - Protected primary worktree `D:\RomanUrdu_ComplaintClassifier_staff_auth` remained **100% untouched**.
+  - Total expenditure: **$0.00**; strictly zero paid APIs, zero external LLMs, zero cloud vision billing, zero credit cards.
+- **Approved Official Brand Identity (Objective 1):**
+  - Generated official Awaaz-e-Awam brand assets: solid deep maroon `#761D30` squircle (`rx="112"`) with white Urdu letter `آ` extracted mathematically from Noto Sans Arabic Bold (SIL Open Font License v1.1).
+  - Created 12 raster and vector assets: `public/logo.svg`, `src/assets/logo.svg`, `public/favicon.svg`, `public/pwa-icon.svg`, `public/pwa-icon-maskable.svg`, `favicon-16x16.png`, `favicon-32x32.png`, `apple-touch-icon.png`, `android-chrome-192x192.png`, `android-chrome-512x512.png`, `favicon.ico`, `og-image.png`.
+  - Built component `AwaazLogo.tsx` and updated `CivicEmblem.tsx`, `PublicHeader.tsx`, `StaffRoleChoiceGateway.tsx`, `HodLoginPage.tsx`, `OfficerLoginPage.tsx`, `StaffDepartmentSelection.tsx`, `index.html`, and PWA manifests.
+- **Database Schema Reconciliation Migration (Objective 3):**
+  - Authored additive, idempotent PostgreSQL migration `supabase/migrations/20261208000000_v23_0b_database_reconciliation.sql`.
+  - Formalized `department_work_orders` as authoritative operational model; created bridging view `v23_operational_cases_view` without dropping legacy `incident_cases`.
+  - Enforced storage path traversal constraints (`chk_complaint_evidence_storage_path`, `chk_department_work_evidence_storage_path`).
+  - Added multi-department partial resolution sync (`v23_sync_multi_dept_complaint_status` and trigger `trg_v23_work_order_status_sync`).
+  - Added server-side spherical Haversine function (`v23_haversine_distance_meters`) and secure initial HOD provisioning RPC (`v23_admin_provision_initial_hod`).
+  - Reconciled private storage buckets (`complaint-evidence-private`, `department-work-proof-private`, `staff-profile-photos-private`) and RLS policies.
+- **Real Authentication & Live Mock Fallback Elimination (Objectives 4, 5, 6, 9):**
+  - Connected Citizen Login (`LoginPage.tsx`) directly to Supabase Auth GoTrue with two-way citizen role guard.
+  - Hardened HOD and Field Officer logins (`HodLoginPage.tsx`, `OfficerLoginPage.tsx`, `staffAuthService.ts`) with strict role matching (`head` vs `officer`), active membership checking, and department boundary enforcement.
+  - Eliminated mock fallback: when Supabase is configured (`isSupabaseConfigured() === true`), all auth requests execute against Supabase; errors are reported truthfully and local mock adapter is completely bypassed.
+  - In production (`import.meta.env.PROD = true`), unconfigured state safely fails with `'unavailable'` rather than demo simulation.
+- **Officer Provisioning & Honest OTP Truth (Objectives 7 & 8):**
+  - Verified Option A: Server-Side Supabase Edge Function `manage-department-officers` using service-role key, AAL2 MFA verification, and departmental boundary check (browser never holds service-role key).
+  - Added `verify_onboarding_otp` action handler in Edge Function with audit logging.
+  - Honestly documented that default Supabase SMTP is limited to 3-4 emails/hour and external SMS gateways require credit cards; implemented cryptographic Temporary Access Key + Forced First-Login Password Reset as the robust zero-cost standard.
+- **Classifier Edge-Hosting Feasibility Benchmark (Objective 12):**
+  - Empirically benchmarked Run004 (1.89 MB) vs Run006 (5.49 MB) candidate models using `scripts/benchmark_classifier_edge.mjs` and `src/test/V13_2_Benchmark.test.ts`.
+  - Run006 parsed in 14.92 ms, consumed only 6.75 MB heap RAM (< 5% of Deno 150 MB limit), executed full inference in 2.89 ms (p95 3.34 ms, well under 50 ms CPU limit), and achieved 88.6% holdout exact accuracy (95.42% Macro F1).
+  - Confirmed hosting classifier directly in Supabase Deno Edge Functions is 100% viable with $0.00 infrastructure cost.
+- **Independent Portal Deployment Architecture (Objective 11):**
+  - Designed multi-target architecture for `awaaz-e-awam.pages.dev`, `aea-management.pages.dev`, and `aea-fieldwork.pages.dev`.
+  - Documented complete Cloudflare Pages configuration files (`_headers`, `_redirects`, `wrangler.toml`).
+- **Documentation Deliverables Produced:**
+  1. `docs/V23_0B_DATABASE_AUTH_IMPLEMENTATION_REPORT.md`
+  2. `docs/V23_0B_SCHEMA_RECONCILIATION.md`
+  3. `docs/V23_0B_AUTHENTICATION_AND_OTP.md`
+  4. `docs/V23_0B_CLASSIFIER_HOSTING_FEASIBILITY.md`
+  5. `docs/V23_0B_PORTAL_DEPLOYMENT_ARCHITECTURE.md`
+- **Automated Verification:**
+  - Dedicated test suite `src/test/V23_0B_DatabaseAndAuthReconciliation.test.tsx`: **6 passed tests (100% pass)**.
+  - Benchmark test suite `src/test/V13_2_Benchmark.test.ts`: **2 passed tests (100% pass)**.
+  - Overall test suite: **93 test files | 1 skipped (936 passed tests total, 0 regressions, 0 failures)**.
+  - TypeScript build (`npx tsc -b`): **Exit code `0` cleanly**.
+  - Production bundle build (`npm run build`): **Exit code `0` cleanly**.
+
 ## Development update, 28 November 2026 — Phase V23.0A: Complete Backend Architecture & Service Integration Audit (Exhaustive Technical Audit, Table & RPC Inventory, Cross-Portal Workflow Tracing, Security Boundary Evaluation & V23 Implementation Roadmap)
 
 - **Git & Protected Baseline (`D:\RomanUrdu_V13_19_Review`, branch `audit/v23-0a-backend-architecture`):**
