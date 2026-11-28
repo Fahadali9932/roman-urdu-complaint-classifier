@@ -13,6 +13,9 @@
 -- ==============================================================================
 
 BEGIN;
+SET LOCAL statement_timeout = '15s';
+SET LOCAL lock_timeout = '3s';
+SET LOCAL plpgsql.check_asserts = on;
 
 -- ------------------------------------------------------------------------------
 -- FIXTURES SETUP
@@ -29,6 +32,13 @@ DECLARE
 BEGIN
     RAISE NOTICE 'Setting up test accounts, profiles and memberships...';
 
+    -- Profiles and approval records reference auth.users. All fixtures roll back.
+    INSERT INTO auth.users (id, email)
+    SELECT id, id::text || '@fixture.invalid' FROM unnest(ARRAY[
+        v_admin_id, v_citizen_id, v_other_citizen_id, v_kwsc_staff_id, v_ke_staff_id,
+        v_ssgc_staff_id, v_revoked_staff_id, '99999999-9999-4999-8999-999999999999'::uuid
+    ]) AS fixture(id);
+
     -- Test profiles
     INSERT INTO public.profiles (id, full_name, email, role)
     VALUES
@@ -38,6 +48,7 @@ BEGIN
         (v_kwsc_staff_id, 'KWSC Officer', 'officer@kwsc.test', 'department_staff'),
         (v_ke_staff_id, 'KE Officer', 'officer@kelectric.test', 'department_staff'),
         (v_ssgc_staff_id, 'SSGC Officer', 'officer@ssgc.test', 'department_staff'),
+        ('99999999-9999-4999-8999-999999999999', 'KMC Officer', 'kmc@fixture.invalid', 'department_staff'),
         (v_revoked_staff_id, 'Revoked Officer', 'revoked@kwsc.test', 'department_staff')
     ON CONFLICT (id) DO UPDATE SET role = EXCLUDED.role;
 
@@ -47,6 +58,7 @@ BEGIN
         ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', v_kwsc_staff_id, 'kwsc', 'active', v_admin_id),
         ('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', v_ke_staff_id, 'kelectric', 'active', v_admin_id),
         ('cccccccc-cccc-cccc-cccc-cccccccccccc', v_ssgc_staff_id, 'ssgc', 'active', v_admin_id),
+        ('eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee', '99999999-9999-4999-8999-999999999999', 'kmc', 'active', v_admin_id),
         ('dddddddd-dddd-dddd-dddd-dddddddddddd', v_revoked_staff_id, 'kwsc', 'revoked', v_admin_id)
     ON CONFLICT (user_id, department_id) DO UPDATE SET status = EXCLUDED.status;
 
@@ -106,7 +118,8 @@ BEGIN
     v_ref := v_res->>'reference_number';
 
     ASSERT v_cid IS NOT NULL, 'Case 1 Failed: Complaint ID is NULL';
-    ASSERT v_ref LIKE 'KHI-2026-%', 'Case 1 Failed: Reference format unexpected: ' || v_ref;
+    PERFORM set_config('awaaz.assigned_id', v_cid::text, true);
+    ASSERT v_ref LIKE ('KHI-' || to_char(now(), 'YYYY') || '-%'), 'Case 1 Failed: Reference format unexpected: ' || v_ref;
 
     -- Verify 2 department issues persisted in public.complaint_issues
     SELECT count(*) INTO v_issue_count FROM public.complaint_issues WHERE complaint_id = v_cid;
@@ -127,73 +140,37 @@ $$;
 -- ------------------------------------------------------------------------------
 -- CASE 2 & 3: ISOLATION, DENIAL OF UNRELATED & REVOKED, OWNER TRACKING
 -- ------------------------------------------------------------------------------
+SET LOCAL ROLE authenticated;
 DO $$
 DECLARE
-    v_citizen_id UUID := '11111111-1111-4111-8111-111111111111'::UUID;
-    v_other_citizen_id UUID := '22222222-2222-4222-8222-222222222222'::UUID;
-    v_kwsc_staff_id UUID := '33333333-3333-4333-8333-333333333333'::UUID;
-    v_ke_staff_id UUID := '66666666-6666-4666-8666-666666666666'::UUID;
-    v_ssgc_staff_id UUID := '77777777-7777-4777-8777-777777777777'::UUID;
-    v_revoked_staff_id UUID := '88888888-8888-4888-8888-888888888888'::UUID;
-    v_cid UUID;
+    v_id uuid := current_setting('awaaz.assigned_id')::uuid;
+    who text;
+    dept text;
 BEGIN
-    RAISE NOTICE 'Executing Case 2 & 3: RLS and isolation assertions...';
-
-    SELECT id INTO v_cid FROM public.complaints WHERE citizen_id = v_citizen_id ORDER BY created_at DESC LIMIT 1;
-
-    -- Add staff notes on KWSC issue
-    UPDATE public.complaint_issues
-    SET staff_notes = 'KWSC private crew dispatched'
-    WHERE complaint_id = v_cid AND department_id = 'kwsc';
-
-    -- Add staff notes on KE issue
-    UPDATE public.complaint_issues
-    SET staff_notes = 'KE private substation notified'
-    WHERE complaint_id = v_cid AND department_id = 'kelectric';
-
-    -- Check KWSC staff query sees only KWSC issue
-    ASSERT EXISTS (
-        SELECT 1 FROM public.complaint_issues ci
-        JOIN public.department_memberships m ON m.department_id = ci.department_id
-        WHERE ci.complaint_id = v_cid AND m.user_id = v_kwsc_staff_id AND m.status = 'active'
-          AND ci.department_id = 'kwsc' AND ci.staff_notes = 'KWSC private crew dispatched'
-    ), 'Case 2 Failed: KWSC staff cannot view KWSC issue';
-
-    -- Check KE staff query does NOT see KWSC staff notes
-    ASSERT NOT EXISTS (
-        SELECT 1 FROM public.complaint_issues ci
-        JOIN public.department_memberships m ON m.department_id = ci.department_id
-        WHERE ci.complaint_id = v_cid AND m.user_id = v_ke_staff_id AND m.status = 'active'
-          AND ci.department_id = 'kwsc'
-    ), 'Case 2 Failed: KE staff leaked KWSC issue';
-
-    -- Check unrelated SSGC staff has 0 issues
-    ASSERT NOT EXISTS (
-        SELECT 1 FROM public.complaint_issues ci
-        JOIN public.department_memberships m ON m.department_id = ci.department_id
-        WHERE ci.complaint_id = v_cid AND m.user_id = v_ssgc_staff_id AND m.status = 'active'
-    ), 'Case 3 Failed: Unrelated SSGC staff saw issues';
-
-    -- Check revoked staff has 0 access
-    ASSERT NOT EXISTS (
-        SELECT 1 FROM public.complaint_issues ci
-        JOIN public.department_memberships m ON m.department_id = ci.department_id
-        WHERE ci.complaint_id = v_cid AND m.user_id = v_revoked_staff_id AND m.status = 'active'
-    ), 'Case 3 Failed: Revoked staff granted access';
-
-    -- Check citizen owner can track the case
-    ASSERT EXISTS (
-        SELECT 1 FROM public.complaints WHERE id = v_cid AND citizen_id = v_citizen_id
-    ), 'Case 3 Failed: Citizen owner cannot view complaint';
-
-    -- Check other citizen cannot access
-    ASSERT NOT EXISTS (
-        SELECT 1 FROM public.complaints WHERE id = v_cid AND citizen_id = v_other_citizen_id
-    ), 'Case 3 Failed: Other citizen granted access';
-
-    RAISE NOTICE 'Case 2 & 3 Passed: Department isolation, staff note privacy, and denial rules verified.';
+    FOR who, dept IN SELECT * FROM (VALUES
+        ('33333333-3333-4333-8333-333333333333', 'kwsc'),
+        ('66666666-6666-4666-8666-666666666666', 'kelectric')
+    ) AS staff(user_id, department_id) LOOP
+        PERFORM set_config('request.jwt.claim.sub', who, true);
+        ASSERT EXISTS (SELECT FROM public.complaints WHERE id = v_id), 'Assigned staff cannot see complaint';
+        ASSERT (SELECT count(id) FROM public.complaint_issues WHERE complaint_id = v_id) = 1;
+        ASSERT EXISTS (SELECT FROM public.complaint_issues WHERE complaint_id = v_id AND department_id = dept);
+    END LOOP;
+    FOREACH who IN ARRAY ARRAY[
+        '77777777-7777-4777-8777-777777777777', '88888888-8888-4888-8888-888888888888',
+        '22222222-2222-4222-8222-222222222222'
+    ] LOOP
+        PERFORM set_config('request.jwt.claim.sub', who, true);
+        ASSERT NOT EXISTS (SELECT FROM public.complaints WHERE id = v_id);
+        ASSERT NOT EXISTS (SELECT FROM public.complaint_issues WHERE complaint_id = v_id);
+    END LOOP;
+    PERFORM set_config('request.jwt.claim.sub', '11111111-1111-4111-8111-111111111111', true);
+    ASSERT EXISTS (SELECT FROM public.complaints WHERE id = v_id);
+    ASSERT (SELECT count(id) FROM public.complaint_issues WHERE complaint_id = v_id) = 2;
+    ASSERT NOT has_column_privilege(current_user, 'public.complaint_issues', 'staff_notes', 'SELECT');
 END;
 $$;
+RESET ROLE;
 
 -- ------------------------------------------------------------------------------
 -- CASE 4: PRIVILEGED INTAKE OVERLOAD SECURITY
@@ -273,6 +250,11 @@ BEGIN
     v_track_res := public.get_guest_complaint_status(v_tracking_hash);
     ASSERT (v_track_res->>'found')::BOOLEAN = true, 'Case 5 Failed: Valid tracking hash not found';
     ASSERT v_track_res->>'public_status' = 'assigned', 'Case 5 Failed: Expected status assigned';
+    ASSERT v_track_res #>> '{public_updates,1,status}' = 'assigned';
+    ASSERT (v_track_res #>> '{public_updates,1,at}')::timestamptz = (
+        SELECT created_at FROM public.complaint_timeline_events
+        WHERE complaint_id = (v_res->>'complaint_id')::uuid AND status = 'assigned'
+    );
     ASSERT (v_track_res ? 'citizen_name') = false, 'Case 5 Failed: Tracking leaks citizen name';
     ASSERT (v_track_res ? 'raw_description') = false, 'Case 5 Failed: Tracking leaks raw description';
 
@@ -294,7 +276,6 @@ DECLARE
     v_cid UUID;
     v_rec RECORD;
     v_priv RECORD;
-    v_issue RECORD;
 BEGIN
     RAISE NOTICE 'Executing Case 6: Privacy-uncertain complaint review hold...';
 
@@ -306,7 +287,7 @@ BEGIN
         p_sanitized_description => '', -- Empty sanitization!
         p_generated_heading => '',
         p_factual_summary => '',
-        p_redaction_flags => jsonb_build_object('uncertainRedaction', true),
+        p_redaction_flags => '{"uncertainRedaction":true,"multi_department_routing":{"departments":["kmc"],"issues":[{"departmentId":"kmc"}]}}'::jsonb,
         p_redaction_needs_review => true,
         p_incident_district => 'District South',
         p_incident_locality => 'Saddar',
@@ -340,10 +321,8 @@ BEGIN
     SELECT raw_description INTO v_priv FROM public.complaint_citizen_private WHERE complaint_id = v_cid;
     ASSERT v_priv.raw_description LIKE 'Mera naam Asad%', 'Case 6 Failed: Private record lost raw narrative';
 
-    -- Inspect complaint_issues: issues must be under_review
-    FOR v_issue IN SELECT status FROM public.complaint_issues WHERE complaint_id = v_cid LOOP
-        ASSERT v_issue.status = 'under_review', 'Case 6 Failed: Issue status is not under_review';
-    END LOOP;
+    ASSERT NOT EXISTS (SELECT FROM public.complaint_issues WHERE complaint_id = v_cid);
+    PERFORM set_config('awaaz.held_id', v_cid::text, true);
 
     RAISE NOTICE 'Case 6 Passed: Privacy-uncertain complaint holds assignment and substitutes safe staff text.';
 END;
@@ -363,11 +342,12 @@ BEGIN
     SELECT count(*) INTO v_count_before FROM public.complaints;
 
     BEGIN
-        -- Intentionally trigger exception (250 words > 200 words limit)
+        -- Fail during issue insertion, after the complaint and private record are written.
         PERFORM public.submit_citizen_complaint(
             p_citizen_id => '11111111-1111-4111-8111-111111111111'::UUID,
             p_title => 'Overflow',
-            p_description => repeat('word ', 250),
+            p_description => 'A service line needs repair.',
+            p_redaction_flags => '{"multi_department_routing":{"issues":[{"departmentId":"kwsc","confidence":"invalid"}]}}'::jsonb,
             p_sanitized_description => 'Valid sanitized text',
             p_incident_district => 'District East',
             p_incident_locality => 'Gulshan',
@@ -379,11 +359,11 @@ BEGIN
             p_prediction_confidence => 0.90,
             p_needs_review => false
         );
-    EXCEPTION WHEN OTHERS THEN
+    EXCEPTION WHEN invalid_text_representation THEN
         v_failed := true;
     END;
 
-    ASSERT v_failed = true, 'Case 7 Failed: Expected exception on >200 words';
+    ASSERT v_failed = true, 'Case 7 Failed: Expected issue confidence validation failure';
 
     SELECT count(*) INTO v_count_after FROM public.complaints;
     ASSERT v_count_before = v_count_after, 'Case 7 Failed: Complaint was partially inserted!';
@@ -392,6 +372,45 @@ BEGIN
 END;
 $$;
 
-ROLLBACK;
+SET LOCAL ROLE anon;
+DO $$
+DECLARE
+    result jsonb := public.get_guest_complaint_status('e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855');
+BEGIN
+    ASSERT result->>'public_status' = 'assigned' AND (result->>'found')::boolean;
+    ASSERT jsonb_array_length(result->'public_issues') = 1;
+    ASSERT public.get_guest_complaint_status(repeat('0', 64)) = '{"found":false}'::jsonb;
+END;
+$$;
+RESET ROLE;
 
-RAISE NOTICE 'All 7 Phase 3F.6 security repair acceptance cases successfully verified.';
+SET LOCAL ROLE authenticated;
+DO $$
+DECLARE
+    held uuid := current_setting('awaaz.held_id')::uuid;
+BEGIN
+    PERFORM set_config('request.jwt.claim.sub', '99999999-9999-4999-8999-999999999999', true);
+    ASSERT NOT EXISTS (SELECT FROM public.complaints WHERE id = held);
+    BEGIN
+        PERFORM public.staff_review_and_assign_complaint(held, 'kmc', NULL);
+        RAISE EXCEPTION 'Department staff assigned a held complaint';
+    EXCEPTION WHEN insufficient_privilege THEN NULL;
+    END;
+    PERFORM set_config('request.jwt.claim.sub', '55555555-5555-4555-8555-555555555555', true);
+    ASSERT EXISTS (SELECT FROM public.complaints WHERE id = held AND status = 'under_review');
+    PERFORM public.staff_review_and_assign_complaint(held, 'kmc', 'Internal routing note');
+    PERFORM set_config('request.jwt.claim.sub', '99999999-9999-4999-8999-999999999999', true);
+    ASSERT EXISTS (SELECT FROM public.complaints WHERE id = held AND status = 'assigned');
+    ASSERT EXISTS (SELECT FROM public.complaint_issues WHERE complaint_id = held AND department_id = 'kmc');
+    PERFORM set_config('request.jwt.claim.sub', '55555555-5555-4555-8555-555555555555', true);
+    PERFORM public.admin_reassign_complaint(held, 'kwsc', 'Transfer');
+    PERFORM set_config('request.jwt.claim.sub', '99999999-9999-4999-8999-999999999999', true);
+    ASSERT NOT EXISTS (SELECT FROM public.complaints WHERE id = held);
+    ASSERT NOT EXISTS (SELECT FROM public.complaint_issues WHERE complaint_id = held);
+    PERFORM set_config('request.jwt.claim.sub', '33333333-3333-4333-8333-333333333333', true);
+    ASSERT EXISTS (SELECT FROM public.complaints WHERE id = held);
+    ASSERT EXISTS (SELECT FROM public.complaint_issues WHERE complaint_id = held AND department_id = 'kwsc');
+END;
+$$;
+RESET ROLE;
+ROLLBACK;

@@ -83,7 +83,7 @@ const DEFAULT_IDLE: TelemetryPayload = {
   ],
   active_model: {
     version: 'v11-candidate-run-004-champion',
-    sha256: 'e4d04293f9c6d4826b5c3ff3ec327e53f1947b198888e2cb2ad4cfcf7ef98457',
+    sha256: 'e4d042937cf8c3e1e3c70f147a707b33a629d463db34485766c98da21c2e3a56',
     status: 'active_runtime',
   },
 };

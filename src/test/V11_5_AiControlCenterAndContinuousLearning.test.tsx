@@ -4,7 +4,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { AiControlCenterPage } from '../features/admin/ai/AiControlCenterPage';
 import { aiTelemetryService, type TelemetryPayload } from '../services/aiTelemetryService';
-import { aiReviewService } from '../services/aiReviewService';
+import { AiReviewService, aiReviewService } from '../services/aiReviewService';
 import { FlagIncorrectDepartmentModal } from '../features/department/components/FlagIncorrectDepartmentModal';
 import { complaintService } from '../services';
 import { DepartmentAuthProvider } from '../context/DepartmentAuthContext';
@@ -34,6 +34,32 @@ describe('AWAAZ-E-AWAM — Phase V11.5 AI Control Center & Continuous Learning S
   });
 
   describe('1. PII Scrubbing & AI Human Review Queue Service (Phase 4)', () => {
+    it('starts with an empty review queue instead of fabricated complaints', () => {
+      expect(new AiReviewService().getReviewQueue()).toEqual([]);
+    });
+
+    it('removes only exact legacy demo identities and preserves genuine queue and correction records', () => {
+      const genuine = { id: 'rev-001', complaintId: 'genuine-case', status: 'pending' };
+      const corrections = [{ id: 'genuine-case', expected_departments: ['kmc'] }];
+      localStorage.setItem('awaaz_ai_review_queue_v11', JSON.stringify([
+        { id: 'rev-001', complaintId: 'comp-seed-101' },
+        { id: 'rev-002', complaintId: 'comp-seed-102' },
+        { id: 'rev-003', complaintId: 'comp-seed-103' },
+        genuine,
+      ]));
+      localStorage.setItem('awaaz_ai_verified_corrections_v11', JSON.stringify(corrections));
+      const service = new AiReviewService();
+      expect(service.getReviewQueue()).toEqual([genuine]);
+      expect(JSON.parse(localStorage.getItem('awaaz_ai_review_queue_v11')!)).toEqual([genuine]);
+      expect(service.getVerifiedCorrections()).toEqual(corrections);
+    });
+
+    it('does not invent records when stored review data is malformed', () => {
+      localStorage.setItem('awaaz_ai_review_queue_v11', '{broken');
+      expect(new AiReviewService().getReviewQueue()).toEqual([]);
+      expect(localStorage.getItem('awaaz_ai_review_queue_v11')).toBe('{broken');
+    });
+
     it('scrubs phone numbers, CNIC, and email addresses from resident text before queuing', () => {
       const sensitiveText =
         'mera number 0300-1234567 hai aur cnic 42101-1234567-1 hai, bijli ki taar tooti hai email test@domain.com';
@@ -218,7 +244,7 @@ describe('AWAAZ-E-AWAM — Phase V11.5 AI Control Center & Continuous Learning S
       expect(screen.getByText(/Run 004 Champion \(Active Website Model\)/i)).toBeInTheDocument();
       expect(screen.getByText(/Run 005 Candidate \(Curriculum Batch\)/i)).toBeInTheDocument();
       expect(screen.getByText(/Run 006 Candidate \(Autonomous Cycle 2 Checkpoint\)/i)).toBeInTheDocument();
-      expect(screen.getByText(/e4d04293f9c6d4826b5c3ff3ec327e53f1947b198888e2cb2ad4cfcf7ef98457/i)).toBeInTheDocument();
+      expect(screen.getByText(/e4d042937cf8c3e1e3c70f147a707b33a629d463db34485766c98da21c2e3a56/i)).toBeInTheDocument();
     });
 
     it('navigates to 2,000-Case Evaluation tab and displays Wilson 95% confidence intervals', async () => {
@@ -242,6 +268,38 @@ describe('AWAAZ-E-AWAM — Phase V11.5 AI Control Center & Continuous Learning S
   });
 
   describe('4. Flag Incorrect Department Modal for Staff (Phase 7)', () => {
+    it.each([null, 'kwsc', 'kmc'] as const)(
+      'does not create a review or report success for an unauthorized/failed request (%s)',
+      async (sessionDepartment) => {
+        const complaint = {
+          id: 'flag-failure-case', referenceNumber: 'AA-2026-333444',
+          assignedDepartmentId: 'kmc', status: 'assigned',
+          sanitizedDescription: 'road mein gaddha hai',
+        } as DepartmentComplaintView;
+        if (sessionDepartment) sessionStorage.setItem('awaaz_department_auth_session_v1', JSON.stringify({
+          departmentId: sessionDepartment, departmentName: sessionDepartment,
+          departmentCode: sessionDepartment, authenticatedAt: new Date().toISOString(),
+        }));
+        const update = vi.spyOn(complaintService, 'updateComplaintStatus').mockRejectedValue(new Error('Service unavailable'));
+        const queue = vi.spyOn(aiReviewService, 'flagComplaintForReview');
+        const onFlagged = vi.fn();
+        const onClose = vi.fn();
+        render(<DepartmentAuthProvider><FlagIncorrectDepartmentModal
+          isOpen onClose={onClose} onFlagged={onFlagged} complaint={complaint}
+        /></DepartmentAuthProvider>);
+        fireEvent.change(screen.getByPlaceholderText(/Complaint concerns an open sewer overflow/i), {
+          target: { value: 'Please verify this assignment.' },
+        });
+        fireEvent.click(screen.getByRole('button', { name: /Confirm & Flag for Review/i }));
+        await screen.findByText(sessionDepartment === 'kmc'
+          ? 'Service unavailable' : 'Sign in to the department assigned to this complaint before flagging it.');
+        expect(update).toHaveBeenCalledTimes(sessionDepartment === 'kmc' ? 1 : 0);
+        expect(queue).not.toHaveBeenCalled();
+        expect(onFlagged).not.toHaveBeenCalled();
+        expect(onClose).not.toHaveBeenCalled();
+      }
+    );
+
     it('allows department staff to flag a misclassified complaint and triggers status transition', async () => {
       const mockComplaint: DepartmentComplaintView = {
         id: 'comp-flag-test-1',
@@ -261,9 +319,14 @@ describe('AWAAZ-E-AWAM — Phase V11.5 AI Control Center & Continuous Learning S
       const handleFlagged = vi.fn();
       const handleClose = vi.fn();
 
-      vi.spyOn(complaintService, 'updateComplaintStatus').mockResolvedValueOnce({
-        ...mockComplaint,
-        status: 'under_review',
+      const updatedComplaint = { ...mockComplaint, status: 'under_review' as const };
+      sessionStorage.setItem('awaaz_department_auth_session_v1', JSON.stringify({
+        departmentId: 'kmc', departmentName: 'KMC', departmentCode: 'KMC',
+        authenticatedAt: new Date().toISOString(),
+      }));
+      const updateStatus = vi.spyOn(complaintService, 'updateComplaintStatus').mockResolvedValueOnce({
+        success: true,
+        complaint: updatedComplaint,
       });
 
       render(
@@ -289,7 +352,8 @@ describe('AWAAZ-E-AWAM — Phase V11.5 AI Control Center & Continuous Learning S
       fireEvent.click(submitBtn);
 
       await waitFor(() => {
-        expect(handleFlagged).toHaveBeenCalled();
+        expect(updateStatus).toHaveBeenCalledWith('kmc', 'AA-2026-777888', 'under_review', expect.any(String));
+        expect(handleFlagged).toHaveBeenCalledWith(updatedComplaint);
         expect(handleClose).toHaveBeenCalled();
       });
     });

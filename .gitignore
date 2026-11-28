@@ -67,5 +67,6 @@ chrome_*
 data/v11/curriculum_runs/
 data/v11/stress_test/
 data/v11/eval_v11_4_8/*.jsonl
+data/v11/curated/
 scratch/
 *.joblib

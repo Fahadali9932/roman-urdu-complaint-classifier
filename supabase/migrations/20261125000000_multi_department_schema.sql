@@ -41,10 +41,10 @@ CREATE POLICY staff_select_assigned_issues ON public.complaint_issues
   TO authenticated
   USING (
     EXISTS (
-      SELECT 1 FROM public.staff_profiles sp
-      WHERE sp.user_id = auth.uid()
-        AND (sp.department_id = complaint_issues.department_id OR sp.role = 'admin')
-        AND sp.status = 'active'
+      SELECT 1 FROM public.department_memberships m
+      WHERE m.user_id = auth.uid()
+        AND m.department_id = complaint_issues.department_id
+        AND m.status = 'active'
     )
   );
 
@@ -54,18 +54,18 @@ CREATE POLICY staff_update_assigned_issues ON public.complaint_issues
   TO authenticated
   USING (
     EXISTS (
-      SELECT 1 FROM public.staff_profiles sp
-      WHERE sp.user_id = auth.uid()
-        AND (sp.department_id = complaint_issues.department_id OR sp.role = 'admin')
-        AND sp.status = 'active'
+      SELECT 1 FROM public.department_memberships m
+      WHERE m.user_id = auth.uid()
+        AND m.department_id = complaint_issues.department_id
+        AND m.status = 'active'
     )
   )
   WITH CHECK (
     EXISTS (
-      SELECT 1 FROM public.staff_profiles sp
-      WHERE sp.user_id = auth.uid()
-        AND (sp.department_id = complaint_issues.department_id OR sp.role = 'admin')
-        AND sp.status = 'active'
+      SELECT 1 FROM public.department_memberships m
+      WHERE m.user_id = auth.uid()
+        AND m.department_id = complaint_issues.department_id
+        AND m.status = 'active'
     )
   );
 

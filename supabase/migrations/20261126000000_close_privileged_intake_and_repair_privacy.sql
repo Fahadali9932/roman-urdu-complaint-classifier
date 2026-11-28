@@ -113,7 +113,7 @@ BEGIN
         RAISE EXCEPTION 'Complaint description is required.';
     END IF;
 
-    v_words := cardinality(regexp_split_to_array(trim(p_description), '\\s+'));
+    v_words := cardinality(regexp_split_to_array(trim(p_description), '[[:space:]]+'));
     IF v_words > 200 THEN
         RAISE EXCEPTION 'Complaint must contain 200 words or fewer.';
     END IF;
@@ -164,6 +164,7 @@ BEGIN
 
     -- 8. Enforce review hold vs assignment
     IF p_needs_review THEN
+        v_issues := NULL;
         v_assigned_department := NULL;
         v_assigned_department_ids := '{}';
         v_status := 'under_review';
@@ -382,7 +383,9 @@ GRANT EXECUTE ON FUNCTION public.submit_citizen_complaint(
 -- Revoke direct INSERT/UPDATE/DELETE on complaints tables from untrusted roles
 DROP POLICY IF EXISTS "Citizens can insert own complaints" ON public.complaints;
 REVOKE INSERT, UPDATE, DELETE ON public.complaints FROM anon, authenticated;
-REVOKE INSERT, UPDATE, DELETE ON public.complaint_issues FROM anon, authenticated;
+REVOKE ALL PRIVILEGES ON public.complaint_issues FROM PUBLIC, anon, authenticated;
+GRANT SELECT (id, complaint_id, department_id, issue_type, evidence_span, confidence, status, created_at, updated_at)
+    ON public.complaint_issues TO authenticated;
 REVOKE INSERT, UPDATE, DELETE ON public.complaint_citizen_private FROM anon, authenticated;
 
 -- ------------------------------------------------------------------------------
@@ -404,29 +407,10 @@ CREATE POLICY staff_select_assigned_issues ON public.complaint_issues
       WHERE m.user_id = auth.uid()
         AND m.department_id = complaint_issues.department_id
         AND m.status = 'active'
-    )
-    OR public.is_main_admin(auth.uid())
-  );
-
--- Staff can UPDATE only issues assigned to their active department (e.g. status, staff_notes)
-CREATE POLICY staff_update_assigned_issues ON public.complaint_issues
-  FOR UPDATE
-  TO authenticated
-  USING (
-    EXISTS (
-      SELECT 1 FROM public.department_memberships m
-      WHERE m.user_id = auth.uid()
-        AND m.department_id = complaint_issues.department_id
-        AND m.status = 'active'
-    )
-    OR public.is_main_admin(auth.uid())
-  )
-  WITH CHECK (
-    EXISTS (
-      SELECT 1 FROM public.department_memberships m
-      WHERE m.user_id = auth.uid()
-        AND m.department_id = complaint_issues.department_id
-        AND m.status = 'active'
+        AND EXISTS (
+          SELECT 1 FROM public.complaints c WHERE c.id = complaint_issues.complaint_id
+            AND (m.department_id = c.assigned_department_id OR m.department_id = ANY(c.assigned_department_ids))
+        )
     )
     OR public.is_main_admin(auth.uid())
   );
@@ -459,7 +443,6 @@ CREATE POLICY "Department staff can select assigned or review complaints"
               AND (
                   m.department_id = complaints.assigned_department_id
                   OR m.department_id = ANY(complaints.assigned_department_ids)
-                  OR (complaints.status = 'under_review' AND (m.department_id = 'kmc' OR public.is_main_admin(auth.uid())))
               )
         )
     );
@@ -486,8 +469,8 @@ BEGIN
     RETURN jsonb_build_object('found', false);
   END IF;
 
-  SELECT c.id, c.status, c.created_at, c.updated_at, c.predicted_department_id,
-         c.assigned_department_id, c.assigned_department_ids, c.is_multilabel, c.needs_review
+  SELECT c.id, c.status, c.created_at, c.updated_at,
+         c.assigned_department_id, c.assigned_department_ids, c.is_multilabel
   INTO v_rec
   FROM public.complaints c
   WHERE c.guest_tracking_hash = lower(trim(p_tracking_hash))
@@ -499,49 +482,37 @@ BEGIN
 
   SELECT name INTO v_dept_name
   FROM public.departments
-  WHERE id = coalesce(v_rec.assigned_department_id, v_rec.predicted_department_id);
+  WHERE id = v_rec.assigned_department_id;
 
   v_display_status := CASE
     WHEN v_rec.status = 'submitted' THEN 'Complaint received'
     WHEN v_rec.status = 'under_review' THEN 'Being reviewed'
     WHEN v_rec.status = 'assigned' THEN 'Sent to department'
+    WHEN v_rec.status = 'accepted' THEN 'Accepted by department'
+    WHEN v_rec.status = 'rejected' THEN 'Declined by department'
     WHEN v_rec.status = 'in_progress' THEN 'Work started'
     WHEN v_rec.status = 'resolved' THEN 'Work completed'
     WHEN v_rec.status = 'closed' THEN 'Closed'
     ELSE 'Being processed'
   END;
 
-  v_updates := jsonb_build_array(
-    jsonb_build_object(
-      'status', 'submitted',
-      'at', v_rec.created_at,
-      'message', 'We received your complaint.'
-    )
-  );
-
-  IF v_rec.status IN ('assigned', 'in_progress', 'resolved', 'closed') THEN
-    v_updates := v_updates || jsonb_build_object(
-      'status', 'assigned',
-      'at', v_rec.updated_at,
-      'message', 'Sent to the responsible department.'
-    );
-  END IF;
-
-  IF v_rec.status IN ('in_progress', 'resolved', 'closed') THEN
-    v_updates := v_updates || jsonb_build_object(
-      'status', 'in_progress',
-      'at', v_rec.updated_at,
-      'message', 'The department has started work.'
-    );
-  END IF;
-
-  IF v_rec.status IN ('resolved', 'closed') THEN
-    v_updates := v_updates || jsonb_build_object(
-      'status', 'resolved',
-      'at', v_rec.updated_at,
-      'message', 'Work has been completed.'
-    );
-  END IF;
+  -- Expose recorded milestones using fixed public wording. Notes stay private.
+  SELECT coalesce(jsonb_agg(jsonb_build_object(
+      'status', e.status, 'at', e.created_at,
+      'message', CASE e.status
+        WHEN 'submitted' THEN 'We received your complaint.'
+        WHEN 'under_review' THEN 'Your complaint is being reviewed.'
+        WHEN 'assigned' THEN 'Sent to the responsible department.'
+        WHEN 'accepted' THEN 'The department accepted the complaint.'
+        WHEN 'in_progress' THEN 'The department has started work.'
+        WHEN 'resolved' THEN 'Work has been completed.'
+        WHEN 'rejected' THEN 'The department declined the complaint.'
+        WHEN 'closed' THEN 'The complaint was closed.'
+      END
+    ) ORDER BY e.created_at, CASE WHEN e.status = 'submitted' THEN 0 ELSE 1 END, e.id), '[]'::jsonb)
+  INTO v_updates FROM public.complaint_timeline_events e
+  WHERE e.complaint_id = v_rec.id
+    AND e.status IN ('submitted', 'under_review', 'assigned', 'accepted', 'in_progress', 'resolved', 'rejected', 'closed');
 
   -- Build safe public issues overview (no staff notes, no evidence spans with PII)
   FOR v_issue IN (
@@ -549,6 +520,7 @@ BEGIN
     FROM public.complaint_issues ci
     JOIN public.departments d ON d.id = ci.department_id
     WHERE ci.complaint_id = v_rec.id
+      AND (ci.department_id = v_rec.assigned_department_id OR ci.department_id = ANY(v_rec.assigned_department_ids))
     ORDER BY ci.created_at ASC
   ) LOOP
     v_public_issues := v_public_issues || jsonb_build_object(
@@ -581,3 +553,247 @@ $$;
 
 REVOKE ALL ON FUNCTION public.get_guest_complaint_status(text) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.get_guest_complaint_status(text) TO anon, authenticated, service_role;
+
+-- Classification decisions and their private review notes belong to administrators.
+ALTER POLICY "Admins and staff can select complaint audit logs" ON public.complaint_audit_logs
+    USING (public.is_main_admin(auth.uid()));
+
+CREATE OR REPLACE FUNCTION public.staff_review_and_assign_complaint(
+    p_complaint_id UUID,
+    p_target_department_id TEXT,
+    p_notes TEXT DEFAULT NULL
+)
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, auth, pg_temp
+AS $$
+DECLARE
+    v_caller_id UUID := auth.uid();
+    v_complaint public.complaints%ROWTYPE;
+    v_target_dept_name TEXT;
+    v_citizen_name TEXT;
+    v_citizen_email TEXT;
+BEGIN
+    IF v_caller_id IS NULL THEN
+        RAISE EXCEPTION 'Authentication required.';
+    END IF;
+
+    IF NOT public.is_main_admin(v_caller_id) THEN
+        RAISE EXCEPTION 'Administrator required for classification review.' USING ERRCODE = '42501';
+    END IF;
+
+    -- Validate target department exists and is active
+    SELECT name INTO v_target_dept_name
+    FROM public.departments
+    WHERE id = p_target_department_id AND is_active = true;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Invalid target department: %', p_target_department_id;
+    END IF;
+
+    -- Lock complaint row for update
+    SELECT * INTO v_complaint
+    FROM public.complaints
+    WHERE id = p_complaint_id
+    FOR UPDATE;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Complaint not found: %', p_complaint_id;
+    END IF;
+
+    IF v_complaint.status != 'under_review' THEN
+        RAISE EXCEPTION 'Only complaints under review can be assigned via classification review (current status: %).', v_complaint.status;
+    END IF;
+
+    -- Update complaint status to 'assigned' and set assigned_department_id
+    UPDATE public.complaints
+    SET assigned_department_id = p_target_department_id,
+        assigned_department_ids = ARRAY[p_target_department_id],
+        status = 'assigned',
+        is_reviewed_by_admin = true,
+        updated_at = now()
+    WHERE id = p_complaint_id;
+
+    UPDATE public.complaint_issues SET status = 'assigned'
+    WHERE complaint_id = p_complaint_id AND department_id = p_target_department_id;
+    IF NOT FOUND THEN
+        INSERT INTO public.complaint_issues (complaint_id, department_id, issue_type, status)
+        VALUES (p_complaint_id, p_target_department_id, 'reviewed_assignment', 'assigned');
+    END IF;
+
+    -- Record immutable milestone in timeline
+    INSERT INTO public.complaint_timeline_events (
+        complaint_id,
+        status,
+        title,
+        title_urdu,
+        description,
+        description_urdu,
+        actor_role,
+        actor_id
+    )
+    VALUES (
+        p_complaint_id,
+        'assigned',
+        'Classification Reviewed & Department Assigned',
+        'درجہ بندی کا جائزہ مکمل اور محکمہ تفویض',
+        'Complaint reviewed by administrator and assigned to ' || v_target_dept_name || '.',
+        'محکمہ افسر نے شکایت کا جائزہ لے کر متعلقہ محکمے (' || v_target_dept_name || ') کے سپرد کر دیا۔',
+        'main_admin',
+        v_caller_id
+    );
+
+    -- Log in audit table
+    INSERT INTO public.complaint_audit_logs (
+        complaint_id,
+        actor_user_id,
+        action,
+        previous_state,
+        new_state,
+        details
+    )
+    VALUES (
+        p_complaint_id,
+        v_caller_id,
+        'staff_classification_review',
+        jsonb_build_object(
+            'status', 'under_review',
+            'assigned_department_id', null,
+            'predicted_department_id', v_complaint.predicted_department_id,
+            'prediction_confidence', v_complaint.prediction_confidence
+        ),
+        jsonb_build_object(
+            'status', 'assigned',
+            'assigned_department_id', p_target_department_id
+        ),
+        jsonb_build_object(
+            'target_department_id', p_target_department_id,
+            'target_department_name', v_target_dept_name,
+            'notes', p_notes
+        )
+    );
+
+    -- Securely fetch citizen notification contact from private table
+    SELECT citizen_name, citizen_email
+    INTO v_citizen_name, v_citizen_email
+    FROM public.complaint_citizen_private
+    WHERE complaint_id = p_complaint_id;
+
+    -- Queue citizen email notification in isolated outbox if citizen has an email address
+    IF v_citizen_email IS NOT NULL AND length(trim(v_citizen_email)) > 0 THEN
+        INSERT INTO public.complaint_notification_outbox (
+            complaint_id,
+            recipient_email,
+            recipient_name,
+            event_type,
+            status,
+            payload
+        )
+        VALUES (
+            p_complaint_id,
+            v_citizen_email,
+            v_citizen_name,
+            'classification_reviewed',
+            'assigned',
+            jsonb_build_object(
+                'reference_number', v_complaint.reference_number,
+                'target_department_id', p_target_department_id,
+                'target_department_name', v_target_dept_name,
+                'reviewed_at', now()
+            )
+        );
+    END IF;
+
+    RETURN jsonb_build_object(
+        'success', true,
+        'complaint_id', p_complaint_id,
+        'assigned_department_id', p_target_department_id,
+        'status', 'assigned'
+    );
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.admin_reassign_complaint(
+    p_complaint_id UUID,
+    p_new_department_id TEXT,
+    p_reason TEXT
+)
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, auth, pg_temp
+AS $$
+DECLARE
+    v_caller_id UUID := auth.uid();
+    v_complaint public.complaints%ROWTYPE;
+    v_old_department_id TEXT;
+BEGIN
+    IF NOT public.is_main_admin(v_caller_id) THEN
+        RAISE EXCEPTION 'Unauthorized: Only Main Administrators can reassign complaints.';
+    END IF;
+
+    SELECT * INTO v_complaint
+    FROM public.complaints
+    WHERE id = p_complaint_id FOR UPDATE;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Complaint not found: %', p_complaint_id;
+    END IF;
+
+    v_old_department_id := v_complaint.assigned_department_id;
+
+    IF NOT EXISTS (SELECT FROM public.departments WHERE id = p_new_department_id AND is_active) THEN
+        RAISE EXCEPTION 'Invalid target department.';
+    END IF;
+    IF v_complaint.status = 'under_review' THEN
+        RETURN public.staff_review_and_assign_complaint(p_complaint_id, p_new_department_id, p_reason)
+            || jsonb_build_object('old_department', v_old_department_id, 'new_department', p_new_department_id);
+    END IF;
+
+    -- This RPC transfers the whole complaint to a single new department.
+    UPDATE public.complaints
+    SET assigned_department_id = p_new_department_id,
+        assigned_department_ids = ARRAY[p_new_department_id],
+        is_reviewed_by_admin = true,
+        updated_at = now()
+    WHERE id = p_complaint_id;
+
+    INSERT INTO public.complaint_issues (complaint_id, department_id, issue_type, status)
+    SELECT p_complaint_id, p_new_department_id, 'reviewed_assignment',
+        CASE WHEN v_complaint.status = 'resolved' THEN 'completed'
+             WHEN v_complaint.status IN ('accepted', 'in_progress', 'rejected') THEN v_complaint.status
+             ELSE 'assigned' END
+    WHERE NOT EXISTS (SELECT FROM public.complaint_issues
+                      WHERE complaint_id = p_complaint_id AND department_id = p_new_department_id);
+
+    -- Record in timeline
+    INSERT INTO public.complaint_timeline_events (
+        complaint_id,
+        status,
+        title,
+        title_urdu,
+        description,
+        description_urdu,
+        actor_role,
+        actor_id
+    )
+    VALUES (
+        p_complaint_id,
+        v_complaint.status,
+        'Department Reassigned by Administrator',
+        'ایڈمنسٹریٹر کی جانب سے محکمہ تبدیل کیا گیا',
+        'Case rerouted from ' || v_old_department_id || ' to ' || p_new_department_id || '. Reason: ' || p_reason,
+        'شکایت دوسرے محکمے کو منتقل کر دی گئی۔ وجہ: ' || p_reason,
+        'main_admin',
+        v_caller_id
+    );
+
+    RETURN jsonb_build_object(
+        'success', true,
+        'complaint_id', p_complaint_id,
+        'old_department', v_old_department_id,
+        'new_department', p_new_department_id
+    );
+END;
+$$;

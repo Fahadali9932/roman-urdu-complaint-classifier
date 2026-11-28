@@ -494,10 +494,12 @@ class AutonomousCurriculumRealizer:
         # Realize text by length tier
         if tier == 1:
             rendered_short = base_tmpl.format(place=c_place, time="kal se").strip()
+            primary_text = rendered_short
             if level == 3 and consequence_text:
                 full_text = f"{rendered_short}, motor band hai."
             elif level == 4 and sec_text:
                 sec_short = sec_spec["variants"][0].format(place="qareeb", time="alag se").strip()
+                sec_text = sec_short
                 full_text = f"{rendered_short}, aur alag se {sec_short}."
             elif level == 5:
                 subtype = graph.metadata.get("subtype", "negation")
@@ -519,7 +521,7 @@ class AutonomousCurriculumRealizer:
                 full_text = apply_informal_noise(full_text, self.rng, probability=0.45)
 
             w_list = full_text.split()
-            if len(w_list) > 20:
+            if len(w_list) > 20 and level != 4:
                 full_text = " ".join(w_list[:19]) + "."
             elif len(w_list) < 5:
                 full_text = full_text + " Jald dekhein."
@@ -568,7 +570,7 @@ class AutonomousCurriculumRealizer:
                 full_text = f"{primary_text}. {req}."
 
             w_list = full_text.split()
-            if len(w_list) > 50:
+            if len(w_list) > 50 and level != 4:
                 full_text = " ".join(w_list[:48]) + "."
             elif len(w_list) < 21:
                 full_text = f"Hamare ilaqay {place} mein pichlay {when} se {full_text}"
@@ -629,6 +631,15 @@ class AutonomousCurriculumRealizer:
                 full_text = full_text + " Hamare pure mohallay ke hazaron afrad is faryad par daskhat kar rahe hain aur ummeed rakhte hain ke aap is par bila takheer hidayat jari farmayenge. Shukriya."
 
         # Final sanitization and double-space collapse
+        # Never truncate an independent issue to meet a cosmetic length bucket.
+        # If a long wrapper cuts either issue, fall back to the complete core.
+        if level == 4:
+            if primary_text not in full_text or (sec_text and sec_text not in full_text):
+                full_text = primary_text + (f". Alag se {sec_text}." if sec_text else ".")
+            word_count = len(full_text.split())
+            if word_count > 200:
+                raise ValueError("Multi-issue realization exceeds the 200-word limit; cannot preserve all labeled issues")
+            graph.metadata["length_tier"] = next(i for i, limit in enumerate((20, 50, 100, 150, 200), 1) if word_count <= limit)
         full_text = re.sub(r"\s+", " ", full_text).strip()
         full_text = re.sub(r"\.+", ".", full_text)
 
